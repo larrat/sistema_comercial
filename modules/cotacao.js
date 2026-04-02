@@ -1,7 +1,12 @@
-import { SB } from '../api.js';
-import { D, State, P, FORNS, CPRECOS, CCFG } from '../store.js';
+import { SB } from '../js/api.js';
+import { D, State, P, FORNS, CPRECOS, CCFG } from '../js/store.js';
 import { uid, fmt, toast } from '../core/utils.js';
-import { cotFile, confirmarMapa, renderMapaBody, setImportacaoCallbacks } from '../cotacao/importacao.js';
+import {
+  cotFile,
+  confirmarMapa,
+  renderMapaBody,
+  setImportacaoCallbacks
+} from '../cotacao/importacao.js';
 
 export function initCotacaoModule(callbacks = {}){
   setImportacaoCallbacks(callbacks);
@@ -10,8 +15,12 @@ export function initCotacaoModule(callbacks = {}){
 export function renderFornSel(){
   const s = document.getElementById('cot-forn-sel');
   if(!s) return;
+
   const cur = s.value;
-  s.innerHTML = '<option value="">— selecione —</option>' + (FORNS() || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+  s.innerHTML =
+    '<option value="">— selecione —</option>' +
+    (FORNS() || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+
   s.value = cur;
 }
 
@@ -20,6 +29,7 @@ export function renderCotLogs(){
   if(!el) return;
 
   const logs = CCFG().logs || [];
+
   if(!logs.length){
     el.innerHTML = '<div style="font-size:13px;color:var(--tx3)">Nenhuma importação ainda.</div>';
     return;
@@ -34,8 +44,9 @@ export function renderCotLogs(){
       </div>
       <div class="fg2">
         <span style="color:var(--tx3);font-size:12px">${l.data}</span>
-        <span class="bdg bg">${l.novos} novos</span>
+        <span class="bdg bg">${l.novos || 0} novos</span>
         ${l.atu ? `<span class="bdg ba">${l.atu} atualiz.</span>` : ''}
+        ${l.falhas ? `<span class="bdg br">${l.falhas} falha(s)</span>` : ''}
       </div>
     </div>
   `).join('');
@@ -43,9 +54,9 @@ export function renderCotLogs(){
 
 export function renderCotForns(){
   const el = document.getElementById('cot-forns-lista');
-  const cfors = FORNS();
-
   if(!el) return;
+
+  const cfors = FORNS();
 
   if(!cfors.length){
     el.innerHTML = `<div class="empty"><div class="ico">🏭</div><p>Nenhum fornecedor.</p></div>`;
@@ -66,7 +77,7 @@ export function renderCotForns(){
         </thead>
         <tbody>
           ${cfors.map(f => {
-            const cot2 = P().filter(p => {
+            const cotados = P().filter(p => {
               const k = p.id + '_' + f.id;
               return CPRECOS()[k] > 0;
             }).length;
@@ -76,7 +87,7 @@ export function renderCotForns(){
                 <td style="font-weight:600">${f.nome}</td>
                 <td style="color:var(--tx2)">${f.contato || '—'}</td>
                 <td>${f.prazo || '—'}</td>
-                <td><span class="bdg ${cot2 > 0 ? 'bg' : 'bk'}">${cot2}/${P().length}</span></td>
+                <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
                 <td><button class="ib" onclick="remForn('${f.id}')">✕</button></td>
               </tr>
             `;
@@ -88,7 +99,11 @@ export function renderCotForns(){
 }
 
 export async function salvarForn(){
-  const nome = document.getElementById('fn-nome').value.trim();
+  const nomeEl = document.getElementById('fn-nome');
+  const contatoEl = document.getElementById('fn-contato');
+  const prazoEl = document.getElementById('fn-prazo');
+
+  const nome = (nomeEl?.value || '').trim();
   if(!nome){
     toast('Informe o nome.');
     return;
@@ -98,8 +113,8 @@ export async function salvarForn(){
     id: uid(),
     filial_id: State.FIL,
     nome,
-    contato: document.getElementById('fn-contato').value.trim(),
-    prazo: document.getElementById('fn-prazo').value
+    contato: (contatoEl?.value || '').trim(),
+    prazo: prazoEl?.value || ''
   };
 
   try{
@@ -118,9 +133,9 @@ export async function salvarForn(){
   renderCotForns();
   renderFornSel();
 
-  document.getElementById('fn-nome').value = '';
-  document.getElementById('fn-contato').value = '';
-  document.getElementById('fn-prazo').value = '';
+  if(nomeEl) nomeEl.value = '';
+  if(contatoEl) contatoEl.value = '';
+  if(prazoEl) prazoEl.value = '';
 
   toast('Fornecedor salvo!');
 }
@@ -138,19 +153,26 @@ export async function remForn(id){
   D.fornecedores[State.FIL] = FORNS().filter(f => f.id !== id);
 
   Object.keys(CPRECOS()).forEach(k => {
-    if(k.includes('_' + id)) delete CPRECOS()[k];
+    if(k.endsWith('_' + id)) delete CPRECOS()[k];
   });
 
   renderCotForns();
   renderFornSel();
+  renderCotTabela();
+
   toast('Fornecedor removido!');
 }
 
 export function cotLock(){
   const cot = CCFG();
   cot.locked = !cot.locked;
-  document.getElementById('cot-lock-btn').textContent = cot.locked ? '🔓 Destravar' : '🔒 Travar';
-  document.getElementById('cot-lock-alert').style.display = cot.locked ? 'flex' : 'none';
+
+  const btn = document.getElementById('cot-lock-btn');
+  const alert = document.getElementById('cot-lock-alert');
+
+  if(btn) btn.textContent = cot.locked ? '🔓 Destravar' : '🔒 Travar';
+  if(alert) alert.style.display = cot.locked ? 'flex' : 'none';
+
   renderCotTabela();
   toast(cot.locked ? 'Cotação travada!' : 'Destravada.');
 }
@@ -176,7 +198,19 @@ export function renderCotTabela(){
   const fTot = {};
   forns.forEach(f => fTot[f.id] = 0);
 
-  let html = `<div class="tw"><table class="tbl"><thead><tr><th>Produto</th><th>Un</th>${forns.map(f => `<th style="text-align:right">${f.nome}</th>`).join('')}<th style="text-align:center">Melhor</th></tr></thead><tbody>`;
+  let html = `
+    <div class="tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Un</th>
+            ${forns.map(f => `<th style="text-align:right">${f.nome}</th>`).join('')}
+            <th style="text-align:center">Melhor</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
 
   prods.forEach(p => {
     const prices = forns.map(f => {
@@ -205,11 +239,13 @@ export function renderCotTabela(){
       const bg = isBest ? 'background:var(--gbg)' : isWorst ? 'background:var(--rbg)' : '';
 
       html += `<td style="text-align:right;${bg}">`;
+
       if(cot.locked){
         html += val !== null && val > 0 ? fmt(val) : '—';
-      }else{
+      } else {
         html += `<input class="inp" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" onchange="updPreco('${p.id}','${f.id}',this.value)">`;
       }
+
       html += `</td>`;
     });
 
@@ -219,15 +255,25 @@ export function renderCotTabela(){
   const allTot = Object.values(fTot).filter(v => v > 0);
   const bestTot = allTot.length ? Math.min(...allTot) : null;
 
-  html += `<tr style="font-weight:600;border-top:1px solid var(--bd)"><td colspan="2" style="color:var(--tx2)">Total</td>${forns.map(f => {
-    const t = fTot[f.id];
-    const isBest = t > 0 && t === bestTot && allTot.length > 1;
-    return `<td style="text-align:right;font-weight:600;${isBest ? 'background:var(--gbg)' : ''}">${fmt(t)}</td>`;
-  }).join('')}<td></td></tr></tbody></table></div>`;
+  html += `
+      <tr style="font-weight:600;border-top:1px solid var(--bd)">
+        <td colspan="2" style="color:var(--tx2)">Total</td>
+        ${forns.map(f => {
+          const t = fTot[f.id];
+          const isBest = t > 0 && t === bestTot && allTot.length > 1;
+          return `<td style="text-align:right;font-weight:600;${isBest ? 'background:var(--gbg)' : ''}">${fmt(t)}</td>`;
+        }).join('')}
+        <td></td>
+      </tr>
+    </tbody></table></div>
+  `;
 
   el.innerHTML = html;
 
-  const pct2 = prods.length * forns.length ? Math.round(filled / (prods.length * forns.length) * 100) : 0;
+  const pct2 = prods.length * forns.length
+    ? Math.round(filled / (prods.length * forns.length) * 100)
+    : 0;
+
   let bestForn = null;
   if(bestTot !== null){
     Object.entries(fTot).forEach(([fid, t]) => {
@@ -250,8 +296,8 @@ export function updPreco(pid, fid, val){
   const k = pid + '_' + fid;
   const v = parseFloat(val);
 
-  if(!isNaN(v) && v >= 0) cot.precos[k] = v;
-  else delete cot.precos[k];
+  if(!isNaN(v) && v >= 0) CPRECOS()[k] = v;
+  else delete CPRECOS()[k];
 
   renderCotTabela();
 }
