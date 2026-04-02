@@ -4,8 +4,8 @@ export function findHeaderIndexByExactName(headers, target){
   const t = String(target || '').trim().toLowerCase();
   if(!t) return -1;
 
-  return headers.findIndex(h =>
-    String(h.label || '').trim().toLowerCase() === t
+  return headers.findIndex(
+    h => String(h.label || '').trim().toLowerCase() === t
   );
 }
 
@@ -17,13 +17,13 @@ export function findHeaderIndexBySavedName(headers, saved){
 
   const s = String(saved).trim().toLowerCase();
 
-  idx = headers.findIndex(h =>
-    String(h.label || '').trim().toLowerCase().includes(s)
+  idx = headers.findIndex(
+    h => String(h.label || '').trim().toLowerCase().includes(s)
   );
   if(idx >= 0) return idx;
 
-  idx = headers.findIndex(h =>
-    s.includes(String(h.label || '').trim().toLowerCase())
+  idx = headers.findIndex(
+    h => s.includes(String(h.label || '').trim().toLowerCase())
   );
 
   return idx;
