@@ -1,5 +1,5 @@
-import { SB } from '../api.js';
-import { D, State, P, FORNS, CPRECOS, CCFG } from '../store.js';
+import { SB } from '../js/api.js';
+import { D, State, P, FORNS, CPRECOS, CCFG } from '../js/store.js';
 import { uid, norm, toast, abrirModal, fecharModal, chunkArray } from '../core/utils.js';
 import { detectarCabecalho, scoreSheet, normalizarNumeroBR, colunaTemValoresNumericos } from './parsing.js';
 import { applySavedLayoutToSheet, getSelectedHeaderName } from './layout.js';
@@ -10,21 +10,6 @@ export function getMapaSheetAtual(){
   const sel = document.getElementById('map-sheet');
   const idx = sel ? parseInt(sel.value || '0', 10) : (ctx.sheetIdx || 0);
   return (ctx.sheets || [])[idx] || null;
-}
-
-function getHeadersForCurrentSheet(sheet){
-  const rows = sheet?.rows || [];
-  const startIdx = detectarCabecalho(rows);
-
-  return (rows[startIdx] || []).map((h, i) => ({
-    label: String(h || ('Col ' + (i + 1))),
-    idx: i
-  }));
-}
-
-function chunkedUpsertRunner(items, chunkSize, runner){
-  const lotes = chunkArray(items, chunkSize);
-  return Promise.all(lotes.map(lote => runner(lote)));
 }
 
 async function upsertProdutosEmLote(items, chunkSize = 150){
@@ -50,6 +35,7 @@ async function upsertCotHistoricoEmLote(items, chunkSize = 250){
 
 export function renderMapaBody(){
   const ctx = State._mapaCtx;
+
   if(!ctx || !ctx.sheets || !ctx.sheets.length){
     document.getElementById('mapa-body').innerHTML = '<p>Nenhuma aba encontrada.</p>';
     return;
@@ -221,7 +207,9 @@ export async function abrirMapaModal(ctx){
   let sheetIdx = typeof ctx.sheetIdx === 'number' ? ctx.sheetIdx : 0;
 
   if(layoutSalvo && ctx.sheets?.length){
-    const idxByName = ctx.sheets.findIndex(s => String(s.name || '').trim().toLowerCase() === String(layoutSalvo.sheet_name || '').trim().toLowerCase());
+    const idxByName = ctx.sheets.findIndex(
+      s => String(s.name || '').trim().toLowerCase() === String(layoutSalvo.sheet_name || '').trim().toLowerCase()
+    );
     if(idxByName >= 0){
       sheetIdx = idxByName;
     }
@@ -316,6 +304,16 @@ export function cotFile(e){
   reader.readAsArrayBuffer(file);
 }
 
+let renderCotLogsSafe = () => {};
+let renderProdMetSafe = () => {};
+let renderProdutosSafe = () => {};
+
+export function setImportacaoCallbacks(callbacks = {}){
+  renderCotLogsSafe = callbacks.renderCotLogs || (() => {});
+  renderProdMetSafe = callbacks.renderProdMet || (() => {});
+  renderProdutosSafe = callbacks.renderProdutos || (() => {});
+}
+
 export async function confirmarMapa(){
   const ctx = State._mapaCtx;
   const sheetSel = document.getElementById('map-sheet');
@@ -366,6 +364,7 @@ export async function confirmarMapa(){
 
   const produtosAtuais = P();
   const produtosPorNome = new Map();
+
   produtosAtuais.forEach(p => {
     produtosPorNome.set(norm(p.nome), p);
     if(p.descricao_padrao) produtosPorNome.set(norm(p.descricao_padrao), p);
@@ -398,20 +397,30 @@ export async function confirmarMapa(){
 
       if(!nomeOriginal || nomeOriginal.toUpperCase() === 'DESCRIÇÃO' || nomeOriginal.toUpperCase() === 'DESCRICAO'){
         ignorados++;
-        if(ignoradosExemplos.length < 8) ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Linha sem descrição válida', nome: nomeOriginal });
+        if(ignoradosExemplos.length < 8){
+          ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Linha sem descrição válida', nome: nomeOriginal });
+        }
         continue;
       }
 
-      if(nomeOriginal.toUpperCase().includes('PROMOÇÕES') || nomeOriginal.toUpperCase().includes('PROMOCOES') || nomeOriginal.toUpperCase().includes('COMBO')){
+      if(
+        nomeOriginal.toUpperCase().includes('PROMOÇÕES') ||
+        nomeOriginal.toUpperCase().includes('PROMOCOES') ||
+        nomeOriginal.toUpperCase().includes('COMBO')
+      ){
         ignorados++;
-        if(ignoradosExemplos.length < 8) ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Linha de combo/promoção ignorada', nome: nomeOriginal });
+        if(ignoradosExemplos.length < 8){
+          ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Linha de combo/promoção ignorada', nome: nomeOriginal });
+        }
         continue;
       }
 
       const precoLiq = normalizarNumeroBR(row[pIdx]);
       if(precoLiq <= 0){
         ignorados++;
-        if(ignoradosExemplos.length < 8) ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Preço líquido inválido ou zerado', nome: nomeOriginal });
+        if(ignoradosExemplos.length < 8){
+          ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Preço líquido inválido ou zerado', nome: nomeOriginal });
+        }
         continue;
       }
 
@@ -473,9 +482,20 @@ export async function confirmarMapa(){
 
         const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
         if(histIdx >= 0){
-          prod.hist_cot[histIdx] = { ...prod.hist_cot[histIdx], preco: precoLiq, tabela: precoTabela, desconto: percDesconto };
+          prod.hist_cot[histIdx] = {
+            ...prod.hist_cot[histIdx],
+            preco: precoLiq,
+            tabela: precoTabela,
+            desconto: percDesconto
+          };
         } else {
-          prod.hist_cot.push({ mes: mesCotacao, forn: forn.nome, preco: precoLiq, tabela: precoTabela, desconto: percDesconto });
+          prod.hist_cot.push({
+            mes: mesCotacao,
+            forn: forn.nome,
+            preco: precoLiq,
+            tabela: precoTabela,
+            desconto: percDesconto
+          });
         }
 
         atualizados++;
@@ -519,13 +539,21 @@ export async function confirmarMapa(){
       }
     }catch(e){
       falhas++;
-      if(ignoradosExemplos.length < 8) ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Erro ao processar linha', nome: '' });
+      if(ignoradosExemplos.length < 8){
+        ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Erro ao processar linha', nome: '' });
+      }
       console.error('Erro ao preparar linha para importação', { linha: start + i + 1, e });
     }
   }
 
   if(!produtosParaSalvar.length && !cotPrecosParaSalvar.length && !cotHistoricoParaSalvar.length){
-    renderImportResumo({ novos: 0, atualizados: 0, ignorados, falhas, ignoradosExemplos });
+    renderImportResumo({
+      novos: 0,
+      atualizados: 0,
+      ignorados,
+      falhas,
+      ignoradosExemplos
+    });
     toast('Nenhum item válido encontrado para importar.');
     resetImportProgress();
     return;
@@ -560,7 +588,13 @@ export async function confirmarMapa(){
   }catch(e){
     console.error('Erro no upsert em lote', e);
     falhas++;
-    renderImportResumo({ novos, atualizados, ignorados, falhas, ignoradosExemplos });
+    renderImportResumo({
+      novos,
+      atualizados,
+      ignorados,
+      falhas,
+      ignoradosExemplos
+    });
     toast('Erro ao salvar importação em lote: ' + e.message);
     return;
   }
@@ -588,7 +622,13 @@ export async function confirmarMapa(){
     console.error('Erro ao salvar log de cotação', e);
   }
 
-  renderImportResumo({ novos, atualizados, ignorados, falhas, ignoradosExemplos });
+  renderImportResumo({
+    novos,
+    atualizados,
+    ignorados,
+    falhas,
+    ignoradosExemplos
+  });
 
   renderCotLogsSafe();
   renderProdMetSafe();
@@ -604,14 +644,4 @@ export async function confirmarMapa(){
   } else {
     toast(`✓ ${novos} novos produtos, ${atualizados} atualizados, ${ignorados} ignorados`);
   }
-}
-
-let renderCotLogsSafe = () => {};
-let renderProdMetSafe = () => {};
-let renderProdutosSafe = () => {};
-
-export function setImportacaoCallbacks(callbacks = {}){
-  renderCotLogsSafe = callbacks.renderCotLogs || (() => {});
-  renderProdMetSafe = callbacks.renderProdMet || (() => {});
-  renderProdutosSafe = callbacks.renderProdutos || (() => {});
 }
