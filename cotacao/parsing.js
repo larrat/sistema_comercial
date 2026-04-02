@@ -78,6 +78,7 @@ export function scoreSheet(rows, name){
 
 export function colunaTemValoresNumericos(rows, colIdx, startIdx = 0, sampleSize = 12){
   if(colIdx < 0) return false;
+
   const amostra = rows.slice(startIdx, startIdx + sampleSize);
   let validos = 0;
 
