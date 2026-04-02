@@ -718,6 +718,46 @@ function normalizarNumeroBR(v){
   return isNaN(n) ? 0 : n;
 }
 
+function chunkArray(arr, size = 200){
+  const out = [];
+  for(let i = 0; i < arr.length; i += size){
+    out.push(arr.slice(i, i + size));
+  }
+  return out;
+}
+
+async function upsertProdutosEmLote(items, chunkSize = 200){
+  const lotes = chunkArray(items, chunkSize);
+  for(const lote of lotes){
+    await SB.upsertProdutosLote(lote);
+  }
+}
+
+async function upsertCotPrecosEmLote(items, chunkSize = 300){
+  const lotes = chunkArray(items, chunkSize);
+  for(const lote of lotes){
+    await SB.upsertCotPrecosLote(lote);
+  }
+}
+
+async function upsertCotHistoricoEmLote(items, chunkSize = 300){
+  const lotes = chunkArray(items, chunkSize);
+  for(const lote of lotes){
+    await SB.upsertCotHistoricoLote(lote);
+  }
+}
+
+function colunaTemValoresNumericos(rows, colIdx, startIdx = 0, sampleSize = 12){
+  if(colIdx < 0) return false;
+  const amostra = rows.slice(startIdx, startIdx + sampleSize);
+  let validos = 0;
+  for(const row of amostra){
+    const n = normalizarNumeroBR(row[colIdx]);
+    if(n > 0) validos++;
+  }
+  return validos > 0;
+}
+
 function getMapaSheetAtual(){
   const ctx = State._mapaCtx || {};
   const sel = document.getElementById('map-sheet');
@@ -902,117 +942,141 @@ async function confirmarMapa(){
     return;
   }
 
+  if(!colunaTemValoresNumericos(rows, pIdx, start, 12)){
+    toast('A coluna escolhida para Valor Un Líq não possui valores numéricos válidos.');
+    return;
+  }
+
   const forn = ctx.forn;
   const linhas = rows.slice(start);
 
   if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
   if(!D.cotPrecos[State.FIL]) D.cotPrecos[State.FIL] = {};
 
+  const produtosAtuais = P();
+  const produtosPorNome = new Map();
+  produtosAtuais.forEach(p => {
+    produtosPorNome.set(norm(p.nome), p);
+    if(p.descricao_padrao) produtosPorNome.set(norm(p.descricao_padrao), p);
+  });
+
   let novos = 0;
   let atu = 0;
   let falhas = 0;
-    for(let i = 0; i < linhas.length; i++){
-    const row = linhas[i];
 
-    const nomeOriginal = String(row[nIdx] || '').trim();
-    if(
-      !nomeOriginal ||
-      nomeOriginal.toUpperCase() === 'DESCRIÇÃO' ||
-      nomeOriginal.toUpperCase() === 'DESCRICAO' ||
-      nomeOriginal.toUpperCase().includes('PROMOÇÕES') ||
-      nomeOriginal.toUpperCase().includes('PROMOCOES') ||
-      nomeOriginal.toUpperCase().includes('COMBO')
-    ){
-      continue;
-    }
+  const produtosParaSalvar = [];
+  const cotPrecosParaSalvar = [];
+  const cotHistoricoParaSalvar = [];
 
-    const precoLiq = normalizarNumeroBR(row[pIdx]);
-    if(precoLiq <= 0) continue;
+  const produtosMarcados = new Set();
+  const historicoMarcado = new Set();
 
-    const categoria = cIdx >= 0 ? String(row[cIdx] || '').trim() : '';
-    const precoTabela = tIdx >= 0 ? normalizarNumeroBR(row[tIdx]) : null;
-    const percDesconto = dIdx >= 0 ? normalizarNumeroBR(row[dIdx]) : null;
-
-    let prod = P().find(p =>
-      norm(p.nome) === norm(nomeOriginal) ||
-      norm(p.descricao_padrao || '') === norm(nomeOriginal)
-    );
-
-    if(!prod){
-      prod = {
-        id: uid(),
-        filial_id: State.FIL,
-        nome: nomeOriginal,
-        sku: '',
-        un: 'un',
-        unidade: 'un',
-        cat: categoria,
-        categoria: categoria,
-        descricao_padrao: nomeOriginal,
-        codigo_fornecedor: null,
-        codigo_barras: null,
-        custo: precoLiq,
-        ecm: precoLiq,
-        mkv: 0,
-        mka: 0,
-        pfa: 0,
-        dv: 0,
-        da: 0,
-        qtmin: 0,
-        emin: 0,
-        esal: 0,
-        hist_cot: [{
-          mes: mesCotacao,
-          forn: forn.nome,
-          preco: precoLiq,
-          tabela: precoTabela,
-          desconto: percDesconto
-        }]
-      };
-
-      D.produtos[State.FIL].push(prod);
-      novos++;
-    } else {
-      if(!prod.hist_cot) prod.hist_cot = [];
-
-      if(categoria){
-        if('cat' in prod && !prod.cat) prod.cat = categoria;
-        if('categoria' in prod && !prod.categoria) prod.categoria = categoria;
-        if(!('cat' in prod) && !('categoria' in prod)) prod.cat = categoria;
-      }
-
-      if(!prod.descricao_padrao) prod.descricao_padrao = nomeOriginal;
-      prod.custo = precoLiq;
-      prod.ecm = precoLiq;
-
-      const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
-      if(histIdx >= 0){
-        prod.hist_cot[histIdx] = {
-          ...prod.hist_cot[histIdx],
-          preco: precoLiq,
-          tabela: precoTabela,
-          desconto: percDesconto
-        };
-      } else {
-        prod.hist_cot.push({
-          mes: mesCotacao,
-          forn: forn.nome,
-          preco: precoLiq,
-          tabela: precoTabela,
-          desconto: percDesconto
-        });
-      }
-
-      atu++;
-    }
-
+  for(let i = 0; i < linhas.length; i++){
     try{
-      await SB.upsertProduto(prod);
+      const row = linhas[i];
+      const nomeOriginal = String(row[nIdx] || '').trim();
+
+      if(
+        !nomeOriginal ||
+        nomeOriginal.toUpperCase() === 'DESCRIÇÃO' ||
+        nomeOriginal.toUpperCase() === 'DESCRICAO' ||
+        nomeOriginal.toUpperCase().includes('PROMOÇÕES') ||
+        nomeOriginal.toUpperCase().includes('PROMOCOES') ||
+        nomeOriginal.toUpperCase().includes('COMBO')
+      ){
+        continue;
+      }
+
+      const precoLiq = normalizarNumeroBR(row[pIdx]);
+      if(precoLiq <= 0) continue;
+
+      const categoria = cIdx >= 0 ? String(row[cIdx] || '').trim() : '';
+      const precoTabela = tIdx >= 0 ? normalizarNumeroBR(row[tIdx]) : null;
+      const percDesconto = dIdx >= 0 ? normalizarNumeroBR(row[dIdx]) : null;
+
+      const nomeKey = norm(nomeOriginal);
+
+      let prod = produtosPorNome.get(nomeKey) || null;
+
+      if(!prod){
+        prod = {
+          id: uid(),
+          filial_id: State.FIL,
+          nome: nomeOriginal,
+          sku: '',
+          un: 'un',
+          unidade: 'un',
+          cat: categoria,
+          categoria: categoria,
+          descricao_padrao: nomeOriginal,
+          codigo_fornecedor: null,
+          codigo_barras: null,
+          custo: precoLiq,
+          ecm: precoLiq,
+          mkv: 0,
+          mka: 0,
+          pfa: 0,
+          dv: 0,
+          da: 0,
+          qtmin: 0,
+          emin: 0,
+          esal: 0,
+          hist_cot: [{
+            mes: mesCotacao,
+            forn: forn.nome,
+            preco: precoLiq,
+            tabela: precoTabela,
+            desconto: percDesconto
+          }]
+        };
+
+        D.produtos[State.FIL].push(prod);
+        produtosPorNome.set(nomeKey, prod);
+        produtosPorNome.set(norm(prod.descricao_padrao || ''), prod);
+        novos++;
+      } else {
+        if(!prod.hist_cot) prod.hist_cot = [];
+
+        if(categoria){
+          if('cat' in prod && !prod.cat) prod.cat = categoria;
+          if('categoria' in prod && !prod.categoria) prod.categoria = categoria;
+          if(!('cat' in prod) && !('categoria' in prod)) prod.cat = categoria;
+        }
+
+        if(!prod.descricao_padrao) prod.descricao_padrao = nomeOriginal;
+        prod.custo = precoLiq;
+        prod.ecm = precoLiq;
+
+        const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
+        if(histIdx >= 0){
+          prod.hist_cot[histIdx] = {
+            ...prod.hist_cot[histIdx],
+            preco: precoLiq,
+            tabela: precoTabela,
+            desconto: percDesconto
+          };
+        } else {
+          prod.hist_cot.push({
+            mes: mesCotacao,
+            forn: forn.nome,
+            preco: precoLiq,
+            tabela: precoTabela,
+            desconto: percDesconto
+          });
+        }
+
+        atu++;
+      }
+
+      if(!produtosMarcados.has(prod.id)){
+        produtosParaSalvar.push(prod);
+        produtosMarcados.add(prod.id);
+      }
 
       const k = prod.id + '_' + forn.id;
       CPRECOS()[k] = precoLiq;
 
-      await SB.upsertCotPreco({
+      cotPrecosParaSalvar.push({
         filial_id: State.FIL,
         produto_id: prod.id,
         fornecedor_id: forn.id,
@@ -1023,23 +1087,42 @@ async function confirmarMapa(){
         arquivo_origem: ctx.filename
       });
 
-      await SB.upsertCotHistorico({
-        filial_id: State.FIL,
-        produto_id: prod.id,
-        fornecedor_id: forn.id,
-        mes_ref: `${mesCotacao}-01`,
-        descricao_importada: nomeOriginal,
-        categoria_importada: categoria || null,
-        preco_tabela: precoTabela,
-        perc_desconto: percDesconto,
-        preco_liquido: precoLiq,
-        arquivo_origem: ctx.filename,
-        linha_origem: start + i + 1
-      });
+      const histKey = `${State.FIL}|${prod.id}|${forn.id}|${mesCotacao}`;
+      if(!historicoMarcado.has(histKey)){
+        cotHistoricoParaSalvar.push({
+          filial_id: State.FIL,
+          produto_id: prod.id,
+          fornecedor_id: forn.id,
+          mes_ref: `${mesCotacao}-01`,
+          descricao_importada: nomeOriginal,
+          categoria_importada: categoria || null,
+          preco_tabela: precoTabela,
+          perc_desconto: percDesconto,
+          preco_liquido: precoLiq,
+          arquivo_origem: ctx.filename,
+          linha_origem: start + i + 1
+        });
+        historicoMarcado.add(histKey);
+      }
     }catch(e){
       falhas++;
-      console.error('Erro ao importar linha', { linha: start + i + 1, nomeOriginal, e });
+      console.error('Erro ao preparar linha para importação', { linha: start + i + 1, e });
     }
+  }
+
+  if(!produtosParaSalvar.length && !cotPrecosParaSalvar.length && !cotHistoricoParaSalvar.length){
+    toast('Nenhum item válido encontrado para importar.');
+    return;
+  }
+
+  try{
+    await upsertProdutosEmLote(produtosParaSalvar, 150);
+    await upsertCotPrecosEmLote(cotPrecosParaSalvar, 250);
+    await upsertCotHistoricoEmLote(cotHistoricoParaSalvar, 250);
+  }catch(e){
+    console.error('Erro no upsert em lote', e);
+    toast('Erro ao salvar importação em lote: ' + e.message);
+    return;
   }
 
   const logs = CCFG().logs || [];

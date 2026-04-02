@@ -39,6 +39,15 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
 }
 
 export const SB = {
+  
+    upsertProdutosLote: items => sbReq('produtos', 'POST', items, '?on_conflict=id'),
+
+  upsertCotPrecosLote: items =>
+    sbReq('cotacao_precos', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id'),
+
+  upsertCotHistoricoLote: items =>
+    sbReq('cotacao_historico', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'),
+
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: id => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
