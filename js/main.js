@@ -1,7 +1,27 @@
 import { SB } from './api.js';
 import { D, State, P, C, PD, FORNS, CPRECOS, CCFG, MOVS } from './store.js';
+import {
+  initCotacaoModule,
+  renderFornSel,
+  renderCotLogs,
+  renderCotForns,
+  renderCotTabela,
+  salvarForn,
+  remForn,
+  cotLock,
+  updPreco,
+  cotFile,
+  confirmarMapa,
+  renderMapaBody
+} from '../modules/cotacao.js';
 
 function uid(){return Date.now()+'-'+Math.random().toString(36).slice(2,8);}
+initCotacaoModule({
+  renderCotLogs,
+  renderProdMet: () => renderProdMet(),
+  renderProdutos: () => renderProdutos()
+});
+
 
 function showLoading(on){
   let el=document.getElementById('sb-loading');
@@ -217,6 +237,7 @@ function renderDashFilSel(){
   s.innerHTML='<option value="todas">Todas as filiais</option>'+D.filiais.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
   s.value=cur||'todas';
 }
+
 function renderDash(){
   const fsel=document.getElementById('dash-fil')?.value||'todas';
   const range=getRange();
@@ -384,6 +405,7 @@ async function removerProd(id){
   renderProdMet();renderProdutos();toast('Removido.');
 }
 function refreshProdSel(){const s=document.getElementById('pi-prod');const cur=s.value;s.innerHTML='<option value="">— selecione —</option>'+P().map(p=>`<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');s.value=cur;}
+
 const AVC=[{bg:'#E6EEF9',c:'#0F2F5E'},{bg:'#E6F4EC',c:'#0D3D22'},{bg:'#FAF0D6',c:'#5C3900'},{bg:'#FAEBE9',c:'#731F18'}];
 function avc(n){return AVC[n.charCodeAt(0)%AVC.length];}
 function ini(n){const p=n.trim().split(' ');return(p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
@@ -536,812 +558,11 @@ function verPed(id){
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn" onclick="fecharModal('modal-ped-det')">Fechar</button><button class="btn btn-p" onclick="fecharModal('modal-ped-det');editarPed('${p.id}')">Editar</button></div>`;
   abrirModal('modal-ped-det');
 }
-function renderFornSel(){
-  const s=document.getElementById('cot-forn-sel');const cur=s.value;
-  s.innerHTML='<option value="">— selecione —</option>'+(FORNS()||[]).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
-  s.value=cur;
-}
 
-function renderCotLogs(){
-  const el = document.getElementById('cot-logs');
-  const logs = CCFG().logs || [];
-  if(!logs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3)">Nenhuma importação ainda.</div>';return;}
-  el.innerHTML = logs.map(l => `
-    <div class="fb" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap">
-      <div>
-        <span style="font-weight:600">${l.arquivo}</span>
-        <span class="bdg bb" style="margin-left:6px">${l.forn}</span>
-        ${l.mes ? `<span class="bdg bk" style="margin-left:6px" title="Mês de Referência">📅 ${l.mes.split('-').reverse().join('/')}</span>` : ''}
-      </div>
-      <div class="fg2">
-        <span style="color:var(--tx3);font-size:12px">${l.data}</span>
-        <span class="bdg bg">${l.novos} novos</span>
-        ${l.atu ? `<span class="bdg ba">${l.atu} atualiz.</span>` : ''}
-      </div>
-    </div>`).join('');
-}
-
-function setImportProgress(percent = 0, text = ''){
-  const wrap = document.getElementById('map-progress-wrap');
-  const bar = document.getElementById('map-progress-bar');
-  const lbl = document.getElementById('map-progress-text');
-
-  if(!wrap || !bar || !lbl) return;
-
-  wrap.style.display = 'block';
-  bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
-  lbl.textContent = text || `${percent}%`;
-}
-
-function resetImportProgress(){
-  const wrap = document.getElementById('map-progress-wrap');
-  const bar = document.getElementById('map-progress-bar');
-  const lbl = document.getElementById('map-progress-text');
-  const resumo = document.getElementById('map-resumo');
-
-  if(wrap) wrap.style.display = 'none';
-  if(bar) bar.style.width = '0%';
-  if(lbl) lbl.textContent = '';
-  if(resumo) resumo.innerHTML = '';
-}
-
-function renderImportResumo(resumo){
-  const el = document.getElementById('map-resumo');
-  if(!el) return;
-
-  const ignoradosHtml = (resumo.ignoradosExemplos || []).length
-    ? `
-      <div style="margin-top:10px">
-        <div class="fl">Exemplos de linhas ignoradas</div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-          ${resumo.ignoradosExemplos.map(x => `
-            <div style="font-size:12px;color:var(--tx2);padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--surf2)">
-              <b>Linha ${x.linha}</b> — ${x.motivo}${x.nome ? ` <span style="color:var(--tx3)">(${x.nome})</span>` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `
-    : '';
-
-  el.innerHTML = `
-    <div class="panel" style="margin-top:12px">
-      <div class="pt">Resumo da Importação</div>
-      <div class="fg c2" style="margin-top:8px">
-        <div class="met"><div class="ml">Novos</div><div class="mv">${resumo.novos || 0}</div></div>
-        <div class="met"><div class="ml">Atualizados</div><div class="mv">${resumo.atualizados || 0}</div></div>
-        <div class="met"><div class="ml">Ignorados</div><div class="mv">${resumo.ignorados || 0}</div></div>
-        <div class="met"><div class="ml">Falhas</div><div class="mv">${resumo.falhas || 0}</div></div>
-      </div>
-      ${ignoradosHtml}
-    </div>
-  `;
-}
-
-function validarPreImportacao(rows, start, nomeIdx, precoIdx){
-  const erros = [];
-
-  if(nomeIdx < 0 || isNaN(nomeIdx)) erros.push('Selecione a coluna de Descrição.');
-  if(precoIdx < 0 || isNaN(precoIdx)) erros.push('Selecione a coluna de Valor Un Líq.');
-
-  if(erros.length) return { ok: false, erros };
-
-  const amostra = rows.slice(start, start + 20);
-
-  let nomesValidos = 0;
-  let precosValidos = 0;
-
-  for(const row of amostra){
-    const nome = String(row[nomeIdx] || '').trim();
-    const preco = normalizarNumeroBR(row[precoIdx]);
-
-    if(nome && nome.length >= 3) nomesValidos++;
-    if(preco > 0) precosValidos++;
-  }
-
-  if(nomesValidos === 0) erros.push('A coluna de descrição escolhida não possui textos válidos na amostra.');
-  if(precosValidos === 0) erros.push('A coluna de preço escolhida não possui números válidos na amostra.');
-
-  return {
-    ok: erros.length === 0,
-    erros,
-    nomesValidos,
-    precosValidos
-  };
-}
-
-function pareceAbaDeCombo(sheet){
-  const nome = String(sheet?.name || '').toUpperCase();
-  const rows = sheet?.rows || [];
-  const startIdx = detectarCabecalho(rows);
-  const header = (rows[startIdx] || []).map(c => String(c || '').toUpperCase()).join(' | ');
-
-  return (
-    nome.includes('COMBO') ||
-    nome.includes('KIT') ||
-    header.includes('KIT 1') ||
-    header.includes('KIT 2') ||
-    header.includes('COMBO')
-  );
-}
-
-// ======================================================
-// ETAPA 1 - PERFORMANCE E ESCOLHA INTELIGENTE DE ABA
-// ======================================================
-
-function detectarCabecalho(rows){
-  let startIdx = 0;
-  for(let i = 0; i < Math.min(80, rows.length); i++){
-    const row = rows[i].map(c => String(c || '').toUpperCase());
-    const joined = row.join(' | ');
-    if(
-      joined.includes('DESCRIÇÃO') ||
-      joined.includes('DESCRICAO') ||
-      joined.includes('VALOR UN LIQ') ||
-      joined.includes('VALOR UN') ||
-      joined.includes('PREÇO') ||
-      joined.includes('PRECO')
-    ){
-      startIdx = i;
-      break;
-    }
-  }
-  return startIdx;
-}
-
-function scoreSheetByName(name){
-  const n = String(name || '').toUpperCase();
-  let score = 0;
-
-  if(n.includes('PEDIDO')) score += 20;
-  if(n.includes('COTA') || n.includes('COTACAO')) score += 10;
-
-  if(n.includes('COMBO')) score -= 8;
-  if(n.includes('KIT')) score -= 8;
-  if(n.includes('APRESENTAÇÃO') || n.includes('APRESENTACAO')) score -= 10;
-
-  return score;
-}
-
-function scoreSheet(rows, name){
-  if(!rows?.length) return -999;
-
-  const startIdx = detectarCabecalho(rows);
-  const header = (rows[startIdx] || []).map(c => String(c || '').toUpperCase());
-  const joined = header.join(' | ');
-
-  let score = scoreSheetByName(name);
-
-  if(joined.includes('DESCRIÇÃO') || joined.includes('DESCRICAO')) score += 15;
-  if(joined.includes('VALOR UN LIQ')) score += 20;
-  if(joined.includes('CATEGORIA')) score += 8;
-  if(joined.includes('TABELA')) score += 8;
-  if(joined.includes('% DESCONTO')) score += 8;
-  if(joined.includes('CÓDIGO AUXILIAR') || joined.includes('CODIGO AUXILIAR')) score += 6;
-  if(joined.includes('VALOR TOTAL LÍQUIDO') || joined.includes('VALOR TOTAL LIQUIDO')) score += 4;
-
-  if(joined.includes('KIT 1')) score -= 15;
-  if(joined.includes('KIT 2')) score -= 15;
-  if(joined.includes('COMBO')) score -= 12;
-
-  return score;
-}
-
-function cotFile(e){
-  const file = e.target.files[0];
-  e.target.value = '';
-  if(!file) return;
-
-  const fid = document.getElementById('cot-forn-sel').value;
-  if(!fid){
-    toast('Selecione um fornecedor primeiro.');
-    return;
-  }
-
-  const forn = (FORNS() || []).find(f => f.id === fid);
-  const reader = new FileReader();
-
-  reader.onload = ev => {
-    try{
-      if(file.name.toLowerCase().endsWith('.csv')){
-        const text = new TextDecoder().decode(ev.target.result);
-        const rows = text
-          .split('\n')
-          .map(r => r.split(/[;,\t]/).map(c => c.trim().replace(/^"|"$/g,'')))
-          .filter(r => r.some(c => String(c).trim() !== ''));
-
-        if(rows.length < 2){
-          toast('Planilha vazia.');
-          return;
-        }
-
-        abrirMapaModal({
-          forn,
-          filename: file.name,
-          sheets: [{
-            name: 'CSV',
-            rows,
-            score: scoreSheet(rows, 'CSV')
-          }],
-          sheetIdx: 0
-        });
-        return;
-      }
-
-      const wb = XLSX.read(ev.target.result, { type: 'array' });
-
-      const sheets = wb.SheetNames.map(name => {
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], {
-          header: 1,
-          defval: ''
-        }).filter(r => r.some(c => String(c).trim() !== ''));
-
-        return {
-          name,
-          rows,
-          score: scoreSheet(rows, name)
-        };
-      }).filter(s => s.rows.length);
-
-      if(!sheets.length){
-        toast('Planilha vazia.');
-        return;
-      }
-
-      sheets.sort((a, b) => b.score - a.score);
-
-      abrirMapaModal({
-        forn,
-        filename: file.name,
-        sheets,
-        sheetIdx: 0
-      });
-    }catch(err){
-      console.error(err);
-      toast('Erro ao ler o arquivo.');
-    }
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-function normalizarNumeroBR(v){
-  let s = String(v ?? '').trim();
-  if(!s) return 0;
-
-  s = s.replace(/\u00A0/g, ' ');
-  s = s.replace(/[R$\s%]/g, '');
-
-  if(s.includes('.') && s.includes(',')){
-    s = s.replace(/\./g, '').replace(',', '.');
-  } else if(s.includes(',')) {
-    s = s.replace(',', '.');
-  }
-
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-}
-
-function chunkArray(arr, size = 200){
-  const out = [];
-  for(let i = 0; i < arr.length; i += size){
-    out.push(arr.slice(i, i + size));
-  }
-  return out;
-}
-
-async function upsertProdutosEmLote(items, chunkSize = 200){
-  const lotes = chunkArray(items, chunkSize);
-  for(const lote of lotes){
-    await SB.upsertProdutosLote(lote);
-  }
-}
-
-async function upsertCotPrecosEmLote(items, chunkSize = 300){
-  const lotes = chunkArray(items, chunkSize);
-  for(const lote of lotes){
-    await SB.upsertCotPrecosLote(lote);
-  }
-}
-
-async function upsertCotHistoricoEmLote(items, chunkSize = 300){
-  const lotes = chunkArray(items, chunkSize);
-  for(const lote of lotes){
-    await SB.upsertCotHistoricoLote(lote);
-  }
-}
-
-function colunaTemValoresNumericos(rows, colIdx, startIdx = 0, sampleSize = 12){
-  if(colIdx < 0) return false;
-  const amostra = rows.slice(startIdx, startIdx + sampleSize);
-  let validos = 0;
-  for(const row of amostra){
-    const n = normalizarNumeroBR(row[colIdx]);
-    if(n > 0) validos++;
-  }
-  return validos > 0;
-}
-
-function getMapaSheetAtual(){
-  const ctx = State._mapaCtx || {};
-  const sel = document.getElementById('map-sheet');
-  const idx = sel ? parseInt(sel.value || '0', 10) : (ctx.sheetIdx || 0);
-  return (ctx.sheets || [])[idx] || null;
-}
-
-function renderMapaBody(){
-  const ctx = State._mapaCtx;
-  if(!ctx || !ctx.sheets || !ctx.sheets.length){
-    document.getElementById('mapa-body').innerHTML = '<p>Nenhuma aba encontrada.</p>';
-    return;
-  }
-
-  const selExistente = document.getElementById('map-sheet');
-  if(selExistente){
-    ctx.sheetIdx = parseInt(selExistente.value || String(ctx.sheetIdx || 0), 10);
-  }
-
-  const sheet = getMapaSheetAtual();
-  const rows = sheet?.rows || [];
-
-  if(!rows.length){
-    document.getElementById('mapa-body').innerHTML = '<p>Nenhum dado na aba selecionada.</p>';
-    return;
-  }
-
-  const startIdx = detectarCabecalho(rows);
-  const headers = (rows[startIdx] || []).map((h, i) => ({
-    label: String(h || ('Col ' + (i + 1))),
-    idx: i
-  }));
-
-  const prev = rows.slice(startIdx + 1, startIdx + 6);
-
-  const opts = headers.map(h => `<option value="${h.idx}">${h.label}</option>`).join('');
-  const optsN = '<option value="">— não importar —</option>' + opts;
-
-  const findHeader = kws => Math.max(
-    -1,
-    headers.findIndex(h => kws.some(k => String(h.label).toLowerCase().includes(k)))
-  );
-
-  const gN = findHeader(['descrição','descricao','nome','produto','item']);
-  const gC = findHeader(['categoria','família','familia','grupo','linha']);
-  const gT = findHeader(['tabela','bruto','valor tabela','preço tabela','preco tabela']);
-  const gD = findHeader(['desconto','%']);
-  const gP = findHeader(['valor un liq','valor unitário','valor unitario','líquido','liquido','preço','preco','unit']);
-
-  const hoje = new Date();
-  const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
-
-  document.getElementById('mapa-body').innerHTML = `
-    <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">
-      Arquivo: <b>${ctx.filename}</b>
-      &nbsp;&nbsp;•&nbsp;&nbsp;Aba: <b>${sheet.name}</b>
-    </p>
-
-    <div style="margin-bottom:12px">
-      <div class="fl">Aba da planilha</div>
-      <select class="inp sel" id="map-sheet" onchange="renderMapaBody()">
-        ${ctx.sheets.map((s, i) => `
-          <option value="${i}" ${i === (ctx.sheetIdx || 0) ? 'selected' : ''}>
-            ${s.name}
-          </option>
-        `).join('')}
-      </select>
-    </div>
-
-    <div class="map-prev" style="overflow-x:auto; margin-bottom:12px">
-      <table class="tbl" style="white-space:nowrap">
-        <thead>
-          <tr>${headers.map(h => `<th>${h.label}</th>`).join('')}</tr>
-        </thead>
-        <tbody>
-          ${prev.map(r => `
-            <tr>
-              ${headers.map((_, i) => `<td>${String(r[i] ?? '').substring(0, 40)}</td>`).join('')}
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="fg c2" style="margin-bottom:10px">
-      <div>
-        <div class="fl">Mês da Cotação</div>
-        <input type="month" class="inp" id="map-mes" value="${ctx.mesCotacao || mesAtual}">
-      </div>
-      <div>
-        <div class="fl">Linha inicial dos dados</div>
-        <input class="inp" type="number" id="map-start" value="${ctx.startLine || (startIdx + 2)}" min="1" max="${rows.length}">
-      </div>
-    </div>
-
-    <div class="fg c2" style="margin-bottom:10px">
-      <div>
-        <div class="fl">Descrição (Produto) *</div>
-        <select class="inp sel" id="map-nome">
-          ${opts.replace(`value="${gN}"`, `value="${gN}" selected`)}
-        </select>
-      </div>
-
-      <div>
-        <div class="fl">Valor Un Líq (Preço) *</div>
-        <select class="inp sel" id="map-preco">
-          ${opts.replace(`value="${gP}"`, `value="${gP}" selected`)}
-        </select>
-      </div>
-
-      <div>
-        <div class="fl">Categoria</div>
-        <select class="inp sel" id="map-cat">
-          ${optsN.replace(`value="${gC}"`, `value="${gC}" selected`)}
-        </select>
-      </div>
-
-      <div>
-        <div class="fl">Preço de Tabela</div>
-        <select class="inp sel" id="map-tabela">
-          ${optsN.replace(`value="${gT}"`, `value="${gT}" selected`)}
-        </select>
-      </div>
-
-      <div>
-        <div class="fl">% Desconto</div>
-        <select class="inp sel" id="map-desc">
-          ${optsN.replace(`value="${gD}"`, `value="${gD}" selected`)}
-        </select>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn" onclick="fecharModal('modal-mapa')">Cancelar</button>
-      <button class="btn btn-p" onclick="confirmarMapa()">Confirmar importação</button>
-    </div>
-  `;
-
-  const sel = document.getElementById('map-sheet');
-  if(sel){
-    State._mapaCtx.sheetIdx = parseInt(sel.value || '0', 10);
-  }
-}
-
-function abrirMapaModal(ctx){
-  State._mapaCtx = {
-    ...ctx,
-    sheetIdx: typeof ctx.sheetIdx === 'number' ? ctx.sheetIdx : 0
-  };
-
-  document.getElementById('mapa-titulo').textContent = 'Importar Cotação — ' + ctx.forn.nome;
-  abrirModal('modal-mapa');
-  renderMapaBody();
-}
-
-async function confirmarMapa(){
-  const ctx = State._mapaCtx;
-  const sheetSel = document.getElementById('map-sheet');
-  if(sheetSel) ctx.sheetIdx = parseInt(sheetSel.value || '0', 10);
-
-  const sheet = getMapaSheetAtual();
-  const rows = sheet?.rows || [];
-
-  const mesCotacao = document.getElementById('map-mes').value;
-  const nIdx = parseInt(document.getElementById('map-nome').value, 10);
-  const pIdx = parseInt(document.getElementById('map-preco').value, 10);
-  const cIdx = document.getElementById('map-cat').value !== '' ? parseInt(document.getElementById('map-cat').value, 10) : -1;
-  const tIdx = document.getElementById('map-tabela').value !== '' ? parseInt(document.getElementById('map-tabela').value, 10) : -1;
-  const dIdx = document.getElementById('map-desc').value !== '' ? parseInt(document.getElementById('map-desc').value, 10) : -1;
-  const start = Math.max(1, parseInt(document.getElementById('map-start').value, 10) || 1) - 1;
-
-  ctx.mesCotacao = mesCotacao;
-  ctx.startLine = start + 1;
-
-  if(!mesCotacao){
-    toast('Informe o mês da cotação.');
-    return;
-  }
-
-  if(isNaN(nIdx) || isNaN(pIdx)){
-    toast('Selecione a coluna de Descrição e Valor Un Líq.');
-    return;
-  }
-
-  if(!colunaTemValoresNumericos(rows, pIdx, start, 12)){
-    toast('A coluna escolhida para Valor Un Líq não possui valores numéricos válidos.');
-    return;
-  }
-
-  const forn = ctx.forn;
-  const linhas = rows.slice(start);
-
-  if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
-  if(!D.cotPrecos[State.FIL]) D.cotPrecos[State.FIL] = {};
-
-  const produtosAtuais = P();
-  const produtosPorNome = new Map();
-  produtosAtuais.forEach(p => {
-    produtosPorNome.set(norm(p.nome), p);
-    if(p.descricao_padrao) produtosPorNome.set(norm(p.descricao_padrao), p);
-  });
-
-  let novos = 0;
-  let atu = 0;
-  let falhas = 0;
-
-  const produtosParaSalvar = [];
-  const cotPrecosParaSalvar = [];
-  const cotHistoricoParaSalvar = [];
-
-  const produtosMarcados = new Set();
-  const historicoMarcado = new Set();
-
-  for(let i = 0; i < linhas.length; i++){
-    try{
-      const row = linhas[i];
-      const nomeOriginal = String(row[nIdx] || '').trim();
-
-      if(
-        !nomeOriginal ||
-        nomeOriginal.toUpperCase() === 'DESCRIÇÃO' ||
-        nomeOriginal.toUpperCase() === 'DESCRICAO' ||
-        nomeOriginal.toUpperCase().includes('PROMOÇÕES') ||
-        nomeOriginal.toUpperCase().includes('PROMOCOES') ||
-        nomeOriginal.toUpperCase().includes('COMBO')
-      ){
-        continue;
-      }
-
-      const precoLiq = normalizarNumeroBR(row[pIdx]);
-      if(precoLiq <= 0) continue;
-
-      const categoria = cIdx >= 0 ? String(row[cIdx] || '').trim() : '';
-      const precoTabela = tIdx >= 0 ? normalizarNumeroBR(row[tIdx]) : null;
-      const percDesconto = dIdx >= 0 ? normalizarNumeroBR(row[dIdx]) : null;
-
-      const nomeKey = norm(nomeOriginal);
-
-      let prod = produtosPorNome.get(nomeKey) || null;
-
-      if(!prod){
-        prod = {
-          id: uid(),
-          filial_id: State.FIL,
-          nome: nomeOriginal,
-          sku: '',
-          un: 'un',
-          unidade: 'un',
-          cat: categoria,
-          categoria: categoria,
-          descricao_padrao: nomeOriginal,
-          codigo_fornecedor: null,
-          codigo_barras: null,
-          custo: precoLiq,
-          ecm: precoLiq,
-          mkv: 0,
-          mka: 0,
-          pfa: 0,
-          dv: 0,
-          da: 0,
-          qtmin: 0,
-          emin: 0,
-          esal: 0,
-          hist_cot: [{
-            mes: mesCotacao,
-            forn: forn.nome,
-            preco: precoLiq,
-            tabela: precoTabela,
-            desconto: percDesconto
-          }]
-        };
-
-        D.produtos[State.FIL].push(prod);
-        produtosPorNome.set(nomeKey, prod);
-        produtosPorNome.set(norm(prod.descricao_padrao || ''), prod);
-        novos++;
-      } else {
-        if(!prod.hist_cot) prod.hist_cot = [];
-
-        if(categoria){
-          if('cat' in prod && !prod.cat) prod.cat = categoria;
-          if('categoria' in prod && !prod.categoria) prod.categoria = categoria;
-          if(!('cat' in prod) && !('categoria' in prod)) prod.cat = categoria;
-        }
-
-        if(!prod.descricao_padrao) prod.descricao_padrao = nomeOriginal;
-        prod.custo = precoLiq;
-        prod.ecm = precoLiq;
-
-        const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
-        if(histIdx >= 0){
-          prod.hist_cot[histIdx] = {
-            ...prod.hist_cot[histIdx],
-            preco: precoLiq,
-            tabela: precoTabela,
-            desconto: percDesconto
-          };
-        } else {
-          prod.hist_cot.push({
-            mes: mesCotacao,
-            forn: forn.nome,
-            preco: precoLiq,
-            tabela: precoTabela,
-            desconto: percDesconto
-          });
-        }
-
-        atu++;
-      }
-
-      if(!produtosMarcados.has(prod.id)){
-        produtosParaSalvar.push(prod);
-        produtosMarcados.add(prod.id);
-      }
-
-      const k = prod.id + '_' + forn.id;
-      CPRECOS()[k] = precoLiq;
-
-      cotPrecosParaSalvar.push({
-        filial_id: State.FIL,
-        produto_id: prod.id,
-        fornecedor_id: forn.id,
-        preco: precoLiq,
-        preco_tabela: precoTabela,
-        perc_desconto: percDesconto,
-        mes_ref: `${mesCotacao}-01`,
-        arquivo_origem: ctx.filename
-      });
-
-      const histKey = `${State.FIL}|${prod.id}|${forn.id}|${mesCotacao}`;
-      if(!historicoMarcado.has(histKey)){
-        cotHistoricoParaSalvar.push({
-          filial_id: State.FIL,
-          produto_id: prod.id,
-          fornecedor_id: forn.id,
-          mes_ref: `${mesCotacao}-01`,
-          descricao_importada: nomeOriginal,
-          categoria_importada: categoria || null,
-          preco_tabela: precoTabela,
-          perc_desconto: percDesconto,
-          preco_liquido: precoLiq,
-          arquivo_origem: ctx.filename,
-          linha_origem: start + i + 1
-        });
-        historicoMarcado.add(histKey);
-      }
-    }catch(e){
-      falhas++;
-      console.error('Erro ao preparar linha para importação', { linha: start + i + 1, e });
-    }
-  }
-
-  if(!produtosParaSalvar.length && !cotPrecosParaSalvar.length && !cotHistoricoParaSalvar.length){
-    toast('Nenhum item válido encontrado para importar.');
-    return;
-  }
-
-  try{
-    await upsertProdutosEmLote(produtosParaSalvar, 150);
-    await upsertCotPrecosEmLote(cotPrecosParaSalvar, 250);
-    await upsertCotHistoricoEmLote(cotHistoricoParaSalvar, 250);
-  }catch(e){
-    console.error('Erro no upsert em lote', e);
-    toast('Erro ao salvar importação em lote: ' + e.message);
-    return;
-  }
-
-  const logs = CCFG().logs || [];
-  logs.unshift({
-    arquivo: ctx.filename,
-    aba: sheet?.name || '',
-    forn: forn.nome,
-    mes: mesCotacao,
-    data: new Date().toLocaleString('pt-BR'),
-    novos,
-    atu,
-    falhas
-  });
-  CCFG().logs = logs;
-
-  try{
-    await SB.upsertCotConfig({
-      filial_id: State.FIL,
-      locked: CCFG().locked,
-      logs
-    });
-  }catch(e){
-    console.error('Erro ao salvar log de cotação', e);
-  }
-
-  fecharModal('modal-mapa');
-  renderCotLogs();
-  renderProdMet();
-  renderProdutos();
-
-  if(falhas > 0){
-    toast(`Importação concluída com falhas: ${novos} novos, ${atu} atualizados, ${falhas} erros`);
-  } else {
-    toast(`✓ ${novos} novos produtos, ${atu} atualizados`);
-  }
-}
-
-function renderCotForns(){
-  const cot=CCFG();const el=document.getElementById('cot-forns-lista');const cfors=FORNS();
-  if(!cfors.length){el.innerHTML=`<div class="empty"><div class="ico">🏭</div><p>Nenhum fornecedor.</p></div>`;return;}
-  el.innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th>Nome</th><th>Contato</th><th>Prazo</th><th>Produtos cotados</th><th></th></tr></thead><tbody>${cfors.map(f=>{
-    const cot2=P().filter(p=>{const k=p.id+'_'+f.id;return CPRECOS()[k]>0;}).length;
-    return`<tr><td style="font-weight:600">${f.nome}</td><td style="color:var(--tx2)">${f.contato||'—'}</td><td>${f.prazo||'—'}</td><td><span class="bdg ${cot2>0?'bg':'bk'}">${cot2}/${P().length}</span></td><td><button class="ib" onclick="remForn('${f.id}')">✕</button></td></tr>`;
-  }).join('')}</tbody></table></div>`;
-}
-
-async function salvarForn(){
-  const nome=document.getElementById('fn-nome').value.trim();
-  if(!nome){toast('Informe o nome.');return;}
-  const forn = {
-    id: uid(), filial_id: State.FIL, nome,
-    contato: document.getElementById('fn-contato').value.trim(),
-    prazo: document.getElementById('fn-prazo').value
-  };
-  try { await SB.upsertFornecedor(forn); } catch(e) { toast('Erro ao salvar: ' + e.message); return; }
-  if(!D.fornecedores[State.FIL]) D.fornecedores[State.FIL] = [];
-  D.fornecedores[State.FIL].push(forn);
-  fecharModal('modal-forn'); renderCotForns(); renderFornSel();
-  document.getElementById('fn-nome').value=''; document.getElementById('fn-contato').value=''; document.getElementById('fn-prazo').value='';
-  toast('Fornecedor salvo!');
-}
-
-async function remForn(id){
-  if(!confirm('Remover fornecedor?')) return;
-  try { await SB.deleteFornecedor(id); } catch(e) { toast('Erro ao remover: ' + e.message); return; }
-  D.fornecedores[State.FIL] = (FORNS()).filter(f=>f.id!==id);
-  Object.keys(CPRECOS()).forEach(k=>{if(k.includes('_'+id)) delete CPRECOS()[k];});
-  renderCotForns(); renderFornSel(); toast('Fornecedor removido!');
-}
-
-function cotLock(){
-  const cot = CCFG();
-  cot.locked=!cot.locked;
-  document.getElementById('cot-lock-btn').textContent=cot.locked?'🔓 Destravar':'🔒 Travar';
-  document.getElementById('cot-lock-alert').style.display=cot.locked?'flex':'none';
-  renderCotTabela();toast(cot.locked?'Cotação travada!':'Destravada.');
-}
-function renderCotTabela(){
-  const cot=CCFG();const prods=P();const forns=FORNS();const precos=CPRECOS();
-  const el=document.getElementById('cot-tabela');const mc=document.getElementById('cot-met');
-  if(!prods.length||!forns.length){el.innerHTML=`<div class="empty"><div class="ico">📊</div><p>Adicione produtos e fornecedores.</p></div>`;mc.innerHTML='';return;}
-  let filled=0;const fTot={};forns.forEach(f=>fTot[f.id]=0);
-  let html=`<div class="tw"><table class="tbl"><thead><tr><th>Produto</th><th>Un</th>${forns.map(f=>`<th style="text-align:right">${f.nome}</th>`).join('')}<th style="text-align:center">Melhor</th></tr></thead><tbody>`;
-  prods.forEach(p=>{
-    const prices=forns.map(f=>{const k=p.id+'_'+f.id;const v=precos[k];return(v!==undefined&&v>0)?parseFloat(v):null;});
-    const valid=prices.filter(x=>x!==null);const minP=valid.length?Math.min(...valid):null;const maxP=valid.length?Math.max(...valid):null;
-    html+=`<tr><td style="font-weight:600">${p.nome}</td><td style="color:var(--tx2)">${p.un}</td>`;
-    forns.forEach((f,i)=>{
-      const k=p.id+'_'+f.id;const val=precos[k]!==undefined?parseFloat(precos[k]):null;
-      if(val!==null&&val>0){fTot[f.id]+=val;filled++;}
-      const isBest=val!==null&&val===minP&&valid.length>1;const isWorst=val!==null&&val===maxP&&valid.length>1&&minP!==maxP;
-      const bg=isBest?'background:var(--gbg)':isWorst?'background:var(--rbg)':'';
-      html+=`<td style="text-align:right;${bg}">`;
-      if(cot.locked)html+=val!==null&&val>0?fmt(val):'—';else html+=`<input class="inp" type="number" value="${val!==null?val.toFixed(2):''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" onchange="updPreco('${p.id}','${f.id}',this.value)">`;
-      html+=`</td>`;
-    });
-    html+=`<td style="text-align:center">${minP!==null?`<span class="bdg bg">${fmt(minP)}</span>`:'—'}</td></tr>`;
-  });
-  const allTot=Object.values(fTot).filter(v=>v>0);const bestTot=allTot.length?Math.min(...allTot):null;
-  html+=`<tr style="font-weight:600;border-top:1px solid var(--bd)"><td colspan="2" style="color:var(--tx2)">Total</td>${forns.map(f=>{const t=fTot[f.id];const isBest=t>0&&t===bestTot&&allTot.length>1;return`<td style="text-align:right;font-weight:600;${isBest?'background:var(--gbg)':''}">${fmt(t)}</td>`;}).join('')}<td></td></tr></tbody></table></div>`;
-  el.innerHTML=html;const pct2=prods.length*forns.length?Math.round(filled/(prods.length*forns.length)*100):0;
-  let bestForn=null;if(bestTot!==null)Object.entries(fTot).forEach(([fid,t])=>{if(t===bestTot)bestForn=forns.find(f=>f.id===fid);});
-  mc.innerHTML=`<div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div><div class="met"><div class="ml">Fornecedores</div><div class="mv">${forns.length}</div></div><div class="met"><div class="ml">Preenchimento</div><div class="mv">${pct2}%</div></div><div class="met"><div class="ml">Melhor fornecedor</div><div class="mv" style="font-size:14px">${bestForn?bestForn.nome:'—'}</div></div>`;
-}
-function updPreco(pid,fid,val){
-  const cot=CCFG();if(cot.locked)return;
-  const k=pid+'_'+fid;const v=parseFloat(val);
-  if(!isNaN(v)&&v>=0)cot.precos[k]=v;else delete cot.precos[k];
-  renderCotTabela();
-}
 function calcSaldos(){
   const map={};P().forEach(p=>{map[p.id]={saldo:p.esal||0,cm:p.ecm||p.custo||0};});
   [...(MOVS()||[])].sort((a,b)=>a.ts-b.ts).forEach(m=>{
-    const prodId = m.prodId || m.prod_id;
-    if(!map[prodId])return;const c=map[prodId];
+    if(!map[m.prodId])return;const c=map[m.prodId];
     if(m.tipo==='entrada'){const q=m.qty||0,cu=m.custo||c.cm||0,ns=c.saldo+q;c.cm=ns>0?(c.saldo*c.cm+q*cu)/ns:cu;c.saldo=ns;}
     else if(m.tipo==='saida'||m.tipo==='transf')c.saldo-=(m.qty||0);
     else if(m.tipo==='ajuste')c.saldo=m.saldo_real||m.saldoReal||0;
@@ -1389,31 +610,20 @@ function renderEstPosicao(){
 }
 function renderEstHist(){
   const q=(document.getElementById('est-hist-busca').value||'').toLowerCase();const tf=document.getElementById('est-hist-tipo').value;
-  const movs=[...(MOVS()||[])].sort((a,b)=>b.ts-a.ts).filter(m=>{const prodId=m.prodId||m.prod_id;const p=P().find(x=>x.id===prodId);return(!q||(p&&p.nome.toLowerCase().includes(q))||(m.obs||'').toLowerCase().includes(q))&&(!tf||m.tipo===tf);});
+  const movs=[...(MOVS()||[])].sort((a,b)=>b.ts-a.ts).filter(m=>{const p=P().find(x=>x.id===m.prodId);return(!q||(p&&p.nome.toLowerCase().includes(q))||(m.obs||'').toLowerCase().includes(q))&&(!tf||m.tipo===tf);});
   const el=document.getElementById('est-hist');
   if(!movs.length){el.innerHTML=`<div class="empty"><div class="ico">📋</div><p>Nenhuma movimentação.</p></div>`;return;}
   const tiInfo={entrada:{ico:'📥',lbl:'Entrada'},saida:{ico:'📤',lbl:'Saída'},ajuste:{ico:'⚖',lbl:'Ajuste'},transf:{ico:'🔄',lbl:'Transferência'}};
   el.innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th></th><th>Produto</th><th>Data</th><th>Tipo</th><th>Qtd</th><th>Custo</th><th>Obs</th><th></th></tr></thead><tbody>${movs.map(m=>{
     const prodId2=m.prodId||m.prod_id;const p=P().find(x=>x.id===prodId2);const ti=tiInfo[m.tipo]||{ico:'?',lbl:m.tipo};
     const sinal=m.tipo==='entrada'?'+':m.tipo==='saida'?'-':'±';const cor=m.tipo==='entrada'?'var(--g)':m.tipo==='saida'?'var(--r)':'var(--tx)';
-    const qShow=m.tipo==='ajuste'?`→ ${fmtQ(m.saldoReal || m.saldo_real)}`:sinal+fmtQ(m.qty||0);
+    const qShow=m.tipo==='ajuste'?`→ ${fmtQ(m.saldoReal)}`:sinal+fmtQ(m.qty||0);
     return`<tr><td><div style="width:26px;height:26px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px">${ti.ico}</div></td><td style="font-weight:600">${p?p.nome:'—'}</td><td style="color:var(--tx2);font-size:12px">${m.data||'—'}</td><td><span class="bdg bk">${ti.lbl}</span></td><td style="font-weight:600;color:${cor}">${qShow} ${p?p.un:''}</td><td style="color:var(--tx2)">${m.custo>0?fmt(m.custo):'—'}</td><td style="font-size:12px;color:var(--tx2)">${m.obs||'—'}</td><td><button class="ib" onclick="excluirMov('${m.id}')">✕</button></td></tr>`;
   }).join('')}</tbody></table></div>`;
 }
-function excluirMov(id){
-  if(!confirm('Excluir movimentação?'))return;
-  D.movs[State.FIL]=(D.movs[State.FIL]||[]).filter(m=>m.id!==id);
-  renderEstPosicao();renderEstHist();renderEstAlerts();
-}
-function refreshMovSel(){
-  const s=document.getElementById('mov-prod');const cur=s.value;
-  s.innerHTML='<option value="">— selecione —</option>'+P().map(p=>`<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
-  if(cur)s.value=cur;
-}
-function refreshDestSel(){
-  const s=document.getElementById('mov-dest');
-  s.innerHTML='<option value="">— selecione —</option>'+D.filiais.filter(f=>f.id!==State.FIL).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
-}
+function excluirMov(id){if(!confirm('Excluir movimentação?'))return;D.movs[State.FIL]=(D.movs[State.FIL]||[]).filter(m=>m.id!==id);renderEstPosicao();renderEstHist();renderEstAlerts();}
+function refreshMovSel(){const s=document.getElementById('mov-prod');const cur=s.value;s.innerHTML='<option value="">— selecione —</option>'+P().map(p=>`<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');if(cur)s.value=cur;}
+function refreshDestSel(){const s=document.getElementById('mov-dest');s.innerHTML='<option value="">— selecione —</option>'+D.filiais.filter(f=>f.id!==State.FIL).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');}
 function resetMov(){
   State.movTipo='entrada';setTipo('entrada');
   document.getElementById('mov-prod').value='';document.getElementById('mov-data').value=new Date().toISOString().split('T')[0];
@@ -1422,11 +632,7 @@ function resetMov(){
   document.getElementById('mov-saldo-panel').style.display='none';document.getElementById('mov-preview').style.display='none';
   refreshMovSel();refreshDestSel();
 }
-function abrirMovProd(id){
-  resetMov();
-  setTimeout(()=>{document.getElementById('mov-prod').value=id;movLoadProd();},50);
-  abrirModal('modal-mov');
-}
+function abrirMovProd(id){resetMov();setTimeout(()=>{document.getElementById('mov-prod').value=id;movLoadProd();},50);abrirModal('modal-mov');}
 function setTipo(t){
   State.movTipo=t;
   ['entrada','saida','ajuste','transf'].forEach(x=>document.getElementById('tc-'+x).classList.toggle('sel',x===t));
@@ -1459,7 +665,7 @@ function movCalc(){
   if(State.movTipo==='entrada'){ns=s.saldo+qty;nc=ns>0?(s.saldo*s.cm+qty*custo)/ns:custo;}else ns=s.saldo-qty;
   document.getElementById('mp-saldo').textContent=fmtQ(ns)+' '+(p?p.un:'');document.getElementById('mp-cm').textContent=fmt(nc);
   document.getElementById('mp-val').textContent=State.movTipo==='entrada'?fmt(qty*custo):'—';document.getElementById('mp-val-wrap').style.display=State.movTipo==='entrada'?'inline':'none';
-  document.getElementById('mp-cm').parentElement.style.display='';prev.style.display='block';
+  prev.style.display='block';
 }
 function movCalcAjuste(){
   const id=document.getElementById('mov-prod').value;if(!id)return;
@@ -1474,7 +680,7 @@ function movCalcAjuste(){
 async function salvarMov(){
   const prodId=document.getElementById('mov-prod').value;if(!prodId){toast('Selecione produto.');return;}
   const data=document.getElementById('mov-data').value;const obs=document.getElementById('mov-obs').value.trim();const custo=parseFloat(document.getElementById('mov-custo').value)||0;
-  let mov={id:uid(),filial_id:State.FIL,prod_id:prodId,prodId,tipo:State.movTipo,data,obs,ts:Date.now(),custo};
+  let mov={id:uid(),prodId,tipo:State.movTipo,data,obs,ts:Date.now(),custo};
   if(State.movTipo==='ajuste'){
     const real=parseFloat(document.getElementById('mov-real').value);if(isNaN(real)||real<0){toast('Informe o saldo real.');return;}
     mov.saldoReal=real;mov.saldo_real=real;
@@ -1483,14 +689,11 @@ async function salvarMov(){
     mov.qty=qty;
     if(State.movTipo==='transf'){
       const dest=document.getElementById('mov-dest').value;if(!dest){toast('Selecione filial destino.');return;}
-      mov.destFil=dest;
-      const nomeOrig=(P().find(p=>p.id===prodId)||{}).nome||'';
-      const destProd=(D.produtos[dest]||[]).find(p=>norm(p.nome)===norm(nomeOrig));
+      mov.destFil=dest;const nomeOrig=(P().find(p=>p.id===prodId)||{}).nome||'';const destProd=(D.produtos[dest]||[]).find(p=>norm(p.nome)===norm(nomeOrig));
       if(destProd){
-        const destMov={id:uid(),filial_id:dest,prod_id:destProd.id,prodId:destProd.id,tipo:'entrada',data,obs:'Transferência de '+(D.filiais.find(f=>f.id===State.FIL)||{}).nome,ts:Date.now()+1,custo,qty};
+        const destMov={id:uid(),filial_id:dest,prod_id:destProd.id,tipo:'entrada',data,obs:'Transferência de '+(D.filiais.find(f=>f.id===State.FIL)||{}).nome,ts:Date.now()+1,custo,qty};
         try{await SB.insertMov(destMov);}catch(e){}
-        if(!D.movs[dest])D.movs[dest]=[];
-        D.movs[dest].push(destMov);
+        if(!D.movs[dest])D.movs[dest]=[];D.movs[dest].push({...destMov,prodId:destProd.id});
       }
     }
     if(State.movTipo==='saida'||State.movTipo==='transf'){
@@ -1498,14 +701,8 @@ async function salvarMov(){
       if(qty>x.saldo&&!confirm(`Saldo atual: ${fmtQ(x.saldo)}. Registrar assim mesmo?`))return;
     }
   }
-
-  try{await SB.insertMov(mov);}catch(e){toast('Erro: '+e.message);return;}
-  if(!D.movs[State.FIL])D.movs[State.FIL]=[];
-  D.movs[State.FIL].push(mov);
-
-  fecharModal('modal-mov');
-  renderEstPosicao();renderEstAlerts();renderEstHist();
-  toast('Movimentação registrada!');
+  const est={movs:MOVS()};if(!est.movs)est.movs=[];est.movs.push(mov);
+  fecharModal('modal-mov');renderEstPosicao();renderEstAlerts();renderEstHist();toast('Movimentação registrada!');
 }
 
 function exportCSV(tipo){
@@ -1520,7 +717,7 @@ function exportCSV(tipo){
     name='pedidos';
     rows=[['Nº','Cliente','Data','Status','Tipo','Pagamento','Prazo','Total','Lucro','Obs'],...PD().map(p=>{const lucro=p.itens.reduce((a,i)=>a+(i.preco-i.custo)*i.qty,0);return[p.num,p.cli,p.data,p.status,p.tipo,p.pgto,p.prazo,fmtN(p.total),fmtN(lucro),p.obs||''];})];
   } else if(tipo==='cotacao'){
-    name='cotacao';const forns=FORNS();
+    name='cotacao';const cot=CCFG();const forns=FORNS();
     if(!P().length||!forns.length){toast('Sem dados para exportar.');return;}
     rows=[['Produto','Un',...forns.map(f=>f.nome),'Melhor preço','Melhor fornecedor'],...P().map(p=>{const prices=forns.map(f=>{const k=p.id+'_'+f.id;return(CPRECOS()||{})[k]!==undefined?parseFloat((CPRECOS()||{})[k]):'';});const valid=prices.filter(v=>v!==''&&v>0);const mp=valid.length?Math.min(...valid):'';const bi=prices.findIndex(v=>v===mp);return[p.nome,p.un,...prices,mp!==''?fmtN(mp):'',bi>=0?forns[bi].nome:''];})];
   } else if(tipo==='estoque'){
@@ -1528,77 +725,26 @@ function exportCSV(tipo){
     rows=[['Produto','SKU','Un','Saldo','Custo Médio','Valor Total','Est. Mín','Status'],...P().map(p=>{const s=saldos[p.id]||{saldo:0,cm:0};const min=p.emin||0;const st=s.saldo<=0?'Zerado':min>0&&s.saldo<min?'Baixo':'OK';return[p.nome,p.sku||'',p.un,fmtN(s.saldo),fmtN(s.cm),fmtN(s.saldo*s.cm),min||'',st];})];
   }
   if(!rows.length){toast('Sem dados para exportar.');return;}
-  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=name+'.csv';
-  a.click();
-  toast('CSV exportado!');
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.csv';a.click();toast('CSV exportado!');
 }
 function exportarTudo(){['produtos','clientes','pedidos','cotacao','estoque'].forEach((t,i)=>setTimeout(()=>exportCSV(t),i*200));}
 
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{renderSetup();});}else{renderSetup();}
 
-window.abrirModal = abrirModal;
-window.fecharModal = fecharModal;
-window.criarPrimeiraFilial = criarPrimeiraFilial;
-window.entrar = entrar;
-window.voltarSetup = voltarSetup;
-window.selFilial = selFilial;
-window.fecharSb = fecharSb;
-window.abrirSb = abrirSb;
-window.ir = ir;
-window.switchTab = switchTab;
-window.exportarTudo = exportarTudo;
-window.exportCSV = exportCSV;
-window.renderDash = renderDash;
-window.setP = setP;
-window.renderProdutos = renderProdutos;
-window.limparFormProd = limparFormProd;
-window.salvarProduto = salvarProduto;
-window.editarProd = editarProd;
-window.removerProd = removerProd;
-window.calcProdPreview = calcProdPreview;
-window.syncV = syncV;
-window.syncA = syncA;
-window.renderClientes = renderClientes;
-window.limparFormCli = limparFormCli;
-window.salvarCliente = salvarCliente;
-window.editarCli = editarCli;
-window.removerCli = removerCli;
-window.renderCliSegs = renderCliSegs;
-window.abrirCliDet = abrirCliDet;
-window.addNota = addNota;
-window.renderPedidos = renderPedidos;
-window.limparFormPed = limparFormPed;
-window.salvarPedido = salvarPedido;
-window.editarPed = editarPed;
-window.removerPed = removerPed;
-window.verPed = verPed;
-window.addItem = addItem;
-window.remItem = remItem;
-window.renderCotForns = renderCotForns;
-window.renderCotTabela = renderCotTabela;
-window.cotFile = cotFile;
-window.cotLock = cotLock;
-window.salvarForn = salvarForn;
-window.remForn = remForn;
-window.confirmarMapa = confirmarMapa;
-window.renderMapaBody = renderMapaBody;
-window.updPreco = updPreco;
-window.renderEstPosicao = renderEstPosicao;
-window.renderEstHist = renderEstHist;
-window.resetMov = resetMov;
-window.abrirMovProd = abrirMovProd;
-window.setTipo = setTipo;
-window.movLoadProd = movLoadProd;
-window.movCalc = movCalc;
-window.movCalcAjuste = movCalcAjuste;
-window.salvarMov = salvarMov;
-window.excluirMov = excluirMov;
-window.salvarFilial = salvarFilial;
-window.limparFormFilial = limparFormFilial;
-window.editarFilial = editarFilial;
-window.removerFilial = removerFilial;
-window.trocarFilial = trocarFilial;
+// EXPORT PARA O HTML
+window.abrirModal = abrirModal; window.fecharModal = fecharModal; window.criarPrimeiraFilial = criarPrimeiraFilial;
+window.entrar = entrar; window.voltarSetup = voltarSetup; window.selFilial = selFilial; window.fecharSb = fecharSb;
+window.abrirSb = abrirSb; window.ir = ir; window.switchTab = switchTab; window.exportarTudo = exportarTudo;
+window.exportCSV = exportCSV; window.renderDash = renderDash; window.setP = setP; window.renderProdutos = renderProdutos;
+window.limparFormProd = limparFormProd; window.salvarProduto = salvarProduto; window.editarProd = editarProd;
+window.removerProd = removerProd; window.calcProdPreview = calcProdPreview; window.syncV = syncV; window.syncA = syncA;
+window.renderClientes = renderClientes; window.limparFormCli = limparFormCli; window.salvarCliente = salvarCliente;
+window.editarCli = editarCli; window.removerCli = removerCli; window.renderCliSegs = renderCliSegs; window.abrirCliDet = abrirCliDet;
+window.addNota = addNota; window.renderPedidos = renderPedidos; window.limparFormPed = limparFormPed; window.salvarPedido = salvarPedido;
+window.editarPed = editarPed; window.removerPed = removerPed; window.verPed = verPed; window.addItem = addItem;
+window.remItem = remItem; window.renderCotForns = renderCotForns; window.renderCotTabela = renderCotTabela; window.cotFile = cotFile;
+window.cotLock = cotLock; window.salvarForn = salvarForn; window.remForn = remForn; window.confirmarMapa = confirmarMapa;
+window.renderMapaBody = renderMapaBody; window.updPreco = updPreco; window.renderEstPosicao = renderEstPosicao; window.renderEstHist = renderEstHist; window.resetMov = resetMov;
+window.abrirMovProd = abrirMovProd; window.setTipo = setTipo; window.movLoadProd = movLoadProd; window.movCalc = movCalc;
+window.movCalcAjuste = movCalcAjuste; window.salvarMov = salvarMov; window.excluirMov = excluirMov; window.salvarFilial = salvarFilial;
+window.limparFormFilial = limparFormFilial; window.editarFilial = editarFilial; window.removerFilial = removerFilial; window.trocarFilial = trocarFilial;

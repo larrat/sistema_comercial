@@ -1,5 +1,5 @@
 export function uid(){
-  return Date.now() + '-' + Math.random().toString(36).slice(2,8);
+  return Date.now() + '-' + Math.random().toString(36).slice(2, 8);
 }
 
 export function norm(s){
@@ -7,7 +7,12 @@ export function norm(s){
 }
 
 export function fmt(v){
-  return 'R$ ' + Number(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return 'R$ ' + Number(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+export function fmtK(v){
+  const n = Number(v || 0);
+  return n >= 1000 ? 'R$ ' + (n / 1000).toFixed(1) + 'k' : 'R$ ' + n.toFixed(0);
 }
 
 export function fmtN(v, d = 2){
@@ -15,7 +20,8 @@ export function fmtN(v, d = 2){
 }
 
 export function fmtQ(v){
-  return Number(v || 0) % 1 === 0 ? String(Number(v || 0)) : Number(v || 0).toFixed(2);
+  const n = Number(v || 0);
+  return n % 1 === 0 ? String(n) : n.toFixed(2);
 }
 
 export function pct(v){
@@ -23,22 +29,26 @@ export function pct(v){
 }
 
 export function mk2mg(mk){
-  return mk <= 0 ? 0 : mk / (1 + mk / 100) * 100;
+  const n = Number(mk || 0);
+  return n <= 0 ? 0 : (n / (1 + n / 100)) * 100;
 }
 
 export function mg2mk(mg){
-  return mg <= 0 || mg >= 100 ? 0 : mg / (1 - mg / 100) - 100;
+  const n = Number(mg || 0);
+  return n <= 0 || n >= 100 ? 0 : (n / (1 - n / 100)) - 100;
 }
 
 export function prV(c, mk){
-  return (Number(c || 0)) * (1 + (Number(mk || 0) / 100));
+  return Number(c || 0) * (1 + Number(mk || 0) / 100);
 }
 
 export function toast(m){
   const el = document.getElementById('toast');
   if(!el) return;
+
   el.textContent = m;
   el.classList.add('on');
+
   clearTimeout(window._tt);
   window._tt = setTimeout(() => el.classList.remove('on'), 2600);
 }
@@ -46,6 +56,7 @@ export function toast(m){
 export function abrirModal(id){
   const el = document.getElementById(id);
   if(!el) return;
+
   el.classList.add('on');
   document.body.style.overflow = 'hidden';
 }
@@ -53,6 +64,7 @@ export function abrirModal(id){
 export function fecharModal(id){
   const el = document.getElementById(id);
   if(!el) return;
+
   el.classList.remove('on');
   document.body.style.overflow = '';
 }
