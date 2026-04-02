@@ -217,7 +217,6 @@ function renderDashFilSel(){
   s.innerHTML='<option value="todas">Todas as filiais</option>'+D.filiais.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
   s.value=cur||'todas';
 }
-
 function renderDash(){
   const fsel=document.getElementById('dash-fil')?.value||'todas';
   const range=getRange();
@@ -312,7 +311,7 @@ function editarProd(id){
   document.getElementById('p-mga').value=mk2mg(p.mka).toFixed(1);document.getElementById('p-pfa').value=p.pfa||'';
   document.getElementById('p-da').value=p.da||'';document.getElementById('p-emin').value=p.emin||'';
   document.getElementById('p-esal').value=p.esal||'';document.getElementById('p-ecm').value=p.ecm||'';
-  
+
   let histEl = document.getElementById('p-hist-cot');
   if(!histEl) {
      histEl = document.createElement('div');
@@ -361,20 +360,20 @@ function calcProdPreview(){
 async function salvarProduto(){
   const nome=document.getElementById('p-nome').value.trim();const custo=parseFloat(document.getElementById('p-custo').value)||0;
   if(!nome||custo<=0){toast('Nome e custo obrigatórios.');return;}
-  
+
   const existing = State.editIds.prod ? P().find(x=>x.id===State.editIds.prod) : null;
   const p={
-      id:State.editIds.prod||uid(), filial_id:State.FIL, nome, 
+      id:State.editIds.prod||uid(), filial_id:State.FIL, nome,
       sku:document.getElementById('p-sku').value.trim(), un:document.getElementById('p-un').value,
-      cat:document.getElementById('p-cat').value.trim(), custo, 
+      cat:document.getElementById('p-cat').value.trim(), custo,
       mkv:parseFloat(document.getElementById('p-mkv').value)||0, mka:parseFloat(document.getElementById('p-mka').value)||0,
       pfa:parseFloat(document.getElementById('p-pfa').value)||0, dv:parseFloat(document.getElementById('p-dv').value)||0,
       da:parseFloat(document.getElementById('p-da').value)||0, qtmin:parseFloat(document.getElementById('p-qtmin').value)||0,
       emin:parseFloat(document.getElementById('p-emin').value)||0, esal:parseFloat(document.getElementById('p-esal').value)||0,
       ecm:parseFloat(document.getElementById('p-ecm').value)||custo,
-      hist_cot: existing ? (existing.hist_cot || []) : [] 
+      hist_cot: existing ? (existing.hist_cot || []) : []
   };
-  
+
   try{await SB.upsertProduto(p);}catch(e){toast('Erro: '+e.message);return;}
   if(State.editIds.prod)D.produtos[State.FIL]=P().map(x=>x.id===State.editIds.prod?p:x);else{if(!D.produtos[State.FIL])D.produtos[State.FIL]=[];D.produtos[State.FIL].push(p);}
   fecharModal('modal-produto');renderProdMet();renderProdutos();refreshProdSel();refreshMovSel();toast(State.editIds.prod?'Produto atualizado!':'Produto salvo!');
@@ -385,7 +384,6 @@ async function removerProd(id){
   renderProdMet();renderProdutos();toast('Removido.');
 }
 function refreshProdSel(){const s=document.getElementById('pi-prod');const cur=s.value;s.innerHTML='<option value="">— selecione —</option>'+P().map(p=>`<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');s.value=cur;}
-
 const AVC=[{bg:'#E6EEF9',c:'#0F2F5E'},{bg:'#E6F4EC',c:'#0D3D22'},{bg:'#FAF0D6',c:'#5C3900'},{bg:'#FAEBE9',c:'#731F18'}];
 function avc(n){return AVC[n.charCodeAt(0)%AVC.length];}
 function ini(n){const p=n.trim().split(' ');return(p[0][0]+(p[1]?p[1][0]:'')).toUpperCase();}
@@ -538,7 +536,6 @@ function verPed(id){
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn" onclick="fecharModal('modal-ped-det')">Fechar</button><button class="btn btn-p" onclick="fecharModal('modal-ped-det');editarPed('${p.id}')">Editar</button></div>`;
   abrirModal('modal-ped-det');
 }
-
 function renderFornSel(){
   const s=document.getElementById('cot-forn-sel');const cur=s.value;
   s.innerHTML='<option value="">— selecione —</option>'+(FORNS()||[]).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
@@ -564,85 +561,13 @@ function renderCotLogs(){
     </div>`).join('');
 }
 
-function cotFile(e){
-  const file = e.target.files[0];
-  e.target.value = '';
-  if(!file) return;
-
-  const fid = document.getElementById('cot-forn-sel').value;
-  if(!fid){ toast('Selecione um fornecedor primeiro.'); return; }
-
-  const forn = (FORNS() || []).find(f => f.id === fid);
-  const reader = new FileReader();
-
-  reader.onload = ev => {
-    try{
-      if(file.name.toLowerCase().endsWith('.csv')){
-        const text = new TextDecoder().decode(ev.target.result);
-        let rows = text
-          .split('\n')
-          .map(r => r.split(/[;,\t]/).map(c => c.trim().replace(/^"|"$/g,'')))
-          .filter(r => r.some(c => String(c).trim() !== ''));
-
-        if(rows.length < 2){ toast('Planilha vazia.'); return; }
-
-        abrirMapaModal({
-          forn,
-          filename: file.name,
-          sheets: [{ name: 'CSV', rows }]
-        });
-        return;
-      }
-
-      const wb = XLSX.read(ev.target.result, { type: 'array' });
-      const sheets = wb.SheetNames.map(name => ({
-        name,
-        rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '' })
-          .filter(r => r.some(c => String(c).trim() !== ''))
-      })).filter(s => s.rows.length);
-
-      if(!sheets.length){ toast('Planilha vazia.'); return; }
-
-      abrirMapaModal({
-        forn,
-        filename: file.name,
-        sheets
-      });
-    }catch(err){
-      console.error(err);
-      toast('Erro ao ler o arquivo.');
-    }
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-function normalizarNumeroBR(v){
-  let s = String(v ?? '').trim();
-  if(!s) return 0;
-
-  s = s.replace(/ /g, ' ');
-  s = s.replace(/[R$\s%]/g, '');
-
-  if(s.includes('.') && s.includes(',')){
-    s = s.replace(/\./g, '').replace(',', '.');
-  } else if(s.includes(',')) {
-    s = s.replace(',', '.');
-  }
-
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-}
-
-function getMapaSheetAtual(){
-  const ctx = State._mapaCtx || {};
-  const idx = parseInt(document.getElementById('map-sheet')?.value || '0', 10);
-  return (ctx.sheets || [])[idx] || (ctx.sheets || [])[0];
-}
+// ======================================================
+// ETAPA 1 - PERFORMANCE E ESCOLHA INTELIGENTE DE ABA
+// ======================================================
 
 function detectarCabecalho(rows){
   let startIdx = 0;
-  for(let i = 0; i < Math.min(200, rows.length); i++){
+  for(let i = 0; i < Math.min(80, rows.length); i++){
     const row = rows[i].map(c => String(c || '').toUpperCase());
     const joined = row.join(' | ');
     if(
@@ -659,10 +584,161 @@ function detectarCabecalho(rows){
   }
   return startIdx;
 }
+
+function scoreSheetByName(name){
+  const n = String(name || '').toUpperCase();
+  let score = 0;
+
+  if(n.includes('PEDIDO')) score += 20;
+  if(n.includes('COTA') || n.includes('COTACAO')) score += 10;
+
+  if(n.includes('COMBO')) score -= 8;
+  if(n.includes('KIT')) score -= 8;
+  if(n.includes('APRESENTAÇÃO') || n.includes('APRESENTACAO')) score -= 10;
+
+  return score;
+}
+
+function scoreSheet(rows, name){
+  if(!rows?.length) return -999;
+
+  const startIdx = detectarCabecalho(rows);
+  const header = (rows[startIdx] || []).map(c => String(c || '').toUpperCase());
+  const joined = header.join(' | ');
+
+  let score = scoreSheetByName(name);
+
+  if(joined.includes('DESCRIÇÃO') || joined.includes('DESCRICAO')) score += 15;
+  if(joined.includes('VALOR UN LIQ')) score += 20;
+  if(joined.includes('CATEGORIA')) score += 8;
+  if(joined.includes('TABELA')) score += 8;
+  if(joined.includes('% DESCONTO')) score += 8;
+  if(joined.includes('CÓDIGO AUXILIAR') || joined.includes('CODIGO AUXILIAR')) score += 6;
+  if(joined.includes('VALOR TOTAL LÍQUIDO') || joined.includes('VALOR TOTAL LIQUIDO')) score += 4;
+
+  if(joined.includes('KIT 1')) score -= 15;
+  if(joined.includes('KIT 2')) score -= 15;
+  if(joined.includes('COMBO')) score -= 12;
+
+  return score;
+}
+
+function cotFile(e){
+  const file = e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+
+  const fid = document.getElementById('cot-forn-sel').value;
+  if(!fid){
+    toast('Selecione um fornecedor primeiro.');
+    return;
+  }
+
+  const forn = (FORNS() || []).find(f => f.id === fid);
+  const reader = new FileReader();
+
+  reader.onload = ev => {
+    try{
+      if(file.name.toLowerCase().endsWith('.csv')){
+        const text = new TextDecoder().decode(ev.target.result);
+        const rows = text
+          .split('\n')
+          .map(r => r.split(/[;,\t]/).map(c => c.trim().replace(/^"|"$/g,'')))
+          .filter(r => r.some(c => String(c).trim() !== ''));
+
+        if(rows.length < 2){
+          toast('Planilha vazia.');
+          return;
+        }
+
+        abrirMapaModal({
+          forn,
+          filename: file.name,
+          sheets: [{
+            name: 'CSV',
+            rows,
+            score: scoreSheet(rows, 'CSV')
+          }],
+          sheetIdx: 0
+        });
+        return;
+      }
+
+      const wb = XLSX.read(ev.target.result, { type: 'array' });
+
+      const sheets = wb.SheetNames.map(name => {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], {
+          header: 1,
+          defval: ''
+        }).filter(r => r.some(c => String(c).trim() !== ''));
+
+        return {
+          name,
+          rows,
+          score: scoreSheet(rows, name)
+        };
+      }).filter(s => s.rows.length);
+
+      if(!sheets.length){
+        toast('Planilha vazia.');
+        return;
+      }
+
+      sheets.sort((a, b) => b.score - a.score);
+
+      abrirMapaModal({
+        forn,
+        filename: file.name,
+        sheets,
+        sheetIdx: 0
+      });
+    }catch(err){
+      console.error(err);
+      toast('Erro ao ler o arquivo.');
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+function normalizarNumeroBR(v){
+  let s = String(v ?? '').trim();
+  if(!s) return 0;
+
+  s = s.replace(/\u00A0/g, ' ');
+  s = s.replace(/[R$\s%]/g, '');
+
+  if(s.includes('.') && s.includes(',')){
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if(s.includes(',')) {
+    s = s.replace(',', '.');
+  }
+
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+function getMapaSheetAtual(){
+  const ctx = State._mapaCtx || {};
+  const sel = document.getElementById('map-sheet');
+  const idx = sel ? parseInt(sel.value || '0', 10) : (ctx.sheetIdx || 0);
+  return (ctx.sheets || [])[idx] || null;
+}
+
 function renderMapaBody(){
   const ctx = State._mapaCtx;
+  if(!ctx || !ctx.sheets || !ctx.sheets.length){
+    document.getElementById('mapa-body').innerHTML = '<p>Nenhuma aba encontrada.</p>';
+    return;
+  }
+
+  const selExistente = document.getElementById('map-sheet');
+  if(selExistente){
+    ctx.sheetIdx = parseInt(selExistente.value || String(ctx.sheetIdx || 0), 10);
+  }
+
   const sheet = getMapaSheetAtual();
-  const rows = (sheet?.rows || []).filter(r => r.some(c => String(c).trim() !== ''));
+  const rows = sheet?.rows || [];
 
   if(!rows.length){
     document.getElementById('mapa-body').innerHTML = '<p>Nenhum dado na aba selecionada.</p>';
@@ -670,21 +746,26 @@ function renderMapaBody(){
   }
 
   const startIdx = detectarCabecalho(rows);
-  const headers = rows[startIdx].map((h, i) => ({ label: String(h || 'Col ' + (i + 1)), idx: i }));
-  const prev = rows.slice(startIdx + 1, startIdx + 4);
+  const headers = (rows[startIdx] || []).map((h, i) => ({
+    label: String(h || ('Col ' + (i + 1))),
+    idx: i
+  }));
+
+  const prev = rows.slice(startIdx + 1, startIdx + 6);
 
   const opts = headers.map(h => `<option value="${h.idx}">${h.label}</option>`).join('');
   const optsN = '<option value="">— não importar —</option>' + opts;
 
-  const aF = kws => Math.max(-1, headers.findIndex(h =>
-    kws.some(k => String(h.label).toLowerCase().includes(k))
-  ));
+  const findHeader = kws => Math.max(
+    -1,
+    headers.findIndex(h => kws.some(k => String(h.label).toLowerCase().includes(k)))
+  );
 
-  const gN = aF(['descrição','descricao','nome','produto','item']);
-  const gC = aF(['categoria','família','familia','grupo','linha']);
-  const gT = aF(['tabela','bruto','valor tabela','preço tabela','preco tabela']);
-  const gD = aF(['desconto','%']);
-  const gP = aF(['valor un liq','valor unitário','valor unitario','líquido','liquido','preço','preco','unit']);
+  const gN = findHeader(['descrição','descricao','nome','produto','item']);
+  const gC = findHeader(['categoria','família','familia','grupo','linha']);
+  const gT = findHeader(['tabela','bruto','valor tabela','preço tabela','preco tabela']);
+  const gD = findHeader(['desconto','%']);
+  const gP = findHeader(['valor un liq','valor unitário','valor unitario','líquido','liquido','preço','preco','unit']);
 
   const hoje = new Date();
   const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
@@ -692,23 +773,31 @@ function renderMapaBody(){
   document.getElementById('mapa-body').innerHTML = `
     <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">
       Arquivo: <b>${ctx.filename}</b>
-      ${ctx.sheets.length > 1 ? `&nbsp;&nbsp;•&nbsp;&nbsp;Aba: <b>${sheet.name}</b>` : ''}
+      &nbsp;&nbsp;•&nbsp;&nbsp;Aba: <b>${sheet.name}</b>
     </p>
 
-    ${ctx.sheets.length > 1 ? `
-      <div style="margin-bottom:12px">
-        <div class="fl">Aba da planilha</div>
-        <select class="inp sel" id="map-sheet" onchange="renderMapaBody()">
-          ${ctx.sheets.map((s, i) => `<option value="${i}" ${i === (ctx.sheetIdx || 0) ? 'selected' : ''}>${s.name}</option>`).join('')}
-        </select>
-      </div>
-    ` : ''}
+    <div style="margin-bottom:12px">
+      <div class="fl">Aba da planilha</div>
+      <select class="inp sel" id="map-sheet" onchange="renderMapaBody()">
+        ${ctx.sheets.map((s, i) => `
+          <option value="${i}" ${i === (ctx.sheetIdx || 0) ? 'selected' : ''}>
+            ${s.name}
+          </option>
+        `).join('')}
+      </select>
+    </div>
 
     <div class="map-prev" style="overflow-x:auto; margin-bottom:12px">
       <table class="tbl" style="white-space:nowrap">
-        <thead><tr>${headers.map(h => `<th>${h.label}</th>`).join('')}</tr></thead>
+        <thead>
+          <tr>${headers.map(h => `<th>${h.label}</th>`).join('')}</tr>
+        </thead>
         <tbody>
-          ${prev.map(r => `<tr>${headers.map((_,i) => `<td>${String(r[i] ?? '').substring(0, 35)}</td>`).join('')}</tr>`).join('')}
+          ${prev.map(r => `
+            <tr>
+              ${headers.map((_, i) => `<td>${String(r[i] ?? '').substring(0, 40)}</td>`).join('')}
+            </tr>
+          `).join('')}
         </tbody>
       </table>
     </div>
@@ -725,11 +814,40 @@ function renderMapaBody(){
     </div>
 
     <div class="fg c2" style="margin-bottom:10px">
-      <div><div class="fl">Descrição (Produto) *</div><select class="inp sel" id="map-nome">${opts.replace(`value="${gN}"`,`value="${gN}" selected`)}</select></div>
-      <div><div class="fl">Valor Un Líq (Preço) *</div><select class="inp sel" id="map-preco">${opts.replace(`value="${gP}"`,`value="${gP}" selected`)}</select></div>
-      <div><div class="fl">Categoria</div><select class="inp sel" id="map-cat">${optsN.replace(`value="${gC}"`,`value="${gC}" selected`)}</select></div>
-      <div><div class="fl">Preço de Tabela</div><select class="inp sel" id="map-tabela">${optsN.replace(`value="${gT}"`,`value="${gT}" selected`)}</select></div>
-      <div><div class="fl">% Desconto</div><select class="inp sel" id="map-desc">${optsN.replace(`value="${gD}"`,`value="${gD}" selected`)}</select></div>
+      <div>
+        <div class="fl">Descrição (Produto) *</div>
+        <select class="inp sel" id="map-nome">
+          ${opts.replace(`value="${gN}"`, `value="${gN}" selected`)}
+        </select>
+      </div>
+
+      <div>
+        <div class="fl">Valor Un Líq (Preço) *</div>
+        <select class="inp sel" id="map-preco">
+          ${opts.replace(`value="${gP}"`, `value="${gP}" selected`)}
+        </select>
+      </div>
+
+      <div>
+        <div class="fl">Categoria</div>
+        <select class="inp sel" id="map-cat">
+          ${optsN.replace(`value="${gC}"`, `value="${gC}" selected`)}
+        </select>
+      </div>
+
+      <div>
+        <div class="fl">Preço de Tabela</div>
+        <select class="inp sel" id="map-tabela">
+          ${optsN.replace(`value="${gT}"`, `value="${gT}" selected`)}
+        </select>
+      </div>
+
+      <div>
+        <div class="fl">% Desconto</div>
+        <select class="inp sel" id="map-desc">
+          ${optsN.replace(`value="${gD}"`, `value="${gD}" selected`)}
+        </select>
+      </div>
     </div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
@@ -737,12 +855,17 @@ function renderMapaBody(){
       <button class="btn btn-p" onclick="confirmarMapa()">Confirmar importação</button>
     </div>
   `;
+
+  const sel = document.getElementById('map-sheet');
+  if(sel){
+    State._mapaCtx.sheetIdx = parseInt(sel.value || '0', 10);
+  }
 }
 
 function abrirMapaModal(ctx){
   State._mapaCtx = {
     ...ctx,
-    sheetIdx: 0
+    sheetIdx: typeof ctx.sheetIdx === 'number' ? ctx.sheetIdx : 0
   };
 
   document.getElementById('mapa-titulo').textContent = 'Importar Cotação — ' + ctx.forn.nome;
@@ -788,8 +911,7 @@ async function confirmarMapa(){
   let novos = 0;
   let atu = 0;
   let falhas = 0;
-
-  for(let i = 0; i < linhas.length; i++){
+    for(let i = 0; i < linhas.length; i++){
     const row = linhas[i];
 
     const nomeOriginal = String(row[nIdx] || '').trim();
@@ -1031,7 +1153,8 @@ function updPreco(pid,fid,val){
 function calcSaldos(){
   const map={};P().forEach(p=>{map[p.id]={saldo:p.esal||0,cm:p.ecm||p.custo||0};});
   [...(MOVS()||[])].sort((a,b)=>a.ts-b.ts).forEach(m=>{
-    if(!map[m.prodId])return;const c=map[m.prodId];
+    const prodId = m.prodId || m.prod_id;
+    if(!map[prodId])return;const c=map[prodId];
     if(m.tipo==='entrada'){const q=m.qty||0,cu=m.custo||c.cm||0,ns=c.saldo+q;c.cm=ns>0?(c.saldo*c.cm+q*cu)/ns:cu;c.saldo=ns;}
     else if(m.tipo==='saida'||m.tipo==='transf')c.saldo-=(m.qty||0);
     else if(m.tipo==='ajuste')c.saldo=m.saldo_real||m.saldoReal||0;
@@ -1071,7 +1194,7 @@ function renderEstPosicao(){
   });
   const el=document.getElementById('est-posicao');
   if(!filtered.length){el.innerHTML=`<div class="empty"><div class="ico">📦</div><p>${P().length?'Nenhum encontrado.':'Cadastre produtos em "Produtos".'}</p></div>`;return;}
-  el.innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th>Produto</th><th>SKU</th><th>Saldo</th><th>Custo médio</th><th>Valor total</th><th>Mínimo</th><th>Status</th><th></th></tr></thead><tbody>${filtered.map(p=>{
+  el.innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th>Produto</th><th>SKU</th><th>Saldo</th><th>Custo Médio</th><th>Valor Total</th><th>Mínimo</th><th>Status</th><th></th></tr></thead><tbody>${filtered.map(p=>{
     const s=saldos[p.id]||{saldo:0,cm:0};const min=p.emin||0;const pct2=min>0?Math.min(100,Math.max(0,s.saldo/min*100)):100;
     let stC,stL;if(s.saldo<=0){stC='br';stL='Zerado';}else if(min>0&&s.saldo<min){stC='ba';stL='Baixo';}else{stC='bg';stL='OK';}
     return`<tr><td style="font-weight:600">${p.nome}</td><td style="color:var(--tx3);font-size:12px">${p.sku||'—'}</td><td><div style="font-weight:600">${fmtQ(s.saldo)} ${p.un}</div>${min>0?`<div class="sbar"><div class="sbar-f" style="width:${pct2}%;background:${s.saldo<=0?'var(--r)':s.saldo<min?'var(--a)':'var(--g)'}"></div></div>`:''}</td><td>${fmt(s.cm)}</td><td style="font-weight:600">${fmt(s.saldo*s.cm)}</td><td style="color:var(--tx2)">${min>0?fmtQ(min)+' '+p.un:'—'}</td><td><span class="bdg ${stC}">${stL}</span></td><td><button class="ib" onclick="abrirMovProd('${p.id}')">📥</button></td></tr>`;
@@ -1079,20 +1202,31 @@ function renderEstPosicao(){
 }
 function renderEstHist(){
   const q=(document.getElementById('est-hist-busca').value||'').toLowerCase();const tf=document.getElementById('est-hist-tipo').value;
-  const movs=[...(MOVS()||[])].sort((a,b)=>b.ts-a.ts).filter(m=>{const p=P().find(x=>x.id===m.prodId);return(!q||(p&&p.nome.toLowerCase().includes(q))||(m.obs||'').toLowerCase().includes(q))&&(!tf||m.tipo===tf);});
+  const movs=[...(MOVS()||[])].sort((a,b)=>b.ts-a.ts).filter(m=>{const prodId=m.prodId||m.prod_id;const p=P().find(x=>x.id===prodId);return(!q||(p&&p.nome.toLowerCase().includes(q))||(m.obs||'').toLowerCase().includes(q))&&(!tf||m.tipo===tf);});
   const el=document.getElementById('est-hist');
   if(!movs.length){el.innerHTML=`<div class="empty"><div class="ico">📋</div><p>Nenhuma movimentação.</p></div>`;return;}
   const tiInfo={entrada:{ico:'📥',lbl:'Entrada'},saida:{ico:'📤',lbl:'Saída'},ajuste:{ico:'⚖',lbl:'Ajuste'},transf:{ico:'🔄',lbl:'Transferência'}};
   el.innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th></th><th>Produto</th><th>Data</th><th>Tipo</th><th>Qtd</th><th>Custo</th><th>Obs</th><th></th></tr></thead><tbody>${movs.map(m=>{
     const prodId2=m.prodId||m.prod_id;const p=P().find(x=>x.id===prodId2);const ti=tiInfo[m.tipo]||{ico:'?',lbl:m.tipo};
     const sinal=m.tipo==='entrada'?'+':m.tipo==='saida'?'-':'±';const cor=m.tipo==='entrada'?'var(--g)':m.tipo==='saida'?'var(--r)':'var(--tx)';
-    const qShow=m.tipo==='ajuste'?`→ ${fmtQ(m.saldoReal)}`:sinal+fmtQ(m.qty||0);
+    const qShow=m.tipo==='ajuste'?`→ ${fmtQ(m.saldoReal || m.saldo_real)}`:sinal+fmtQ(m.qty||0);
     return`<tr><td><div style="width:26px;height:26px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px">${ti.ico}</div></td><td style="font-weight:600">${p?p.nome:'—'}</td><td style="color:var(--tx2);font-size:12px">${m.data||'—'}</td><td><span class="bdg bk">${ti.lbl}</span></td><td style="font-weight:600;color:${cor}">${qShow} ${p?p.un:''}</td><td style="color:var(--tx2)">${m.custo>0?fmt(m.custo):'—'}</td><td style="font-size:12px;color:var(--tx2)">${m.obs||'—'}</td><td><button class="ib" onclick="excluirMov('${m.id}')">✕</button></td></tr>`;
   }).join('')}</tbody></table></div>`;
 }
-function excluirMov(id){if(!confirm('Excluir movimentação?'))return;D.movs[State.FIL]=(D.movs[State.FIL]||[]).filter(m=>m.id!==id);renderEstPosicao();renderEstHist();renderEstAlerts();}
-function refreshMovSel(){const s=document.getElementById('mov-prod');const cur=s.value;s.innerHTML='<option value="">— selecione —</option>'+P().map(p=>`<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');if(cur)s.value=cur;}
-function refreshDestSel(){const s=document.getElementById('mov-dest');s.innerHTML='<option value="">— selecione —</option>'+D.filiais.filter(f=>f.id!==State.FIL).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');}
+function excluirMov(id){
+  if(!confirm('Excluir movimentação?'))return;
+  D.movs[State.FIL]=(D.movs[State.FIL]||[]).filter(m=>m.id!==id);
+  renderEstPosicao();renderEstHist();renderEstAlerts();
+}
+function refreshMovSel(){
+  const s=document.getElementById('mov-prod');const cur=s.value;
+  s.innerHTML='<option value="">— selecione —</option>'+P().map(p=>`<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
+  if(cur)s.value=cur;
+}
+function refreshDestSel(){
+  const s=document.getElementById('mov-dest');
+  s.innerHTML='<option value="">— selecione —</option>'+D.filiais.filter(f=>f.id!==State.FIL).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
+}
 function resetMov(){
   State.movTipo='entrada';setTipo('entrada');
   document.getElementById('mov-prod').value='';document.getElementById('mov-data').value=new Date().toISOString().split('T')[0];
@@ -1101,7 +1235,11 @@ function resetMov(){
   document.getElementById('mov-saldo-panel').style.display='none';document.getElementById('mov-preview').style.display='none';
   refreshMovSel();refreshDestSel();
 }
-function abrirMovProd(id){resetMov();setTimeout(()=>{document.getElementById('mov-prod').value=id;movLoadProd();},50);abrirModal('modal-mov');}
+function abrirMovProd(id){
+  resetMov();
+  setTimeout(()=>{document.getElementById('mov-prod').value=id;movLoadProd();},50);
+  abrirModal('modal-mov');
+}
 function setTipo(t){
   State.movTipo=t;
   ['entrada','saida','ajuste','transf'].forEach(x=>document.getElementById('tc-'+x).classList.toggle('sel',x===t));
@@ -1134,7 +1272,7 @@ function movCalc(){
   if(State.movTipo==='entrada'){ns=s.saldo+qty;nc=ns>0?(s.saldo*s.cm+qty*custo)/ns:custo;}else ns=s.saldo-qty;
   document.getElementById('mp-saldo').textContent=fmtQ(ns)+' '+(p?p.un:'');document.getElementById('mp-cm').textContent=fmt(nc);
   document.getElementById('mp-val').textContent=State.movTipo==='entrada'?fmt(qty*custo):'—';document.getElementById('mp-val-wrap').style.display=State.movTipo==='entrada'?'inline':'none';
-  prev.style.display='block';
+  document.getElementById('mp-cm').parentElement.style.display='';prev.style.display='block';
 }
 function movCalcAjuste(){
   const id=document.getElementById('mov-prod').value;if(!id)return;
@@ -1149,7 +1287,7 @@ function movCalcAjuste(){
 async function salvarMov(){
   const prodId=document.getElementById('mov-prod').value;if(!prodId){toast('Selecione produto.');return;}
   const data=document.getElementById('mov-data').value;const obs=document.getElementById('mov-obs').value.trim();const custo=parseFloat(document.getElementById('mov-custo').value)||0;
-  let mov={id:uid(),prodId,tipo:State.movTipo,data,obs,ts:Date.now(),custo};
+  let mov={id:uid(),filial_id:State.FIL,prod_id:prodId,prodId,tipo:State.movTipo,data,obs,ts:Date.now(),custo};
   if(State.movTipo==='ajuste'){
     const real=parseFloat(document.getElementById('mov-real').value);if(isNaN(real)||real<0){toast('Informe o saldo real.');return;}
     mov.saldoReal=real;mov.saldo_real=real;
@@ -1158,11 +1296,14 @@ async function salvarMov(){
     mov.qty=qty;
     if(State.movTipo==='transf'){
       const dest=document.getElementById('mov-dest').value;if(!dest){toast('Selecione filial destino.');return;}
-      mov.destFil=dest;const nomeOrig=(P().find(p=>p.id===prodId)||{}).nome||'';const destProd=(D.produtos[dest]||[]).find(p=>norm(p.nome)===norm(nomeOrig));
+      mov.destFil=dest;
+      const nomeOrig=(P().find(p=>p.id===prodId)||{}).nome||'';
+      const destProd=(D.produtos[dest]||[]).find(p=>norm(p.nome)===norm(nomeOrig));
       if(destProd){
-        const destMov={id:uid(),filial_id:dest,prod_id:destProd.id,tipo:'entrada',data,obs:'Transferência de '+(D.filiais.find(f=>f.id===State.FIL)||{}).nome,ts:Date.now()+1,custo,qty};
+        const destMov={id:uid(),filial_id:dest,prod_id:destProd.id,prodId:destProd.id,tipo:'entrada',data,obs:'Transferência de '+(D.filiais.find(f=>f.id===State.FIL)||{}).nome,ts:Date.now()+1,custo,qty};
         try{await SB.insertMov(destMov);}catch(e){}
-        if(!D.movs[dest])D.movs[dest]=[];D.movs[dest].push({...destMov,prodId:destProd.id});
+        if(!D.movs[dest])D.movs[dest]=[];
+        D.movs[dest].push(destMov);
       }
     }
     if(State.movTipo==='saida'||State.movTipo==='transf'){
@@ -1170,8 +1311,14 @@ async function salvarMov(){
       if(qty>x.saldo&&!confirm(`Saldo atual: ${fmtQ(x.saldo)}. Registrar assim mesmo?`))return;
     }
   }
-  const est={movs:MOVS()};if(!est.movs)est.movs=[];est.movs.push(mov);
-  fecharModal('modal-mov');renderEstPosicao();renderEstAlerts();renderEstHist();toast('Movimentação registrada!');
+
+  try{await SB.insertMov(mov);}catch(e){toast('Erro: '+e.message);return;}
+  if(!D.movs[State.FIL])D.movs[State.FIL]=[];
+  D.movs[State.FIL].push(mov);
+
+  fecharModal('modal-mov');
+  renderEstPosicao();renderEstAlerts();renderEstHist();
+  toast('Movimentação registrada!');
 }
 
 function exportCSV(tipo){
@@ -1186,34 +1333,85 @@ function exportCSV(tipo){
     name='pedidos';
     rows=[['Nº','Cliente','Data','Status','Tipo','Pagamento','Prazo','Total','Lucro','Obs'],...PD().map(p=>{const lucro=p.itens.reduce((a,i)=>a+(i.preco-i.custo)*i.qty,0);return[p.num,p.cli,p.data,p.status,p.tipo,p.pgto,p.prazo,fmtN(p.total),fmtN(lucro),p.obs||''];})];
   } else if(tipo==='cotacao'){
-    name='cotacao';const cot=CCFG();const forns=cot.forns||[];
+    name='cotacao';const forns=FORNS();
     if(!P().length||!forns.length){toast('Sem dados para exportar.');return;}
-    rows=[['Produto','Un',...forns.map(f=>f.nome),'Melhor preço','Melhor fornecedor'],...P().map(p=>{const prices=forns.map(f=>{const k=p.id+'_'+f.id;return(cot.precos||{})[k]!==undefined?parseFloat((cot.precos||{})[k]):'';});const valid=prices.filter(v=>v!==''&&v>0);const mp=valid.length?Math.min(...valid):'';const bi=prices.findIndex(v=>v===mp);return[p.nome,p.un,...prices,mp!==''?fmtN(mp):'',bi>=0?forns[bi].nome:''];})];
+    rows=[['Produto','Un',...forns.map(f=>f.nome),'Melhor preço','Melhor fornecedor'],...P().map(p=>{const prices=forns.map(f=>{const k=p.id+'_'+f.id;return(CPRECOS()||{})[k]!==undefined?parseFloat((CPRECOS()||{})[k]):'';});const valid=prices.filter(v=>v!==''&&v>0);const mp=valid.length?Math.min(...valid):'';const bi=prices.findIndex(v=>v===mp);return[p.nome,p.un,...prices,mp!==''?fmtN(mp):'',bi>=0?forns[bi].nome:''];})];
   } else if(tipo==='estoque'){
     name='estoque';
     rows=[['Produto','SKU','Un','Saldo','Custo Médio','Valor Total','Est. Mín','Status'],...P().map(p=>{const s=saldos[p.id]||{saldo:0,cm:0};const min=p.emin||0;const st=s.saldo<=0?'Zerado':min>0&&s.saldo<min?'Baixo':'OK';return[p.nome,p.sku||'',p.un,fmtN(s.saldo),fmtN(s.cm),fmtN(s.saldo*s.cm),min||'',st];})];
   }
   if(!rows.length){toast('Sem dados para exportar.');return;}
-  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.csv';a.click();toast('CSV exportado!');
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name+'.csv';
+  a.click();
+  toast('CSV exportado!');
 }
 function exportarTudo(){['produtos','clientes','pedidos','cotacao','estoque'].forEach((t,i)=>setTimeout(()=>exportCSV(t),i*200));}
 
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{renderSetup();});}else{renderSetup();}
 
-window.abrirModal = abrirModal; window.fecharModal = fecharModal; window.criarPrimeiraFilial = criarPrimeiraFilial;
-window.entrar = entrar; window.voltarSetup = voltarSetup; window.selFilial = selFilial; window.fecharSb = fecharSb;
-window.abrirSb = abrirSb; window.ir = ir; window.switchTab = switchTab; window.exportarTudo = exportarTudo;
-window.exportCSV = exportCSV; window.renderDash = renderDash; window.setP = setP; window.renderProdutos = renderProdutos;
-window.limparFormProd = limparFormProd; window.salvarProduto = salvarProduto; window.editarProd = editarProd;
-window.removerProd = removerProd; window.calcProdPreview = calcProdPreview; window.syncV = syncV; window.syncA = syncA;
-window.renderClientes = renderClientes; window.limparFormCli = limparFormCli; window.salvarCliente = salvarCliente;
-window.editarCli = editarCli; window.removerCli = removerCli; window.renderCliSegs = renderCliSegs; window.abrirCliDet = abrirCliDet;
-window.addNota = addNota; window.renderPedidos = renderPedidos; window.limparFormPed = limparFormPed; window.salvarPedido = salvarPedido;
-window.editarPed = editarPed; window.removerPed = removerPed; window.verPed = verPed; window.addItem = addItem;
-window.remItem = remItem; window.renderCotForns = renderCotForns; window.renderCotTabela = renderCotTabela; window.cotFile = cotFile;
-window.cotLock = cotLock; window.salvarForn = salvarForn; window.remForn = remForn; window.confirmarMapa = confirmarMapa;
-window.updPreco = updPreco; window.renderEstPosicao = renderEstPosicao; window.renderEstHist = renderEstHist; window.resetMov = resetMov;
-window.abrirMovProd = abrirMovProd; window.setTipo = setTipo; window.movLoadProd = movLoadProd; window.movCalc = movCalc;
-window.movCalcAjuste = movCalcAjuste; window.salvarMov = salvarMov; window.excluirMov = excluirMov; window.salvarFilial = salvarFilial;
-window.limparFormFilial = limparFormFilial; window.editarFilial = editarFilial; window.removerFilial = removerFilial; window.trocarFilial = trocarFilial;
+window.abrirModal = abrirModal;
+window.fecharModal = fecharModal;
+window.criarPrimeiraFilial = criarPrimeiraFilial;
+window.entrar = entrar;
+window.voltarSetup = voltarSetup;
+window.selFilial = selFilial;
+window.fecharSb = fecharSb;
+window.abrirSb = abrirSb;
+window.ir = ir;
+window.switchTab = switchTab;
+window.exportarTudo = exportarTudo;
+window.exportCSV = exportCSV;
+window.renderDash = renderDash;
+window.setP = setP;
+window.renderProdutos = renderProdutos;
+window.limparFormProd = limparFormProd;
+window.salvarProduto = salvarProduto;
+window.editarProd = editarProd;
+window.removerProd = removerProd;
+window.calcProdPreview = calcProdPreview;
+window.syncV = syncV;
+window.syncA = syncA;
+window.renderClientes = renderClientes;
+window.limparFormCli = limparFormCli;
+window.salvarCliente = salvarCliente;
+window.editarCli = editarCli;
+window.removerCli = removerCli;
+window.renderCliSegs = renderCliSegs;
+window.abrirCliDet = abrirCliDet;
+window.addNota = addNota;
+window.renderPedidos = renderPedidos;
+window.limparFormPed = limparFormPed;
+window.salvarPedido = salvarPedido;
+window.editarPed = editarPed;
+window.removerPed = removerPed;
+window.verPed = verPed;
+window.addItem = addItem;
+window.remItem = remItem;
+window.renderCotForns = renderCotForns;
+window.renderCotTabela = renderCotTabela;
+window.cotFile = cotFile;
+window.cotLock = cotLock;
+window.salvarForn = salvarForn;
+window.remForn = remForn;
+window.confirmarMapa = confirmarMapa;
 window.renderMapaBody = renderMapaBody;
+window.updPreco = updPreco;
+window.renderEstPosicao = renderEstPosicao;
+window.renderEstHist = renderEstHist;
+window.resetMov = resetMov;
+window.abrirMovProd = abrirMovProd;
+window.setTipo = setTipo;
+window.movLoadProd = movLoadProd;
+window.movCalc = movCalc;
+window.movCalcAjuste = movCalcAjuste;
+window.salvarMov = salvarMov;
+window.excluirMov = excluirMov;
+window.salvarFilial = salvarFilial;
+window.limparFormFilial = limparFormFilial;
+window.editarFilial = editarFilial;
+window.removerFilial = removerFilial;
+window.trocarFilial = trocarFilial;
