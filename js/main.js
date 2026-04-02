@@ -501,11 +501,27 @@ function renderFornSel(){
   s.innerHTML='<option value="">— selecione —</option>'+(FORNS()||[]).map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
   s.value=cur;
 }
+
+// ════════ COTAÇÃO INTELIGENTE ════════
 function renderCotLogs(){
-  const el=document.getElementById('cot-logs');const logs=CCFG().logs||[];
+  const el = document.getElementById('cot-logs');
+  const logs = CCFG().logs || [];
   if(!logs.length){el.innerHTML='<div style="font-size:13px;color:var(--tx3)">Nenhuma importação ainda.</div>';return;}
-  el.innerHTML=logs.map(l=>`<div class="fb" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap"><div><span style="font-weight:600">${l.arquivo}</span><span class="bdg bb" style="margin-left:6px">${l.forn}</span></div><div class="fg2"><span style="color:var(--tx3);font-size:12px">${l.data}</span><span class="bdg bg">${l.novos} novos</span>${l.atu?`<span class="bdg ba">${l.atu} atualiz.</span>`:''}</div></div>`).join('');
+  el.innerHTML = logs.map(l => `
+    <div class="fb" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap">
+      <div>
+        <span style="font-weight:600">${l.arquivo}</span>
+        <span class="bdg bb" style="margin-left:6px">${l.forn}</span>
+        ${l.mes ? `<span class="bdg bk" style="margin-left:6px" title="Mês de Referência">📅 ${l.mes.split('-').reverse().join('/')}</span>` : ''}
+      </div>
+      <div class="fg2">
+        <span style="color:var(--tx3);font-size:12px">${l.data}</span>
+        <span class="bdg bg">${l.novos} novos</span>
+        ${l.atu ? `<span class="bdg ba">${l.atu} atualiz.</span>` : ''}
+      </div>
+    </div>`).join('');
 }
+
 function cotFile(e){
   const file=e.target.files[0];e.target.value='';if(!file)return;
   const fid=document.getElementById('cot-forn-sel').value;if(!fid){toast('Selecione um fornecedor primeiro.');return;}
@@ -529,46 +545,118 @@ function cotFile(e){
   };
   reader.readAsArrayBuffer(file);
 }
-function abrirMapaModal(rows,forn,filename){
-  State._mapaCtx={rows,forn,filename};
-  document.getElementById('mapa-titulo').textContent='Mapear colunas — '+forn.nome;
-  const headers=rows[0].map((h,i)=>({label:String(h||'Col '+(i+1)),idx:i}));const prev=rows.slice(1,5);
-  const opts=headers.map(h=>`<option value="${h.idx}">${h.label}</option>`).join('');const optsN='<option value="">— não usar —</option>'+opts;
-  const aF=kws=>Math.max(0,headers.findIndex(h=>kws.some(k=>String(h.label).toLowerCase().includes(k))));
-  const gN=aF(['nome','produto','item','descri','cod','ref']);const gP=aF(['preco','preço','valor','unit','custo','price']);const gQ=headers.findIndex(h=>['qtd','quant','qty'].some(k=>String(h.label).toLowerCase().includes(k)));
-  document.getElementById('mapa-body').innerHTML=`
-    <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">Arquivo: <b>${filename}</b> — ${rows.length-1} linhas</p>
-    <div class="map-prev"><table class="tbl"><thead><tr>${headers.map(h=>`<th>${h.label}</th>`).join('')}</tr></thead><tbody>${prev.map(r=>`<tr>${headers.map((_,i)=>`<td>${r[i]??''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
-    <div class="fg c2" style="margin-bottom:10px"><div><div class="fl">Coluna do produto *</div><select class="inp sel" id="map-nome">${opts.replace(`value="${gN}"`,`value="${gN}" selected`)}</select></div><div><div class="fl">Coluna do preço *</div><select class="inp sel" id="map-preco">${opts.replace(`value="${gP}"`,`value="${gP}" selected`)}</select></div><div><div class="fl">Quantidade (opcional)</div><select class="inp sel" id="map-qty">${optsN.replace(gQ>=0?`value="${gQ}"`:'',gQ>=0?`value="${gQ}" selected`:'')}</select></div><div><div class="fl">Linha inicial dos dados</div><input class="inp" type="number" id="map-start" value="1" min="1" max="${rows.length}"></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="fecharModal('modal-mapa')">Cancelar</button><button class="btn btn-p" onclick="confirmarMapa()">Confirmar importação</button></div>`;
+
+function abrirMapaModal(rows, forn, filename){
+  State._mapaCtx = {rows, forn, filename};
+  document.getElementById('mapa-titulo').textContent = 'Importar Cotação — ' + forn.nome;
+
+  let startIdx = 0;
+  for(let i = 0; i < Math.min(40, rows.length); i++){
+    if(rows[i].some(c => String(c).toUpperCase().includes('DESCRIÇÃO') || String(c).toUpperCase().includes('VALOR UN LIQ'))){
+      startIdx = i; break;
+    }
+  }
+
+  const headers = rows[startIdx].map((h,i) => ({label: String(h || 'Col '+(i+1)), idx: i}));
+  const prev = rows.slice(startIdx + 1, startIdx + 4);
+  const opts = headers.map(h => `<option value="${h.idx}">${h.label}</option>`).join('');
+  const optsN = '<option value="">— não importar —</option>' + opts;
+
+  const aF = kws => Math.max(-1, headers.findIndex(h => kws.some(k => String(h.label).toLowerCase().includes(k))));
+  const gN = aF(['descrição','nome','produto','item']);
+  const gC = aF(['categoria','família','grupo']);
+  const gT = aF(['tabela','bruto']);
+  const gD = aF(['desconto','%']);
+  const gP = aF(['valor un liq','liquido','líquido','preço','preco','unit']);
+
+  const hoje = new Date();
+  const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+
+  document.getElementById('mapa-body').innerHTML = `
+    <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">Arquivo: <b>${filename}</b></p>
+    
+    <div class="map-prev" style="overflow-x:auto; margin-bottom:12px">
+      <table class="tbl" style="white-space:nowrap">
+        <thead><tr>${headers.map(h => `<th>${h.label}</th>`).join('')}</tr></thead>
+        <tbody>${prev.map(r => `<tr>${headers.map((_,i) => `<td>${String(r[i]??'').substring(0,25)}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>
+
+    <div class="fg c2" style="margin-bottom:10px">
+      <div><div class="fl">Mês da Cotação</div><input type="month" class="inp" id="map-mes" value="${mesAtual}"></div>
+      <div><div class="fl">Linha inicial dos dados (ignorar topo)</div><input class="inp" type="number" id="map-start" value="${startIdx + 2}" min="1" max="${rows.length}"></div>
+    </div>
+
+    <div class="fg c2" style="margin-bottom:10px">
+      <div><div class="fl">Descrição (Produto) *</div><select class="inp sel" id="map-nome">${opts.replace(`value="${gN}"`,`value="${gN}" selected`)}</select></div>
+      <div><div class="fl">Valor Un Líq (Preço) *</div><select class="inp sel" id="map-preco">${opts.replace(`value="${gP}"`,`value="${gP}" selected`)}</select></div>
+      <div><div class="fl">Categoria</div><select class="inp sel" id="map-cat">${optsN.replace(`value="${gC}"`,`value="${gC}" selected`)}</select></div>
+      <div><div class="fl">Preço de Tabela (Ref)</div><select class="inp sel" id="map-tabela">${optsN.replace(`value="${gT}"`,`value="${gT}" selected`)}</select></div>
+      <div><div class="fl">% Desconto (Ref)</div><select class="inp sel" id="map-desc">${optsN.replace(`value="${gD}"`,`value="${gD}" selected`)}</select></div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn" onclick="fecharModal('modal-mapa')">Cancelar</button>
+      <button class="btn btn-p" onclick="confirmarMapa()">Confirmar importação</button>
+    </div>`;
   abrirModal('modal-mapa');
 }
+
 async function confirmarMapa(){
-  const{rows,forn,filename}=State._mapaCtx;
-  const nIdx=parseInt(document.getElementById('map-nome').value);const pIdx=parseInt(document.getElementById('map-preco').value);
-  const qIdxRaw=document.getElementById('map-qty').value;const qIdx=qIdxRaw!==''?parseInt(qIdxRaw):-1;
-  const start=Math.max(1,parseInt(document.getElementById('map-start').value)||1);
-  const cot=CCFG();if(!cot.precos)cot.precos={};let novos=0,atu=0;
+  const {rows, forn, filename} = State._mapaCtx;
+  const mesCotacao = document.getElementById('map-mes').value; 
+  const nIdx = parseInt(document.getElementById('map-nome').value);
+  const pIdx = parseInt(document.getElementById('map-preco').value);
+  const cIdx = document.getElementById('map-cat').value !== '' ? parseInt(document.getElementById('map-cat').value) : -1;
+  const start = Math.max(1, parseInt(document.getElementById('map-start').value) || 1) - 1; 
+
+  if(isNaN(nIdx) || isNaN(pIdx)) { toast('Selecione a coluna de Descrição e Valor Un Líq.'); return; }
+
+  const cot = CCFG(); if(!cot.precos) cot.precos = {};
+  let novos = 0, atu = 0;
   const linhas = rows.slice(start);
+
   for(const row of linhas){
-    const nome=String(row[nIdx]||'').trim();if(!nome)continue;
-    const pr=parseFloat(String(row[pIdx]||'').replace(/[R$\s]/g,'').replace(',','.'))||0;
-    if(pr<=0)continue;
-    let prod=P().find(p=>norm(p.nome)===norm(nome));
+    const nome = String(row[nIdx]||'').trim();
+    if(!nome || nome.toUpperCase().includes('PROMOÇÕES DISPONÍVEIS') || nome.includes('COMBO')) continue;
+
+    const prStr = String(row[pIdx]||'').replace(/[R$\s]/g,'').replace(',','.');
+    const pr = parseFloat(prStr) || 0;
+    if(pr <= 0) continue;
+
+    const cat = cIdx >= 0 ? String(row[cIdx]||'').trim() : '';
+
+    let prod = P().find(p => norm(p.nome) === norm(nome));
     if(!prod){
-      prod={id:uid(),filial_id:State.FIL,nome,sku:'',un:'un',cat:'',custo:pr,mkv:0,mka:0,pfa:0,dv:0,da:0,qtmin:0,emin:0,esal:0,ecm:pr};
-      try{await SB.upsertProduto(prod);}catch(e){}
-      if(!D.produtos[State.FIL])D.produtos[State.FIL]=[];D.produtos[State.FIL].push(prod);novos++;
+      prod = {
+        id: uid(), filial_id: State.FIL, nome, sku: '', un: 'un',
+        cat: cat,
+        custo: pr, mkv: 0, mka: 0, pfa: 0, dv: 0, da: 0, qtmin: 0, emin: 0, esal: 0, ecm: pr
+      };
+      try{ await SB.upsertProduto(prod); }catch(e){}
+      if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
+      D.produtos[State.FIL].push(prod);
+      novos++;
+    } else if (cat && !prod.cat) {
+      prod.cat = cat;
+      try{ await SB.upsertProduto(prod); }catch(e){}
     }
-    const k=prod.id+'_'+forn.id;CPRECOS()[k]=pr;
-    try{await SB.upsertCotPreco({filial_id:State.FIL,produto_id:prod.id,fornecedor_id:forn.id,preco:pr});}catch(e){}
+
+    const k = prod.id + '_' + forn.id;
+    CPRECOS()[k] = pr;
+    try{ await SB.upsertCotPreco({filial_id: State.FIL, produto_id: prod.id, fornecedor_id: forn.id, preco: pr}); }catch(e){}
     atu++;
   }
-  const logs=CCFG().logs||[];logs.unshift({arquivo:filename,forn:forn.nome,data:new Date().toLocaleString('pt-BR'),novos,atu:atu-novos});
-  CCFG().logs=logs;
-  try{await SB.upsertCotConfig({filial_id:State.FIL,locked:CCFG().locked,logs:JSON.stringify(logs)});}catch(e){}
-  fecharModal('modal-mapa');renderCotLogs();renderProdMet();renderProdutos();toast(`✓ ${novos} novos produto(s), ${atu-novos} preço(s) atualizados`);
+
+  const logs = CCFG().logs || [];
+  logs.unshift({arquivo: filename, forn: forn.nome, mes: mesCotacao, data: new Date().toLocaleString('pt-BR'), novos, atu: atu - novos});
+  CCFG().logs = logs;
+  try{ await SB.upsertCotConfig({filial_id: State.FIL, locked: CCFG().locked, logs: JSON.stringify(logs)}); }catch(e){}
+
+  fecharModal('modal-mapa'); renderCotLogs(); renderProdMet(); renderProdutos();
+  toast(`✓ ${novos} novos produto(s), ${atu-novos} preço(s) atualizados`);
 }
+
 function renderCotForns(){
   const cot=CCFG();const el=document.getElementById('cot-forns-lista');const cfors=FORNS();
   if(!cfors.length){el.innerHTML=`<div class="empty"><div class="ico">🏭</div><p>Nenhum fornecedor.</p></div>`;return;}
