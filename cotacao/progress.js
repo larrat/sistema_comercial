@@ -78,8 +78,13 @@ export function validarPreImportacao(rows, start, nomeIdx, precoIdx){
     if(preco > 0) precosValidos++;
   }
 
-  if(nomesValidos === 0) erros.push('A coluna de descrição escolhida não possui textos válidos na amostra.');
-  if(precosValidos === 0) erros.push('A coluna de preço escolhida não possui números válidos na amostra.');
+  if(nomesValidos === 0){
+    erros.push('A coluna de descrição escolhida não possui textos válidos na amostra.');
+  }
+
+  if(precosValidos === 0){
+    erros.push('A coluna de preço escolhida não possui números válidos na amostra.');
+  }
 
   return {
     ok: erros.length === 0,
