@@ -1,5 +1,3 @@
-// js/api.js
-
 const SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
 const SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
 
@@ -18,14 +16,11 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
   if (!res.ok) {
     const e = await res.text();
     console.error('Supabase erro', res.status, table, params, e);
-    if (res.status === 401 || res.status === 403) throw new Error('Chave inválida (' + res.status + '). Verifique SB_KEY.');
-    if (res.status === 404) throw new Error('Tabela não encontrada: ' + table + '. Execute o SQL de criação.');
     throw new Error(res.status + ': ' + e);
   }
   const t = await res.text(); return t ? JSON.parse(t) : null;
 }
 
-// O 'export' aqui permite que outros arquivos importem essas funções
 export const SB = {
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
@@ -44,12 +39,10 @@ export const SB = {
   deleteFornecedor: id => sbReq(`fornecedores?id=eq.${id}`, 'DELETE'),
   getCotPrecos: fid => sbReq('cotacao_precos', 'GET', null, `?filial_id=eq.${fid}`),
   upsertCotPreco: p => sbReq('cotacao_precos', 'POST', p, '?on_conflict=filial_id,produto_id,fornecedor_id'),
-  deleteCotPreco: (fid, pid, fnid) => sbReq(`cotacao_precos?filial_id=eq.${fid}&produto_id=eq.${pid}&fornecedor_id=eq.${fnid}`, 'DELETE'),
   getCotConfig: fid => sbReq('cotacao_config', 'GET', null, `?filial_id=eq.${fid}`).then(r => r && r[0]),
   upsertCotConfig: c => sbReq('cotacao_config', 'POST', c, '?on_conflict=filial_id'),
   getMovs: fid => sbReq('movimentacoes', 'GET', null, `?filial_id=eq.${fid}&order=ts.asc`),
   insertMov: m => sbReq('movimentacoes', 'POST', m, ''),
-  deleteMov: id => sbReq(`movimentacoes?id=eq.${id}`, 'DELETE'),
   getNotas: cid => sbReq('notas', 'GET', null, `?cliente_id=eq.${cid}&order=criado_em.desc`),
   insertNota: n => sbReq('notas', 'POST', n, ''),
 };

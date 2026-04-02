@@ -1,472 +1,73 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<link rel="icon" href="data:,">
+<link rel="icon" href="data:,"> <!-- Resolve o erro 404 do favicon -->
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Sistema Comercial</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
-
-<!-- Link para o seu novo arquivo CSS -->
 <link rel="stylesheet" href="./css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
-<!-- ══ SETUP SCREEN ══ -->
+<!-- SETUP -->
 <div id="screen-setup" class="screen">
   <div class="setup-card">
-    <div class="setup-logo">Sistema Comercial</div>
-    <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
-
-    <!-- Lista de filiais -->
-    <div class="fil-grid" id="fil-grid"></div>
-
-    <!-- Formulário inline (quando não há filiais) -->
-    <div id="setup-form" style="display:none">
-      <div class="fg">
-        <div><div class="fl">Nome da filial *</div><input class="inp" id="sf-nome" placeholder="Ex: Matriz Fortaleza"></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Cidade</div><input class="inp" id="sf-cidade" placeholder="Fortaleza"></div>
-        <div><div class="fl">Estado</div><input class="inp" id="sf-estado" placeholder="CE"></div>
-      </div>
-      <div class="fg">
-        <div><div class="fl">Cor identificadora</div><input class="inp" id="sf-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
-      </div>
-      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px" onclick="criarPrimeiraFilial()">Criar filial e entrar →</button>
-    </div>
-
-    <!-- Ações -->
-    <div id="setup-actions" class="fb" style="display:none">
-      <button class="btn btn-gh btn-sm" onclick="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
-      <button class="btn btn-p" onclick="entrar()">Entrar →</button>
-    </div>
+    <h2>Selecione a Filial</h2>
+    <div id="fil-grid" class="fil-grid"></div>
+    <button class="btn btn-p" onclick="entrar()">Entrar</button>
   </div>
 </div>
 
-<!-- ══ APP ══ -->
+<!-- APP -->
 <div id="screen-app" class="screen">
-  <!-- Sidebar overlay (mobile) -->
-  <div class="sb-overlay" id="sb-overlay" onclick="fecharSb()"></div>
-
-  <!-- Sidebar -->
-  <aside class="sb" id="sb">
-    <div class="sb-head">
-      <div class="fb">
-        <div class="sb-brand">Sistema Comercial</div>
-        <button class="ib" id="sb-close" onclick="fecharSb()" style="display:none">✕</button>
-      </div>
-      <div class="sb-pill" onclick="voltarSetup()">
-        <div class="sb-pdot" id="sb-dot"></div>
-        <span class="sb-pname" id="sb-fname">—</span>
-        <span style="font-size:11px;color:var(--tx3);margin-left:2px">↕</span>
-      </div>
-    </div>
-    <nav class="sb-nav">
-      <div class="nl">Visão geral</div>
-      <button class="ni on" data-p="dashboard" onclick="ir('dashboard')"><span class="ico">📊</span>Dashboard</button>
-      <div class="nl">Cadastros</div>
-      <button class="ni" data-p="produtos" onclick="ir('produtos')"><span class="ico">📦</span>Produtos</button>
-      <button class="ni" data-p="clientes" onclick="ir('clientes')"><span class="ico">👥</span>Clientes</button>
-      <div class="nl">Operações</div>
-      <button class="ni" data-p="pedidos" onclick="ir('pedidos')"><span class="ico">🛒</span>Pedidos</button>
-      <button class="ni" data-p="cotacao" onclick="ir('cotacao')"><span class="ico">📥</span>Cotação</button>
-      <button class="ni" data-p="estoque" onclick="ir('estoque')"><span class="ico">🗄</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
-      <div class="nl">Sistema</div>
-      <button class="ni" data-p="filiais" onclick="ir('filiais')"><span class="ico">🏢</span>Filiais</button>
-    </nav>
-    <div class="sb-foot">
-      <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" onclick="exportarTudo()">⬇ Exportar CSVs</button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="main" id="main">
-
-    <!-- ── DASHBOARD ── -->
-    <div class="pg on" id="pg-dashboard">
-      <div class="ph fb">
-        <div><h2>Dashboard</h2><p id="dash-desc">Este mês</p></div>
-        <div class="fg2">
-          <select class="inp sel" id="dash-fil" style="font-size:12px;max-width:150px" onchange="renderDash()"></select>
-          <div class="pseg" id="dash-pseg">
-            <button onclick="setP('semana',this)">Semana</button>
-            <button class="on" onclick="setP('mes',this)">Mês</button>
-            <button onclick="setP('ano',this)">Ano</button>
-            <button onclick="setP('tudo',this)">Tudo</button>
-          </div>
-        </div>
-      </div>
-      <div id="dash-alerts"></div>
-      <div class="mg" id="dash-met" style="margin-bottom:14px"></div>
-      <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:12px">
-        <div class="card"><div class="ct">Faturamento e lucro</div>
-          <div class="barchart" id="dash-chart"></div>
-          <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no período</p></div>
-          <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--tx3)">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#163F80;margin-right:4px"></span>Faturamento</span>
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#156038;margin-right:4px"></span>Lucro</span>
-          </div>
-        </div>
-        <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-        <div class="card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
-        <div class="card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
-        <div class="card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
-      </div>
-      <div class="card">
-        <div class="fb" style="margin-bottom:12px"><div class="ct" style="margin:0">Margem por produto</div></div>
-        <div id="dash-margem"></div>
-      </div>
-    </div>
-
-    <!-- ── PRODUTOS ── -->
-    <div class="pg" id="pg-produtos">
-      <div class="ph fb">
-        <div><h2>Produtos</h2><p>Cadastro único — precificação, estoque e pedidos</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
-      </div>
-      <div class="mg" id="prod-met" style="margin-bottom:14px"></div>
-      <div class="fb" style="margin-bottom:12px">
-        <div class="fg2">
-          <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" oninput="renderProdutos()">
-          <select class="inp sel" id="prod-cat-fil" style="max-width:160px" onchange="renderProdutos()"><option value="">Todas as categorias</option></select>
-        </div>
-        <button class="btn btn-sm" onclick="exportCSV('produtos')">⬇ CSV</button>
-      </div>
-      <div class="card"><div id="prod-lista"></div></div>
-    </div>
-
-    <!-- ── CLIENTES ── -->
-    <div class="pg" id="pg-clientes">
-      <div class="ph fb">
-        <div><h2>Clientes</h2><p id="cli-sub">Carteira da filial</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-cliente');limparFormCli()">+ Novo cliente</button>
-      </div>
-      <div class="mg" id="cli-met" style="margin-bottom:14px"></div>
-      <div class="tabs">
-        <button class="tb on" onclick="switchTab('cli','lista')">Lista</button>
-        <button class="tb" onclick="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
-      </div>
-      <div class="tc on" id="cli-tc-lista">
-        <div class="fb" style="margin-bottom:12px">
-          <div class="fg2">
-            <input class="inp" id="cli-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderClientes()">
-            <select class="inp sel" id="cli-fil-seg" style="max-width:150px" onchange="renderClientes()"><option value="">Todos os segmentos</option></select>
-            <select class="inp sel" id="cli-fil-st" style="max-width:130px" onchange="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
-          </div>
-          <button class="btn btn-sm" onclick="exportCSV('clientes')">⬇ CSV</button>
-        </div>
-        <div class="card"><div id="cli-lista"></div></div>
-      </div>
-      <div class="tc" id="cli-tc-segs"><div id="cli-segs-lista"></div></div>
-    </div>
-
-    <!-- ── PEDIDOS ── -->
-    <div class="pg" id="pg-pedidos">
-      <div class="ph fb">
-        <div><h2>Pedidos</h2><p id="ped-sub">Orçamentos e vendas</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
-      </div>
-      <div class="mg" id="ped-met" style="margin-bottom:14px"></div>
-      <div class="fb" style="margin-bottom:12px">
-        <div class="fg2">
-          <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" oninput="renderPedidos()">
-          <select class="inp sel" id="ped-fil-st" style="max-width:150px" onchange="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
-        </div>
-        <button class="btn btn-sm" onclick="exportCSV('pedidos')">⬇ CSV</button>
-      </div>
-      <div class="card"><div id="ped-lista"></div></div>
-    </div>
-
-    <!-- ── COTAÇÃO ── -->
-    <div class="pg" id="pg-cotacao">
-      <div class="ph"><h2>Cotação</h2><p id="cot-sub">Fornecedores da filial ativa</p></div>
-      <div class="tabs">
-        <button class="tb on" onclick="switchTab('cot','importar')">Importar</button>
-        <button class="tb" onclick="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
-        <button class="tb" onclick="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
-      </div>
-      <div class="tc on" id="cot-tc-importar">
-        <div class="card">
-          <div class="ct">Importar planilha de fornecedor</div>
-          <div class="fg c2" style="margin-bottom:12px">
-            <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">— selecione —</option></select></div>
-            <div style="display:flex;align-items:flex-end"><button class="btn" onclick="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
-          </div>
-          <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" onchange="cotFile(event)"><div style="font-size:22px;margin-bottom:6px">📂</div><strong style="font-size:13px">Clique ou arraste o arquivo</strong><p style="font-size:12px;color:var(--tx3);margin-top:4px">.xlsx .xls .csv — qualquer layout</p></div>
-        </div>
-        <div class="card"><div class="ct">Histórico de importações</div><div id="cot-logs"></div></div>
-      </div>
-      <div class="tc" id="cot-tc-fornecedores">
-        <div class="fb" style="margin-bottom:12px"><span></span><button class="btn btn-p" onclick="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
-        <div class="card"><div id="cot-forns-lista"></div></div>
-      </div>
-      <div class="tc" id="cot-tc-cotacao">
-        <div class="fb" style="margin-bottom:12px">
-          <div class="mg" id="cot-met" style="margin:0;flex:1"></div>
-          <div class="fg2" style="flex-shrink:0">
-            <button class="btn btn-sm" onclick="exportCSV('cotacao')">⬇ CSV</button>
-            <button class="btn btn-sm" id="cot-lock-btn" onclick="cotLock()">🔒 Travar</button>
-          </div>
-        </div>
-        <div id="cot-lock-alert" style="display:none" class="alert al-a">🔒 Cotação travada — valores protegidos</div>
-        <div class="card"><div id="cot-tabela"></div></div>
-      </div>
-    </div>
-
-    <!-- ── ESTOQUE ── -->
-    <div class="pg" id="pg-estoque">
-      <div class="ph fb">
-        <div><h2>Estoque</h2><p id="est-sub">Movimentações da filial</p></div>
-        <div class="fg2">
-          <button class="btn btn-sm" onclick="exportCSV('estoque')">⬇ CSV</button>
-          <button class="btn btn-p" onclick="abrirModal('modal-mov');resetMov()">+ Movimentação</button>
-        </div>
-      </div>
-      <div id="est-alerts"></div>
-      <div class="tabs">
-        <button class="tb on" onclick="switchTab('est','posicao');renderEstPosicao()">Posição</button>
-        <button class="tb" onclick="switchTab('est','historico');renderEstHist()">Histórico</button>
-      </div>
-      <div class="tc on" id="est-tc-posicao">
-        <div class="mg" id="est-met" style="margin-bottom:14px"></div>
-        <div class="fb" style="margin-bottom:12px">
-          <div class="fg2">
-            <input class="inp" id="est-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstPosicao()">
-            <select class="inp sel" id="est-fil" style="max-width:140px" onchange="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
-          </div>
-        </div>
-        <div class="card"><div id="est-posicao"></div></div>
-      </div>
-      <div class="tc" id="est-tc-historico">
-        <div class="fb" style="margin-bottom:12px">
-          <div class="fg2">
-            <input class="inp" id="est-hist-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstHist()">
-            <select class="inp sel" id="est-hist-tipo" style="max-width:140px" onchange="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
-          </div>
-        </div>
-        <div class="card"><div id="est-hist"></div></div>
-      </div>
-    </div>
-
-    <!-- ── FILIAIS ── -->
-    <div class="pg" id="pg-filiais">
-      <div class="ph fb">
-        <div><h2>Filiais</h2><p>Gerencie todas as filiais</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
-      </div>
-      <div class="mg" id="fil-met" style="margin-bottom:14px"></div>
-      <div id="fil-lista"></div>
-    </div>
-
-  </main>
-
-  <!-- Mobile bottom nav -->
-  <nav class="mob-nav">
-    <div class="mob-items">
-      <button class="mob-btn on" id="mob-dashboard" onclick="ir('dashboard')"><span class="mico">📊</span>Dashboard</button>
-      <button class="mob-btn" id="mob-produtos" onclick="ir('produtos')"><span class="mico">📦</span>Produtos</button>
-      <button class="mob-btn" id="mob-pedidos" onclick="ir('pedidos')"><span class="mico">🛒</span>Pedidos</button>
-      <button class="mob-btn" id="mob-estoque" onclick="ir('estoque')"><span class="mico">🗄</span>Estoque</button>
-      <button class="mob-btn" id="mob-menu" onclick="abrirSb()"><span class="mico">☰</span>Menu</button>
-    </div>
+  <nav class="sb">
+    <button onclick="ir('dashboard')">Dashboard</button>
+    <button onclick="ir('produtos')">Produtos</button>
+    <button onclick="ir('cotacao')">Cotação</button>
   </nav>
-</div>
-
-<!-- ══ MODALS ══ -->
-
-<!-- Filial -->
-<div class="modal-wrap" id="modal-filial">
-  <div class="modal-bg" onclick="fecharModal('modal-filial')"></div>
-  <div class="modal-box">
-    <div class="mt" id="filial-modal-titulo">Nova filial</div>
-    <div class="fg c2">
-      <div><div class="fl">Nome *</div><input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza"></div>
-      <div><div class="fl">Cidade</div><input class="inp" id="fil-cidade" placeholder="Fortaleza"></div>
-    </div>
-    <div class="fg c2">
-      <div><div class="fl">Estado</div><input class="inp" id="fil-estado" placeholder="CE"></div>
-      <div><div class="fl">Cor</div><input class="inp" id="fil-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
-    </div>
-    <div class="fg"><div><div class="fl">Endereço (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, número, bairro"></div></div>
-    <div class="div"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="fecharModal('modal-filial')">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarFilial()">Salvar filial</button>
-    </div>
-  </div>
-</div>
-
-<!-- Produto -->
-<div class="modal-wrap" id="modal-produto">
-  <div class="modal-bg" onclick="fecharModal('modal-produto')"></div>
-  <div class="modal-box">
-    <div class="mt" id="prod-modal-titulo">Novo produto</div>
-    <div class="fg c2">
-      <div><div class="fl">Nome *</div><input class="inp" id="p-nome" placeholder="Nome do produto"></div>
-      <div><div class="fl">SKU / Código</div><input class="inp" id="p-sku" placeholder="PRD-001"></div>
-    </div>
-    <div class="fg c3">
-      <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m²</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
-      <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aço, elétrico"></div>
-      <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" oninput="calcProdPreview()"></div>
-    </div>
-    <div class="div"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="panel"><div class="pt">Varejo</div>
-        <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" oninput="syncV('mk')"></div></div>
-        <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" oninput="syncV('mg')"></div></div>
-        <div class="fg c2">
-          <div><div class="fl">Qtd mín. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
-          <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
-        </div>
+  
+  <main class="main">
+    <div id="pg-dashboard" class="pg"><h2>Dashboard</h2></div>
+    
+    <div id="pg-produtos" class="pg">
+      <div class="fb">
+        <h2>Produtos</h2>
+        <button onclick="document.getElementById('modal-produto').classList.add('on')">+ Novo</button>
       </div>
-      <div class="panel"><div class="pt">Atacado</div>
-        <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" oninput="syncA('mk')"></div></div>
-        <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" oninput="syncA('mg')"></div></div>
-        <div class="fg c2">
-          <div><div class="fl">Preço fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
-          <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
-        </div>
-      </div>
+      <div id="prod-lista"></div>
     </div>
-    <div class="div"></div>
-    <div class="fg c3">
-      <div><div class="fl">Estoque mínimo</div><input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0"></div>
-      <div><div class="fl">Saldo inicial</div><input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0"></div>
-      <div><div class="fl">Custo médio inicial</div><input class="inp" id="p-ecm" type="number" step="0.01" min="0" placeholder="= custo"></div>
+
+    <div id="pg-cotacao" class="pg">
+      <h2>Importar Cotação</h2>
+      <select id="cot-forn-sel" class="inp"></select>
+      <input type="file" onchange="cotFile(event)">
+      <div id="cot-logs"></div>
     </div>
-    <div id="prod-preview" style="display:none" class="panel">
-      <div class="pt">Prévia de preços</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:13px">
-        <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">—</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">Var. mín.</div><div style="font-weight:600" id="ppv-vmin">—</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">—</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">Atac. mín.</div><div style="font-weight:600" id="ppv-amin">—</div></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-      <button class="btn" onclick="fecharModal('modal-produto')">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarProduto()">Salvar produto</button>
-    </div>
-  </div>
+  </main>
 </div>
 
-<!-- Cliente -->
-<div class="modal-wrap" id="modal-cliente">
-  <div class="modal-bg" onclick="fecharModal('modal-cliente')"></div>
+<!-- MODAL PRODUTO -->
+<div id="modal-produto" class="modal-wrap">
   <div class="modal-box">
-    <div class="mt" id="cli-modal-titulo">Novo cliente</div>
-    <div class="fg c2"><div><div class="fl">Nome / Razão social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
-    <div class="fg c3"><div><div class="fl">CPF / CNPJ</div><input class="inp" id="c-doc"></div><div><div class="fl">Tipo</div><select class="inp sel" id="c-tipo"><option value="PJ">PJ</option><option value="PF">PF</option></select></div><div><div class="fl">Status</div><select class="inp sel" id="c-status"><option value="ativo">Ativo</option><option value="prospecto">Prospecto</option><option value="inativo">Inativo</option></select></div></div>
-    <div class="fg c2"><div><div class="fl">Telefone / WhatsApp</div><input class="inp" id="c-tel"></div><div><div class="fl">E-mail</div><input class="inp" id="c-email"></div></div>
-    <div class="fg"><div><div class="fl">Responsável / Comprador</div><input class="inp" id="c-resp"></div></div>
-    <div class="fg c3"><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preço</div><select class="inp sel" id="c-tab"><option value="padrao">Padrão</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">À vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
-    <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
-    <div class="fg"><div><div class="fl">Observações</div><textarea class="inp" id="c-obs"></textarea></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" onclick="salvarCliente()">Salvar</button></div>
+    <h3>Produto</h3>
+    <input id="p-nome" class="inp" placeholder="Nome">
+    <input id="p-custo" class="inp" type="number" placeholder="Custo">
+    <div id="p-hist-cot" class="panel"></div>
+    <button class="btn btn-p" onclick="salvarProduto()">Salvar</button>
+    <button onclick="this.closest('.modal-wrap').classList.remove('on')">Fechar</button>
   </div>
 </div>
 
-<!-- Detalhe cliente -->
-<div class="modal-wrap" id="modal-cli-det">
-  <div class="modal-bg" onclick="fecharModal('modal-cli-det')"></div>
-  <div class="modal-box" id="cli-det-box"></div>
-</div>
-
-<!-- Pedido -->
-<div class="modal-wrap" id="modal-pedido">
-  <div class="modal-bg" onclick="fecharModal('modal-pedido')"></div>
+<!-- MODAL MAPA -->
+<div id="modal-mapa" class="modal-wrap">
   <div class="modal-box">
-    <div class="mt" id="ped-modal-titulo">Novo pedido</div>
-    <div class="fg c3">
-      <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente"><datalist id="cli-dl"></datalist></div>
-      <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
-      <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
-    </div>
-    <div class="fg c3">
-      <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">À vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartão</option><option value="cheque">Cheque</option></select></div>
-      <div><div class="fl">Prazo</div><select class="inp sel" id="pd-prazo"><option value="imediato">Imediato</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div>
-      <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
-    </div>
-    <div class="div"></div>
-    <div class="ct">Itens do pedido</div>
-    <div class="fg c4" style="margin-bottom:6px">
-      <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod"><option value="">— selecione —</option></select></div>
-      <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
-      <div><div class="fl">Preço unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
-      <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
-    </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-      <button class="btn btn-sm" onclick="addItem()">+ Adicionar item</button>
-    </div>
-    <div id="ped-itens"></div>
-    <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">—</span></div></div>
-    <div class="fg" style="margin-top:10px"><div><div class="fl">Observações</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" onclick="salvarPedido()">Salvar pedido</button></div>
-  </div>
-</div>
-
-<!-- Detalhe pedido -->
-<div class="modal-wrap" id="modal-ped-det">
-  <div class="modal-bg" onclick="fecharModal('modal-ped-det')"></div>
-  <div class="modal-box" id="ped-det-box"></div>
-</div>
-
-<!-- Fornecedor cotação -->
-<div class="modal-wrap" id="modal-forn">
-  <div class="modal-bg" onclick="fecharModal('modal-forn')"></div>
-  <div class="modal-box">
-    <div class="mt">Novo fornecedor</div>
-    <div class="fg"><div><div class="fl">Nome *</div><input class="inp" id="fn-nome"></div></div>
-    <div class="fg c2"><div><div class="fl">Contato</div><input class="inp" id="fn-contato"></div><div><div class="fl">Prazo entrega (dias)</div><input class="inp" id="fn-prazo" type="number" min="0"></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" onclick="salvarForn()">Salvar</button></div>
-  </div>
-</div>
-
-<!-- Mapeamento de colunas -->
-<div class="modal-wrap" id="modal-mapa">
-  <div class="modal-bg" onclick="fecharModal('modal-mapa')"></div>
-  <div class="modal-box" style="width:min(640px,96vw)">
-    <div class="mt" id="mapa-titulo">Mapear colunas</div>
+    <h3 id="mapa-titulo">Mapear</h3>
     <div id="mapa-body"></div>
   </div>
 </div>
 
-<!-- Movimentação estoque -->
-<div class="modal-wrap" id="modal-mov">
-  <div class="modal-bg" onclick="fecharModal('modal-mov')"></div>
-  <div class="modal-box">
-    <div class="mt">Nova movimentação</div>
-    <div class="tc-grid">
-      <div class="tc-card sel" id="tc-entrada" onclick="setTipo('entrada')"><div class="ti">📥</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
-      <div class="tc-card" id="tc-saida" onclick="setTipo('saida')"><div class="ti">📤</div><div class="tl">Saída</div><div class="ts">Venda / consumo</div></div>
-      <div class="tc-card" id="tc-ajuste" onclick="setTipo('ajuste')"><div class="ti">⚖</div><div class="tl">Ajuste</div><div class="ts">Inventário</div></div>
-      <div class="tc-card" id="tc-transf" onclick="setTipo('transf')"><div class="ti">🔄</div><div class="tl">Transferência</div><div class="ts">Entre filiais</div></div>
-    </div>
-    <div class="fg c2">
-      <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" onchange="movLoadProd()"><option value="">— selecione —</option></select></div>
-      <div><div class="fl">Data</div><input class="inp" id="mov-data" type="date"></div>
-    </div>
-    <div id="mov-saldo-panel" style="display:none" class="panel"><div class="pt">Posição atual</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Saldo: <b id="ms-saldo">—</b></span><span>Custo médio: <b id="ms-cm">—</b></span></div></div>
-    <div class="fg c2" id="mov-qty-row">
-      <div><div class="fl" id="mov-qty-lbl">Quantidade *</div><input class="inp" id="mov-qty" type="number" min="0" step="0.01" oninput="movCalc()"></div>
-      <div id="mov-custo-wrap"><div class="fl">Custo unitário (R$)</div><input class="inp" id="mov-custo" type="number" step="0.01" oninput="movCalc()"></div>
-    </div>
-    <div id="mov-ajuste-row" style="display:none" class="fg"><div><div class="fl">Saldo real (contagem física)</div><input class="inp" id="mov-real" type="number" step="0.01" oninput="movCalcAjuste()"></div></div>
-    <div id="mov-transf-row" style="display:none" class="fg"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">— selecione —</option></select></div></div>
-    <div id="mov-preview" style="display:none" class="panel"><div class="pt">Prévia</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Novo saldo: <b id="mp-saldo">—</b></span><span>Custo médio: <b id="mp-cm">—</b></span><span id="mp-val-wrap">Total: <b id="mp-val">—</b></span></div></div>
-    <div class="fg"><div><div class="fl">Observação</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referência..."></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" onclick="salvarMov()">Confirmar</button></div>
-  </div>
-</div>
-
 <div id="toast"></div>
-
-<!-- Link para o seu novo arquivo JS MODULARIZADO -->
 <script type="module" src="./js/main.js"></script>
 </body>
 </html>
