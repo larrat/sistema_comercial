@@ -39,21 +39,13 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
 }
 
 export const SB = {
-  
-    upsertProdutosLote: items => sbReq('produtos', 'POST', items, '?on_conflict=id'),
-
-  upsertCotPrecosLote: items =>
-    sbReq('cotacao_precos', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id'),
-
-  upsertCotHistoricoLote: items =>
-    sbReq('cotacao_historico', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'),
-
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: id => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
 
   getProdutos: fid => sbReq('produtos', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
   upsertProduto: p => sbReq('produtos', 'POST', p, '?on_conflict=id'),
+  upsertProdutosLote: items => sbReq('produtos', 'POST', items, '?on_conflict=id'),
   deleteProduto: id => sbReq(`produtos?id=eq.${id}`, 'DELETE'),
 
   getClientes: fid => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
@@ -70,6 +62,8 @@ export const SB = {
 
   getCotPrecos: fid => sbReq('cotacao_precos', 'GET', null, `?filial_id=eq.${fid}`),
   upsertCotPreco: p => sbReq('cotacao_precos', 'POST', p, '?on_conflict=filial_id,produto_id,fornecedor_id'),
+  upsertCotPrecosLote: items =>
+    sbReq('cotacao_precos', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id'),
   deleteCotPreco: (fid, pid, fnid) =>
     sbReq(`cotacao_precos?filial_id=eq.${fid}&produto_id=eq.${pid}&fornecedor_id=eq.${fnid}`, 'DELETE'),
 
@@ -77,14 +71,27 @@ export const SB = {
     sbReq('cotacao_historico', 'GET', null, `?filial_id=eq.${fid}&order=mes_ref.desc`),
 
   upsertCotHistorico: h =>
-    sbReq(
-      'cotacao_historico',
-      'POST',
-      h,
-      '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'
-    ),
+    sbReq('cotacao_historico', 'POST', h, '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'),
 
-  getCotConfig: fid => sbReq('cotacao_config', 'GET', null, `?filial_id=eq.${fid}`).then(r => r && r[0]),
+  upsertCotHistoricoLote: items =>
+    sbReq('cotacao_historico', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'),
+
+  getCotLayout: async (filialId, fornecedorId) => {
+    const r = await sbReq(
+      'cotacao_layouts',
+      'GET',
+      null,
+      `?filial_id=eq.${filialId}&fornecedor_id=eq.${fornecedorId}&limit=1`
+    );
+    return r && r[0] ? r[0] : null;
+  },
+
+  upsertCotLayout: layout =>
+    sbReq('cotacao_layouts', 'POST', layout, '?on_conflict=filial_id,fornecedor_id'),
+
+  getCotConfig: fid =>
+    sbReq('cotacao_config', 'GET', null, `?filial_id=eq.${fid}`).then(r => r && r[0]),
+
   upsertCotConfig: c => sbReq('cotacao_config', 'POST', c, '?on_conflict=filial_id'),
 
   getMovs: fid => sbReq('movimentacoes', 'GET', null, `?filial_id=eq.${fid}&order=ts.asc`),
