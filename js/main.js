@@ -217,7 +217,6 @@ function renderDashFilSel(){
   s.innerHTML='<option value="todas">Todas as filiais</option>'+D.filiais.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('');
   s.value=cur||'todas';
 }
-
 function renderDash(){
   const fsel=document.getElementById('dash-fil')?.value||'todas';
   const range=getRange();
@@ -266,8 +265,7 @@ function renderDash(){
   const alertProds=allProds.filter(p=>{const s=saldos[p._fid+'_'+p.id];return s&&p.emin>0&&s.saldo<p.emin;}).slice(0,5);
   document.getElementById('dash-ea').innerHTML=alertProds.length?alertProds.map(p=>{const s=saldos[p._fid+'_'+p.id];return`<div class="rrow"><span style="width:8px;height:8px;border-radius:50%;background:${s.saldo<=0?'var(--r)':'var(--a)'};flex-shrink:0;display:inline-block"></span><span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome}</span><span class="bdg ${s.saldo<=0?'br':'ba'}" style="font-size:10px">${s.saldo<=0?'Zerado':fmtQ(s.saldo)}</span></div>`;}).join(''):`<div class="empty" style="padding:12px"><p>✓ Sem alertas</p></div>`;
 
-  // CORREÇÃO: Usando D.cotConfig em vez de D.cotacao
-  const fu={};filIds.forEach(fid=>(D.cotConfig[fid]?.logs||[]).forEach(l=>{if(!fu[l.forn])fu[l.forn]=0;fu[l.forn]++;}));
+  const fu={};filIds.forEach(fid=>(D.cotacao[fid]?.logs||[]).forEach(l=>{if(!fu[l.forn])fu[l.forn]=0;fu[l.forn]++;}));
   const tf=Object.entries(fu).sort((a,b)=>b[1]-a[1]).slice(0,5);const mxF2=tf.length?tf[0][1]:1;
   document.getElementById('dash-forn').innerHTML=tf.length?tf.map(([n,c],i)=>`<div class="rrow"><span class="rnum">${i+1}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span><div class="rbar"><div class="rbar-f" style="width:${Math.round(c/mxF2*100)}%;background:#156038"></div></div><span class="rval" style="color:var(--tx2)">${c}x</span></div>`).join(''):`<div class="empty" style="padding:12px"><p>Nenhuma importação</p></div>`;
 
@@ -374,7 +372,7 @@ async function salvarProduto(){
       da:parseFloat(document.getElementById('p-da').value)||0, qtmin:parseFloat(document.getElementById('p-qtmin').value)||0,
       emin:parseFloat(document.getElementById('p-emin').value)||0, esal:parseFloat(document.getElementById('p-esal').value)||0,
       ecm:parseFloat(document.getElementById('p-ecm').value)||custo,
-      hist_cot: existing ? (existing.hist_cot || []) : [] 
+      hist_cot: existing ? (existing.hist_cot || []) : [] // Garante que o histórico não seja apagado
   };
   
   try{await SB.upsertProduto(p);}catch(e){toast('Erro: '+e.message);return;}
