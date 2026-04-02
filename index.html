@@ -663,7 +663,7 @@ textarea.inp{resize:vertical;min-height:60px}
   <div class="modal-box">
     <div class="mt">Novo fornecedor</div>
     <div class="fg"><div><div class="fl">Nome *</div><input class="inp" id="fn-nome"></div></div>
-    <div class="fg c2"><div><div class="fl">Contato</div><input class="inp" id="fn-contato"></div><div><div class="fl">Prazo entrega (dias)</div><input class="inp" id="fn-prazo" type="number" min="0"></div></div>
+    <div class="fg c2"><div><div class="fl">Contato</div><input class="inp" id="fn-contato"></div><div><div class="fl">Prazo entrega (dias)</div><input class="inp" id="fn-contato"></div></div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" onclick="salvarForn()">Salvar</button></div>
   </div>
 </div>
@@ -1633,10 +1633,11 @@ async function confirmarMapa(){
   const start=Math.max(1,parseInt(document.getElementById('map-start').value)||1);
   const cot=CCFG();if(!cot.precos)cot.precos={};
   let novos=0,atu=0;
-  rows.slice(start).forEach(row=>{
-    const nome=String(row[nIdx]||'').trim();if(!nome)return;
+  const linhas = rows.slice(start);
+  for(const row of linhas){
+    const nome=String(row[nIdx]||'').trim();if(!nome)continue;
     const pr=parseFloat(String(row[pIdx]||'').replace(/[R$\s]/g,'').replace(',','.'))||0;
-    if(pr<=0)return;
+    if(pr<=0)continue;
     let prod=P().find(p=>norm(p.nome)===norm(nome));
     if(!prod){
       prod={id:uid(),filial_id:FIL,nome,sku:'',un:'un',cat:'',custo:pr,mkv:0,mka:0,pfa:0,dv:0,da:0,qtmin:0,emin:0,esal:0,ecm:pr};
@@ -1647,7 +1648,7 @@ async function confirmarMapa(){
     CPRECOS()[k]=pr;
     try{await SB.upsertCotPreco({filial_id:FIL,produto_id:prod.id,fornecedor_id:forn.id,preco:pr});}catch(e){}
     atu++;
-  });
+  }
   const logs=CCFG().logs||[];
   logs.unshift({arquivo:filename,forn:forn.nome,data:new Date().toLocaleString('pt-BR'),novos,atu:atu-novos});
   CCFG().logs=logs;
