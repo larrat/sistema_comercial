@@ -1216,3 +1216,4 @@ window.updPreco = updPreco; window.renderEstPosicao = renderEstPosicao; window.r
 window.abrirMovProd = abrirMovProd; window.setTipo = setTipo; window.movLoadProd = movLoadProd; window.movCalc = movCalc;
 window.movCalcAjuste = movCalcAjuste; window.salvarMov = salvarMov; window.excluirMov = excluirMov; window.salvarFilial = salvarFilial;
 window.limparFormFilial = limparFormFilial; window.editarFilial = editarFilial; window.removerFilial = removerFilial; window.trocarFilial = trocarFilial;
+window.renderMapaBody = renderMapaBody;
