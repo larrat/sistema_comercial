@@ -1,59 +1,4 @@
-
-// ═══════════════════════════
-// SUPABASE
-// ═══════════════════════════
-const SB_URL='https://eiycrokqwhmfmjackjni.supabase.co';
-const SB_KEY='sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
-
-async function sbReq(table,method='GET',body=null,params=''){
-  const prefer=method==='POST'?(params.includes('on_conflict')?'resolution=merge-duplicates,return=representation':'return=representation'):'';
-  const res=await fetch(`${SB_URL}/rest/v1/${table}${params}`,{
-    method,
-    headers:{
-      'apikey':SB_KEY,
-      'Authorization':'Bearer '+SB_KEY,
-      'Content-Type':'application/json',
-      ...(prefer?{'Prefer':prefer}:{})
-    },
-    body:body?JSON.stringify(body):undefined
-  });
-  if(!res.ok){
-    const e=await res.text();
-    console.error('Supabase erro',res.status,table,params,e);
-    if(res.status===401||res.status===403) throw new Error('Chave inválida ('+res.status+'). Verifique SB_KEY.');
-    if(res.status===404) throw new Error('Tabela não encontrada: '+table+'. Execute o SQL de criação.');
-    throw new Error(res.status+': '+e);
-  }
-  const t=await res.text();return t?JSON.parse(t):null;
-}
-
-const SB={
-  getFiliais:()=>sbReq('filiais','GET',null,'?order=criado_em'),
-  upsertFilial:f=>sbReq('filiais','POST',f,'?on_conflict=id'),
-  deleteFilial:id=>sbReq(`filiais?id=eq.${id}`,'DELETE'),
-  getProdutos:fid=>sbReq('produtos','GET',null,`?filial_id=eq.${fid}&order=nome`),
-  upsertProduto:p=>sbReq('produtos','POST',p,'?on_conflict=id'),
-  deleteProduto:id=>sbReq(`produtos?id=eq.${id}`,'DELETE'),
-  getClientes:fid=>sbReq('clientes','GET',null,`?filial_id=eq.${fid}&order=nome`),
-  upsertCliente:c=>sbReq('clientes','POST',c,'?on_conflict=id'),
-  deleteCliente:id=>sbReq(`clientes?id=eq.${id}`,'DELETE'),
-  getPedidos:fid=>sbReq('pedidos','GET',null,`?filial_id=eq.${fid}&order=num.desc`),
-  upsertPedido:p=>sbReq('pedidos','POST',p,'?on_conflict=id'),
-  deletePedido:id=>sbReq(`pedidos?id=eq.${id}`,'DELETE'),
-  getFornecedores:fid=>sbReq('fornecedores','GET',null,`?filial_id=eq.${fid}&order=nome`),
-  upsertFornecedor:f=>sbReq('fornecedores','POST',f,'?on_conflict=id'),
-  deleteFornecedor:id=>sbReq(`fornecedores?id=eq.${id}`,'DELETE'),
-  getCotPrecos:fid=>sbReq('cotacao_precos','GET',null,`?filial_id=eq.${fid}`),
-  upsertCotPreco:p=>sbReq('cotacao_precos','POST',p,'?on_conflict=filial_id,produto_id,fornecedor_id'),
-  deleteCotPreco:(fid,pid,fnid)=>sbReq(`cotacao_precos?filial_id=eq.${fid}&produto_id=eq.${pid}&fornecedor_id=eq.${fnid}`,'DELETE'),
-  getCotConfig:fid=>sbReq('cotacao_config','GET',null,`?filial_id=eq.${fid}`).then(r=>r&&r[0]),
-  upsertCotConfig:c=>sbReq('cotacao_config','POST',c,'?on_conflict=filial_id'),
-  getMovs:fid=>sbReq('movimentacoes','GET',null,`?filial_id=eq.${fid}&order=ts.asc`),
-  insertMov:m=>sbReq('movimentacoes','POST',m,''),
-  deleteMov:id=>sbReq(`movimentacoes?id=eq.${id}`,'DELETE'),
-  getNotas:cid=>sbReq('notas','GET',null,`?cliente_id=eq.${cid}&order=criado_em.desc`),
-  insertNota:n=>sbReq('notas','POST',n,''),
-};
+import { SB } from './api.js';
 
 // ═══════════════════════════
 // ESTADO LOCAL (cache)
@@ -215,7 +160,7 @@ async function entrar(){
   document.getElementById('sb-fname').textContent=f.nome;
   await carregarDadosFilial(FIL);
   mostrarTela('screen-app');
-  refreshProdSel();refreshCliDL();refreshFornSel();refreshMovSel();refreshDestSel();
+  refreshProdSel();refreshCliDL();renderFornSel();refreshMovSel();refreshDestSel();
   renderDashFilSel();renderDash();atualizarBadgeEst();
   ir('dashboard');
 }
@@ -1260,3 +1205,36 @@ if(document.readyState==='loading'){
 } else {
   renderSetup();
 }
+
+// ═══════════════════════════
+// EXPORT PARA O HTML (TRUQUE DO MÓDULO)
+// ═══════════════════════════
+window.abrirModal = abrirModal; window.fecharModal = fecharModal;
+window.criarPrimeiraFilial = criarPrimeiraFilial; window.entrar = entrar;
+window.voltarSetup = voltarSetup; window.selFilial = selFilial;
+window.fecharSb = fecharSb; window.abrirSb = abrirSb; window.ir = ir;
+window.switchTab = switchTab; window.exportarTudo = exportarTudo;
+window.exportCSV = exportCSV; window.renderDash = renderDash;
+window.setP = setP; window.renderProdutos = renderProdutos;
+window.limparFormProd = limparFormProd; window.salvarProduto = salvarProduto;
+window.editarProd = editarProd; window.removerProd = removerProd;
+window.calcProdPreview = calcProdPreview; window.syncV = syncV;
+window.syncA = syncA; window.renderClientes = renderClientes;
+window.limparFormCli = limparFormCli; window.salvarCliente = salvarCliente;
+window.editarCli = editarCli; window.removerCli = removerCli;
+window.renderCliSegs = renderCliSegs; window.abrirCliDet = abrirCliDet;
+window.addNota = addNota; window.renderPedidos = renderPedidos;
+window.limparFormPed = limparFormPed; window.salvarPedido = salvarPedido;
+window.editarPed = editarPed; window.removerPed = removerPed;
+window.verPed = verPed; window.addItem = addItem; window.remItem = remItem;
+window.renderCotForns = renderCotForns; window.renderCotTabela = renderCotTabela;
+window.cotFile = cotFile; window.cotLock = cotLock; window.salvarForn = salvarForn;
+window.remForn = remForn; window.confirmarMapa = confirmarMapa;
+window.updPreco = updPreco; window.renderEstPosicao = renderEstPosicao;
+window.renderEstHist = renderEstHist; window.resetMov = resetMov;
+window.abrirMovProd = abrirMovProd; window.setTipo = setTipo;
+window.movLoadProd = movLoadProd; window.movCalc = movCalc;
+window.movCalcAjuste = movCalcAjuste; window.salvarMov = salvarMov;
+window.excluirMov = excluirMov; window.salvarFilial = salvarFilial;
+window.limparFormFilial = limparFormFilial; window.editarFilial = editarFilial;
+window.removerFilial = removerFilial; window.trocarFilial = trocarFilial;
