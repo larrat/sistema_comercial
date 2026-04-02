@@ -297,7 +297,9 @@ function limparFormProd(){
   State.editIds.prod=null;document.getElementById('prod-modal-titulo').textContent='Novo produto';
   ['p-nome','p-sku','p-cat','p-mkv','p-mgv','p-qtmin','p-dv','p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('p-un').value='un';document.getElementById('prod-preview').style.display='none';
+  const histEl = document.getElementById('p-hist-cot'); if(histEl) histEl.style.display = 'none';
 }
+
 function editarProd(id){
   const p=P().find(x=>x.id===id);if(!p)return;
   State.editIds.prod=id;document.getElementById('prod-modal-titulo').textContent='Editar produto';
@@ -309,8 +311,36 @@ function editarProd(id){
   document.getElementById('p-mga').value=mk2mg(p.mka).toFixed(1);document.getElementById('p-pfa').value=p.pfa||'';
   document.getElementById('p-da').value=p.da||'';document.getElementById('p-emin').value=p.emin||'';
   document.getElementById('p-esal').value=p.esal||'';document.getElementById('p-ecm').value=p.ecm||'';
+  
+  // INJEÇÃO DA TABELA DE HISTÓRICO DE PREÇOS NO MODAL DO PRODUTO
+  let histEl = document.getElementById('p-hist-cot');
+  if(!histEl) {
+     histEl = document.createElement('div');
+     histEl.id = 'p-hist-cot';
+     histEl.className = 'panel';
+     histEl.style.marginTop = '12px';
+     const btnRow = document.querySelector('#modal-produto .modal-box > div:last-child');
+     btnRow.parentNode.insertBefore(histEl, btnRow);
+  }
+
+  if(p.hist_cot && p.hist_cot.length > 0) {
+      const sortedHist = [...p.hist_cot].sort((a,b) => b.mes.localeCompare(a.mes)); // Mostra o mês mais recente primeiro
+      histEl.innerHTML = `
+      <div class="pt">Oscilação de Preço do Fornecedor</div>
+      <table class="tbl" style="margin-top:8px">
+        <thead><tr><th>Mês ref.</th><th>Fornecedor</th><th>Preço Cotado</th></tr></thead>
+        <tbody>
+          ${sortedHist.map(h => `<tr><td>${h.mes.split('-').reverse().join('/')}</td><td>${h.forn}</td><td style="font-weight:600;color:var(--tx2)">${fmt(h.preco)}</td></tr>`).join('')}
+        </tbody>
+      </table>`;
+      histEl.style.display = 'block';
+  } else {
+      histEl.style.display = 'none';
+  }
+
   calcProdPreview();abrirModal('modal-produto');
 }
+
 function syncV(t){
   const mk=parseFloat(document.getElementById('p-mkv').value)||0;const mg=parseFloat(document.getElementById('p-mgv').value)||0;
   if(t==='mk'&&mk>0)document.getElementById('p-mgv').value=mk2mg(mk).toFixed(1);else if(t==='mg'&&mg>0)document.getElementById('p-mkv').value=mg2mk(mg).toFixed(1);calcProdPreview();
@@ -331,7 +361,20 @@ function calcProdPreview(){
 async function salvarProduto(){
   const nome=document.getElementById('p-nome').value.trim();const custo=parseFloat(document.getElementById('p-custo').value)||0;
   if(!nome||custo<=0){toast('Nome e custo obrigatórios.');return;}
-  const p={id:State.editIds.prod||uid(),filial_id:State.FIL,nome,sku:document.getElementById('p-sku').value.trim(),un:document.getElementById('p-un').value,cat:document.getElementById('p-cat').value.trim(),custo,mkv:parseFloat(document.getElementById('p-mkv').value)||0,mka:parseFloat(document.getElementById('p-mka').value)||0,pfa:parseFloat(document.getElementById('p-pfa').value)||0,dv:parseFloat(document.getElementById('p-dv').value)||0,da:parseFloat(document.getElementById('p-da').value)||0,qtmin:parseFloat(document.getElementById('p-qtmin').value)||0,emin:parseFloat(document.getElementById('p-emin').value)||0,esal:parseFloat(document.getElementById('p-esal').value)||0,ecm:parseFloat(document.getElementById('p-ecm').value)||custo};
+  
+  const existing = State.editIds.prod ? P().find(x=>x.id===State.editIds.prod) : null;
+  const p={
+      id:State.editIds.prod||uid(), filial_id:State.FIL, nome, 
+      sku:document.getElementById('p-sku').value.trim(), un:document.getElementById('p-un').value,
+      cat:document.getElementById('p-cat').value.trim(), custo, 
+      mkv:parseFloat(document.getElementById('p-mkv').value)||0, mka:parseFloat(document.getElementById('p-mka').value)||0,
+      pfa:parseFloat(document.getElementById('p-pfa').value)||0, dv:parseFloat(document.getElementById('p-dv').value)||0,
+      da:parseFloat(document.getElementById('p-da').value)||0, qtmin:parseFloat(document.getElementById('p-qtmin').value)||0,
+      emin:parseFloat(document.getElementById('p-emin').value)||0, esal:parseFloat(document.getElementById('p-esal').value)||0,
+      ecm:parseFloat(document.getElementById('p-ecm').value)||custo,
+      hist_cot: existing ? (existing.hist_cot || []) : [] // Garante que o histórico não seja apagado
+  };
+  
   try{await SB.upsertProduto(p);}catch(e){toast('Erro: '+e.message);return;}
   if(State.editIds.prod)D.produtos[State.FIL]=P().map(x=>x.id===State.editIds.prod?p:x);else{if(!D.produtos[State.FIL])D.produtos[State.FIL]=[];D.produtos[State.FIL].push(p);}
   fecharModal('modal-produto');renderProdMet();renderProdutos();refreshProdSel();refreshMovSel();toast(State.editIds.prod?'Produto atualizado!':'Produto salvo!');
@@ -381,7 +424,7 @@ async function abrirCliDet(id){
   const prazoLbl={a_vista:'À vista','7d':'7 dias','15d':'15 dias','30d':'30 dias','60d':'60 dias'};
   document.getElementById('cli-det-box').innerHTML=`
     <div class="fb" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:44px;height:44px;font-size:16px;background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div><div><div style="font-size:16px;font-weight:600">${c.nome}</div>${c.apelido?`<div style="font-size:13px;color:var(--tx2)">${c.apelido}</div>`:''}<div style="margin-top:4px">${ST_B[c.status]||''}</div></div></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;font-size:13px"><div><div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Contato</div>${[c.resp&&`Resp: ${c.resp}`,c.tel,c.email,c.cidade&&`${c.cidade}${c.estado?' - '+c.estado:''}`].filter(Boolean).map(x=>`<div style="margin-bottom:3px">${x}</div>`).join('')||'—'}</div><div><div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div><div>Tabela: ${{padrao:'Padrão',especial:'Especial',vip:'VIP'}[c.tab]||'—'}</div><div>Prazo: ${prazoLbl[c.prazo]||'—'}</div>${c.seg?`<div>Segmento: ${c.seg}</div>`:''}</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;font-size:13px"><div><div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Contato</div>${[c.resp&&`Resp: ${c.resp}`,c.tel,c.email,c.cidade&&`${c.cidade}${c.estado?' - '+c.estado:''}`].filter(Boolean).map(x=>`<div style="margin-bottom:3px">${x}</div>`).join('')||'—'}</div><div><div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div><div>Tabela: ${{padrao:'Padrão',especial:'Especial',vip:'VIP'}[c.tab]||'—'}</div><div>Prazo: ${prazoLbl[c.prazo]||'—'}</div>${c.seg?`<div>Segmento: ${c.seg}</div>`:''}</div></div>
     ${c.obs?`<div class="panel" style="margin-bottom:12px"><div class="pt">Observações</div><p style="font-size:13px">${c.obs}</p></div>`:''}
     <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / histórico</div>
     <div class="fg2" style="margin-bottom:8px"><input class="inp" id="nota-inp-${id}" placeholder="Adicionar nota..." style="flex:1"><button class="btn btn-sm" onclick="addNota('${id}')">+</button></div>
@@ -551,7 +594,8 @@ function abrirMapaModal(rows, forn, filename){
   document.getElementById('mapa-titulo').textContent = 'Importar Cotação — ' + forn.nome;
 
   let startIdx = 0;
-  for(let i = 0; i < Math.min(40, rows.length); i++){
+  // AUMENTADO PARA 200: Agora ele acha o cabeçalho mesmo que tenha muito lixo no topo
+  for(let i = 0; i < Math.min(200, rows.length); i++){
     if(rows[i].some(c => String(c).toUpperCase().includes('DESCRIÇÃO') || String(c).toUpperCase().includes('VALOR UN LIQ'))){
       startIdx = i; break;
     }
@@ -618,7 +662,8 @@ async function confirmarMapa(){
 
   for(const row of linhas){
     const nome = String(row[nIdx]||'').trim();
-    if(!nome || nome.toUpperCase().includes('PROMOÇÕES DISPONÍVEIS') || nome.includes('COMBO')) continue;
+    // Proteção extra contra lixo
+    if(!nome || nome.toUpperCase().includes('PROMOÇÕES') || nome.toUpperCase().includes('COMBO') || nome.toUpperCase() === 'DESCRIÇÃO') continue;
 
     const prStr = String(row[pIdx]||'').replace(/[R$\s]/g,'').replace(',','.');
     const pr = parseFloat(prStr) || 0;
@@ -627,34 +672,47 @@ async function confirmarMapa(){
     const cat = cIdx >= 0 ? String(row[cIdx]||'').trim() : '';
 
     let prod = P().find(p => norm(p.nome) === norm(nome));
+    let isNew = false;
+
     if(!prod){
       prod = {
         id: uid(), filial_id: State.FIL, nome, sku: '', un: 'un',
-        cat: cat,
-        custo: pr, mkv: 0, mka: 0, pfa: 0, dv: 0, da: 0, qtmin: 0, emin: 0, esal: 0, ecm: pr
+        cat: cat, custo: pr, mkv: 0, mka: 0, pfa: 0, dv: 0, da: 0, qtmin: 0, emin: 0, esal: 0, ecm: pr,
+        hist_cot: [] // Cria o array de histórico de cotações vazio para os novos
       };
-      try{ await SB.upsertProduto(prod); }catch(e){}
       if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
       D.produtos[State.FIL].push(prod);
       novos++;
-    } else if (cat && !prod.cat) {
-      prod.cat = cat;
-      try{ await SB.upsertProduto(prod); }catch(e){}
+      isNew = true;
+    } else {
+      if (cat && !prod.cat) prod.cat = cat;
+      if (!prod.hist_cot) prod.hist_cot = []; // Garante que produtos antigos tenham o array
     }
+
+    // REGISTRA O HISTÓRICO DE COTAÇÃO NO PRODUTO
+    const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
+    if(histIdx >= 0) {
+        prod.hist_cot[histIdx].preco = pr; // Se importar de novo no mesmo mês, ele só atualiza
+    } else {
+        prod.hist_cot.push({ mes: mesCotacao, forn: forn.nome, preco: pr }); // Adiciona novo registro
+    }
+
+    // Salva o produto (agora com o histórico embutido nele)
+    try{ await SB.upsertProduto(prod); }catch(e){}
 
     const k = prod.id + '_' + forn.id;
     CPRECOS()[k] = pr;
     try{ await SB.upsertCotPreco({filial_id: State.FIL, produto_id: prod.id, fornecedor_id: forn.id, preco: pr}); }catch(e){}
-    atu++;
+    if(!isNew) atu++;
   }
 
   const logs = CCFG().logs || [];
-  logs.unshift({arquivo: filename, forn: forn.nome, mes: mesCotacao, data: new Date().toLocaleString('pt-BR'), novos, atu: atu - novos});
+  logs.unshift({arquivo: filename, forn: forn.nome, mes: mesCotacao, data: new Date().toLocaleString('pt-BR'), novos, atu});
   CCFG().logs = logs;
   try{ await SB.upsertCotConfig({filial_id: State.FIL, locked: CCFG().locked, logs: JSON.stringify(logs)}); }catch(e){}
 
   fecharModal('modal-mapa'); renderCotLogs(); renderProdMet(); renderProdutos();
-  toast(`✓ ${novos} novos produto(s), ${atu-novos} preço(s) atualizados`);
+  toast(`✓ ${novos} novos produtos, ${atu} cotações atualizadas`);
 }
 
 function renderCotForns(){
