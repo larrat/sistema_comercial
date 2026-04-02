@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>Sistema Comercial</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
 :root{
   --bg:#F6F5F2;--surf:#FFF;--surf2:#EFEDE9;--surf3:#E5E2DC;
@@ -715,12 +715,24 @@ const SB_URL='https://eiycrokqwhmfmjackjni.supabase.co';
 const SB_KEY='sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
 
 async function sbReq(table,method='GET',body=null,params=''){
+  const prefer=method==='POST'?(params.includes('on_conflict')?'resolution=merge-duplicates,return=representation':'return=representation'):'';
   const res=await fetch(`${SB_URL}/rest/v1/${table}${params}`,{
     method,
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'resolution=merge-duplicates,return=representation'},
+    headers:{
+      'apikey':SB_KEY,
+      'Authorization':'Bearer '+SB_KEY,
+      'Content-Type':'application/json',
+      ...(prefer?{'Prefer':prefer}:{})
+    },
     body:body?JSON.stringify(body):undefined
   });
-  if(!res.ok){const e=await res.text();console.error('SB',res.status,e);throw new Error(res.status+': '+e);}
+  if(!res.ok){
+    const e=await res.text();
+    console.error('Supabase erro',res.status,table,params,e);
+    if(res.status===401||res.status===403) throw new Error('Chave inválida ('+res.status+'). Verifique SB_KEY.');
+    if(res.status===404) throw new Error('Tabela não encontrada: '+table+'. Execute o SQL de criação.');
+    throw new Error(res.status+': '+e);
+  }
   const t=await res.text();return t?JSON.parse(t):null;
 }
 
@@ -858,11 +870,8 @@ function mostrarTela(id){
 // ═══════════════════════════
 let selFil=null;
 
-async function renderSetup(){
-  mostrarTela('screen-setup');
-  showLoading(true);
-  try{ D.filiais = await SB.getFiliais() || []; } catch(e){ toast('Erro ao buscar filiais: '+e.message); }
-  showLoading(false);
+function renderSetupGrid(){
+  // Re-renders filial grid from cache, no network call
   const grid=document.getElementById('fil-grid');
   const form=document.getElementById('setup-form');
   const actions=document.getElementById('setup-actions');
@@ -880,9 +889,17 @@ async function renderSetup(){
     </div>`).join('');
 }
 
-function selFilial(id){selFil=id;renderSetup(); // loads filiais from Supabase}
+async function renderSetup(){
+  mostrarTela('screen-setup');
+  showLoading(true);
+  try{ D.filiais = await SB.getFiliais() || []; } catch(e){ toast('Erro ao buscar filiais: '+e.message); }
+  showLoading(false);
+  renderSetupGrid();
+}
 
-function criarPrimeiraFilial(){
+function selFilial(id){selFil=id;renderSetupGrid();}
+
+async function criarPrimeiraFilial(){
   const nome=document.getElementById('sf-nome').value.trim();
   if(!nome){toast('Informe o nome da filial.');return;}
   const f={id:uid(),nome,
@@ -890,9 +907,10 @@ function criarPrimeiraFilial(){
     estado:document.getElementById('sf-estado').value.trim(),
     cor:document.getElementById('sf-cor').value,
     endereco:''};
-  // filial saved to SB above
+  try{await SB.upsertFilial(f);}catch(e){toast('Erro ao criar filial: '+e.message);return;}
+  D.filiais.push(f);
   selFil=f.id;
-  entrar();
+  await entrar();
 }
 
 async function entrar(){
@@ -911,7 +929,7 @@ async function entrar(){
   ir('dashboard');
 }
 
-function voltarSetup(){renderSetup(); // loads filiais from Supabase}
+function voltarSetup(){renderSetup();}
 
 // ═══════════════════════════
 // NAVIGATION
@@ -998,14 +1016,14 @@ async function salvarFilial(){
   };
   try{await SB.upsertFilial(f);}catch(e){toast('Erro: '+e.message);return;}
   fecharModal('modal-filial');
-  renderSetup(); // loads filiais from SupabaserenderFilLista();renderFilMet();renderDashFilSel();
+  renderSetup().then(()=>{renderFilLista();renderFilMet();renderDashFilSel();});
   toast(editIds.filial?'Filial atualizada!':'Filial criada!');
 }
 async function removerFilial(id){
   if(!confirm('Remover filial e todos os dados dela?'))return;
   try{await SB.deleteFilial(id);}catch(e){toast('Erro: '+e.message);return;}
   D.filiais=D.filiais.filter(f=>f.id!==id);
-  renderFilLista();renderFilMet();renderSetup(); // loads filiais from SupabaserenderDashFilSel();
+  renderFilLista();renderFilMet();renderSetup().then(()=>renderDashFilSel());
   toast('Filial removida.');
 }
 function renderFilMet(){
@@ -1043,7 +1061,7 @@ function renderFilLista(){
     </div>`;
   }).join('');
 }
-async function trocarFilial(id){selFil=id;await entrar();toast('Filial alterada!');}
+async function trocarFilial(id){selFil=id;await entrar();await renderSetup();toast('Filial alterada!');}
 
 // ═══════════════════════════
 // DASHBOARD
@@ -1944,7 +1962,12 @@ function exportarTudo(){['produtos','clientes','pedidos','cotacao','estoque'].fo
 // ═══════════════════════════
 // INIT
 // ═══════════════════════════
-renderSetup(); // loads filiais from Supabase
+// Garantir que DOM está pronto antes de iniciar
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>{renderSetup();});
+} else {
+  renderSetup();
+}
 </script>
 </body>
 </html>
