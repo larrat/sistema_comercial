@@ -22,21 +22,15 @@ async function carregarDadosFilial(filId){
       SB.getProdutos(filId),SB.getClientes(filId),SB.getPedidos(filId),
       SB.getFornecedores(filId),SB.getCotPrecos(filId),SB.getCotConfig(filId),SB.getMovs(filId)
     ]);
-    
-    // PROTEÇÃO: Garante que as "gavetas" existem antes de guardar os dados
-    if(!D.produtos) D.produtos = {}; D.produtos[filId]=prods||[];
-    if(!D.clientes) D.clientes = {}; D.clientes[filId]=clis||[];
-    if(!D.pedidos) D.pedidos = {}; D.pedidos[filId]=peds||[];
-    if(!D.fornecedores) D.fornecedores = {}; D.fornecedores[filId]=forns||[];
-    
-    if(!D.cotPrecos) D.cotPrecos = {}; D.cotPrecos[filId]={};
+    D.produtos[filId]=prods||[];
+    D.clientes[filId]=clis||[];
+    D.pedidos[filId]=peds||[];
+    D.fornecedores[filId]=forns||[];
+    D.cotPrecos[filId]={};
     (precos||[]).forEach(p=>{D.cotPrecos[filId][p.produto_id+'_'+p.fornecedor_id]=p.preco;});
-    
     const logs=cfg?.logs?(typeof cfg.logs==='string'?JSON.parse(cfg.logs):cfg.logs):[];
-    if(!D.cotConfig) D.cotConfig = {};
     D.cotConfig[filId]={filial_id:filId,locked:cfg?.locked||false,logs};
-    
-    if(!D.movs) D.movs = {}; D.movs[filId]=movs||[];
+    D.movs[filId]=movs||[];
   }catch(e){toast('Erro ao carregar: '+e.message);console.error(e);}
   showLoading(false);
 }
@@ -272,8 +266,8 @@ function renderDash(){
   const alertProds=allProds.filter(p=>{const s=saldos[p._fid+'_'+p.id];return s&&p.emin>0&&s.saldo<p.emin;}).slice(0,5);
   document.getElementById('dash-ea').innerHTML=alertProds.length?alertProds.map(p=>{const s=saldos[p._fid+'_'+p.id];return`<div class="rrow"><span style="width:8px;height:8px;border-radius:50%;background:${s.saldo<=0?'var(--r)':'var(--a)'};flex-shrink:0;display:inline-block"></span><span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome}</span><span class="bdg ${s.saldo<=0?'br':'ba'}" style="font-size:10px">${s.saldo<=0?'Zerado':fmtQ(s.saldo)}</span></div>`;}).join(''):`<div class="empty" style="padding:12px"><p>✓ Sem alertas</p></div>`;
 
-  // PROTEÇÃO EXTRA AQUI: Se a gaveta ainda estiver vazia, ele lida bem usando o ?
-  const fu={};filIds.forEach(fid=>(D.cotConfig?.[fid]?.logs||[]).forEach(l=>{if(!fu[l.forn])fu[l.forn]=0;fu[l.forn]++;}));
+  // CORREÇÃO: Usando D.cotConfig em vez de D.cotacao
+  const fu={};filIds.forEach(fid=>(D.cotConfig[fid]?.logs||[]).forEach(l=>{if(!fu[l.forn])fu[l.forn]=0;fu[l.forn]++;}));
   const tf=Object.entries(fu).sort((a,b)=>b[1]-a[1]).slice(0,5);const mxF2=tf.length?tf[0][1]:1;
   document.getElementById('dash-forn').innerHTML=tf.length?tf.map(([n,c],i)=>`<div class="rrow"><span class="rnum">${i+1}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span><div class="rbar"><div class="rbar-f" style="width:${Math.round(c/mxF2*100)}%;background:#156038"></div></div><span class="rval" style="color:var(--tx2)">${c}x</span></div>`).join(''):`<div class="empty" style="padding:12px"><p>Nenhuma importação</p></div>`;
 
@@ -320,6 +314,7 @@ function editarProd(id){
   document.getElementById('p-da').value=p.da||'';document.getElementById('p-emin').value=p.emin||'';
   document.getElementById('p-esal').value=p.esal||'';document.getElementById('p-ecm').value=p.ecm||'';
   
+  // INJEÇÃO DA TABELA DE HISTÓRICO DE PREÇOS NO MODAL DO PRODUTO
   let histEl = document.getElementById('p-hist-cot');
   if(!histEl) {
      histEl = document.createElement('div');
@@ -331,7 +326,7 @@ function editarProd(id){
   }
 
   if(p.hist_cot && p.hist_cot.length > 0) {
-      const sortedHist = [...p.hist_cot].sort((a,b) => b.mes.localeCompare(a.mes)); 
+      const sortedHist = [...p.hist_cot].sort((a,b) => b.mes.localeCompare(a.mes)); // Mostra o mês mais recente primeiro
       histEl.innerHTML = `
       <div class="pt">Oscilação de Preço do Fornecedor</div>
       <table class="tbl" style="margin-top:8px">
@@ -601,6 +596,7 @@ function abrirMapaModal(rows, forn, filename){
   document.getElementById('mapa-titulo').textContent = 'Importar Cotação — ' + forn.nome;
 
   let startIdx = 0;
+  // AUMENTADO PARA 200: Agora ele acha o cabeçalho mesmo que tenha muito lixo no topo
   for(let i = 0; i < Math.min(200, rows.length); i++){
     if(rows[i].some(c => String(c).toUpperCase().includes('DESCRIÇÃO') || String(c).toUpperCase().includes('VALOR UN LIQ'))){
       startIdx = i; break;
@@ -668,6 +664,7 @@ async function confirmarMapa(){
 
   for(const row of linhas){
     const nome = String(row[nIdx]||'').trim();
+    // Proteção extra contra lixo
     if(!nome || nome.toUpperCase().includes('PROMOÇÕES') || nome.toUpperCase().includes('COMBO') || nome.toUpperCase() === 'DESCRIÇÃO') continue;
 
     const prStr = String(row[pIdx]||'').replace(/[R$\s]/g,'').replace(',','.');
@@ -683,7 +680,7 @@ async function confirmarMapa(){
       prod = {
         id: uid(), filial_id: State.FIL, nome, sku: '', un: 'un',
         cat: cat, custo: pr, mkv: 0, mka: 0, pfa: 0, dv: 0, da: 0, qtmin: 0, emin: 0, esal: 0, ecm: pr,
-        hist_cot: [] 
+        hist_cot: [] // Cria o array de histórico de cotações vazio para os novos
       };
       if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
       D.produtos[State.FIL].push(prod);
@@ -691,16 +688,18 @@ async function confirmarMapa(){
       isNew = true;
     } else {
       if (cat && !prod.cat) prod.cat = cat;
-      if (!prod.hist_cot) prod.hist_cot = [];
+      if (!prod.hist_cot) prod.hist_cot = []; // Garante que produtos antigos tenham o array
     }
 
+    // REGISTRA O HISTÓRICO DE COTAÇÃO NO PRODUTO
     const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
     if(histIdx >= 0) {
-        prod.hist_cot[histIdx].preco = pr; 
+        prod.hist_cot[histIdx].preco = pr; // Se importar de novo no mesmo mês, ele só atualiza
     } else {
-        prod.hist_cot.push({ mes: mesCotacao, forn: forn.nome, preco: pr });
+        prod.hist_cot.push({ mes: mesCotacao, forn: forn.nome, preco: pr }); // Adiciona novo registro
     }
 
+    // Salva o produto (agora com o histórico embutido nele)
     try{ await SB.upsertProduto(prod); }catch(e){}
 
     const k = prod.id + '_' + forn.id;
