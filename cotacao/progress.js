@@ -33,7 +33,7 @@ export function renderImportResumo(resumo){
       <div style="margin-top:10px">
         <div class="fl">Exemplos de linhas ignoradas</div>
         <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-          ${resumo.ignoradosExemplos.map(x => `
+          ${(resumo.ignoradosExemplos || []).map(x => `
             <div style="font-size:12px;color:var(--tx2);padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--surf2)">
               <b>Linha ${x.linha}</b> — ${x.motivo}${x.nome ? ` <span style="color:var(--tx3)">(${x.nome})</span>` : ''}
             </div>
@@ -60,10 +60,12 @@ export function renderImportResumo(resumo){
 export function validarPreImportacao(rows, start, nomeIdx, precoIdx){
   const erros = [];
 
-  if(nomeIdx < 0 || isNaN(nomeIdx)) erros.push('Selecione a coluna de Descrição.');
-  if(precoIdx < 0 || isNaN(precoIdx)) erros.push('Selecione a coluna de Valor Un Líq.');
+  if(nomeIdx < 0 || Number.isNaN(nomeIdx)) erros.push('Selecione a coluna de Descrição.');
+  if(precoIdx < 0 || Number.isNaN(precoIdx)) erros.push('Selecione a coluna de Valor Un Líq.');
 
-  if(erros.length) return { ok: false, erros };
+  if(erros.length){
+    return { ok: false, erros };
+  }
 
   const amostra = rows.slice(start, start + 20);
 
@@ -71,8 +73,8 @@ export function validarPreImportacao(rows, start, nomeIdx, precoIdx){
   let precosValidos = 0;
 
   for(const row of amostra){
-    const nome = String(row[nomeIdx] || '').trim();
-    const preco = normalizarNumeroBR(row[precoIdx]);
+    const nome = String(row?.[nomeIdx] || '').trim();
+    const preco = normalizarNumeroBR(row?.[precoIdx]);
 
     if(nome && nome.length >= 3) nomesValidos++;
     if(preco > 0) precosValidos++;
@@ -98,7 +100,9 @@ export function pareceAbaDeCombo(sheet){
   const nome = String(sheet?.name || '').toUpperCase();
   const rows = sheet?.rows || [];
   const startIdx = detectarCabecalho(rows);
-  const header = (rows[startIdx] || []).map(c => String(c || '').toUpperCase()).join(' | ');
+  const header = (rows[startIdx] || [])
+    .map(c => String(c || '').toUpperCase())
+    .join(' | ');
 
   return (
     nome.includes('COMBO') ||
