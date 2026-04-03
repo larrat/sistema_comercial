@@ -1,5 +1,5 @@
 import { D, State } from '../js/store.js';
-import { fmt, fmtQ, fmtN, fmtK, pct } from '../core/utils.js';
+import { fmt, fmtQ, fmtN, pct } from '../core/utils.js';
 
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
@@ -38,6 +38,10 @@ function inR(ds, [from, to]){
   if(!ds) return false;
   const d = new Date(ds + 'T00:00:00');
   return d >= from && d <= to;
+}
+
+function fmtK(v){
+  return v >= 1000 ? 'R$ ' + (v / 1000).toFixed(1) + 'k' : 'R$ ' + v.toFixed(0);
 }
 
 export function setP(p, btn){
@@ -346,8 +350,4 @@ export function renderDash(){
   }
 
   atualizarBadgeEstCb();
-}
-
-function fmtK(v){
-  return v >= 1000 ? 'R$ ' + (v / 1000).toFixed(1) + 'k' : 'R$ ' + v.toFixed(0);
 }
