@@ -261,8 +261,14 @@ textarea.inp{resize:vertical;min-height:60px}
 .modal-wrap.on{display:block}
 .modal-bg{position:fixed;inset:0;background:rgba(6,21,17,.32);backdrop-filter:blur(3px)}
 .modal-box{position:relative;z-index:1;background:var(--surf);border-radius:var(--radl);border:1px solid var(--bd);padding:24px;width:min(560px,96vw);margin:24px auto;box-shadow:0 20px 60px rgba(0,0,0,.15);max-height:calc(100vh - 48px);overflow-y:auto}
+.modal-box-wide{width:min(640px,96vw)}
 .mt{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:16px;letter-spacing:-.4px}
 .div{border:none;border-top:1px solid var(--bd);margin:14px 0}
+.modal-split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.modal-actions-inline{margin-top:0;margin-bottom:8px}
+.modal-actions .btn{min-height:38px}
+.modal-actions-inline .btn{min-height:0}
 .panel{background:var(--surf2);border-radius:var(--rad);padding:12px 14px;margin-bottom:10px}
 .pt{font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 
@@ -387,10 +393,23 @@ textarea.inp{resize:vertical;min-height:60px}
   .tbl th,.tbl td{padding:8px}
   .btn{padding:8px 12px}
   .btn-sm{padding:6px 10px}
-  .modal-box{margin:0;border-radius:var(--radl) var(--radl) 0 0;position:fixed;bottom:0;left:0;right:0;width:100%;max-height:92vh}
+  .modal-box{margin:0;border-radius:var(--radl) var(--radl) 0 0;position:fixed;bottom:0;left:0;right:0;width:100%;max-height:92vh;padding:16px 14px 14px}
   .modal-wrap{overflow:hidden}
   .modal-wrap.on{display:flex;flex-direction:column;justify-content:flex-end}
   .modal-bg{position:fixed;inset:0}
+  .modal-split{grid-template-columns:1fr}
+  .modal-actions:not(.modal-actions-inline){
+    position:sticky;
+    bottom:-14px;
+    background:linear-gradient(180deg,rgba(255,255,255,.76) 0%,#FFFFFF 34%);
+    padding-top:10px;
+    padding-bottom:calc(2px + env(safe-area-inset-bottom,0));
+    margin-top:12px;
+  }
+  .modal-actions:not(.modal-actions-inline) .btn{
+    flex:1;
+    justify-content:center;
+  }
   #toast{bottom:72px}
   .ph h2{font-size:20px}
   .setup-card{padding:24px}

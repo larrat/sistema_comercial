@@ -368,7 +368,7 @@
     </div>
     <div class="fg"><div><div class="fl">Endereço (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, número, bairro"></div></div>
     <div class="div"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+    <div class="modal-actions">
       <button class="btn" onclick="fecharModal('modal-filial')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarFilial()">Salvar filial</button>
     </div>
@@ -390,7 +390,7 @@
       <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" oninput="calcProdPreview()"></div>
     </div>
     <div class="div"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="modal-split">
       <div class="panel"><div class="pt">Varejo</div>
         <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" oninput="syncV('mk')"></div></div>
         <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" oninput="syncV('mg')"></div></div>
@@ -423,7 +423,7 @@
         <div><div style="font-size:11px;color:var(--tx3)">Atac. mín.</div><div style="font-weight:600" id="ppv-amin">—</div></div>
       </div>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+    <div class="modal-actions">
       <button class="btn" onclick="fecharModal('modal-produto')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarProduto()">Salvar produto</button>
     </div>
@@ -457,7 +457,7 @@
     <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preço</div><select class="inp sel" id="c-tab"><option value="padrao">Padrão</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">À vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
     <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
     <div class="fg"><div><div class="fl">Observações</div><textarea class="inp" id="c-obs"></textarea></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" onclick="salvarCliente()">Salvar</button></div>
+    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" onclick="salvarCliente()">Salvar</button></div>
   </div>
 </div>
 
@@ -490,13 +490,13 @@
       <div><div class="fl">Preço unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
       <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+    <div class="modal-actions modal-actions-inline">
       <button class="btn btn-sm" onclick="addItem()">+ Adicionar item</button>
     </div>
     <div id="ped-itens"></div>
     <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">—</span></div></div>
     <div class="fg" style="margin-top:10px"><div><div class="fl">Observações</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" onclick="salvarPedido()">Salvar pedido</button></div>
+    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" onclick="salvarPedido()">Salvar pedido</button></div>
   </div>
 </div>
 
@@ -539,7 +539,7 @@
     <div class="fg"><div><div class="fl">Mensagem *</div><textarea class="inp" id="camp-mensagem" rows="6" placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"></textarea></div></div>
 
     <div class="div"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+    <div class="modal-actions">
       <button class="btn" onclick="fecharModal('modal-campanha')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarCampanha()">Salvar campanha</button>
     </div>
@@ -563,7 +563,7 @@
       <div><div class="fl">Data e hora *</div><input class="inp" id="jogo-data" type="datetime-local"></div>
       <div><div class="fl">Local</div><input class="inp" id="jogo-local" placeholder="Estádio / TV"></div>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+    <div class="modal-actions">
       <button class="btn" onclick="fecharModal('modal-jogo')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarJogoDashboard()">Salvar jogo</button>
     </div>
@@ -597,7 +597,7 @@
       <div class="pt">Formatos suportados</div>
       <p style="font-size:12px;color:var(--tx2)">Array direto ou objeto com `matches`, `response`, `events` ou `data`.</p>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+    <div class="modal-actions">
       <button class="btn" onclick="fecharModal('modal-jogo-sync')">Cancelar</button>
       <button class="btn btn-p" onclick="sincronizarJogosDashboard()">Sincronizar agora</button>
     </div>
@@ -611,14 +611,14 @@
     <div class="mt">Novo fornecedor</div>
     <div class="fg"><div><div class="fl">Nome *</div><input class="inp" id="fn-nome"></div></div>
     <div class="fg c2"><div><div class="fl">Contato</div><input class="inp" id="fn-contato"></div><div><div class="fl">Prazo entrega (dias)</div><input class="inp" id="fn-prazo" type="number" min="0"></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" onclick="salvarForn()">Salvar</button></div>
+    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" onclick="salvarForn()">Salvar</button></div>
   </div>
 </div>
 
 <!-- Mapeamento de colunas -->
 <div class="modal-wrap" id="modal-mapa">
   <div class="modal-bg" onclick="fecharModal('modal-mapa')"></div>
-  <div class="modal-box" style="width:min(640px,96vw)">
+  <div class="modal-box modal-box-wide">
     <div class="mt" id="mapa-titulo">Mapear colunas</div>
     <div id="mapa-body"></div>
   </div>
@@ -648,7 +648,7 @@
     <div id="mov-transf-row" style="display:none" class="fg"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">— selecione —</option></select></div></div>
     <div id="mov-preview" style="display:none" class="panel"><div class="pt">Prévia</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Novo saldo: <b id="mp-saldo">—</b></span><span>Custo médio: <b id="mp-cm">—</b></span><span id="mp-val-wrap">Total: <b id="mp-val">—</b></span></div></div>
     <div class="fg"><div><div class="fl">Observação</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referência..."></div></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" onclick="salvarMov()">Confirmar</button></div>
+    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" onclick="salvarMov()">Confirmar</button></div>
   </div>
 </div>
 
