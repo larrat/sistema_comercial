@@ -114,7 +114,7 @@
       </div>
       <div id="dash-alerts"></div>
       <div class="mg" id="dash-met" style="margin-bottom:14px"></div>
-      <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:12px">
+      <div class="dash-grid-main">
         <div class="card"><div class="ct">Faturamento e lucro</div>
           <div class="barchart" id="dash-chart"></div>
           <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no período</p></div>
@@ -125,7 +125,7 @@
         </div>
         <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px">
+      <div class="dash-grid-cards">
         <div class="card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
         <div class="card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
         <div class="card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
@@ -451,7 +451,7 @@
       </div>
       <div id="prod-preview" style="display:none" class="panel">
         <div class="pt">Prévia de preços</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:13px">
+        <div class="preview-grid-4">
           <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">—</div></div>
           <div><div style="font-size:11px;color:var(--tx3)">Var. mín.</div><div style="font-weight:600" id="ppv-vmin">—</div></div>
           <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">—</div></div>
@@ -519,7 +519,7 @@
         <div><div class="fl">Data de aniversário</div><input class="inp" id="c-aniv" type="date"></div>
         <div>
           <div class="fl">Opt-ins de marketing</div>
-          <div class="fg2" style="gap:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rad)">
+          <div class="optins-box fg2">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-marketing" type="checkbox"> Marketing</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-email" type="checkbox"> E-mail</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-sms" type="checkbox"> SMS</label>

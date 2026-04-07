@@ -1244,3 +1244,148 @@ body{
     box-shadow:none;
   }
 }
+
+/* =========================================================
+   FASE C - RESPONSIVO POR TELA + ACESSIBILIDADE
+   ========================================================= */
+
+/* Layouts responsivos por tela */
+.dash-grid-main{
+  display:grid;
+  grid-template-columns:3fr 2fr;
+  gap:12px;
+  margin-bottom:12px;
+}
+.dash-grid-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+  margin-bottom:12px;
+}
+.preview-grid-4{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  text-align:center;
+  font-size:13px;
+}
+.optins-box{
+  gap:12px;
+  padding:10px 12px;
+  border:1px solid var(--bd);
+  border-radius:12px;
+  background:#FAFCFE;
+}
+
+/* Contraste e leitura */
+body{color:#10212F}
+.app-topbar-kicker,
+.ml,
+.ct,
+.pt{color:#4C6278}
+.tb{color:#40566C}
+.tb.on{color:#0F766E}
+.inp::placeholder{color:#6B8197;opacity:1}
+.noti-desc{color:#1F3448}
+
+/* Foco visível consistente (teclado/acessibilidade) */
+:where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  .tb,
+  .flow-chip,
+  .ni,
+  .mob-btn,
+  .ib
+):focus-visible{
+  outline:3px solid #0F766E;
+  outline-offset:2px;
+  box-shadow:0 0 0 3px rgba(15,118,110,.20);
+}
+
+/* Touch targets melhores */
+.tb{min-height:40px}
+.ib{min-height:34px;min-width:44px}
+
+input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  accent-color:#0F766E;
+}
+
+/* Responsivo por breakpoint */
+@media(max-width:1024px){
+  .dash-grid-main{grid-template-columns:1fr}
+  .dash-grid-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media(max-width:760px){
+  .dash-grid-cards{grid-template-columns:1fr}
+  .preview-grid-4{
+    grid-template-columns:1fr 1fr;
+    gap:10px 8px;
+  }
+  .toolbar-main .inp,
+  .toolbar-main .sel{
+    min-height:42px;
+  }
+  .btn,
+  .c-btn{
+    min-height:44px;
+  }
+  .btn-sm,
+  .c-btn--sm{
+    min-height:40px;
+  }
+  .tb{
+    min-height:42px;
+    padding:10px 14px;
+  }
+  .mob-btn{
+    min-height:56px;
+    padding:8px 4px;
+  }
+  .mob-btn .mico{
+    width:26px;
+    height:26px;
+  }
+  .modal-actions{
+    gap:10px;
+  }
+}
+
+@media(max-width:480px){
+  .app-topbar{
+    padding:10px;
+  }
+  .app-topbar-title{
+    font-size:18px;
+    line-height:1.15;
+  }
+  .ph h2{
+    font-size:21px;
+    line-height:1.15;
+  }
+  .dash-grid-cards,
+  .mg{
+    gap:10px;
+  }
+  .optins-box{
+    gap:10px;
+    padding:10px;
+  }
+}
+
+/* Menos movimento para acessibilidade */
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
