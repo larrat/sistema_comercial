@@ -66,6 +66,7 @@
     <nav class="sb-nav">
       <div class="nl">Visão geral</div>
       <button class="ni on" data-p="dashboard" onclick="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
+      <button class="ni" data-p="gerencial" onclick="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
       <div class="nl">Cadastros</div>
       <button class="ni" data-p="produtos" onclick="ir('produtos')"><span class="ico">PR</span>Produtos</button>
       <button class="ni" data-p="clientes" onclick="ir('clientes')"><span class="ico">CL</span>Clientes</button>
@@ -139,13 +140,6 @@
         <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
       </div>
       <div class="dash-grid-cards dash-grid-cards--exec">
-        <div class="card dash-card dash-card--metas">
-          <div class="fb mb-10">
-            <div class="ct ct-inline">Metas de negócio (contínuo)</div>
-            <button class="btn btn-sm" onclick="renderMetasNegocio()">Atualizar</button>
-          </div>
-          <div id="dash-metas-negocio"></div>
-        </div>
         <div class="card dash-card dash-card--top"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
         <div class="card dash-card dash-card--estoque"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
         <div class="card dash-card dash-card--forn"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
@@ -175,6 +169,20 @@
       <div class="card">
         <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
         <div id="dash-margem"></div>
+      </div>
+    </div>
+
+    <!-- ── GERENCIAL ── -->
+    <div class="pg" id="pg-gerencial">
+      <div class="ph fb">
+        <div><h2>Gerencial</h2><p>Acompanhamento contínuo de metas e produtividade</p></div>
+        <div class="toolbar-actions">
+          <button class="btn btn-sm" onclick="renderMetasNegocio()">Atualizar KPIs</button>
+        </div>
+      </div>
+      <div class="card dash-card dash-card--metas">
+        <div class="ct">Metas de negócio (contínuo)</div>
+        <div id="dash-metas-negocio"></div>
       </div>
     </div>
 

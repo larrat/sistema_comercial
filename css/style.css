@@ -1239,8 +1239,8 @@ body{
 }
 #pg-dashboard .dash-card{min-height:0}
 #pg-dashboard .dash-card--metas{grid-column:span 6}
-#pg-dashboard .dash-card--oportunidades{grid-column:span 3}
-#pg-dashboard .dash-card--jogos{grid-column:span 3}
+#pg-dashboard .dash-card--oportunidades{grid-column:span 6}
+#pg-dashboard .dash-card--jogos{grid-column:span 6}
 #pg-dashboard .dash-card--top{grid-column:span 4}
 #pg-dashboard .dash-card--estoque{grid-column:span 4}
 #pg-dashboard .dash-card--forn{grid-column:span 4}

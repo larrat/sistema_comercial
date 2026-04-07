@@ -127,7 +127,7 @@ import {
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const GOAL_METRICS_VERSION = 2;
-const KPI_PAGES = ['dashboard', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'notificacoes'];
+const KPI_PAGES = ['dashboard', 'gerencial', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'notificacoes'];
 const primaryActionTracker = { page: 'dashboard', clicks: 0, active: false };
 
 function executarAuditoriaVisual(){
@@ -235,6 +235,7 @@ function executarAuditoriaAceite(){
 
 const QUICK_COMMANDS = [
   { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => ir('dashboard') },
+  { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => ir('gerencial') },
   { cmd: '/ produtos', label: 'Abrir Produtos', run: () => ir('produtos') },
   { cmd: '/ clientes', label: 'Abrir Clientes', run: () => ir('clientes') },
   { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => ir('pedidos') },
@@ -618,6 +619,14 @@ const PAGE_META = {
     primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
     secondary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
     tertiary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } }
+  },
+  gerencial: {
+    kicker: 'Gestão',
+    title: 'Gerencial',
+    sub: 'Metas de negócio e desempenho contínuo',
+    primary: { label: 'Atualizar KPIs', run: () => renderMetasNegocio() },
+    secondary: { label: 'Auditoria visual', run: () => executarAuditoriaVisual() },
+    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   produtos: {
     kicker: 'Cadastros',
@@ -1639,7 +1648,8 @@ function ir(p) {
   document.querySelectorAll('.mob-btn').forEach(b => b.classList.toggle('on', b.id === 'mob-' + p));
 
   const renderMap = {
-    dashboard: () => { renderDash(); renderMetasNegocio(); },
+    dashboard: () => { renderDash(); },
+    gerencial: () => { renderMetasNegocio(); },
     produtos: () => { renderProdMet(); renderProdutos(); },
     clientes: () => { renderCliMet(); renderClientes(); },
     pedidos: () => { renderPedMet(); renderPedidos(); },
