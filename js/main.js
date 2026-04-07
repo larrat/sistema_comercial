@@ -495,69 +495,58 @@ function renderMetasNegocio(){
   const mobileMeta = Math.min(100, s.mobileCompletionRate);
   const clickMeta = Math.min(100, Math.max(0, (4 / Math.max(1, s.avgClicksPrimary || 1)) * 100));
   const notiMeta = Math.min(100, s.notiResolutionRate);
-  const topClicks = ['clientes', 'campanhas', 'pedidos']
+  const clickResumo = ['clientes', 'campanhas', 'pedidos']
     .map(p => {
       const d = s.clicksByModule[p] || { avg: 0, count: 0 };
-      return `${p}: ${d.count ? d.avg.toFixed(1) : '—'} clique(s)`;
+      return `${p.slice(0,3)} ${d.count ? d.avg.toFixed(1) : '—'}`;
     })
-    .join(' • ');
+    .join(' · ');
 
   el.innerHTML = `
-    <div class="fg" style="margin-bottom:8px">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Tempo de ações críticas</div>
-        <span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}% de ganho</span>
+    <div class="dash-goals-grid">
+      <div class="dash-goal-item">
+        <div class="fb">
+          <div style="font-size:12px;color:var(--tx2)">Tempo de ações críticas</div>
+          <span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}%</span>
+        </div>
+        <div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div>
+        <div style="font-size:11px;color:var(--tx3)">Atual ${formatMs(s.currentAvg)} · Meta 20%</div>
       </div>
-      <div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">Atual: ${formatMs(s.currentAvg)} • Baseline: ${formatMs(s.baselineAvg)} • Meta: 20%</div>
+
+      <div class="dash-goal-item">
+        <div class="fb">
+          <div style="font-size:12px;color:var(--tx2)">Retrabalho por erro visual</div>
+          <span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}%</span>
+        </div>
+        <div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div>
+        <div style="font-size:11px;color:var(--tx3)">Validação ${s.m.errors.validation} · Operação ${s.m.errors.operation}</div>
+      </div>
+
+      <div class="dash-goal-item">
+        <div class="fb">
+          <div style="font-size:12px;color:var(--tx2)">Uso de ações estratégicas</div>
+          <span class="bdg ${s.strategicProgress >= 100 ? 'bg' : 'bb'}">${s.strategicTotal}</span>
+        </div>
+        <div class="sbar"><div class="sbar-f" style="width:${s.strategicProgress}%;background:var(--g)"></div></div>
+        <div style="font-size:11px;color:var(--tx3)">Camp ${s.m.strategic.campanhas} · Noti ${s.m.strategic.notificacoes} · Opp ${s.m.strategic.oportunidades}</div>
+      </div>
+
+      <div class="dash-goal-item">
+        <div class="fb">
+          <div style="font-size:12px;color:var(--tx2)">Consistência entre módulos</div>
+          <span class="bdg ${s.consistencyProgress >= 100 ? 'bg' : 'ba'}">${s.consistencyDone}/4</span>
+        </div>
+        <div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div>
+        <div style="font-size:11px;color:var(--tx3)">Dashboard · Clientes · Campanhas · Pedidos</div>
+      </div>
     </div>
-    <div class="fg" style="margin-bottom:8px">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Retrabalho por erro visual</div>
-        <span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}% de erro</span>
-      </div>
-      <div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">Validação: ${s.m.errors.validation} • Operação: ${s.m.errors.operation} • Meta: -30%</div>
-    </div>
-    <div class="fg" style="margin-bottom:8px">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Uso de ações estratégicas</div>
-        <span class="bdg ${s.strategicProgress >= 100 ? 'bg' : 'bb'}">${s.strategicTotal} ações</span>
-      </div>
-      <div class="sbar"><div class="sbar-f" style="width:${s.strategicProgress}%;background:var(--g)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">Campanhas: ${s.m.strategic.campanhas} • Notificações: ${s.m.strategic.notificacoes} • Oportunidades: ${s.m.strategic.oportunidades}</div>
-    </div>
-    <div class="fg" style="margin-bottom:0">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Consistência entre módulos principais</div>
-        <span class="bdg ${s.consistencyProgress >= 100 ? 'bg' : 'ba'}">${s.consistencyDone}/4</span>
-      </div>
-      <div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">Módulos: Dashboard, Clientes, Campanhas, Pedidos</div>
-    </div>
-    <div class="fg" style="margin-top:8px;margin-bottom:8px">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Taxa de conclusão em mobile</div>
-        <span class="bdg ${mobileMeta >= 70 ? 'bg' : 'ba'}">${s.mobileCompletionRate.toFixed(1)}%</span>
-      </div>
-      <div class="sbar"><div class="sbar-f" style="width:${mobileMeta}%;background:var(--b)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">Concluídas: ${s.completionMobile}/${s.completionTotal} no mobile</div>
-    </div>
-    <div class="fg" style="margin-bottom:8px">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Cliques até ação principal por módulo</div>
-        <span class="bdg ${clickMeta >= 80 ? 'bg' : 'ba'}">${s.avgClicksPrimary.toFixed(1)} cliques (média)</span>
-      </div>
-      <div class="sbar"><div class="sbar-f" style="width:${clickMeta}%;background:var(--acc)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">${topClicks}</div>
-    </div>
-    <div class="fg" style="margin-bottom:0">
-      <div class="fb">
-        <div style="font-size:12px;color:var(--tx2)">Uso do Centro de Notificações</div>
-        <span class="bdg ${notiMeta >= 70 ? 'bg' : 'ba'}">${s.notiResolutionRate.toFixed(1)}% resolvidas</span>
-      </div>
-      <div class="sbar"><div class="sbar-f" style="width:${notiMeta}%;background:var(--g)"></div></div>
-      <div style="font-size:11px;color:var(--tx3)">Execuções: ${s.notiExec} • Resolvidas: ${s.notiResolved} • Reabertas: ${s.notiReopened}</div>
+
+    <div class="dash-goals-foot">
+      <span class="bdg ${mobileMeta >= 70 ? 'bg' : 'ba'}">Mobile ${s.mobileCompletionRate.toFixed(1)}%</span>
+      <span class="bdg ${clickMeta >= 80 ? 'bg' : 'ba'}">Cliques ${s.avgClicksPrimary.toFixed(1)}</span>
+      <span class="bdg ${notiMeta >= 70 ? 'bg' : 'ba'}">Notificações ${s.notiResolutionRate.toFixed(1)}%</span>
+      <span class="bdg bk">${clickResumo}</span>
+      <span class="bdg bk">Exec ${s.notiExec} · Res ${s.notiResolved} · Reab ${s.notiReopened}</span>
     </div>
   `;
 }

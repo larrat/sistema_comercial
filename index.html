@@ -138,18 +138,18 @@
         </div>
         <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
       </div>
-      <div class="dash-grid-cards">
-        <div class="card">
+      <div class="dash-grid-cards dash-grid-cards--exec">
+        <div class="card dash-card dash-card--metas">
           <div class="fb mb-10">
             <div class="ct ct-inline">Metas de negócio (contínuo)</div>
             <button class="btn btn-sm" onclick="renderMetasNegocio()">Atualizar</button>
           </div>
           <div id="dash-metas-negocio"></div>
         </div>
-        <div class="card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
-        <div class="card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
-        <div class="card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
-        <div class="card">
+        <div class="card dash-card dash-card--top"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
+        <div class="card dash-card dash-card--estoque"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
+        <div class="card dash-card dash-card--forn"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
+        <div class="card dash-card dash-card--oportunidades">
           <div class="fb mb-10">
             <div class="ct ct-inline">Oportunidades por time</div>
             <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" onchange="renderDash()">
@@ -161,7 +161,7 @@
           </div>
           <div id="dash-oportunidades"></div>
         </div>
-        <div class="card">
+        <div class="card dash-card dash-card--jogos">
           <div class="fb mb-10">
             <div class="ct ct-inline">Próximos jogos</div>
             <div class="fg2">

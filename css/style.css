@@ -1230,6 +1230,40 @@ body{
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:12px;
   margin-bottom:12px;
+  align-items:start;
+}
+
+#pg-dashboard .dash-grid-cards--exec{
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:12px;
+}
+#pg-dashboard .dash-card{min-height:0}
+#pg-dashboard .dash-card--metas{grid-column:span 6}
+#pg-dashboard .dash-card--oportunidades{grid-column:span 3}
+#pg-dashboard .dash-card--jogos{grid-column:span 3}
+#pg-dashboard .dash-card--top{grid-column:span 4}
+#pg-dashboard .dash-card--estoque{grid-column:span 4}
+#pg-dashboard .dash-card--forn{grid-column:span 4}
+
+#dash-metas-negocio{
+  display:grid;
+  gap:10px;
+}
+.dash-goals-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.dash-goal-item{
+  border:1px solid var(--bd);
+  border-radius:var(--radius-md);
+  padding:9px 10px;
+  background:#FFF;
+}
+.dash-goals-foot{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
 }
 .preview-grid-4{
   display:grid;
@@ -1287,10 +1321,23 @@ input[type="checkbox"]{
 @media(max-width:1024px){
   .dash-grid-main{grid-template-columns:1fr}
   .dash-grid-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #pg-dashboard .dash-grid-cards--exec{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  #pg-dashboard .dash-card--metas,
+  #pg-dashboard .dash-card--oportunidades,
+  #pg-dashboard .dash-card--jogos,
+  #pg-dashboard .dash-card--top,
+  #pg-dashboard .dash-card--estoque,
+  #pg-dashboard .dash-card--forn{
+    grid-column:auto;
+  }
 }
 
 @media(max-width:760px){
   .dash-grid-cards{grid-template-columns:1fr}
+  #pg-dashboard .dash-grid-cards--exec{grid-template-columns:1fr}
+  .dash-goals-grid{grid-template-columns:1fr}
   .preview-grid-4{
     grid-template-columns:1fr 1fr;
     gap:10px 8px;
