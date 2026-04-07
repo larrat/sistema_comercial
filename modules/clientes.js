@@ -134,25 +134,25 @@ export function renderClientes(){
       const times = parseTimes(c.time);
 
       return `
-        <div class="card" style="padding:12px 14px;margin-bottom:10px">
-          <div class="fb" style="align-items:flex-start;gap:10px;margin-bottom:8px">
+        <div class="card mobile-card">
+          <div class="mobile-card-head">
             <div style="display:flex;align-items:center;gap:10px;min-width:0">
               <div class="av" style="background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div>
               <div style="min-width:0">
-                <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome}</div>
-                ${c.apelido ? `<div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.apelido}</div>` : ''}
+                <div class="mobile-card-title">${c.nome}</div>
+                ${c.apelido ? `<div class="mobile-card-sub">${c.apelido}</div>` : ''}
               </div>
             </div>
             <div>${ST_B[c.status] || ''}</div>
           </div>
 
-          <div style="font-size:12px;color:var(--tx2);display:grid;gap:4px;margin-bottom:8px">
+          <div class="mobile-card-meta" style="margin-bottom:8px">
             <div>${c.tel || '—'}${c.whatsapp ? ` • WhatsApp: ${c.whatsapp}` : ''}</div>
             ${c.email ? `<div>${c.email}</div>` : ''}
             <div>${tabLbl[c.tab] || '—'} • ${prazoLbl[c.prazo] || '—'}</div>
           </div>
 
-          <div class="fg2" style="gap:4px;margin-bottom:10px">
+          <div class="mobile-card-tags" style="gap:4px">
             ${c.data_aniversario ? `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>` : ''}
             ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
             ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
@@ -161,7 +161,7 @@ export function renderClientes(){
             ${times.map(t => `<span class="bdg bb">⚽ ${t}</span>`).join('')}
           </div>
 
-          <div class="fg2" style="justify-content:flex-end">
+          <div class="mobile-card-actions">
             <button class="ib" title="Ver cliente" onclick="abrirCliDet('${c.id}')">VER</button>
             <button class="ib" title="Editar cliente" onclick="editarCli('${c.id}')">EDT</button>
             <button class="ib" title="Excluir cliente" onclick="removerCli('${c.id}')">DEL</button>
