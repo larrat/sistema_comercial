@@ -189,6 +189,14 @@ const PAGE_META = {
     primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); } },
     secondary: { label: 'Voltar setup', run: () => voltarSetup() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
+  },
+  notificacoes: {
+    kicker: 'Inbox',
+    title: 'Notificações',
+    sub: 'Alertas críticos, atenção e oportunidades',
+    primary: { label: 'Resolver todas', run: () => resolverTodasNotificacoes() },
+    secondary: { label: 'Atualizar', run: () => renderNotificacoes() },
+    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   }
 };
 
@@ -675,12 +683,294 @@ async function entrar() {
   renderDashFilSel();
   renderDash();
   atualizarBadgeEst();
+  updateNotiBadge();
 
   ir('dashboard');
 }
 
 function voltarSetup() {
   renderSetup();
+}
+
+const NOTI_HISTORY_KEY = 'sc_noti_hist_v1';
+let notiFiltroPrioridade = 'todas';
+let notiCache = [];
+
+function getNotiHistoryMap(){
+  try{
+    return JSON.parse(localStorage.getItem(NOTI_HISTORY_KEY) || '{}') || {};
+  }catch{
+    return {};
+  }
+}
+
+function getNotiHistory(){
+  const map = getNotiHistoryMap();
+  return map[State.FIL] || [];
+}
+
+function setNotiHistory(list){
+  const map = getNotiHistoryMap();
+  map[State.FIL] = list;
+  localStorage.setItem(NOTI_HISTORY_KEY, JSON.stringify(map));
+}
+
+function getProxAniversario(iso){
+  if(!iso) return null;
+  const parts = String(iso).split('-');
+  if(parts.length !== 3) return null;
+  const [y, m, d] = parts.map(Number);
+  if(!m || !d) return null;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const prox = new Date(now.getFullYear(), m - 1, d);
+  prox.setHours(0, 0, 0, 0);
+  if(prox < now) prox.setFullYear(now.getFullYear() + 1);
+  return prox;
+}
+
+function daysDiff(base, target){
+  const ms = target.getTime() - base.getTime();
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+}
+
+function buildNotificacoes(){
+  const notifs = [];
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const saldos = calcSaldos();
+
+  P().forEach(p => {
+    const s = saldos[p.id] || { saldo: 0 };
+    const saldo = Number(s.saldo || 0);
+    const min = Number(p.emin || 0);
+    if(saldo <= 0){
+      const id = `estoque-zero-${p.id}-${saldo}`;
+      notifs.push({
+        id,
+        prioridade: 'critico',
+        titulo: `Estoque zerado: ${p.nome}`,
+        descricao: `Saldo atual: ${fmtQ(saldo)} ${p.un || ''}.`,
+        meta: 'Estoque',
+        acaoLabel: 'Abrir estoque',
+        acao: () => ir('estoque')
+      });
+      return;
+    }
+    if(min > 0 && saldo < min){
+      const id = `estoque-baixo-${p.id}-${saldo}-${min}`;
+      notifs.push({
+        id,
+        prioridade: 'atencao',
+        titulo: `Estoque baixo: ${p.nome}`,
+        descricao: `Saldo ${fmtQ(saldo)} ${p.un || ''} abaixo do mínimo (${fmtQ(min)}).`,
+        meta: 'Estoque',
+        acaoLabel: 'Abrir estoque',
+        acao: () => ir('estoque')
+      });
+    }
+  });
+
+  const envios = (D.campanhaEnvios?.[State.FIL] || []);
+  const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual');
+  if(pendentes.length){
+    const id = `campanhas-pendentes-${pendentes.length}`;
+    notifs.push({
+      id,
+      prioridade: 'atencao',
+      titulo: `Fila de campanhas com ${pendentes.length} envio(s) pendente(s)`,
+      descricao: 'Existe fila manual/pendente aguardando ação.',
+      meta: 'Campanhas',
+      acaoLabel: 'Abrir campanhas',
+      acao: () => ir('campanhas')
+    });
+  }
+
+  C().forEach(c => {
+    const prox = getProxAniversario(c.data_aniversario);
+    if(!prox) return;
+    const diff = daysDiff(now, prox);
+    if(diff < 0 || diff > 7) return;
+    const canais = [c.whatsapp, c.tel, c.email].filter(Boolean);
+    if(!c.optin_marketing || !canais.length) return;
+    const id = `aniversario-${c.id}-${prox.toISOString().slice(0,10)}`;
+    notifs.push({
+      id,
+      prioridade: 'oportunidade',
+      titulo: `${c.nome} faz aniversário em ${diff} dia(s)`,
+      descricao: `Cliente apto para campanha. Canais: ${canais.length}.`,
+      meta: 'Clientes / Campanhas',
+      acaoLabel: 'Abrir campanhas',
+      acao: () => ir('campanhas')
+    });
+  });
+
+  const jogos = (D.jogos?.[State.FIL] || [])
+    .filter(j => !!j.data_hora)
+    .map(j => ({ ...j, dt: new Date(j.data_hora) }))
+    .filter(j => !Number.isNaN(j.dt.getTime()))
+    .sort((a, b) => a.dt - b.dt)
+    .slice(0, 6);
+  jogos.forEach(j => {
+    const d = new Date(j.dt);
+    d.setHours(0, 0, 0, 0);
+    const diff = daysDiff(now, d);
+    if(diff < 0 || diff > 7) return;
+    const id = `jogo-${j.id || j.titulo}-${j.dt.toISOString()}`;
+    notifs.push({
+      id,
+      prioridade: 'oportunidade',
+      titulo: `Jogo próximo: ${j.titulo || `${j.mandante || ''} x ${j.visitante || ''}`}`,
+      descricao: `Em ${diff} dia(s). Bom momento para campanha por time.`,
+      meta: 'Agenda / Oportunidades',
+      acaoLabel: 'Abrir dashboard',
+      acao: () => ir('dashboard')
+    });
+  });
+
+  return notifs;
+}
+
+function updateNotiBadge(){
+  const badge = document.getElementById('noti-badge');
+  if(!badge) return;
+  const histIds = new Set(getNotiHistory().map(x => x.id));
+  const total = buildNotificacoes().filter(n => !histIds.has(n.id)).length;
+  if(total > 0){
+    badge.style.display = 'inline-flex';
+    badge.textContent = total > 99 ? '99+' : String(total);
+  }else{
+    badge.style.display = 'none';
+  }
+}
+
+function setFiltroNotificacoes(filtro){
+  notiFiltroPrioridade = filtro || 'todas';
+  renderNotificacoes();
+}
+
+function executarNotificacao(id){
+  const n = notiCache.find(x => x.id === id);
+  if(!n) return;
+  if(typeof n.acao === 'function') n.acao();
+}
+
+function resolverNotificacao(id){
+  const n = notiCache.find(x => x.id === id);
+  if(!n) return;
+  const hist = getNotiHistory();
+  if(!hist.find(x => x.id === id)){
+    hist.unshift({
+      id: n.id,
+      prioridade: n.prioridade,
+      titulo: n.titulo,
+      meta: n.meta,
+      resolvido_em: new Date().toISOString()
+    });
+    setNotiHistory(hist.slice(0, 200));
+  }
+  renderNotificacoes();
+  updateNotiBadge();
+  toast('Notificação movida para histórico.');
+}
+
+function reabrirNotificacao(id){
+  const hist = getNotiHistory().filter(x => x.id !== id);
+  setNotiHistory(hist);
+  renderNotificacoes();
+  updateNotiBadge();
+}
+
+function resolverTodasNotificacoes(){
+  const ativos = notiCache;
+  if(!ativos.length){
+    toast('Inbox já está vazia.');
+    return;
+  }
+  const hist = getNotiHistory();
+  const ids = new Set(hist.map(x => x.id));
+  ativos.forEach(n => {
+    if(ids.has(n.id)) return;
+    hist.unshift({
+      id: n.id,
+      prioridade: n.prioridade,
+      titulo: n.titulo,
+      meta: n.meta,
+      resolvido_em: new Date().toISOString()
+    });
+  });
+  setNotiHistory(hist.slice(0, 200));
+  renderNotificacoes();
+  updateNotiBadge();
+  toast('Todas notificações ativas foram resolvidas.');
+}
+
+function renderNotificacoes(){
+  const met = document.getElementById('noti-met');
+  const lista = document.getElementById('noti-lista');
+  const histEl = document.getElementById('noti-historico');
+  const fil = document.getElementById('noti-fil-prioridade');
+  if(!met || !lista || !histEl) return;
+  if(fil) fil.value = notiFiltroPrioridade;
+
+  const all = buildNotificacoes();
+  const hist = getNotiHistory();
+  const histIds = new Set(hist.map(x => x.id));
+  let ativos = all.filter(n => !histIds.has(n.id));
+  if(notiFiltroPrioridade !== 'todas'){
+    ativos = ativos.filter(n => n.prioridade === notiFiltroPrioridade);
+  }
+
+  const crit = all.filter(n => n.prioridade === 'critico').length;
+  const ate = all.filter(n => n.prioridade === 'atencao').length;
+  const op = all.filter(n => n.prioridade === 'oportunidade').length;
+  met.innerHTML = `
+    <div class="met"><div class="ml">Crítico</div><div class="mv" style="color:#FF2D00">${crit}</div></div>
+    <div class="met"><div class="ml">Atenção</div><div class="mv" style="color:#A67A00">${ate}</div></div>
+    <div class="met"><div class="ml">Oportunidade</div><div class="mv" style="color:#0047FF">${op}</div></div>
+    <div class="met"><div class="ml">Resolvidas</div><div class="mv">${hist.length}</div></div>
+  `;
+
+  notiCache = ativos;
+  if(!ativos.length){
+    lista.innerHTML = `<div class="empty"><div class="ico">📥</div><p>Nenhuma notificação ativa para o filtro selecionado.</p></div>`;
+  }else{
+    lista.innerHTML = ativos.map(n => `
+      <div class="noti-item ${n.prioridade}">
+        <div class="noti-head">
+          <div>
+            <div class="noti-title">${n.titulo}</div>
+            <div class="noti-desc">${n.descricao}</div>
+            <div class="noti-meta">${n.meta} • ${n.prioridade}</div>
+          </div>
+          <span class="bdg ${n.prioridade === 'critico' ? 'br' : n.prioridade === 'atencao' ? 'ba' : 'bb'}">${n.prioridade}</span>
+        </div>
+        <div class="noti-actions">
+          <button class="btn btn-sm" onclick="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
+          <button class="btn btn-sm" onclick="resolverNotificacao('${n.id}')">Resolver</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  if(!hist.length){
+    histEl.innerHTML = `<div class="empty"><div class="ico">🗂️</div><p>Sem histórico ainda.</p></div>`;
+  }else{
+    histEl.innerHTML = hist.slice(0, 30).map(h => `
+      <div class="noti-item">
+        <div class="noti-head">
+          <div>
+            <div class="noti-title">${h.titulo}</div>
+            <div class="noti-meta">${h.meta || 'Sistema'} • resolvida em ${new Date(h.resolvido_em).toLocaleString('pt-BR')}</div>
+          </div>
+          <span class="bdg bk">${h.prioridade || 'resolvida'}</span>
+        </div>
+        <div class="noti-actions">
+          <button class="btn btn-sm" onclick="reabrirNotificacao('${h.id}')">Reabrir</button>
+        </div>
+      </div>
+    `).join('');
+  }
 }
 
 function ir(p) {
@@ -699,10 +989,12 @@ function ir(p) {
     cotacao: () => { renderFornSel(); renderCotForns(); renderCotLogs(); renderCotTabela(); },
     estoque: () => { renderEstAlerts(); renderEstPosicao(); renderEstHist(); },
     campanhas: () => { renderCampanhasMet(); renderCampanhas(); renderFilaWhatsApp(); renderCampanhaEnvios(); },
-    filiais: () => { renderFilMet(); renderFilLista(); }
+    filiais: () => { renderFilMet(); renderFilLista(); },
+    notificacoes: renderNotificacoes
   };
 
   if (renderMap[p]) renderMap[p]();
+  updateNotiBadge();
   syncTopbar(p);
   window.scrollTo(0, 0);
 }
@@ -999,6 +1291,12 @@ window.switchTab = switchTab;
 window.exportarTudo = exportarTudo;
 window.exportCSV = exportCSV;
 window.setFlowStep = setFlowStep;
+window.renderNotificacoes = renderNotificacoes;
+window.setFiltroNotificacoes = setFiltroNotificacoes;
+window.executarNotificacao = executarNotificacao;
+window.resolverNotificacao = resolverNotificacao;
+window.reabrirNotificacao = reabrirNotificacao;
+window.resolverTodasNotificacoes = resolverTodasNotificacoes;
 
 window.renderDashFilSel = renderDashFilSel;
 window.renderDash = renderDash;

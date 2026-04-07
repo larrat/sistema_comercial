@@ -74,6 +74,7 @@
       <button class="ni" data-p="cotacao" onclick="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
       <button class="ni" data-p="estoque" onclick="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
       <button class="ni" data-p="campanhas" onclick="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
+      <button class="ni" data-p="notificacoes" onclick="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
       <div class="nl">Sistema</div>
       <button class="ni" data-p="filiais" onclick="ir('filiais')"><span class="ico">FL</span>Filiais</button>
     </nav>
@@ -335,6 +336,36 @@
       </div>
       <div class="mg" id="fil-met" style="margin-bottom:14px"></div>
       <div id="fil-lista"></div>
+    </div>
+
+    <!-- ── NOTIFICAÇÕES ── -->
+    <div class="pg" id="pg-notificacoes">
+      <div class="ph fb">
+        <div><h2>Notificações</h2><p>Inbox de alertas com prioridade e ação direta</p></div>
+        <div class="toolbar-actions">
+          <button class="btn btn-sm" onclick="renderNotificacoes()">Atualizar</button>
+          <button class="btn btn-p" onclick="resolverTodasNotificacoes()">Resolver todas</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="toolbar-main">
+          <select class="inp sel" id="noti-fil-prioridade" style="max-width:180px" onchange="setFiltroNotificacoes(this.value)">
+            <option value="todas">Todas prioridades</option>
+            <option value="critico">Crítico</option>
+            <option value="atencao">Atenção</option>
+            <option value="oportunidade">Oportunidade</option>
+          </select>
+        </div>
+      </div>
+      <div class="mg" id="noti-met" style="margin-bottom:14px"></div>
+      <div class="card">
+        <div class="ct">Inbox ativa</div>
+        <div id="noti-lista"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Histórico resolvido</div>
+        <div id="noti-historico"></div>
+      </div>
     </div>
 
   </main>
