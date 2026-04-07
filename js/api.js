@@ -60,6 +60,38 @@ function mmdd(date) {
   return `${m}-${day}`;
 }
 
+function nextBirthdayDate(birthDate, baseDate = new Date()) {
+  const b = new Date(birthDate);
+  if (isNaN(b.getTime())) return null;
+
+  const start = new Date(baseDate);
+  start.setHours(0, 0, 0, 0);
+
+  let next = new Date(start.getFullYear(), b.getMonth(), b.getDate());
+  next.setHours(0, 0, 0, 0);
+
+  if (next < start) {
+    next = new Date(start.getFullYear() + 1, b.getMonth(), b.getDate());
+    next.setHours(0, 0, 0, 0);
+  }
+
+  return next;
+}
+
+function isBirthdayWithinDays(birthDate, baseDate = new Date(), maxDays = 0) {
+  const limitDays = Math.max(0, Number(maxDays || 0));
+  const start = new Date(baseDate);
+  start.setHours(0, 0, 0, 0);
+
+  const end = addDays(start, limitDays);
+  end.setHours(23, 59, 59, 999);
+
+  const next = nextBirthdayDate(birthDate, start);
+  if (!next) return false;
+
+  return next >= start && next <= end;
+}
+
 export const SB = {
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
@@ -252,12 +284,11 @@ export const SB = {
     );
 
     const dias = Number(campanha?.dias_antecedencia || 0);
-    const alvo = mmdd(addDays(baseDate, dias));
     const canal = campanha?.canal || '';
 
     return (clientes || []).filter(c => {
       if (!c.data_aniversario) return false;
-      if (mmdd(c.data_aniversario) !== alvo) return false;
+      if (!isBirthdayWithinDays(c.data_aniversario, baseDate, dias)) return false;
 
       if (canal === 'email') return !!c.optin_email && !!c.email;
       if (canal === 'sms') return !!c.optin_sms && !!c.tel;
