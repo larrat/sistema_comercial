@@ -41,6 +41,19 @@ function jogoTemTime(j, time){
     .some(x => x.includes(t));
 }
 
+function jogoEhDaSerie(j, serie = 'todas'){
+  const s = String(serie || 'todas').toLowerCase();
+  if(s === 'todas') return true;
+
+  const camp = normTxt(j?.campeonato || '');
+  if(!camp) return false;
+
+  if(s === 'a') return /\bserie a\b|\bserie-a\b|\bseriea\b/.test(camp);
+  if(s === 'b') return /\bserie b\b|\bserie-b\b|\bserieb\b/.test(camp);
+  if(s === 'c') return /\bserie c\b|\bserie-c\b|\bseriec\b/.test(camp);
+  return true;
+}
+
 function statusJogoExt(v){
   const s = String(v || '').toLowerCase();
   if(['finished', 'ft', 'realizado', 'fulltime'].includes(s)) return 'realizado';
@@ -231,6 +244,7 @@ export function renderDashFilSel(){
 
 export function renderDash(){
   const fsel = document.getElementById('dash-fil')?.value || 'todas';
+  const serieSel = document.getElementById('dash-opp-camp')?.value || 'todas';
   const range = getRange();
 
   const pLabels = {
@@ -326,7 +340,7 @@ export function renderDash(){
   const jogosSemana = jogosAgenda
     .filter(j => {
       const d = new Date(j.data_hora || 0);
-      return !isNaN(d.getTime()) && d >= hoje && d <= limite;
+      return !isNaN(d.getTime()) && d >= hoje && d <= limite && jogoEhDaSerie(j, serieSel);
     })
     .sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
 
@@ -355,7 +369,8 @@ export function renderDash(){
   });
 
   if(oportunidades.length){
-    ah += `<div class="alert al-g">⚽ <b>${oportunidades.length} oportunidade(s) por jogo na semana:</b> ${oportunidades.slice(0,4).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 4 ? '…' : ''}</div>`;
+    const serieTxt = serieSel === 'todas' ? 'todas as séries' : `Série ${serieSel.toUpperCase()}`;
+    ah += `<div class="alert al-g">⚽ <b>${oportunidades.length} oportunidade(s) por jogo na semana (${serieTxt}):</b> ${oportunidades.slice(0,4).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 4 ? '…' : ''}</div>`;
   }
 
   const alerts = document.getElementById('dash-alerts');
@@ -569,8 +584,10 @@ export function renderDash(){
 
   const dashOportunidades = document.getElementById('dash-oportunidades');
   if(dashOportunidades){
+    const serieLabel = serieSel === 'todas' ? 'Todas as séries' : `Série ${serieSel.toUpperCase()}`;
     dashOportunidades.innerHTML = `
       <div class="rrow" style="margin-bottom:8px">
+        <span class="bdg bk">${serieLabel}</span>
         <span class="bdg ${oportunidadesHoje.length ? 'bg' : 'bk'}">Hoje: ${oportunidadesHoje.length}</span>
         <span class="bdg ${oportunidades.length ? 'ba' : 'bk'}">Semana: ${oportunidades.length}</span>
       </div>
