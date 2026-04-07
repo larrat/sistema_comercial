@@ -231,6 +231,66 @@ function flowVal(id, fallback = '—'){
   return v || fallback;
 }
 
+function focusField(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.focus();
+  if(typeof el.select === 'function') el.select();
+}
+
+function validateFlowStep(flow, step){
+  if(flow === 'prod'){
+    if(step === 1){
+      const nome = flowVal('p-nome', '');
+      const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
+      if(!nome){
+        toast('Produto: informe o nome para continuar.');
+        focusField('p-nome');
+        return false;
+      }
+      if(custo <= 0){
+        toast('Produto: informe um custo maior que zero.');
+        focusField('p-custo');
+        return false;
+      }
+    }
+    if(step === 2){
+      const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
+      const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
+      const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
+      if(mkv <= 0 && pfa <= 0 && mka <= 0){
+        toast('Produto: defina markup varejo ou preço/markup de atacado.');
+        focusField('p-mkv');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if(flow === 'cli'){
+    if(step === 1){
+      const nome = flowVal('c-nome', '');
+      if(!nome){
+        toast('Cliente: informe o nome para continuar.');
+        focusField('c-nome');
+        return false;
+      }
+    }
+    if(step === 2){
+      const tab = flowVal('c-tab', '');
+      const prazo = flowVal('c-prazo', '');
+      if(!tab || !prazo){
+        toast('Cliente: complete os dados comerciais (tabela e prazo).');
+        focusField(!tab ? 'c-tab' : 'c-prazo');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return true;
+}
+
 function renderFlowSummary(flow){
   if(flow === 'prod'){
     const el = document.getElementById('prod-flow-resumo');
@@ -298,7 +358,18 @@ function renderFlowSummary(flow){
 function setFlowStep(flow, rawStep){
   const max = FLOW_MAX[flow];
   if(!max) return;
-  const step = Math.max(1, Math.min(max, Number(rawStep) || 1));
+  const current = window.__flowSteps[flow] || 1;
+  let step = Math.max(1, Math.min(max, Number(rawStep) || 1));
+
+  if(step > current){
+    for(let s = current; s < step; s += 1){
+      if(!validateFlowStep(flow, s)){
+        step = current;
+        break;
+      }
+    }
+  }
+
   window.__flowSteps[flow] = step;
 
   document.querySelectorAll(`.flow-step[data-flow-id="${flow}"]`).forEach(el => {
