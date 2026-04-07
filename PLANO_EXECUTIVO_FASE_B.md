@@ -122,3 +122,13 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
 ## 13. Atualização de metas (07/04/2026)
 - A janela inicial de prazo (30 a 45 dias) foi desconsiderada.
 - As metas passam a ser tratadas como acompanhamento contínuo no dashboard de KPIs.
+
+## 14. Programa contínuo de governança (07/04/2026)
+- Instituída rotina contínua de melhoria com três cadências:
+  - quinzenal: governança Design + Produto + Engenharia;
+  - mensal: auditoria de consistência;
+  - trimestral: revisão executiva de maturidade.
+- Entregáveis formalizados:
+  - ritual de governança: `docs/governanca/RITUAL_GOVERNANCA_CONTINUA_UX_PRODUTO_ENG.md`;
+  - backlog debt/control: `docs/governanca/BACKLOG_DEBT_CONTROL_UX_UI.md`;
+  - relatório trimestral: `docs/governanca/RELATORIO_TRIMESTRAL_EVOLUCAO_TEMPLATE.md`.
