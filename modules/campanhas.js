@@ -52,6 +52,29 @@ function formatarDataBR(iso) {
   return `${d}/${m}/${y}`;
 }
 
+function getProxAnivDate(dataAniversario, baseDate){
+  if(!dataAniversario) return null;
+  const [, m, d] = String(dataAniversario).split('-').map(Number);
+  if(!m || !d) return null;
+  const y = baseDate.getFullYear();
+  let aniv = new Date(y, m - 1, d);
+  aniv.setHours(0, 0, 0, 0);
+  if(aniv < baseDate){
+    aniv = new Date(y + 1, m - 1, d);
+    aniv.setHours(0, 0, 0, 0);
+  }
+  return aniv;
+}
+
+function setBotaoGerarFilaLoading(campanhaId, loading){
+  const btn = document.getElementById(`camp-run-${campanhaId}`);
+  if(!btn) return;
+  btn.disabled = !!loading;
+  btn.style.opacity = loading ? '0.6' : '';
+  btn.style.pointerEvents = loading ? 'none' : '';
+  btn.textContent = loading ? '⏳' : '⚡';
+}
+
 function setInputValue(id, value) {
   const el = document.getElementById(id);
   if (el) el.value = value ?? '';
@@ -382,9 +405,9 @@ export function renderCampanhas() {
               <td>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</td>
               <td>
                 <div class="fg2">
-                  <button class="ib" onclick="editarCampanha('${c.id}')">✏</button>
-                  <button class="ib" onclick="gerarFilaCampanha('${c.id}')">⚡</button>
-                  <button class="ib" onclick="removerCampanha('${c.id}')">✕</button>
+                  <button class="ib" title="Editar campanha" onclick="editarCampanha('${c.id}')">✏</button>
+                  <button class="ib" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">⚡</button>
+                  <button class="ib" title="Remover campanha" onclick="removerCampanha('${c.id}')">✕</button>
                 </div>
               </td>
             </tr>
@@ -402,21 +425,55 @@ export async function gerarFilaCampanha(campanhaId) {
     return;
   }
 
+  setBotaoGerarFilaLoading(campanhaId, true);
+
+  if(!campanha.ativo){
+    setBotaoGerarFilaLoading(campanhaId, false);
+    toast('A campanha está inativa. Ative para gerar a fila.');
+    return;
+  }
+
   let clientes = [];
   try {
     clientes = await SB.getClientesElegiveisCampanhaAniversario(State.FIL, campanha, new Date());
   } catch (e) {
+    setBotaoGerarFilaLoading(campanhaId, false);
     toast('Erro ao buscar clientes elegíveis: ' + e.message);
     return;
   }
 
   if (!clientes.length) {
-    toast('Nenhum cliente elegível para essa campanha hoje.');
+    try{
+      const todos = await SB.getClientes(State.FIL);
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const limite = new Date(hoje);
+      limite.setDate(limite.getDate() + Number(campanha?.dias_antecedencia || 0));
+      limite.setHours(23, 59, 59, 999);
+
+      const comAniv = (todos || []).filter(c => !!c.data_aniversario);
+      const naJanela = comAniv.filter(c => {
+        const prox = getProxAnivDate(c.data_aniversario, hoje);
+        return !!prox && prox >= hoje && prox <= limite;
+      });
+      const canalOk = naJanela.filter(c => {
+        if (campanha.canal === 'email') return !!c.optin_email && !!c.email;
+        if (campanha.canal === 'sms') return !!c.optin_sms && !!c.tel;
+        if (campanha.canal === 'whatsapp_manual') return !!c.optin_marketing && !!(c.whatsapp || c.tel);
+        return !!c.optin_marketing;
+      });
+
+      toast(`Sem elegíveis. Clientes: ${todos?.length || 0}, com aniversário: ${comAniv.length}, na janela: ${naJanela.length}, aptos ao canal: ${canalOk.length}.`);
+    }catch{
+      toast('Nenhum cliente elegível para essa campanha hoje.');
+    }
+    setBotaoGerarFilaLoading(campanhaId, false);
     return;
   }
 
   let criados = 0;
   let ignorados = 0;
+  let falhas = 0;
   const dataRef = hojeISO();
 
   for (const cliente of clientes) {
@@ -430,12 +487,19 @@ export async function gerarFilaCampanha(campanhaId) {
       continue;
     }
 
-    const existe = await SB.existeCampanhaEnvioNoDia({
-      campanha_id: campanha.id,
-      cliente_id: cliente.id,
-      canal: campanha.canal,
-      data_ref: dataRef
-    });
+    let existe = false;
+    try{
+      existe = await SB.existeCampanhaEnvioNoDia({
+        campanha_id: campanha.id,
+        cliente_id: cliente.id,
+        canal: campanha.canal,
+        data_ref: dataRef
+      });
+    }catch(e){
+      console.error('Erro ao verificar duplicidade de envio', { cliente, campanha }, e);
+      falhas++;
+      continue;
+    }
 
     if (existe) {
       ignorados++;
@@ -466,6 +530,7 @@ export async function gerarFilaCampanha(campanhaId) {
       criados++;
     } catch (e) {
       console.error('Erro ao criar envio', envio, e);
+      falhas++;
       ignorados++;
     }
   }
@@ -473,7 +538,8 @@ export async function gerarFilaCampanha(campanhaId) {
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
-  toast(`Fila gerada: ${criados} criado(s), ${ignorados} ignorado(s).`);
+  setBotaoGerarFilaLoading(campanhaId, false);
+  toast(`Fila gerada: ${criados} criado(s), ${ignorados} ignorado(s), ${falhas} falha(s).`);
 }
 
 export function renderFilaWhatsApp() {

@@ -127,6 +127,51 @@ export function renderClientes(){
     '60d':'60d'
   };
 
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = f.map(c => {
+      const cor = avc(c.nome);
+      const times = parseTimes(c.time);
+
+      return `
+        <div class="card" style="padding:12px 14px;margin-bottom:10px">
+          <div class="fb" style="align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <div class="av" style="background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div>
+              <div style="min-width:0">
+                <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome}</div>
+                ${c.apelido ? `<div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.apelido}</div>` : ''}
+              </div>
+            </div>
+            <div>${ST_B[c.status] || ''}</div>
+          </div>
+
+          <div style="font-size:12px;color:var(--tx2);display:grid;gap:4px;margin-bottom:8px">
+            <div>${c.tel || '—'}${c.whatsapp ? ` • WhatsApp: ${c.whatsapp}` : ''}</div>
+            ${c.email ? `<div>${c.email}</div>` : ''}
+            <div>${tabLbl[c.tab] || '—'} • ${prazoLbl[c.prazo] || '—'}</div>
+          </div>
+
+          <div class="fg2" style="gap:4px;margin-bottom:10px">
+            ${c.data_aniversario ? `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>` : ''}
+            ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
+            ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
+            ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
+            ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
+            ${times.map(t => `<span class="bdg bb">⚽ ${t}</span>`).join('')}
+          </div>
+
+          <div class="fg2" style="justify-content:flex-end">
+            <button class="ib" onclick="abrirCliDet('${c.id}')">👁</button>
+            <button class="ib" onclick="editarCli('${c.id}')">✏</button>
+            <button class="ib" onclick="removerCli('${c.id}')">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
+
   el.innerHTML = `
     <div class="tw">
       <table class="tbl">
