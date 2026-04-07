@@ -52,6 +52,22 @@ function formatarDataBR(iso) {
   return `${d}/${m}/${y}`;
 }
 
+function labelCanal(v){
+  const key = String(v || '').trim();
+  if(key === 'whatsapp_manual') return 'WhatsApp manual';
+  if(key === 'email') return 'E-mail';
+  if(key === 'sms') return 'SMS';
+  return key || '—';
+}
+
+function badgeSaudeCampanha(campanha, envios){
+  if(!campanha?.ativo) return '<span class="bdg br">Inativa</span>';
+  const fila = (envios || []).filter(e => e.campanha_id === campanha.id && (e.status === 'manual' || e.status === 'pendente')).length;
+  if(fila > 0) return `<span class="bdg ba">Fila ${fila}</span>`;
+  if(Number(campanha?.desconto || 0) <= 0 && !String(campanha?.cupom || '').trim()) return '<span class="bdg bk">Sem oferta</span>';
+  return '<span class="bdg bg">Pronta</span>';
+}
+
 function getProxAnivDate(dataAniversario, baseDate){
   if(!dataAniversario) return null;
   const [, m, d] = String(dataAniversario).split('-').map(Number);
@@ -402,7 +418,8 @@ export function renderCampanhas() {
             <div class="mobile-card-title">${c.nome}</div>
             <div class="mobile-card-tags" style="margin-top:4px;margin-bottom:0;gap:4px">
               <span class="bdg bk">${c.tipo || 'aniversario'}</span>
-              <span class="bdg bb">${c.canal}</span>
+              <span class="bdg bb">${labelCanal(c.canal)}</span>
+              ${badgeSaudeCampanha(c, envios)}
             </div>
           </div>
           <div>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</div>
@@ -450,11 +467,16 @@ export function renderCampanhas() {
             <tr>
               <td style="font-weight:600">${c.nome}</td>
               <td><span class="bdg bk">${c.tipo || 'aniversario'}</span></td>
-              <td><span class="bdg bb">${c.canal}</span></td>
+              <td><span class="bdg bb">${labelCanal(c.canal)}</span></td>
               <td>${Number(c.dias_antecedencia || 0)} dia(s)</td>
               <td>${Number(c.desconto || 0)}%</td>
               <td>${c.cupom || '—'}</td>
-              <td>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</td>
+              <td>
+                <div class="fg2" style="gap:4px">
+                  ${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
+                  ${badgeSaudeCampanha(c, envios)}
+                </div>
+              </td>
               <td>
                 <div class="fg2 camp-actions">
                   <button class="btn btn-sm" title="Editar campanha" onclick="editarCampanha('${c.id}')">Editar</button>
@@ -631,6 +653,7 @@ export function renderFilaWhatsApp() {
             </div>
             <div class="mobile-card-meta">
               <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
+              <div>Canal: <b style="color:var(--tx2)">${labelCanal(e.canal)}</b></div>
             </div>
             <div class="mobile-card-actions">
               <button class="btn btn-p btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
@@ -708,7 +731,7 @@ export function renderCampanhaEnvios() {
           <div class="mobile-card-head">
             <div style="min-width:0">
               <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
-              <div class="mobile-card-sub">${e.canal} • ${formatarDataBR(e.data_ref)}</div>
+              <div class="mobile-card-sub">${labelCanal(e.canal)} • ${formatarDataBR(e.data_ref)}</div>
             </div>
             <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span>
           </div>
@@ -741,7 +764,7 @@ export function renderCampanhaEnvios() {
             return `
               <tr>
                 <td style="font-weight:600">${cliente?.nome || e.cliente_id}</td>
-                <td><span class="bdg bk">${e.canal}</span></td>
+                <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
                 <td>${e.destino || '—'}</td>
                 <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span></td>
                 <td>${formatarDataBR(e.data_ref)}</td>

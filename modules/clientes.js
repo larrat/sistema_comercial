@@ -27,6 +27,64 @@ function fmtAniv(iso){
   return `${d}/${m}`;
 }
 
+function getDiasParaAniversario(iso){
+  if(!iso) return null;
+  const [, m, d] = String(iso).split('-').map(Number);
+  if(!m || !d) return null;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  let alvo = new Date(now.getFullYear(), m - 1, d);
+  alvo.setHours(0, 0, 0, 0);
+  if(alvo < now){
+    alvo = new Date(now.getFullYear() + 1, m - 1, d);
+    alvo.setHours(0, 0, 0, 0);
+  }
+  const diffMs = alvo.getTime() - now.getTime();
+  return Math.round(diffMs / 86400000);
+}
+
+function getBadgeAniversario(c){
+  if(!c?.data_aniversario) return '';
+  const dias = getDiasParaAniversario(c.data_aniversario);
+  if(dias == null) return `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>`;
+  if(dias === 0) return '<span class="bdg br">🎂 Hoje</span>';
+  if(dias <= 7) return `<span class="bdg ba">🎂 ${dias}d</span>`;
+  return `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>`;
+}
+
+function getContatoInfo(c){
+  const temWhatsapp = !!String(c?.whatsapp || '').trim();
+  const temTel = !!String(c?.tel || '').trim();
+  const temEmail = !!String(c?.email || '').trim();
+
+  if(temWhatsapp){
+    return {
+      principal: `WhatsApp: ${c.whatsapp}`,
+      secundario: temTel && c.tel !== c.whatsapp ? `Telefone: ${c.tel}` : '',
+      badge: '<span class="bdg bg">WhatsApp</span>'
+    };
+  }
+  if(temTel){
+    return {
+      principal: `Telefone: ${c.tel}`,
+      secundario: temEmail ? c.email : '',
+      badge: '<span class="bdg ba">Somente telefone</span>'
+    };
+  }
+  if(temEmail){
+    return {
+      principal: c.email,
+      secundario: '',
+      badge: '<span class="bdg bb">Somente e-mail</span>'
+    };
+  }
+  return {
+    principal: 'Sem contato',
+    secundario: '',
+    badge: '<span class="bdg br">Sem contato</span>'
+  };
+}
+
 const ST_B = {
   ativo:'<span class="bdg bg">Ativo</span>',
   inativo:'<span class="bdg bk">Inativo</span>',
@@ -132,6 +190,7 @@ export function renderClientes(){
     el.innerHTML = f.map(c => {
       const cor = avc(c.nome);
       const times = parseTimes(c.time);
+      const contato = getContatoInfo(c);
 
       return `
         <div class="card mobile-card">
@@ -147,14 +206,15 @@ export function renderClientes(){
           </div>
 
           <div class="mobile-card-meta" style="margin-bottom:8px">
-            <div>${c.whatsapp ? `WhatsApp: ${c.whatsapp}` : (c.tel || '—')}</div>
-            ${c.whatsapp && c.tel ? `<div>Telefone: ${c.tel}</div>` : ''}
-            ${c.email ? `<div>${c.email}</div>` : ''}
+            <div>${contato.principal}</div>
+            ${contato.secundario ? `<div>${contato.secundario}</div>` : ''}
+            ${c.email && contato.principal !== c.email ? `<div>${c.email}</div>` : ''}
             <div>${tabLbl[c.tab] || '—'} • ${prazoLbl[c.prazo] || '—'}</div>
           </div>
 
           <div class="mobile-card-tags" style="gap:4px">
-            ${c.data_aniversario ? `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>` : ''}
+            ${getBadgeAniversario(c)}
+            ${contato.badge}
             ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
             ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
             ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
@@ -193,6 +253,7 @@ export function renderClientes(){
           ${f.map(c => {
             const cor = avc(c.nome);
             const times = parseTimes(c.time);
+            const contato = getContatoInfo(c);
             return `
               <tr>
                 <td><div class="av" style="background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div></td>
@@ -201,13 +262,14 @@ export function renderClientes(){
                   ${c.apelido ? `<div style="font-size:11px;color:var(--tx3)">${c.apelido}</div>` : ''}
                 </td>
                 <td>
-                  <div>${c.tel || '—'}</div>
-                  ${c.whatsapp ? `<div style="font-size:11px;color:var(--tx3)">WhatsApp: ${c.whatsapp}</div>` : '<div style="font-size:11px;color:var(--tx3)">Sem WhatsApp</div>'}
-                  ${c.email ? `<div style="font-size:11px;color:var(--tx3)">${c.email}</div>` : ''}
+                  <div>${contato.principal}</div>
+                  ${contato.secundario ? `<div style="font-size:11px;color:var(--tx3)">${contato.secundario}</div>` : ''}
+                  ${c.email && contato.principal !== c.email ? `<div style="font-size:11px;color:var(--tx3)">${c.email}</div>` : ''}
                 </td>
                 <td>
                   <div class="fg2" style="gap:4px">
-                    ${c.data_aniversario ? `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>` : '<span style="color:var(--tx3)">—</span>'}
+                    ${getBadgeAniversario(c) || '<span style="color:var(--tx3)">—</span>'}
+                    ${contato.badge}
                     ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
                     ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
                     ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}

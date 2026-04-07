@@ -2162,3 +2162,73 @@ input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="tr
     font-size:13px;
   }
 }
+
+/* =========================================================
+   FLUXOS-CHAVE - CLIENTES / CAMPANHAS (RESPONSIVO REAL)
+   ========================================================= */
+#pg-clientes .tw,
+#pg-campanhas .tw{
+  overflow-x:auto;
+}
+
+#pg-clientes .tbl th,
+#pg-campanhas .tbl th{
+  white-space:nowrap;
+  font-size:12px;
+  letter-spacing:.02em;
+}
+
+#pg-clientes .tbl td,
+#pg-campanhas .tbl td{
+  font-size:13px;
+  vertical-align:top;
+}
+
+#pg-clientes .mobile-card,
+#pg-campanhas .mobile-card{
+  box-shadow:var(--shadow-md);
+}
+
+#pg-clientes .mobile-card-meta,
+#pg-campanhas .mobile-card-meta{
+  gap:5px;
+}
+
+#pg-campanhas .camp-quick{
+  padding:8px 10px;
+  border:1px solid var(--shell-border);
+  border-radius:var(--radius-md);
+  background:#F8FBFF;
+}
+
+#pg-campanhas .camp-actions{
+  gap:6px;
+}
+
+#pg-campanhas .camp-actions .btn,
+#pg-clientes .tbl .btn{
+  min-height:32px;
+  padding:6px 9px;
+}
+
+@media(max-width:760px){
+  #pg-clientes .mobile-card-actions,
+  #pg-campanhas .mobile-card-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+
+  #pg-clientes .mobile-card-actions .btn,
+  #pg-campanhas .mobile-card-actions .btn{
+    width:100%;
+    justify-content:center;
+  }
+
+  .app-topbar-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+    gap:8px;
+  }
+}

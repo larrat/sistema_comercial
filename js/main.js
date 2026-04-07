@@ -447,6 +447,52 @@ const PAGE_META = {
   }
 };
 
+function pageAtual(){
+  const on = document.querySelector('.pg.on');
+  if(!on?.id) return 'dashboard';
+  return String(on.id).replace(/^pg-/, '') || 'dashboard';
+}
+
+function scrollToCampSection(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getContextualPageMeta(page){
+  const base = PAGE_META[page] || PAGE_META.dashboard;
+  const meta = {
+    ...base,
+    primary: base.primary ? { ...base.primary } : null,
+    secondary: base.secondary ? { ...base.secondary } : null,
+    tertiary: base.tertiary ? { ...base.tertiary } : null
+  };
+
+  if(page === 'clientes'){
+    const segTabAtiva = !!document.getElementById('cli-tc-segs')?.classList.contains('on');
+    meta.tertiary = segTabAtiva
+      ? { label: 'Voltar lista', run: () => switchTab('cli', 'lista') }
+      : { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') };
+  }
+
+  if(page === 'campanhas'){
+    const envios = D.campanhaEnvios?.[State.FIL] || [];
+    const campanhas = D.campanhas?.[State.FIL] || [];
+    const pendentes = envios.filter(e => e.canal === 'whatsapp_manual' && (e.status === 'manual' || e.status === 'pendente'));
+    const primeiraAtiva = campanhas.find(c => c.ativo);
+
+    meta.secondary = pendentes.length
+      ? { label: `Fila WhatsApp (${pendentes.length})`, run: () => scrollToCampSection('camp-wa-fila') }
+      : { label: 'Atualizar tela', run: () => refreshCampanhasTela() };
+
+    meta.tertiary = primeiraAtiva
+      ? { label: 'Rodar 1ª ativa', run: () => gerarFilaCampanhaTracked(primeiraAtiva.id) }
+      : { label: 'Exportar CSV', run: () => exportCSV('campanhas') };
+  }
+
+  return meta;
+}
+
 function bindTopbarAction(id, action){
   const el = document.getElementById(id);
   if(!el) return;
@@ -461,7 +507,7 @@ function bindTopbarAction(id, action){
 }
 
 function syncTopbar(page){
-  const meta = PAGE_META[page] || PAGE_META.dashboard;
+  const meta = getContextualPageMeta(page);
   const kicker = document.getElementById('app-kicker');
   const title = document.getElementById('app-title');
   const sub = document.getElementById('app-sub');
@@ -1370,6 +1416,11 @@ function switchTab(grp, name) {
     const ids = Array.from(document.querySelectorAll(`[id^="${prefix}"]`)).map(t => t.id.replace(prefix, ''));
     b.classList.toggle('on', ids[i] === name);
   });
+
+  const atual = pageAtual();
+  if(atual === grp){
+    syncTopbar(atual);
+  }
 }
 
 function abrirSb() {
