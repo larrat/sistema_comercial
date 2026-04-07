@@ -1971,4 +1971,41 @@ body{
     flex:1;
     justify-content:center;
   }
+
+  /* Mobile-first: ação principal por modal sempre visível e fácil com uma mão */
+  .modal-actions:not(.modal-actions-inline){
+    position:sticky;
+    bottom:-14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    background:#FFFFFF;
+    padding-top:10px;
+    padding-bottom:calc(4px + env(safe-area-inset-bottom,0));
+    margin-top:12px;
+    border-top:1px solid var(--bd);
+  }
+  .modal-actions:not(.modal-actions-inline) .btn{
+    width:100%;
+    justify-content:center;
+  }
+  .modal-actions:not(.modal-actions-inline) .btn-p{
+    order:-1;
+  }
+
+  /* Cards mobile sem perda de contexto */
+  #pg-estoque .mobile-card-meta,
+  #pg-campanhas .mobile-card-meta{
+    gap:6px;
+  }
+  #pg-estoque .mobile-card-actions .btn,
+  #pg-campanhas .mobile-card-actions .btn{
+    flex:1;
+    justify-content:center;
+  }
+  #pg-estoque .mobile-card-actions,
+  #pg-campanhas .mobile-card-actions{
+    justify-content:stretch;
+    width:100%;
+  }
 }

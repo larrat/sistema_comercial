@@ -167,6 +167,39 @@ export function renderEstPosicao(){
     return;
   }
 
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = filtered.map(p => {
+      const s = saldos[p.id] || { saldo: 0, cm: 0 };
+      const min = p.emin || 0;
+      const valor = s.saldo * s.cm;
+      let stC = 'bg';
+      let stL = 'OK';
+      if(s.saldo <= 0){ stC = 'br'; stL = 'Zerado'; }
+      else if(min > 0 && s.saldo < min){ stC = 'ba'; stL = 'Baixo'; }
+      return `
+        <div class="card mobile-card">
+          <div class="mobile-card-head">
+            <div style="min-width:0">
+              <div class="mobile-card-title">${p.nome}</div>
+              <div class="mobile-card-sub">${p.sku || 'Sem SKU'} • ${p.un}</div>
+            </div>
+            <span class="bdg ${stC}">${stL}</span>
+          </div>
+          <div class="mobile-card-meta">
+            <div>Saldo: <b style="color:var(--tx)">${fmtQ(s.saldo)} ${p.un}</b>${min > 0 ? ` • mín. ${fmtQ(min)}` : ''}</div>
+            <div>Custo médio: <b style="color:var(--tx)">${fmt(s.cm)}</b></div>
+            <div>Valor em estoque: <b style="color:var(--tx)">${fmt(valor)}</b></div>
+          </div>
+          <div class="mobile-card-actions">
+            <button class="btn btn-p btn-sm" title="Movimentar produto" onclick="abrirMovProd('${p.id}')">Movimentar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
+
   el.innerHTML = `
     <div class="tw">
       <table class="tbl">
@@ -251,6 +284,40 @@ export function renderEstHist(){
     ajuste:{ ico:'AJ', lbl:'Ajuste' },
     transf:{ ico:'TR', lbl:'Transferência' }
   };
+
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = movs.map(m => {
+      const prodId = m.prodId || m.prod_id;
+      const p = P().find(x => x.id === prodId);
+      const ti = tiInfo[m.tipo] || { ico:'?', lbl:m.tipo };
+      const sinal = m.tipo === 'entrada' ? '+' : m.tipo === 'saida' ? '-' : '±';
+      const cor = m.tipo === 'entrada' ? 'var(--g)' : m.tipo === 'saida' ? 'var(--r)' : 'var(--tx)';
+      const qShow = m.tipo === 'ajuste'
+        ? `→ ${fmtQ(m.saldoReal || m.saldo_real)}`
+        : sinal + fmtQ(m.qty || 0);
+      return `
+        <div class="card mobile-card">
+          <div class="mobile-card-head">
+            <div style="min-width:0">
+              <div class="mobile-card-title">${p ? p.nome : '—'}</div>
+              <div class="mobile-card-sub">${m.data || '—'} • ${ti.lbl}</div>
+            </div>
+            <span class="bdg bk">${ti.ico}</span>
+          </div>
+          <div class="mobile-card-meta">
+            <div>Quantidade: <b style="color:${cor}">${qShow} ${p ? p.un : ''}</b></div>
+            <div>Custo: <b style="color:var(--tx)">${m.custo > 0 ? fmt(m.custo) : '—'}</b></div>
+            <div>Obs: <b style="color:var(--tx2)">${m.obs || '—'}</b></div>
+          </div>
+          <div class="mobile-card-actions">
+            <button class="btn btn-sm" title="Excluir movimentação" onclick="excluirMov('${m.id}')">Excluir</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
 
   el.innerHTML = `
     <div class="tw">

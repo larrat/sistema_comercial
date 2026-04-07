@@ -609,6 +609,40 @@ export function renderFilaWhatsApp() {
 
   const pendentes = envios.filter(e => e.status === 'manual' || e.status === 'pendente').length;
   const falhas = envios.filter(e => e.status === 'falhou').length;
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+
+  if(isMobile){
+    el.innerHTML = `
+      <div class="camp-quick">
+        <span class="bdg bb">Pendentes: ${pendentes}</span>
+        <span class="bdg br">Falhas: ${falhas}</span>
+      </div>
+      ${envios.map(e => {
+        const cliente = (C() || []).find(c => c.id === e.cliente_id);
+        const campanha = getCampanhasCache().find(c => c.id === e.campanha_id);
+        return `
+          <div class="card mobile-card">
+            <div class="mobile-card-head">
+              <div style="min-width:0">
+                <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
+                <div class="mobile-card-sub">${campanha?.nome || '—'} • ${formatarDataBR(e.data_ref)}</div>
+              </div>
+              <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span>
+            </div>
+            <div class="mobile-card-meta">
+              <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
+            </div>
+            <div class="mobile-card-actions">
+              <button class="btn btn-p btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
+              <button class="btn btn-sm" title="Marcar como enviado" onclick="marcarEnvioEnviado('${e.id}')">Enviado</button>
+              <button class="btn btn-sm" title="Marcar como falhou" onclick="marcarEnvioFalhou('${e.id}')">Falhou</button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    `;
+    return;
+  }
 
   el.innerHTML = `
     <div class="camp-quick">
@@ -662,6 +696,29 @@ export function renderCampanhaEnvios() {
 
   if (!envios.length) {
     el.innerHTML = `<div class="empty"><div class="ico">📨</div><p>Nenhum envio registrado.</p></div>`;
+    return;
+  }
+
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = envios.map(e => {
+      const cliente = (C() || []).find(c => c.id === e.cliente_id);
+      return `
+        <div class="card mobile-card">
+          <div class="mobile-card-head">
+            <div style="min-width:0">
+              <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
+              <div class="mobile-card-sub">${e.canal} • ${formatarDataBR(e.data_ref)}</div>
+            </div>
+            <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span>
+          </div>
+          <div class="mobile-card-meta">
+            <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
+            <div>Criado em: <b style="color:var(--tx2)">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
+          </div>
+        </div>
+      `;
+    }).join('');
     return;
   }
 
