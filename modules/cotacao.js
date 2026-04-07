@@ -1,671 +1,309 @@
 import { SB } from '../js/api.js';
 import { D, State, P, FORNS, CPRECOS, CCFG } from '../js/store.js';
-import { uid, norm, toast, abrirModal, fecharModal, chunkArray } from '../core/utils.js';
-import { detectarCabecalho, scoreSheet, normalizarNumeroBR, colunaTemValoresNumericos } from './parsing.js';
-import { applySavedLayoutToSheet, getSelectedHeaderName } from './layout.js';
-import { setImportProgress, resetImportProgress, renderImportResumo, validarPreImportacao, pareceAbaDeCombo } from './progress.js';
+import { uid, fmt, toast } from '../core/utils.js';
+import {
+  cotFile,
+  confirmarMapa,
+  renderMapaBody,
+  setImportacaoCallbacks
+} from '../cotacao/importacao.js';
 
-export function getMapaSheetAtual(){
-  const ctx = State._mapaCtx || {};
-  const sel = document.getElementById('map-sheet');
-  const idx = sel ? parseInt(sel.value || '0', 10) : (ctx.sheetIdx || 0);
-  return (ctx.sheets || [])[idx] || null;
+export function initCotacaoModule(callbacks = {}){
+  setImportacaoCallbacks(callbacks);
 }
 
-function sanitizeProdutoForDb(prod){
-  return {
-    id: prod.id,
-    filial_id: prod.filial_id,
-    nome: prod.nome,
-    sku: prod.sku || '',
-    un: prod.un || 'un',
-    unidade: prod.unidade || prod.un || 'un',
-    cat: prod.cat || '',
-    descricao_padrao: prod.descricao_padrao || prod.nome || '',
-    codigo_fornecedor: prod.codigo_fornecedor || null,
-    codigo_barras: prod.codigo_barras || null,
-    custo: Number(prod.custo || 0),
-    ecm: Number(prod.ecm || 0),
-    mkv: Number(prod.mkv || 0),
-    mka: Number(prod.mka || 0),
-    pfa: Number(prod.pfa || 0),
-    dv: Number(prod.dv || 0),
-    da: Number(prod.da || 0),
-    qtmin: Number(prod.qtmin || 0),
-    emin: Number(prod.emin || 0),
-    esal: Number(prod.esal || 0),
-    hist_cot: Array.isArray(prod.hist_cot) ? prod.hist_cot : []
-  };
+export function renderFornSel(){
+  const s = document.getElementById('cot-forn-sel');
+  if(!s) return;
+
+  const cur = s.value;
+  s.innerHTML =
+    '<option value="">— selecione —</option>' +
+    (FORNS() || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+
+  s.value = cur;
 }
 
-async function upsertProdutosEmLote(items, chunkSize = 150){
-  const sanitized = items.map(sanitizeProdutoForDb);
-  const lotes = chunkArray(sanitized, chunkSize);
-  for(const lote of lotes){
-    await SB.upsertProdutosLote(lote);
-  }
-}
+export function renderCotLogs(){
+  const el = document.getElementById('cot-logs');
+  if(!el) return;
 
-async function upsertCotPrecosEmLote(items, chunkSize = 250){
-  const lotes = chunkArray(items, chunkSize);
-  for(const lote of lotes){
-    await SB.upsertCotPrecosLote(lote);
-  }
-}
+  const logs = CCFG().logs || [];
 
-async function upsertCotHistoricoEmLote(items, chunkSize = 250){
-  const lotes = chunkArray(items, chunkSize);
-  for(const lote of lotes){
-    await SB.upsertCotHistoricoLote(lote);
-  }
-}
-
-export function renderMapaBody(){
-  const ctx = State._mapaCtx;
-
-  if(!ctx || !ctx.sheets || !ctx.sheets.length){
-    document.getElementById('mapa-body').innerHTML = '<p>Nenhuma aba encontrada.</p>';
+  if(!logs.length){
+    el.innerHTML = '<div style="font-size:13px;color:var(--tx3)">Nenhuma importação ainda.</div>';
     return;
   }
 
-  const selExistente = document.getElementById('map-sheet');
-  if(selExistente){
-    ctx.sheetIdx = parseInt(selExistente.value || String(ctx.sheetIdx || 0), 10);
-  }
-
-  const sheet = getMapaSheetAtual();
-  const rows = sheet?.rows || [];
-
-  if(!rows.length){
-    document.getElementById('mapa-body').innerHTML = '<p>Nenhum dado na aba selecionada.</p>';
-    return;
-  }
-
-  const startIdx = detectarCabecalho(rows);
-  const headers = (rows[startIdx] || []).map((h, i) => ({
-    label: String(h || ('Col ' + (i + 1))),
-    idx: i
-  }));
-
-  const prev = rows.slice(startIdx + 1, startIdx + 6);
-  const opts = headers.map(h => `<option value="${h.idx}">${h.label}</option>`).join('');
-  const optsN = '<option value="">— não importar —</option>' + opts;
-
-  const findHeader = kws => Math.max(
-    -1,
-    headers.findIndex(h => kws.some(k => String(h.label).toLowerCase().includes(k)))
-  );
-
-  const autoN = findHeader(['descrição','descricao','nome','produto','item']);
-  const autoC = findHeader(['categoria','família','familia','grupo','linha']);
-  const autoT = findHeader(['tabela','bruto','valor tabela','preço tabela','preco tabela']);
-  const autoD = findHeader(['desconto','%']);
-  const autoP = findHeader(['valor un liq','valor unitário','valor unitario','líquido','liquido','preço','preco','unit']);
-
-  const layoutAplicado = ctx.layoutSalvo
-    ? applySavedLayoutToSheet(sheet, ctx.layoutSalvo)
-    : null;
-
-  const gN = layoutAplicado && layoutAplicado.idxDescricao >= 0 ? layoutAplicado.idxDescricao : autoN;
-  const gC = layoutAplicado && layoutAplicado.idxCategoria >= 0 ? layoutAplicado.idxCategoria : autoC;
-  const gT = layoutAplicado && layoutAplicado.idxTabela >= 0 ? layoutAplicado.idxTabela : autoT;
-  const gD = layoutAplicado && layoutAplicado.idxDesconto >= 0 ? layoutAplicado.idxDesconto : autoD;
-  const gP = layoutAplicado && layoutAplicado.idxPrecoLiq >= 0 ? layoutAplicado.idxPrecoLiq : autoP;
-
-  const hoje = new Date();
-  const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
-
-  document.getElementById('mapa-body').innerHTML = `
-    <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">
-      Arquivo: <b>${ctx.filename}</b>
-      &nbsp;&nbsp;•&nbsp;&nbsp;Aba: <b>${sheet.name}</b>
-    </p>
-
-    ${ctx.layoutSalvo ? `
-      <div style="margin-bottom:12px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--surf2);font-size:13px;color:var(--tx2)">
-        ✓ Layout salvo encontrado para <b>${ctx.forn.nome}</b>${ctx.layoutSalvo.sheet_name ? ` — aba preferida: <b>${ctx.layoutSalvo.sheet_name}</b>` : ''}
+  el.innerHTML = logs.map(l => `
+    <div class="fb" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap">
+      <div>
+        <span style="font-weight:600">${l.arquivo}</span>
+        <span class="bdg bb" style="margin-left:6px">${l.forn}</span>
+        ${l.mes ? `<span class="bdg bk" style="margin-left:6px" title="Mês de Referência">📅 ${l.mes.split('-').reverse().join('/')}</span>` : ''}
       </div>
-    ` : ''}
-
-    <div style="margin-bottom:12px">
-      <div class="fl">Aba da planilha</div>
-      <select class="inp sel" id="map-sheet" onchange="renderMapaBody()">
-        ${ctx.sheets.map((s, i) => `
-          <option value="${i}" ${i === (ctx.sheetIdx || 0) ? 'selected' : ''}>
-            ${s.name}
-          </option>
-        `).join('')}
-      </select>
+      <div class="fg2">
+        <span style="color:var(--tx3);font-size:12px">${l.data}</span>
+        <span class="bdg bg">${l.novos || 0} novos</span>
+        ${l.atu ? `<span class="bdg ba">${l.atu} atualiz.</span>` : ''}
+        ${l.falhas ? `<span class="bdg br">${l.falhas} falha(s)</span>` : ''}
+      </div>
     </div>
+  `).join('');
+}
 
-    <div class="map-prev" style="overflow-x:auto; margin-bottom:12px">
-      <table class="tbl" style="white-space:nowrap">
+export function renderCotForns(){
+  const el = document.getElementById('cot-forns-lista');
+  if(!el) return;
+
+  const cfors = FORNS();
+
+  if(!cfors.length){
+    el.innerHTML = `<div class="empty"><div class="ico">🏭</div><p>Nenhum fornecedor.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="tw">
+      <table class="tbl">
         <thead>
-          <tr>${headers.map(h => `<th>${h.label}</th>`).join('')}</tr>
+          <tr>
+            <th>Nome</th>
+            <th>Contato</th>
+            <th>Prazo</th>
+            <th>Produtos cotados</th>
+            <th></th>
+          </tr>
         </thead>
         <tbody>
-          ${prev.map(r => `
-            <tr>
-              ${headers.map((_, i) => `<td>${String(r[i] ?? '').substring(0, 40)}</td>`).join('')}
-            </tr>
-          `).join('')}
+          ${cfors.map(f => {
+            const cotados = P().filter(p => {
+              const k = p.id + '_' + f.id;
+              return CPRECOS()[k] > 0;
+            }).length;
+
+            return `
+              <tr>
+                <td style="font-weight:600">${f.nome}</td>
+                <td style="color:var(--tx2)">${f.contato || '—'}</td>
+                <td>${f.prazo || '—'}</td>
+                <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
+                <td><button class="ib" onclick="remForn('${f.id}')">✕</button></td>
+              </tr>
+            `;
+          }).join('')}
         </tbody>
       </table>
     </div>
+  `;
+}
 
-    <div class="fg c2" style="margin-bottom:10px">
-      <div>
-        <div class="fl">Mês da Cotação</div>
-        <input type="month" class="inp" id="map-mes" value="${ctx.mesCotacao || mesAtual}">
-      </div>
-      <div>
-        <div class="fl">Linha inicial dos dados</div>
-        <input class="inp" type="number" id="map-start" value="${(layoutAplicado?.startLine || ctx.startLine || (startIdx + 2))}" min="1" max="${rows.length}">
-      </div>
-    </div>
+export async function salvarForn(){
+  const nomeEl = document.getElementById('fn-nome');
+  const contatoEl = document.getElementById('fn-contato');
+  const prazoEl = document.getElementById('fn-prazo');
 
-    <div class="fg c2" style="margin-bottom:10px">
-      <div>
-        <div class="fl">Descrição (Produto) *</div>
-        <select class="inp sel" id="map-nome">${opts.replace(`value="${gN}"`, `value="${gN}" selected`)}</select>
-      </div>
-      <div>
-        <div class="fl">Valor Un Líq (Preço) *</div>
-        <select class="inp sel" id="map-preco">${opts.replace(`value="${gP}"`, `value="${gP}" selected`)}</select>
-      </div>
-      <div>
-        <div class="fl">Categoria</div>
-        <select class="inp sel" id="map-cat">${optsN.replace(`value="${gC}"`, `value="${gC}" selected`)}</select>
-      </div>
-      <div>
-        <div class="fl">Preço de Tabela</div>
-        <select class="inp sel" id="map-tabela">${optsN.replace(`value="${gT}"`, `value="${gT}" selected`)}</select>
-      </div>
-      <div>
-        <div class="fl">% Desconto</div>
-        <select class="inp sel" id="map-desc">${optsN.replace(`value="${gD}"`, `value="${gD}" selected`)}</select>
-      </div>
-    </div>
+  const nome = (nomeEl?.value || '').trim();
+  if(!nome){
+    toast('Informe o nome.');
+    return;
+  }
 
-    <div id="map-progress-wrap" style="display:none;margin-top:12px">
-      <div class="fl" id="map-progress-text">Processando...</div>
-      <div style="width:100%;height:10px;background:var(--bd);border-radius:999px;overflow:hidden;margin-top:6px">
-        <div id="map-progress-bar" style="width:0%;height:100%;background:var(--acc);transition:width .2s ease"></div>
-      </div>
-    </div>
+  const forn = {
+    id: uid(),
+    filial_id: State.FIL,
+    nome,
+    contato: (contatoEl?.value || '').trim(),
+    prazo: prazoEl?.value || ''
+  };
 
-    <div id="map-resumo"></div>
+  try{
+    await SB.upsertFornecedor(forn);
+  }catch(e){
+    toast('Erro ao salvar: ' + e.message);
+    return;
+  }
 
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn" onclick="fecharModal('modal-mapa')">Cancelar</button>
-      <button class="btn btn-p" onclick="confirmarMapa()">Confirmar importação</button>
-    </div>
+  if(!D.fornecedores[State.FIL]) D.fornecedores[State.FIL] = [];
+  D.fornecedores[State.FIL].push(forn);
+
+  const modal = document.getElementById('modal-forn');
+  if(modal) modal.classList.remove('on');
+
+  renderCotForns();
+  renderFornSel();
+
+  if(nomeEl) nomeEl.value = '';
+  if(contatoEl) contatoEl.value = '';
+  if(prazoEl) prazoEl.value = '';
+
+  toast('Fornecedor salvo!');
+}
+
+export async function remForn(id){
+  if(!confirm('Remover fornecedor?')) return;
+
+  try{
+    await SB.deleteFornecedor(id);
+  }catch(e){
+    toast('Erro ao remover: ' + e.message);
+    return;
+  }
+
+  D.fornecedores[State.FIL] = FORNS().filter(f => f.id !== id);
+
+  Object.keys(CPRECOS()).forEach(k => {
+    if(k.endsWith('_' + id)) delete CPRECOS()[k];
+  });
+
+  renderCotForns();
+  renderFornSel();
+  renderCotTabela();
+
+  toast('Fornecedor removido!');
+}
+
+export function cotLock(){
+  const cot = CCFG();
+  cot.locked = !cot.locked;
+
+  const btn = document.getElementById('cot-lock-btn');
+  const alert = document.getElementById('cot-lock-alert');
+
+  if(btn) btn.textContent = cot.locked ? '🔓 Destravar' : '🔒 Travar';
+  if(alert) alert.style.display = cot.locked ? 'flex' : 'none';
+
+  renderCotTabela();
+  toast(cot.locked ? 'Cotação travada!' : 'Destravada.');
+}
+
+export function renderCotTabela(){
+  const cot = CCFG();
+  const prods = P();
+  const forns = FORNS();
+  const precos = CPRECOS();
+
+  const el = document.getElementById('cot-tabela');
+  const mc = document.getElementById('cot-met');
+
+  if(!el || !mc) return;
+
+  if(!prods.length || !forns.length){
+    el.innerHTML = `<div class="empty"><div class="ico">📊</div><p>Adicione produtos e fornecedores.</p></div>`;
+    mc.innerHTML = '';
+    return;
+  }
+
+  let filled = 0;
+  const fTot = {};
+  forns.forEach(f => fTot[f.id] = 0);
+
+  let html = `
+    <div class="tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Produto</th>
+            <th>Un</th>
+            ${forns.map(f => `<th style="text-align:right">${f.nome}</th>`).join('')}
+            <th style="text-align:center">Melhor</th>
+          </tr>
+        </thead>
+        <tbody>
   `;
 
-  const sel = document.getElementById('map-sheet');
-  if(sel){
-    State._mapaCtx.sheetIdx = parseInt(sel.value || '0', 10);
-  }
-
-  resetImportProgress();
-
-  if(pareceAbaDeCombo(sheet)){
-    const resumo = document.getElementById('map-resumo');
-    if(resumo){
-      resumo.innerHTML = `
-        <div class="alert al-a" style="margin-top:12px">
-          ⚠ Esta aba parece ser de <b>combo/kit</b>, não de cotação unitária.
-          Prefira uma aba com <b>DESCRIÇÃO</b> e <b>VALOR UN LIQ</b>.
-        </div>
-      `;
-    }
-  }
-}
-
-export async function abrirMapaModal(ctx){
-  let layoutSalvo = null;
-
-  try{
-    layoutSalvo = await SB.getCotLayout(State.FIL, ctx.forn.id);
-  }catch(e){
-    console.error('Erro ao buscar layout salvo', e);
-  }
-
-  let sheetIdx = typeof ctx.sheetIdx === 'number' ? ctx.sheetIdx : 0;
-
-  if(layoutSalvo && ctx.sheets?.length){
-    const idxByName = ctx.sheets.findIndex(
-      s => String(s.name || '').trim().toLowerCase() === String(layoutSalvo.sheet_name || '').trim().toLowerCase()
-    );
-    if(idxByName >= 0){
-      sheetIdx = idxByName;
-    }
-  }
-
-  State._mapaCtx = {
-    ...ctx,
-    sheetIdx,
-    layoutSalvo
-  };
-
-  document.getElementById('mapa-titulo').textContent = 'Importar Cotação — ' + ctx.forn.nome;
-  abrirModal('modal-mapa');
-  renderMapaBody();
-}
-
-export function cotFile(e){
-  const file = e.target.files[0];
-  e.target.value = '';
-  if(!file) return;
-
-  const fid = document.getElementById('cot-forn-sel').value;
-  if(!fid){
-    toast('Selecione um fornecedor primeiro.');
-    return;
-  }
-
-  const forn = (FORNS() || []).find(f => f.id === fid);
-  const reader = new FileReader();
-
-  reader.onload = ev => {
-    try{
-      if(file.name.toLowerCase().endsWith('.csv')){
-        const text = new TextDecoder().decode(ev.target.result);
-        const rows = text
-          .split('\n')
-          .map(r => r.split(/[;,\t]/).map(c => c.trim().replace(/^"|"$/g,'')))
-          .filter(r => r.some(c => String(c).trim() !== ''));
-
-        if(rows.length < 2){
-          toast('Planilha vazia.');
-          return;
-        }
-
-        abrirMapaModal({
-          forn,
-          filename: file.name,
-          sheets: [{
-            name: 'CSV',
-            rows,
-            score: scoreSheet(rows, 'CSV')
-          }],
-          sheetIdx: 0
-        });
-        return;
-      }
-
-      const wb = XLSX.read(ev.target.result, { type: 'array' });
-
-      const sheets = wb.SheetNames.map(name => {
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], {
-          header: 1,
-          defval: ''
-        }).filter(r => r.some(c => String(c).trim() !== ''));
-
-        return {
-          name,
-          rows,
-          score: scoreSheet(rows, name)
-        };
-      }).filter(s => s.rows.length);
-
-      if(!sheets.length){
-        toast('Planilha vazia.');
-        return;
-      }
-
-      sheets.sort((a, b) => b.score - a.score);
-
-      abrirMapaModal({
-        forn,
-        filename: file.name,
-        sheets,
-        sheetIdx: 0
-      });
-    }catch(err){
-      console.error(err);
-      toast('Erro ao ler o arquivo.');
-    }
-  };
-
-  reader.readAsArrayBuffer(file);
-}
-
-let renderCotLogsSafe = () => {};
-let renderProdMetSafe = () => {};
-let renderProdutosSafe = () => {};
-
-export function setImportacaoCallbacks(callbacks = {}){
-  renderCotLogsSafe = callbacks.renderCotLogs || (() => {});
-  renderProdMetSafe = callbacks.renderProdMet || (() => {});
-  renderProdutosSafe = callbacks.renderProdutos || (() => {});
-}
-
-export async function confirmarMapa(){
-  const ctx = State._mapaCtx;
-  const sheetSel = document.getElementById('map-sheet');
-  if(sheetSel) ctx.sheetIdx = parseInt(sheetSel.value || '0', 10);
-
-  const sheet = getMapaSheetAtual();
-  const rows = sheet?.rows || [];
-
-  const mesCotacao = document.getElementById('map-mes').value;
-  const nIdx = parseInt(document.getElementById('map-nome').value, 10);
-  const pIdx = parseInt(document.getElementById('map-preco').value, 10);
-  const cIdx = document.getElementById('map-cat').value !== '' ? parseInt(document.getElementById('map-cat').value, 10) : -1;
-  const tIdx = document.getElementById('map-tabela').value !== '' ? parseInt(document.getElementById('map-tabela').value, 10) : -1;
-  const dIdx = document.getElementById('map-desc').value !== '' ? parseInt(document.getElementById('map-desc').value, 10) : -1;
-  const start = Math.max(1, parseInt(document.getElementById('map-start').value, 10) || 1) - 1;
-
-  ctx.mesCotacao = mesCotacao;
-  ctx.startLine = start + 1;
-
-  if(!mesCotacao){
-    toast('Informe o mês da cotação.');
-    return;
-  }
-
-  const preCheck = validarPreImportacao(rows, start, nIdx, pIdx);
-  if(!preCheck.ok){
-    renderImportResumo({
-      novos: 0,
-      atualizados: 0,
-      ignorados: 0,
-      falhas: 0,
-      ignoradosExemplos: preCheck.erros.map(msg => ({ linha: '-', motivo: msg, nome: '' }))
+  prods.forEach(p => {
+    const prices = forns.map(f => {
+      const k = p.id + '_' + f.id;
+      const v = precos[k];
+      return (v !== undefined && v > 0) ? parseFloat(v) : null;
     });
-    toast('Revise o mapeamento antes de importar.');
-    return;
-  }
 
-  if(!colunaTemValoresNumericos(rows, pIdx, start, 12)){
-    toast('A coluna escolhida para Valor Un Líq não possui valores numéricos válidos.');
-    return;
-  }
+    const valid = prices.filter(x => x !== null);
+    const minP = valid.length ? Math.min(...valid) : null;
+    const maxP = valid.length ? Math.max(...valid) : null;
 
-  const forn = ctx.forn;
-  const linhas = rows.slice(start);
+    html += `<tr><td style="font-weight:600">${p.nome}</td><td style="color:var(--tx2)">${p.un}</td>`;
 
-  if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
-  if(!D.cotPrecos[State.FIL]) D.cotPrecos[State.FIL] = {};
+    forns.forEach((f) => {
+      const k = p.id + '_' + f.id;
+      const val = precos[k] !== undefined ? parseFloat(precos[k]) : null;
 
-  const produtosAtuais = P();
-  const produtosPorNome = new Map();
-
-  produtosAtuais.forEach(p => {
-    produtosPorNome.set(norm(p.nome), p);
-    if(p.descricao_padrao) produtosPorNome.set(norm(p.descricao_padrao), p);
-  });
-
-  let novos = 0;
-  let atualizados = 0;
-  let falhas = 0;
-  let ignorados = 0;
-  const ignoradosExemplos = [];
-
-  const produtosParaSalvar = [];
-  const cotPrecosParaSalvar = [];
-  const cotHistoricoParaSalvar = [];
-
-  const produtosMarcados = new Set();
-  const historicoMarcado = new Set();
-
-  setImportProgress(5, 'Preparando importação...');
-
-  for(let i = 0; i < linhas.length; i++){
-    try{
-      if(i % 25 === 0){
-        const progresso = 5 + Math.round((i / Math.max(linhas.length, 1)) * 35);
-        setImportProgress(progresso, `Analisando linhas... (${i}/${linhas.length})`);
+      if(val !== null && val > 0){
+        fTot[f.id] += val;
+        filled++;
       }
 
-      const row = linhas[i];
-      const nomeOriginal = String(row[nIdx] || '').trim();
+      const isBest = val !== null && val === minP && valid.length > 1;
+      const isWorst = val !== null && val === maxP && valid.length > 1 && minP !== maxP;
+      const bg = isBest ? 'background:var(--gbg)' : isWorst ? 'background:var(--rbg)' : '';
 
-      if(!nomeOriginal || nomeOriginal.toUpperCase() === 'DESCRIÇÃO' || nomeOriginal.toUpperCase() === 'DESCRICAO'){
-        ignorados++;
-        if(ignoradosExemplos.length < 8){
-          ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Linha sem descrição válida', nome: nomeOriginal });
-        }
-        continue;
-      }
+      html += `<td style="text-align:right;${bg}">`;
 
-      if(
-        nomeOriginal.toUpperCase().includes('PROMOÇÕES') ||
-        nomeOriginal.toUpperCase().includes('PROMOCOES') ||
-        nomeOriginal.toUpperCase().includes('COMBO')
-      ){
-        ignorados++;
-        if(ignoradosExemplos.length < 8){
-          ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Linha de combo/promoção ignorada', nome: nomeOriginal });
-        }
-        continue;
-      }
-
-      const precoLiq = normalizarNumeroBR(row[pIdx]);
-      if(precoLiq <= 0){
-        ignorados++;
-        if(ignoradosExemplos.length < 8){
-          ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Preço líquido inválido ou zerado', nome: nomeOriginal });
-        }
-        continue;
-      }
-
-      const categoriaTexto = cIdx >= 0 ? String(row[cIdx] || '').trim() : '';
-      const precoTabela = tIdx >= 0 ? normalizarNumeroBR(row[tIdx]) : null;
-      const percDesconto = dIdx >= 0 ? normalizarNumeroBR(row[dIdx]) : null;
-
-      const nomeKey = norm(nomeOriginal);
-      let prod = produtosPorNome.get(nomeKey) || null;
-
-      if(!prod){
-        prod = {
-          id: uid(),
-          filial_id: State.FIL,
-          nome: nomeOriginal,
-          sku: '',
-          un: 'un',
-          unidade: 'un',
-          cat: categoriaTexto,
-          descricao_padrao: nomeOriginal,
-          codigo_fornecedor: null,
-          codigo_barras: null,
-          custo: precoLiq,
-          ecm: precoLiq,
-          mkv: 0,
-          mka: 0,
-          pfa: 0,
-          dv: 0,
-          da: 0,
-          qtmin: 0,
-          emin: 0,
-          esal: 0,
-          hist_cot: [{
-            mes: mesCotacao,
-            forn: forn.nome,
-            preco: precoLiq,
-            tabela: precoTabela,
-            desconto: percDesconto
-          }]
-        };
-
-        D.produtos[State.FIL].push(prod);
-        produtosPorNome.set(nomeKey, prod);
-        produtosPorNome.set(norm(prod.descricao_padrao || ''), prod);
-        novos++;
+      if(cot.locked){
+        html += val !== null && val > 0 ? fmt(val) : '—';
       } else {
-        if(!prod.hist_cot) prod.hist_cot = [];
-
-        if(categoriaTexto && !prod.cat){
-          prod.cat = categoriaTexto;
-        }
-
-        if(!prod.descricao_padrao) prod.descricao_padrao = nomeOriginal;
-        prod.custo = precoLiq;
-        prod.ecm = precoLiq;
-
-        const histIdx = prod.hist_cot.findIndex(h => h.mes === mesCotacao && h.forn === forn.nome);
-        if(histIdx >= 0){
-          prod.hist_cot[histIdx] = {
-            ...prod.hist_cot[histIdx],
-            preco: precoLiq,
-            tabela: precoTabela,
-            desconto: percDesconto
-          };
-        } else {
-          prod.hist_cot.push({
-            mes: mesCotacao,
-            forn: forn.nome,
-            preco: precoLiq,
-            tabela: precoTabela,
-            desconto: percDesconto
-          });
-        }
-
-        atualizados++;
+        html += `<input class="inp" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" onchange="updPreco('${p.id}','${f.id}',this.value)">`;
       }
 
-      if(!produtosMarcados.has(prod.id)){
-        produtosParaSalvar.push(prod);
-        produtosMarcados.add(prod.id);
-      }
-
-      const k = prod.id + '_' + forn.id;
-      CPRECOS()[k] = precoLiq;
-
-      cotPrecosParaSalvar.push({
-        filial_id: State.FIL,
-        produto_id: prod.id,
-        fornecedor_id: forn.id,
-        preco: precoLiq,
-        preco_tabela: precoTabela,
-        perc_desconto: percDesconto,
-        mes_ref: `${mesCotacao}-01`,
-        arquivo_origem: ctx.filename
-      });
-
-      const histKey = `${State.FIL}|${prod.id}|${forn.id}|${mesCotacao}`;
-      if(!historicoMarcado.has(histKey)){
-        cotHistoricoParaSalvar.push({
-          filial_id: State.FIL,
-          produto_id: prod.id,
-          fornecedor_id: forn.id,
-          mes_ref: `${mesCotacao}-01`,
-          descricao_importada: nomeOriginal,
-          categoria_importada: categoriaTexto || null,
-          preco_tabela: precoTabela,
-          perc_desconto: percDesconto,
-          preco_liquido: precoLiq,
-          arquivo_origem: ctx.filename,
-          linha_origem: start + i + 1
-        });
-        historicoMarcado.add(histKey);
-      }
-    }catch(e){
-      falhas++;
-      if(ignoradosExemplos.length < 8){
-        ignoradosExemplos.push({ linha: start + i + 1, motivo: 'Erro ao processar linha', nome: '' });
-      }
-      console.error('Erro ao preparar linha para importação', { linha: start + i + 1, e });
-    }
-  }
-
-  if(!produtosParaSalvar.length && !cotPrecosParaSalvar.length && !cotHistoricoParaSalvar.length){
-    renderImportResumo({
-      novos: 0,
-      atualizados: 0,
-      ignorados,
-      falhas,
-      ignoradosExemplos
-    });
-    toast('Nenhum item válido encontrado para importar.');
-    resetImportProgress();
-    return;
-  }
-
-  try{
-    setImportProgress(45, 'Salvando produtos...');
-    await upsertProdutosEmLote(produtosParaSalvar, 150);
-
-    setImportProgress(70, 'Salvando cotação atual...');
-    await upsertCotPrecosEmLote(cotPrecosParaSalvar, 250);
-
-    setImportProgress(90, 'Salvando histórico...');
-    await upsertCotHistoricoEmLote(cotHistoricoParaSalvar, 250);
-
-    setImportProgress(96, 'Salvando layout...');
-    await SB.upsertCotLayout({
-      filial_id: State.FIL,
-      fornecedor_id: forn.id,
-      nome_layout: forn.nome + ' - layout padrão',
-      sheet_name: sheet?.name || null,
-      start_line: start + 1,
-      col_descricao: getSelectedHeaderName('map-nome'),
-      col_categoria: getSelectedHeaderName('map-cat'),
-      col_tabela: getSelectedHeaderName('map-tabela'),
-      col_desconto: getSelectedHeaderName('map-desc'),
-      col_preco_liq: getSelectedHeaderName('map-preco'),
-      ativo: true
+      html += `</td>`;
     });
 
-    setImportProgress(100, 'Finalizando...');
-  }catch(e){
-    console.error('Erro no upsert em lote', e);
-    falhas++;
-    renderImportResumo({
-      novos,
-      atualizados,
-      ignorados,
-      falhas,
-      ignoradosExemplos
-    });
-    toast('Erro ao salvar importação em lote: ' + e.message);
-    return;
-  }
-
-  const logs = CCFG().logs || [];
-  logs.unshift({
-    arquivo: ctx.filename,
-    aba: sheet?.name || '',
-    forn: forn.nome,
-    mes: mesCotacao,
-    data: new Date().toLocaleString('pt-BR'),
-    novos,
-    atu: atualizados,
-    falhas
-  });
-  CCFG().logs = logs;
-
-  try{
-    await SB.upsertCotConfig({
-      filial_id: State.FIL,
-      locked: CCFG().locked,
-      logs
-    });
-  }catch(e){
-    console.error('Erro ao salvar log de cotação', e);
-  }
-
-  renderImportResumo({
-    novos,
-    atualizados,
-    ignorados,
-    falhas,
-    ignoradosExemplos
+    html += `<td style="text-align:center">${minP !== null ? `<span class="bdg bg">${fmt(minP)}</span>` : '—'}</td></tr>`;
   });
 
-  renderCotLogsSafe();
-  renderProdMetSafe();
-  renderProdutosSafe();
+  const allTot = Object.values(fTot).filter(v => v > 0);
+  const bestTot = allTot.length ? Math.min(...allTot) : null;
 
-  setTimeout(() => {
-    fecharModal('modal-mapa');
-    resetImportProgress();
-  }, 700);
+  html += `
+      <tr style="font-weight:600;border-top:1px solid var(--bd)">
+        <td colspan="2" style="color:var(--tx2)">Total</td>
+        ${forns.map(f => {
+          const t = fTot[f.id];
+          const isBest = t > 0 && t === bestTot && allTot.length > 1;
+          return `<td style="text-align:right;font-weight:600;${isBest ? 'background:var(--gbg)' : ''}">${fmt(t)}</td>`;
+        }).join('')}
+        <td></td>
+      </tr>
+    </tbody></table></div>
+  `;
 
-  if(falhas > 0){
-    toast(`Importação concluída com falhas: ${novos} novos, ${atualizados} atualizados, ${falhas} erros`);
-  } else {
-    toast(`✓ ${novos} novos produtos, ${atualizados} atualizados, ${ignorados} ignorados`);
+  el.innerHTML = html;
+
+  const pct2 = prods.length * forns.length
+    ? Math.round(filled / (prods.length * forns.length) * 100)
+    : 0;
+
+  let bestForn = null;
+  if(bestTot !== null){
+    Object.entries(fTot).forEach(([fid, t]) => {
+      if(t === bestTot) bestForn = forns.find(f => f.id === fid);
+    });
   }
+
+  mc.innerHTML = `
+    <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
+    <div class="met"><div class="ml">Fornecedores</div><div class="mv">${forns.length}</div></div>
+    <div class="met"><div class="ml">Preenchimento</div><div class="mv">${pct2}%</div></div>
+    <div class="met"><div class="ml">Melhor fornecedor</div><div class="mv" style="font-size:14px">${bestForn ? bestForn.nome : '—'}</div></div>
+  `;
 }
+
+export function updPreco(pid, fid, val){
+  const cot = CCFG();
+  if(cot.locked) return;
+
+  const k = pid + '_' + fid;
+  const v = parseFloat(val);
+
+  if(!isNaN(v) && v >= 0) CPRECOS()[k] = v;
+  else delete CPRECOS()[k];
+
+  renderCotTabela();
+}
+
+export {
+  cotFile,
+  confirmarMapa,
+  renderMapaBody
+};  

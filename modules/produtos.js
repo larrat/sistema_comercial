@@ -1,34 +1,11 @@
 import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
-import { uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, abrirModal } from '../core/utils.js';
+import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast } from '../core/utils.js';
 
-function calcSaldosLocal(){
-  const map = {};
-  P().forEach(p => {
-    map[p.id] = { saldo: p.esal || 0, cm: p.ecm || p.custo || 0 };
-  });
+let calcSaldosSafe = () => ({});
 
-  const movs = D.movs?.[State.FIL] || [];
-  [...movs].sort((a, b) => (a.ts || 0) - (b.ts || 0)).forEach(m => {
-    const prodId = m.prodId || m.prod_id;
-    if(!map[prodId]) return;
-
-    const c = map[prodId];
-
-    if(m.tipo === 'entrada'){
-      const q = m.qty || 0;
-      const cu = m.custo || c.cm || 0;
-      const ns = c.saldo + q;
-      c.cm = ns > 0 ? ((c.saldo * c.cm) + (q * cu)) / ns : cu;
-      c.saldo = ns;
-    }else if(m.tipo === 'saida' || m.tipo === 'transf'){
-      c.saldo -= (m.qty || 0);
-    }else if(m.tipo === 'ajuste'){
-      c.saldo = m.saldo_real || m.saldoReal || 0;
-    }
-  });
-
-  return map;
+export function initProdutosModule(callbacks = {}){
+  calcSaldosSafe = callbacks.calcSaldos || (() => ({}));
 }
 
 export function renderProdMet(){
@@ -47,23 +24,28 @@ export function renderProdMet(){
   const sel = document.getElementById('prod-cat-fil');
   if(sel){
     const cur = sel.value;
-    sel.innerHTML = '<option value="">Todas as categorias</option>' + cats.sort().map(c => `<option value="${c}">${c}</option>`).join('');
+    sel.innerHTML =
+      '<option value="">Todas as categorias</option>' +
+      cats.sort().map(c => `<option value="${c}">${c}</option>`).join('');
     sel.value = cur;
   }
 }
 
 export function renderProdutos(){
-  const q = (document.getElementById('prod-busca')?.value || '').toLowerCase();
-  const cat = document.getElementById('prod-cat-fil')?.value || '';
-  const saldos = calcSaldosLocal();
+  const buscaEl = document.getElementById('prod-busca');
+  const catEl = document.getElementById('prod-cat-fil');
+  const el = document.getElementById('prod-lista');
+
+  if(!el) return;
+
+  const q = (buscaEl?.value || '').toLowerCase();
+  const cat = catEl?.value || '';
+  const saldos = calcSaldosSafe();
 
   const filtrados = P().filter(p =>
     (!q || p.nome.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)) &&
     (!cat || p.cat === cat)
   );
-
-  const el = document.getElementById('prod-lista');
-  if(!el) return;
 
   if(!filtrados.length){
     el.innerHTML = `<div class="empty"><div class="ico">📦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`;
@@ -125,22 +107,22 @@ export function renderProdutos(){
 export function limparFormProd(){
   State.editIds.prod = null;
 
-  const title = document.getElementById('prod-modal-titulo');
-  if(title) title.textContent = 'Novo produto';
+  const titulo = document.getElementById('prod-modal-titulo');
+  if(titulo) titulo.textContent = 'Novo produto';
 
   [
     'p-nome','p-sku','p-cat','p-mkv','p-mgv','p-qtmin','p-dv',
     'p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'
-  ].forEach(i => {
-    const el = document.getElementById(i);
+  ].forEach(id => {
+    const el = document.getElementById(id);
     if(el) el.value = '';
   });
 
   const un = document.getElementById('p-un');
   if(un) un.value = 'un';
 
-  const prev = document.getElementById('prod-preview');
-  if(prev) prev.style.display = 'none';
+  const preview = document.getElementById('prod-preview');
+  if(preview) preview.style.display = 'none';
 
   const histEl = document.getElementById('p-hist-cot');
   if(histEl) histEl.style.display = 'none';
@@ -152,18 +134,20 @@ export function editarProd(id){
 
   State.editIds.prod = id;
 
-  document.getElementById('prod-modal-titulo').textContent = 'Editar produto';
+  const titulo = document.getElementById('prod-modal-titulo');
+  if(titulo) titulo.textContent = 'Editar produto';
+
   document.getElementById('p-nome').value = p.nome;
   document.getElementById('p-sku').value = p.sku || '';
-  document.getElementById('p-un').value = p.un;
+  document.getElementById('p-un').value = p.un || 'un';
   document.getElementById('p-cat').value = p.cat || '';
-  document.getElementById('p-custo').value = p.custo;
+  document.getElementById('p-custo').value = p.custo ?? '';
   document.getElementById('p-mkv').value = Number(p.mkv || 0).toFixed(1);
-  document.getElementById('p-mgv').value = mk2mg(p.mkv || 0).toFixed(1);
+  document.getElementById('p-mgv').value = mk2mg(Number(p.mkv || 0)).toFixed(1);
   document.getElementById('p-qtmin').value = p.qtmin || '';
   document.getElementById('p-dv').value = p.dv || '';
   document.getElementById('p-mka').value = Number(p.mka || 0).toFixed(1);
-  document.getElementById('p-mga').value = mk2mg(p.mka || 0).toFixed(1);
+  document.getElementById('p-mga').value = mk2mg(Number(p.mka || 0)).toFixed(1);
   document.getElementById('p-pfa').value = p.pfa || '';
   document.getElementById('p-da').value = p.da || '';
   document.getElementById('p-emin').value = p.emin || '';
@@ -176,11 +160,8 @@ export function editarProd(id){
     histEl.id = 'p-hist-cot';
     histEl.className = 'panel';
     histEl.style.marginTop = '12px';
-
     const btnRow = document.querySelector('#modal-produto .modal-box > div:last-child');
-    if(btnRow?.parentNode){
-      btnRow.parentNode.insertBefore(histEl, btnRow);
-    }
+    if(btnRow?.parentNode) btnRow.parentNode.insertBefore(histEl, btnRow);
   }
 
   if(p.hist_cot && p.hist_cot.length > 0){
@@ -194,14 +175,14 @@ export function editarProd(id){
             <tr>
               <td>${String(h.mes || '').split('-').reverse().join('/')}</td>
               <td>${h.forn || ''}</td>
-              <td style="font-weight:600;color:var(--tx2)">${fmt(h.preco)}</td>
+              <td style="font-weight:600;color:var(--tx2)">${fmt(h.preco || 0)}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
     `;
     histEl.style.display = 'block';
-  }else if(histEl){
+  } else {
     histEl.style.display = 'none';
   }
 
@@ -210,12 +191,12 @@ export function editarProd(id){
 }
 
 export function syncV(t){
-  const mk = parseFloat(document.getElementById('p-mkv')?.value) || 0;
-  const mg = parseFloat(document.getElementById('p-mgv')?.value) || 0;
+  const mk = parseFloat(document.getElementById('p-mkv').value) || 0;
+  const mg = parseFloat(document.getElementById('p-mgv').value) || 0;
 
   if(t === 'mk' && mk > 0){
     document.getElementById('p-mgv').value = mk2mg(mk).toFixed(1);
-  }else if(t === 'mg' && mg > 0){
+  } else if(t === 'mg' && mg > 0){
     document.getElementById('p-mkv').value = mg2mk(mg).toFixed(1);
   }
 
@@ -223,12 +204,12 @@ export function syncV(t){
 }
 
 export function syncA(t){
-  const mk = parseFloat(document.getElementById('p-mka')?.value) || 0;
-  const mg = parseFloat(document.getElementById('p-mga')?.value) || 0;
+  const mk = parseFloat(document.getElementById('p-mka').value) || 0;
+  const mg = parseFloat(document.getElementById('p-mga').value) || 0;
 
   if(t === 'mk' && mk > 0){
     document.getElementById('p-mga').value = mk2mg(mk).toFixed(1);
-  }else if(t === 'mg' && mg > 0){
+  } else if(t === 'mg' && mg > 0){
     document.getElementById('p-mka').value = mg2mk(mg).toFixed(1);
   }
 
@@ -236,12 +217,12 @@ export function syncA(t){
 }
 
 export function calcProdPreview(){
-  const c = parseFloat(document.getElementById('p-custo')?.value) || 0;
-  const mkv = parseFloat(document.getElementById('p-mkv')?.value) || 0;
-  const mka = parseFloat(document.getElementById('p-mka')?.value) || 0;
-  const pfa = parseFloat(document.getElementById('p-pfa')?.value) || 0;
-  const dv = parseFloat(document.getElementById('p-dv')?.value) || 0;
-  const da = parseFloat(document.getElementById('p-da')?.value) || 0;
+  const c = parseFloat(document.getElementById('p-custo').value) || 0;
+  const mkv = parseFloat(document.getElementById('p-mkv').value) || 0;
+  const mka = parseFloat(document.getElementById('p-mka').value) || 0;
+  const pfa = parseFloat(document.getElementById('p-pfa').value) || 0;
+  const dv = parseFloat(document.getElementById('p-dv').value) || 0;
+  const da = parseFloat(document.getElementById('p-da').value) || 0;
   const prev = document.getElementById('prod-preview');
 
   if(!prev) return;
@@ -262,8 +243,8 @@ export function calcProdPreview(){
 }
 
 export async function salvarProduto(){
-  const nome = document.getElementById('p-nome')?.value.trim();
-  const custo = parseFloat(document.getElementById('p-custo')?.value) || 0;
+  const nome = document.getElementById('p-nome').value.trim();
+  const custo = parseFloat(document.getElementById('p-custo').value) || 0;
 
   if(!nome || custo <= 0){
     toast('Nome e custo obrigatórios.');
@@ -276,19 +257,19 @@ export async function salvarProduto(){
     id: State.editIds.prod || uid(),
     filial_id: State.FIL,
     nome,
-    sku: document.getElementById('p-sku')?.value.trim() || '',
-    un: document.getElementById('p-un')?.value || 'un',
-    cat: document.getElementById('p-cat')?.value.trim() || '',
+    sku: document.getElementById('p-sku').value.trim(),
+    un: document.getElementById('p-un').value,
+    cat: document.getElementById('p-cat').value.trim(),
     custo,
-    mkv: parseFloat(document.getElementById('p-mkv')?.value) || 0,
-    mka: parseFloat(document.getElementById('p-mka')?.value) || 0,
-    pfa: parseFloat(document.getElementById('p-pfa')?.value) || 0,
-    dv: parseFloat(document.getElementById('p-dv')?.value) || 0,
-    da: parseFloat(document.getElementById('p-da')?.value) || 0,
-    qtmin: parseFloat(document.getElementById('p-qtmin')?.value) || 0,
-    emin: parseFloat(document.getElementById('p-emin')?.value) || 0,
-    esal: parseFloat(document.getElementById('p-esal')?.value) || 0,
-    ecm: parseFloat(document.getElementById('p-ecm')?.value) || custo,
+    mkv: parseFloat(document.getElementById('p-mkv').value) || 0,
+    mka: parseFloat(document.getElementById('p-mka').value) || 0,
+    pfa: parseFloat(document.getElementById('p-pfa').value) || 0,
+    dv: parseFloat(document.getElementById('p-dv').value) || 0,
+    da: parseFloat(document.getElementById('p-da').value) || 0,
+    qtmin: parseFloat(document.getElementById('p-qtmin').value) || 0,
+    emin: parseFloat(document.getElementById('p-emin').value) || 0,
+    esal: parseFloat(document.getElementById('p-esal').value) || 0,
+    ecm: parseFloat(document.getElementById('p-ecm').value) || custo,
     hist_cot: existing ? (existing.hist_cot || []) : []
   };
 
@@ -301,18 +282,17 @@ export async function salvarProduto(){
 
   if(State.editIds.prod){
     D.produtos[State.FIL] = P().map(x => x.id === State.editIds.prod ? p : x);
-  }else{
+  } else {
     if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
     D.produtos[State.FIL].push(p);
   }
 
-  const modal = document.getElementById('modal-produto');
-  if(modal) modal.classList.remove('on');
-
+  fecharModal('modal-produto');
   renderProdMet();
   renderProdutos();
   refreshProdSel();
-  refreshMovSel();
+
+  if(window.refreshMovSel) window.refreshMovSel();
 
   toast(State.editIds.prod ? 'Produto atualizado!' : 'Produto salvo!');
 }
@@ -328,10 +308,15 @@ export async function removerProd(id){
   }
 
   D.produtos[State.FIL] = P().filter(p => p.id !== id);
-  D.movs[State.FIL] = (D.movs[State.FIL] || []).filter(m => (m.prod_id || m.prodId) !== id);
+  if(D.movs?.[State.FIL]){
+    D.movs[State.FIL] = D.movs[State.FIL].filter(m => (m.prod_id || m.prodId) !== id);
+  }
 
   renderProdMet();
   renderProdutos();
+  refreshProdSel();
+
+  if(window.refreshMovSel) window.refreshMovSel();
 
   toast('Removido.');
 }
@@ -341,6 +326,8 @@ export function refreshProdSel(){
   if(!s) return;
 
   const cur = s.value;
-  s.innerHTML = '<option value="">— selecione —</option>' + P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
+  s.innerHTML =
+    '<option value="">— selecione —</option>' +
+    P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
   s.value = cur;
 }
