@@ -1579,3 +1579,180 @@ input[type="checkbox"]{
     padding-bottom:2px;
   }
 }
+
+/* =========================================================
+   FUNDAMENTOS VISUAIS - TOKENS CONSOLIDADOS
+   ========================================================= */
+:root{
+  /* Typography */
+  --font-sans:'Space Grotesk',sans-serif;
+  --font-data:'DM Mono',monospace;
+  --text-xs:11px;
+  --text-sm:12px;
+  --text-md:13px;
+  --text-lg:14px;
+  --text-xl:18px;
+  --text-2xl:24px;
+
+  /* Spacing scale */
+  --sp-1:4px;
+  --sp-2:8px;
+  --sp-3:12px;
+  --sp-4:16px;
+  --sp-5:20px;
+  --sp-6:24px;
+
+  /* Radius scale */
+  --radius-sm:10px;
+  --radius-md:12px;
+  --radius-lg:14px;
+  --radius-xl:18px;
+  --radius-pill:999px;
+
+  /* Shadow scale */
+  --shadow-sm:0 4px 10px rgba(16,33,47,.06);
+  --shadow-md:0 8px 18px rgba(16,33,47,.08);
+  --shadow-lg:0 14px 34px rgba(16,33,47,.10);
+
+  /* Semantic color palette */
+  --color-critical-600:#B91C1C;
+  --color-critical-100:#FFECEC;
+  --color-critical-700:#8F1212;
+
+  --color-warning-600:#B45309;
+  --color-warning-100:#FFF7E8;
+  --color-warning-700:#8A3F06;
+
+  --color-opportunity-600:#1D4ED8;
+  --color-opportunity-100:#EEF4FF;
+  --color-opportunity-700:#1E40AF;
+
+  --color-success-600:#15803D;
+  --color-success-100:#EAF8EF;
+  --color-success-700:#116B33;
+
+  --color-focus:#0F766E;
+  --color-focus-soft:rgba(15,118,110,.18);
+
+  /* Legacy compatibility map */
+  --r:var(--color-critical-600);
+  --rbg:var(--color-critical-100);
+  --rtx:var(--color-critical-700);
+  --a:var(--color-warning-600);
+  --abg:var(--color-warning-100);
+  --atx:var(--color-warning-700);
+  --b:var(--color-opportunity-600);
+  --bbg:var(--color-opportunity-100);
+  --btx:var(--color-opportunity-700);
+  --g:var(--color-success-600);
+  --gbg:var(--color-success-100);
+  --gtx:var(--color-success-700);
+
+  --rad:var(--radius-md);
+  --radl:var(--radius-lg);
+  --radxl:var(--radius-xl);
+  --sh:var(--shadow-lg);
+  --sh-soft:var(--shadow-md);
+}
+
+body{
+  font-family:var(--font-sans);
+  font-size:var(--text-lg);
+}
+
+.btn,.inp,.tb,.ni,.ib,.qk,.bdg{
+  font-family:var(--font-sans);
+}
+
+.card,
+.met,
+.panel,
+.tw,
+.mobile-card{
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-md);
+}
+
+.btn,.c-btn{
+  border-radius:var(--radius-md);
+  min-height:40px;
+}
+
+.btn-p,.c-btn--primary{
+  background:linear-gradient(135deg,var(--color-focus) 0%,#115E59 100%);
+  border-color:var(--color-focus);
+}
+
+.btn:focus-visible,
+.inp:focus-visible,
+.tb:focus-visible,
+.ib:focus-visible,
+.flow-chip:focus-visible,
+.ni:focus-visible,
+.qk:focus-visible{
+  outline-color:var(--color-focus);
+  box-shadow:0 0 0 4px var(--color-focus-soft);
+}
+
+/* Priority semantics */
+.bdg.br,
+.c-badge--critical{
+  background:var(--color-critical-100);
+  border-color:#F0C3C3;
+  color:var(--color-critical-700);
+}
+.bdg.ba,
+.c-badge--warning{
+  background:var(--color-warning-100);
+  border-color:#F3D7AB;
+  color:var(--color-warning-700);
+}
+.bdg.bb,
+.c-badge--info{
+  background:var(--color-opportunity-100);
+  border-color:#CBDCFB;
+  color:var(--color-opportunity-700);
+}
+.bdg.bg,
+.c-badge--success{
+  background:var(--color-success-100);
+  border-color:#BDE6C8;
+  color:var(--color-success-700);
+}
+
+.alert.al-r,
+.c-alert--critical{
+  background:var(--color-critical-100);
+  color:var(--color-critical-700);
+  border-left-color:var(--color-critical-600);
+}
+.alert.al-a,
+.c-alert--warning{
+  background:var(--color-warning-100);
+  color:var(--color-warning-700);
+  border-left-color:var(--color-warning-600);
+}
+.alert.al-g,
+.c-alert--success{
+  background:var(--color-success-100);
+  color:var(--color-success-700);
+  border-left-color:var(--color-success-600);
+}
+.c-alert--info{
+  background:var(--color-opportunity-100);
+  color:var(--color-opportunity-700);
+  border-left-color:var(--color-opportunity-600);
+}
+
+.noti-item.critico{
+  background:var(--color-critical-100);
+  border-left-color:var(--color-critical-600);
+}
+.noti-item.atencao{
+  background:var(--color-warning-100);
+  border-left-color:var(--color-warning-600);
+}
+.noti-item.oportunidade{
+  background:var(--color-opportunity-100);
+  border-left-color:var(--color-opportunity-600);
+}

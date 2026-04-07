@@ -1286,9 +1286,9 @@ function renderNotificacoes(){
   const ate = all.filter(n => n.prioridade === 'atencao').length;
   const op = all.filter(n => n.prioridade === 'oportunidade').length;
   met.innerHTML = `
-    <div class="met"><div class="ml">Crítico</div><div class="mv" style="color:#FF2D00">${crit}</div></div>
-    <div class="met"><div class="ml">Atenção</div><div class="mv" style="color:#A67A00">${ate}</div></div>
-    <div class="met"><div class="ml">Oportunidade</div><div class="mv" style="color:#0047FF">${op}</div></div>
+    <div class="met"><div class="ml">Crítico</div><div class="mv" style="color:var(--color-critical-600)">${crit}</div></div>
+    <div class="met"><div class="ml">Atenção</div><div class="mv" style="color:var(--color-warning-600)">${ate}</div></div>
+    <div class="met"><div class="ml">Oportunidade</div><div class="mv" style="color:var(--color-opportunity-600)">${op}</div></div>
     <div class="met"><div class="ml">Resolvidas</div><div class="mv">${hist.length}</div></div>
   `;
 
