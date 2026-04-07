@@ -55,30 +55,30 @@
     <div class="sb-head">
       <div class="fb">
         <div class="sb-brand">Sistema Comercial</div>
-        <button class="ib" id="sb-close" onclick="fecharSb()" style="display:none">✕</button>
+        <button class="ib" id="sb-close" onclick="fecharSb()" style="display:none">Fechar</button>
       </div>
       <div class="sb-pill" onclick="voltarSetup()">
         <div class="sb-pdot" id="sb-dot"></div>
         <span class="sb-pname" id="sb-fname">—</span>
-        <span style="font-size:11px;color:var(--tx3);margin-left:2px">↕</span>
+        <span style="font-size:11px;color:var(--tx3);margin-left:2px">Trocar</span>
       </div>
     </div>
     <nav class="sb-nav">
       <div class="nl">Visão geral</div>
-      <button class="ni on" data-p="dashboard" onclick="ir('dashboard')"><span class="ico">📊</span>Dashboard</button>
+      <button class="ni on" data-p="dashboard" onclick="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
       <div class="nl">Cadastros</div>
-      <button class="ni" data-p="produtos" onclick="ir('produtos')"><span class="ico">📦</span>Produtos</button>
-      <button class="ni" data-p="clientes" onclick="ir('clientes')"><span class="ico">👥</span>Clientes</button>
+      <button class="ni" data-p="produtos" onclick="ir('produtos')"><span class="ico">PR</span>Produtos</button>
+      <button class="ni" data-p="clientes" onclick="ir('clientes')"><span class="ico">CL</span>Clientes</button>
       <div class="nl">Operações</div>
-      <button class="ni" data-p="pedidos" onclick="ir('pedidos')"><span class="ico">🛒</span>Pedidos</button>
-      <button class="ni" data-p="cotacao" onclick="ir('cotacao')"><span class="ico">📥</span>Cotação</button>
-      <button class="ni" data-p="estoque" onclick="ir('estoque')"><span class="ico">🗄</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
-      <button class="ni" data-p="campanhas" onclick="ir('campanhas')"><span class="ico">🎯</span>Campanhas</button>
+      <button class="ni" data-p="pedidos" onclick="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
+      <button class="ni" data-p="cotacao" onclick="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
+      <button class="ni" data-p="estoque" onclick="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
+      <button class="ni" data-p="campanhas" onclick="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
       <div class="nl">Sistema</div>
-      <button class="ni" data-p="filiais" onclick="ir('filiais')"><span class="ico">🏢</span>Filiais</button>
+      <button class="ni" data-p="filiais" onclick="ir('filiais')"><span class="ico">FL</span>Filiais</button>
     </nav>
     <div class="sb-foot">
-      <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" onclick="exportarTudo()">⬇ Exportar CSVs</button>
+      <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" onclick="exportarTudo()">Exportar CSVs</button>
     </div>
   </aside>
 
@@ -157,7 +157,7 @@
           <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" oninput="renderProdutos()">
           <select class="inp sel" id="prod-cat-fil" style="max-width:160px" onchange="renderProdutos()"><option value="">Todas as categorias</option></select>
         </div>
-        <button class="btn btn-sm" onclick="exportCSV('produtos')">⬇ CSV</button>
+          <button class="btn btn-sm" onclick="exportCSV('produtos')">Exportar CSV</button>
       </div>
       <div class="card"><div id="prod-lista"></div></div>
     </div>
@@ -180,7 +180,7 @@
             <select class="inp sel" id="cli-fil-seg" style="max-width:150px" onchange="renderClientes()"><option value="">Todos os segmentos</option></select>
             <select class="inp sel" id="cli-fil-st" style="max-width:130px" onchange="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
           </div>
-          <button class="btn btn-sm" onclick="exportCSV('clientes')">⬇ CSV</button>
+          <button class="btn btn-sm" onclick="exportCSV('clientes')">Exportar CSV</button>
         </div>
         <div class="card"><div id="cli-lista"></div></div>
       </div>
@@ -199,7 +199,7 @@
           <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" oninput="renderPedidos()">
           <select class="inp sel" id="ped-fil-st" style="max-width:150px" onchange="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
         </div>
-        <button class="btn btn-sm" onclick="exportCSV('pedidos')">⬇ CSV</button>
+        <button class="btn btn-sm" onclick="exportCSV('pedidos')">Exportar CSV</button>
       </div>
       <div class="card"><div id="ped-lista"></div></div>
     </div>
@@ -231,7 +231,7 @@
         <div class="fb" style="margin-bottom:12px">
           <div class="mg" id="cot-met" style="margin:0;flex:1"></div>
           <div class="fg2" style="flex-shrink:0">
-            <button class="btn btn-sm" onclick="exportCSV('cotacao')">⬇ CSV</button>
+            <button class="btn btn-sm" onclick="exportCSV('cotacao')">Exportar CSV</button>
             <button class="btn btn-sm" id="cot-lock-btn" onclick="cotLock()">🔒 Travar</button>
           </div>
         </div>
@@ -245,7 +245,7 @@
       <div class="ph fb">
         <div><h2>Estoque</h2><p id="est-sub">Movimentações da filial</p></div>
         <div class="fg2">
-          <button class="btn btn-sm" onclick="exportCSV('estoque')">⬇ CSV</button>
+          <button class="btn btn-sm" onclick="exportCSV('estoque')">Exportar CSV</button>
           <button class="btn btn-p" onclick="abrirModal('modal-mov');resetMov()">+ Movimentação</button>
         </div>
       </div>
@@ -280,7 +280,7 @@
       <div class="ph fb">
         <div><h2>Campanhas</h2><p id="camp-sub">Aniversário, fila e histórico de envios</p></div>
         <div class="fg2">
-          <button class="btn btn-sm" onclick="exportCSV('campanhas')">⬇ CSV</button>
+          <button class="btn btn-sm" onclick="exportCSV('campanhas')">Exportar CSV</button>
           <button class="btn btn-p" onclick="abrirNovaCampanha()">+ Nova campanha</button>
         </div>
       </div>
@@ -322,11 +322,11 @@
   <!-- Mobile bottom nav -->
   <nav class="mob-nav">
     <div class="mob-items">
-      <button class="mob-btn on" id="mob-dashboard" onclick="ir('dashboard')"><span class="mico">📊</span>Dashboard</button>
-      <button class="mob-btn" id="mob-produtos" onclick="ir('produtos')"><span class="mico">📦</span>Produtos</button>
-      <button class="mob-btn" id="mob-pedidos" onclick="ir('pedidos')"><span class="mico">🛒</span>Pedidos</button>
-      <button class="mob-btn" id="mob-estoque" onclick="ir('estoque')"><span class="mico">🗄</span>Estoque</button>
-      <button class="mob-btn" id="mob-menu" onclick="abrirSb()"><span class="mico">☰</span>Menu</button>
+      <button class="mob-btn on" id="mob-dashboard" onclick="ir('dashboard')"><span class="mico">DS</span>Dashboard</button>
+      <button class="mob-btn" id="mob-produtos" onclick="ir('produtos')"><span class="mico">PR</span>Produtos</button>
+      <button class="mob-btn" id="mob-pedidos" onclick="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
+      <button class="mob-btn" id="mob-estoque" onclick="ir('estoque')"><span class="mico">ES</span>Estoque</button>
+      <button class="mob-btn" id="mob-menu" onclick="abrirSb()"><span class="mico">MN</span>Menu</button>
     </div>
   </nav>
 </div>
