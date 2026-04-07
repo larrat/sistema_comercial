@@ -219,7 +219,9 @@ export async function abrirCliDet(id){
         ${[
           c.resp && `Resp: ${c.resp}`,
           c.tel,
+          c.whatsapp && `WhatsApp: ${c.whatsapp}`,
           c.email,
+          c.data_aniversario && `Aniversário: ${c.data_aniversario}`,
           c.cidade && `${c.cidade}${c.estado ? ' - ' + c.estado : ''}`
         ].filter(Boolean).map(x => `<div style="margin-bottom:3px">${x}</div>`).join('') || '—'}
       </div>
@@ -311,7 +313,7 @@ export function limparFormCli(){
   if(titulo) titulo.textContent = 'Novo cliente';
 
   [
-    'c-nome','c-apelido','c-doc','c-tel','c-email',
+    'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv',
     'c-resp','c-seg','c-cidade','c-estado','c-obs'
   ].forEach(id => {
     const el = document.getElementById(id);
@@ -327,6 +329,13 @@ export function limparFormCli(){
   if(status) status.value = 'ativo';
   if(tab) tab.value = 'padrao';
   if(prazo) prazo.value = 'a_vista';
+
+  const optinMarketing = document.getElementById('c-optin-marketing');
+  const optinEmail = document.getElementById('c-optin-email');
+  const optinSms = document.getElementById('c-optin-sms');
+  if(optinMarketing) optinMarketing.checked = false;
+  if(optinEmail) optinEmail.checked = false;
+  if(optinSms) optinSms.checked = false;
 }
 
 export function editarCli(id){
@@ -344,7 +353,9 @@ export function editarCli(id){
   document.getElementById('c-tipo').value = c.tipo || 'PJ';
   document.getElementById('c-status').value = c.status || 'ativo';
   document.getElementById('c-tel').value = c.tel || '';
+  document.getElementById('c-whatsapp').value = c.whatsapp || '';
   document.getElementById('c-email').value = c.email || '';
+  document.getElementById('c-aniv').value = c.data_aniversario || '';
   document.getElementById('c-resp').value = c.resp || '';
   document.getElementById('c-seg').value = c.seg || '';
   document.getElementById('c-tab').value = c.tab || 'padrao';
@@ -352,6 +363,9 @@ export function editarCli(id){
   document.getElementById('c-cidade').value = c.cidade || '';
   document.getElementById('c-estado').value = c.estado || '';
   document.getElementById('c-obs').value = c.obs || '';
+  document.getElementById('c-optin-marketing').checked = !!c.optin_marketing;
+  document.getElementById('c-optin-email').checked = !!c.optin_email;
+  document.getElementById('c-optin-sms').checked = !!c.optin_sms;
 
   abrirModal('modal-cliente');
 }
@@ -372,7 +386,12 @@ export async function salvarCliente(){
     tipo: document.getElementById('c-tipo').value,
     status: document.getElementById('c-status').value,
     tel: document.getElementById('c-tel').value.trim(),
+    whatsapp: document.getElementById('c-whatsapp').value.trim(),
     email: document.getElementById('c-email').value.trim(),
+    data_aniversario: document.getElementById('c-aniv').value || null,
+    optin_marketing: !!document.getElementById('c-optin-marketing').checked,
+    optin_email: !!document.getElementById('c-optin-email').checked,
+    optin_sms: !!document.getElementById('c-optin-sms').checked,
     resp: document.getElementById('c-resp').value.trim(),
     seg: document.getElementById('c-seg').value.trim(),
     tab: document.getElementById('c-tab').value,
