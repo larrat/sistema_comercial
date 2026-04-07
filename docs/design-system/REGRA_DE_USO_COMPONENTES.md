@@ -39,3 +39,9 @@ Se qualquer resposta for "nao", PR volta para ajuste.
 - Revisao quinzenal de consistencia visual.
 - Auditoria mensal de duplicacoes CSS.
 - Relatorio trimestral de maturidade do Design System (adocao + regressao).
+
+## Referencias oficiais
+
+- Matriz e manual: `docs/design-system/MANUAL_COMPONENTES_V1.md`
+- Guia de aplicacao: `docs/design-system/GUIA_APLICACAO_COMPONENTES.md`
+- Anti-padroes: `docs/design-system/ANTI_PADROES_COMPONENTES.md`
