@@ -25,6 +25,22 @@ function fmtDataHora(v){
   return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }
 
+function normTxt(v){
+  return String(v || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function jogoTemTime(j, time){
+  const t = normTxt(time);
+  if(!t) return false;
+  return [j.mandante, j.visitante, j.titulo, j.campeonato]
+    .map(normTxt)
+    .some(x => x.includes(t));
+}
+
 function statusJogoExt(v){
   const s = String(v || '').toLowerCase();
   if(['finished', 'ft', 'realizado', 'fulltime'].includes(s)) return 'realizado';
@@ -305,6 +321,43 @@ export function renderDash(){
     ah += `<div class="alert al-g">🎂 <b>${anivProximos.length} aniversário(s) nos próximos 7 dias:</b> ${anivProximos.slice(0,4).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 4 ? '…' : ''}</div>`;
   }
 
+  const filialJogosId = getFilialCalendarioId();
+  const jogosAgenda = filialJogosId ? getJogosCache(filialJogosId) : [];
+  const jogosSemana = jogosAgenda
+    .filter(j => {
+      const d = new Date(j.data_hora || 0);
+      return !isNaN(d.getTime()) && d >= hoje && d <= limite;
+    })
+    .sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
+
+  const clientesBase = filIds.flatMap(fid => (D.clientes?.[fid] || []));
+  const oportunidades = clientesBase
+    .filter(c => String(c.time || '').trim())
+    .map(c => {
+      const jogo = jogosSemana.find(j => jogoTemTime(j, c.time));
+      if(!jogo) return null;
+      return {
+        cliente: c.nome,
+        time: c.time,
+        jogo,
+        data: new Date(jogo.data_hora || 0)
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.data - b.data);
+
+  const oportunidadesHoje = oportunidades.filter(o => {
+    const d = new Date(o.data);
+    if(isNaN(d.getTime())) return false;
+    const fimHoje = new Date(hoje);
+    fimHoje.setDate(fimHoje.getDate() + 1);
+    return d >= hoje && d < fimHoje;
+  });
+
+  if(oportunidades.length){
+    ah += `<div class="alert al-g">⚽ <b>${oportunidades.length} oportunidade(s) por jogo na semana:</b> ${oportunidades.slice(0,4).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 4 ? '…' : ''}</div>`;
+  }
+
   const alerts = document.getElementById('dash-alerts');
   if(alerts) alerts.innerHTML = ah;
 
@@ -512,6 +565,27 @@ export function renderDash(){
         </div>
       `
       : `<div class="empty" style="padding:12px"><p>Sem vendas no período</p></div>`;
+  }
+
+  const dashOportunidades = document.getElementById('dash-oportunidades');
+  if(dashOportunidades){
+    dashOportunidades.innerHTML = `
+      <div class="rrow" style="margin-bottom:8px">
+        <span class="bdg ${oportunidadesHoje.length ? 'bg' : 'bk'}">Hoje: ${oportunidadesHoje.length}</span>
+        <span class="bdg ${oportunidades.length ? 'ba' : 'bk'}">Semana: ${oportunidades.length}</span>
+      </div>
+      ${oportunidades.length
+      ? oportunidades.slice(0, 8).map(o => `
+          <div class="rrow">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;display:inline-block"></span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.cliente} • ${o.time}</div>
+              <div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} • ${fmtDataHora(o.jogo.data_hora)}</div>
+            </div>
+          </div>
+        `).join('')
+      : `<div class="empty" style="padding:12px"><p>Sem oportunidades por jogos na semana</p></div>`}
+    `;
   }
 }
 

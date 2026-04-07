@@ -75,7 +75,7 @@ export function renderClientes(){
   const st = stEl?.value || '';
 
   const f = C().filter(c =>
-    (!q || c.nome.toLowerCase().includes(q) || (c.apelido || '').toLowerCase().includes(q)) &&
+    (!q || c.nome.toLowerCase().includes(q) || (c.apelido || '').toLowerCase().includes(q) || (c.time || '').toLowerCase().includes(q)) &&
     (!seg || c.seg === seg) &&
     (!st || c.status === st)
   );
@@ -138,7 +138,13 @@ export function renderClientes(){
                     ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
                   </div>
                 </td>
-                <td>${c.seg ? `<span class="bdg bk">${c.seg}</span>` : '—'}</td>
+                <td>
+                  <div class="fg2" style="gap:4px">
+                    ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
+                    ${c.time ? `<span class="bdg bb">⚽ ${c.time}</span>` : ''}
+                    ${!c.seg && !c.time ? '—' : ''}
+                  </div>
+                </td>
                 <td>${tabLbl[c.tab] || '—'}</td>
                 <td style="color:var(--tx2)">${prazoLbl[c.prazo] || '—'}</td>
                 <td>${ST_B[c.status] || ''}</td>
@@ -247,6 +253,7 @@ export async function abrirCliDet(id){
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div>
         <div>Tabela: ${({ padrao:'Padrão', especial:'Especial', vip:'VIP' }[c.tab] || '—')}</div>
         <div>Prazo: ${prazoLbl[c.prazo] || '—'}</div>
+        ${c.time ? `<div>Time: ${c.time}</div>` : ''}
         ${c.seg ? `<div>Segmento: ${c.seg}</div>` : ''}
       </div>
     </div>
@@ -330,7 +337,7 @@ export function limparFormCli(){
   if(titulo) titulo.textContent = 'Novo cliente';
 
   [
-    'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv',
+    'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv','c-time',
     'c-resp','c-seg','c-cidade','c-estado','c-obs'
   ].forEach(id => {
     const el = document.getElementById(id);
@@ -373,6 +380,7 @@ export function editarCli(id){
   document.getElementById('c-whatsapp').value = c.whatsapp || '';
   document.getElementById('c-email').value = c.email || '';
   document.getElementById('c-aniv').value = c.data_aniversario || '';
+  document.getElementById('c-time').value = c.time || '';
   document.getElementById('c-resp').value = c.resp || '';
   document.getElementById('c-seg').value = c.seg || '';
   document.getElementById('c-tab').value = c.tab || 'padrao';
@@ -409,6 +417,7 @@ export async function salvarCliente(){
     optin_marketing: !!document.getElementById('c-optin-marketing').checked,
     optin_email: !!document.getElementById('c-optin-email').checked,
     optin_sms: !!document.getElementById('c-optin-sms').checked,
+    time: document.getElementById('c-time').value.trim(),
     resp: document.getElementById('c-resp').value.trim(),
     seg: document.getElementById('c-seg').value.trim(),
     tab: document.getElementById('c-tab').value,
