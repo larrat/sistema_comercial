@@ -125,6 +125,7 @@ import {
 } from '../modules/campanhas.js';
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
+const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const QUICK_COMMANDS = [
   { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => ir('dashboard') },
   { cmd: '/ produtos', label: 'Abrir Produtos', run: () => ir('produtos') },
@@ -135,28 +136,256 @@ const QUICK_COMMANDS = [
   { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => ir('campanhas') },
   { cmd: '/ notificacoes', label: 'Abrir Notificações', run: () => ir('notificacoes') },
   { cmd: '/ filiais', label: 'Abrir Filiais', run: () => ir('filiais') },
-  { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { limparFormPed(); abrirModal('modal-pedido'); } },
-  { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { limparFormCli(); abrirModal('modal-cliente'); } },
-  { cmd: '/ novo produto', label: 'Novo Produto', run: () => { limparFormProd(); abrirModal('modal-produto'); } },
-  { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => abrirNovaCampanha() },
+  { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
+  { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
+  { cmd: '/ novo produto', label: 'Novo Produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
+  { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => abrirNovaCampanhaTracked() },
   { cmd: '/ nova mov', label: 'Nova Movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
   { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => abrirSyncJogos() }
 ];
+
+function getGoalMetrics(){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(GOAL_METRICS_KEY) || '{}');
+    if(parsed && parsed.version === 1) return parsed;
+  }catch{}
+  return {
+    version: 1,
+    started_at: new Date().toISOString(),
+    task_start: {},
+    critical: {
+      produto: { total_ms: 0, count: 0, baseline_ms: 0 },
+      cliente: { total_ms: 0, count: 0, baseline_ms: 0 },
+      pedido: { total_ms: 0, count: 0, baseline_ms: 0 },
+      campanha: { total_ms: 0, count: 0, baseline_ms: 0 }
+    },
+    errors: { validation: 0, operation: 0 },
+    strategic: { campanhas: 0, notificacoes: 0, oportunidades: 0 },
+    consistency: { dashboard: false, clientes: false, campanhas: false, pedidos: false }
+  };
+}
+
+function saveGoalMetrics(m){
+  localStorage.setItem(GOAL_METRICS_KEY, JSON.stringify(m));
+}
+
+function startCriticalTask(tipo){
+  const m = getGoalMetrics();
+  m.task_start[tipo] = Date.now();
+  saveGoalMetrics(m);
+}
+
+function completeCriticalTask(tipo){
+  const m = getGoalMetrics();
+  const st = Number(m.task_start?.[tipo] || 0);
+  if(!st) return;
+  const elapsed = Math.max(0, Date.now() - st);
+  const cur = m.critical[tipo];
+  cur.total_ms += elapsed;
+  cur.count += 1;
+  if(!cur.baseline_ms) cur.baseline_ms = elapsed;
+  delete m.task_start[tipo];
+  saveGoalMetrics(m);
+}
+
+function logStrategicAction(tipo){
+  const m = getGoalMetrics();
+  if(!(tipo in m.strategic)) return;
+  m.strategic[tipo] += 1;
+  saveGoalMetrics(m);
+}
+
+function markConsistencyPage(page){
+  const m = getGoalMetrics();
+  if(page in m.consistency){
+    m.consistency[page] = true;
+    saveGoalMetrics(m);
+  }
+}
+
+function classifyToastError(msg){
+  const t = norm(msg || '');
+  if(!t) return;
+  const m = getGoalMetrics();
+  if(
+    t.startsWith('informe') ||
+    t.startsWith('selecione') ||
+    t.startsWith('adicione') ||
+    t.includes('obrigat')
+  ){
+    m.errors.validation += 1;
+    saveGoalMetrics(m);
+    return;
+  }
+  if(t.startsWith('erro') || t.includes('falha')){
+    m.errors.operation += 1;
+    saveGoalMetrics(m);
+  }
+}
+
+function formatMs(ms){
+  const s = Math.round((Number(ms || 0) / 1000));
+  const min = Math.floor(s / 60);
+  const sec = s % 60;
+  return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
+}
+
+function calcGoalSummary(){
+  const m = getGoalMetrics();
+  const crit = Object.values(m.critical);
+  const withData = crit.filter(c => c.count > 0);
+  const currentAvg = withData.length
+    ? withData.reduce((a, c) => a + (c.total_ms / c.count), 0) / withData.length
+    : 0;
+  const baselineAvg = withData.length
+    ? withData.reduce((a, c) => a + (c.baseline_ms || 0), 0) / withData.length
+    : 0;
+  const ganhoTempo = baselineAvg > 0 ? ((baselineAvg - currentAvg) / baselineAvg) * 100 : 0;
+
+  const criticalDone = withData.reduce((a, c) => a + c.count, 0);
+  const erros = Number(m.errors.validation || 0) + Number(m.errors.operation || 0);
+  const erroRate = criticalDone > 0 ? (erros / criticalDone) * 100 : 0;
+  const reducaoRetrabalho = Math.max(0, 30 - erroRate);
+
+  const strategicTotal =
+    Number(m.strategic.campanhas || 0) +
+    Number(m.strategic.notificacoes || 0) +
+    Number(m.strategic.oportunidades || 0);
+  const strategicProgress = Math.min(100, (strategicTotal / 25) * 100);
+
+  const consistencyDone = Object.values(m.consistency).filter(Boolean).length;
+  const consistencyProgress = (consistencyDone / 4) * 100;
+
+  return {
+    m,
+    currentAvg,
+    baselineAvg,
+    ganhoTempo,
+    erroRate,
+    reducaoRetrabalho,
+    strategicTotal,
+    strategicProgress,
+    consistencyDone,
+    consistencyProgress
+  };
+}
+
+function renderMetasNegocio(){
+  const el = document.getElementById('dash-metas-negocio');
+  if(!el) return;
+  const s = calcGoalSummary();
+
+  const tempoMeta = Math.min(100, Math.max(0, (s.ganhoTempo / 20) * 100));
+  const retrabalhoMeta = Math.min(100, Math.max(0, (s.reducaoRetrabalho / 30) * 100));
+
+  el.innerHTML = `
+    <div class="fg" style="margin-bottom:8px">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Tempo de ações críticas</div>
+        <span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}% de ganho</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">Atual: ${formatMs(s.currentAvg)} • Baseline: ${formatMs(s.baselineAvg)} • Meta: 20%</div>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Retrabalho por erro visual</div>
+        <span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}% de erro</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">Validação: ${s.m.errors.validation} • Operação: ${s.m.errors.operation} • Meta: -30%</div>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Uso de ações estratégicas</div>
+        <span class="bdg ${s.strategicProgress >= 100 ? 'bg' : 'bb'}">${s.strategicTotal} ações</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${s.strategicProgress}%;background:var(--g)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">Campanhas: ${s.m.strategic.campanhas} • Notificações: ${s.m.strategic.notificacoes} • Oportunidades: ${s.m.strategic.oportunidades}</div>
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Consistência entre módulos principais</div>
+        <span class="bdg ${s.consistencyProgress >= 100 ? 'bg' : 'ba'}">${s.consistencyDone}/4</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">Módulos: Dashboard, Clientes, Campanhas, Pedidos</div>
+    </div>
+  `;
+}
+
+function initGoalTracking(){
+  getGoalMetrics();
+  window.addEventListener('sc:toast', e => {
+    classifyToastError(e?.detail?.message || '');
+    renderMetasNegocio();
+  });
+}
+
+function limparFormProdTracked(){
+  startCriticalTask('produto');
+  return limparFormProd();
+}
+function limparFormCliTracked(){
+  startCriticalTask('cliente');
+  return limparFormCli();
+}
+function limparFormPedTracked(){
+  startCriticalTask('pedido');
+  return limparFormPed();
+}
+function abrirNovaCampanhaTracked(){
+  startCriticalTask('campanha');
+  logStrategicAction('campanhas');
+  return abrirNovaCampanha();
+}
+async function salvarProdutoTracked(){
+  await salvarProduto();
+  const open = document.getElementById('modal-produto')?.classList.contains('on');
+  if(!open) completeCriticalTask('produto');
+  renderMetasNegocio();
+}
+async function salvarClienteTracked(){
+  await salvarCliente();
+  const open = document.getElementById('modal-cliente')?.classList.contains('on');
+  if(!open) completeCriticalTask('cliente');
+  renderMetasNegocio();
+}
+async function salvarPedidoTracked(){
+  await salvarPedido();
+  const open = document.getElementById('modal-pedido')?.classList.contains('on');
+  if(!open) completeCriticalTask('pedido');
+  renderMetasNegocio();
+}
+async function salvarCampanhaTracked(){
+  await salvarCampanha();
+  const open = document.getElementById('modal-campanha')?.classList.contains('on');
+  if(!open){
+    completeCriticalTask('campanha');
+    logStrategicAction('campanhas');
+  }
+  renderMetasNegocio();
+}
+async function gerarFilaCampanhaTracked(id){
+  logStrategicAction('campanhas');
+  await gerarFilaCampanha(id);
+  renderMetasNegocio();
+}
 
 const PAGE_META = {
   dashboard: {
     kicker: 'Workspace',
     title: 'Dashboard',
     sub: 'Visão geral e oportunidades da filial',
-    primary: { label: 'Novo pedido', run: () => { limparFormPed(); abrirModal('modal-pedido'); } },
-    secondary: { label: 'Novo cliente', run: () => { limparFormCli(); abrirModal('modal-cliente'); } },
-    tertiary: { label: 'Novo produto', run: () => { limparFormProd(); abrirModal('modal-produto'); } }
+    primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
+    secondary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
+    tertiary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } }
   },
   produtos: {
     kicker: 'Cadastros',
     title: 'Produtos',
     sub: 'Catálogo comercial e precificação',
-    primary: { label: 'Novo produto', run: () => { limparFormProd(); abrirModal('modal-produto'); } },
+    primary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
     secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos') },
     tertiary: { label: 'Ir clientes', run: () => ir('clientes') }
   },
@@ -164,7 +393,7 @@ const PAGE_META = {
     kicker: 'Cadastros',
     title: 'Clientes',
     sub: 'Relacionamento e segmentação',
-    primary: { label: 'Novo cliente', run: () => { limparFormCli(); abrirModal('modal-cliente'); } },
+    primary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
     secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes') },
     tertiary: { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') }
   },
@@ -172,7 +401,7 @@ const PAGE_META = {
     kicker: 'Operações',
     title: 'Pedidos',
     sub: 'Orçamentos, vendas e acompanhamento',
-    primary: { label: 'Novo pedido', run: () => { limparFormPed(); abrirModal('modal-pedido'); } },
+    primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
     secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos') },
     tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
   },
@@ -196,7 +425,7 @@ const PAGE_META = {
     kicker: 'Operações',
     title: 'Campanhas',
     sub: 'Ações comerciais e fila de envios',
-    primary: { label: 'Nova campanha', run: () => abrirNovaCampanha() },
+    primary: { label: 'Nova campanha', run: () => abrirNovaCampanhaTracked() },
     secondary: { label: 'Atualizar tela', run: () => refreshCampanhasTela() },
     tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas') }
   },
@@ -212,7 +441,7 @@ const PAGE_META = {
     kicker: 'Inbox',
     title: 'Notificações',
     sub: 'Alertas críticos, atenção e oportunidades',
-    primary: { label: 'Resolver todas', run: () => resolverTodasNotificacoes() },
+    primary: { label: 'Resolver todas', run: () => resolverTodasNotificacoesTracked() },
     secondary: { label: 'Atualizar', run: () => renderNotificacoes() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   }
@@ -976,7 +1205,9 @@ function setFiltroNotificacoes(filtro){
 function executarNotificacao(id){
   const n = notiCache.find(x => x.id === id);
   if(!n) return;
+  if(n.prioridade === 'oportunidade') logStrategicAction('oportunidades');
   if(typeof n.acao === 'function') n.acao();
+  renderMetasNegocio();
 }
 
 function resolverNotificacao(id){
@@ -1027,6 +1258,12 @@ function resolverTodasNotificacoes(){
   renderNotificacoes();
   updateNotiBadge();
   toast('Todas notificações ativas foram resolvidas.');
+}
+
+function resolverTodasNotificacoesTracked(){
+  logStrategicAction('notificacoes');
+  resolverTodasNotificacoes();
+  renderMetasNegocio();
 }
 
 function renderNotificacoes(){
@@ -1106,7 +1343,7 @@ function ir(p) {
   document.querySelectorAll('.mob-btn').forEach(b => b.classList.toggle('on', b.id === 'mob-' + p));
 
   const renderMap = {
-    dashboard: renderDash,
+    dashboard: () => { renderDash(); renderMetasNegocio(); },
     produtos: () => { renderProdMet(); renderProdutos(); },
     clientes: () => { renderCliMet(); renderClientes(); },
     pedidos: () => { renderPedMet(); renderPedidos(); },
@@ -1118,6 +1355,7 @@ function ir(p) {
   };
 
   if (renderMap[p]) renderMap[p]();
+  markConsistencyPage(p);
   updateNotiBadge();
   syncTopbar(p);
   window.scrollTo(0, 0);
@@ -1394,11 +1632,13 @@ initDashboardModule({
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    initGoalTracking();
     initQuickCommand();
     initFlowWizards();
     renderSetup();
   });
 } else {
+  initGoalTracking();
   initQuickCommand();
   initFlowWizards();
   renderSetup();
@@ -1418,11 +1658,12 @@ window.exportarTudo = exportarTudo;
 window.exportCSV = exportCSV;
 window.setFlowStep = setFlowStep;
 window.renderNotificacoes = renderNotificacoes;
+window.renderMetasNegocio = renderMetasNegocio;
 window.setFiltroNotificacoes = setFiltroNotificacoes;
 window.executarNotificacao = executarNotificacao;
 window.resolverNotificacao = resolverNotificacao;
 window.reabrirNotificacao = reabrirNotificacao;
-window.resolverTodasNotificacoes = resolverTodasNotificacoes;
+window.resolverTodasNotificacoes = resolverTodasNotificacoesTracked;
 
 window.renderDashFilSel = renderDashFilSel;
 window.renderDash = renderDash;
@@ -1438,8 +1679,8 @@ window.usarExemploSyncJogos = usarExemploSyncJogos;
 
 window.renderProdutos = renderProdutos;
 window.renderProdMet = renderProdMet;
-window.limparFormProd = limparFormProd;
-window.salvarProduto = salvarProduto;
+window.limparFormProd = limparFormProdTracked;
+window.salvarProduto = salvarProdutoTracked;
 window.editarProd = editarProd;
 window.removerProd = removerProd;
 window.calcProdPreview = calcProdPreview;
@@ -1449,8 +1690,8 @@ window.refreshProdSel = refreshProdSel;
 
 window.renderClientes = renderClientes;
 window.renderCliMet = renderCliMet;
-window.limparFormCli = limparFormCli;
-window.salvarCliente = salvarCliente;
+window.limparFormCli = limparFormCliTracked;
+window.salvarCliente = salvarClienteTracked;
 window.editarCli = editarCli;
 window.removerCli = removerCli;
 window.renderCliSegs = renderCliSegs;
@@ -1460,8 +1701,8 @@ window.refreshCliDL = refreshCliDL;
 
 window.renderPedidos = renderPedidos;
 window.renderPedMet = renderPedMet;
-window.limparFormPed = limparFormPed;
-window.salvarPedido = salvarPedido;
+window.limparFormPed = limparFormPedTracked;
+window.salvarPedido = salvarPedidoTracked;
 window.editarPed = editarPed;
 window.removerPed = removerPed;
 window.verPed = verPed;
@@ -1508,14 +1749,14 @@ window.carregarCampanhas = carregarCampanhas;
 window.carregarCampanhaEnvios = carregarCampanhaEnvios;
 window.refreshCampanhasTela = refreshCampanhasTela;
 window.limparFormCampanha = limparFormCampanha;
-window.abrirNovaCampanha = abrirNovaCampanha;
+window.abrirNovaCampanha = abrirNovaCampanhaTracked;
 window.adotarCampanhasParaFilialAtiva = adotarCampanhasParaFilialAtiva;
 window.editarCampanha = editarCampanha;
-window.salvarCampanha = salvarCampanha;
+window.salvarCampanha = salvarCampanhaTracked;
 window.removerCampanha = removerCampanha;
 window.renderCampanhasMet = renderCampanhasMet;
 window.renderCampanhas = renderCampanhas;
-window.gerarFilaCampanha = gerarFilaCampanha;
+window.gerarFilaCampanha = gerarFilaCampanhaTracked;
 window.renderFilaWhatsApp = renderFilaWhatsApp;
 window.renderCampanhaEnvios = renderCampanhaEnvios;
 window.abrirWhatsAppEnvio = abrirWhatsAppEnvio;

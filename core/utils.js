@@ -56,8 +56,13 @@ export function toast(m){
   const el = document.getElementById('toast');
   if(!el) return;
 
-  el.textContent = m;
+  const msg = String(m ?? '');
+  el.textContent = msg;
   el.classList.add('on');
+
+  try{
+    window.dispatchEvent(new CustomEvent('sc:toast', { detail: { message: msg } }));
+  }catch{}
 
   clearTimeout(window._tt);
   window._tt = setTimeout(() => el.classList.remove('on'), 2600);
