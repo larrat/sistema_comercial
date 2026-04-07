@@ -1,14 +1,12 @@
-import { D, State } from '../js/store.js';
-import { fmt, fmtQ, fmtN, pct } from '../core/utils.js';
+import { D, State, P } from '../js/store.js';
+import { fmt, fmtK, pct } from '../core/utils.js';
+
+let calcSaldosMultiSafe = () => ({});
 
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-let calcSaldosMultiCb = () => ({});
-let atualizarBadgeEstCb = () => {};
-
 export function initDashboardModule(callbacks = {}){
-  calcSaldosMultiCb = callbacks.calcSaldosMulti || (() => ({}));
-  atualizarBadgeEstCb = callbacks.atualizarBadgeEst || (() => {});
+  calcSaldosMultiSafe = callbacks.calcSaldosMulti || (() => ({}));
 }
 
 function getRange(){
@@ -19,35 +17,29 @@ function getRange(){
   if(State.dashP === 'semana'){
     const d = new Date(now);
     d.setDate(d.getDate() - d.getDay() + 1);
-    d.setHours(0,0,0,0);
+    d.setHours(0, 0, 0, 0);
     return [d, now];
   }
 
-  if(State.dashP === 'mes'){
-    return [new Date(y, m, 1), now];
-  }
-
-  if(State.dashP === 'ano'){
-    return [new Date(y, 0, 1), now];
-  }
+  if(State.dashP === 'mes') return [new Date(y, m, 1), now];
+  if(State.dashP === 'ano') return [new Date(y, 0, 1), now];
 
   return [new Date(2000, 0, 1), now];
 }
 
-function inR(ds, [from, to]){
+function inR(ds, range){
   if(!ds) return false;
+  const [from, to] = range;
   const d = new Date(ds + 'T00:00:00');
   return d >= from && d <= to;
 }
 
-function fmtK(v){
-  return v >= 1000 ? 'R$ ' + (v / 1000).toFixed(1) + 'k' : 'R$ ' + v.toFixed(0);
-}
-
 export function setP(p, btn){
   State.dashP = p;
+
   document.querySelectorAll('#dash-pseg button').forEach(b => b.classList.remove('on'));
   if(btn) btn.classList.add('on');
+
   renderDash();
 }
 
@@ -58,8 +50,7 @@ export function renderDashFilSel(){
   const cur = s.value;
   s.innerHTML =
     '<option value="todas">Todas as filiais</option>' +
-    D.filiais.map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
-
+    (D.filiais || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
   s.value = cur || 'todas';
 }
 
@@ -74,28 +65,27 @@ export function renderDash(){
     tudo:'Todos os períodos'
   };
 
-  const fLabel = fsel === 'todas'
-    ? 'Consolidado'
-    : D.filiais.find(f => f.id === fsel)?.nome || '';
+  const fLabel =
+    fsel === 'todas'
+      ? 'Consolidado'
+      : (D.filiais || []).find(f => f.id === fsel)?.nome || '';
 
   const desc = document.getElementById('dash-desc');
   if(desc) desc.textContent = fLabel + ' — ' + pLabels[State.dashP];
 
-  const filIds = fsel === 'todas'
-    ? D.filiais.map(f => f.id)
-    : [fsel];
+  const filIds = fsel === 'todas' ? (D.filiais || []).map(f => f.id) : [fsel];
 
   const allPeds = filIds.flatMap(fid =>
-    (D.pedidos[fid] || []).map(p => ({ ...p, _fid: fid }))
+    (D.pedidos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
   );
 
   const entregues = allPeds.filter(p => p.status === 'entregue' && inR(p.data, range));
+
   const fat = entregues.reduce((a, p) => a + (p.total || 0), 0);
   const lucro = entregues.reduce(
     (a, p) => a + (p.itens || []).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0),
     0
   );
-
   const mg = fat > 0 ? (lucro / fat) * 100 : 0;
   const tk = entregues.length ? fat / entregues.length : 0;
   const abertos = allPeds.filter(p => ['orcamento','confirmado','em_separacao'].includes(p.status)).length;
@@ -111,10 +101,9 @@ export function renderDash(){
     `;
   }
 
-  const saldos = calcSaldosMultiCb(filIds);
-
+  const saldos = calcSaldosMultiSafe(filIds);
   const allProds = filIds.flatMap(fid =>
-    (D.produtos[fid] || []).map(p => ({ ...p, _fid: fid }))
+    (D.produtos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
   );
 
   const crit = allProds.filter(p => {
@@ -144,9 +133,10 @@ export function renderDash(){
   const grupos = {};
   entregues.forEach(p => {
     const d = new Date(p.data + 'T00:00:00');
-    const k = State.dashP === 'ano'
-      ? MES[d.getMonth()] + '/' + String(d.getFullYear()).slice(2)
-      : p.data;
+    const k =
+      State.dashP === 'ano'
+        ? MES[d.getMonth()] + '/' + String(d.getFullYear()).slice(2)
+        : p.data;
 
     if(!grupos[k]) grupos[k] = { fat: 0, lucro: 0 };
     grupos[k].fat += p.total || 0;
@@ -159,7 +149,7 @@ export function renderDash(){
     if(!gkeys.length){
       chartEl.style.display = 'none';
       emEl.style.display = 'block';
-    }else{
+    } else {
       chartEl.style.display = 'flex';
       emEl.style.display = 'none';
 
@@ -189,14 +179,7 @@ export function renderDash(){
     }
   }
 
-  const stMap = {
-    orcamento:0,
-    confirmado:0,
-    em_separacao:0,
-    entregue:0,
-    cancelado:0
-  };
-
+  const stMap = { orcamento:0, confirmado:0, em_separacao:0, entregue:0, cancelado:0 };
   allPeds.forEach(p => {
     if(p.status in stMap) stMap[p.status]++;
   });
@@ -218,6 +201,7 @@ export function renderDash(){
   };
 
   const tot = allPeds.length || 1;
+
   const dashStatus = document.getElementById('dash-status');
   if(dashStatus){
     dashStatus.innerHTML = Object.entries(stMap).map(([k, v]) => `
@@ -268,7 +252,7 @@ export function renderDash(){
             <div class="rrow">
               <span style="width:8px;height:8px;border-radius:50%;background:${s.saldo <= 0 ? 'var(--r)' : 'var(--a)'};flex-shrink:0;display:inline-block"></span>
               <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome}</span>
-              <span class="bdg ${s.saldo <= 0 ? 'br' : 'ba'}" style="font-size:10px">${s.saldo <= 0 ? 'Zerado' : fmtQ(s.saldo)}</span>
+              <span class="bdg ${s.saldo <= 0 ? 'br' : 'ba'}" style="font-size:10px">${s.saldo <= 0 ? 'Zerado' : s.saldo}</span>
             </div>
           `;
         }).join('')
@@ -277,7 +261,7 @@ export function renderDash(){
 
   const fu = {};
   filIds.forEach(fid => {
-    (D.cotConfig[fid]?.logs || []).forEach(l => {
+    (D.cotConfig?.[fid]?.logs || []).forEach(l => {
       if(!fu[l.forn]) fu[l.forn] = 0;
       fu[l.forn]++;
     });
@@ -334,7 +318,7 @@ export function renderDash(){
                 return `
                   <tr>
                     <td style="font-weight:600">${n}</td>
-                    <td style="text-align:right;color:var(--tx2)">${fmtN(d.qty, 1)}</td>
+                    <td style="text-align:right;color:var(--tx2)">${d.qty.toFixed(1)}</td>
                     <td style="text-align:right">${fmt(d.fat)}</td>
                     <td style="text-align:right;color:var(--g)">${fmt(d.lucro)}</td>
                     <td style="text-align:right;font-weight:600">${pct(mgv)}</td>
@@ -348,6 +332,4 @@ export function renderDash(){
       `
       : `<div class="empty" style="padding:12px"><p>Sem vendas no período</p></div>`;
   }
-
-  atualizarBadgeEstCb();
 }

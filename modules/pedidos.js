@@ -1,6 +1,14 @@
 import { SB } from '../js/api.js';
-import { State, P, PD } from '../js/store.js';
-import { uid, fmt, toast, prV, abrirModal, fecharModal } from '../core/utils.js';
+import { D, State, P, PD } from '../js/store.js';
+import { abrirModal, fecharModal, uid, fmt, toast, prV } from '../core/utils.js';
+
+let refreshProdSelSafe = () => {};
+let refreshCliDLSafe = () => {};
+
+export function initPedidosModule(callbacks = {}){
+  refreshProdSelSafe = callbacks.refreshProdSel || (() => {});
+  refreshCliDLSafe = callbacks.refreshCliDL || (() => {});
+}
 
 const ST_PED = {
   orcamento:'<span class="bdg bk">Orçamento</span>',
@@ -10,24 +18,12 @@ const ST_PED = {
   cancelado:'<span class="bdg br">Cancelado</span>'
 };
 
-let refreshProdSelCb = () => {};
-let refreshCliDLCb = () => {};
-
-export function initPedidosModule(callbacks = {}){
-  refreshProdSelCb = callbacks.refreshProdSel || (() => {});
-  refreshCliDLCb = callbacks.refreshCliDL || (() => {});
-}
-
 export function renderPedMet(){
   const peds = PD();
-  const fat = peds
-    .filter(p => p.status === 'entregue')
-    .reduce((a, p) => a + (p.total || 0), 0);
-
+  const fat = peds.filter(p => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
   const lucro = peds
     .filter(p => p.status === 'entregue')
     .reduce((a, p) => a + (p.itens || []).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0), 0);
-
   const ab = peds.filter(p => ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)).length;
 
   const el = document.getElementById('ped-met');
@@ -42,18 +38,20 @@ export function renderPedMet(){
 }
 
 export function renderPedidos(){
-  const q = (document.getElementById('ped-busca')?.value || '').toLowerCase();
-  const st = document.getElementById('ped-fil-st')?.value || '';
+  const buscaEl = document.getElementById('ped-busca');
+  const stEl = document.getElementById('ped-fil-st');
+  const el = document.getElementById('ped-lista');
+  if(!el) return;
+
+  const q = (buscaEl?.value || '').toLowerCase();
+  const st = stEl?.value || '';
 
   const f = [...PD()]
     .sort((a, b) => (b.num || 0) - (a.num || 0))
     .filter(p =>
-      (!q || p.cli.toLowerCase().includes(q) || String(p.num).includes(q)) &&
+      (!q || String(p.cli || '').toLowerCase().includes(q) || String(p.num || '').includes(q)) &&
       (!st || p.status === st)
     );
-
-  const el = document.getElementById('ped-lista');
-  if(!el) return;
 
   if(!f.length){
     el.innerHTML = `<div class="empty"><div class="ico">🛒</div><p>${PD().length ? 'Nenhum encontrado.' : 'Nenhum pedido ainda.'}</p></div>`;
@@ -114,37 +112,35 @@ export function limparFormPed(){
   State.editIds.ped = null;
   State.pedItens = [];
 
-  const title = document.getElementById('ped-modal-titulo');
-  if(title) title.textContent = 'Novo pedido';
+  const titulo = document.getElementById('ped-modal-titulo');
+  if(titulo) titulo.textContent = 'Novo pedido';
 
-  ['pd-cli','pd-obs'].forEach(i => {
-    const el = document.getElementById(i);
+  ['pd-cli', 'pd-obs'].forEach(id => {
+    const el = document.getElementById(id);
     if(el) el.value = '';
   });
 
-  const data = document.getElementById('pd-data');
-  if(data) data.value = new Date().toISOString().split('T')[0];
+  const dataEl = document.getElementById('pd-data');
+  if(dataEl) dataEl.value = new Date().toISOString().split('T')[0];
 
-  const status = document.getElementById('pd-status');
-  const pgto = document.getElementById('pd-pgto');
-  const prazo = document.getElementById('pd-prazo');
-  const tipo = document.getElementById('pd-tipo');
+  const statusEl = document.getElementById('pd-status');
+  const pgtoEl = document.getElementById('pd-pgto');
+  const prazoEl = document.getElementById('pd-prazo');
+  const tipoEl = document.getElementById('pd-tipo');
+  const prodEl = document.getElementById('pi-prod');
+  const qtyEl = document.getElementById('pi-qty');
+  const precoEl = document.getElementById('pi-preco');
 
-  if(status) status.value = 'orcamento';
-  if(pgto) pgto.value = 'a_vista';
-  if(prazo) prazo.value = 'imediato';
-  if(tipo) tipo.value = 'varejo';
+  if(statusEl) statusEl.value = 'orcamento';
+  if(pgtoEl) pgtoEl.value = 'a_vista';
+  if(prazoEl) prazoEl.value = 'imediato';
+  if(tipoEl) tipoEl.value = 'varejo';
+  if(prodEl) prodEl.value = '';
+  if(qtyEl) qtyEl.value = 1;
+  if(precoEl) precoEl.value = '';
 
-  const piProd = document.getElementById('pi-prod');
-  const piQty = document.getElementById('pi-qty');
-  const piPreco = document.getElementById('pi-preco');
-
-  if(piProd) piProd.value = '';
-  if(piQty) piQty.value = 1;
-  if(piPreco) piPreco.value = '';
-
-  refreshProdSelCb();
-  refreshCliDLCb();
+  refreshProdSelSafe();
+  refreshCliDLSafe();
   renderItens();
 }
 
@@ -155,7 +151,9 @@ export function editarPed(id){
   State.editIds.ped = id;
   State.pedItens = [...(p.itens || []).map(i => ({ ...i }))];
 
-  document.getElementById('ped-modal-titulo').textContent = 'Editar pedido #' + p.num;
+  const titulo = document.getElementById('ped-modal-titulo');
+  if(titulo) titulo.textContent = 'Editar pedido #' + p.num;
+
   document.getElementById('pd-cli').value = p.cli || '';
   document.getElementById('pd-data').value = p.data || '';
   document.getElementById('pd-status').value = p.status || 'orcamento';
@@ -164,8 +162,8 @@ export function editarPed(id){
   document.getElementById('pd-tipo').value = p.tipo || 'varejo';
   document.getElementById('pd-obs').value = p.obs || '';
 
-  refreshProdSelCb();
-  refreshCliDLCb();
+  refreshProdSelSafe();
+  refreshCliDLSafe();
   renderItens();
   abrirModal('modal-pedido');
 }
@@ -174,7 +172,7 @@ export function addItem(){
   const pid = document.getElementById('pi-prod')?.value;
   const qty = parseFloat(document.getElementById('pi-qty')?.value) || 1;
   const pm = parseFloat(document.getElementById('pi-preco')?.value) || 0;
-  const orig = document.getElementById('pi-orig')?.value || '';
+  const orig = document.getElementById('pi-orig')?.value || 'estoque';
 
   if(!pid){
     toast('Selecione um produto.');
@@ -189,8 +187,9 @@ export function addItem(){
     ? (prod.pfa > 0 ? prod.pfa : prV(prod.custo, prod.mka))
     : prV(prod.custo, prod.mkv);
 
-  const pf = pm > 0 ? pm : (isNaN(pa) || pa <= 0 ? prod.custo : pa);
+  const pf = pm > 0 ? pm : ((isNaN(pa) || pa <= 0) ? prod.custo : pa);
 
+  if(!State.pedItens) State.pedItens = [];
   State.pedItens.push({
     prodId: pid,
     nome: prod.nome,
@@ -201,18 +200,19 @@ export function addItem(){
     orig
   });
 
-  const piProd = document.getElementById('pi-prod');
-  const piQty = document.getElementById('pi-qty');
-  const piPreco = document.getElementById('pi-preco');
+  const prodEl = document.getElementById('pi-prod');
+  const qtyEl = document.getElementById('pi-qty');
+  const precoEl = document.getElementById('pi-preco');
 
-  if(piProd) piProd.value = '';
-  if(piQty) piQty.value = 1;
-  if(piPreco) piPreco.value = '';
+  if(prodEl) prodEl.value = '';
+  if(qtyEl) qtyEl.value = 1;
+  if(precoEl) precoEl.value = '';
 
   renderItens();
 }
 
 export function remItem(i){
+  if(!State.pedItens) State.pedItens = [];
   State.pedItens.splice(i, 1);
   renderItens();
 }
@@ -220,10 +220,9 @@ export function remItem(i){
 export function renderItens(){
   const el = document.getElementById('ped-itens');
   const tb = document.getElementById('ped-total');
-
   if(!el || !tb) return;
 
-  if(!State.pedItens.length){
+  if(!State.pedItens || !State.pedItens.length){
     el.innerHTML = '<div style="font-size:13px;color:var(--tx3);padding:8px 0">Nenhum item.</div>';
     tb.style.display = 'none';
     return;
@@ -260,7 +259,6 @@ export function renderItens(){
 
   const totalVal = document.getElementById('ped-total-val');
   if(totalVal) totalVal.textContent = fmt(tot);
-
   tb.style.display = 'block';
 }
 
@@ -271,13 +269,12 @@ export async function salvarPedido(){
     return;
   }
 
-  if(!State.pedItens.length){
+  if(!State.pedItens || !State.pedItens.length){
     toast('Adicione pelo menos um item.');
     return;
   }
 
   const total = State.pedItens.reduce((a, i) => a + (i.qty * i.preco), 0);
-
   const peds = PD();
   const allNums = peds.map(p => p.num).filter(n => typeof n === 'number' && !isNaN(n));
   const nextNum = allNums.length ? Math.max(...allNums) + 1 : 1;
@@ -286,7 +283,7 @@ export async function salvarPedido(){
     id: State.editIds.ped || uid(),
     filial_id: State.FIL,
     num: State.editIds.ped
-      ? (peds.find(p => p.id === State.editIds.ped) || {}).num || nextNum
+      ? ((peds.find(p => p.id === State.editIds.ped) || {}).num || nextNum)
       : nextNum,
     cli,
     data: document.getElementById('pd-data')?.value || '',
@@ -299,10 +296,7 @@ export async function salvarPedido(){
     total
   };
 
-  const pedSB = {
-    ...ped,
-    itens: JSON.stringify(ped.itens)
-  };
+  const pedSB = { ...ped, itens: JSON.stringify(ped.itens) };
 
   try{
     await SB.upsertPedido(pedSB);
@@ -312,11 +306,10 @@ export async function salvarPedido(){
   }
 
   if(State.editIds.ped){
-    const arr = PD();
-    const idx = arr.findIndex(p => p.id === State.editIds.ped);
-    if(idx >= 0) arr[idx] = ped;
-  }else{
-    PD().push(ped);
+    D.pedidos[State.FIL] = peds.map(p => p.id === State.editIds.ped ? ped : p);
+  } else {
+    if(!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
+    D.pedidos[State.FIL].push(ped);
   }
 
   fecharModal('modal-pedido');
@@ -336,10 +329,7 @@ export async function removerPed(id){
     return;
   }
 
-  const arr = PD();
-  const idx = arr.findIndex(p => p.id === id);
-  if(idx >= 0) arr.splice(idx, 1);
-
+  D.pedidos[State.FIL] = PD().filter(p => p.id !== id);
   renderPedMet();
   renderPedidos();
   toast('Removido.');
@@ -392,7 +382,12 @@ export function verPed(id){
       `).join('')}
     </div>
 
-    ${p.obs ? `<div class="panel" style="margin-bottom:12px"><div class="pt">Observações</div><p style="font-size:13px">${p.obs}</p></div>` : ''}
+    ${p.obs ? `
+      <div class="panel" style="margin-bottom:12px">
+        <div class="pt">Observações</div>
+        <p style="font-size:13px">${p.obs}</p>
+      </div>
+    ` : ''}
 
     <div class="tw">
       <table class="tbl">

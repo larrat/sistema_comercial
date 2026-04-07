@@ -6,11 +6,8 @@ import {
   abrirModal,
   fecharModal,
   uid,
-  norm,
   fmt,
   fmtN,
-  fmtQ,
-  mk2mg,
   prV
 } from '../core/utils.js';
 
@@ -30,6 +27,7 @@ import {
 } from '../modules/cotacao.js';
 
 import {
+  initProdutosModule,
   renderProdMet,
   renderProdutos,
   limparFormProd,
@@ -70,7 +68,8 @@ import {
 } from '../modules/pedidos.js';
 
 import {
-  initEstoqueModule,
+  calcSaldos,
+  calcSaldosMulti,
   atualizarBadgeEst,
   renderEstAlerts,
   renderEstPosicao,
@@ -109,74 +108,6 @@ function showLoading(on){
     document.body.appendChild(el);
   }
   el.style.display = on ? 'flex' : 'none';
-}
-
-function calcSaldos(){
-  const map = {};
-  P().forEach(p => {
-    map[p.id] = { saldo: p.esal || 0, cm: p.ecm || p.custo || 0 };
-  });
-
-  [...(MOVS() || [])]
-    .sort((a, b) => (a.ts || 0) - (b.ts || 0))
-    .forEach(m => {
-      const prodId = m.prodId || m.prod_id;
-      if(!map[prodId]) return;
-      const c = map[prodId];
-
-      if(m.tipo === 'entrada'){
-        const q = m.qty || 0;
-        const cu = m.custo || c.cm || 0;
-        const ns = c.saldo + q;
-        c.cm = ns > 0 ? ((c.saldo * c.cm) + (q * cu)) / ns : cu;
-        c.saldo = ns;
-      }else if(m.tipo === 'saida' || m.tipo === 'transf'){
-        c.saldo -= (m.qty || 0);
-      }else if(m.tipo === 'ajuste'){
-        c.saldo = m.saldo_real || m.saldoReal || 0;
-      }
-    });
-
-  return map;
-}
-
-function calcSaldosMulti(filIds){
-  const map = {};
-
-  filIds.forEach(fid => {
-    const prods = D.produtos[fid] || [];
-    prods.forEach(p => {
-      map[fid + '_' + p.id] = {
-        saldo: p.esal || 0,
-        cm: p.ecm || p.custo || 0
-      };
-    });
-
-    const movs = D.movs[fid] || [];
-    [...movs]
-      .sort((a, b) => (a.ts || 0) - (b.ts || 0))
-      .forEach(m => {
-        const mPid = m.prodId || m.prod_id;
-        const key = fid + '_' + mPid;
-        if(!map[key]) return;
-
-        const c = map[key];
-
-        if(m.tipo === 'entrada'){
-          const q = m.qty || 0;
-          const cu = m.custo || c.cm || 0;
-          const ns = c.saldo + q;
-          c.cm = ns > 0 ? ((c.saldo * c.cm) + (q * cu)) / ns : cu;
-          c.saldo = ns;
-        }else if(m.tipo === 'saida' || m.tipo === 'transf'){
-          c.saldo -= (m.qty || 0);
-        }else if(m.tipo === 'ajuste'){
-          c.saldo = m.saldo_real || m.saldoReal || 0;
-        }
-      });
-  });
-
-  return map;
 }
 
 async function carregarDadosFilial(filId){
@@ -614,20 +545,17 @@ initCotacaoModule({
   renderProdutos
 });
 
+initProdutosModule({
+  calcSaldos
+});
+
 initPedidosModule({
   refreshProdSel,
   refreshCliDL
 });
 
-initEstoqueModule({
-  refreshMovSel,
-  refreshDestSel,
-  atualizarBadgeEst
-});
-
 initDashboardModule({
-  calcSaldosMulti,
-  atualizarBadgeEst
+  calcSaldosMulti
 });
 
 if(document.readyState === 'loading'){
@@ -701,6 +629,7 @@ window.updPreco = updPreco;
 window.renderEstPosicao = renderEstPosicao;
 window.renderEstHist = renderEstHist;
 window.renderEstAlerts = renderEstAlerts;
+window.atualizarBadgeEst = atualizarBadgeEst;
 window.resetMov = resetMov;
 window.abrirMovProd = abrirMovProd;
 window.setTipo = setTipo;

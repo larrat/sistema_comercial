@@ -1,8 +1,8 @@
 import { SB } from '../js/api.js';
 import { D, State, P, MOVS } from '../js/store.js';
-import { uid, fmt, fmtQ, toast, abrirModal, fecharModal } from '../core/utils.js';
+import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../core/utils.js';
 
-function calcSaldos(){
+export function calcSaldos(){
   const map = {};
 
   P().forEach(p => {
@@ -26,9 +26,9 @@ function calcSaldos(){
         const ns = c.saldo + q;
         c.cm = ns > 0 ? ((c.saldo * c.cm) + (q * cu)) / ns : cu;
         c.saldo = ns;
-      }else if(m.tipo === 'saida' || m.tipo === 'transf'){
+      } else if(m.tipo === 'saida' || m.tipo === 'transf'){
         c.saldo -= (m.qty || 0);
-      }else if(m.tipo === 'ajuste'){
+      } else if(m.tipo === 'ajuste'){
         c.saldo = m.saldo_real || m.saldoReal || 0;
       }
     });
@@ -36,14 +36,43 @@ function calcSaldos(){
   return map;
 }
 
-let refreshMovSelCb = () => {};
-let refreshDestSelCb = () => {};
-let atualizarBadgeEstCb = () => {};
+export function calcSaldosMulti(filIds){
+  const map = {};
 
-export function initEstoqueModule(callbacks = {}){
-  refreshMovSelCb = callbacks.refreshMovSel || (() => {});
-  refreshDestSelCb = callbacks.refreshDestSel || (() => {});
-  atualizarBadgeEstCb = callbacks.atualizarBadgeEst || (() => {});
+  filIds.forEach(fid => {
+    const prods = D.produtos[fid] || [];
+    prods.forEach(p => {
+      map[fid + '_' + p.id] = {
+        saldo: p.esal || 0,
+        cm: p.ecm || p.custo || 0
+      };
+    });
+
+    const movs = D.movs[fid] || [];
+    [...movs]
+      .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+      .forEach(m => {
+        const pid = m.prodId || m.prod_id;
+        const key = fid + '_' + pid;
+        if(!map[key]) return;
+
+        const c = map[key];
+
+        if(m.tipo === 'entrada'){
+          const q = m.qty || 0;
+          const cu = m.custo || c.cm || 0;
+          const ns = c.saldo + q;
+          c.cm = ns > 0 ? ((c.saldo * c.cm) + (q * cu)) / ns : cu;
+          c.saldo = ns;
+        } else if(m.tipo === 'saida' || m.tipo === 'transf'){
+          c.saldo -= (m.qty || 0);
+        } else if(m.tipo === 'ajuste'){
+          c.saldo = m.saldo_real || m.saldoReal || 0;
+        }
+      });
+  });
+
+  return map;
 }
 
 export function atualizarBadgeEst(){
@@ -62,7 +91,6 @@ export function atualizarBadgeEst(){
 
 export function renderEstAlerts(){
   const saldos = calcSaldos();
-
   const crit = P().filter(p => {
     const s = saldos[p.id];
     return s && s.saldo <= 0;
@@ -122,8 +150,8 @@ export function renderEstPosicao(){
     const s = saldos[p.id] || { saldo: 0, cm: 0 };
     const mq = !q || p.nome.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q);
     const min = p.emin || 0;
-    let mf = true;
 
+    let mf = true;
     if(f === 'ok') mf = s.saldo >= min && s.saldo > 0;
     else if(f === 'baixo') mf = min > 0 && s.saldo > 0 && s.saldo < min;
     else if(f === 'zerado') mf = s.saldo <= 0;
@@ -158,16 +186,16 @@ export function renderEstPosicao(){
           ${filtered.map(p => {
             const s = saldos[p.id] || { saldo: 0, cm: 0 };
             const min = p.emin || 0;
-            const pct2 = min > 0 ? Math.min(100, Math.max(0, (s.saldo / min) * 100)) : 100;
+            const pctBar = min > 0 ? Math.min(100, Math.max(0, (s.saldo / min) * 100)) : 100;
 
             let stC, stL;
             if(s.saldo <= 0){
               stC = 'br';
               stL = 'Zerado';
-            }else if(min > 0 && s.saldo < min){
+            } else if(min > 0 && s.saldo < min){
               stC = 'ba';
               stL = 'Baixo';
-            }else{
+            } else {
               stC = 'bg';
               stL = 'OK';
             }
@@ -178,11 +206,7 @@ export function renderEstPosicao(){
                 <td style="color:var(--tx3);font-size:12px">${p.sku || '—'}</td>
                 <td>
                   <div style="font-weight:600">${fmtQ(s.saldo)} ${p.un}</div>
-                  ${min > 0 ? `
-                    <div class="sbar">
-                      <div class="sbar-f" style="width:${pct2}%;background:${s.saldo <= 0 ? 'var(--r)' : s.saldo < min ? 'var(--a)' : 'var(--g)'}"></div>
-                    </div>
-                  ` : ''}
+                  ${min > 0 ? `<div class="sbar"><div class="sbar-f" style="width:${pctBar}%;background:${s.saldo <= 0 ? 'var(--r)' : s.saldo < min ? 'var(--a)' : 'var(--g)'}"></div></div>` : ''}
                 </td>
                 <td>${fmt(s.cm)}</td>
                 <td style="font-weight:600">${fmt(s.saldo * s.cm)}</td>
@@ -205,9 +229,8 @@ export function renderEstHist(){
   const movs = [...(MOVS() || [])]
     .sort((a, b) => (b.ts || 0) - (a.ts || 0))
     .filter(m => {
-      const prodId = m.prodId || m.prod_id;
-      const p = P().find(x => x.id === prodId);
-
+      const pid = m.prodId || m.prod_id;
+      const p = P().find(x => x.id === pid);
       return (
         (!q || (p && p.nome.toLowerCase().includes(q)) || (m.obs || '').toLowerCase().includes(q)) &&
         (!tf || m.tipo === tf)
@@ -297,7 +320,10 @@ export function refreshMovSel(){
   if(!s) return;
 
   const cur = s.value;
-  s.innerHTML = '<option value="">— selecione —</option>' + P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
+  s.innerHTML =
+    '<option value="">— selecione —</option>' +
+    P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
+
   if(cur) s.value = cur;
 }
 
@@ -307,7 +333,7 @@ export function refreshDestSel(){
 
   s.innerHTML =
     '<option value="">— selecione —</option>' +
-    D.filiais
+    (D.filiais || [])
       .filter(f => f.id !== State.FIL)
       .map(f => `<option value="${f.id}">${f.nome}</option>`)
       .join('');
@@ -317,32 +343,37 @@ export function resetMov(){
   State.movTipo = 'entrada';
   setTipo('entrada');
 
-  const ids = ['mov-prod','mov-data','mov-qty','mov-custo','mov-obs','mov-real'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if(!el) return;
-
-    if(id === 'mov-data') el.value = new Date().toISOString().split('T')[0];
-    else el.value = '';
-  });
-
+  const prod = document.getElementById('mov-prod');
+  const data = document.getElementById('mov-data');
+  const qty = document.getElementById('mov-qty');
+  const custo = document.getElementById('mov-custo');
+  const obs = document.getElementById('mov-obs');
+  const real = document.getElementById('mov-real');
   const saldoPanel = document.getElementById('mov-saldo-panel');
   const preview = document.getElementById('mov-preview');
+
+  if(prod) prod.value = '';
+  if(data) data.value = new Date().toISOString().split('T')[0];
+  if(qty) qty.value = '';
+  if(custo) custo.value = '';
+  if(obs) obs.value = '';
+  if(real) real.value = '';
   if(saldoPanel) saldoPanel.style.display = 'none';
   if(preview) preview.style.display = 'none';
 
-  refreshMovSelCb();
-  refreshDestSelCb();
+  refreshMovSel();
+  refreshDestSel();
 }
 
 export function abrirMovProd(id){
   resetMov();
   setTimeout(() => {
     const el = document.getElementById('mov-prod');
-    if(el) el.value = id;
-    movLoadProd();
+    if(el){
+      el.value = id;
+      movLoadProd();
+    }
   }, 50);
-
   abrirModal('modal-mov');
 }
 
@@ -391,12 +422,12 @@ export function movLoadProd(){
 
   const msSaldo = document.getElementById('ms-saldo');
   const msCm = document.getElementById('ms-cm');
-  const movCusto = document.getElementById('mov-custo');
+  const custo = document.getElementById('mov-custo');
   const panel = document.getElementById('mov-saldo-panel');
 
   if(msSaldo) msSaldo.textContent = fmtQ(s.saldo) + ' ' + (p ? p.un : '');
   if(msCm) msCm.textContent = fmt(s.cm);
-  if(movCusto) movCusto.placeholder = s.cm > 0 ? String(s.cm.toFixed(2)) : '0,00';
+  if(custo) custo.placeholder = s.cm > 0 ? fmtN(s.cm) : '0,00';
   if(panel) panel.style.display = 'block';
 
   movCalc();
@@ -414,13 +445,14 @@ export function movCalc(){
   const saldos = calcSaldos();
   const s = saldos[id] || { saldo: 0, cm: 0 };
   const p = P().find(x => x.id === id);
-
   const qty = parseFloat(document.getElementById('mov-qty')?.value) || 0;
   const custo = parseFloat(document.getElementById('mov-custo')?.value) || s.cm || 0;
   const prev = document.getElementById('mov-preview');
 
+  if(!prev) return;
+
   if(qty <= 0){
-    if(prev) prev.style.display = 'none';
+    prev.style.display = 'none';
     return;
   }
 
@@ -438,15 +470,14 @@ export function movCalc(){
   const mpCm = document.getElementById('mp-cm');
   const mpVal = document.getElementById('mp-val');
   const mpValWrap = document.getElementById('mp-val-wrap');
-  const mpCmParent = mpCm?.parentElement;
 
   if(mpSaldo) mpSaldo.textContent = fmtQ(ns) + ' ' + (p ? p.un : '');
   if(mpCm) mpCm.textContent = fmt(nc);
   if(mpVal) mpVal.textContent = State.movTipo === 'entrada' ? fmt(qty * custo) : '—';
   if(mpValWrap) mpValWrap.style.display = State.movTipo === 'entrada' ? 'inline' : 'none';
-  if(mpCmParent) mpCmParent.style.display = '';
+  if(mpCm?.parentElement) mpCm.parentElement.style.display = '';
 
-  if(prev) prev.style.display = 'block';
+  prev.style.display = 'block';
 }
 
 export function movCalcAjuste(){
@@ -458,8 +489,10 @@ export function movCalcAjuste(){
   const real = parseFloat(document.getElementById('mov-real')?.value);
   const prev = document.getElementById('mov-preview');
 
+  if(!prev) return;
+
   if(isNaN(real)){
-    if(prev) prev.style.display = 'none';
+    prev.style.display = 'none';
     return;
   }
 
@@ -477,7 +510,7 @@ export function movCalcAjuste(){
   if(mpValWrap) mpValWrap.style.display = 'inline';
   if(mpCm?.parentElement) mpCm.parentElement.style.display = 'none';
 
-  if(prev) prev.style.display = 'block';
+  prev.style.display = 'block';
 }
 
 export async function salvarMov(){
@@ -492,7 +525,7 @@ export async function salvarMov(){
   const custo = parseFloat(document.getElementById('mov-custo')?.value) || 0;
 
   let mov = {
-    id: uid(),
+    id: Date.now() + '-' + Math.random().toString(36).slice(2,8),
     filial_id: State.FIL,
     prod_id: prodId,
     prodId,
@@ -511,13 +544,12 @@ export async function salvarMov(){
     }
     mov.saldoReal = real;
     mov.saldo_real = real;
-  }else{
+  } else {
     const qty = parseFloat(document.getElementById('mov-qty')?.value) || 0;
     if(qty <= 0){
       toast('Informe a quantidade.');
       return;
     }
-
     mov.qty = qty;
 
     if(State.movTipo === 'transf'){
@@ -534,13 +566,13 @@ export async function salvarMov(){
 
       if(destProd){
         const destMov = {
-          id: uid(),
+          id: Date.now() + '-dest-' + Math.random().toString(36).slice(2,8),
           filial_id: dest,
           prod_id: destProd.id,
           prodId: destProd.id,
-          tipo:'entrada',
+          tipo: 'entrada',
           data,
-          obs:'Transferência de ' + ((D.filiais.find(f => f.id === State.FIL) || {}).nome || ''),
+          obs: 'Transferência de ' + ((D.filiais.find(f => f.id === State.FIL) || {}).nome || ''),
           ts: Date.now() + 1,
           custo,
           qty
@@ -549,7 +581,7 @@ export async function salvarMov(){
         try{
           await SB.insertMov(destMov);
         }catch(e){
-          console.error(e);
+          console.error('Erro ao registrar movimento destino', e);
         }
 
         if(!D.movs[dest]) D.movs[dest] = [];
