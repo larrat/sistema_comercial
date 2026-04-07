@@ -44,3 +44,12 @@ Manter a interface premium, consistente e escalável sem regressão visual entre
 2. Rodar comando rápido: `/ auditoria visual`.
 3. Validar criação/edição em modal e ação principal por módulo.
 4. Confirmar semântica de prioridade (crítico/atenção/oportunidade/sucesso).
+
+## Governança de release UX/UI (obrigatório)
+- Checklist de release: `docs/release/CHECKLIST_RELEASE_UX_UI.md`
+- Critério de aceite por feature: `docs/release/CRITERIO_ACEITE_UX_UI_POR_FEATURE.md`
+- Ritual de revisão por sprint/release: `docs/release/RITUAL_REVISAO_SPRINT_RELEASE_UX_UI.md`
+
+Gate de publicação:
+- Nenhuma release com impacto em UI/UX pode ser publicada sem aprovação do responsável UX/UI da release.
+- Itens bloqueantes do checklist devem estar 100% concluídos.

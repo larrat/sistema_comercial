@@ -387,10 +387,28 @@ function markConsistencyPage(page){
   }
 }
 
-function classifyToastError(msg){
+function classifyToastError(msg, severity = ''){
   const t = norm(msg || '');
+  const sev = norm(severity || '');
   if(!t) return;
   const m = getGoalMetrics();
+  if(sev === 'error'){
+    m.errors.operation += 1;
+    saveGoalMetrics(m);
+    return;
+  }
+  if(sev === 'warning'){
+    if(
+      t.includes('obrigat') ||
+      t.includes('preencha') ||
+      t.includes('informe') ||
+      t.includes('selecione')
+    ){
+      m.errors.validation += 1;
+      saveGoalMetrics(m);
+    }
+    return;
+  }
   if(
     t.startsWith('informe') ||
     t.startsWith('selecione') ||
@@ -556,7 +574,7 @@ function initGoalTracking(){
   getGoalMetrics();
   document.addEventListener('click', trackPrimaryActionClick, true);
   window.addEventListener('sc:toast', e => {
-    classifyToastError(e?.detail?.message || '');
+    classifyToastError(e?.detail?.message || '', e?.detail?.severity || '');
     renderMetasNegocio();
   });
 }

@@ -1,3 +1,5 @@
+import { SEVERITY, guidedMessage } from './messages.js';
+
 export function uid(){
   return Date.now() + '-' + Math.random().toString(36).slice(2, 8);
 }
@@ -53,19 +55,61 @@ export function fecharModal(id){
 }
 
 export function toast(m){
+  return notify(m, SEVERITY.INFO);
+}
+
+export function notify(message, severity = SEVERITY.INFO, timeoutMs = 3600){
   const el = document.getElementById('toast');
   if(!el) return;
 
-  const msg = String(m ?? '');
+  const msg = String(message ?? '').trim();
+  const sev = String(severity || SEVERITY.INFO).toLowerCase();
+  const cssClass =
+    sev === SEVERITY.ERROR ? 'toast-error' :
+    sev === SEVERITY.SUCCESS ? 'toast-success' :
+    sev === SEVERITY.WARNING ? 'toast-warning' :
+    'toast-info';
+
+  el.classList.remove('toast-error', 'toast-success', 'toast-warning', 'toast-info');
+  el.classList.add(cssClass);
   el.textContent = msg;
+  el.title = msg;
+  el.setAttribute('data-severity', sev);
   el.classList.add('on');
 
   try{
-    window.dispatchEvent(new CustomEvent('sc:toast', { detail: { message: msg } }));
+    window.dispatchEvent(new CustomEvent('sc:toast', { detail: { message: msg, severity: sev } }));
   }catch{}
 
   clearTimeout(window._tt);
-  window._tt = setTimeout(() => el.classList.remove('on'), 2600);
+  window._tt = setTimeout(() => {
+    el.classList.remove('on');
+    el.classList.remove('toast-error', 'toast-success', 'toast-warning', 'toast-info');
+  }, timeoutMs);
+}
+
+export function notifyGuided({ severity = SEVERITY.INFO, what = '', impact = '', next = '', timeoutMs = 4200 } = {}){
+  const msg = guidedMessage({ severity, what, impact, next });
+  notify(msg, severity, timeoutMs);
+  return msg;
+}
+
+export function markFieldState(id, state = 'error'){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('is-error', 'is-success');
+  if(state === 'error') el.classList.add('is-error');
+  if(state === 'success') el.classList.add('is-success');
+}
+
+export function focusField(id, { markError = false } = {}){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(markError) markFieldState(id, 'error');
+  try{
+    el.focus();
+    if(typeof el.select === 'function') el.select();
+  }catch{}
 }
 
 export function setButtonLoading(btn, loading, idleLabel = ''){

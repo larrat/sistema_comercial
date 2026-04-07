@@ -1,6 +1,7 @@
 import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
-import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast } from '../core/utils.js';
+import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, notify, focusField } from '../core/utils.js';
+import { SEVERITY } from '../core/messages.js';
 
 let calcSaldosSafe = () => ({});
 
@@ -292,7 +293,12 @@ export async function salvarProduto(){
   const custo = parseFloat(document.getElementById('p-custo').value) || 0;
 
   if(!nome || custo <= 0){
-    toast('Nome e custo obrigatórios.');
+    notify(
+      'Atenção: nome e custo são obrigatórios. Impacto: produto não pode ser salvo. Ação: preencha nome e custo maior que zero.',
+      SEVERITY.WARNING
+    );
+    if(!nome) focusField('p-nome', { markError: true });
+    else focusField('p-custo', { markError: true });
     return;
   }
 
@@ -321,7 +327,10 @@ export async function salvarProduto(){
   try{
     await SB.upsertProduto(p);
   }catch(e){
-    toast('Erro: ' + e.message);
+    notify(
+      `Erro: falha ao salvar produto (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro não foi concluído. Ação: valide os campos e tente novamente.`,
+      SEVERITY.ERROR
+    );
     return;
   }
 
@@ -341,10 +350,11 @@ export async function salvarProduto(){
 
   const pv = p.custo > 0 && p.mkv > 0 ? prV(p.custo, p.mkv) : 0;
   const pa = p.pfa > 0 ? p.pfa : (p.custo > 0 && p.mka > 0 ? prV(p.custo, p.mka) : 0);
-  toast(
+  notify(
     State.editIds.prod
       ? `Produto atualizado: ${p.nome} • Varejo ${pv > 0 ? fmt(pv) : '—'} • Atacado ${pa > 0 ? fmt(pa) : '—'}`
-      : `Produto salvo: ${p.nome} • Varejo ${pv > 0 ? fmt(pv) : '—'} • Atacado ${pa > 0 ? fmt(pa) : '—'}`
+      : `Produto salvo: ${p.nome} • Varejo ${pv > 0 ? fmt(pv) : '—'} • Atacado ${pa > 0 ? fmt(pa) : '—'}`,
+    SEVERITY.SUCCESS
   );
 }
 

@@ -2073,6 +2073,10 @@ body{
   --tx-soft:#516579;
   --state-error-bg:#FFECEC;
   --state-error-bd:#F5C3C3;
+  --state-warning-bg:#FFF7E8;
+  --state-warning-bd:#F3D7AB;
+  --state-info-bg:#EEF4FF;
+  --state-info-bd:#CBDCFB;
   --state-success-bg:#EAF8EF;
   --state-success-bd:#BEE8CC;
 }
@@ -2179,6 +2183,9 @@ input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="tr
 
 #toast{
   border:1px solid var(--shell-border);
+  max-width:min(92vw,640px);
+  white-space:normal;
+  line-height:1.35;
 }
 
 #toast.toast-error{
@@ -2191,6 +2198,18 @@ input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="tr
   background:var(--state-success-bg);
   color:var(--color-success-700);
   border-color:var(--state-success-bd);
+}
+
+#toast.toast-warning{
+  background:var(--state-warning-bg);
+  color:var(--color-warning-700);
+  border-color:var(--state-warning-bd);
+}
+
+#toast.toast-info{
+  background:var(--state-info-bg);
+  color:var(--color-opportunity-700);
+  border-color:var(--state-info-bd);
 }
 
 .tbl tr:hover td,.data-table__table tr:hover td{

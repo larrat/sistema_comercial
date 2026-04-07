@@ -1,6 +1,7 @@
 import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
-import { abrirModal, fecharModal, fmt, fmtK, pct, toast, uid } from '../core/utils.js';
+import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../core/utils.js';
+import { MSG, SEVERITY } from '../core/messages.js';
 
 let calcSaldosMultiSafe = () => ({});
 
@@ -699,7 +700,7 @@ export function usarExemploSyncJogos(apiUrl, filtro = ''){
 export async function sincronizarJogosDashboard(){
   const filialId = getFilialCalendarioId();
   if(!filialId){
-    toast('Nenhuma filial encontrada para sincronização.');
+    notify(MSG.jogos.missingFilial, SEVERITY.ERROR);
     return;
   }
 
@@ -707,7 +708,8 @@ export async function sincronizarJogosDashboard(){
   const filtroTime = (document.getElementById('jogo-api-time')?.value || '').trim().toLowerCase();
 
   if(!apiUrl){
-    toast('Informe a URL da API de jogos.');
+    notify(MSG.jogos.missingApiUrl, SEVERITY.WARNING);
+    focusField('jogo-api-url', { markError: true });
     return;
   }
 
@@ -720,13 +722,13 @@ export async function sincronizarJogosDashboard(){
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     payload = await res.json();
   }catch(e){
-    toast('Erro ao consultar API externa: ' + e.message);
+    notify(MSG.jogos.fetchFailed(e?.message), SEVERITY.ERROR);
     return;
   }
 
   const lista = extrairListaJogos(payload);
   if(!lista.length){
-    toast('API sem jogos no formato esperado.');
+    notify(MSG.jogos.emptyPayload, SEVERITY.WARNING);
     return;
   }
 
@@ -743,7 +745,7 @@ export async function sincronizarJogosDashboard(){
     });
 
   if(!normalizados.length){
-    toast('Nenhum jogo elegível para importar.');
+    notify(MSG.jogos.noEligible, SEVERITY.INFO);
     return;
   }
 
@@ -784,13 +786,13 @@ export async function sincronizarJogosDashboard(){
 
   fecharModal('modal-jogo-sync');
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
-  toast(`Sincronização concluída: ${normalizados.length} jogo(s) processado(s), ${erros} falha(s) de persistência.`);
+  notify(MSG.jogos.syncResult({ processados: normalizados.length, falhas: erros }), erros > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS);
 }
 
 export async function salvarJogoDashboard(){
   const filialId = getFilialCalendarioId();
   if(!filialId){
-    toast('Nenhuma filial encontrada para a agenda.');
+    notify(MSG.jogos.missingFilial, SEVERITY.ERROR);
     return;
   }
 
@@ -802,7 +804,9 @@ export async function salvarJogoDashboard(){
   const local = document.getElementById('jogo-local')?.value.trim() || '';
 
   if(!titulo || !data_hora){
-    toast('Informe pelo menos título e data/hora do jogo.');
+    notify(MSG.jogos.invalidForm, SEVERITY.WARNING);
+    if(!titulo) focusField('jogo-titulo', { markError: true });
+    else focusField('jogo-data', { markError: true });
     return;
   }
 
@@ -833,7 +837,12 @@ export async function salvarJogoDashboard(){
   fecharModal('modal-jogo');
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
 
-  toast(persistiu ? 'Jogo adicionado!' : 'Jogo salvo localmente (sem persistência no banco).');
+  notify(
+    persistiu
+      ? 'Sucesso: jogo adicionado na agenda.'
+      : MSG.jogos.saveFallback,
+    persistiu ? SEVERITY.SUCCESS : SEVERITY.WARNING
+  );
 }
 
 export async function removerJogoDashboard(id){
@@ -851,7 +860,12 @@ export async function removerJogoDashboard(id){
 
   D.jogos[filialId] = getJogosCache(filialId).filter(j => j.id !== id);
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
-  toast(persistiu ? 'Jogo removido.' : 'Jogo removido localmente.');
+  notify(
+    persistiu
+      ? 'Sucesso: jogo removido da agenda.'
+      : MSG.jogos.removeFallback,
+    persistiu ? SEVERITY.SUCCESS : SEVERITY.WARNING
+  );
 }
 
 export function renderDashJogos(fsel = 'todas'){

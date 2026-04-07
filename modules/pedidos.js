@@ -1,6 +1,7 @@
 import { SB } from '../js/api.js';
 import { D, State, P, PD } from '../js/store.js';
-import { abrirModal, fecharModal, uid, fmt, toast, prV } from '../core/utils.js';
+import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../core/utils.js';
+import { MSG, SEVERITY } from '../core/messages.js';
 
 let refreshProdSelSafe = () => {};
 let refreshCliDLSafe = () => {};
@@ -297,12 +298,16 @@ export function renderItens(){
 export async function salvarPedido(){
   const cli = document.getElementById('pd-cli')?.value.trim();
   if(!cli){
-    toast('Informe o cliente.');
+    notify(MSG.forms.required('Cliente'), SEVERITY.WARNING);
+    focusField('pd-cli', { markError: true });
     return;
   }
 
   if(!State.pedItens || !State.pedItens.length){
-    toast('Adicione pelo menos um item.');
+    notify(
+      'Atenção: pedido sem itens. Impacto: o total fica zerado e o pedido não pode ser salvo. Ação: adicione ao menos 1 item.',
+      SEVERITY.WARNING
+    );
     return;
   }
 
@@ -333,7 +338,10 @@ export async function salvarPedido(){
   try{
     await SB.upsertPedido(pedSB);
   }catch(e){
-    toast('Erro: ' + e.message);
+    notify(
+      `Erro: falha ao salvar pedido (${String(e?.message || 'erro desconhecido')}). Impacto: pedido não foi persistido. Ação: tente novamente.`,
+      SEVERITY.ERROR
+    );
     return;
   }
 
@@ -348,7 +356,7 @@ export async function salvarPedido(){
   renderPedMet();
   renderPedidos();
 
-  toast(State.editIds.ped ? 'Pedido atualizado!' : 'Pedido #' + ped.num + ' criado!');
+  notify(State.editIds.ped ? 'Sucesso: pedido atualizado.' : 'Sucesso: pedido #' + ped.num + ' criado.', SEVERITY.SUCCESS);
 }
 
 export async function removerPed(id){

@@ -1,6 +1,7 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
-import { abrirModal, fecharModal, toast } from '../core/utils.js';
+import { abrirModal, fecharModal, toast, notify, focusField } from '../core/utils.js';
+import { MSG, SEVERITY } from '../core/messages.js';
 
 const AVC = [
   { bg:'#E6EEF9', c:'#0F2F5E' },
@@ -543,7 +544,8 @@ export function editarCli(id){
 export async function salvarCliente(){
   const nome = document.getElementById('c-nome').value.trim();
   if(!nome){
-    toast('Informe o nome.');
+    notify(MSG.forms.required('Nome do cliente'), SEVERITY.WARNING);
+    focusField('c-nome', { markError: true });
     return;
   }
 
@@ -575,7 +577,10 @@ export async function salvarCliente(){
   try{
     await SB.upsertCliente(c);
   }catch(e){
-    toast('Erro: ' + e.message);
+    notify(
+      `Erro: falha ao salvar cliente (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro não foi concluído. Ação: revise os dados e tente novamente.`,
+      SEVERITY.ERROR
+    );
     return;
   }
 
@@ -593,10 +598,11 @@ export async function salvarCliente(){
 
   const canais = [c.whatsapp ? 'WhatsApp' : '', c.tel ? 'Telefone' : '', c.email ? 'E-mail' : ''].filter(Boolean);
   const prontoCamp = c.optin_marketing && canais.length > 0;
-  toast(
+  notify(
     State.editIds.cli
       ? `Cliente atualizado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
-      : `Cliente cadastrado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
+      : `Cliente cadastrado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`,
+    SEVERITY.SUCCESS
   );
 }
 

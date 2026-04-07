@@ -1,6 +1,7 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
-import { abrirModal, fecharModal, toast, uid, setButtonLoading } from '../core/utils.js';
+import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../core/utils.js';
+import { MSG, SEVERITY } from '../core/messages.js';
 
 let campDiag = {
   filialId: null,
@@ -297,12 +298,14 @@ export async function salvarCampanha() {
   const ativo = !!document.getElementById('camp-ativo')?.checked;
 
   if (!nome) {
-    toast('Informe o nome da campanha.');
+    notify(MSG.forms.required('Nome da campanha'), SEVERITY.WARNING);
+    focusField('camp-nome', { markError: true });
     return;
   }
 
   if (!mensagem) {
-    toast('Informe a mensagem da campanha.');
+    notify(MSG.forms.required('Mensagem da campanha'), SEVERITY.WARNING);
+    focusField('camp-mensagem', { markError: true });
     return;
   }
 
@@ -326,6 +329,7 @@ export async function salvarCampanha() {
   } catch (e) {
     persistiu = false;
     console.error('Erro ao salvar campanha no banco', e);
+    notify(MSG.campanhas.saveFailed(e?.message), SEVERITY.ERROR);
   }
 
   const list = getCampanhasCache();
@@ -337,9 +341,9 @@ export async function salvarCampanha() {
   renderCampanhasMet();
   renderCampanhas();
   if (persistiu) {
-    toast(State.editIds?.campanha ? 'Campanha atualizada!' : 'Campanha criada!');
+    notify(State.editIds?.campanha ? 'Sucesso: campanha atualizada e pronta para uso.' : 'Sucesso: campanha criada e pronta para uso.', SEVERITY.SUCCESS);
   } else {
-    toast('Campanha salva localmente. Verifique tabela/permissão de "campanhas" no Supabase.');
+    notify(MSG.campanhas.savedLocal, SEVERITY.WARNING);
   }
 }
 
@@ -495,7 +499,7 @@ export function renderCampanhas() {
 export async function gerarFilaCampanha(campanhaId) {
   const campanha = getCampanhasCache().find(c => c.id === campanhaId);
   if (!campanha) {
-    toast('Campanha não encontrada.');
+    notify(MSG.campanhas.notFound, SEVERITY.ERROR);
     return;
   }
 
@@ -503,7 +507,7 @@ export async function gerarFilaCampanha(campanhaId) {
 
   if(!campanha.ativo){
     setBotaoGerarFilaLoading(campanhaId, false);
-    toast('A campanha está inativa. Ative para gerar a fila.');
+    notify(MSG.campanhas.inactive, SEVERITY.WARNING);
     return;
   }
 
@@ -512,7 +516,7 @@ export async function gerarFilaCampanha(campanhaId) {
     clientes = await SB.getClientesElegiveisCampanhaAniversario(State.FIL, campanha, new Date());
   } catch (e) {
     setBotaoGerarFilaLoading(campanhaId, false);
-    toast('Erro ao buscar clientes elegíveis: ' + e.message);
+    notify(MSG.campanhas.queueFetchFailed(e?.message), SEVERITY.ERROR);
     return;
   }
 
@@ -537,9 +541,14 @@ export async function gerarFilaCampanha(campanhaId) {
         return !!c.optin_marketing;
       });
 
-      toast(`Sem elegíveis. Clientes: ${todos?.length || 0}, com aniversário: ${comAniv.length}, na janela: ${naJanela.length}, aptos ao canal: ${canalOk.length}.`);
+      notify(
+        MSG.campanhas.noEligible(
+          `Resumo atual: total ${todos?.length || 0}, com aniversário ${comAniv.length}, na janela ${naJanela.length}, aptos ao canal ${canalOk.length}`
+        ),
+        SEVERITY.INFO
+      );
     }catch{
-      toast('Nenhum cliente elegível para essa campanha hoje.');
+      notify(MSG.campanhas.noEligible(), SEVERITY.INFO);
     }
     setBotaoGerarFilaLoading(campanhaId, false);
     return;
@@ -613,7 +622,7 @@ export async function gerarFilaCampanha(campanhaId) {
   renderFilaWhatsApp();
   renderCampanhaEnvios();
   setBotaoGerarFilaLoading(campanhaId, false);
-  toast(`Fila gerada: ${criados} criado(s), ${ignorados} ignorado(s), ${falhas} falha(s).`);
+  notify(MSG.campanhas.queueResult({ criados, ignorados, falhas }), falhas > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS);
 }
 
 export function renderFilaWhatsApp() {
@@ -781,12 +790,12 @@ export function renderCampanhaEnvios() {
 export async function abrirWhatsAppEnvio(envioId) {
   const envio = getEnviosCache().find(e => e.id === envioId);
   if (!envio) {
-    toast('Envio não encontrado.');
+    notify('Erro: envio não encontrado. Impacto: não foi possível abrir a conversa. Ação: atualize a fila e tente novamente.', SEVERITY.ERROR);
     return;
   }
 
   if (!envio.destino) {
-    toast('Envio sem número de WhatsApp.');
+    notify(MSG.campanhas.missingDestino, SEVERITY.WARNING);
     return;
   }
 
@@ -807,7 +816,7 @@ export async function marcarEnvioEnviado(envioId) {
   try {
     await SB.updateCampanhaEnvio(payload);
   } catch (e) {
-    toast('Erro ao atualizar envio: ' + e.message);
+    notify(MSG.campanhas.envioUpdateFailed(e?.message), SEVERITY.ERROR);
     return;
   }
 
@@ -817,7 +826,7 @@ export async function marcarEnvioEnviado(envioId) {
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
-  toast('Envio marcado como enviado.');
+  notify('Sucesso: envio marcado como enviado.', SEVERITY.SUCCESS);
 }
 
 export async function marcarEnvioFalhou(envioId) {
@@ -835,7 +844,7 @@ export async function marcarEnvioFalhou(envioId) {
   try {
     await SB.updateCampanhaEnvio(payload);
   } catch (e) {
-    toast('Erro ao atualizar envio: ' + e.message);
+    notify(MSG.campanhas.envioUpdateFailed(e?.message), SEVERITY.ERROR);
     return;
   }
 
@@ -845,5 +854,5 @@ export async function marcarEnvioFalhou(envioId) {
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
-  toast('Envio marcado como falhou.');
+  notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
 }
