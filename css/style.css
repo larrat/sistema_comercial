@@ -1389,3 +1389,120 @@ input[type="checkbox"]{
     scroll-behavior:auto !important;
   }
 }
+
+/* =========================================================
+   FASE D - MICROINTERAÇÕES PREMIUM
+   ========================================================= */
+
+/* Hover premium */
+.card,
+.met,
+.mobile-card,
+.panel,
+.tw{
+  transition:transform .18s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+.card:hover,
+.mobile-card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 14px 26px rgba(16,33,47,.09);
+}
+.met:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 22px rgba(16,33,47,.08);
+}
+.tbl tr{
+  transition:background .15s ease;
+}
+.ib,
+.flow-chip,
+.tb,
+.ni{
+  transition:background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease;
+}
+.ib:hover,
+.flow-chip:hover{
+  transform:translateY(-1px);
+}
+
+/* Focus refinado */
+.btn:focus-visible,
+.inp:focus-visible,
+.tb:focus-visible,
+.ib:focus-visible,
+.flow-chip:focus-visible,
+.ni:focus-visible{
+  box-shadow:0 0 0 4px rgba(15,118,110,.18);
+}
+
+/* Loading state para botões */
+.btn.is-loading,
+.ib.is-loading{
+  position:relative;
+  pointer-events:none;
+  color:transparent !important;
+}
+.btn.is-loading::after,
+.ib.is-loading::after{
+  content:'';
+  position:absolute;
+  width:14px;
+  height:14px;
+  border:2px solid currentColor;
+  border-right-color:transparent;
+  border-radius:50%;
+  animation:spinBtn .65s linear infinite;
+}
+.btn-p.is-loading::after{
+  color:#FFFFFF;
+}
+.btn:not(.btn-p).is-loading::after,
+.ib.is-loading::after{
+  color:#0F766E;
+}
+@keyframes spinBtn{to{transform:rotate(360deg)}}
+
+/* Skeletons */
+.sk-grid{
+  display:grid;
+  gap:10px;
+}
+.sk-grid-4{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.sk-card{
+  border:1px solid var(--bd);
+  border-radius:14px;
+  padding:14px;
+  background:#FFFFFF;
+}
+.sk-line{
+  display:block;
+  height:10px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#E7EEF5 0%,#F5F9FC 50%,#E7EEF5 100%);
+  background-size:200% 100%;
+  animation:skShimmer 1.25s ease-in-out infinite;
+  margin-bottom:8px;
+}
+.sk-line:last-child{margin-bottom:0}
+.sk-card .sk-line:nth-child(1){width:90%}
+.sk-card .sk-line:nth-child(2){width:75%}
+.sk-card .sk-line:nth-child(3){width:60%}
+.sk-card .sk-line:nth-child(4){width:82%}
+@keyframes skShimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}
+
+@media(max-width:1024px){
+  .sk-grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .sk-grid-4{grid-template-columns:1fr}
+  .card:hover,
+  .met:hover,
+  .mobile-card:hover{
+    transform:none;
+  }
+}

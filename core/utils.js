@@ -63,6 +63,27 @@ export function toast(m){
   window._tt = setTimeout(() => el.classList.remove('on'), 2600);
 }
 
+export function setButtonLoading(btn, loading, idleLabel = ''){
+  const el = typeof btn === 'string' ? document.getElementById(btn) : btn;
+  if(!el) return;
+
+  if(loading){
+    if(!el.dataset.idleLabel) el.dataset.idleLabel = el.textContent || idleLabel || '';
+    el.classList.add('is-loading');
+    el.disabled = true;
+    el.setAttribute('aria-busy', 'true');
+    el.setAttribute('aria-live', 'polite');
+    return;
+  }
+
+  el.classList.remove('is-loading');
+  el.disabled = false;
+  el.removeAttribute('aria-busy');
+  el.removeAttribute('aria-live');
+  const label = idleLabel || el.dataset.idleLabel || '';
+  if(label) el.textContent = label;
+}
+
 export function chunkArray(arr, size = 200){
   const out = [];
   for(let i = 0; i < arr.length; i += size){

@@ -475,6 +475,38 @@ function initFlowWizards(){
   });
 }
 
+function buildSkeletonLines(lines = 3){
+  return Array.from({ length: lines })
+    .map(() => '<span class="sk-line"></span>')
+    .join('');
+}
+
+function renderSkeletonState(){
+  const map = {
+    'dash-met': `<div class="sk-grid sk-grid-4">
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+    </div>`,
+    'dash-chart': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'dash-status': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'prod-lista': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'cli-lista': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'ped-lista': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'est-posicao': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'camp-lista': `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
+    'camp-wa-fila': `<div class="sk-card">${buildSkeletonLines(3)}</div>`,
+    'camp-envios-lista': `<div class="sk-card">${buildSkeletonLines(3)}</div>`,
+    'noti-lista': `<div class="sk-card">${buildSkeletonLines(3)}</div>`
+  };
+
+  Object.entries(map).forEach(([id, html]) => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+}
+
 function showLoading(on) {
   let el = document.getElementById('sb-loading');
   if (!el) {
@@ -493,6 +525,7 @@ function showLoading(on) {
 }
 
 async function carregarDadosFilial(filId) {
+  renderSkeletonState();
   showLoading(true);
   try {
     const [
@@ -605,6 +638,19 @@ function renderSetupGrid() {
 
 async function renderSetup() {
   mostrarTela('screen-setup');
+  const grid = document.getElementById('fil-grid');
+  const form = document.getElementById('setup-form');
+  const actions = document.getElementById('setup-actions');
+  const sub = document.getElementById('setup-sub');
+  if(grid && form && actions && sub){
+    form.style.display = 'none';
+    actions.style.display = 'none';
+    sub.textContent = 'Carregando filiais...';
+    grid.innerHTML = `
+      <div class="sk-card" style="grid-column:1/-1">${buildSkeletonLines(3)}</div>
+      <div class="sk-card" style="grid-column:1/-1">${buildSkeletonLines(3)}</div>
+    `;
+  }
   showLoading(true);
   try {
     D.filiais = await SB.getFiliais() || [];

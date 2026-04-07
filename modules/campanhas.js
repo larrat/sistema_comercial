@@ -1,6 +1,6 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
-import { abrirModal, fecharModal, toast, uid } from '../core/utils.js';
+import { abrirModal, fecharModal, toast, uid, setButtonLoading } from '../core/utils.js';
 
 let campDiag = {
   filialId: null,
@@ -69,10 +69,7 @@ function getProxAnivDate(dataAniversario, baseDate){
 function setBotaoGerarFilaLoading(campanhaId, loading){
   const btn = document.getElementById(`camp-run-${campanhaId}`);
   if(!btn) return;
-  btn.disabled = !!loading;
-  btn.style.opacity = loading ? '0.6' : '';
-  btn.style.pointerEvents = loading ? 'none' : '';
-  btn.textContent = loading ? '...' : 'GER';
+  setButtonLoading(btn, loading, 'GER');
 }
 
 function setInputValue(id, value) {
