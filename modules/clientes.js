@@ -409,6 +409,8 @@ export function limparFormCli(){
 
   const titulo = document.getElementById('cli-modal-titulo');
   if(titulo) titulo.textContent = 'Novo cliente';
+  const saveBtn = document.getElementById('cli-flow-save');
+  if(saveBtn) saveBtn.textContent = 'Salvar cliente';
 
   [
     'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv','c-time',
@@ -446,6 +448,8 @@ export function editarCli(id){
 
   const titulo = document.getElementById('cli-modal-titulo');
   if(titulo) titulo.textContent = 'Editar cliente';
+  const saveBtn = document.getElementById('cli-flow-save');
+  if(saveBtn) saveBtn.textContent = 'Atualizar cliente';
 
   document.getElementById('c-nome').value = c.nome || '';
   document.getElementById('c-apelido').value = c.apelido || '';
@@ -524,7 +528,13 @@ export async function salvarCliente(){
   renderClientes();
   refreshCliDL();
 
-  toast(State.editIds.cli ? 'Atualizado!' : 'Cliente cadastrado!');
+  const canais = [c.whatsapp ? 'WhatsApp' : '', c.tel ? 'Telefone' : '', c.email ? 'E-mail' : ''].filter(Boolean);
+  const prontoCamp = c.optin_marketing && canais.length > 0;
+  toast(
+    State.editIds.cli
+      ? `Cliente atualizado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
+      : `Cliente cadastrado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
+  );
 }
 
 export async function removerCli(id){

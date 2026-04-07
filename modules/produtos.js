@@ -147,6 +147,8 @@ export function limparFormProd(){
 
   const titulo = document.getElementById('prod-modal-titulo');
   if(titulo) titulo.textContent = 'Novo produto';
+  const saveBtn = document.getElementById('prod-flow-save');
+  if(saveBtn) saveBtn.textContent = 'Salvar produto';
 
   [
     'p-nome','p-sku','p-cat','p-mkv','p-mgv','p-qtmin','p-dv',
@@ -176,6 +178,8 @@ export function editarProd(id){
 
   const titulo = document.getElementById('prod-modal-titulo');
   if(titulo) titulo.textContent = 'Editar produto';
+  const saveBtn = document.getElementById('prod-flow-save');
+  if(saveBtn) saveBtn.textContent = 'Atualizar produto';
 
   document.getElementById('p-nome').value = p.nome;
   document.getElementById('p-sku').value = p.sku || '';
@@ -335,7 +339,13 @@ export async function salvarProduto(){
 
   if(window.refreshMovSel) window.refreshMovSel();
 
-  toast(State.editIds.prod ? 'Produto atualizado!' : 'Produto salvo!');
+  const pv = p.custo > 0 && p.mkv > 0 ? prV(p.custo, p.mkv) : 0;
+  const pa = p.pfa > 0 ? p.pfa : (p.custo > 0 && p.mka > 0 ? prV(p.custo, p.mka) : 0);
+  toast(
+    State.editIds.prod
+      ? `Produto atualizado: ${p.nome} • Varejo ${pv > 0 ? fmt(pv) : '—'} • Atacado ${pa > 0 ? fmt(pa) : '—'}`
+      : `Produto salvo: ${p.nome} • Varejo ${pv > 0 ? fmt(pv) : '—'} • Atacado ${pa > 0 ? fmt(pa) : '—'}`
+  );
 }
 
 export async function removerProd(id){

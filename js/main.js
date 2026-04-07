@@ -299,25 +299,51 @@ function renderFlowSummary(flow){
     const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
     const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
     const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
+    const un = flowVal('p-un', '');
+    const nome = flowVal('p-nome', '');
+    const sku = flowVal('p-sku', '—');
+    const cat = flowVal('p-cat', '—');
     const pv = custo > 0 && mkv > 0 ? prV(custo, mkv) : 0;
     const pa = pfa > 0 ? pfa : (custo > 0 && mka > 0 ? prV(custo, mka) : 0);
+    const margemV = pv > 0 ? ((pv - custo) / pv) * 100 : 0;
+    const margemA = pa > 0 ? ((pa - custo) / pa) * 100 : 0;
+    const inconsistencias = [];
+    if(pv > 0 && pv <= custo) inconsistencias.push('Preço varejo está menor/igual ao custo.');
+    if(pa > 0 && pa <= custo) inconsistencias.push('Preço atacado está menor/igual ao custo.');
+    if(pa > 0 && pv > 0 && pa > pv) inconsistencias.push('Preço atacado está acima do varejo.');
+    if((parseFloat(document.getElementById('p-emin')?.value || 0) || 0) < 0) inconsistencias.push('Estoque mínimo negativo.');
+
+    const checks = [
+      { ok: !!nome, label: 'Nome do produto' },
+      { ok: !!un, label: 'Unidade' },
+      { ok: custo > 0, label: 'Custo válido' },
+      { ok: mkv > 0 || mka > 0 || pfa > 0, label: 'Regra de preço definida' }
+    ];
+
+    const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
+    const incHtml = inconsistencias.length
+      ? `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div>${inconsistencias.map(i => `<div style="margin-bottom:4px">- ${i}</div>`).join('')}</div>`
+      : `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div><div>Nenhuma inconsistência crítica detectada.</div></div>`;
+
     el.innerHTML = `
+      <div class="fg2" style="margin-bottom:10px;gap:6px">${checkHtml}</div>
       <div class="fg c2">
-        <div><div class="fl">Produto</div><div><b>${flowVal('p-nome')}</b></div></div>
-        <div><div class="fl">SKU</div><div>${flowVal('p-sku')}</div></div>
+        <div><div class="fl">Produto</div><div><b>${nome || '—'}</b></div></div>
+        <div><div class="fl">SKU</div><div>${sku}</div></div>
       </div>
       <div class="fg c2">
-        <div><div class="fl">Unidade / Categoria</div><div>${flowVal('p-un')} • ${flowVal('p-cat')}</div></div>
+        <div><div class="fl">Unidade / Categoria</div><div>${un || '—'} • ${cat}</div></div>
         <div><div class="fl">Custo</div><div>${custo > 0 ? fmt(custo) : '—'}</div></div>
       </div>
       <div class="fg c2">
-        <div><div class="fl">Preço Varejo</div><div>${pv > 0 ? fmt(pv) : '—'}</div></div>
-        <div><div class="fl">Preço Atacado</div><div>${pa > 0 ? fmt(pa) : '—'}</div></div>
+        <div><div class="fl">Preço Varejo</div><div>${pv > 0 ? `${fmt(pv)} (${margemV.toFixed(1)}% margem)` : '—'}</div></div>
+        <div><div class="fl">Preço Atacado</div><div>${pa > 0 ? `${fmt(pa)} (${margemA.toFixed(1)}% margem)` : '—'}</div></div>
       </div>
       <div class="fg c2">
         <div><div class="fl">Estoque inicial</div><div>${flowVal('p-esal')}</div></div>
         <div><div class="fl">Estoque mínimo</div><div>${flowVal('p-emin')}</div></div>
       </div>
+      ${incHtml}
     `;
     return;
   }
@@ -330,9 +356,38 @@ function renderFlowSummary(flow){
       document.getElementById('c-optin-email')?.checked ? 'E-mail' : '',
       document.getElementById('c-optin-sms')?.checked ? 'SMS' : ''
     ].filter(Boolean).join(', ');
+    const nome = flowVal('c-nome', '');
+    const whatsapp = flowVal('c-whatsapp', '');
+    const tel = flowVal('c-tel', '');
+    const email = flowVal('c-email', '');
+    const contatoCount = [whatsapp, tel, email].filter(Boolean).length;
+    const optinEmail = !!document.getElementById('c-optin-email')?.checked;
+    const optinSms = !!document.getElementById('c-optin-sms')?.checked;
+    const optinMkt = !!document.getElementById('c-optin-marketing')?.checked;
+    const inconsistencias = [];
+    if(optinEmail && !email) inconsistencias.push('Opt-in de e-mail marcado sem e-mail cadastrado.');
+    if(optinSms && !tel) inconsistencias.push('Opt-in de SMS marcado sem telefone.');
+    if(optinMkt && !whatsapp && !tel && !email) inconsistencias.push('Opt-in de marketing marcado sem canal de contato.');
+
+    const checks = [
+      { ok: !!nome, label: 'Nome do cliente' },
+      { ok: contatoCount > 0, label: 'Pelo menos 1 canal de contato' },
+      { ok: !!flowVal('c-tab', ''), label: 'Tabela comercial' },
+      { ok: !!flowVal('c-prazo', ''), label: 'Prazo comercial' }
+    ];
+    const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
+    const canais = [
+      whatsapp ? 'WhatsApp' : '',
+      tel ? 'Telefone' : '',
+      email ? 'E-mail' : ''
+    ].filter(Boolean).join(', ') || 'Nenhum';
+    const incHtml = inconsistencias.length
+      ? `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div>${inconsistencias.map(i => `<div style="margin-bottom:4px">- ${i}</div>`).join('')}</div>`
+      : `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div><div>Nenhuma inconsistência crítica detectada.</div></div>`;
     el.innerHTML = `
+      <div class="fg2" style="margin-bottom:10px;gap:6px">${checkHtml}</div>
       <div class="fg c2">
-        <div><div class="fl">Cliente</div><div><b>${flowVal('c-nome')}</b></div></div>
+        <div><div class="fl">Cliente</div><div><b>${nome || '—'}</b></div></div>
         <div><div class="fl">Apelido</div><div>${flowVal('c-apelido')}</div></div>
       </div>
       <div class="fg c2">
@@ -351,6 +406,12 @@ function renderFlowSummary(flow){
         <div><div class="fl">Cidade / Estado</div><div>${flowVal('c-cidade')} • ${flowVal('c-estado')}</div></div>
         <div><div class="fl">Opt-ins</div><div>${optins || 'Nenhum'}</div></div>
       </div>
+      <div class="panel" style="margin-top:10px">
+        <div class="pt">Impacto comercial</div>
+        <div>Canal(is) disponível(is): <b>${canais}</b></div>
+        <div style="margin-top:4px">Pronto para campanhas: <b>${(optinMkt && contatoCount > 0) ? 'Sim' : 'Parcial'}</b></div>
+      </div>
+      ${incHtml}
     `;
   }
 }
