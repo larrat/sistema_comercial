@@ -62,6 +62,7 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 - Carregamento do perfil de usuário: `js/api.js` (`SB.getMeuPerfil`)
 - Papel no estado global: `js/store.js`
 - Tabela de perfis: `sql/03_rbac_v1.sql` (`public.user_perfis`)
+- Seed e auditoria operacional: `sql/03b_rbac_seed_e_auditoria.sql`
 
 ## Observações de governança
 
