@@ -366,18 +366,36 @@ export function renderCampanhasMet() {
 
 export function renderCampanhas() {
   const campanhas = getCampanhasCache();
+  const envios = getEnviosCache();
   const el = document.getElementById('camp-lista');
   if (!el) return;
   renderCampDiag();
 
+  const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual').length;
+  const falhas = envios.filter(e => e.status === 'falhou').length;
+  const enviadas = envios.filter(e => e.status === 'enviado').length;
+
   if (!campanhas.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">🎂</div><p>Nenhuma campanha cadastrada.</p></div>`;
+    el.innerHTML = `
+      <div class="camp-quick">
+        <span class="bdg bb">Fila: ${pendentes}</span>
+        <span class="bdg br">Falhas: ${falhas}</span>
+        <span class="bdg bg">Enviadas: ${enviadas}</span>
+      </div>
+      <div class="empty"><div class="ico">🎂</div><p>Nenhuma campanha cadastrada.</p></div>
+    `;
     return;
   }
 
   const isMobile = window.matchMedia('(max-width: 760px)').matches;
   if(isMobile){
-    el.innerHTML = campanhas.map(c => `
+    el.innerHTML = `
+      <div class="camp-quick">
+        <span class="bdg bb">Fila: ${pendentes}</span>
+        <span class="bdg br">Falhas: ${falhas}</span>
+        <span class="bdg bg">Enviadas: ${enviadas}</span>
+      </div>
+      ${campanhas.map(c => `
       <div class="card mobile-card">
         <div class="mobile-card-head">
           <div style="min-width:0">
@@ -397,16 +415,22 @@ export function renderCampanhas() {
         </div>
 
         <div class="mobile-card-actions">
-          <button class="ib" title="Editar campanha" onclick="editarCampanha('${c.id}')">EDT</button>
-          <button class="ib" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">GER</button>
-          <button class="ib" title="Remover campanha" onclick="removerCampanha('${c.id}')">DEL</button>
+          <button class="btn btn-sm" title="Editar campanha" onclick="editarCampanha('${c.id}')">Editar</button>
+          <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">Gerar fila</button>
+          <button class="btn btn-sm" title="Remover campanha" onclick="removerCampanha('${c.id}')">Excluir</button>
         </div>
       </div>
-    `).join('');
+    `).join('')}
+    `;
     return;
   }
 
   el.innerHTML = `
+    <div class="camp-quick">
+      <span class="bdg bb">Fila: ${pendentes}</span>
+      <span class="bdg br">Falhas: ${falhas}</span>
+      <span class="bdg bg">Enviadas: ${enviadas}</span>
+    </div>
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -432,10 +456,10 @@ export function renderCampanhas() {
               <td>${c.cupom || '—'}</td>
               <td>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</td>
               <td>
-                <div class="fg2">
-                  <button class="ib" title="Editar campanha" onclick="editarCampanha('${c.id}')">EDT</button>
-                  <button class="ib" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">GER</button>
-                  <button class="ib" title="Remover campanha" onclick="removerCampanha('${c.id}')">DEL</button>
+                <div class="fg2 camp-actions">
+                  <button class="btn btn-sm" title="Editar campanha" onclick="editarCampanha('${c.id}')">Editar</button>
+                  <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">Gerar fila</button>
+                  <button class="btn btn-sm" title="Remover campanha" onclick="removerCampanha('${c.id}')">Excluir</button>
                 </div>
               </td>
             </tr>
@@ -583,7 +607,14 @@ export function renderFilaWhatsApp() {
     return;
   }
 
+  const pendentes = envios.filter(e => e.status === 'manual' || e.status === 'pendente').length;
+  const falhas = envios.filter(e => e.status === 'falhou').length;
+
   el.innerHTML = `
+    <div class="camp-quick">
+      <span class="bdg bb">Pendentes: ${pendentes}</span>
+      <span class="bdg br">Falhas: ${falhas}</span>
+    </div>
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -610,7 +641,7 @@ export function renderFilaWhatsApp() {
                 <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span></td>
                 <td>
                   <div class="fg2">
-                    <button class="btn btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
+                    <button class="btn btn-p btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
                     <button class="ib" title="Marcar como enviado" onclick="marcarEnvioEnviado('${e.id}')">OK</button>
                     <button class="ib" title="Marcar como falhou" onclick="marcarEnvioFalhou('${e.id}')">FAL</button>
                   </div>

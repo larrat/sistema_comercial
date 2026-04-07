@@ -1897,3 +1897,78 @@ body{
   .tb{min-height:42px}
   .panel{padding:12px}
 }
+
+/* =========================================================
+   FLUXOS CRÍTICOS - CLIENTES / CAMPANHAS / DASHBOARD
+   ========================================================= */
+.kpi-value-sm{font-size:16px!important}
+.tone-success{color:var(--color-success-600)!important}
+.tone-warning{color:var(--color-warning-600)!important}
+.tone-critical{color:var(--color-critical-600)!important}
+.tone-opportunity{color:var(--color-opportunity-600)!important}
+
+.dash-op-actions{
+  display:flex;
+  gap:8px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+.dash-op-item .btn{
+  min-height:30px;
+  padding:4px 8px;
+  font-size:11px;
+}
+
+.camp-quick{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.camp-actions .btn{
+  min-height:30px;
+  padding:4px 8px;
+  font-size:11px;
+}
+
+#pg-clientes .mobile-card-actions .btn{
+  min-height:34px;
+}
+#pg-clientes .tbl td .btn{
+  min-height:30px;
+  padding:4px 8px;
+  font-size:11px;
+}
+
+#modal-cliente .flow-head{
+  position:sticky;
+  top:0;
+  background:#FFF;
+  z-index:2;
+  padding-bottom:8px;
+}
+#modal-cliente .flow-nav{
+  position:sticky;
+  bottom:0;
+  background:#FFF;
+  padding-top:8px;
+  z-index:2;
+}
+
+@media(max-width:760px){
+  .dash-op-actions .btn{
+    flex:1;
+    justify-content:center;
+  }
+  .camp-actions .btn{
+    min-height:34px;
+  }
+  #pg-clientes .mobile-card-actions{
+    justify-content:stretch;
+  }
+  #pg-clientes .mobile-card-actions .btn{
+    flex:1;
+    justify-content:center;
+  }
+}

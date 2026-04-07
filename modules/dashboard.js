@@ -304,11 +304,27 @@ export function renderDash(){
   const met = document.getElementById('dash-met');
   if(met){
     met.innerHTML = `
-      <div class="met"><div class="ml">Faturamento</div><div class="mv" style="font-size:16px">${fmt(fat)}</div><div class="ms">${entregues.length} entregue(s)</div></div>
-      <div class="met"><div class="ml">Lucro bruto</div><div class="mv" style="font-size:16px;color:${lucro >= 0 ? 'var(--g)' : 'var(--r)'}">${fmt(lucro)}</div></div>
-      <div class="met"><div class="ml">Margem</div><div class="mv" style="color:${mg >= 15 ? 'var(--g)' : mg >= 8 ? 'var(--a)' : 'var(--r)'}">${pct(mg)}</div></div>
-      <div class="met"><div class="ml">Ticket médio</div><div class="mv" style="font-size:16px">${fmt(tk)}</div></div>
-      <div class="met"><div class="ml">Em aberto</div><div class="mv" style="color:var(--a)">${abertos}</div></div>
+      <div class="met">
+        <div class="ml">Faturamento</div>
+        <div class="mv kpi-value-sm">${fmt(fat)}</div>
+        <div class="ms">${entregues.length} entregue(s)</div>
+      </div>
+      <div class="met">
+        <div class="ml">Lucro bruto</div>
+        <div class="mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}">${fmt(lucro)}</div>
+      </div>
+      <div class="met">
+        <div class="ml">Margem</div>
+        <div class="mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}">${pct(mg)}</div>
+      </div>
+      <div class="met">
+        <div class="ml">Ticket médio</div>
+        <div class="mv kpi-value-sm">${fmt(tk)}</div>
+      </div>
+      <div class="met">
+        <div class="ml">Em aberto</div>
+        <div class="mv tone-warning">${abertos}</div>
+      </div>
     `;
   }
 
@@ -614,14 +630,19 @@ export function renderDash(){
         <span class="bdg ${oportunidadesHoje.length ? 'bg' : 'bk'}">Hoje: ${oportunidadesHoje.length}</span>
         <span class="bdg ${oportunidades.length ? 'ba' : 'bk'}">Semana: ${oportunidades.length}</span>
       </div>
+      <div class="dash-op-actions">
+        <button class="btn btn-sm" onclick="ir('campanhas')">Abrir campanhas</button>
+        <button class="btn btn-p btn-sm" onclick="abrirNovaCampanha()">Nova campanha</button>
+      </div>
       ${oportunidades.length
       ? oportunidades.slice(0, 8).map(o => `
-          <div class="rrow">
+          <div class="rrow dash-op-item">
             <span style="width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;display:inline-block"></span>
             <div style="flex:1;min-width:0">
               <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.cliente} • ${o.time}</div>
               <div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} • ${fmtDataHora(o.jogo.data_hora)}</div>
             </div>
+            <button class="btn btn-sm" onclick="ir('campanhas')">Acionar</button>
           </div>
         `).join('')
       : `<div class="empty" style="padding:12px"><p>Sem oportunidades por jogos na semana</p></div>`}

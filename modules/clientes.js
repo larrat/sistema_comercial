@@ -147,7 +147,8 @@ export function renderClientes(){
           </div>
 
           <div class="mobile-card-meta" style="margin-bottom:8px">
-            <div>${c.tel || '—'}${c.whatsapp ? ` • WhatsApp: ${c.whatsapp}` : ''}</div>
+            <div>${c.whatsapp ? `WhatsApp: ${c.whatsapp}` : (c.tel || '—')}</div>
+            ${c.whatsapp && c.tel ? `<div>Telefone: ${c.tel}</div>` : ''}
             ${c.email ? `<div>${c.email}</div>` : ''}
             <div>${tabLbl[c.tab] || '—'} • ${prazoLbl[c.prazo] || '—'}</div>
           </div>
@@ -162,9 +163,9 @@ export function renderClientes(){
           </div>
 
           <div class="mobile-card-actions">
-            <button class="ib" title="Ver cliente" onclick="abrirCliDet('${c.id}')">VER</button>
-            <button class="ib" title="Editar cliente" onclick="editarCli('${c.id}')">EDT</button>
-            <button class="ib" title="Excluir cliente" onclick="removerCli('${c.id}')">DEL</button>
+            <button class="btn btn-sm" title="Ver cliente" onclick="abrirCliDet('${c.id}')">Detalhes</button>
+            <button class="btn btn-p btn-sm" title="Editar cliente" onclick="editarCli('${c.id}')">Editar</button>
+            <button class="btn btn-sm" title="Excluir cliente" onclick="removerCli('${c.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -201,7 +202,7 @@ export function renderClientes(){
                 </td>
                 <td>
                   <div>${c.tel || '—'}</div>
-                  ${c.whatsapp ? `<div style="font-size:11px;color:var(--tx3)">WhatsApp: ${c.whatsapp}</div>` : ''}
+                  ${c.whatsapp ? `<div style="font-size:11px;color:var(--tx3)">WhatsApp: ${c.whatsapp}</div>` : '<div style="font-size:11px;color:var(--tx3)">Sem WhatsApp</div>'}
                   ${c.email ? `<div style="font-size:11px;color:var(--tx3)">${c.email}</div>` : ''}
                 </td>
                 <td>
@@ -224,9 +225,9 @@ export function renderClientes(){
                 <td>${ST_B[c.status] || ''}</td>
                 <td>
                   <div class="fg2">
-                    <button class="ib" title="Ver cliente" onclick="abrirCliDet('${c.id}')">VER</button>
-                    <button class="ib" title="Editar cliente" onclick="editarCli('${c.id}')">EDT</button>
-                    <button class="ib" title="Excluir cliente" onclick="removerCli('${c.id}')">DEL</button>
+                    <button class="btn btn-sm" title="Ver cliente" onclick="abrirCliDet('${c.id}')">Detalhes</button>
+                    <button class="btn btn-p btn-sm" title="Editar cliente" onclick="editarCli('${c.id}')">Editar</button>
+                    <button class="btn btn-sm" title="Excluir cliente" onclick="removerCli('${c.id}')">Excluir</button>
                   </div>
                 </td>
               </tr>
