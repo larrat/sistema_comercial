@@ -66,6 +66,38 @@ export function renderPedidos(){
     cheque:'Cheque'
   };
 
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = f.map(p => `
+      <div class="card" style="padding:12px 14px;margin-bottom:10px">
+        <div class="fb" style="align-items:flex-start;gap:10px;margin-bottom:8px">
+          <div style="min-width:0">
+            <div style="font-weight:700">#${p.num} • ${p.cli}</div>
+            <div style="font-size:11px;color:var(--tx3)">${p.data || 'Sem data'} • ${(p.itens || []).length} item(ns)</div>
+          </div>
+          <div>${ST_PED[p.status] || ''}</div>
+        </div>
+
+        <div class="fg2" style="gap:6px;margin-bottom:8px">
+          ${p.tipo === 'atacado' ? '<span class="bdg ba">Atacado</span>' : '<span class="bdg bb">Varejo</span>'}
+          <span class="bdg bk">${pgtoLbl[p.pgto] || p.pgto || '—'}</span>
+        </div>
+
+        <div style="font-size:12px;color:var(--tx2);display:grid;gap:4px;margin-bottom:10px">
+          <div>Total: <b style="color:var(--tx)">${fmt(p.total || 0)}</b></div>
+          <div>Prazo: <b style="color:var(--tx)">${p.prazo || '—'}</b></div>
+        </div>
+
+        <div class="fg2" style="justify-content:flex-end">
+          <button class="ib" title="Ver pedido" onclick="verPed('${p.id}')">VER</button>
+          <button class="ib" title="Editar pedido" onclick="editarPed('${p.id}')">EDT</button>
+          <button class="ib" title="Excluir pedido" onclick="removerPed('${p.id}')">DEL</button>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+
   el.innerHTML = `
     <div class="tw">
       <table class="tbl">

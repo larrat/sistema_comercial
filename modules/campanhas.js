@@ -378,6 +378,37 @@ export function renderCampanhas() {
     return;
   }
 
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = campanhas.map(c => `
+      <div class="card" style="padding:12px 14px;margin-bottom:10px">
+        <div class="fb" style="align-items:flex-start;gap:10px;margin-bottom:8px">
+          <div style="min-width:0">
+            <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome}</div>
+            <div class="fg2" style="gap:4px;margin-top:4px">
+              <span class="bdg bk">${c.tipo || 'aniversario'}</span>
+              <span class="bdg bb">${c.canal}</span>
+            </div>
+          </div>
+          <div>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</div>
+        </div>
+
+        <div style="font-size:12px;color:var(--tx2);display:grid;gap:4px;margin-bottom:10px">
+          <div>Antecedência: <b style="color:var(--tx)">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
+          <div>Desconto: <b style="color:var(--tx)">${Number(c.desconto || 0)}%</b></div>
+          <div>Cupom: <b style="color:var(--tx)">${c.cupom || '—'}</b></div>
+        </div>
+
+        <div class="fg2" style="justify-content:flex-end">
+          <button class="ib" title="Editar campanha" onclick="editarCampanha('${c.id}')">EDT</button>
+          <button class="ib" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">GER</button>
+          <button class="ib" title="Remover campanha" onclick="removerCampanha('${c.id}')">DEL</button>
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+
   el.innerHTML = `
     <div class="tw">
       <table class="tbl">

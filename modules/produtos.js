@@ -52,6 +52,44 @@ export function renderProdutos(){
     return;
   }
 
+  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  if(isMobile){
+    el.innerHTML = filtrados.map(p => {
+      const pv = prV(p.custo, p.mkv);
+      const pa = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
+      const s = saldos[p.id] || { saldo: 0, cm: 0 };
+      const zero = s.saldo <= 0;
+      const baixo = p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
+      const st = zero ? '<span class="bdg br">Zerado</span>' : (baixo ? '<span class="bdg ba">Baixo</span>' : '<span class="bdg bg">OK</span>');
+
+      return `
+        <div class="card" style="padding:12px 14px;margin-bottom:10px">
+          <div class="fb" style="align-items:flex-start;gap:10px;margin-bottom:8px">
+            <div style="min-width:0">
+              <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome}</div>
+              <div style="font-size:11px;color:var(--tx3)">${p.sku || 'Sem SKU'}${p.cat ? ` • ${p.cat}` : ''}</div>
+            </div>
+            <div>${st}</div>
+          </div>
+
+          <div style="font-size:12px;color:var(--tx2);display:grid;gap:4px;margin-bottom:10px">
+            <div>Custo: <b style="color:var(--tx)">${fmt(p.custo)}</b></div>
+            <div>Varejo: <b style="color:var(--tx)">${p.mkv > 0 ? fmt(pv) : '—'}</b> ${p.mkv > 0 ? `<span class="bdg bb" style="font-size:10px">${p.mkv.toFixed(0)}%</span>` : ''}</div>
+            <div>Atacado: <b style="color:var(--tx)">${pa > 0 ? fmt(pa) : '—'}</b></div>
+            <div>Saldo: <b style="color:${zero ? 'var(--r)' : baixo ? 'var(--a)' : 'var(--tx)'}">${fmtQ(s.saldo)} ${p.un}</b> ${p.emin > 0 ? `• mín. ${fmtQ(p.emin)}` : ''}</div>
+          </div>
+
+          <div class="fg2" style="justify-content:flex-end">
+            <button class="ib" title="Movimentar estoque" onclick="abrirMovProd('${p.id}')">MOV</button>
+            <button class="ib" title="Editar produto" onclick="editarProd('${p.id}')">EDT</button>
+            <button class="ib" title="Excluir produto" onclick="removerProd('${p.id}')">DEL</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+    return;
+  }
+
   el.innerHTML = `
     <div class="tw">
       <table class="tbl">
