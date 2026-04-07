@@ -114,6 +114,13 @@
         </div>
       </div>
 
+      <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
+        <button class="btn btn-sm" type="button" onclick="ir('gerencial')">Gerencial</button>
+        <button class="btn btn-sm" type="button" onclick="ir('campanhas')">Campanhas</button>
+        <button class="btn btn-sm" type="button" onclick="ir('notificacoes')">Alertas</button>
+        <button class="btn btn-p btn-sm" type="button" onclick="limparFormPed();abrirModal('modal-pedido')">Novo pedido</button>
+      </div>
+
       <section class="dash-section dash-section--operacao">
         <div class="dash-section-head">
           <h3>Operação rápida</h3>
@@ -405,10 +412,11 @@
   <!-- Mobile bottom nav -->
   <nav class="mob-nav">
     <div class="mob-items">
-      <button class="mob-btn on" id="mob-dashboard" onclick="ir('dashboard')"><span class="mico">DS</span>Dashboard</button>
-      <button class="mob-btn" id="mob-produtos" onclick="ir('produtos')"><span class="mico">PR</span>Produtos</button>
+      <button class="mob-btn on" id="mob-dashboard" onclick="ir('dashboard')"><span class="mico">DS</span>Início</button>
+      <button class="mob-btn" id="mob-gerencial" onclick="ir('gerencial')"><span class="mico">GR</span>Gestão</button>
       <button class="mob-btn" id="mob-pedidos" onclick="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
-      <button class="mob-btn" id="mob-estoque" onclick="ir('estoque')"><span class="mico">ES</span>Estoque</button>
+      <button class="mob-btn" id="mob-campanhas" onclick="ir('campanhas')"><span class="mico">CP</span>Camp.</button>
+      <button class="mob-btn" id="mob-notificacoes" onclick="ir('notificacoes')"><span class="mico">NT</span>Alertas</button>
       <button class="mob-btn" id="mob-menu" onclick="abrirSb()"><span class="mico">MN</span>Menu</button>
     </div>
   </nav>

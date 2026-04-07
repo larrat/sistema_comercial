@@ -1284,6 +1284,9 @@ body{
   border-radius:12px;
   background:#FAFCFF;
 }
+#pg-dashboard .mobile-home-shortcuts{
+  display:none;
+}
 
 #dash-metas-negocio{
   display:grid;
@@ -1386,6 +1389,18 @@ input[type="checkbox"]{
   .dash-grid-cards{grid-template-columns:1fr}
   #pg-dashboard .dash-grid-cards--operacao{grid-template-columns:1fr}
   #pg-dashboard .dash-grid-cards--analise{grid-template-columns:1fr}
+  #pg-dashboard .mobile-home-shortcuts{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin-bottom:12px;
+  }
+  #pg-dashboard .mobile-home-shortcuts .btn{
+    width:100%;
+    justify-content:center;
+    min-height:42px;
+    padding-inline:8px;
+  }
   .dash-goals-grid{grid-template-columns:1fr}
   .preview-grid-4{
     grid-template-columns:1fr 1fr;
@@ -2316,4 +2331,28 @@ input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="tr
   outline:2px solid var(--color-focus);
   outline-offset:2px;
   box-shadow:0 0 0 4px var(--color-focus-soft);
+}
+
+/* =========================================================
+   MOBILE DISCOVERY - MENU E ATALHOS ESTRATEGICOS
+   ========================================================= */
+@media(max-width:760px){
+  .mob-items{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:0;
+  }
+
+  .mob-btn{
+    min-width:0;
+    padding:8px 2px;
+    font-size:9px;
+    letter-spacing:.01em;
+  }
+
+  .mob-btn .mico{
+    width:24px;
+    height:24px;
+    font-size:10px;
+  }
 }
