@@ -1506,3 +1506,76 @@ input[type="checkbox"]{
     transform:none;
   }
 }
+
+/* =========================================================
+   OBJETIVO ESTRATÉGICO - COMANDO RÁPIDO + PRODUTIVIDADE
+   ========================================================= */
+.app-topbar{
+  align-items:stretch;
+}
+.app-topbar-tools{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:280px;
+  max-width:360px;
+  flex:1;
+}
+.quick-cmd-wrap{
+  position:relative;
+}
+.quick-cmd{
+  min-height:38px;
+  font-size:12px;
+  background:#FFFFFF;
+}
+.quick-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.qk{
+  border:1px solid #C7D6E4;
+  background:#F7FAFD;
+  color:#2C4256;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.qk:hover{
+  background:#EAF4F3;
+  border-color:#9FCFC6;
+  color:#0F766E;
+}
+.qk:focus-visible{
+  outline:2px solid #0F766E;
+  outline-offset:2px;
+}
+
+@media(max-width:1024px){
+  .app-topbar{
+    flex-wrap:wrap;
+  }
+  .app-topbar-tools{
+    order:3;
+    min-width:100%;
+    max-width:none;
+  }
+}
+
+@media(max-width:760px){
+  .app-topbar-tools{
+    gap:6px;
+  }
+  .quick-cmd{
+    min-height:42px;
+  }
+  .quick-links{
+    overflow-x:auto;
+    white-space:nowrap;
+    padding-bottom:2px;
+  }
+}

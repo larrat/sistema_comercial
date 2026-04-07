@@ -125,6 +125,24 @@ import {
 } from '../modules/campanhas.js';
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
+const QUICK_COMMANDS = [
+  { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => ir('dashboard') },
+  { cmd: '/ produtos', label: 'Abrir Produtos', run: () => ir('produtos') },
+  { cmd: '/ clientes', label: 'Abrir Clientes', run: () => ir('clientes') },
+  { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => ir('pedidos') },
+  { cmd: '/ cotacao', label: 'Abrir Cotação', run: () => ir('cotacao') },
+  { cmd: '/ estoque', label: 'Abrir Estoque', run: () => ir('estoque') },
+  { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => ir('campanhas') },
+  { cmd: '/ notificacoes', label: 'Abrir Notificações', run: () => ir('notificacoes') },
+  { cmd: '/ filiais', label: 'Abrir Filiais', run: () => ir('filiais') },
+  { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { limparFormPed(); abrirModal('modal-pedido'); } },
+  { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { limparFormCli(); abrirModal('modal-cliente'); } },
+  { cmd: '/ novo produto', label: 'Novo Produto', run: () => { limparFormProd(); abrirModal('modal-produto'); } },
+  { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => abrirNovaCampanha() },
+  { cmd: '/ nova mov', label: 'Nova Movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
+  { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => abrirSyncJogos() }
+];
+
 const PAGE_META = {
   dashboard: {
     kicker: 'Workspace',
@@ -226,6 +244,66 @@ function syncTopbar(page){
   bindTopbarAction('app-act-primary', meta.primary);
   bindTopbarAction('app-act-secondary', meta.secondary);
   bindTopbarAction('app-act-tertiary', meta.tertiary);
+  renderQuickLinks(meta);
+}
+
+function renderQuickLinks(meta){
+  const el = document.getElementById('quick-links');
+  if(!el) return;
+  const actions = [meta?.primary, meta?.secondary, meta?.tertiary].filter(Boolean).slice(0, 2);
+  el.innerHTML = actions
+    .map(a => `<button class="qk" type="button">${a.label}</button>`)
+    .join('');
+  Array.from(el.querySelectorAll('.qk')).forEach((btn, idx) => {
+    btn.onclick = actions[idx].run;
+  });
+}
+
+function findQuickCommand(raw){
+  const v = norm(raw).replace(/^\/\s*/, '');
+  if(!v) return null;
+  return QUICK_COMMANDS.find(c => norm(c.cmd).replace(/^\/\s*/, '') === v) ||
+    QUICK_COMMANDS.find(c => norm(c.cmd).replace(/^\/\s*/, '').includes(v));
+}
+
+function executeQuickCommand(raw){
+  const found = findQuickCommand(raw);
+  if(!found){
+    toast('Comando não encontrado. Ex: / clientes, / nova campanha');
+    return false;
+  }
+  found.run();
+  return true;
+}
+
+function initQuickCommand(){
+  const input = document.getElementById('quick-cmd');
+  const dl = document.getElementById('quick-cmd-list');
+  if(!input || !dl) return;
+
+  dl.innerHTML = QUICK_COMMANDS
+    .map(c => `<option value="${c.cmd}">${c.label}</option>`)
+    .join('');
+
+  input.addEventListener('keydown', e => {
+    if(e.key !== 'Enter') return;
+    const ok = executeQuickCommand(input.value);
+    if(ok) input.value = '';
+  });
+
+  document.addEventListener('keydown', e => {
+    if(e.key !== '/') return;
+    const target = e.target;
+    const editing = target && (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.isContentEditable
+    );
+    if(editing) return;
+    e.preventDefault();
+    input.focus();
+    input.select();
+  });
 }
 
 const FLOW_MAX = { prod: 4, cli: 4 };
@@ -1316,10 +1394,12 @@ initDashboardModule({
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    initQuickCommand();
     initFlowWizards();
     renderSetup();
   });
 } else {
+  initQuickCommand();
   initFlowWizards();
   renderSetup();
 }
