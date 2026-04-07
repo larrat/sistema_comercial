@@ -21,6 +21,7 @@ if (!window.__SC_SUPABASE_KEY__ && !localStorage.getItem('sc_supabase_key')) {
 const REQ_TIMEOUT_MS = Number(window.__SC_REQ_TIMEOUT_MS__ || 12000);
 const RETRY_MAX = Number(window.__SC_RETRY_MAX__ || 2);
 const RETRY_BASE_MS = Number(window.__SC_RETRY_BASE_MS__ || 250);
+const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -68,6 +69,71 @@ async function resilientFetch(url, options = {}) {
   throw new Error('Falha de rede persistente' + (lastStatus ? ` (HTTP ${lastStatus})` : ''));
 }
 
+function readAuthSession() {
+  try {
+    return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeAuthSession(session) {
+  if (!session) {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+}
+
+function normalizeSessionPayload(payload) {
+  if (!payload || !payload.access_token) return null;
+  const expiresAt =
+    Number(payload.expires_at || 0) ||
+    Math.floor(Date.now() / 1000) + Number(payload.expires_in || 3600);
+  return {
+    access_token: payload.access_token,
+    refresh_token: payload.refresh_token || '',
+    token_type: payload.token_type || 'bearer',
+    expires_in: Number(payload.expires_in || 3600),
+    expires_at: expiresAt,
+    user: payload.user || null
+  };
+}
+
+async function refreshAuthSession(current) {
+  if (!current?.refresh_token) return current;
+  const res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: {
+      apikey: SB_KEY,
+      Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ refresh_token: current.refresh_token })
+  });
+  if (!res.ok) {
+    writeAuthSession(null);
+    return null;
+  }
+  const raw = await res.json();
+  const next = normalizeSessionPayload(raw);
+  writeAuthSession(next);
+  return next;
+}
+
+async function getActiveAuthSession() {
+  const s = readAuthSession();
+  if (!s?.access_token) return null;
+  const now = Math.floor(Date.now() / 1000);
+  if (Number(s.expires_at || 0) > now + 45) return s;
+  return refreshAuthSession(s);
+}
+
+async function getAuthBearerForRequest() {
+  const s = await getActiveAuthSession();
+  return s?.access_token ? ('Bearer ' + s.access_token) : ('Bearer ' + SB_KEY);
+}
+
 async function sbReq(table, method = 'GET', body = null, params = '') {
   const prefer =
     method === 'POST'
@@ -76,11 +142,13 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
           : 'return=representation')
       : '';
 
+  const authBearer = await getAuthBearerForRequest();
+
   const res = await resilientFetch(`${SB_URL}/rest/v1/${table}${params}`, {
     method,
     headers: {
       apikey: SB_KEY,
-      Authorization: 'Bearer ' + SB_KEY,
+      Authorization: authBearer,
       'Content-Type': 'application/json',
       ...(prefer ? { Prefer: prefer } : {})
     },
@@ -160,6 +228,41 @@ function isBirthdayWithinDays(birthDate, baseDate = new Date(), maxDays = 0) {
 }
 
 export const SB = {
+  signInWithPassword: async ({ email, password }) => {
+    const res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY,
+        Authorization: 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`Login inválido (${res.status})${txt ? `: ${txt}` : ''}`);
+    }
+    const payload = normalizeSessionPayload(await res.json());
+    if (!payload) throw new Error('Não foi possível iniciar sessão.');
+    writeAuthSession(payload);
+    return payload;
+  },
+  signOut: async () => {
+    const s = readAuthSession();
+    if (s?.access_token) {
+      await resilientFetch(`${SB_URL}/auth/v1/logout`, {
+        method: 'POST',
+        headers: {
+          apikey: SB_KEY,
+          Authorization: 'Bearer ' + s.access_token,
+          'Content-Type': 'application/json'
+        }
+      }).catch(() => null);
+    }
+    writeAuthSession(null);
+  },
+  getSession: async () => getActiveAuthSession(),
+  clearSession: () => writeAuthSession(null),
   fetchJsonWithRetry: async (url, opts = {}) => {
     const res = await resilientFetch(url, {
       method: opts.method || 'GET',

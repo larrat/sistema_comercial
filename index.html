@@ -19,6 +19,17 @@
     <div class="setup-logo">Sistema Comercial</div>
     <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
 
+    <!-- Login -->
+    <div id="setup-auth" style="display:none">
+      <div class="fg">
+        <div><div class="fl">E-mail</div><input class="inp" id="auth-email" type="email" placeholder="seu@email.com"></div>
+      </div>
+      <div class="fg">
+        <div><div class="fl">Senha</div><input class="inp" id="auth-password" type="password" placeholder="••••••••"></div>
+      </div>
+      <button class="btn btn-p" id="auth-login-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="authEntrar()">Entrar com conta</button>
+    </div>
+
     <!-- Lista de filiais -->
     <div class="fil-grid" id="fil-grid"></div>
 
@@ -81,6 +92,7 @@
     </nav>
     <div class="sb-foot">
       <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" onclick="exportarTudo()">Exportar CSVs</button>
+      <button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="sairConta()">Sair</button>
     </div>
   </aside>
 

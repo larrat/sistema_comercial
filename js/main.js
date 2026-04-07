@@ -138,6 +138,80 @@ const JOURNEY_MODAL_MAP = {
   'modal-campanha': 'campanha'
 };
 
+function resetRuntimeData(){
+  D.filiais = [];
+  D.produtos = {};
+  D.clientes = {};
+  D.pedidos = {};
+  D.fornecedores = {};
+  D.cotPrecos = {};
+  D.cotConfig = {};
+  D.movs = {};
+  D.jogos = {};
+  D.campanhas = {};
+  D.campanhaEnvios = {};
+  D.notas = {};
+
+  State.FIL = null;
+  State.selFil = null;
+  State.editIds = {};
+  State.pedItens = [];
+}
+
+function renderAuthGate(session){
+  const authBox = document.getElementById('setup-auth');
+  const filGrid = document.getElementById('fil-grid');
+  const setupForm = document.getElementById('setup-form');
+  const setupActions = document.getElementById('setup-actions');
+  const sub = document.getElementById('setup-sub');
+
+  if (!authBox || !filGrid || !setupForm || !setupActions || !sub) return;
+
+  if (!session?.access_token){
+    authBox.style.display = 'block';
+    filGrid.innerHTML = '';
+    setupForm.style.display = 'none';
+    setupActions.style.display = 'none';
+    sub.textContent = 'Faça login para acessar suas filiais';
+    return false;
+  }
+
+  authBox.style.display = 'none';
+  return true;
+}
+
+async function authEntrar(){
+  const emailEl = document.getElementById('auth-email');
+  const passEl = document.getElementById('auth-password');
+  const btn = document.getElementById('auth-login-btn');
+  const email = emailEl?.value.trim() || '';
+  const password = passEl?.value || '';
+
+  if(!email || !password){
+    toast('Informe e-mail e senha.');
+    return;
+  }
+
+  if(btn) btn.disabled = true;
+  try{
+    await SB.signInWithPassword({ email, password });
+    toast('Login realizado com sucesso.');
+    if(passEl) passEl.value = '';
+    await renderSetup();
+  }catch(e){
+    toast('Falha no login: ' + (e?.message || 'credenciais inválidas'));
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+async function sairConta(){
+  await SB.signOut();
+  resetRuntimeData();
+  toast('Sessão encerrada.');
+  await renderSetup();
+}
+
 function executarAuditoriaVisual(){
   const checks = [];
   const add = (ok, item, detalhe = '') => checks.push({ ok, item, detalhe });
@@ -1690,6 +1764,9 @@ function renderSetupGrid() {
 
 async function renderSetup() {
   mostrarTela('screen-setup');
+  const session = await SB.getSession();
+  if (!renderAuthGate(session)) return;
+
   const grid = document.getElementById('fil-grid');
   const form = document.getElementById('setup-form');
   const actions = document.getElementById('setup-actions');
@@ -1747,6 +1824,13 @@ async function criarPrimeiraFilial() {
 }
 
 async function entrar() {
+  const session = await SB.getSession();
+  if(!session?.access_token){
+    toast('Faça login para continuar.');
+    await renderSetup();
+    return;
+  }
+
   if (!State.selFil) {
     toast('Selecione uma filial.');
     return;
@@ -2417,6 +2501,8 @@ window.fecharModal = fecharModal;
 window.criarPrimeiraFilial = criarPrimeiraFilial;
 window.entrar = entrar;
 window.voltarSetup = voltarSetup;
+window.authEntrar = authEntrar;
+window.sairConta = sairConta;
 window.selFilial = selFilial;
 window.fecharSb = fecharSb;
 window.abrirSb = abrirSb;
