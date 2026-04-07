@@ -94,3 +94,11 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
 ## 9. Commit sugerido
 `docs: adicionar plano executivo da fase B (ui premium e responsividade)`
 
+## 10. Progresso Sprint 3 (iniciado em 07/04/2026)
+- Limpeza de duplicidades CSS (clientes/campanhas) iniciada em `css/style.css`, removendo regras antigas redundantes que conflitam com a camada final do Design System.
+- Validação de estabilidade visual iniciada com comando rápido `/ auditoria visual` (verificação de topbar, fluxos críticos e render de listas).
+- Governança formalizada no documento `GOVERNANCA_VISUAL.md` com:
+  - semântica de prioridade;
+  - estados obrigatórios;
+  - regras para novas features;
+  - checklist de qualidade para PRs.

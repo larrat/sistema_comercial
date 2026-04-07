@@ -126,6 +126,31 @@ import {
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
+
+function executarAuditoriaVisual(){
+  const checks = [];
+  const add = (ok, item, detalhe = '') => checks.push({ ok, item, detalhe });
+  const has = id => !!document.getElementById(id);
+
+  add(has('app-title') && has('app-sub') && has('app-act-primary'), 'Topbar global');
+  add(has('pg-clientes') && has('cli-lista') && has('modal-cliente'), 'Fluxo Clientes');
+  add(has('pg-campanhas') && has('camp-lista') && has('camp-wa-fila') && has('modal-campanha'), 'Fluxo Campanhas');
+
+  const btnPrimario = document.getElementById('app-act-primary');
+  add(!!String(btnPrimario?.textContent || '').trim(), 'CTA primário com rótulo');
+
+  const cardsMobile = document.querySelectorAll('#pg-clientes .mobile-card, #pg-campanhas .mobile-card').length;
+  add(cardsMobile >= 0, 'Render mobile cards', `cards detectados: ${cardsMobile}`);
+
+  const tabelasCriticas = document.querySelectorAll('#pg-clientes .tbl, #pg-campanhas .tbl').length;
+  add(tabelasCriticas >= 0, 'Render tabelas críticas', `tabelas detectadas: ${tabelasCriticas}`);
+
+  const falhas = checks.filter(c => !c.ok);
+  const ok = checks.length - falhas.length;
+  console.table(checks.map(c => ({ status: c.ok ? 'OK' : 'FALHA', item: c.item, detalhe: c.detalhe || '' })));
+  toast(falhas.length ? `Auditoria visual: ${ok}/${checks.length} OK (${falhas.length} falha(s)).` : `Auditoria visual: ${ok}/${checks.length} OK.`);
+}
+
 const QUICK_COMMANDS = [
   { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => ir('dashboard') },
   { cmd: '/ produtos', label: 'Abrir Produtos', run: () => ir('produtos') },
@@ -141,7 +166,8 @@ const QUICK_COMMANDS = [
   { cmd: '/ novo produto', label: 'Novo Produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
   { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => abrirNovaCampanhaTracked() },
   { cmd: '/ nova mov', label: 'Nova Movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
-  { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => abrirSyncJogos() }
+  { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => abrirSyncJogos() },
+  { cmd: '/ auditoria visual', label: 'Auditoria Visual', run: () => executarAuditoriaVisual() }
 ];
 
 function getGoalMetrics(){

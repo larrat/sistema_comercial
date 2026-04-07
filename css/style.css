@@ -1926,20 +1926,6 @@ body{
   flex-wrap:wrap;
   margin-bottom:10px;
 }
-.camp-actions .btn{
-  min-height:30px;
-  padding:4px 8px;
-  font-size:11px;
-}
-
-#pg-clientes .mobile-card-actions .btn{
-  min-height:34px;
-}
-#pg-clientes .tbl td .btn{
-  min-height:30px;
-  padding:4px 8px;
-  font-size:11px;
-}
 
 #modal-cliente .flow-head{
   position:sticky;
@@ -1958,16 +1944,6 @@ body{
 
 @media(max-width:760px){
   .dash-op-actions .btn{
-    flex:1;
-    justify-content:center;
-  }
-  .camp-actions .btn{
-    min-height:34px;
-  }
-  #pg-clientes .mobile-card-actions{
-    justify-content:stretch;
-  }
-  #pg-clientes .mobile-card-actions .btn{
     flex:1;
     justify-content:center;
   }
@@ -1994,17 +1970,14 @@ body{
   }
 
   /* Cards mobile sem perda de contexto */
-  #pg-estoque .mobile-card-meta,
-  #pg-campanhas .mobile-card-meta{
+  #pg-estoque .mobile-card-meta{
     gap:6px;
   }
-  #pg-estoque .mobile-card-actions .btn,
-  #pg-campanhas .mobile-card-actions .btn{
+  #pg-estoque .mobile-card-actions .btn{
     flex:1;
     justify-content:center;
   }
-  #pg-estoque .mobile-card-actions,
-  #pg-campanhas .mobile-card-actions{
+  #pg-estoque .mobile-card-actions{
     justify-content:stretch;
     width:100%;
   }
