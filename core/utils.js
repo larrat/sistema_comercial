@@ -45,6 +45,9 @@ export function abrirModal(id){
   if(!el) return;
   el.classList.add('on');
   document.body.style.overflow = 'hidden';
+  try{
+    window.dispatchEvent(new CustomEvent('sc:modal-open', { detail: { id } }));
+  }catch{}
 }
 
 export function fecharModal(id){
@@ -52,6 +55,9 @@ export function fecharModal(id){
   if(!el) return;
   el.classList.remove('on');
   document.body.style.overflow = '';
+  try{
+    window.dispatchEvent(new CustomEvent('sc:modal-close', { detail: { id } }));
+  }catch{}
 }
 
 export function toast(m){

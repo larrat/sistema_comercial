@@ -189,11 +189,20 @@
         <div><h2>Gerencial</h2><p>Acompanhamento contínuo de metas e produtividade</p></div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" onclick="renderMetasNegocio()">Atualizar KPIs</button>
+          <button class="btn btn-sm" onclick="resetUxKpis()">Resetar KPIs UX</button>
         </div>
       </div>
       <div class="card dash-card dash-card--metas">
         <div class="ct">Metas de negócio (contínuo)</div>
         <div id="dash-metas-negocio"></div>
+      </div>
+      <div class="card dash-card">
+        <div class="ct">KPIs por jornada (UX)</div>
+        <div id="dash-kpi-jornadas"></div>
+      </div>
+      <div class="card dash-card">
+        <div class="ct">Telemetria de eventos (produto/UX)</div>
+        <div id="dash-kpi-eventos"></div>
       </div>
     </div>
 

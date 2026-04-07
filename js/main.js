@@ -126,9 +126,17 @@ import {
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
+const UX_EVENTS_KEY = 'sc_ux_events_v1';
 const GOAL_METRICS_VERSION = 2;
 const KPI_PAGES = ['dashboard', 'gerencial', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'notificacoes'];
 const primaryActionTracker = { page: 'dashboard', clicks: 0, active: false };
+
+const JOURNEY_MODAL_MAP = {
+  'modal-produto': 'produto',
+  'modal-cliente': 'cliente',
+  'modal-pedido': 'pedido',
+  'modal-campanha': 'campanha'
+};
 
 function executarAuditoriaVisual(){
   const checks = [];
@@ -255,6 +263,7 @@ const QUICK_COMMANDS = [
 ];
 
 function buildDefaultGoalMetrics(){
+  const journeyBase = { started: 0, completed: 0, abandoned: 0, rework: 0, total_ms: 0 };
   return {
     version: GOAL_METRICS_VERSION,
     started_at: new Date().toISOString(),
@@ -270,13 +279,25 @@ function buildDefaultGoalMetrics(){
     consistency: { dashboard: false, clientes: false, campanhas: false, pedidos: false },
     kpi: {
       completion: { total: 0, mobile: 0 },
+      abandonment: { total: 0 },
+      rework: { total: 0 },
       primary_clicks: KPI_PAGES.reduce((acc, p) => {
         acc[p] = { total: 0, count: 0 };
         return acc;
       }, {}),
+      journeys: {
+        produto: { ...journeyBase },
+        cliente: { ...journeyBase },
+        pedido: { ...journeyBase },
+        campanha: { ...journeyBase }
+      },
       notifications: { executadas: 0, resolvidas: 0, reabertas: 0 }
     }
   };
+}
+
+function getDefaultJourneyShape(){
+  return { started: 0, completed: 0, abandoned: 0, rework: 0, total_ms: 0 };
 }
 
 function ensureGoalMetricsShape(raw){
@@ -294,12 +315,43 @@ function ensureGoalMetricsShape(raw){
   out.consistency = { ...base.consistency, ...(out.consistency || {}) };
   out.kpi = { ...base.kpi, ...(out.kpi || {}) };
   out.kpi.completion = { ...base.kpi.completion, ...(out.kpi.completion || {}) };
+  out.kpi.abandonment = { ...base.kpi.abandonment, ...(out.kpi.abandonment || {}) };
+  out.kpi.rework = { ...base.kpi.rework, ...(out.kpi.rework || {}) };
+  out.kpi.journeys = { ...base.kpi.journeys, ...(out.kpi.journeys || {}) };
+  ['produto', 'cliente', 'pedido', 'campanha'].forEach(j => {
+    out.kpi.journeys[j] = { ...getDefaultJourneyShape(), ...(out.kpi.journeys[j] || {}) };
+  });
   out.kpi.notifications = { ...base.kpi.notifications, ...(out.kpi.notifications || {}) };
   out.kpi.primary_clicks = { ...base.kpi.primary_clicks, ...(out.kpi.primary_clicks || {}) };
   KPI_PAGES.forEach(p => {
     out.kpi.primary_clicks[p] = { ...base.kpi.primary_clicks[p], ...(out.kpi.primary_clicks[p] || {}) };
   });
   return out;
+}
+
+function getUxEvents(){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(UX_EVENTS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  }catch{
+    return [];
+  }
+}
+
+function saveUxEvents(events){
+  localStorage.setItem(UX_EVENTS_KEY, JSON.stringify(events));
+}
+
+function pushUxEvent(type, payload = {}){
+  const evs = getUxEvents();
+  evs.unshift({
+    id: uid(),
+    ts: new Date().toISOString(),
+    page: pageAtual(),
+    type,
+    ...payload
+  });
+  saveUxEvents(evs.slice(0, 300));
 }
 
 function getGoalMetrics(){
@@ -318,7 +370,11 @@ function saveGoalMetrics(m){
 function startCriticalTask(tipo){
   const m = getGoalMetrics();
   m.task_start[tipo] = Date.now();
+  if(m.kpi.journeys[tipo]){
+    m.kpi.journeys[tipo].started += 1;
+  }
   saveGoalMetrics(m);
+  pushUxEvent('journey_started', { journey: tipo });
 }
 
 function completeCriticalTask(tipo){
@@ -330,12 +386,41 @@ function completeCriticalTask(tipo){
   cur.total_ms += elapsed;
   cur.count += 1;
   if(!cur.baseline_ms) cur.baseline_ms = elapsed;
+  const j = m.kpi.journeys?.[tipo];
+  if(j){
+    j.completed += 1;
+    j.total_ms += elapsed;
+  }
   m.kpi.completion.total += 1;
   if(window.matchMedia('(max-width: 760px)').matches){
     m.kpi.completion.mobile += 1;
   }
   delete m.task_start[tipo];
   saveGoalMetrics(m);
+  pushUxEvent('journey_completed', { journey: tipo, elapsed_ms: elapsed });
+}
+
+function abandonCriticalTask(tipo, reason = 'unknown'){
+  const m = getGoalMetrics();
+  const st = Number(m.task_start?.[tipo] || 0);
+  if(!st) return;
+  const elapsed = Math.max(0, Date.now() - st);
+  delete m.task_start[tipo];
+  if(m.kpi.journeys[tipo]){
+    m.kpi.journeys[tipo].abandoned += 1;
+  }
+  m.kpi.abandonment.total += 1;
+  saveGoalMetrics(m);
+  pushUxEvent('journey_abandoned', { journey: tipo, reason, elapsed_ms: elapsed });
+}
+
+function registerJourneyRework(tipo){
+  const m = getGoalMetrics();
+  if(!m.kpi.journeys[tipo]) return;
+  m.kpi.journeys[tipo].rework += 1;
+  m.kpi.rework.total += 1;
+  saveGoalMetrics(m);
+  pushUxEvent('journey_rework', { journey: tipo });
 }
 
 function startPrimaryActionTracking(page){
@@ -358,9 +443,11 @@ function completePrimaryActionTracking(page){
   const m = getGoalMetrics();
   const key = KPI_PAGES.includes(p) ? p : 'dashboard';
   const k = m.kpi.primary_clicks[key];
-  k.total += Math.max(1, primaryActionTracker.clicks + 1);
+  const clicksToPrimary = Math.max(1, primaryActionTracker.clicks + 1);
+  k.total += clicksToPrimary;
   k.count += 1;
   saveGoalMetrics(m);
+  pushUxEvent('primary_action_completed', { page: key, clicks_to_primary: clicksToPrimary });
   primaryActionTracker.active = false;
   primaryActionTracker.clicks = 0;
 }
@@ -395,6 +482,7 @@ function classifyToastError(msg, severity = ''){
   if(sev === 'error'){
     m.errors.operation += 1;
     saveGoalMetrics(m);
+    pushUxEvent('ux_error', { severity: sev, message: String(msg || '').slice(0, 180) });
     return;
   }
   if(sev === 'warning'){
@@ -406,6 +494,7 @@ function classifyToastError(msg, severity = ''){
     ){
       m.errors.validation += 1;
       saveGoalMetrics(m);
+      pushUxEvent('ux_validation_warning', { severity: sev, message: String(msg || '').slice(0, 180) });
     }
     return;
   }
@@ -417,11 +506,13 @@ function classifyToastError(msg, severity = ''){
   ){
     m.errors.validation += 1;
     saveGoalMetrics(m);
+    pushUxEvent('ux_validation_warning', { severity: sev || 'warning', message: String(msg || '').slice(0, 180) });
     return;
   }
   if(t.startsWith('erro') || t.includes('falha')){
     m.errors.operation += 1;
     saveGoalMetrics(m);
+    pushUxEvent('ux_error', { severity: sev || 'error', message: String(msg || '').slice(0, 180) });
   }
 }
 
@@ -481,6 +572,29 @@ function calcGoalSummary(){
   const notiReopened = Number(m.kpi.notifications.reabertas || 0);
   const notiResolutionRate = notiExec > 0 ? (notiResolved / notiExec) * 100 : 0;
 
+  const journeys = Object.entries(m.kpi.journeys || {}).reduce((acc, [key, val]) => {
+    const started = Number(val?.started || 0);
+    const completed = Number(val?.completed || 0);
+    const abandoned = Number(val?.abandoned || 0);
+    const rework = Number(val?.rework || 0);
+    const totalMs = Number(val?.total_ms || 0);
+    const avgMs = completed > 0 ? (totalMs / completed) : 0;
+    const abandonmentRate = started > 0 ? (abandoned / started) * 100 : 0;
+    const reworkRate = completed > 0 ? (rework / completed) * 100 : 0;
+    const clicks = m.kpi.primary_clicks?.[key];
+    const clicksAvg = clicks?.count > 0 ? (Number(clicks.total || 0) / Number(clicks.count || 1)) : 0;
+    acc[key] = { started, completed, abandoned, rework, avgMs, abandonmentRate, reworkRate, clicksAvg };
+    return acc;
+  }, {});
+
+  const journeyBuckets = Object.values(journeys);
+  const avgAbandonmentRate = journeyBuckets.length
+    ? journeyBuckets.reduce((a, c) => a + c.abandonmentRate, 0) / journeyBuckets.length
+    : 0;
+  const avgReworkRate = journeyBuckets.length
+    ? journeyBuckets.reduce((a, c) => a + c.reworkRate, 0) / journeyBuckets.length
+    : 0;
+
   return {
     m,
     currentAvg,
@@ -497,6 +611,9 @@ function calcGoalSummary(){
     mobileCompletionRate,
     avgClicksPrimary,
     clicksByModule,
+    journeys,
+    avgAbandonmentRate,
+    avgReworkRate,
     notiExec,
     notiResolved,
     notiReopened,
@@ -568,6 +685,102 @@ function renderMetasNegocio(){
       <span class="bdg bk">Exec ${s.notiExec} · Res ${s.notiResolved} · Reab ${s.notiReopened}</span>
     </div>
   `;
+
+  renderUxJourneyKpis(s);
+  renderUxEventsPanel();
+}
+
+function renderUxJourneyKpis(summary){
+  const el = document.getElementById('dash-kpi-jornadas');
+  if(!el) return;
+  const rows = ['cliente', 'pedido', 'campanha', 'produto'];
+  el.innerHTML = `
+    <div class="tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Jornada</th>
+            <th style="text-align:right">Tempo médio</th>
+            <th style="text-align:right">Inícios</th>
+            <th style="text-align:right">Conclusões</th>
+            <th style="text-align:right">Abandono</th>
+            <th style="text-align:right">Retrabalho</th>
+            <th style="text-align:right">Cliques</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(j => {
+            const d = summary.journeys?.[j] || {};
+            return `
+              <tr>
+                <td style="font-weight:600;text-transform:capitalize">${j}</td>
+                <td style="text-align:right">${formatMs(d.avgMs || 0)}</td>
+                <td style="text-align:right">${d.started || 0}</td>
+                <td style="text-align:right">${d.completed || 0}</td>
+                <td style="text-align:right">${(d.abandonmentRate || 0).toFixed(1)}%</td>
+                <td style="text-align:right">${(d.reworkRate || 0).toFixed(1)}%</td>
+                <td style="text-align:right">${(d.clicksAvg || 0).toFixed(1)}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="dash-goals-foot" style="margin-top:10px">
+      <span class="bdg ${summary.avgAbandonmentRate <= 20 ? 'bg' : 'ba'}">Abandono médio ${summary.avgAbandonmentRate.toFixed(1)}%</span>
+      <span class="bdg ${summary.avgReworkRate <= 20 ? 'bg' : 'ba'}">Retrabalho médio ${summary.avgReworkRate.toFixed(1)}%</span>
+    </div>
+  `;
+}
+
+function renderUxEventsPanel(){
+  const el = document.getElementById('dash-kpi-eventos');
+  if(!el) return;
+  const events = getUxEvents();
+  if(!events.length){
+    el.innerHTML = `<div class="empty" style="padding:12px"><p>Sem eventos registrados ainda.</p></div>`;
+    return;
+  }
+
+  const byType = events.reduce((acc, ev) => {
+    const t = String(ev.type || 'unknown');
+    acc[t] = (acc[t] || 0) + 1;
+    return acc;
+  }, {});
+
+  const topTypes = Object.entries(byType)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  const recent = events.slice(0, 12);
+
+  el.innerHTML = `
+    <div class="dash-goals-foot">
+      ${topTypes.map(([k, n]) => `<span class="bdg bk">${k}: ${n}</span>`).join('')}
+    </div>
+    <div class="tw" style="margin-top:10px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Quando</th>
+            <th>Tipo</th>
+            <th>Página</th>
+            <th>Detalhe</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${recent.map(ev => `
+            <tr>
+              <td>${new Date(ev.ts).toLocaleString('pt-BR')}</td>
+              <td><span class="bdg bb">${ev.type}</span></td>
+              <td>${ev.page || '—'}</td>
+              <td>${ev.journey || ev.message || (ev.clicks_to_primary != null ? `cliques=${ev.clicks_to_primary}` : '—')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function initGoalTracking(){
@@ -576,6 +789,23 @@ function initGoalTracking(){
   window.addEventListener('sc:toast', e => {
     classifyToastError(e?.detail?.message || '', e?.detail?.severity || '');
     renderMetasNegocio();
+  });
+  window.addEventListener('sc:modal-open', e => {
+    const id = e?.detail?.id;
+    const journey = JOURNEY_MODAL_MAP[id];
+    if(journey) pushUxEvent('modal_open', { modal_id: id, journey });
+  });
+  window.addEventListener('sc:modal-close', e => {
+    const id = e?.detail?.id;
+    const journey = JOURNEY_MODAL_MAP[id];
+    if(!journey) return;
+    pushUxEvent('modal_close', { modal_id: id, journey });
+    const m = getGoalMetrics();
+    const started = Number(m.task_start?.[journey] || 0);
+    if(started > 0){
+      abandonCriticalTask(journey, 'modal_close');
+      renderMetasNegocio();
+    }
   });
 }
 
@@ -597,24 +827,28 @@ function abrirNovaCampanhaTracked(){
   return abrirNovaCampanha();
 }
 async function salvarProdutoTracked(){
+  if(State.editIds.prod) registerJourneyRework('produto');
   await salvarProduto();
   const open = document.getElementById('modal-produto')?.classList.contains('on');
   if(!open) completeCriticalTask('produto');
   renderMetasNegocio();
 }
 async function salvarClienteTracked(){
+  if(State.editIds.cli) registerJourneyRework('cliente');
   await salvarCliente();
   const open = document.getElementById('modal-cliente')?.classList.contains('on');
   if(!open) completeCriticalTask('cliente');
   renderMetasNegocio();
 }
 async function salvarPedidoTracked(){
+  if(State.editIds.ped) registerJourneyRework('pedido');
   await salvarPedido();
   const open = document.getElementById('modal-pedido')?.classList.contains('on');
   if(!open) completeCriticalTask('pedido');
   renderMetasNegocio();
 }
 async function salvarCampanhaTracked(){
+  if(State.editIds?.campanha) registerJourneyRework('campanha');
   await salvarCampanha();
   const open = document.getElementById('modal-campanha')?.classList.contains('on');
   if(!open){
@@ -1941,6 +2175,15 @@ function exportarTudo() {
   );
 }
 
+function resetUxKpis(){
+  if(!confirm('Resetar KPIs de UX e telemetria local desta filial/navegador?')) return;
+  localStorage.removeItem(GOAL_METRICS_KEY);
+  localStorage.removeItem(UX_EVENTS_KEY);
+  pushUxEvent('metrics_reset', { reason: 'manual' });
+  renderMetasNegocio();
+  toast('KPIs de UX resetados com sucesso.');
+}
+
 initCotacaoModule({
   renderCotLogs,
   renderProdMet,
@@ -1989,6 +2232,7 @@ window.exportCSV = exportCSV;
 window.setFlowStep = setFlowStep;
 window.renderNotificacoes = renderNotificacoes;
 window.renderMetasNegocio = renderMetasNegocio;
+window.resetUxKpis = resetUxKpis;
 window.setFiltroNotificacoes = setFiltroNotificacoes;
 window.executarNotificacao = executarNotificacao;
 window.resolverNotificacao = resolverNotificacao;
