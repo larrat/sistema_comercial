@@ -110,6 +110,7 @@ import {
   refreshCampanhasTela,
   limparFormCampanha,
   abrirNovaCampanha,
+  adotarCampanhasParaFilialAtiva,
   editarCampanha,
   salvarCampanha,
   removerCampanha,
@@ -739,6 +740,7 @@ window.carregarCampanhaEnvios = carregarCampanhaEnvios;
 window.refreshCampanhasTela = refreshCampanhasTela;
 window.limparFormCampanha = limparFormCampanha;
 window.abrirNovaCampanha = abrirNovaCampanha;
+window.adotarCampanhasParaFilialAtiva = adotarCampanhasParaFilialAtiva;
 window.editarCampanha = editarCampanha;
 window.salvarCampanha = salvarCampanha;
 window.removerCampanha = removerCampanha;

@@ -141,6 +141,9 @@ export const SB = {
   getCampanhas: fid =>
     sbReq('campanhas', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
 
+  getCampanhasAll: () =>
+    sbReq('campanhas', 'GET', null, '?order=criado_em.desc'),
+
   getCampanhaById: async id => {
     const r = await sbReq('campanhas', 'GET', null, `?id=eq.${id}&limit=1`);
     return r && r[0] ? r[0] : null;

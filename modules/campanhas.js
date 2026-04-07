@@ -2,6 +2,16 @@ import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
 import { abrirModal, fecharModal, toast, uid } from '../core/utils.js';
 
+let campDiag = {
+  filialId: null,
+  carregadasFilial: 0,
+  totalBanco: null,
+  outrasFiliais: null,
+  candidatasOutrasFiliais: [],
+  origem: 'cache',
+  erro: null
+};
+
 function getCampanhasCache() {
   if (!D.campanhas) D.campanhas = {};
   if (!D.campanhas[State.FIL]) D.campanhas[State.FIL] = [];
@@ -51,15 +61,71 @@ function getInputValue(id) {
   return document.getElementById(id)?.value ?? '';
 }
 
+function renderCampDiag() {
+  const el = document.getElementById('camp-diag');
+  if (!el) return;
+
+  const base = `Filial ativa: ${campDiag.filialId || '—'} • campanhas exibidas: ${campDiag.carregadasFilial}`;
+  const banco = campDiag.totalBanco == null ? '' : ` • total no banco: ${campDiag.totalBanco}`;
+  const outras = campDiag.outrasFiliais == null ? '' : ` • outras filiais: ${campDiag.outrasFiliais}`;
+  const origem = campDiag.origem ? ` • origem: ${campDiag.origem}` : '';
+  const podeImportar = (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
+  const acao = podeImportar
+    ? ` <button class="btn btn-sm" style="margin-left:8px" onclick="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
+    : '';
+
+  el.innerHTML = `<div class="alert al-a" style="margin-bottom:10px">ℹ ${base}${banco}${outras}${origem}${acao}</div>`;
+}
+
 export async function carregarCampanhas() {
+  campDiag = {
+    filialId: State.FIL,
+    carregadasFilial: 0,
+    totalBanco: null,
+    outrasFiliais: null,
+    candidatasOutrasFiliais: [],
+    origem: 'api-filial',
+    erro: null
+  };
+
   try {
     const campanhas = await SB.getCampanhas(State.FIL);
     if (!D.campanhas) D.campanhas = {};
     D.campanhas[State.FIL] = campanhas || [];
+    campDiag.carregadasFilial = D.campanhas[State.FIL].length;
+
+    if (!D.campanhas[State.FIL].length) {
+      try {
+        const all = await SB.getCampanhasAll();
+        const sameFilial = (all || []).filter(c => String(c.filial_id || '') === String(State.FIL || ''));
+        const outrasFiliais = (all || []).filter(c => String(c.filial_id || '') !== String(State.FIL || ''));
+
+        campDiag.totalBanco = (all || []).length;
+        campDiag.outrasFiliais = Math.max(0, (all || []).length - sameFilial.length);
+        campDiag.candidatasOutrasFiliais = outrasFiliais;
+
+        if (sameFilial.length) {
+          D.campanhas[State.FIL] = sameFilial;
+          campDiag.carregadasFilial = sameFilial.length;
+          campDiag.origem = 'api-fallback';
+        } else if ((all || []).length) {
+          campDiag.origem = 'api-sem-filial';
+        }
+      } catch (ef) {
+        campDiag.origem = 'api-filial';
+        campDiag.erro = String(ef?.message || ef || '');
+      }
+    }
+
+    renderCampDiag();
     return D.campanhas[State.FIL];
   } catch (e) {
     console.error('Falha ao carregar campanhas', e);
     toast('Falha ao carregar campanhas do banco. Exibindo dados locais.');
+    campDiag.origem = 'cache';
+    campDiag.erro = String(e?.message || e || '');
+    campDiag.carregadasFilial = getCampanhasCache().length;
+    renderCampDiag();
     return getCampanhasCache();
   }
 }
@@ -83,6 +149,54 @@ export async function refreshCampanhasTela() {
   renderCampanhas();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
+}
+
+export async function adotarCampanhasParaFilialAtiva() {
+  const candidatas = campDiag.candidatasOutrasFiliais || [];
+  if (!candidatas.length) {
+    toast('Nenhuma campanha disponível para importar.');
+    return;
+  }
+
+  const atuais = getCampanhasCache();
+  const existentes = new Set(
+    atuais.map(c => [c.nome, c.tipo, c.canal, Number(c.dias_antecedencia || 0)].join('|').toLowerCase())
+  );
+
+  const paraImportar = candidatas.filter(c => {
+    const k = [c.nome, c.tipo, c.canal, Number(c.dias_antecedencia || 0)].join('|').toLowerCase();
+    return !existentes.has(k);
+  });
+
+  if (!paraImportar.length) {
+    toast('As campanhas candidatas já existem na filial ativa.');
+    return;
+  }
+
+  let importadas = 0;
+  let falhasPersistencia = 0;
+
+  for (const c of paraImportar) {
+    const nova = {
+      ...c,
+      id: uid(),
+      filial_id: State.FIL
+    };
+
+    try {
+      await SB.upsertCampanha(nova);
+    } catch (e) {
+      falhasPersistencia++;
+      console.error('Falha ao persistir campanha importada', nova, e);
+    }
+
+    atuais.unshift(nova);
+    importadas++;
+  }
+
+  renderCampanhasMet();
+  renderCampanhas();
+  toast(`Importação concluída: ${importadas} campanha(s), ${falhasPersistencia} falha(s) de persistência.`);
 }
 
 export function limparFormCampanha() {
@@ -234,6 +348,7 @@ export function renderCampanhas() {
   const campanhas = getCampanhasCache();
   const el = document.getElementById('camp-lista');
   if (!el) return;
+  renderCampDiag();
 
   if (!campanhas.length) {
     el.innerHTML = `<div class="empty"><div class="ico">🎂</div><p>Nenhuma campanha cadastrada.</p></div>`;
