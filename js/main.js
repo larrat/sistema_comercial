@@ -165,8 +165,16 @@ async function carregarDadosFilial(filId) {
       SB.getCotConfig(filId),
       SB.getMovs(filId),
       SB.getJogosAgenda(filId).catch(() => []),
-      SB.getCampanhas(filId).catch(() => []),
-      SB.getCampanhaEnvios(filId).catch(() => [])
+      SB.getCampanhas(filId).catch(e => {
+        console.error('Falha ao carregar campanhas na entrada da filial', e);
+        toast('Não foi possível carregar campanhas do banco. Usando cache local.');
+        return D.campanhas?.[filId] || [];
+      }),
+      SB.getCampanhaEnvios(filId).catch(e => {
+        console.error('Falha ao carregar envios de campanhas na entrada da filial', e);
+        toast('Não foi possível carregar envios de campanha do banco. Usando cache local.');
+        return D.campanhaEnvios?.[filId] || [];
+      })
     ]);
 
     D.produtos[filId] = prods || [];

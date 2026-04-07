@@ -58,8 +58,9 @@ export async function carregarCampanhas() {
     D.campanhas[State.FIL] = campanhas || [];
     return D.campanhas[State.FIL];
   } catch (e) {
-    toast('Erro ao carregar campanhas: ' + e.message);
-    return [];
+    console.error('Falha ao carregar campanhas', e);
+    toast('Falha ao carregar campanhas do banco. Exibindo dados locais.');
+    return getCampanhasCache();
   }
 }
 
@@ -70,8 +71,9 @@ export async function carregarCampanhaEnvios() {
     D.campanhaEnvios[State.FIL] = envios || [];
     return D.campanhaEnvios[State.FIL];
   } catch (e) {
-    toast('Erro ao carregar envios: ' + e.message);
-    return [];
+    console.error('Falha ao carregar envios de campanhas', e);
+    toast('Falha ao carregar envios do banco. Exibindo dados locais.');
+    return getEnviosCache();
   }
 }
 
@@ -168,11 +170,12 @@ export async function salvarCampanha() {
     ativo
   };
 
+  let persistiu = true;
   try {
     await SB.upsertCampanha(item);
   } catch (e) {
-    toast('Erro ao salvar campanha: ' + e.message);
-    return;
+    persistiu = false;
+    console.error('Erro ao salvar campanha no banco', e);
   }
 
   const list = getCampanhasCache();
@@ -183,23 +186,29 @@ export async function salvarCampanha() {
   fecharModal('modal-campanha');
   renderCampanhasMet();
   renderCampanhas();
-  toast(State.editIds?.campanha ? 'Campanha atualizada!' : 'Campanha criada!');
+  if (persistiu) {
+    toast(State.editIds?.campanha ? 'Campanha atualizada!' : 'Campanha criada!');
+  } else {
+    toast('Campanha salva localmente. Verifique tabela/permissão de "campanhas" no Supabase.');
+  }
 }
 
 export async function removerCampanha(id) {
   if (!confirm('Remover campanha?')) return;
 
+  let persistiu = true;
   try {
     await SB.deleteCampanha(id);
   } catch (e) {
-    toast('Erro ao remover campanha: ' + e.message);
-    return;
+    persistiu = false;
+    console.error('Erro ao remover campanha no banco', e);
   }
 
   D.campanhas[State.FIL] = getCampanhasCache().filter(c => c.id !== id);
   renderCampanhasMet();
   renderCampanhas();
-  toast('Campanha removida.');
+  if (persistiu) toast('Campanha removida.');
+  else toast('Campanha removida localmente.');
 }
 
 export function renderCampanhasMet() {
