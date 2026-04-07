@@ -10,14 +10,16 @@ export function fmt(v){
   return 'R$ ' + Number(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
+export function fmtK(v){
+  return v >= 1000 ? 'R$ ' + (v / 1000).toFixed(1) + 'k' : 'R$ ' + Number(v || 0).toFixed(0);
+}
+
 export function fmtN(v, d = 2){
   return Number(v || 0).toFixed(d);
 }
 
 export function fmtQ(v){
-  return Number(v || 0) % 1 === 0
-    ? String(Number(v || 0))
-    : Number(v || 0).toFixed(2);
+  return Number(v || 0) % 1 === 0 ? String(Number(v || 0)) : Number(v || 0).toFixed(2);
 }
 
 export function pct(v){
@@ -25,15 +27,29 @@ export function pct(v){
 }
 
 export function mk2mg(mk){
-  return mk <= 0 ? 0 : (mk / (1 + mk / 100)) * 100;
+  return mk <= 0 ? 0 : mk / (1 + mk / 100) * 100;
 }
 
 export function mg2mk(mg){
-  return mg <= 0 || mg >= 100 ? 0 : (mg / (1 - mg / 100)) - 100;
+  return mg <= 0 || mg >= 100 ? 0 : mg / (1 - mg / 100) - 100;
 }
 
 export function prV(c, mk){
   return Number(c || 0) * (1 + Number(mk || 0) / 100);
+}
+
+export function abrirModal(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+export function fecharModal(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('on');
+  document.body.style.overflow = '';
 }
 
 export function toast(m){
@@ -47,28 +63,10 @@ export function toast(m){
   window._tt = setTimeout(() => el.classList.remove('on'), 2600);
 }
 
-export function abrirModal(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-
-  el.classList.add('on');
-  document.body.style.overflow = 'hidden';
-}
-
-export function fecharModal(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-
-  el.classList.remove('on');
-  document.body.style.overflow = '';
-}
-
 export function chunkArray(arr, size = 200){
   const out = [];
-
   for(let i = 0; i < arr.length; i += size){
     out.push(arr.slice(i, i + size));
   }
-
   return out;
 }
