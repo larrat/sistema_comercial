@@ -688,6 +688,7 @@ function renderMetasNegocio(){
 
   renderUxJourneyKpis(s);
   renderUxEventsPanel();
+  renderGerencialLayer(s);
 }
 
 function renderUxJourneyKpis(summary){
@@ -779,6 +780,200 @@ function renderUxEventsPanel(){
           `).join('')}
         </tbody>
       </table>
+    </div>
+  `;
+}
+
+function mapInsightToBadgeClass(kind){
+  if(kind === 'risco') return 'br';
+  if(kind === 'atencao') return 'ba';
+  return 'bb';
+}
+
+function getNotificacoesResumo(){
+  const all = buildNotificacoes();
+  return all.reduce((acc, n) => {
+    const p = String(n.prioridade || '').toLowerCase();
+    if(p === 'critico') acc.critico += 1;
+    else if(p === 'atencao') acc.atencao += 1;
+    else if(p === 'oportunidade') acc.oportunidade += 1;
+    return acc;
+  }, { critico: 0, atencao: 0, oportunidade: 0, total: all.length });
+}
+
+function buildGerencialModel(summary){
+  const insights = [];
+  const noti = getNotificacoesResumo();
+  const pendenciasCampanha = (D.campanhaEnvios?.[State.FIL] || []).filter(e => e.status === 'pendente' || e.status === 'manual').length;
+
+  if(summary.avgAbandonmentRate > 20){
+    insights.push({
+      kind: 'risco',
+      title: 'Abandono elevado nas jornadas críticas',
+      metric: `${summary.avgAbandonmentRate.toFixed(1)}%`,
+      description: `A taxa de abandono está acima do esperado. Revise fricções em cliente, pedido e campanha.`,
+      action: { id: 'ir-clientes', label: 'Revisar jornada de clientes' },
+      priority: 1
+    });
+  }
+
+  if(summary.erroRate > 12){
+    insights.push({
+      kind: 'risco',
+      title: 'Erro operacional acima da meta',
+      metric: `${summary.erroRate.toFixed(1)}%`,
+      description: 'Há mais erros em formulários e operações do que o aceitável para produtividade.',
+      action: { id: 'ir-notificacoes', label: 'Abrir notificações' },
+      priority: 2
+    });
+  }
+
+  if(noti.critico > 0){
+    insights.push({
+      kind: 'risco',
+      title: 'Itens críticos pendentes',
+      metric: `${noti.critico}`,
+      description: 'Existem alertas críticos ativos que podem impactar venda e operação diária.',
+      action: { id: 'ir-notificacoes', label: 'Tratar críticos' },
+      priority: 3
+    });
+  }
+
+  if(pendenciasCampanha > 0){
+    insights.push({
+      kind: 'atencao',
+      title: 'Fila de campanha pendente',
+      metric: `${pendenciasCampanha}`,
+      description: 'Há envios manuais/pendentes aguardando execução da equipe.',
+      action: { id: 'ir-campanhas', label: 'Abrir fila de campanhas' },
+      priority: 4
+    });
+  }
+
+  if(noti.oportunidade > 0){
+    insights.push({
+      kind: 'oportunidade',
+      title: 'Oportunidades comerciais detectadas',
+      metric: `${noti.oportunidade}`,
+      description: 'Clientes elegíveis e eventos próximos podem virar receita com ação rápida.',
+      action: { id: 'ir-campanhas', label: 'Criar ação comercial' },
+      priority: 5
+    });
+  }
+
+  if(summary.mobileCompletionRate < 70){
+    insights.push({
+      kind: 'atencao',
+      title: 'Conclusão no mobile abaixo do ideal',
+      metric: `${summary.mobileCompletionRate.toFixed(1)}%`,
+      description: 'Usuários mobile concluem menos tarefas. Priorize fluxos com menos passos.',
+      action: { id: 'ir-pedidos-novo', label: 'Testar fluxo rápido de pedido' },
+      priority: 6
+    });
+  }
+
+  if(summary.strategicTotal >= 6 && noti.critico === 0 && summary.erroRate <= 12){
+    insights.push({
+      kind: 'oportunidade',
+      title: 'Momento favorável para acelerar campanhas',
+      metric: `${summary.strategicTotal} ações`,
+      description: 'Base está estável. Há espaço para aumentar cadência de ações de relacionamento.',
+      action: { id: 'nova-campanha', label: 'Nova campanha' },
+      priority: 7
+    });
+  }
+
+  const orderedInsights = insights
+    .sort((a, b) => a.priority - b.priority)
+    .slice(0, 6);
+
+  const recommendations = orderedInsights.map((item, idx) => ({
+    id: `rec-${idx + 1}`,
+    severity: item.kind,
+    title: item.title,
+    recommendation: buildRecommendationText(item, summary),
+    action: item.action
+  }));
+
+  if(!recommendations.length){
+    recommendations.push({
+      id: 'rec-baseline',
+      severity: 'oportunidade',
+      title: 'Painel está estável',
+      recommendation: 'Sem riscos imediatos. Atualize os KPIs e avance com ações comerciais da semana.',
+      action: { id: 'atualizar-kpis', label: 'Atualizar KPIs' }
+    });
+  }
+
+  return { insights: orderedInsights, recommendations };
+}
+
+function buildRecommendationText(item, summary){
+  if(item.kind === 'risco'){
+    return `Impacto alto na operação. Corrigir agora reduz retrabalho e melhora tempo médio (${formatMs(summary.currentAvg)}).`;
+  }
+  if(item.kind === 'atencao'){
+    return 'Monitorar no curto prazo evita que o problema vire bloqueio operacional.';
+  }
+  return 'Ação com potencial de ganho comercial direto. Execute para aumentar conversão.';
+}
+
+function executarAcaoGerencial(actionId){
+  const actions = {
+    'ir-clientes': () => ir('clientes'),
+    'ir-notificacoes': () => ir('notificacoes'),
+    'ir-campanhas': () => ir('campanhas'),
+    'nova-campanha': () => abrirNovaCampanhaTracked(),
+    'ir-pedidos-novo': () => {
+      ir('pedidos');
+      limparFormPedTracked();
+      abrirModal('modal-pedido');
+    },
+    'atualizar-kpis': () => renderMetasNegocio()
+  };
+  pushUxEvent('gerencial_action', { action_id: actionId, page: 'gerencial' });
+  if(actions[actionId]) actions[actionId]();
+}
+
+function renderGerencialLayer(summary){
+  const insightEl = document.getElementById('ger-insights');
+  const recEl = document.getElementById('ger-recomendacoes');
+  if(!insightEl || !recEl) return;
+
+  const model = buildGerencialModel(summary);
+  if(!model.insights.length){
+    insightEl.innerHTML = `<div class="empty" style="padding:12px"><p>Sem insights disponíveis com os dados atuais.</p></div>`;
+  }else{
+    insightEl.innerHTML = `
+      <div class="ger-insights-grid">
+        ${model.insights.map(item => `
+          <article class="ger-insight-card ger-insight-${item.kind}">
+            <div class="ger-insight-head">
+              <span class="bdg ${mapInsightToBadgeClass(item.kind)}">${item.kind}</span>
+              <span class="bdg bk">${item.metric}</span>
+            </div>
+            <h4>${item.title}</h4>
+            <p>${item.description}</p>
+            <button class="btn btn-sm" onclick="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button>
+          </article>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  recEl.innerHTML = `
+    <div class="ger-reco-list">
+      ${model.recommendations.map((item, i) => `
+        <article class="ger-reco-item">
+          <div class="ger-reco-meta">
+            <span class="bdg bk">#${i + 1}</span>
+            <span class="bdg ${mapInsightToBadgeClass(item.severity)}">${item.severity}</span>
+          </div>
+          <h4>${item.title}</h4>
+          <p>${item.recommendation}</p>
+          <button class="btn btn-sm" onclick="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button>
+        </article>
+      `).join('')}
     </div>
   `;
 }
@@ -2233,6 +2428,7 @@ window.setFlowStep = setFlowStep;
 window.renderNotificacoes = renderNotificacoes;
 window.renderMetasNegocio = renderMetasNegocio;
 window.resetUxKpis = resetUxKpis;
+window.executarAcaoGerencial = executarAcaoGerencial;
 window.setFiltroNotificacoes = setFiltroNotificacoes;
 window.executarNotificacao = executarNotificacao;
 window.resolverNotificacao = resolverNotificacao;
