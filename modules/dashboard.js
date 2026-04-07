@@ -121,6 +121,23 @@ function normalizeJogoExterno(raw){
   };
 }
 
+function stableJogoId(j){
+  const base = [
+    String(j.data_hora || ''),
+    String(j.mandante || ''),
+    String(j.visitante || ''),
+    String(j.titulo || '')
+  ].join('|').toLowerCase().trim();
+
+  let hash = 0;
+  for(let i = 0; i < base.length; i++){
+    hash = ((hash << 5) - hash) + base.charCodeAt(i);
+    hash |= 0;
+  }
+
+  return `sync-${Math.abs(hash)}`;
+}
+
 function extrairListaJogos(payload){
   if(Array.isArray(payload)) return payload;
   if(Array.isArray(payload?.matches)) return payload.matches;
@@ -602,7 +619,7 @@ export async function sincronizarJogosDashboard(){
   cache.forEach(j => { byId[j.id] = j; });
 
   for(const j of normalizados){
-    const id = j.extId ? `ext-${j.extId}` : uid();
+    const id = j.extId ? `ext-${j.extId}` : stableJogoId(j);
     const item = {
       id,
       filial_id: filialId,
@@ -632,7 +649,7 @@ export async function sincronizarJogosDashboard(){
 
   fecharModal('modal-jogo-sync');
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
-  toast(`Sincronização concluída: ${normalizados.length} jogo(s), ${erros} falha(s) de persistência.`);
+  toast(`Sincronização concluída: ${normalizados.length} jogo(s) processado(s), ${erros} falha(s) de persistência.`);
 }
 
 export async function salvarJogoDashboard(){

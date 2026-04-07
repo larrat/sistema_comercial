@@ -127,7 +127,7 @@ export function renderClientes(){
                 </td>
                 <td>
                   <div>${c.tel || '—'}</div>
-                  ${c.whatsapp ? `<div style="font-size:11px;color:var(--tx3)">WA: ${c.whatsapp}</div>` : ''}
+                  ${c.whatsapp ? `<div style="font-size:11px;color:var(--tx3)">WhatsApp: ${c.whatsapp}</div>` : ''}
                   ${c.email ? `<div style="font-size:11px;color:var(--tx3)">${c.email}</div>` : ''}
                 </td>
                 <td>
