@@ -1,5 +1,72 @@
-const SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
-const SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+const DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
+const DEFAULT_SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+
+const SB_URL =
+  window.__SC_SUPABASE_URL__ ||
+  localStorage.getItem('sc_supabase_url') ||
+  DEFAULT_SB_URL;
+
+const SB_KEY =
+  window.__SC_SUPABASE_KEY__ ||
+  localStorage.getItem('sc_supabase_key') ||
+  DEFAULT_SB_KEY;
+
+if (!window.__SC_SUPABASE_URL__ && !localStorage.getItem('sc_supabase_url')) {
+  console.warn('Configuração: usando URL Supabase padrão do build. Recomenda-se configurar window.__SC_SUPABASE_URL__.');
+}
+if (!window.__SC_SUPABASE_KEY__ && !localStorage.getItem('sc_supabase_key')) {
+  console.warn('Configuração: usando chave publishable padrão do build. Recomenda-se configurar window.__SC_SUPABASE_KEY__.');
+}
+
+const REQ_TIMEOUT_MS = Number(window.__SC_REQ_TIMEOUT_MS__ || 12000);
+const RETRY_MAX = Number(window.__SC_RETRY_MAX__ || 2);
+const RETRY_BASE_MS = Number(window.__SC_RETRY_BASE_MS__ || 250);
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function shouldRetry(status, err) {
+  if (err?.name === 'AbortError') return true;
+  if (status == null) return true;
+  return status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = REQ_TIMEOUT_MS) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: ctl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function resilientFetch(url, options = {}) {
+  let lastErr = null;
+  let lastStatus = null;
+  for (let attempt = 0; attempt <= RETRY_MAX; attempt++) {
+    try {
+      const res = await fetchWithTimeout(url, options, REQ_TIMEOUT_MS);
+      if (!res.ok && shouldRetry(res.status)) {
+        lastStatus = res.status;
+        if (attempt < RETRY_MAX) {
+          await delay(RETRY_BASE_MS * (attempt + 1));
+          continue;
+        }
+      }
+      return res;
+    } catch (err) {
+      lastErr = err;
+      if (!shouldRetry(null, err) || attempt >= RETRY_MAX) {
+        throw err;
+      }
+      await delay(RETRY_BASE_MS * (attempt + 1));
+    }
+  }
+  if (lastErr) throw lastErr;
+  throw new Error('Falha de rede persistente' + (lastStatus ? ` (HTTP ${lastStatus})` : ''));
+}
 
 async function sbReq(table, method = 'GET', body = null, params = '') {
   const prefer =
@@ -9,7 +76,7 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
           : 'return=representation')
       : '';
 
-  const res = await fetch(`${SB_URL}/rest/v1/${table}${params}`, {
+  const res = await resilientFetch(`${SB_URL}/rest/v1/${table}${params}`, {
     method,
     headers: {
       apikey: SB_KEY,
@@ -93,6 +160,22 @@ function isBirthdayWithinDays(birthDate, baseDate = new Date(), maxDays = 0) {
 }
 
 export const SB = {
+  fetchJsonWithRetry: async (url, opts = {}) => {
+    const res = await resilientFetch(url, {
+      method: opts.method || 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(opts.headers || {})
+      },
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`HTTP ${res.status}${txt ? `: ${txt}` : ''}`);
+    }
+    const txt = await res.text();
+    return txt ? JSON.parse(txt) : null;
+  },
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: id => sbReq(`filiais?id=eq.${id}`, 'DELETE'),

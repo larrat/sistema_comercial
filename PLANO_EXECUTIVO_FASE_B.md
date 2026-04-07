@@ -132,3 +132,15 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
   - ritual de governança: `docs/governanca/RITUAL_GOVERNANCA_CONTINUA_UX_PRODUTO_ENG.md`;
   - backlog debt/control: `docs/governanca/BACKLOG_DEBT_CONTROL_UX_UI.md`;
   - relatório trimestral: `docs/governanca/RELATORIO_TRIMESTRAL_EVOLUCAO_TEMPLATE.md`.
+
+## 15. Donos por frente (07/04/2026)
+- Design/Produto:
+  - liderar diagnóstico, priorização, fluxos, protótipos e governança.
+- Front-end:
+  - consolidar componentes, tokens e padronização de interface.
+- Back-end/Produto:
+  - suportar telemetry, eventos, recomendações acionáveis e ajustes funcionais.
+- QA:
+  - validar checklist visual, funcional e responsivo antes de release.
+- Liderança:
+  - garantir prioridade real para consolidação estrutural, sem atropelo por novas features.

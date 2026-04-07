@@ -323,13 +323,12 @@ export async function salvarCampanha() {
     ativo
   };
 
-  let persistiu = true;
   try {
     await SB.upsertCampanha(item);
   } catch (e) {
-    persistiu = false;
     console.error('Erro ao salvar campanha no banco', e);
     notify(MSG.campanhas.saveFailed(e?.message), SEVERITY.ERROR);
+    return;
   }
 
   const list = getCampanhasCache();
@@ -340,29 +339,24 @@ export async function salvarCampanha() {
   fecharModal('modal-campanha');
   renderCampanhasMet();
   renderCampanhas();
-  if (persistiu) {
-    notify(State.editIds?.campanha ? 'Sucesso: campanha atualizada e pronta para uso.' : 'Sucesso: campanha criada e pronta para uso.', SEVERITY.SUCCESS);
-  } else {
-    notify(MSG.campanhas.savedLocal, SEVERITY.WARNING);
-  }
+  notify(State.editIds?.campanha ? 'Sucesso: campanha atualizada e pronta para uso.' : 'Sucesso: campanha criada e pronta para uso.', SEVERITY.SUCCESS);
 }
 
 export async function removerCampanha(id) {
   if (!confirm('Remover campanha?')) return;
 
-  let persistiu = true;
   try {
     await SB.deleteCampanha(id);
   } catch (e) {
-    persistiu = false;
     console.error('Erro ao remover campanha no banco', e);
+    notify('Erro: não foi possível remover no banco. Ação: tente novamente.', SEVERITY.ERROR);
+    return;
   }
 
   D.campanhas[State.FIL] = getCampanhasCache().filter(c => c.id !== id);
   renderCampanhasMet();
   renderCampanhas();
-  if (persistiu) toast('Campanha removida.');
-  else toast('Campanha removida localmente.');
+  toast('Campanha removida.');
 }
 
 export function renderCampanhasMet() {

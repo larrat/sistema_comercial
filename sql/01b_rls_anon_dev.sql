@@ -4,6 +4,17 @@
 
 begin;
 
+-- Guardrail de segurança:
+-- Este script só executa quando a sessão define explicitamente:
+--   set app.allow_anon_rls = 'true';
+do $$
+begin
+  if coalesce(current_setting('app.allow_anon_rls', true), 'false') <> 'true' then
+    raise exception 'Bloqueado: 01b_rls_anon_dev.sql exige "set app.allow_anon_rls = true" na sessão.';
+  end if;
+end
+$$;
+
 alter table public.filiais enable row level security;
 alter table public.produtos enable row level security;
 alter table public.clientes enable row level security;

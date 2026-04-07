@@ -718,9 +718,7 @@ export async function sincronizarJogosDashboard(){
 
   let payload;
   try{
-    const res = await fetch(apiUrl);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    payload = await res.json();
+    payload = await SB.fetchJsonWithRetry(apiUrl);
   }catch(e){
     notify(MSG.jogos.fetchFailed(e?.message), SEVERITY.ERROR);
     return;
@@ -822,12 +820,12 @@ export async function salvarJogoDashboard(){
     status: 'agendado'
   };
 
-  let persistiu = true;
   try{
     await SB.upsertJogoAgenda(item);
   }catch(e){
-    persistiu = false;
     console.error('Erro ao salvar jogo na API', e);
+    notify('Erro: jogo não foi salvo no banco. Ação: tente novamente.', SEVERITY.ERROR);
+    return;
   }
 
   const jogos = getJogosCache(filialId);
@@ -837,12 +835,7 @@ export async function salvarJogoDashboard(){
   fecharModal('modal-jogo');
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
 
-  notify(
-    persistiu
-      ? 'Sucesso: jogo adicionado na agenda.'
-      : MSG.jogos.saveFallback,
-    persistiu ? SEVERITY.SUCCESS : SEVERITY.WARNING
-  );
+  notify('Sucesso: jogo adicionado na agenda.', SEVERITY.SUCCESS);
 }
 
 export async function removerJogoDashboard(id){
@@ -850,22 +843,17 @@ export async function removerJogoDashboard(id){
   if(!filialId) return;
   if(!confirm('Remover este jogo da agenda?')) return;
 
-  let persistiu = true;
   try{
     await SB.deleteJogoAgenda(id);
   }catch(e){
-    persistiu = false;
     console.error('Erro ao remover jogo da API', e);
+    notify('Erro: não foi possível remover no banco. Ação: tente novamente.', SEVERITY.ERROR);
+    return;
   }
 
   D.jogos[filialId] = getJogosCache(filialId).filter(j => j.id !== id);
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
-  notify(
-    persistiu
-      ? 'Sucesso: jogo removido da agenda.'
-      : MSG.jogos.removeFallback,
-    persistiu ? SEVERITY.SUCCESS : SEVERITY.WARNING
-  );
+  notify('Sucesso: jogo removido da agenda.', SEVERITY.SUCCESS);
 }
 
 export function renderDashJogos(fsel = 'todas'){
