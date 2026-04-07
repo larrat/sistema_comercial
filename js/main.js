@@ -130,6 +130,12 @@ const UX_EVENTS_KEY = 'sc_ux_events_v1';
 const GOAL_METRICS_VERSION = 2;
 const KPI_PAGES = ['dashboard', 'gerencial', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'notificacoes'];
 const primaryActionTracker = { page: 'dashboard', clicks: 0, active: false };
+const APP_ROLES = ['operador', 'gerente', 'admin'];
+const ROLE_LABEL = {
+  operador: 'Operador',
+  gerente: 'Gerente',
+  admin: 'Admin'
+};
 
 const JOURNEY_MODAL_MAP = {
   'modal-produto': 'produto',
@@ -154,8 +160,57 @@ function resetRuntimeData(){
 
   State.FIL = null;
   State.selFil = null;
+  State.user = null;
+  State.userRole = 'operador';
   State.editIds = {};
   State.pedItens = [];
+}
+
+function normalizeUserRole(role){
+  const r = norm(role || '');
+  return APP_ROLES.includes(r) ? r : 'operador';
+}
+
+function currentUserRole(){
+  return normalizeUserRole(State.userRole);
+}
+
+function hasRole(allowedRoles = []){
+  const current = currentUserRole();
+  return (allowedRoles || []).map(normalizeUserRole).includes(current);
+}
+
+function requireRole(allowedRoles = [], denyMessage = 'Você não tem permissão para esta ação.'){
+  if (hasRole(allowedRoles)) return true;
+  toast(denyMessage);
+  return false;
+}
+
+function buildRoleGuard(fn, allowedRoles, denyMessage){
+  return async (...args) => {
+    if (!requireRole(allowedRoles, denyMessage)) return;
+    return fn(...args);
+  };
+}
+
+function renderRoleBadge(){
+  const el = document.getElementById('sb-role');
+  if (!el) return;
+  const role = currentUserRole();
+  el.textContent = ROLE_LABEL[role] || 'Operador';
+}
+
+async function carregarContextoUsuario(session){
+  State.user = session?.user || null;
+  let role = 'operador';
+  try{
+    const perfil = await SB.getMeuPerfil(session?.user?.id || null);
+    role = normalizeUserRole(perfil?.papel || '');
+  }catch(e){
+    console.warn('Perfil não encontrado em user_perfis. Assumindo operador.', e?.message || e);
+  }
+  State.userRole = role;
+  renderRoleBadge();
 }
 
 function renderAuthGate(session){
@@ -1091,6 +1146,7 @@ function limparFormPedTracked(){
   return limparFormPed();
 }
 function abrirNovaCampanhaTracked(){
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode criar campanha.')) return;
   startCriticalTask('campanha');
   logStrategicAction('campanhas');
   return abrirNovaCampanha();
@@ -1117,6 +1173,7 @@ async function salvarPedidoTracked(){
   renderMetasNegocio();
 }
 async function salvarCampanhaTracked(){
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode salvar campanha.')) return;
   if(State.editIds?.campanha) registerJourneyRework('campanha');
   await salvarCampanha();
   const open = document.getElementById('modal-campanha')?.classList.contains('on');
@@ -1127,6 +1184,7 @@ async function salvarCampanhaTracked(){
   renderMetasNegocio();
 }
 async function gerarFilaCampanhaTracked(id){
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode gerar fila de campanha.')) return;
   logStrategicAction('campanhas');
   await gerarFilaCampanha(id);
   renderMetasNegocio();
@@ -1765,7 +1823,13 @@ function renderSetupGrid() {
 async function renderSetup() {
   mostrarTela('screen-setup');
   const session = await SB.getSession();
-  if (!renderAuthGate(session)) return;
+  if (!renderAuthGate(session)) {
+    State.user = null;
+    State.userRole = 'operador';
+    renderRoleBadge();
+    return;
+  }
+  await carregarContextoUsuario(session);
 
   const grid = document.getElementById('fil-grid');
   const form = document.getElementById('setup-form');
@@ -1796,6 +1860,7 @@ function selFilial(id) {
 }
 
 async function criarPrimeiraFilial() {
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode criar filial.')) return;
   const nome = document.getElementById('sf-nome')?.value.trim();
   if (!nome) {
     toast('Informe o nome da filial.');
@@ -1830,6 +1895,7 @@ async function entrar() {
     await renderSetup();
     return;
   }
+  await carregarContextoUsuario(session);
 
   if (!State.selFil) {
     toast('Selecione uma filial.');
@@ -2254,6 +2320,7 @@ function editarFilial(id) {
 }
 
 async function salvarFilial() {
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode salvar filial.')) return;
   const nome = document.getElementById('fil-nome')?.value.trim();
   if (!nome) {
     toast('Informe o nome.');
@@ -2286,6 +2353,7 @@ async function salvarFilial() {
 }
 
 async function removerFilial(id) {
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode remover filial.')) return;
   if (!confirm('Remover filial e dados?')) return;
 
   try {
@@ -2363,6 +2431,7 @@ async function trocarFilial(id) {
 }
 
 function exportCSV(tipo) {
+  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode exportar CSV.')) return;
   const saldos = calcSaldos();
   let rows = [];
   let name = '';
@@ -2463,6 +2532,18 @@ function resetUxKpis(){
   toast('KPIs de UX resetados com sucesso.');
 }
 
+const removerProdGuard = buildRoleGuard(removerProd, ['admin', 'gerente'], 'Somente gerente/admin pode remover produto.');
+const removerCliGuard = buildRoleGuard(removerCli, ['admin', 'gerente'], 'Somente gerente/admin pode remover cliente.');
+const removerPedGuard = buildRoleGuard(removerPed, ['admin', 'gerente'], 'Somente gerente/admin pode remover pedido.');
+const remFornGuard = buildRoleGuard(remForn, ['admin', 'gerente'], 'Somente gerente/admin pode remover fornecedor.');
+const excluirMovGuard = buildRoleGuard(excluirMov, ['admin', 'gerente'], 'Somente gerente/admin pode excluir movimentação.');
+const removerJogoDashboardGuard = buildRoleGuard(removerJogoDashboard, ['admin', 'gerente'], 'Somente gerente/admin pode remover jogo.');
+const salvarJogoDashboardGuard = buildRoleGuard(salvarJogoDashboard, ['admin', 'gerente'], 'Somente gerente/admin pode salvar jogo.');
+const sincronizarJogosDashboardGuard = buildRoleGuard(sincronizarJogosDashboard, ['admin', 'gerente'], 'Somente gerente/admin pode sincronizar jogos.');
+const removerCampanhaGuard = buildRoleGuard(removerCampanha, ['admin', 'gerente'], 'Somente gerente/admin pode remover campanha.');
+const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ['admin', 'gerente'], 'Somente gerente/admin pode alterar envio.');
+const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ['admin', 'gerente'], 'Somente gerente/admin pode alterar envio.');
+
 initCotacaoModule({
   renderCotLogs,
   renderProdMet,
@@ -2527,10 +2608,10 @@ window.setP = setP;
 window.renderDashJogos = renderDashJogos;
 window.abrirNovoJogo = abrirNovoJogo;
 window.limparFormJogo = limparFormJogo;
-window.salvarJogoDashboard = salvarJogoDashboard;
-window.removerJogoDashboard = removerJogoDashboard;
+window.salvarJogoDashboard = salvarJogoDashboardGuard;
+window.removerJogoDashboard = removerJogoDashboardGuard;
 window.abrirSyncJogos = abrirSyncJogos;
-window.sincronizarJogosDashboard = sincronizarJogosDashboard;
+window.sincronizarJogosDashboard = sincronizarJogosDashboardGuard;
 window.usarExemploSyncJogos = usarExemploSyncJogos;
 
 window.renderProdutos = renderProdutos;
@@ -2538,7 +2619,7 @@ window.renderProdMet = renderProdMet;
 window.limparFormProd = limparFormProdTracked;
 window.salvarProduto = salvarProdutoTracked;
 window.editarProd = editarProd;
-window.removerProd = removerProd;
+window.removerProd = removerProdGuard;
 window.calcProdPreview = calcProdPreview;
 window.syncV = syncV;
 window.syncA = syncA;
@@ -2549,7 +2630,7 @@ window.renderCliMet = renderCliMet;
 window.limparFormCli = limparFormCliTracked;
 window.salvarCliente = salvarClienteTracked;
 window.editarCli = editarCli;
-window.removerCli = removerCli;
+window.removerCli = removerCliGuard;
 window.renderCliSegs = renderCliSegs;
 window.abrirCliDet = abrirCliDet;
 window.addNota = addNota;
@@ -2560,7 +2641,7 @@ window.renderPedMet = renderPedMet;
 window.limparFormPed = limparFormPedTracked;
 window.salvarPedido = salvarPedidoTracked;
 window.editarPed = editarPed;
-window.removerPed = removerPed;
+window.removerPed = removerPedGuard;
 window.verPed = verPed;
 window.addItem = addItem;
 window.remItem = remItem;
@@ -2571,7 +2652,7 @@ window.renderCotTabela = renderCotTabela;
 window.cotFile = cotFile;
 window.cotLock = cotLock;
 window.salvarForn = salvarForn;
-window.remForn = remForn;
+window.remForn = remFornGuard;
 window.confirmarMapa = confirmarMapa;
 window.renderMapaBody = renderMapaBody;
 window.renderFornSel = renderFornSel;
@@ -2589,7 +2670,7 @@ window.movLoadProd = movLoadProd;
 window.movCalc = movCalc;
 window.movCalcAjuste = movCalcAjuste;
 window.salvarMov = salvarMov;
-window.excluirMov = excluirMov;
+window.excluirMov = excluirMovGuard;
 window.refreshMovSel = refreshMovSel;
 window.refreshDestSel = refreshDestSel;
 
@@ -2609,12 +2690,12 @@ window.abrirNovaCampanha = abrirNovaCampanhaTracked;
 window.adotarCampanhasParaFilialAtiva = adotarCampanhasParaFilialAtiva;
 window.editarCampanha = editarCampanha;
 window.salvarCampanha = salvarCampanhaTracked;
-window.removerCampanha = removerCampanha;
+window.removerCampanha = removerCampanhaGuard;
 window.renderCampanhasMet = renderCampanhasMet;
 window.renderCampanhas = renderCampanhas;
 window.gerarFilaCampanha = gerarFilaCampanhaTracked;
 window.renderFilaWhatsApp = renderFilaWhatsApp;
 window.renderCampanhaEnvios = renderCampanhaEnvios;
 window.abrirWhatsAppEnvio = abrirWhatsAppEnvio;
-window.marcarEnvioEnviado = marcarEnvioEnviado;
-window.marcarEnvioFalhou = marcarEnvioFalhou;
+window.marcarEnvioEnviado = marcarEnvioEnviadoGuard;
+window.marcarEnvioFalhou = marcarEnvioFalhouGuard;

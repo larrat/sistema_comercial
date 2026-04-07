@@ -263,6 +263,18 @@ export const SB = {
   },
   getSession: async () => getActiveAuthSession(),
   clearSession: () => writeAuthSession(null),
+  getMeuPerfil: async (userId = null) => {
+    const session = await getActiveAuthSession();
+    const uid = userId || session?.user?.id;
+    if (!uid) return null;
+    const r = await sbReq(
+      'user_perfis',
+      'GET',
+      null,
+      `?user_id=eq.${uid}&select=user_id,papel&limit=1`
+    );
+    return r && r[0] ? r[0] : null;
+  },
   fetchJsonWithRetry: async (url, opts = {}) => {
     const res = await resilientFetch(url, {
       method: opts.method || 'GET',

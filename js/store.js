@@ -21,6 +21,8 @@ export const D = {
 export const State = {
   FIL: null,         // ID da Filial ativa
   selFil: null,      // Filial selecionada na tela de Setup
+  user: null,        // Sessão autenticada (Supabase user)
+  userRole: 'operador', // Papel atual do usuário (admin/gerente/operador)
   dashP: 'mes',      // Período selecionado no dashboard
   movTipo: 'entrada',// Tipo de movimentação selecionada no estoque
   editIds: {},       // Guarda IDs em edição (produto, cliente, etc)
