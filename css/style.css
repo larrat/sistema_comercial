@@ -1233,17 +1233,57 @@ body{
   align-items:start;
 }
 
-#pg-dashboard .dash-grid-cards--exec{
+#pg-dashboard .dash-section{
+  margin-bottom:14px;
+}
+#pg-dashboard .dash-section-head{
+  margin-bottom:10px;
+}
+#pg-dashboard .dash-section-head h3{
+  font-size:14px;
+  font-weight:700;
+  color:#0F2C42;
+  margin-bottom:2px;
+}
+#pg-dashboard .dash-section-head p{
+  font-size:12px;
+  color:var(--tx2);
+}
+#pg-dashboard .dash-grid-cards--operacao{
   grid-template-columns:repeat(12,minmax(0,1fr));
   gap:12px;
 }
 #pg-dashboard .dash-card{min-height:0}
-#pg-dashboard .dash-card--metas{grid-column:span 6}
 #pg-dashboard .dash-card--oportunidades{grid-column:span 6}
 #pg-dashboard .dash-card--jogos{grid-column:span 6}
-#pg-dashboard .dash-card--top{grid-column:span 4}
-#pg-dashboard .dash-card--estoque{grid-column:span 4}
-#pg-dashboard .dash-card--forn{grid-column:span 4}
+#pg-dashboard .dash-card--estoque{grid-column:span 12}
+
+#pg-dashboard .dash-grid-cards--analise{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+#pg-dashboard .dash-card--top{grid-column:auto}
+#pg-dashboard .dash-card--forn{grid-column:auto}
+
+#pg-dashboard #dash-alerts{
+  display:grid;
+  gap:8px;
+  margin-bottom:12px;
+}
+#pg-dashboard #dash-alerts .alert{
+  margin-bottom:0;
+}
+#pg-dashboard .dash-chart-legend{
+  display:flex;
+  gap:12px;
+  margin-top:8px;
+  font-size:11px;
+  color:var(--tx3);
+}
+#pg-dashboard .empty{
+  border:1px dashed var(--bd);
+  border-radius:12px;
+  background:#FAFCFF;
+}
 
 #dash-metas-negocio{
   display:grid;
@@ -1321,22 +1361,31 @@ input[type="checkbox"]{
 @media(max-width:1024px){
   .dash-grid-main{grid-template-columns:1fr}
   .dash-grid-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #pg-dashboard .dash-grid-cards--exec{
+  #pg-dashboard .dash-grid-cards--operacao{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
-  #pg-dashboard .dash-card--metas,
   #pg-dashboard .dash-card--oportunidades,
   #pg-dashboard .dash-card--jogos,
-  #pg-dashboard .dash-card--top,
-  #pg-dashboard .dash-card--estoque,
-  #pg-dashboard .dash-card--forn{
+  #pg-dashboard .dash-card--estoque{
+    grid-column:auto;
+  }
+  #pg-dashboard .dash-grid-cards--analise{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:860px){
+  #pg-dashboard .dash-card--oportunidades,
+  #pg-dashboard .dash-card--jogos,
+  #pg-dashboard .dash-card--estoque{
     grid-column:auto;
   }
 }
 
 @media(max-width:760px){
   .dash-grid-cards{grid-template-columns:1fr}
-  #pg-dashboard .dash-grid-cards--exec{grid-template-columns:1fr}
+  #pg-dashboard .dash-grid-cards--operacao{grid-template-columns:1fr}
+  #pg-dashboard .dash-grid-cards--analise{grid-template-columns:1fr}
   .dash-goals-grid{grid-template-columns:1fr}
   .preview-grid-4{
     grid-template-columns:1fr 1fr;

@@ -345,10 +345,10 @@ export function renderDash(){
 
   let ah = '';
   if(crit.length){
-    ah += `<div class="alert al-r">🚨 <b>${crit.length} produto(s) zerado(s):</b> ${crit.slice(0,4).map(p => p.nome).join(', ')}${crit.length > 4 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-r"><b>Estoque crítico:</b> ${crit.length} produto(s) zerado(s). ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? '…' : ''}</div>`;
   }
   if(baixo.length){
-    ah += `<div class="alert al-a">⚠ <b>${baixo.length} abaixo do mínimo:</b> ${baixo.slice(0,4).map(p => p.nome).join(', ')}${baixo.length > 4 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-a"><b>Estoque em atenção:</b> ${baixo.length} item(ns) abaixo do mínimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '…' : ''}</div>`;
   }
 
   const hoje = new Date();
@@ -368,7 +368,7 @@ export function renderDash(){
     .sort((a, b) => a._anivData - b._anivData);
 
   if(anivProximos.length){
-    ah += `<div class="alert al-g">🎂 <b>${anivProximos.length} aniversário(s) nos próximos 7 dias:</b> ${anivProximos.slice(0,4).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 4 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-g"><b>Aniversários próximos:</b> ${anivProximos.length} cliente(s) nos próximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? '…' : ''}</div>`;
   }
 
   const filialJogosId = getFilialCalendarioId();
@@ -409,7 +409,7 @@ export function renderDash(){
 
   if(oportunidades.length){
     const serieTxt = serieSel === 'todas' ? 'todas as séries' : `Série ${serieSel.toUpperCase()}`;
-    ah += `<div class="alert al-g">⚽ <b>${oportunidades.length} oportunidade(s) por jogo na semana (${serieTxt}):</b> ${oportunidades.slice(0,4).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 4 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegível(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '…' : ''}</div>`;
   }
 
   const alerts = document.getElementById('dash-alerts');
@@ -635,7 +635,7 @@ export function renderDash(){
         <button class="btn btn-p btn-sm" onclick="abrirNovaCampanha()">Nova campanha</button>
       </div>
       ${oportunidades.length
-      ? oportunidades.slice(0, 8).map(o => `
+      ? oportunidades.slice(0, 5).map(o => `
           <div class="rrow dash-op-item">
             <span style="width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;display:inline-block"></span>
             <div style="flex:1;min-width:0">

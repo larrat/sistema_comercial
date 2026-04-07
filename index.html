@@ -113,50 +113,67 @@
           </div>
         </div>
       </div>
-      <div id="dash-alerts"></div>
-      <div class="mg" id="dash-met"></div>
-      <div class="dash-grid-main">
-        <div class="card"><div class="ct">Faturamento e lucro</div>
-          <div class="barchart" id="dash-chart"></div>
-          <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no período</p></div>
-          <div style="display:flex;gap:12px;margin-top:8px;font-size:11px;color:var(--tx3)">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#163F80;margin-right:4px"></span>Faturamento</span>
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#156038;margin-right:4px"></span>Lucro</span>
-          </div>
+
+      <section class="dash-section dash-section--operacao">
+        <div class="dash-section-head">
+          <h3>Operação rápida</h3>
+          <p>Ações que precisam de decisão agora</p>
         </div>
-        <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
-      </div>
-      <div class="dash-grid-cards dash-grid-cards--exec">
-        <div class="card dash-card dash-card--top"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
-        <div class="card dash-card dash-card--estoque"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
-        <div class="card dash-card dash-card--forn"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
-        <div class="card dash-card dash-card--oportunidades">
-          <div class="fb mb-10">
-            <div class="ct ct-inline">Oportunidades por time</div>
-            <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" onchange="renderDash()">
-              <option value="todas">Todas</option>
-              <option value="a">Série A</option>
-              <option value="b">Série B</option>
-              <option value="c">Série C</option>
-            </select>
+        <div id="dash-alerts"></div>
+        <div class="dash-grid-cards dash-grid-cards--operacao">
+          <div class="card dash-card dash-card--oportunidades">
+            <div class="fb mb-10">
+              <div class="ct ct-inline">Oportunidades por time</div>
+              <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" onchange="renderDash()">
+                <option value="todas">Todas</option>
+                <option value="a">Série A</option>
+                <option value="b">Série B</option>
+                <option value="c">Série C</option>
+              </select>
+            </div>
+            <div id="dash-oportunidades"></div>
           </div>
-          <div id="dash-oportunidades"></div>
+          <div class="card dash-card dash-card--jogos">
+            <div class="fb mb-10">
+              <div class="ct ct-inline">Próximos jogos</div>
+              <div class="fg2">
+                <button class="btn btn-sm" onclick="abrirSyncJogos()">Sincronizar</button>
+                <button class="btn btn-sm" onclick="abrirNovoJogo()">+ Jogo</button>
+              </div>
+            </div>
+            <div id="dash-jogos"></div>
+          </div>
+          <div class="card dash-card dash-card--estoque"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
         </div>
-        <div class="card dash-card dash-card--jogos">
-          <div class="fb mb-10">
-            <div class="ct ct-inline">Próximos jogos</div>
-            <div class="fg2">
-              <button class="btn btn-sm" onclick="abrirSyncJogos()">Sincronizar</button>
-              <button class="btn btn-sm" onclick="abrirNovoJogo()">+ Jogo</button>
+      </section>
+
+      <section class="dash-section dash-section--analise">
+        <div class="dash-section-head">
+          <h3>Análise do negócio</h3>
+          <p>Leitura de desempenho e tendência comercial</p>
+        </div>
+        <div class="mg" id="dash-met"></div>
+        <div class="dash-grid-main">
+          <div class="card"><div class="ct">Faturamento e lucro</div>
+            <div class="barchart" id="dash-chart"></div>
+            <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no período</p></div>
+            <div class="dash-chart-legend">
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#163F80;margin-right:4px"></span>Faturamento</span>
+              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#156038;margin-right:4px"></span>Lucro</span>
             </div>
           </div>
-          <div id="dash-jogos"></div>
+          <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
         </div>
-      </div>
-      <div class="card">
-        <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
-        <div id="dash-margem"></div>
-      </div>
+        <div class="dash-grid-cards dash-grid-cards--analise">
+          <div class="card dash-card dash-card--top"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
+          <div class="card dash-card dash-card--forn"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
+        </div>
+        <div class="card">
+          <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
+          <div id="dash-margem"></div>
+        </div>
+      </section>
+
     </div>
 
     <!-- ── GERENCIAL ── -->
