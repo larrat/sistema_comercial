@@ -137,6 +137,18 @@ const ROLE_LABEL = {
   admin: 'Admin'
 };
 const ROLE_GERENTE_PLUS = ['admin', 'gerente'];
+const ROLE_PAGE_ACCESS = {
+  dashboard: APP_ROLES,
+  gerencial: APP_ROLES,
+  produtos: APP_ROLES,
+  clientes: APP_ROLES,
+  pedidos: APP_ROLES,
+  cotacao: APP_ROLES,
+  estoque: APP_ROLES,
+  notificacoes: APP_ROLES,
+  campanhas: ROLE_GERENTE_PLUS,
+  filiais: ROLE_GERENTE_PLUS
+};
 const ROLE_UI_RESTRICTED_SELECTORS = [
   '[onclick*="exportarTudo("]',
   '[onclick*="exportCSV("]',
@@ -206,6 +218,24 @@ function hasRole(allowedRoles = []){
   return (allowedRoles || []).map(normalizeUserRole).includes(current);
 }
 
+function canAccessPage(page){
+  const p = String(page || 'dashboard');
+  const allowed = ROLE_PAGE_ACCESS[p] || APP_ROLES;
+  return hasRole(allowed);
+}
+
+function getFirstAllowedPage(preferred = 'dashboard'){
+  if (canAccessPage(preferred)) return preferred;
+  const order = ['dashboard', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'notificacoes'];
+  return order.find(canAccessPage) || 'dashboard';
+}
+
+function ensureCurrentPageAccess(){
+  const current = pageAtual();
+  if (canAccessPage(current)) return;
+  ir(getFirstAllowedPage('dashboard'));
+}
+
 function requireRole(allowedRoles = [], denyMessage = 'Você não tem permissão para esta ação.'){
   if (hasRole(allowedRoles)) return true;
   toast(denyMessage);
@@ -270,6 +300,10 @@ function applyRoleUiGuards(root = document){
   const allowManagerActions = hasRole(ROLE_GERENTE_PLUS);
   const selector = ROLE_UI_RESTRICTED_SELECTORS.join(',');
   root.querySelectorAll(selector).forEach(el => setRoleUiLock(el, !allowManagerActions));
+
+  const lockPages = !allowManagerActions;
+  root.querySelectorAll('[data-p="campanhas"],[data-p="filiais"],#pg-campanhas,#pg-filiais,#mob-campanhas,#mob-filiais')
+    .forEach(el => setRoleUiLock(el, lockPages));
 }
 
 function scheduleRoleUiGuards(){
@@ -298,6 +332,7 @@ async function carregarContextoUsuario(session){
   State.userRole = role;
   renderRoleBadge();
   scheduleRoleUiGuards();
+  setTimeout(() => ensureCurrentPageAccess(), 0);
 }
 
 function renderAuthGate(session){
@@ -2328,6 +2363,10 @@ function renderNotificacoes(){
 }
 
 function ir(p) {
+  if (!canAccessPage(p)){
+    toast('Você não tem permissão para acessar esta área.');
+    p = getFirstAllowedPage('dashboard');
+  }
   fecharSb();
 
   document.querySelectorAll('.ni').forEach(n => n.classList.toggle('on', n.dataset.p === p));
