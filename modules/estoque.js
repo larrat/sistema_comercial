@@ -528,7 +528,6 @@ export async function salvarMov(){
     id: Date.now() + '-' + Math.random().toString(36).slice(2,8),
     filial_id: State.FIL,
     prod_id: prodId,
-    prodId,
     tipo: State.movTipo,
     data,
     obs,
@@ -542,7 +541,6 @@ export async function salvarMov(){
       toast('Informe o saldo real.');
       return;
     }
-    mov.saldoReal = real;
     mov.saldo_real = real;
   } else {
     const qty = parseFloat(document.getElementById('mov-qty')?.value) || 0;
@@ -559,7 +557,7 @@ export async function salvarMov(){
         return;
       }
 
-      mov.destFil = dest;
+      mov.dest_fil = dest;
 
       const nomeOrig = (P().find(p => p.id === prodId) || {}).nome || '';
       const destProd = (D.produtos[dest] || []).find(p => String(p.nome || '').toLowerCase().trim() === nomeOrig.toLowerCase().trim());
@@ -569,7 +567,6 @@ export async function salvarMov(){
           id: Date.now() + '-dest-' + Math.random().toString(36).slice(2,8),
           filial_id: dest,
           prod_id: destProd.id,
-          prodId: destProd.id,
           tipo: 'entrada',
           data,
           obs: 'Transferência de ' + ((D.filiais.find(f => f.id === State.FIL) || {}).nome || ''),
