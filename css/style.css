@@ -1756,3 +1756,144 @@ body{
   background:var(--color-opportunity-100);
   border-left-color:var(--color-opportunity-600);
 }
+
+/* =========================================================
+   COMPONENTES DE INTERFACE - PADRÃO UNIFICADO
+   ========================================================= */
+
+/* Utils para remoção de divergências de espaçamento */
+.mb-10{margin-bottom:10px!important}
+.mb-12{margin-bottom:12px!important}
+.ct-inline{margin:0!important}
+
+/* Button */
+.btn,.c-btn{
+  min-height:40px;
+  border-radius:var(--radius-md);
+  border:1px solid var(--bd2);
+  font-size:var(--text-md);
+  font-weight:700;
+  letter-spacing:.01em;
+  transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.btn:hover,.c-btn:hover{box-shadow:var(--shadow-sm)}
+.btn-sm,.c-btn--sm{
+  min-height:34px;
+  font-size:var(--text-sm);
+}
+
+/* Input + Select */
+.inp{
+  min-height:38px;
+  border:1px solid var(--bd2);
+  border-radius:var(--radius-md);
+  font-size:var(--text-md);
+  padding:8px 11px;
+  color:var(--tx);
+  background:#FFF;
+}
+.sel{
+  background-position:right 10px center;
+  padding-right:30px;
+}
+
+/* Badge */
+.bdg,.c-badge{
+  min-height:22px;
+  padding:3px 9px;
+  border-radius:var(--radius-pill);
+  font-size:var(--text-xs);
+  border:1px solid transparent;
+}
+
+/* Card + Panel */
+.card,.panel{
+  border:1px solid var(--bd);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-md);
+}
+.panel{
+  padding:12px 14px;
+}
+
+/* Table */
+.tw,.data-table{
+  border:1px solid var(--bd);
+  border-radius:var(--radius-lg);
+  background:#FFF;
+}
+.tbl th,.data-table__table th{
+  background:#F3F7FB;
+  color:#435A70;
+  border-bottom:1px solid var(--bd);
+}
+.tbl td,.data-table__table td{
+  border-bottom:1px solid #E7EDF3;
+}
+
+/* Modal */
+.modal-box{
+  border:1px solid var(--bd);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-lg);
+}
+.mt{
+  font-family:var(--font-sans);
+  font-size:30px;
+  font-size:clamp(20px,2.6vw,30px);
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+
+/* Toast */
+#toast{
+  border-radius:var(--radius-pill);
+  font-size:var(--text-md);
+  font-weight:700;
+  padding:10px 16px;
+  box-shadow:var(--shadow-md);
+}
+
+/* Tabs */
+.tabs{
+  border-bottom:1px solid var(--bd);
+}
+.tb{
+  min-height:40px;
+  border-bottom:2px solid transparent;
+  color:var(--tx3);
+  font-family:var(--font-sans);
+  font-weight:700;
+}
+.tb.on{
+  color:var(--color-focus);
+  border-bottom-color:var(--color-focus);
+  background:transparent;
+}
+
+/* Remoção de divergências visuais por página */
+.pg .mg{margin-bottom:14px}
+#pg-dashboard .ct,
+#pg-campanhas .ct{margin-bottom:10px}
+#pg-dashboard .ct.ct-inline,
+#pg-campanhas .ct.ct-inline{margin-bottom:0}
+
+.toolbar-main .inp,
+.toolbar-main .sel{
+  max-width:180px !important;
+}
+#pg-produtos #prod-busca{max-width:220px !important}
+#pg-produtos #prod-cat-fil{max-width:180px !important}
+#pg-clientes #cli-fil-st{max-width:150px !important}
+#pg-pedidos #ped-fil-st{max-width:170px !important}
+#pg-estoque #est-fil,
+#pg-estoque #est-hist-tipo{max-width:150px !important}
+#pg-notificacoes #noti-fil-prioridade{max-width:190px !important}
+
+@media(max-width:760px){
+  .btn,.c-btn{min-height:44px}
+  .btn-sm,.c-btn--sm{min-height:40px}
+  .inp{min-height:42px}
+  .tb{min-height:42px}
+  .panel{padding:12px}
+}

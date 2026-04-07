@@ -126,7 +126,7 @@
         </div>
       </div>
       <div id="dash-alerts"></div>
-      <div class="mg" id="dash-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="dash-met"></div>
       <div class="dash-grid-main">
         <div class="card"><div class="ct">Faturamento e lucro</div>
           <div class="barchart" id="dash-chart"></div>
@@ -140,8 +140,8 @@
       </div>
       <div class="dash-grid-cards">
         <div class="card">
-          <div class="fb" style="margin-bottom:10px">
-            <div class="ct" style="margin:0">Metas de negócio (30-45d)</div>
+          <div class="fb mb-10">
+            <div class="ct ct-inline">Metas de negócio (30-45d)</div>
             <button class="btn btn-sm" onclick="renderMetasNegocio()">Atualizar</button>
           </div>
           <div id="dash-metas-negocio"></div>
@@ -150,8 +150,8 @@
         <div class="card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
         <div class="card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
         <div class="card">
-          <div class="fb" style="margin-bottom:10px">
-            <div class="ct" style="margin:0">Oportunidades por time</div>
+          <div class="fb mb-10">
+            <div class="ct ct-inline">Oportunidades por time</div>
             <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" onchange="renderDash()">
               <option value="todas">Todas</option>
               <option value="a">Série A</option>
@@ -162,8 +162,8 @@
           <div id="dash-oportunidades"></div>
         </div>
         <div class="card">
-          <div class="fb" style="margin-bottom:10px">
-            <div class="ct" style="margin:0">Próximos jogos</div>
+          <div class="fb mb-10">
+            <div class="ct ct-inline">Próximos jogos</div>
             <div class="fg2">
               <button class="btn btn-sm" onclick="abrirSyncJogos()">Sincronizar</button>
               <button class="btn btn-sm" onclick="abrirNovoJogo()">+ Jogo</button>
@@ -173,7 +173,7 @@
         </div>
       </div>
       <div class="card">
-        <div class="fb" style="margin-bottom:12px"><div class="ct" style="margin:0">Margem por produto</div></div>
+        <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
         <div id="dash-margem"></div>
       </div>
     </div>
@@ -184,7 +184,7 @@
         <div><h2>Produtos</h2><p>Cadastro único — precificação, estoque e pedidos</p></div>
         <button class="btn btn-p" onclick="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
       </div>
-      <div class="mg" id="prod-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="prod-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
           <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" oninput="renderProdutos()">
@@ -203,7 +203,7 @@
         <div><h2>Clientes</h2><p id="cli-sub">Carteira da filial</p></div>
         <button class="btn btn-p" onclick="abrirModal('modal-cliente');limparFormCli()">+ Novo cliente</button>
       </div>
-      <div class="mg" id="cli-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="cli-met"></div>
       <div class="tabs">
         <button class="tb on" onclick="switchTab('cli','lista')">Lista</button>
         <button class="tb" onclick="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
@@ -230,7 +230,7 @@
         <div><h2>Pedidos</h2><p id="ped-sub">Orçamentos e vendas</p></div>
         <button class="btn btn-p" onclick="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
       </div>
-      <div class="mg" id="ped-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="ped-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
           <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" oninput="renderPedidos()">
@@ -294,7 +294,7 @@
         <button class="tb" onclick="switchTab('est','historico');renderEstHist()">Histórico</button>
       </div>
       <div class="tc on" id="est-tc-posicao">
-        <div class="mg" id="est-met" style="margin-bottom:14px"></div>
+        <div class="mg" id="est-met"></div>
         <div class="toolbar">
           <div class="toolbar-main">
             <input class="inp" id="est-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstPosicao()">
@@ -324,12 +324,12 @@
         </div>
       </div>
 
-      <div class="mg" id="camp-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="camp-met"></div>
       <div id="camp-diag"></div>
 
       <div class="card">
         <div class="toolbar">
-          <div class="ct" style="margin:0">Campanhas cadastradas</div>
+          <div class="ct ct-inline">Campanhas cadastradas</div>
           <div class="toolbar-actions">
             <button class="btn btn-sm" onclick="refreshCampanhasTela()">Atualizar</button>
           </div>
@@ -354,7 +354,7 @@
         <div><h2>Filiais</h2><p>Gerencie todas as filiais</p></div>
         <button class="btn btn-p" onclick="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
       </div>
-      <div class="mg" id="fil-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="fil-met"></div>
       <div id="fil-lista"></div>
     </div>
 
@@ -377,7 +377,7 @@
           </select>
         </div>
       </div>
-      <div class="mg" id="noti-met" style="margin-bottom:14px"></div>
+      <div class="mg" id="noti-met"></div>
       <div class="card">
         <div class="ct">Inbox ativa</div>
         <div id="noti-lista"></div>
