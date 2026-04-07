@@ -423,7 +423,7 @@ export async function gerarFilaCampanha(campanhaId) {
     const destino =
       campanha.canal === 'email' ? (cliente.email || null) :
       campanha.canal === 'sms' ? (cliente.tel || null) :
-      (cliente.whatsapp || null);
+      (cliente.whatsapp || cliente.tel || null);
 
     if (!destino) {
       ignorados++;

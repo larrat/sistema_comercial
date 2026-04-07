@@ -292,7 +292,7 @@ export const SB = {
 
       if (canal === 'email') return !!c.optin_email && !!c.email;
       if (canal === 'sms') return !!c.optin_sms && !!c.tel;
-      if (canal === 'whatsapp_manual') return !!c.optin_marketing && !!c.whatsapp;
+      if (canal === 'whatsapp_manual') return !!c.optin_marketing && !!(c.whatsapp || c.tel);
 
       return !!c.optin_marketing;
     });
