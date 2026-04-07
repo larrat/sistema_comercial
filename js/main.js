@@ -250,6 +250,10 @@ function setRoleUiLock(el, locked){
   }
 
   el.classList.add('is-role-locked');
+  if (el.dataset.rolePrevDisplay == null){
+    el.dataset.rolePrevDisplay = el.style.display || '';
+  }
+  el.style.display = 'none';
   if (el.dataset.rolePrevTitle == null){
     el.dataset.rolePrevTitle = el.title || '';
   }
