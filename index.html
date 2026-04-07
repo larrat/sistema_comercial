@@ -232,10 +232,10 @@
           <div class="mg" id="cot-met" style="margin:0;flex:1"></div>
           <div class="fg2" style="flex-shrink:0">
             <button class="btn btn-sm" onclick="exportCSV('cotacao')">Exportar CSV</button>
-            <button class="btn btn-sm" id="cot-lock-btn" onclick="cotLock()">🔒 Travar</button>
+            <button class="btn btn-sm" id="cot-lock-btn" onclick="cotLock()">Travar</button>
           </div>
         </div>
-        <div id="cot-lock-alert" style="display:none" class="alert al-a">🔒 Cotação travada — valores protegidos</div>
+        <div id="cot-lock-alert" style="display:none" class="alert al-a">Cotação travada — valores protegidos</div>
         <div class="card"><div id="cot-tabela"></div></div>
       </div>
     </div>
@@ -610,10 +610,10 @@
   <div class="modal-box">
     <div class="mt">Nova movimentação</div>
     <div class="tc-grid">
-      <div class="tc-card sel" id="tc-entrada" onclick="setTipo('entrada')"><div class="ti">📥</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
-      <div class="tc-card" id="tc-saida" onclick="setTipo('saida')"><div class="ti">📤</div><div class="tl">Saída</div><div class="ts">Venda / consumo</div></div>
-      <div class="tc-card" id="tc-ajuste" onclick="setTipo('ajuste')"><div class="ti">⚖</div><div class="tl">Ajuste</div><div class="ts">Inventário</div></div>
-      <div class="tc-card" id="tc-transf" onclick="setTipo('transf')"><div class="ti">🔄</div><div class="tl">Transferência</div><div class="ts">Entre filiais</div></div>
+      <div class="tc-card sel" id="tc-entrada" onclick="setTipo('entrada')"><div class="ti">EN</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
+      <div class="tc-card" id="tc-saida" onclick="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saída</div><div class="ts">Venda / consumo</div></div>
+      <div class="tc-card" id="tc-ajuste" onclick="setTipo('ajuste')"><div class="ti">AJ</div><div class="tl">Ajuste</div><div class="ts">Inventário</div></div>
+      <div class="tc-card" id="tc-transf" onclick="setTipo('transf')"><div class="ti">TR</div><div class="tl">Transferência</div><div class="ts">Entre filiais</div></div>
     </div>
     <div class="fg c2">
       <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" onchange="movLoadProd()"><option value="">— selecione —</option></select></div>

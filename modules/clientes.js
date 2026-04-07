@@ -162,9 +162,9 @@ export function renderClientes(){
           </div>
 
           <div class="fg2" style="justify-content:flex-end">
-            <button class="ib" onclick="abrirCliDet('${c.id}')">👁</button>
-            <button class="ib" onclick="editarCli('${c.id}')">✏</button>
-            <button class="ib" onclick="removerCli('${c.id}')">✕</button>
+            <button class="ib" title="Ver cliente" onclick="abrirCliDet('${c.id}')">VER</button>
+            <button class="ib" title="Editar cliente" onclick="editarCli('${c.id}')">EDT</button>
+            <button class="ib" title="Excluir cliente" onclick="removerCli('${c.id}')">DEL</button>
           </div>
         </div>
       `;
@@ -224,9 +224,9 @@ export function renderClientes(){
                 <td>${ST_B[c.status] || ''}</td>
                 <td>
                   <div class="fg2">
-                    <button class="ib" onclick="abrirCliDet('${c.id}')">👁</button>
-                    <button class="ib" onclick="editarCli('${c.id}')">✏</button>
-                    <button class="ib" onclick="removerCli('${c.id}')">✕</button>
+                    <button class="ib" title="Ver cliente" onclick="abrirCliDet('${c.id}')">VER</button>
+                    <button class="ib" title="Editar cliente" onclick="editarCli('${c.id}')">EDT</button>
+                    <button class="ib" title="Excluir cliente" onclick="removerCli('${c.id}')">DEL</button>
                   </div>
                 </td>
               </tr>

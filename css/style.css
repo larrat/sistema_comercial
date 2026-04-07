@@ -178,7 +178,7 @@ textarea.inp{resize:vertical;min-height:60px}
 /* ── FLEX HELPERS ── */
 .fb{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .fg2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ib{background:var(--surf);border:1px solid var(--bd);cursor:pointer;color:var(--tx3);font-size:12px;padding:6px 9px;border-radius:10px;transition:all .1s;font-family:'Manrope',sans-serif}
+.ib{background:var(--surf);border:1px solid var(--bd);cursor:pointer;color:var(--tx3);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:6px 9px;border-radius:10px;transition:all .1s;font-family:'DM Mono',monospace;min-width:38px;display:inline-flex;align-items:center;justify-content:center}
 .ib:hover{background:var(--surf2);color:var(--tx);border-color:var(--bd2)}
 
 /* ── EMPTY ── */
@@ -237,7 +237,7 @@ textarea.inp{resize:vertical;min-height:60px}
 .tc-card{border:1px solid var(--bd);border-radius:var(--rad);padding:11px;cursor:pointer;transition:all .14s;text-align:center}
 .tc-card:hover{background:var(--surf2)}
 .tc-card.sel{border-color:var(--acc);background:var(--surf2)}
-.tc-card .ti{font-size:18px;margin-bottom:2px}
+.tc-card .ti{font-size:11px;font-weight:800;letter-spacing:.05em;margin-bottom:3px;font-family:'DM Mono',monospace}
 .tc-card .tl{font-size:13px;font-weight:600}
 .tc-card .ts{font-size:11px;color:var(--tx3);margin-top:1px}
 

@@ -212,7 +212,7 @@ export function renderEstPosicao(){
                 <td style="font-weight:600">${fmt(s.saldo * s.cm)}</td>
                 <td style="color:var(--tx2)">${min > 0 ? fmtQ(min) + ' ' + p.un : '—'}</td>
                 <td><span class="bdg ${stC}">${stL}</span></td>
-                <td><button class="ib" onclick="abrirMovProd('${p.id}')">📥</button></td>
+                <td><button class="ib" title="Movimentar produto" onclick="abrirMovProd('${p.id}')">MOV</button></td>
               </tr>
             `;
           }).join('')}
@@ -246,10 +246,10 @@ export function renderEstHist(){
   }
 
   const tiInfo = {
-    entrada:{ ico:'📥', lbl:'Entrada' },
-    saida:{ ico:'📤', lbl:'Saída' },
-    ajuste:{ ico:'⚖', lbl:'Ajuste' },
-    transf:{ ico:'🔄', lbl:'Transferência' }
+    entrada:{ ico:'EN', lbl:'Entrada' },
+    saida:{ ico:'SA', lbl:'Saída' },
+    ajuste:{ ico:'AJ', lbl:'Ajuste' },
+    transf:{ ico:'TR', lbl:'Transferência' }
   };
 
   el.innerHTML = `
@@ -281,14 +281,14 @@ export function renderEstHist(){
 
             return `
               <tr>
-                <td><div style="width:26px;height:26px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:12px">${ti.ico}</div></td>
+                <td><div style="width:26px;height:26px;border-radius:8px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;border:1px solid var(--bd)">${ti.ico}</div></td>
                 <td style="font-weight:600">${p ? p.nome : '—'}</td>
                 <td style="color:var(--tx2);font-size:12px">${m.data || '—'}</td>
                 <td><span class="bdg bk">${ti.lbl}</span></td>
                 <td style="font-weight:600;color:${cor}">${qShow} ${p ? p.un : ''}</td>
                 <td style="color:var(--tx2)">${m.custo > 0 ? fmt(m.custo) : '—'}</td>
                 <td style="font-size:12px;color:var(--tx2)">${m.obs || '—'}</td>
-                <td><button class="ib" onclick="excluirMov('${m.id}')">✕</button></td>
+                <td><button class="ib" title="Excluir movimentação" onclick="excluirMov('${m.id}')">DEL</button></td>
               </tr>
             `;
           }).join('')}

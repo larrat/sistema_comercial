@@ -72,7 +72,7 @@ function setBotaoGerarFilaLoading(campanhaId, loading){
   btn.disabled = !!loading;
   btn.style.opacity = loading ? '0.6' : '';
   btn.style.pointerEvents = loading ? 'none' : '';
-  btn.textContent = loading ? '⏳' : '⚡';
+  btn.textContent = loading ? '...' : 'GER';
 }
 
 function setInputValue(id, value) {
@@ -405,9 +405,9 @@ export function renderCampanhas() {
               <td>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</td>
               <td>
                 <div class="fg2">
-                  <button class="ib" title="Editar campanha" onclick="editarCampanha('${c.id}')">✏</button>
-                  <button class="ib" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">⚡</button>
-                  <button class="ib" title="Remover campanha" onclick="removerCampanha('${c.id}')">✕</button>
+                  <button class="ib" title="Editar campanha" onclick="editarCampanha('${c.id}')">EDT</button>
+                  <button class="ib" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">GER</button>
+                  <button class="ib" title="Remover campanha" onclick="removerCampanha('${c.id}')">DEL</button>
                 </div>
               </td>
             </tr>
@@ -583,8 +583,8 @@ export function renderFilaWhatsApp() {
                 <td>
                   <div class="fg2">
                     <button class="btn btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
-                    <button class="ib" onclick="marcarEnvioEnviado('${e.id}')">✓</button>
-                    <button class="ib" onclick="marcarEnvioFalhou('${e.id}')">✕</button>
+                    <button class="ib" title="Marcar como enviado" onclick="marcarEnvioEnviado('${e.id}')">OK</button>
+                    <button class="ib" title="Marcar como falhou" onclick="marcarEnvioFalhou('${e.id}')">FAL</button>
                   </div>
                 </td>
               </tr>

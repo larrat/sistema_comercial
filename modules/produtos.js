@@ -90,9 +90,9 @@ export function renderProdutos(){
                 <td style="color:var(--tx2)">${p.emin > 0 ? fmtQ(p.emin) : '—'}</td>
                 <td>
                   <div class="fg2">
-                    <button class="ib" onclick="abrirMovProd('${p.id}')">📥</button>
-                    <button class="ib" onclick="editarProd('${p.id}')">✏</button>
-                    <button class="ib" onclick="removerProd('${p.id}')">✕</button>
+                    <button class="ib" title="Movimentar estoque" onclick="abrirMovProd('${p.id}')">MOV</button>
+                    <button class="ib" title="Editar produto" onclick="editarProd('${p.id}')">EDT</button>
+                    <button class="ib" title="Excluir produto" onclick="removerProd('${p.id}')">DEL</button>
                   </div>
                 </td>
               </tr>

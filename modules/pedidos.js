@@ -95,9 +95,9 @@ export function renderPedidos(){
               <td>${ST_PED[p.status] || ''}</td>
               <td>
                 <div class="fg2">
-                  <button class="ib" onclick="verPed('${p.id}')">👁</button>
-                  <button class="ib" onclick="editarPed('${p.id}')">✏</button>
-                  <button class="ib" onclick="removerPed('${p.id}')">✕</button>
+                  <button class="ib" title="Ver pedido" onclick="verPed('${p.id}')">VER</button>
+                  <button class="ib" title="Editar pedido" onclick="editarPed('${p.id}')">EDT</button>
+                  <button class="ib" title="Excluir pedido" onclick="removerPed('${p.id}')">DEL</button>
                 </div>
               </td>
             </tr>
@@ -250,7 +250,7 @@ export function renderItens(){
             <td>${it.qty} ${it.un}</td>
             <td>${fmt(it.preco)}</td>
             <td style="font-weight:600">${fmt(it.qty * it.preco)}</td>
-            <td><button class="ib" onclick="remItem(${i})">✕</button></td>
+            <td><button class="ib" title="Excluir item" onclick="remItem(${i})">DEL</button></td>
           </tr>
         `).join('')}
       </tbody>

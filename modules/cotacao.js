@@ -88,7 +88,7 @@ export function renderCotForns(){
                 <td style="color:var(--tx2)">${f.contato || '—'}</td>
                 <td>${f.prazo || '—'}</td>
                 <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
-                <td><button class="ib" onclick="remForn('${f.id}')">✕</button></td>
+                <td><button class="ib" title="Excluir fornecedor" onclick="remForn('${f.id}')">DEL</button></td>
               </tr>
             `;
           }).join('')}
@@ -170,7 +170,7 @@ export function cotLock(){
   const btn = document.getElementById('cot-lock-btn');
   const alert = document.getElementById('cot-lock-alert');
 
-  if(btn) btn.textContent = cot.locked ? '🔓 Destravar' : '🔒 Travar';
+  if(btn) btn.textContent = cot.locked ? 'Destravar' : 'Travar';
   if(alert) alert.style.display = cot.locked ? 'flex' : 'none';
 
   renderCotTabela();
