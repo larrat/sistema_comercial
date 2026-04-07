@@ -136,6 +136,32 @@ const ROLE_LABEL = {
   gerente: 'Gerente',
   admin: 'Admin'
 };
+const ROLE_GERENTE_PLUS = ['admin', 'gerente'];
+const ROLE_UI_RESTRICTED_SELECTORS = [
+  '[onclick*="exportarTudo("]',
+  '[onclick*="exportCSV("]',
+  '[onclick*="criarPrimeiraFilial("]',
+  '[onclick*="salvarFilial("]',
+  '[onclick*="removerFilial("]',
+  '[onclick*="editarFilial("]',
+  '[onclick*="removerProd("]',
+  '[onclick*="removerCli("]',
+  '[onclick*="removerPed("]',
+  '[onclick*="remForn("]',
+  '[onclick*="excluirMov("]',
+  '[onclick*="abrirNovaCampanha("]',
+  '[onclick*="salvarCampanha("]',
+  '[onclick*="removerCampanha("]',
+  '[onclick*="gerarFilaCampanha("]',
+  '[onclick*="marcarEnvioEnviado("]',
+  '[onclick*="marcarEnvioFalhou("]',
+  '[onclick*="abrirSyncJogos("]',
+  '[onclick*="sincronizarJogosDashboard("]',
+  '[onclick*="salvarJogoDashboard("]',
+  '[onclick*="removerJogoDashboard("]'
+];
+let roleUiGuardTimer = null;
+let roleUiObserver = null;
 
 const JOURNEY_MODAL_MAP = {
   'modal-produto': 'produto',
@@ -200,6 +226,62 @@ function renderRoleBadge(){
   el.textContent = ROLE_LABEL[role] || 'Operador';
 }
 
+function setRoleUiLock(el, locked){
+  if (!el) return;
+  if (!locked){
+    el.classList.remove('is-role-locked');
+    if (el.dataset.rolePrevDisplay != null){
+      el.style.display = el.dataset.rolePrevDisplay;
+      delete el.dataset.rolePrevDisplay;
+    }
+    if ('disabled' in el){
+      el.disabled = false;
+    }else{
+      el.style.pointerEvents = '';
+      el.style.opacity = '';
+    }
+    if (el.dataset.rolePrevTitle != null){
+      el.title = el.dataset.rolePrevTitle;
+      delete el.dataset.rolePrevTitle;
+    }else if (el.title === 'Sem permissão para esta ação.'){
+      el.removeAttribute('title');
+    }
+    return;
+  }
+
+  el.classList.add('is-role-locked');
+  if (el.dataset.rolePrevTitle == null){
+    el.dataset.rolePrevTitle = el.title || '';
+  }
+  el.title = 'Sem permissão para esta ação.';
+  if ('disabled' in el){
+    el.disabled = true;
+  }else{
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.55';
+  }
+}
+
+function applyRoleUiGuards(root = document){
+  const allowManagerActions = hasRole(ROLE_GERENTE_PLUS);
+  const selector = ROLE_UI_RESTRICTED_SELECTORS.join(',');
+  root.querySelectorAll(selector).forEach(el => setRoleUiLock(el, !allowManagerActions));
+}
+
+function scheduleRoleUiGuards(){
+  if (roleUiGuardTimer) clearTimeout(roleUiGuardTimer);
+  roleUiGuardTimer = setTimeout(() => {
+    applyRoleUiGuards(document);
+    roleUiGuardTimer = null;
+  }, 0);
+}
+
+function startRoleUiObserver(){
+  if (roleUiObserver || typeof MutationObserver === 'undefined') return;
+  roleUiObserver = new MutationObserver(() => scheduleRoleUiGuards());
+  roleUiObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['onclick'] });
+}
+
 async function carregarContextoUsuario(session){
   State.user = session?.user || null;
   let role = 'operador';
@@ -211,6 +293,7 @@ async function carregarContextoUsuario(session){
   }
   State.userRole = role;
   renderRoleBadge();
+  scheduleRoleUiGuards();
 }
 
 function renderAuthGate(session){
@@ -1212,7 +1295,7 @@ const PAGE_META = {
     title: 'Produtos',
     sub: 'Catálogo comercial e precificação',
     primary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos') },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos'), roles: ROLE_GERENTE_PLUS },
     tertiary: { label: 'Ir clientes', run: () => ir('clientes') }
   },
   clientes: {
@@ -1220,7 +1303,7 @@ const PAGE_META = {
     title: 'Clientes',
     sub: 'Relacionamento e segmentação',
     primary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes') },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes'), roles: ROLE_GERENTE_PLUS },
     tertiary: { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') }
   },
   pedidos: {
@@ -1228,7 +1311,7 @@ const PAGE_META = {
     title: 'Pedidos',
     sub: 'Orçamentos, vendas e acompanhamento',
     primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos') },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos'), roles: ROLE_GERENTE_PLUS },
     tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
   },
   cotacao: {
@@ -1236,7 +1319,7 @@ const PAGE_META = {
     title: 'Cotação',
     sub: 'Fornecedores e comparação de preço',
     primary: { label: 'Novo fornecedor', run: () => abrirModal('modal-forn') },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('cotacao') },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('cotacao'), roles: ROLE_GERENTE_PLUS },
     tertiary: { label: 'Travar/Destravar', run: () => cotLock() }
   },
   estoque: {
@@ -1244,22 +1327,22 @@ const PAGE_META = {
     title: 'Estoque',
     sub: 'Posição, alertas e movimentações',
     primary: { label: 'Nova movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('estoque') },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('estoque'), roles: ROLE_GERENTE_PLUS },
     tertiary: { label: 'Ir produtos', run: () => ir('produtos') }
   },
   campanhas: {
     kicker: 'Operações',
     title: 'Campanhas',
     sub: 'Ações comerciais e fila de envios',
-    primary: { label: 'Nova campanha', run: () => abrirNovaCampanhaTracked() },
+    primary: { label: 'Nova campanha', run: () => abrirNovaCampanhaTracked(), roles: ROLE_GERENTE_PLUS },
     secondary: { label: 'Atualizar tela', run: () => refreshCampanhasTela() },
-    tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas') }
+    tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_GERENTE_PLUS }
   },
   filiais: {
     kicker: 'Sistema',
     title: 'Filiais',
     sub: 'Gestão de unidades e troca de contexto',
-    primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); } },
+    primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); }, roles: ROLE_GERENTE_PLUS },
     secondary: { label: 'Voltar setup', run: () => voltarSetup() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
@@ -1312,8 +1395,8 @@ function getContextualPageMeta(page){
       : { label: 'Atualizar tela', run: () => refreshCampanhasTela() };
 
     meta.tertiary = primeiraAtiva
-      ? { label: 'Rodar 1ª ativa', run: () => gerarFilaCampanhaTracked(primeiraAtiva.id) }
-      : { label: 'Exportar CSV', run: () => exportCSV('campanhas') };
+      ? { label: 'Rodar 1ª ativa', run: () => gerarFilaCampanhaTracked(primeiraAtiva.id), roles: ROLE_GERENTE_PLUS }
+      : { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_GERENTE_PLUS };
   }
 
   return meta;
@@ -1322,7 +1405,7 @@ function getContextualPageMeta(page){
 function bindTopbarAction(id, action){
   const el = document.getElementById(id);
   if(!el) return;
-  if(!action){
+  if(!action || (action.roles && !hasRole(action.roles))){
     el.style.display = 'none';
     el.onclick = null;
     return;
@@ -1356,7 +1439,9 @@ function syncTopbar(page){
 function renderQuickLinks(meta){
   const el = document.getElementById('quick-links');
   if(!el) return;
-  const actions = [meta?.primary, meta?.secondary, meta?.tertiary].filter(Boolean).slice(0, 2);
+  const actions = [meta?.primary, meta?.secondary, meta?.tertiary]
+    .filter(a => a && (!a.roles || hasRole(a.roles)))
+    .slice(0, 2);
   el.innerHTML = actions
     .map(a => `<button class="qk" type="button">${a.label}</button>`)
     .join('');
@@ -1802,6 +1887,7 @@ function renderSetupGrid() {
     form.style.display = 'block';
     actions.style.display = 'none';
     sub.textContent = 'Crie sua primeira filial para começar';
+    scheduleRoleUiGuards();
     return;
   }
 
@@ -1818,6 +1904,7 @@ function renderSetupGrid() {
       </div>
     </div>
   `).join('');
+  scheduleRoleUiGuards();
 }
 
 async function renderSetup() {
@@ -2262,6 +2349,7 @@ function ir(p) {
   markConsistencyPage(p);
   updateNotiBadge();
   syncTopbar(p);
+  scheduleRoleUiGuards();
   window.scrollTo(0, 0);
 }
 
@@ -2568,12 +2656,16 @@ if (document.readyState === 'loading') {
     initGoalTracking();
     initQuickCommand();
     initFlowWizards();
+    startRoleUiObserver();
+    scheduleRoleUiGuards();
     renderSetup();
   });
 } else {
   initGoalTracking();
   initQuickCommand();
   initFlowWizards();
+  startRoleUiObserver();
+  scheduleRoleUiGuards();
   renderSetup();
 }
 
