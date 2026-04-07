@@ -380,52 +380,77 @@
   <div class="modal-bg" onclick="fecharModal('modal-produto')"></div>
   <div class="modal-box">
     <div class="mt" id="prod-modal-titulo">Novo produto</div>
-    <div class="fg c2">
-      <div><div class="fl">Nome *</div><input class="inp" id="p-nome" placeholder="Nome do produto"></div>
-      <div><div class="fl">SKU / Código</div><input class="inp" id="p-sku" placeholder="PRD-001"></div>
+    <div class="flow-head">
+      <button class="flow-chip on" type="button" data-flow-chip="prod" data-step="1" onclick="setFlowStep('prod',1)">1 Dados</button>
+      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="2" onclick="setFlowStep('prod',2)">2 Comercial</button>
+      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="3" onclick="setFlowStep('prod',3)">3 Estoque</button>
+      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="4" onclick="setFlowStep('prod',4)">4 Resumo</button>
     </div>
-    <div class="fg c3">
-      <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m²</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
-      <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aço, elétrico"></div>
-      <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" oninput="calcProdPreview()"></div>
+
+    <div class="flow-step on" data-flow-id="prod" data-step="1">
+      <div class="fg c2">
+        <div><div class="fl">Nome *</div><input class="inp" id="p-nome" placeholder="Nome do produto"></div>
+        <div><div class="fl">SKU / Código</div><input class="inp" id="p-sku" placeholder="PRD-001"></div>
+      </div>
+      <div class="fg c3">
+        <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m²</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
+        <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aço, elétrico"></div>
+        <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" oninput="calcProdPreview()"></div>
+      </div>
     </div>
-    <div class="div"></div>
-    <div class="modal-split">
-      <div class="panel"><div class="pt">Varejo</div>
-        <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" oninput="syncV('mk')"></div></div>
-        <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" oninput="syncV('mg')"></div></div>
-        <div class="fg c2">
-          <div><div class="fl">Qtd mín. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
-          <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
+
+    <div class="flow-step" data-flow-id="prod" data-step="2">
+      <div class="modal-split">
+        <div class="panel"><div class="pt">Varejo</div>
+          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" oninput="syncV('mk')"></div></div>
+          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" oninput="syncV('mg')"></div></div>
+          <div class="fg c2">
+            <div><div class="fl">Qtd mín. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
+            <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
+          </div>
+        </div>
+        <div class="panel"><div class="pt">Atacado</div>
+          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" oninput="syncA('mk')"></div></div>
+          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" oninput="syncA('mg')"></div></div>
+          <div class="fg c2">
+            <div><div class="fl">Preço fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
+            <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
+          </div>
         </div>
       </div>
-      <div class="panel"><div class="pt">Atacado</div>
-        <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" oninput="syncA('mk')"></div></div>
-        <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" oninput="syncA('mg')"></div></div>
-        <div class="fg c2">
-          <div><div class="fl">Preço fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
-          <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
+      <div id="prod-preview" style="display:none" class="panel">
+        <div class="pt">Prévia de preços</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:13px">
+          <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">—</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Var. mín.</div><div style="font-weight:600" id="ppv-vmin">—</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">—</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Atac. mín.</div><div style="font-weight:600" id="ppv-amin">—</div></div>
         </div>
       </div>
     </div>
-    <div class="div"></div>
-    <div class="fg c3">
-      <div><div class="fl">Estoque mínimo</div><input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0"></div>
-      <div><div class="fl">Saldo inicial</div><input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0"></div>
-      <div><div class="fl">Custo médio inicial</div><input class="inp" id="p-ecm" type="number" step="0.01" min="0" placeholder="= custo"></div>
-    </div>
-    <div id="prod-preview" style="display:none" class="panel">
-      <div class="pt">Prévia de preços</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;font-size:13px">
-        <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">—</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">Var. mín.</div><div style="font-weight:600" id="ppv-vmin">—</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">—</div></div>
-        <div><div style="font-size:11px;color:var(--tx3)">Atac. mín.</div><div style="font-weight:600" id="ppv-amin">—</div></div>
+
+    <div class="flow-step" data-flow-id="prod" data-step="3">
+      <div class="fg c3">
+        <div><div class="fl">Estoque mínimo</div><input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0"></div>
+        <div><div class="fl">Saldo inicial</div><input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0"></div>
+        <div><div class="fl">Custo médio inicial</div><input class="inp" id="p-ecm" type="number" step="0.01" min="0" placeholder="= custo"></div>
       </div>
+    </div>
+
+    <div class="flow-step" data-flow-id="prod" data-step="4">
+      <div class="panel">
+        <div class="pt">Resumo</div>
+        <div id="prod-flow-resumo"></div>
+      </div>
+    </div>
+
+    <div class="flow-nav">
+      <button class="btn btn-sm" type="button" id="prod-flow-prev" onclick="setFlowStep('prod', (window.__flowSteps?.prod || 1) - 1)">← Voltar</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-next" onclick="setFlowStep('prod', (window.__flowSteps?.prod || 1) + 1)">Próximo →</button>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="fecharModal('modal-produto')">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarProduto()">Salvar produto</button>
+      <button class="btn btn-p" id="prod-flow-save" onclick="salvarProduto()">Salvar produto</button>
     </div>
   </div>
 </div>
@@ -435,29 +460,56 @@
   <div class="modal-bg" onclick="fecharModal('modal-cliente')"></div>
   <div class="modal-box">
     <div class="mt" id="cli-modal-titulo">Novo cliente</div>
-    <div class="fg c2"><div><div class="fl">Nome / Razão social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
-    <div class="fg c3"><div><div class="fl">CPF / CNPJ</div><input class="inp" id="c-doc"></div><div><div class="fl">Tipo</div><select class="inp sel" id="c-tipo"><option value="PJ">PJ</option><option value="PF">PF</option></select></div><div><div class="fl">Status</div><select class="inp sel" id="c-status"><option value="ativo">Ativo</option><option value="prospecto">Prospecto</option><option value="inativo">Inativo</option></select></div></div>
-    <div class="fg c3">
-      <div><div class="fl">Telefone</div><input class="inp" id="c-tel"></div>
-      <div><div class="fl">WhatsApp</div><input class="inp" id="c-whatsapp"></div>
-      <div><div class="fl">E-mail</div><input class="inp" id="c-email"></div>
+    <div class="flow-head">
+      <button class="flow-chip on" type="button" data-flow-chip="cli" data-step="1" onclick="setFlowStep('cli',1)">1 Dados</button>
+      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="2" onclick="setFlowStep('cli',2)">2 Comercial</button>
+      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="3" onclick="setFlowStep('cli',3)">3 Marketing</button>
+      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="4" onclick="setFlowStep('cli',4)">4 Resumo</button>
     </div>
-    <div class="fg c2">
-      <div><div class="fl">Data de aniversário</div><input class="inp" id="c-aniv" type="date"></div>
-      <div>
-        <div class="fl">Opt-ins de marketing</div>
-        <div class="fg2" style="gap:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rad)">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-marketing" type="checkbox"> Marketing</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-email" type="checkbox"> E-mail</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-sms" type="checkbox"> SMS</label>
-        </div>
+
+    <div class="flow-step on" data-flow-id="cli" data-step="1">
+      <div class="fg c2"><div><div class="fl">Nome / Razão social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
+      <div class="fg c3"><div><div class="fl">CPF / CNPJ</div><input class="inp" id="c-doc"></div><div><div class="fl">Tipo</div><select class="inp sel" id="c-tipo"><option value="PJ">PJ</option><option value="PF">PF</option></select></div><div><div class="fl">Status</div><select class="inp sel" id="c-status"><option value="ativo">Ativo</option><option value="prospecto">Prospecto</option><option value="inativo">Inativo</option></select></div></div>
+      <div class="fg c3">
+        <div><div class="fl">Telefone</div><input class="inp" id="c-tel"></div>
+        <div><div class="fl">WhatsApp</div><input class="inp" id="c-whatsapp"></div>
+        <div><div class="fl">E-mail</div><input class="inp" id="c-email"></div>
       </div>
     </div>
-    <div class="fg"><div><div class="fl">Responsável / Comprador</div><input class="inp" id="c-resp"></div></div>
-    <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preço</div><select class="inp sel" id="c-tab"><option value="padrao">Padrão</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">À vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
-    <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
-    <div class="fg"><div><div class="fl">Observações</div><textarea class="inp" id="c-obs"></textarea></div></div>
-    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" onclick="salvarCliente()">Salvar</button></div>
+
+    <div class="flow-step" data-flow-id="cli" data-step="2">
+      <div class="fg"><div><div class="fl">Responsável / Comprador</div><input class="inp" id="c-resp"></div></div>
+      <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preço</div><select class="inp sel" id="c-tab"><option value="padrao">Padrão</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">À vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
+      <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
+    </div>
+
+    <div class="flow-step" data-flow-id="cli" data-step="3">
+      <div class="fg c2">
+        <div><div class="fl">Data de aniversário</div><input class="inp" id="c-aniv" type="date"></div>
+        <div>
+          <div class="fl">Opt-ins de marketing</div>
+          <div class="fg2" style="gap:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:var(--rad)">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-marketing" type="checkbox"> Marketing</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-email" type="checkbox"> E-mail</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-sms" type="checkbox"> SMS</label>
+          </div>
+        </div>
+      </div>
+      <div class="fg"><div><div class="fl">Observações</div><textarea class="inp" id="c-obs"></textarea></div></div>
+    </div>
+
+    <div class="flow-step" data-flow-id="cli" data-step="4">
+      <div class="panel">
+        <div class="pt">Resumo</div>
+        <div id="cli-flow-resumo"></div>
+      </div>
+    </div>
+
+    <div class="flow-nav">
+      <button class="btn btn-sm" type="button" id="cli-flow-prev" onclick="setFlowStep('cli', (window.__flowSteps?.cli || 1) - 1)">← Voltar</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-next" onclick="setFlowStep('cli', (window.__flowSteps?.cli || 1) + 1)">Próximo →</button>
+    </div>
+    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" onclick="salvarCliente()">Salvar</button></div>
   </div>
 </div>
 

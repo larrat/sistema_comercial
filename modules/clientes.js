@@ -434,6 +434,8 @@ export function limparFormCli(){
   if(optinMarketing) optinMarketing.checked = false;
   if(optinEmail) optinEmail.checked = false;
   if(optinSms) optinSms.checked = false;
+
+  if(window.setFlowStep) window.setFlowStep('cli', 1);
 }
 
 export function editarCli(id){
@@ -465,6 +467,8 @@ export function editarCli(id){
   document.getElementById('c-optin-marketing').checked = !!c.optin_marketing;
   document.getElementById('c-optin-email').checked = !!c.optin_email;
   document.getElementById('c-optin-sms').checked = !!c.optin_sms;
+
+  if(window.setFlowStep) window.setFlowStep('cli', 1);
 
   abrirModal('modal-cliente');
 }

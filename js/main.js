@@ -220,6 +220,121 @@ function syncTopbar(page){
   bindTopbarAction('app-act-tertiary', meta.tertiary);
 }
 
+const FLOW_MAX = { prod: 4, cli: 4 };
+window.__flowSteps = { prod: 1, cli: 1 };
+
+function flowVal(id, fallback = '—'){
+  const el = document.getElementById(id);
+  if(!el) return fallback;
+  const raw = ('value' in el ? el.value : el.textContent) ?? '';
+  const v = String(raw).trim();
+  return v || fallback;
+}
+
+function renderFlowSummary(flow){
+  if(flow === 'prod'){
+    const el = document.getElementById('prod-flow-resumo');
+    if(!el) return;
+    const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
+    const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
+    const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
+    const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
+    const pv = custo > 0 && mkv > 0 ? prV(custo, mkv) : 0;
+    const pa = pfa > 0 ? pfa : (custo > 0 && mka > 0 ? prV(custo, mka) : 0);
+    el.innerHTML = `
+      <div class="fg c2">
+        <div><div class="fl">Produto</div><div><b>${flowVal('p-nome')}</b></div></div>
+        <div><div class="fl">SKU</div><div>${flowVal('p-sku')}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Unidade / Categoria</div><div>${flowVal('p-un')} • ${flowVal('p-cat')}</div></div>
+        <div><div class="fl">Custo</div><div>${custo > 0 ? fmt(custo) : '—'}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Preço Varejo</div><div>${pv > 0 ? fmt(pv) : '—'}</div></div>
+        <div><div class="fl">Preço Atacado</div><div>${pa > 0 ? fmt(pa) : '—'}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Estoque inicial</div><div>${flowVal('p-esal')}</div></div>
+        <div><div class="fl">Estoque mínimo</div><div>${flowVal('p-emin')}</div></div>
+      </div>
+    `;
+    return;
+  }
+
+  if(flow === 'cli'){
+    const el = document.getElementById('cli-flow-resumo');
+    if(!el) return;
+    const optins = [
+      document.getElementById('c-optin-marketing')?.checked ? 'Marketing' : '',
+      document.getElementById('c-optin-email')?.checked ? 'E-mail' : '',
+      document.getElementById('c-optin-sms')?.checked ? 'SMS' : ''
+    ].filter(Boolean).join(', ');
+    el.innerHTML = `
+      <div class="fg c2">
+        <div><div class="fl">Cliente</div><div><b>${flowVal('c-nome')}</b></div></div>
+        <div><div class="fl">Apelido</div><div>${flowVal('c-apelido')}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Documento / Tipo</div><div>${flowVal('c-doc')} • ${flowVal('c-tipo')}</div></div>
+        <div><div class="fl">Status</div><div>${flowVal('c-status')}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Contato</div><div>${flowVal('c-tel')} • ${flowVal('c-whatsapp')} • ${flowVal('c-email')}</div></div>
+        <div><div class="fl">Aniversário</div><div>${flowVal('c-aniv')}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Comercial</div><div>${flowVal('c-seg')} • ${flowVal('c-tab')} • ${flowVal('c-prazo')}</div></div>
+        <div><div class="fl">Time(s)</div><div>${flowVal('c-time')}</div></div>
+      </div>
+      <div class="fg c2">
+        <div><div class="fl">Cidade / Estado</div><div>${flowVal('c-cidade')} • ${flowVal('c-estado')}</div></div>
+        <div><div class="fl">Opt-ins</div><div>${optins || 'Nenhum'}</div></div>
+      </div>
+    `;
+  }
+}
+
+function setFlowStep(flow, rawStep){
+  const max = FLOW_MAX[flow];
+  if(!max) return;
+  const step = Math.max(1, Math.min(max, Number(rawStep) || 1));
+  window.__flowSteps[flow] = step;
+
+  document.querySelectorAll(`.flow-step[data-flow-id="${flow}"]`).forEach(el => {
+    el.classList.toggle('on', Number(el.dataset.step) === step);
+  });
+  document.querySelectorAll(`.flow-chip[data-flow-chip="${flow}"]`).forEach(el => {
+    el.classList.toggle('on', Number(el.dataset.step) === step);
+  });
+
+  const prev = document.getElementById(`${flow}-flow-prev`);
+  const next = document.getElementById(`${flow}-flow-next`);
+  const save = document.getElementById(`${flow}-flow-save`);
+  if(prev) prev.disabled = step <= 1;
+  if(next) next.style.display = step >= max ? 'none' : 'inline-flex';
+  if(save) save.style.display = step >= max ? 'inline-flex' : 'none';
+
+  if(step === max) renderFlowSummary(flow);
+}
+
+function initFlowWizards(){
+  ['prod','cli'].forEach(flow => setFlowStep(flow, 1));
+  [
+    'p-nome','p-sku','p-un','p-cat','p-custo','p-mkv','p-mka','p-pfa','p-esal','p-emin',
+    'c-nome','c-apelido','c-doc','c-tipo','c-status','c-tel','c-whatsapp','c-email','c-aniv',
+    'c-seg','c-tab','c-prazo','c-time','c-cidade','c-estado','c-optin-marketing','c-optin-email','c-optin-sms'
+  ].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const evt = el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input';
+    el.addEventListener(evt, () => {
+      if(window.__flowSteps.prod === FLOW_MAX.prod) renderFlowSummary('prod');
+      if(window.__flowSteps.cli === FLOW_MAX.cli) renderFlowSummary('cli');
+    });
+  });
+}
+
 function showLoading(on) {
   let el = document.getElementById('sb-loading');
   if (!el) {
@@ -731,9 +846,11 @@ initDashboardModule({
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    initFlowWizards();
     renderSetup();
   });
 } else {
+  initFlowWizards();
   renderSetup();
 }
 
@@ -749,6 +866,7 @@ window.ir = ir;
 window.switchTab = switchTab;
 window.exportarTudo = exportarTudo;
 window.exportCSV = exportCSV;
+window.setFlowStep = setFlowStep;
 
 window.renderDashFilSel = renderDashFilSel;
 window.renderDash = renderDash;

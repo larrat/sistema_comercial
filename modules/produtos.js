@@ -164,6 +164,8 @@ export function limparFormProd(){
 
   const histEl = document.getElementById('p-hist-cot');
   if(histEl) histEl.style.display = 'none';
+
+  if(window.setFlowStep) window.setFlowStep('prod', 1);
 }
 
 export function editarProd(id){
@@ -225,6 +227,7 @@ export function editarProd(id){
   }
 
   calcProdPreview();
+  if(window.setFlowStep) window.setFlowStep('prod', 1);
   abrirModal('modal-produto');
 }
 
