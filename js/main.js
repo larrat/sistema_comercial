@@ -126,6 +126,9 @@ import {
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
+const GOAL_METRICS_VERSION = 2;
+const KPI_PAGES = ['dashboard', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'notificacoes'];
+const primaryActionTracker = { page: 'dashboard', clicks: 0, active: false };
 
 function executarAuditoriaVisual(){
   const checks = [];
@@ -151,6 +154,85 @@ function executarAuditoriaVisual(){
   toast(falhas.length ? `Auditoria visual: ${ok}/${checks.length} OK (${falhas.length} falha(s)).` : `Auditoria visual: ${ok}/${checks.length} OK.`);
 }
 
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function executarAuditoriaAceite(){
+  const checks = [];
+  const add = (frente, ok, item, detalhe = '') => checks.push({ frente, ok, item, detalhe });
+  const cta = document.getElementById('app-act-primary');
+  const btn = document.querySelector('.btn');
+  const card = document.querySelector('.card');
+  const panel = document.querySelector('.panel');
+  const badge = document.querySelector('.bdg');
+  const alert = document.querySelector('.alert');
+  const modal = document.querySelector('.modal-box');
+
+  const radiusMd = cssVar('--radius-md');
+  const radiusLg = cssVar('--radius-lg');
+  const shadowMd = cssVar('--shadow-md');
+
+  add('Consistência visual', !!radiusMd && !!radiusLg && !!shadowMd, 'Tokens base de radius/sombra');
+  if(btn){
+    const s = getComputedStyle(btn);
+    add('Consistência visual', s.borderRadius === radiusMd, 'Botão usa radius padronizado', `button radius: ${s.borderRadius}`);
+    add('Consistência visual', Number.parseFloat(s.minHeight || '0') >= 40, 'Botão com altura mínima consistente');
+  }else{
+    add('Consistência visual', false, 'Botão base encontrado');
+  }
+  if(card && panel){
+    const sc = getComputedStyle(card);
+    const sp = getComputedStyle(panel);
+    add('Consistência visual', sc.borderRadius === sp.borderRadius, 'Card e Panel com raio consistente', `card:${sc.borderRadius} panel:${sp.borderRadius}`);
+  }else{
+    add('Consistência visual', false, 'Card/Panel disponíveis para validação');
+  }
+
+  add('Semântica de informação', !!badge, 'Badge base renderizado');
+  add('Semântica de informação', !!alert, 'Alerta base renderizado');
+  add('Semântica de informação', !!cssVar('--color-critical-600') && !!cssVar('--color-warning-600') && !!cssVar('--color-opportunity-600') && !!cssVar('--color-success-600'), 'Paleta semântica de prioridade ativa');
+
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  add('Responsividade', vw >= 360, 'Viewport alvo 360px+', `viewport: ${vw}px`);
+  if(modal){
+    const sm = getComputedStyle(modal);
+    add('Responsividade', sm.maxHeight !== 'none', 'Modal com limite de altura para evitar scroll confuso', `max-height: ${sm.maxHeight}`);
+  }else{
+    add('Responsividade', false, 'Modal base encontrado');
+  }
+  add('Responsividade', !!document.querySelector('.tw'), 'Tabela com container rolável horizontal (`.tw`)');
+
+  if(btn){
+    const prev = document.activeElement;
+    btn.focus();
+    const sb = getComputedStyle(btn).boxShadow || '';
+    if(prev && typeof prev.focus === 'function') prev.focus();
+    add('Acessibilidade mínima', sb !== 'none', 'Foco visível aplicável em botões', `focus shadow: ${sb ? 'ok' : 'none'}`);
+  }else{
+    add('Acessibilidade mínima', false, 'Foco visível em botões (elemento não encontrado)');
+  }
+  if(cta){
+    const scta = getComputedStyle(cta);
+    add('Acessibilidade mínima', scta.display !== 'none' && scta.visibility !== 'hidden', 'CTA primário visível');
+  }else{
+    add('Acessibilidade mínima', false, 'CTA primário presente');
+  }
+  add('Acessibilidade mínima', Number.parseFloat(getComputedStyle(document.documentElement).fontSize || '16') >= 14, 'Base tipográfica legível');
+
+  const total = checks.length;
+  const ok = checks.filter(c => c.ok).length;
+  const falhas = checks.filter(c => !c.ok);
+
+  console.table(checks.map(c => ({
+    frente: c.frente,
+    status: c.ok ? 'OK' : 'FALHA',
+    item: c.item,
+    detalhe: c.detalhe || ''
+  })));
+  toast(falhas.length ? `Aceite por frente: ${ok}/${total} OK (${falhas.length} pendência(s)).` : `Aceite por frente: ${ok}/${total} OK.`);
+}
+
 const QUICK_COMMANDS = [
   { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => ir('dashboard') },
   { cmd: '/ produtos', label: 'Abrir Produtos', run: () => ir('produtos') },
@@ -167,16 +249,13 @@ const QUICK_COMMANDS = [
   { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => abrirNovaCampanhaTracked() },
   { cmd: '/ nova mov', label: 'Nova Movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
   { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => abrirSyncJogos() },
-  { cmd: '/ auditoria visual', label: 'Auditoria Visual', run: () => executarAuditoriaVisual() }
+  { cmd: '/ auditoria visual', label: 'Auditoria Visual', run: () => executarAuditoriaVisual() },
+  { cmd: '/ auditoria aceite', label: 'Auditoria de Aceite', run: () => executarAuditoriaAceite() }
 ];
 
-function getGoalMetrics(){
-  try{
-    const parsed = JSON.parse(localStorage.getItem(GOAL_METRICS_KEY) || '{}');
-    if(parsed && parsed.version === 1) return parsed;
-  }catch{}
+function buildDefaultGoalMetrics(){
   return {
-    version: 1,
+    version: GOAL_METRICS_VERSION,
     started_at: new Date().toISOString(),
     task_start: {},
     critical: {
@@ -187,8 +266,48 @@ function getGoalMetrics(){
     },
     errors: { validation: 0, operation: 0 },
     strategic: { campanhas: 0, notificacoes: 0, oportunidades: 0 },
-    consistency: { dashboard: false, clientes: false, campanhas: false, pedidos: false }
+    consistency: { dashboard: false, clientes: false, campanhas: false, pedidos: false },
+    kpi: {
+      completion: { total: 0, mobile: 0 },
+      primary_clicks: KPI_PAGES.reduce((acc, p) => {
+        acc[p] = { total: 0, count: 0 };
+        return acc;
+      }, {}),
+      notifications: { executadas: 0, resolvidas: 0, reabertas: 0 }
+    }
   };
+}
+
+function ensureGoalMetricsShape(raw){
+  const base = buildDefaultGoalMetrics();
+  const out = { ...base, ...(raw || {}) };
+  out.version = GOAL_METRICS_VERSION;
+  out.started_at = out.started_at || base.started_at;
+  out.task_start = { ...base.task_start, ...(out.task_start || {}) };
+  out.critical = { ...base.critical, ...(out.critical || {}) };
+  Object.keys(base.critical).forEach(k => {
+    out.critical[k] = { ...base.critical[k], ...(out.critical[k] || {}) };
+  });
+  out.errors = { ...base.errors, ...(out.errors || {}) };
+  out.strategic = { ...base.strategic, ...(out.strategic || {}) };
+  out.consistency = { ...base.consistency, ...(out.consistency || {}) };
+  out.kpi = { ...base.kpi, ...(out.kpi || {}) };
+  out.kpi.completion = { ...base.kpi.completion, ...(out.kpi.completion || {}) };
+  out.kpi.notifications = { ...base.kpi.notifications, ...(out.kpi.notifications || {}) };
+  out.kpi.primary_clicks = { ...base.kpi.primary_clicks, ...(out.kpi.primary_clicks || {}) };
+  KPI_PAGES.forEach(p => {
+    out.kpi.primary_clicks[p] = { ...base.kpi.primary_clicks[p], ...(out.kpi.primary_clicks[p] || {}) };
+  });
+  return out;
+}
+
+function getGoalMetrics(){
+  try{
+    const parsed = JSON.parse(localStorage.getItem(GOAL_METRICS_KEY) || '{}');
+    return ensureGoalMetricsShape(parsed);
+  }catch{
+    return buildDefaultGoalMetrics();
+  }
 }
 
 function saveGoalMetrics(m){
@@ -210,7 +329,45 @@ function completeCriticalTask(tipo){
   cur.total_ms += elapsed;
   cur.count += 1;
   if(!cur.baseline_ms) cur.baseline_ms = elapsed;
+  m.kpi.completion.total += 1;
+  if(window.matchMedia('(max-width: 760px)').matches){
+    m.kpi.completion.mobile += 1;
+  }
   delete m.task_start[tipo];
+  saveGoalMetrics(m);
+}
+
+function startPrimaryActionTracking(page){
+  primaryActionTracker.page = String(page || 'dashboard');
+  primaryActionTracker.clicks = 0;
+  primaryActionTracker.active = true;
+}
+
+function trackPrimaryActionClick(e){
+  if(!primaryActionTracker.active) return;
+  const target = e.target?.closest?.('button,[role="button"],a,.tb,.qk,.ni,.ib');
+  if(!target) return;
+  if(target.id === 'app-act-primary' || target.closest('#app-act-primary')) return;
+  primaryActionTracker.clicks += 1;
+}
+
+function completePrimaryActionTracking(page){
+  const p = String(page || primaryActionTracker.page || 'dashboard');
+  if(!primaryActionTracker.active) return;
+  const m = getGoalMetrics();
+  const key = KPI_PAGES.includes(p) ? p : 'dashboard';
+  const k = m.kpi.primary_clicks[key];
+  k.total += Math.max(1, primaryActionTracker.clicks + 1);
+  k.count += 1;
+  saveGoalMetrics(m);
+  primaryActionTracker.active = false;
+  primaryActionTracker.clicks = 0;
+}
+
+function registerNotificationKpi(type, amount = 1){
+  const m = getGoalMetrics();
+  if(!(type in m.kpi.notifications)) return;
+  m.kpi.notifications[type] += Math.max(0, Number(amount || 0));
   saveGoalMetrics(m);
 }
 
@@ -282,6 +439,29 @@ function calcGoalSummary(){
   const consistencyDone = Object.values(m.consistency).filter(Boolean).length;
   const consistencyProgress = (consistencyDone / 4) * 100;
 
+  const completionTotal = Number(m.kpi.completion.total || 0);
+  const completionMobile = Number(m.kpi.completion.mobile || 0);
+  const mobileCompletionRate = completionTotal > 0 ? (completionMobile / completionTotal) * 100 : 0;
+
+  const clicksByModule = Object.entries(m.kpi.primary_clicks || {}).reduce((acc, [page, data]) => {
+    const count = Number(data?.count || 0);
+    const total = Number(data?.total || 0);
+    acc[page] = {
+      count,
+      avg: count > 0 ? total / count : 0
+    };
+    return acc;
+  }, {});
+  const clickBuckets = Object.values(clicksByModule).filter(x => x.count > 0);
+  const avgClicksPrimary = clickBuckets.length
+    ? clickBuckets.reduce((a, c) => a + c.avg, 0) / clickBuckets.length
+    : 0;
+
+  const notiExec = Number(m.kpi.notifications.executadas || 0);
+  const notiResolved = Number(m.kpi.notifications.resolvidas || 0);
+  const notiReopened = Number(m.kpi.notifications.reabertas || 0);
+  const notiResolutionRate = notiExec > 0 ? (notiResolved / notiExec) * 100 : 0;
+
   return {
     m,
     currentAvg,
@@ -292,7 +472,16 @@ function calcGoalSummary(){
     strategicTotal,
     strategicProgress,
     consistencyDone,
-    consistencyProgress
+    consistencyProgress,
+    completionTotal,
+    completionMobile,
+    mobileCompletionRate,
+    avgClicksPrimary,
+    clicksByModule,
+    notiExec,
+    notiResolved,
+    notiReopened,
+    notiResolutionRate
   };
 }
 
@@ -303,6 +492,15 @@ function renderMetasNegocio(){
 
   const tempoMeta = Math.min(100, Math.max(0, (s.ganhoTempo / 20) * 100));
   const retrabalhoMeta = Math.min(100, Math.max(0, (s.reducaoRetrabalho / 30) * 100));
+  const mobileMeta = Math.min(100, s.mobileCompletionRate);
+  const clickMeta = Math.min(100, Math.max(0, (4 / Math.max(1, s.avgClicksPrimary || 1)) * 100));
+  const notiMeta = Math.min(100, s.notiResolutionRate);
+  const topClicks = ['clientes', 'campanhas', 'pedidos']
+    .map(p => {
+      const d = s.clicksByModule[p] || { avg: 0, count: 0 };
+      return `${p}: ${d.count ? d.avg.toFixed(1) : '—'} clique(s)`;
+    })
+    .join(' • ');
 
   el.innerHTML = `
     <div class="fg" style="margin-bottom:8px">
@@ -337,11 +535,36 @@ function renderMetasNegocio(){
       <div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div>
       <div style="font-size:11px;color:var(--tx3)">Módulos: Dashboard, Clientes, Campanhas, Pedidos</div>
     </div>
+    <div class="fg" style="margin-top:8px;margin-bottom:8px">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Taxa de conclusão em mobile</div>
+        <span class="bdg ${mobileMeta >= 70 ? 'bg' : 'ba'}">${s.mobileCompletionRate.toFixed(1)}%</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${mobileMeta}%;background:var(--b)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">Concluídas: ${s.completionMobile}/${s.completionTotal} no mobile</div>
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Cliques até ação principal por módulo</div>
+        <span class="bdg ${clickMeta >= 80 ? 'bg' : 'ba'}">${s.avgClicksPrimary.toFixed(1)} cliques (média)</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${clickMeta}%;background:var(--acc)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">${topClicks}</div>
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <div class="fb">
+        <div style="font-size:12px;color:var(--tx2)">Uso do Centro de Notificações</div>
+        <span class="bdg ${notiMeta >= 70 ? 'bg' : 'ba'}">${s.notiResolutionRate.toFixed(1)}% resolvidas</span>
+      </div>
+      <div class="sbar"><div class="sbar-f" style="width:${notiMeta}%;background:var(--g)"></div></div>
+      <div style="font-size:11px;color:var(--tx3)">Execuções: ${s.notiExec} • Resolvidas: ${s.notiResolved} • Reabertas: ${s.notiReopened}</div>
+    </div>
   `;
 }
 
 function initGoalTracking(){
   getGoalMetrics();
+  document.addEventListener('click', trackPrimaryActionClick, true);
   window.addEventListener('sc:toast', e => {
     classifyToastError(e?.detail?.message || '');
     renderMetasNegocio();
@@ -529,7 +752,12 @@ function bindTopbarAction(id, action){
   }
   el.style.display = 'inline-flex';
   el.textContent = action.label;
-  el.onclick = action.run;
+  el.onclick = () => {
+    if(id === 'app-act-primary'){
+      completePrimaryActionTracking(pageAtual());
+    }
+    action.run();
+  };
 }
 
 function syncTopbar(page){
@@ -1277,6 +1505,7 @@ function setFiltroNotificacoes(filtro){
 function executarNotificacao(id){
   const n = notiCache.find(x => x.id === id);
   if(!n) return;
+  registerNotificationKpi('executadas', 1);
   if(n.prioridade === 'oportunidade') logStrategicAction('oportunidades');
   if(typeof n.acao === 'function') n.acao();
   renderMetasNegocio();
@@ -1294,6 +1523,7 @@ function resolverNotificacao(id){
       meta: n.meta,
       resolvido_em: new Date().toISOString()
     });
+    registerNotificationKpi('resolvidas', 1);
     setNotiHistory(hist.slice(0, 200));
   }
   renderNotificacoes();
@@ -1304,8 +1534,10 @@ function resolverNotificacao(id){
 function reabrirNotificacao(id){
   const hist = getNotiHistory().filter(x => x.id !== id);
   setNotiHistory(hist);
+  registerNotificationKpi('reabertas', 1);
   renderNotificacoes();
   updateNotiBadge();
+  renderMetasNegocio();
 }
 
 function resolverTodasNotificacoes(){
@@ -1316,6 +1548,7 @@ function resolverTodasNotificacoes(){
   }
   const hist = getNotiHistory();
   const ids = new Set(hist.map(x => x.id));
+  let resolvidasNow = 0;
   ativos.forEach(n => {
     if(ids.has(n.id)) return;
     hist.unshift({
@@ -1325,8 +1558,10 @@ function resolverTodasNotificacoes(){
       meta: n.meta,
       resolvido_em: new Date().toISOString()
     });
+    resolvidasNow += 1;
   });
   setNotiHistory(hist.slice(0, 200));
+  if(resolvidasNow > 0) registerNotificationKpi('resolvidas', resolvidasNow);
   renderNotificacoes();
   updateNotiBadge();
   toast('Todas notificações ativas foram resolvidas.');
@@ -1427,6 +1662,7 @@ function ir(p) {
   };
 
   if (renderMap[p]) renderMap[p]();
+  startPrimaryActionTracking(p);
   markConsistencyPage(p);
   updateNotiBadge();
   syncTopbar(p);

@@ -2205,3 +2205,53 @@ input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="tr
     gap:8px;
   }
 }
+
+/* Aceite: responsividade mínima 360px+ e modal sem scroll confuso */
+@media(max-width:360px){
+  .ph h2{
+    font-size:22px;
+    line-height:1.2;
+  }
+
+  .toolbar-main,
+  .toolbar-actions{
+    width:100%;
+    justify-content:flex-start;
+    gap:8px;
+  }
+
+  .toolbar-main .inp,
+  .toolbar-main .sel{
+    min-width:0;
+    max-width:100%!important;
+  }
+
+  .mobile-card-title,
+  .mobile-card-sub{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:unset;
+  }
+
+  .modal-box{
+    padding:14px 12px 10px;
+    max-height:90vh;
+    overscroll-behavior:contain;
+  }
+
+  .modal-actions:not(.modal-actions-inline){
+    position:sticky;
+    bottom:0;
+    background:#FFFFFF;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom,0));
+  }
+}
+
+/* Aceite: foco reforçado em campos de modal */
+.modal-box .inp:focus-visible,
+.modal-box .sel:focus-visible,
+.modal-box textarea:focus-visible{
+  outline:2px solid var(--color-focus);
+  outline-offset:2px;
+  box-shadow:0 0 0 4px var(--color-focus-soft);
+}

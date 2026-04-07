@@ -9,7 +9,7 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
 - experiência fluida em mobile e desktop;
 - aumento de produtividade operacional (menos cliques, menos erros, mais ação).
 
-## 2. Metas de negócio (30 a 45 dias)
+## 2. Metas de negócio (acompanhamento contínuo)
 - Reduzir tempo médio para executar ações críticas (ex.: campanha, pedido, cadastro) em 20%.
 - Reduzir retrabalho por erro de operação visual em 30%.
 - Aumentar uso de ações estratégicas (campanhas, notificações, oportunidades) em 25%.
@@ -102,3 +102,23 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
   - estados obrigatórios;
   - regras para novas features;
   - checklist de qualidade para PRs.
+
+## 11. KPIs de acompanhamento (iniciado em 07/04/2026)
+- Telemetria de tempo por tarefa crítica já ativa (produto, cliente, pedido, campanha).
+- KPI de taxa de erro em formulário já ativo via classificação de toasts.
+- KPI de conclusão em mobile adicionado (baseado em tarefas concluídas em viewport mobile).
+- KPI de cliques até ação principal por módulo adicionado (tracking da CTA primária da topbar).
+- KPI de uso do Centro de Notificações adicionado (executadas, resolvidas, reabertas e taxa de resolução).
+
+## 12. Critérios de aceite por frente (iniciado em 07/04/2026)
+- Auditoria por frente adicionada com comando rápido `/ auditoria aceite`, cobrindo:
+  - consistência visual;
+  - semântica de informação;
+  - responsividade;
+  - acessibilidade mínima.
+- Reforços de CSS aplicados para viewport 360px+ e estabilidade de modal em telas pequenas.
+- Foco visível reforçado em campos dentro de modal para reduzir risco de perda de contexto em formulário.
+
+## 13. Atualização de metas (07/04/2026)
+- A janela inicial de prazo (30 a 45 dias) foi desconsiderada.
+- As metas passam a ser tratadas como acompanhamento contínuo no dashboard de KPIs.
