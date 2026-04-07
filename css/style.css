@@ -671,20 +671,7 @@ body{
 }
 
 .main{padding:22px}
-.app-topbar{
-  border:1px solid var(--bd);
-  border-radius:var(--radl);
-  box-shadow:var(--sh-soft);
-}
-.app-topbar-kicker{color:var(--tx3)}
-.app-topbar-title{letter-spacing:-.02em}
 
-.card{
-  border:1px solid var(--bd);
-  border-radius:var(--radl);
-  box-shadow:var(--sh-soft);
-  background:var(--surf);
-}
 .ct{color:var(--tx3)}
 .ct::before{
   border:1px solid #A7D5CD;
@@ -701,14 +688,6 @@ body{
 }
 .mv{color:#0F766E}
 
-.btn{
-  border:1px solid var(--bd2);
-  border-radius:12px;
-  box-shadow:none;
-  font-weight:700;
-  padding:9px 14px;
-}
-.btn:hover{background:#F1F5F9}
 .btn-p{
   background:linear-gradient(135deg,#0F766E 0%,#115E59 100%);
   color:#FFFFFF;
@@ -808,16 +787,6 @@ body{
 .pt{color:var(--tx3)}
 
 .tabs{border-color:var(--bd)}
-.tb{
-  font-family:'Space Grotesk',sans-serif;
-  color:var(--tx3);
-  border-bottom-width:2px;
-}
-.tb.on{
-  color:#0F766E;
-  border-bottom-color:#0F766E;
-  background:transparent;
-}
 
 .alert{
   border:1px solid var(--bd);
@@ -1283,8 +1252,6 @@ body{color:#10212F}
 .ml,
 .ct,
 .pt{color:#4C6278}
-.tb{color:#40566C}
-.tb.on{color:#0F766E}
 .inp::placeholder{color:#6B8197;opacity:1}
 .noti-desc{color:#1F3448}
 
@@ -1308,7 +1275,6 @@ body{color:#10212F}
 }
 
 /* Touch targets melhores */
-.tb{min-height:40px}
 .ib{min-height:34px;min-width:44px}
 
 input[type="checkbox"]{
