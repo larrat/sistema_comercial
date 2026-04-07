@@ -33,6 +33,26 @@ function normTxt(v){
     .trim();
 }
 
+function parseTimes(v){
+  const raw = Array.isArray(v)
+    ? v
+    : String(v || '').split(/[,;\n]+/);
+
+  const seen = new Set();
+  const out = [];
+
+  raw.forEach(item => {
+    const nome = String(item || '').trim();
+    if(!nome) return;
+    const key = normTxt(nome);
+    if(seen.has(key)) return;
+    seen.add(key);
+    out.push(nome);
+  });
+
+  return out;
+}
+
 function jogoTemTime(j, time){
   const t = normTxt(time);
   if(!t) return false;
@@ -346,16 +366,19 @@ export function renderDash(){
 
   const clientesBase = filIds.flatMap(fid => (D.clientes?.[fid] || []));
   const oportunidades = clientesBase
-    .filter(c => String(c.time || '').trim())
-    .map(c => {
-      const jogo = jogosSemana.find(j => jogoTemTime(j, c.time));
-      if(!jogo) return null;
-      return {
-        cliente: c.nome,
-        time: c.time,
-        jogo,
-        data: new Date(jogo.data_hora || 0)
-      };
+    .flatMap(c => {
+      const times = parseTimes(c.time);
+      if(!times.length) return [];
+      return times.map(time => {
+        const jogo = jogosSemana.find(j => jogoTemTime(j, time));
+        if(!jogo) return null;
+        return {
+          cliente: c.nome,
+          time,
+          jogo,
+          data: new Date(jogo.data_hora || 0)
+        };
+      });
     })
     .filter(Boolean)
     .sort((a, b) => a.data - b.data);

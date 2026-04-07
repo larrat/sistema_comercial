@@ -103,7 +103,23 @@ export const SB = {
   deleteProduto: id => sbReq(`produtos?id=eq.${id}`, 'DELETE'),
 
   getClientes: fid => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
-  upsertCliente: c => sbReq('clientes', 'POST', c, '?on_conflict=id'),
+  upsertCliente: async c => {
+    try{
+      return await sbReq('clientes', 'POST', c, '?on_conflict=id');
+    }catch(e){
+      const msg = String(e?.message || '');
+      const semColunaTime =
+        msg.includes("Could not find the 'time' column") ||
+        msg.includes('"time" column of') ||
+        msg.includes('PGRST204');
+
+      if(!semColunaTime) throw e;
+
+      const { time, ...payloadLegado } = c || {};
+      console.warn('Fallback upsertCliente sem coluna time. Aplique ALTER TABLE para persistir times.', time);
+      return sbReq('clientes', 'POST', payloadLegado, '?on_conflict=id');
+    }
+  },
   deleteCliente: id => sbReq(`clientes?id=eq.${id}`, 'DELETE'),
 
   getPedidos: fid => sbReq('pedidos', 'GET', null, `?filial_id=eq.${fid}&order=num.desc`),

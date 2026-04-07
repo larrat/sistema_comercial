@@ -33,6 +33,34 @@ const ST_B = {
   prospecto:'<span class="bdg bb">Prospecto</span>'
 };
 
+function normTxt(v){
+  return String(v || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function parseTimes(v){
+  const raw = Array.isArray(v)
+    ? v
+    : String(v || '').split(/[,;\n]+/);
+
+  const seen = new Set();
+  const out = [];
+
+  raw.forEach(item => {
+    const nome = String(item || '').trim();
+    if(!nome) return;
+    const key = normTxt(nome);
+    if(seen.has(key)) return;
+    seen.add(key);
+    out.push(nome);
+  });
+
+  return out;
+}
+
 export function renderCliMet(){
   const c = C();
   const a = c.filter(x => x.status === 'ativo').length;
@@ -75,7 +103,7 @@ export function renderClientes(){
   const st = stEl?.value || '';
 
   const f = C().filter(c =>
-    (!q || c.nome.toLowerCase().includes(q) || (c.apelido || '').toLowerCase().includes(q) || (c.time || '').toLowerCase().includes(q)) &&
+    (!q || c.nome.toLowerCase().includes(q) || (c.apelido || '').toLowerCase().includes(q) || parseTimes(c.time).join(' ').toLowerCase().includes(q)) &&
     (!seg || c.seg === seg) &&
     (!st || c.status === st)
   );
@@ -118,6 +146,7 @@ export function renderClientes(){
         <tbody>
           ${f.map(c => {
             const cor = avc(c.nome);
+            const times = parseTimes(c.time);
             return `
               <tr>
                 <td><div class="av" style="background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div></td>
@@ -141,8 +170,8 @@ export function renderClientes(){
                 <td>
                   <div class="fg2" style="gap:4px">
                     ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
-                    ${c.time ? `<span class="bdg bb">⚽ ${c.time}</span>` : ''}
-                    ${!c.seg && !c.time ? '—' : ''}
+                    ${times.map(t => `<span class="bdg bb">⚽ ${t}</span>`).join('')}
+                    ${!c.seg && !times.length ? '—' : ''}
                   </div>
                 </td>
                 <td>${tabLbl[c.tab] || '—'}</td>
@@ -253,7 +282,7 @@ export async function abrirCliDet(id){
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div>
         <div>Tabela: ${({ padrao:'Padrão', especial:'Especial', vip:'VIP' }[c.tab] || '—')}</div>
         <div>Prazo: ${prazoLbl[c.prazo] || '—'}</div>
-        ${c.time ? `<div>Time: ${c.time}</div>` : ''}
+        ${parseTimes(c.time).length ? `<div>Time(s): ${parseTimes(c.time).join(', ')}</div>` : ''}
         ${c.seg ? `<div>Segmento: ${c.seg}</div>` : ''}
       </div>
     </div>
@@ -380,7 +409,7 @@ export function editarCli(id){
   document.getElementById('c-whatsapp').value = c.whatsapp || '';
   document.getElementById('c-email').value = c.email || '';
   document.getElementById('c-aniv').value = c.data_aniversario || '';
-  document.getElementById('c-time').value = c.time || '';
+  document.getElementById('c-time').value = parseTimes(c.time).join(', ');
   document.getElementById('c-resp').value = c.resp || '';
   document.getElementById('c-seg').value = c.seg || '';
   document.getElementById('c-tab').value = c.tab || 'padrao';
@@ -417,7 +446,7 @@ export async function salvarCliente(){
     optin_marketing: !!document.getElementById('c-optin-marketing').checked,
     optin_email: !!document.getElementById('c-optin-email').checked,
     optin_sms: !!document.getElementById('c-optin-sms').checked,
-    time: document.getElementById('c-time').value.trim(),
+    time: parseTimes(document.getElementById('c-time').value).join(', '),
     resp: document.getElementById('c-resp').value.trim(),
     seg: document.getElementById('c-seg').value.trim(),
     tab: document.getElementById('c-tab').value,
