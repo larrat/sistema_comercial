@@ -1,5 +1,3 @@
-// js/api.js
-
 const SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
 const SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
 
@@ -25,17 +23,41 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
   if (!res.ok) {
     const e = await res.text();
     console.error('Supabase erro', res.status, table, params, e);
+
     if (res.status === 401 || res.status === 403) {
       throw new Error('Chave inválida (' + res.status + '). Verifique SB_KEY.');
     }
+
     if (res.status === 404) {
       throw new Error('Tabela não encontrada: ' + table + '. Execute o SQL de criação.');
     }
+
     throw new Error(res.status + ': ' + e);
   }
 
   const t = await res.text();
   return t ? JSON.parse(t) : null;
+}
+
+function fmtDateYYYYMMDD(date) {
+  const d = new Date(date);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(baseDate, days) {
+  const d = new Date(baseDate);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function mmdd(date) {
+  const d = new Date(date);
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${m}-${day}`;
 }
 
 export const SB = {
@@ -99,5 +121,160 @@ export const SB = {
   deleteMov: id => sbReq(`movimentacoes?id=eq.${id}`, 'DELETE'),
 
   getNotas: cid => sbReq('notas', 'GET', null, `?cliente_id=eq.${cid}&order=criado_em.desc`),
-  insertNota: n => sbReq('notas', 'POST', n, '')
+  insertNota: n => sbReq('notas', 'POST', n, ''),
+
+  // =====================================================
+  // CAMPANHAS
+  // =====================================================
+  getCampanhas: fid =>
+    sbReq('campanhas', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
+
+  getCampanhaById: async id => {
+    const r = await sbReq('campanhas', 'GET', null, `?id=eq.${id}&limit=1`);
+    return r && r[0] ? r[0] : null;
+  },
+
+  upsertCampanha: c => sbReq('campanhas', 'POST', c, '?on_conflict=id'),
+
+  deleteCampanha: id => sbReq(`campanhas?id=eq.${id}`, 'DELETE'),
+
+  getCampanhasAtivasAniversario: fid =>
+    sbReq(
+      'campanhas',
+      'GET',
+      null,
+      `?filial_id=eq.${fid}&tipo=eq.aniversario&ativo=eq.true&order=criado_em.desc`
+    ),
+
+  // =====================================================
+  // CAMPANHA_ENVIOS
+  // =====================================================
+  getCampanhaEnvios: fid =>
+    sbReq('campanha_envios', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
+
+  getCampanhaEnviosByCampanha: campanhaId =>
+    sbReq('campanha_envios', 'GET', null, `?campanha_id=eq.${campanhaId}&order=criado_em.desc`),
+
+  getCampanhaEnviosByCliente: clienteId =>
+    sbReq('campanha_envios', 'GET', null, `?cliente_id=eq.${clienteId}&order=criado_em.desc`),
+
+  getCampanhaEnviosPendentes: fid =>
+    sbReq(
+      'campanha_envios',
+      'GET',
+      null,
+      `?filial_id=eq.${fid}&status=eq.pendente&order=criado_em.desc`
+    ),
+
+  insertCampanhaEnvio: envio =>
+    sbReq('campanha_envios', 'POST', envio, ''),
+
+  upsertCampanhaEnvio: envio =>
+    sbReq(
+      'campanha_envios',
+      'POST',
+      envio,
+      '?on_conflict=campanha_id,cliente_id,canal,data_ref'
+    ),
+
+  updateCampanhaEnvio: envio =>
+    sbReq('campanha_envios', 'POST', envio, '?on_conflict=id'),
+
+  deleteCampanhaEnvio: id =>
+    sbReq(`campanha_envios?id=eq.${id}`, 'DELETE'),
+
+  existeCampanhaEnvioNoDia: async ({ campanha_id, cliente_id, canal, data_ref }) => {
+    const r = await sbReq(
+      'campanha_envios',
+      'GET',
+      null,
+      `?campanha_id=eq.${campanha_id}&cliente_id=eq.${cliente_id}&canal=eq.${canal}&data_ref=eq.${data_ref}&limit=1`
+    );
+    return !!(r && r.length);
+  },
+
+  // =====================================================
+  // ANIVERSARIANTES / ELEGIBILIDADE
+  // =====================================================
+  getClientesComAniversario: fid =>
+    sbReq(
+      'clientes',
+      'GET',
+      null,
+      `?filial_id=eq.${fid}&data_aniversario=not.is.null&order=nome`
+    ),
+
+  getAniversariantesDoDia: async (fid, baseDate = new Date()) => {
+    const clientes = await sbReq(
+      'clientes',
+      'GET',
+      null,
+      `?filial_id=eq.${fid}&data_aniversario=not.is.null&order=nome`
+    );
+
+    const alvo = mmdd(baseDate);
+    return (clientes || []).filter(c => c.data_aniversario && mmdd(c.data_aniversario) === alvo);
+  },
+
+  getAniversariantesProximos: async (fid, diasAntecedencia = 0, baseDate = new Date()) => {
+    const clientes = await sbReq(
+      'clientes',
+      'GET',
+      null,
+      `?filial_id=eq.${fid}&data_aniversario=not.is.null&order=nome`
+    );
+
+    const alvo = mmdd(addDays(baseDate, diasAntecedencia));
+    return (clientes || []).filter(c => c.data_aniversario && mmdd(c.data_aniversario) === alvo);
+  },
+
+  getClientesElegiveisCampanhaAniversario: async (fid, campanha, baseDate = new Date()) => {
+    const clientes = await sbReq(
+      'clientes',
+      'GET',
+      null,
+      `?filial_id=eq.${fid}&data_aniversario=not.is.null&order=nome`
+    );
+
+    const dias = Number(campanha?.dias_antecedencia || 0);
+    const alvo = mmdd(addDays(baseDate, dias));
+    const canal = campanha?.canal || '';
+
+    return (clientes || []).filter(c => {
+      if (!c.data_aniversario) return false;
+      if (mmdd(c.data_aniversario) !== alvo) return false;
+
+      if (canal === 'email') return !!c.optin_email && !!c.email;
+      if (canal === 'sms') return !!c.optin_sms && !!c.tel;
+      if (canal === 'whatsapp_manual') return !!c.optin_marketing && !!c.whatsapp;
+
+      return !!c.optin_marketing;
+    });
+  },
+
+  // =====================================================
+  // UTILITÁRIOS DE CAMPANHA
+  // =====================================================
+  montarMensagemCampanha: ({ mensagem, cliente, campanha, validade = null }) => {
+    let txt = String(mensagem || '');
+
+    const desconto = campanha?.desconto
+      ? `${Number(campanha.desconto)}%`
+      : '';
+
+    const cupom = campanha?.cupom || '';
+    const nome = cliente?.nome || '';
+    const apelido = cliente?.apelido || nome;
+    const validadeFmt = validade
+      ? fmtDateYYYYMMDD(validade)
+      : fmtDateYYYYMMDD(addDays(new Date(), 7));
+
+    txt = txt.replaceAll('{{nome}}', nome);
+    txt = txt.replaceAll('{{apelido}}', apelido);
+    txt = txt.replaceAll('{{desconto}}', desconto);
+    txt = txt.replaceAll('{{cupom}}', cupom);
+    txt = txt.replaceAll('{{validade}}', validadeFmt);
+
+    return txt;
+  }
 };

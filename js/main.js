@@ -1,13 +1,16 @@
 import { SB } from './api.js';
-import { D, State, P, C, PD, FORNS, CPRECOS, CCFG, MOVS } from './store.js';
+import { D, State, P, C, PD, FORNS, CPRECOS, CCFG } from './store.js';
 
 import {
   toast,
   abrirModal,
   fecharModal,
   uid,
+  norm,
   fmt,
   fmtN,
+  fmtQ,
+  mk2mg,
   prV
 } from '../core/utils.js';
 
@@ -93,15 +96,36 @@ import {
   setP
 } from '../modules/dashboard.js';
 
-const CORES = ['#163F80','#156038','#7A4E00','#9B2D24','#5B3F99','#1A6B7A'];
+import {
+  carregarCampanhas,
+  carregarCampanhaEnvios,
+  refreshCampanhasTela,
+  limparFormCampanha,
+  abrirNovaCampanha,
+  editarCampanha,
+  salvarCampanha,
+  removerCampanha,
+  renderCampanhasMet,
+  renderCampanhas,
+  gerarFilaCampanha,
+  renderFilaWhatsApp,
+  renderCampanhaEnvios,
+  abrirWhatsAppEnvio,
+  marcarEnvioEnviado,
+  marcarEnvioFalhou
+} from '../modules/campanhas.js';
 
-function showLoading(on){
+const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
+
+function showLoading(on) {
   let el = document.getElementById('sb-loading');
-  if(!el){
+  if (!el) {
     el = document.createElement('div');
     el.id = 'sb-loading';
-    el.style.cssText = 'position:fixed;inset:0;background:rgba(246,245,242,.88);z-index:8000;display:none;align-items:center;justify-content:center;gap:12px;font-size:14px;font-weight:500;color:var(--tx2);font-family:DM Sans,sans-serif;backdrop-filter:blur(2px)';
-    el.innerHTML = '<div style="width:22px;height:22px;border:2.5px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite"></div>Carregando dados…';
+    el.style.cssText =
+      'position:fixed;inset:0;background:rgba(246,245,242,.88);z-index:8000;display:none;align-items:center;justify-content:center;gap:12px;font-size:14px;font-weight:500;color:var(--tx2);font-family:DM Sans,sans-serif;backdrop-filter:blur(2px)';
+    el.innerHTML =
+      '<div style="width:22px;height:22px;border:2.5px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite"></div>Carregando dados…';
     const st = document.createElement('style');
     st.textContent = '@keyframes sp{to{transform:rotate(360deg)}}';
     document.head.appendChild(st);
@@ -110,17 +134,29 @@ function showLoading(on){
   el.style.display = on ? 'flex' : 'none';
 }
 
-async function carregarDadosFilial(filId){
+async function carregarDadosFilial(filId) {
   showLoading(true);
-  try{
-    const [prods, clis, peds, forns, precos, cfg, movs] = await Promise.all([
+  try {
+    const [
+      prods,
+      clis,
+      peds,
+      forns,
+      precos,
+      cfg,
+      movs,
+      campanhas,
+      campanhaEnvios
+    ] = await Promise.all([
       SB.getProdutos(filId),
       SB.getClientes(filId),
       SB.getPedidos(filId),
       SB.getFornecedores(filId),
       SB.getCotPrecos(filId),
       SB.getCotConfig(filId),
-      SB.getMovs(filId)
+      SB.getMovs(filId),
+      SB.getCampanhas(filId).catch(() => []),
+      SB.getCampanhaEnvios(filId).catch(() => [])
     ]);
 
     D.produtos[filId] = prods || [];
@@ -131,6 +167,7 @@ async function carregarDadosFilial(filId){
     }));
     D.fornecedores[filId] = forns || [];
 
+    if (!D.cotPrecos[filId]) D.cotPrecos[filId] = {};
     D.cotPrecos[filId] = {};
     (precos || []).forEach(p => {
       D.cotPrecos[filId][p.produto_id + '_' + p.fornecedor_id] = p.preco;
@@ -147,28 +184,33 @@ async function carregarDadosFilial(filId){
     };
 
     D.movs[filId] = movs || [];
-  }catch(e){
+
+    if (!D.campanhas) D.campanhas = {};
+    if (!D.campanhaEnvios) D.campanhaEnvios = {};
+    D.campanhas[filId] = campanhas || [];
+    D.campanhaEnvios[filId] = campanhaEnvios || [];
+  } catch (e) {
     toast('Erro ao carregar: ' + e.message);
     console.error(e);
   }
   showLoading(false);
 }
 
-function mostrarTela(id){
+function mostrarTela(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
   document.getElementById(id)?.classList.add('on');
   window.scrollTo(0, 0);
 }
 
-function renderSetupGrid(){
+function renderSetupGrid() {
   const grid = document.getElementById('fil-grid');
   const form = document.getElementById('setup-form');
   const actions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
 
-  if(!grid || !form || !actions || !sub) return;
+  if (!grid || !form || !actions || !sub) return;
 
-  if(!D.filiais.length){
+  if (!D.filiais.length) {
     grid.innerHTML = '';
     form.style.display = 'block';
     actions.style.display = 'none';
@@ -191,26 +233,26 @@ function renderSetupGrid(){
   `).join('');
 }
 
-async function renderSetup(){
+async function renderSetup() {
   mostrarTela('screen-setup');
   showLoading(true);
-  try{
+  try {
     D.filiais = await SB.getFiliais() || [];
-  }catch(e){
+  } catch (e) {
     toast('Erro ao buscar filiais: ' + e.message);
   }
   showLoading(false);
   renderSetupGrid();
 }
 
-function selFilial(id){
+function selFilial(id) {
   State.selFil = id;
   renderSetupGrid();
 }
 
-async function criarPrimeiraFilial(){
+async function criarPrimeiraFilial() {
   const nome = document.getElementById('sf-nome')?.value.trim();
-  if(!nome){
+  if (!nome) {
     toast('Informe o nome da filial.');
     return;
   }
@@ -224,9 +266,9 @@ async function criarPrimeiraFilial(){
     endereco: ''
   };
 
-  try{
+  try {
     await SB.upsertFilial(f);
-  }catch(e){
+  } catch (e) {
     toast('Erro ao criar filial: ' + e.message);
     return;
   }
@@ -236,18 +278,18 @@ async function criarPrimeiraFilial(){
   await entrar();
 }
 
-async function entrar(){
-  if(!State.selFil){
+async function entrar() {
+  if (!State.selFil) {
     toast('Selecione uma filial.');
     return;
   }
 
-  try{
+  try {
     D.filiais = await SB.getFiliais() || [];
-  }catch(e){}
+  } catch (e) {}
 
   const f = D.filiais.find(x => x.id === State.selFil);
-  if(!f){
+  if (!f) {
     toast('Filial não encontrada.');
     return;
   }
@@ -256,12 +298,13 @@ async function entrar(){
 
   const dot = document.getElementById('sb-dot');
   const fname = document.getElementById('sb-fname');
-  if(dot) dot.style.background = f.cor;
-  if(fname) fname.textContent = f.nome;
+  if (dot) dot.style.background = f.cor;
+  if (fname) fname.textContent = f.nome;
 
   await carregarDadosFilial(State.FIL);
 
   mostrarTela('screen-app');
+
   refreshProdSel();
   refreshCliDL();
   renderFornSel();
@@ -270,14 +313,15 @@ async function entrar(){
   renderDashFilSel();
   renderDash();
   atualizarBadgeEst();
+
   ir('dashboard');
 }
 
-function voltarSetup(){
+function voltarSetup() {
   renderSetup();
 }
 
-function ir(p){
+function ir(p) {
   fecharSb();
 
   document.querySelectorAll('.ni').forEach(n => n.classList.toggle('on', n.dataset.p === p));
@@ -290,16 +334,17 @@ function ir(p){
     produtos: () => { renderProdMet(); renderProdutos(); },
     clientes: () => { renderCliMet(); renderClientes(); },
     pedidos: () => { renderPedMet(); renderPedidos(); },
-    cotacao: () => { renderFornSel(); renderCotForns(); renderCotLogs(); },
-    estoque: () => { renderEstAlerts(); renderEstPosicao(); },
+    cotacao: () => { renderFornSel(); renderCotForns(); renderCotLogs(); renderCotTabela(); },
+    estoque: () => { renderEstAlerts(); renderEstPosicao(); renderEstHist(); },
+    campanhas: () => { renderCampanhasMet(); renderCampanhas(); renderFilaWhatsApp(); renderCampanhaEnvios(); },
     filiais: () => { renderFilMet(); renderFilLista(); }
   };
 
-  if(renderMap[p]) renderMap[p]();
+  if (renderMap[p]) renderMap[p]();
   window.scrollTo(0, 0);
 }
 
-function switchTab(grp, name){
+function switchTab(grp, name) {
   const prefix = grp + '-tc-';
   document.querySelectorAll(`[id^="${prefix}"]`).forEach(t => t.classList.remove('on'));
   document.getElementById(prefix + name)?.classList.add('on');
@@ -310,33 +355,33 @@ function switchTab(grp, name){
   });
 }
 
-function abrirSb(){
+function abrirSb() {
   document.getElementById('sb')?.classList.add('on');
   document.getElementById('sb-overlay')?.classList.add('on');
   const close = document.getElementById('sb-close');
-  if(close) close.style.display = 'flex';
+  if (close) close.style.display = 'flex';
 }
 
-function fecharSb(){
+function fecharSb() {
   document.getElementById('sb')?.classList.remove('on');
   document.getElementById('sb-overlay')?.classList.remove('on');
   const close = document.getElementById('sb-close');
-  if(close) close.style.display = 'none';
+  if (close) close.style.display = 'none';
 }
 
-function limparFormFilial(){
+function limparFormFilial() {
   State.editIds.filial = null;
   document.getElementById('filial-modal-titulo').textContent = 'Nova filial';
-  ['fil-nome','fil-cidade','fil-estado','fil-end'].forEach(i => {
+  ['fil-nome', 'fil-cidade', 'fil-estado', 'fil-end'].forEach(i => {
     const el = document.getElementById(i);
-    if(el) el.value = '';
+    if (el) el.value = '';
   });
   document.getElementById('fil-cor').value = CORES[D.filiais.length % CORES.length];
 }
 
-function editarFilial(id){
+function editarFilial(id) {
   const f = D.filiais.find(x => x.id === id);
-  if(!f) return;
+  if (!f) return;
 
   State.editIds.filial = id;
   document.getElementById('filial-modal-titulo').textContent = 'Editar filial';
@@ -348,9 +393,9 @@ function editarFilial(id){
   abrirModal('modal-filial');
 }
 
-async function salvarFilial(){
+async function salvarFilial() {
   const nome = document.getElementById('fil-nome')?.value.trim();
-  if(!nome){
+  if (!nome) {
     toast('Informe o nome.');
     return;
   }
@@ -364,29 +409,28 @@ async function salvarFilial(){
     cor: document.getElementById('fil-cor')?.value || CORES[0]
   };
 
-  try{
+  try {
     await SB.upsertFilial(f);
-  }catch(e){
+  } catch (e) {
     toast('Erro: ' + e.message);
     return;
   }
 
   fecharModal('modal-filial');
-  renderSetup().then(() => {
-    renderFilLista();
-    renderFilMet();
-    renderDashFilSel();
-  });
+  await renderSetup();
+  renderFilLista();
+  renderFilMet();
+  renderDashFilSel();
 
   toast(State.editIds.filial ? 'Filial atualizada!' : 'Filial criada!');
 }
 
-async function removerFilial(id){
-  if(!confirm('Remover filial e dados?')) return;
+async function removerFilial(id) {
+  if (!confirm('Remover filial e dados?')) return;
 
-  try{
+  try {
     await SB.deleteFilial(id);
-  }catch(e){
+  } catch (e) {
     toast('Erro: ' + e.message);
     return;
   }
@@ -394,23 +438,27 @@ async function removerFilial(id){
   D.filiais = D.filiais.filter(f => f.id !== id);
   renderFilLista();
   renderFilMet();
-  renderSetup().then(() => renderDashFilSel());
+  await renderSetup();
+  renderDashFilSel();
   toast('Filial removida.');
 }
 
-function renderFilMet(){
-  document.getElementById('fil-met').innerHTML = `
+function renderFilMet() {
+  const el = document.getElementById('fil-met');
+  if (!el) return;
+
+  el.innerHTML = `
     <div class="met"><div class="ml">Filiais</div><div class="mv">${D.filiais.length}</div></div>
     <div class="met"><div class="ml">Total produtos</div><div class="mv">${Object.values(D.produtos).flat().length}</div></div>
     <div class="met"><div class="ml">Total pedidos</div><div class="mv">${Object.values(D.pedidos).flat().length}</div></div>
   `;
 }
 
-function renderFilLista(){
+function renderFilLista() {
   const el = document.getElementById('fil-lista');
-  if(!el) return;
+  if (!el) return;
 
-  if(!D.filiais.length){
+  if (!D.filiais.length) {
     el.innerHTML = `<div class="empty"><div class="ico">🏢</div><p>Nenhuma filial cadastrada.</p></div>`;
     return;
   }
@@ -447,54 +495,54 @@ function renderFilLista(){
   }).join('');
 }
 
-async function trocarFilial(id){
+async function trocarFilial(id) {
   State.selFil = id;
   await entrar();
   await renderSetup();
   toast('Filial alterada!');
 }
 
-function exportCSV(tipo){
+function exportCSV(tipo) {
   const saldos = calcSaldos();
   let rows = [];
   let name = '';
 
-  if(tipo === 'produtos'){
+  if (tipo === 'produtos') {
     name = 'produtos';
     rows = [
-      ['Nome','SKU','Un','Categoria','Custo','Mk Varejo%','Preço Varejo','Mk Atacado%','Preço Atacado','Est. Min','Saldo Atual'],
+      ['Nome', 'SKU', 'Un', 'Categoria', 'Custo', 'Mk Varejo%', 'Mg Varejo%', 'Preço Varejo', 'Mk Atacado%', 'Preço Atacado', 'Est. Min', 'Saldo Atual'],
       ...P().map(p => {
         const pv = prV(p.custo, p.mkv);
         const pa = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
         const s = saldos[p.id] || { saldo: 0 };
-        return [p.nome, p.sku || '', p.un, p.cat || '', fmtN(p.custo), fmtN(p.mkv), fmtN(pv), fmtN(p.mka), pa > 0 ? fmtN(pa) : '', p.emin || '', fmtN(s.saldo)];
+        return [p.nome, p.sku || '', p.un, p.cat || '', fmtN(p.custo), fmtN(p.mkv), fmtN(mk2mg(p.mkv)), fmtN(pv), fmtN(p.mka), pa > 0 ? fmtN(pa) : '', p.emin || '', fmtN(s.saldo)];
       })
     ];
-  } else if(tipo === 'clientes'){
+  } else if (tipo === 'clientes') {
     name = 'clientes';
     rows = [
-      ['Nome','Apelido','CPF/CNPJ','Tipo','Status','Telefone','Email','Segmento','Tabela','Prazo','Cidade'],
-      ...C().map(c => [c.nome, c.apelido || '', c.doc || '', c.tipo, c.status, c.tel || '', c.email || '', c.seg || '', c.tab, c.prazo, c.cidade || ''])
+      ['Nome', 'Apelido', 'CPF/CNPJ', 'Tipo', 'Status', 'Telefone', 'Email', 'Segmento', 'Tabela', 'Prazo', 'Cidade', 'WhatsApp', 'Aniversário'],
+      ...C().map(c => [c.nome, c.apelido || '', c.doc || '', c.tipo, c.status, c.tel || '', c.email || '', c.seg || '', c.tab, c.prazo, c.cidade || '', c.whatsapp || '', c.data_aniversario || ''])
     ];
-  } else if(tipo === 'pedidos'){
+  } else if (tipo === 'pedidos') {
     name = 'pedidos';
     rows = [
-      ['Nº','Cliente','Data','Status','Tipo','Pagamento','Prazo','Total','Lucro','Obs'],
+      ['Nº', 'Cliente', 'Data', 'Status', 'Tipo', 'Pagamento', 'Prazo', 'Total', 'Lucro', 'Obs'],
       ...PD().map(p => {
         const lucro = (p.itens || []).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
         return [p.num, p.cli, p.data, p.status, p.tipo, p.pgto, p.prazo, fmtN(p.total), fmtN(lucro), p.obs || ''];
       })
     ];
-  } else if(tipo === 'cotacao'){
+  } else if (tipo === 'cotacao') {
     name = 'cotacao';
     const forns = FORNS();
-    if(!P().length || !forns.length){
+    if (!P().length || !forns.length) {
       toast('Sem dados para exportar.');
       return;
     }
 
     rows = [
-      ['Produto','Un', ...forns.map(f => f.nome), 'Melhor preço', 'Melhor fornecedor'],
+      ['Produto', 'Un', ...forns.map(f => f.nome), 'Melhor preço', 'Melhor fornecedor'],
       ...P().map(p => {
         const prices = forns.map(f => {
           const k = p.id + '_' + f.id;
@@ -506,10 +554,10 @@ function exportCSV(tipo){
         return [p.nome, p.un, ...prices, mp !== '' ? fmtN(mp) : '', bi >= 0 ? forns[bi].nome : ''];
       })
     ];
-  } else if(tipo === 'estoque'){
+  } else if (tipo === 'estoque') {
     name = 'estoque';
     rows = [
-      ['Produto','SKU','Un','Saldo','Custo Médio','Valor Total','Est. Mín','Status'],
+      ['Produto', 'SKU', 'Un', 'Saldo', 'Custo Médio', 'Valor Total', 'Est. Mín', 'Status'],
       ...P().map(p => {
         const s = saldos[p.id] || { saldo: 0, cm: 0 };
         const min = p.emin || 0;
@@ -517,15 +565,22 @@ function exportCSV(tipo){
         return [p.nome, p.sku || '', p.un, fmtN(s.saldo), fmtN(s.cm), fmtN(s.saldo * s.cm), min || '', st];
       })
     ];
+  } else if (tipo === 'campanhas') {
+    name = 'campanhas';
+    const campanhas = (D.campanhas?.[State.FIL] || []);
+    rows = [
+      ['Nome', 'Tipo', 'Canal', 'Antecedência', 'Assunto', 'Cupom', 'Desconto', 'Ativo'],
+      ...campanhas.map(c => [c.nome, c.tipo, c.canal, c.dias_antecedencia || 0, c.assunto || '', c.cupom || '', c.desconto || 0, c.ativo ? 'Sim' : 'Não'])
+    ];
   }
 
-  if(!rows.length){
+  if (!rows.length) {
     toast('Sem dados para exportar.');
     return;
   }
 
-  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8' });
+  const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = name + '.csv';
@@ -533,8 +588,8 @@ function exportCSV(tipo){
   toast('CSV exportado!');
 }
 
-function exportarTudo(){
-  ['produtos','clientes','pedidos','cotacao','estoque'].forEach((t, i) =>
+function exportarTudo() {
+  ['produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas'].forEach((t, i) =>
     setTimeout(() => exportCSV(t), i * 200)
   );
 }
@@ -558,7 +613,7 @@ initDashboardModule({
   calcSaldosMulti
 });
 
-if(document.readyState === 'loading'){
+if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     renderSetup();
   });
@@ -592,6 +647,7 @@ window.removerProd = removerProd;
 window.calcProdPreview = calcProdPreview;
 window.syncV = syncV;
 window.syncA = syncA;
+window.refreshProdSel = refreshProdSel;
 
 window.renderClientes = renderClientes;
 window.renderCliMet = renderCliMet;
@@ -602,6 +658,7 @@ window.removerCli = removerCli;
 window.renderCliSegs = renderCliSegs;
 window.abrirCliDet = abrirCliDet;
 window.addNota = addNota;
+window.refreshCliDL = refreshCliDL;
 
 window.renderPedidos = renderPedidos;
 window.renderPedMet = renderPedMet;
@@ -648,3 +705,20 @@ window.removerFilial = removerFilial;
 window.trocarFilial = trocarFilial;
 window.renderFilMet = renderFilMet;
 window.renderFilLista = renderFilLista;
+
+window.carregarCampanhas = carregarCampanhas;
+window.carregarCampanhaEnvios = carregarCampanhaEnvios;
+window.refreshCampanhasTela = refreshCampanhasTela;
+window.limparFormCampanha = limparFormCampanha;
+window.abrirNovaCampanha = abrirNovaCampanha;
+window.editarCampanha = editarCampanha;
+window.salvarCampanha = salvarCampanha;
+window.removerCampanha = removerCampanha;
+window.renderCampanhasMet = renderCampanhasMet;
+window.renderCampanhas = renderCampanhas;
+window.gerarFilaCampanha = gerarFilaCampanha;
+window.renderFilaWhatsApp = renderFilaWhatsApp;
+window.renderCampanhaEnvios = renderCampanhaEnvios;
+window.abrirWhatsAppEnvio = abrirWhatsAppEnvio;
+window.marcarEnvioEnviado = marcarEnvioEnviado;
+window.marcarEnvioFalhou = marcarEnvioFalhou;
