@@ -1,6 +1,6 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
-import { uid, toast, abrirModal, fecharModal } from '../core/utils.js';
+import { abrirModal, fecharModal, toast } from '../core/utils.js';
 
 const AVC = [
   { bg:'#E6EEF9', c:'#0F2F5E' },
@@ -15,9 +15,8 @@ function avc(n){
 }
 
 function ini(n){
-  const nome = String(n || '').trim();
-  if(!nome) return 'CL';
-  const p = nome.split(' ');
+  const p = String(n || '').trim().split(' ').filter(Boolean);
+  if(!p.length) return 'CL';
   return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
 }
 
@@ -57,18 +56,22 @@ export function renderCliMet(){
 }
 
 export function renderClientes(){
-  const q = (document.getElementById('cli-busca')?.value || '').toLowerCase();
-  const seg = document.getElementById('cli-fil-seg')?.value || '';
-  const st = document.getElementById('cli-fil-st')?.value || '';
+  const buscaEl = document.getElementById('cli-busca');
+  const segEl = document.getElementById('cli-fil-seg');
+  const stEl = document.getElementById('cli-fil-st');
+  const el = document.getElementById('cli-lista');
+
+  if(!el) return;
+
+  const q = (buscaEl?.value || '').toLowerCase();
+  const seg = segEl?.value || '';
+  const st = stEl?.value || '';
 
   const f = C().filter(c =>
     (!q || c.nome.toLowerCase().includes(q) || (c.apelido || '').toLowerCase().includes(q)) &&
     (!seg || c.seg === seg) &&
     (!st || c.status === st)
   );
-
-  const el = document.getElementById('cli-lista');
-  if(!el) return;
 
   if(!f.length){
     el.innerHTML = `<div class="empty"><div class="ico">👥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`;
@@ -177,12 +180,12 @@ export async function abrirCliDet(id){
   if(!c) return;
 
   const cor = avc(c.nome);
-
   let notas = [];
+
   try{
     notas = await SB.getNotas(id) || [];
   }catch(e){
-    console.error(e);
+    console.error('Erro ao carregar notas do cliente', e);
   }
 
   const prazoLbl = {
@@ -213,28 +216,30 @@ export async function abrirCliDet(id){
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;font-size:13px">
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Contato</div>
-        ${
-          [
-            c.resp && `Resp: ${c.resp}`,
-            c.tel,
-            c.email,
-            c.cidade && `${c.cidade}${c.estado ? ' - ' + c.estado : ''}`
-          ].filter(Boolean).map(x => `<div style="margin-bottom:3px">${x}</div>`).join('') || '—'
-        }
+        ${[
+          c.resp && `Resp: ${c.resp}`,
+          c.tel,
+          c.email,
+          c.cidade && `${c.cidade}${c.estado ? ' - ' + c.estado : ''}`
+        ].filter(Boolean).map(x => `<div style="margin-bottom:3px">${x}</div>`).join('') || '—'}
       </div>
 
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div>
-        <div>Tabela: ${({ padrao:'Padrão', especial:'Especial', vip:'VIP' })[c.tab] || '—'}</div>
+        <div>Tabela: ${({ padrao:'Padrão', especial:'Especial', vip:'VIP' }[c.tab] || '—')}</div>
         <div>Prazo: ${prazoLbl[c.prazo] || '—'}</div>
         ${c.seg ? `<div>Segmento: ${c.seg}</div>` : ''}
       </div>
     </div>
 
-    ${c.obs ? `<div class="panel" style="margin-bottom:12px"><div class="pt">Observações</div><p style="font-size:13px">${c.obs}</p></div>` : ''}
+    ${c.obs ? `
+      <div class="panel" style="margin-bottom:12px">
+        <div class="pt">Observações</div>
+        <p style="font-size:13px">${c.obs}</p>
+      </div>
+    ` : ''}
 
     <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / histórico</div>
-
     <div class="fg2" style="margin-bottom:8px">
       <input class="inp" id="nota-inp-${id}" placeholder="Adicionar nota..." style="flex:1">
       <button class="btn btn-sm" onclick="addNota('${id}')">+</button>
@@ -242,8 +247,14 @@ export async function abrirCliDet(id){
 
     <div id="notas-${id}">
       ${notas.length
-        ? notas.map(n => `<div class="nota"><div>${n.texto}</div><div class="nota-d">${n.data}</div></div>`).join('')
-        : '<div style="font-size:13px;color:var(--tx3)">Nenhuma nota.</div>'}
+        ? notas.map(n => `
+            <div class="nota">
+              <div>${n.texto}</div>
+              <div class="nota-d">${n.data}</div>
+            </div>
+          `).join('')
+        : '<div style="font-size:13px;color:var(--tx3)">Nenhuma nota.</div>'
+      }
     </div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
@@ -282,8 +293,12 @@ export async function addNota(id){
   const notasEl = document.getElementById('notas-' + id);
   if(notasEl){
     notasEl.innerHTML = D.notas[id]
-      .map(n => `<div class="nota"><div>${n.texto}</div><div class="nota-d">${n.data}</div></div>`)
-      .join('');
+      .map(n => `
+        <div class="nota">
+          <div>${n.texto}</div>
+          <div class="nota-d">${n.data}</div>
+        </div>
+      `).join('');
   }
 
   toast('Nota adicionada!');
@@ -291,17 +306,27 @@ export async function addNota(id){
 
 export function limparFormCli(){
   State.editIds.cli = null;
-  document.getElementById('cli-modal-titulo').textContent = 'Novo cliente';
 
-  ['c-nome','c-apelido','c-doc','c-tel','c-email','c-resp','c-seg','c-cidade','c-estado','c-obs'].forEach(i => {
-    const el = document.getElementById(i);
+  const titulo = document.getElementById('cli-modal-titulo');
+  if(titulo) titulo.textContent = 'Novo cliente';
+
+  [
+    'c-nome','c-apelido','c-doc','c-tel','c-email',
+    'c-resp','c-seg','c-cidade','c-estado','c-obs'
+  ].forEach(id => {
+    const el = document.getElementById(id);
     if(el) el.value = '';
   });
 
-  document.getElementById('c-tipo').value = 'PJ';
-  document.getElementById('c-status').value = 'ativo';
-  document.getElementById('c-tab').value = 'padrao';
-  document.getElementById('c-prazo').value = 'a_vista';
+  const tipo = document.getElementById('c-tipo');
+  const status = document.getElementById('c-status');
+  const tab = document.getElementById('c-tab');
+  const prazo = document.getElementById('c-prazo');
+
+  if(tipo) tipo.value = 'PJ';
+  if(status) status.value = 'ativo';
+  if(tab) tab.value = 'padrao';
+  if(prazo) prazo.value = 'a_vista';
 }
 
 export function editarCli(id){
@@ -309,12 +334,15 @@ export function editarCli(id){
   if(!c) return;
 
   State.editIds.cli = id;
-  document.getElementById('cli-modal-titulo').textContent = 'Editar cliente';
-  document.getElementById('c-nome').value = c.nome;
+
+  const titulo = document.getElementById('cli-modal-titulo');
+  if(titulo) titulo.textContent = 'Editar cliente';
+
+  document.getElementById('c-nome').value = c.nome || '';
   document.getElementById('c-apelido').value = c.apelido || '';
   document.getElementById('c-doc').value = c.doc || '';
   document.getElementById('c-tipo').value = c.tipo || 'PJ';
-  document.getElementById('c-status').value = c.status;
+  document.getElementById('c-status').value = c.status || 'ativo';
   document.getElementById('c-tel').value = c.tel || '';
   document.getElementById('c-email').value = c.email || '';
   document.getElementById('c-resp').value = c.resp || '';
@@ -329,29 +357,29 @@ export function editarCli(id){
 }
 
 export async function salvarCliente(){
-  const nome = document.getElementById('c-nome')?.value.trim();
+  const nome = document.getElementById('c-nome').value.trim();
   if(!nome){
     toast('Informe o nome.');
     return;
   }
 
   const c = {
-    id: State.editIds.cli || uid(),
+    id: State.editIds.cli || (Date.now() + '-' + Math.random().toString(36).slice(2,8)),
     filial_id: State.FIL,
     nome,
-    apelido: document.getElementById('c-apelido')?.value.trim() || '',
-    doc: document.getElementById('c-doc')?.value.trim() || '',
-    tipo: document.getElementById('c-tipo')?.value || 'PJ',
-    status: document.getElementById('c-status')?.value || 'ativo',
-    tel: document.getElementById('c-tel')?.value.trim() || '',
-    email: document.getElementById('c-email')?.value.trim() || '',
-    resp: document.getElementById('c-resp')?.value.trim() || '',
-    seg: document.getElementById('c-seg')?.value.trim() || '',
-    tab: document.getElementById('c-tab')?.value || 'padrao',
-    prazo: document.getElementById('c-prazo')?.value || 'a_vista',
-    cidade: document.getElementById('c-cidade')?.value.trim() || '',
-    estado: document.getElementById('c-estado')?.value.trim() || '',
-    obs: document.getElementById('c-obs')?.value.trim() || ''
+    apelido: document.getElementById('c-apelido').value.trim(),
+    doc: document.getElementById('c-doc').value.trim(),
+    tipo: document.getElementById('c-tipo').value,
+    status: document.getElementById('c-status').value,
+    tel: document.getElementById('c-tel').value.trim(),
+    email: document.getElementById('c-email').value.trim(),
+    resp: document.getElementById('c-resp').value.trim(),
+    seg: document.getElementById('c-seg').value.trim(),
+    tab: document.getElementById('c-tab').value,
+    prazo: document.getElementById('c-prazo').value,
+    cidade: document.getElementById('c-cidade').value.trim(),
+    estado: document.getElementById('c-estado').value.trim(),
+    obs: document.getElementById('c-obs').value.trim()
   };
 
   try{
@@ -363,7 +391,7 @@ export async function salvarCliente(){
 
   if(State.editIds.cli){
     D.clientes[State.FIL] = C().map(x => x.id === State.editIds.cli ? c : x);
-  }else{
+  } else {
     if(!D.clientes[State.FIL]) D.clientes[State.FIL] = [];
     D.clientes[State.FIL].push(c);
   }
@@ -387,8 +415,10 @@ export async function removerCli(id){
   }
 
   D.clientes[State.FIL] = C().filter(c => c.id !== id);
+
   renderCliMet();
   renderClientes();
+  refreshCliDL();
 
   toast('Removido.');
 }
