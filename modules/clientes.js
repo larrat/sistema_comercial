@@ -20,6 +20,13 @@ function ini(n){
   return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
 }
 
+function fmtAniv(iso){
+  if(!iso) return '';
+  const [y, m, d] = String(iso).split('-');
+  if(!y || !m || !d) return iso;
+  return `${d}/${m}`;
+}
+
 const ST_B = {
   ativo:'<span class="bdg bg">Ativo</span>',
   inativo:'<span class="bdg bk">Inativo</span>',
@@ -100,6 +107,7 @@ export function renderClientes(){
             <th></th>
             <th>Nome</th>
             <th>Contato</th>
+            <th>Marketing</th>
             <th>Segmento</th>
             <th>Tabela</th>
             <th>Prazo</th>
@@ -119,7 +127,16 @@ export function renderClientes(){
                 </td>
                 <td>
                   <div>${c.tel || '—'}</div>
+                  ${c.whatsapp ? `<div style="font-size:11px;color:var(--tx3)">WA: ${c.whatsapp}</div>` : ''}
                   ${c.email ? `<div style="font-size:11px;color:var(--tx3)">${c.email}</div>` : ''}
+                </td>
+                <td>
+                  <div class="fg2" style="gap:4px">
+                    ${c.data_aniversario ? `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>` : '<span style="color:var(--tx3)">—</span>'}
+                    ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
+                    ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
+                    ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
+                  </div>
                 </td>
                 <td>${c.seg ? `<span class="bdg bk">${c.seg}</span>` : '—'}</td>
                 <td>${tabLbl[c.tab] || '—'}</td>

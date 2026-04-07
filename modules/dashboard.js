@@ -1,9 +1,151 @@
+import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
-import { fmt, fmtK, pct } from '../core/utils.js';
+import { abrirModal, fecharModal, fmt, fmtK, pct, toast, uid } from '../core/utils.js';
 
 let calcSaldosMultiSafe = () => ({});
 
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function getFilialCalendarioId(){
+  const filiais = D.filiais || [];
+  const byNome = filiais.find(f => String(f.nome || '').toLowerCase().includes('filial 1'));
+  return byNome?.id || filiais[0]?.id || null;
+}
+
+function getJogosCache(fid){
+  if(!D.jogos) D.jogos = {};
+  if(!D.jogos[fid]) D.jogos[fid] = [];
+  return D.jogos[fid];
+}
+
+function fmtDataHora(v){
+  if(!v) return '—';
+  const d = new Date(v);
+  if(isNaN(d.getTime())) return String(v);
+  return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function statusJogoExt(v){
+  const s = String(v || '').toLowerCase();
+  if(['finished', 'ft', 'realizado', 'fulltime'].includes(s)) return 'realizado';
+  if(['cancelled', 'canceled', 'postponed', 'cancelado'].includes(s)) return 'cancelado';
+  return 'agendado';
+}
+
+function pickDataHora(obj){
+  if(obj?.strDate && obj?.strTime) return `${obj.strDate}T${obj.strTime}`;
+  if(obj?.dateEvent && obj?.strTime) return `${obj.dateEvent}T${obj.strTime}`;
+  if(obj?.dateEvent && obj?.time) return `${obj.dateEvent}T${obj.time}`;
+  if(obj?.fixture?.date) return obj.fixture.date;
+  if(obj?.fixture?.timestamp){
+    const ts = Number(obj.fixture.timestamp);
+    if(!isNaN(ts)) return new Date(ts * 1000).toISOString();
+  }
+  return (
+    obj?.data_hora ||
+    obj?.date ||
+    obj?.utcDate ||
+    obj?.datetime ||
+    obj?.strTimestamp ||
+    null
+  );
+}
+
+function normalizeJogoExterno(raw){
+  if(!raw || typeof raw !== 'object') return null;
+
+  const home =
+    raw.homeTeam?.name ||
+    raw.teams?.home?.name ||
+    raw.fixture?.teams?.home?.name ||
+    raw.strHomeTeam ||
+    raw.home ||
+    raw.mandante ||
+    '';
+
+  const away =
+    raw.awayTeam?.name ||
+    raw.teams?.away?.name ||
+    raw.fixture?.teams?.away?.name ||
+    raw.strAwayTeam ||
+    raw.away ||
+    raw.visitante ||
+    '';
+
+  const data_hora = pickDataHora(raw);
+  if(!data_hora) return null;
+
+  const titulo =
+    raw.titulo ||
+    raw.title ||
+    raw.name ||
+    raw.strEvent ||
+    (home || away ? `${home || 'Mandante'} x ${away || 'Visitante'}` : '');
+
+  if(!titulo) return null;
+
+  const extId =
+    raw.id ||
+    raw.idEvent ||
+    raw.fixture?.id ||
+    raw.match_id ||
+    raw.game_id ||
+    null;
+
+  const campeonato =
+    raw.competition?.name ||
+    raw.league?.name ||
+    raw.strLeague ||
+    raw.campeonato ||
+    null;
+
+  const local =
+    raw.venue?.name ||
+    raw.fixture?.venue?.name ||
+    raw.strVenue ||
+    raw.local ||
+    null;
+
+  const status =
+    statusJogoExt(raw.status?.short || raw.status?.type || raw.status || raw.strStatus);
+
+  return {
+    extId: extId ? String(extId) : null,
+    titulo,
+    campeonato,
+    data_hora,
+    mandante: home || null,
+    visitante: away || null,
+    local,
+    status
+  };
+}
+
+function extrairListaJogos(payload){
+  if(Array.isArray(payload)) return payload;
+  if(Array.isArray(payload?.matches)) return payload.matches;
+  if(Array.isArray(payload?.response)) return payload.response;
+  if(Array.isArray(payload?.events)) return payload.events;
+  if(Array.isArray(payload?.data)) return payload.data;
+  return [];
+}
+
+function getProxAnivDate(dataAniversario, baseDate){
+  if(!dataAniversario) return null;
+  const [, m, d] = String(dataAniversario).split('-').map(Number);
+  if(!m || !d) return null;
+
+  const y = baseDate.getFullYear();
+  let aniv = new Date(y, m - 1, d);
+  aniv.setHours(0, 0, 0, 0);
+
+  if(aniv < baseDate){
+    aniv = new Date(y + 1, m - 1, d);
+    aniv.setHours(0, 0, 0, 0);
+  }
+
+  return aniv;
+}
 
 export function initDashboardModule(callbacks = {}){
   calcSaldosMultiSafe = callbacks.calcSaldosMulti || (() => ({}));
@@ -73,6 +215,8 @@ export function renderDash(){
   const desc = document.getElementById('dash-desc');
   if(desc) desc.textContent = fLabel + ' — ' + pLabels[State.dashP];
 
+  renderDashJogos(fsel);
+
   const filIds = fsel === 'todas' ? (D.filiais || []).map(f => f.id) : [fsel];
 
   const allPeds = filIds.flatMap(fid =>
@@ -122,6 +266,26 @@ export function renderDash(){
   }
   if(baixo.length){
     ah += `<div class="alert al-a">⚠ <b>${baixo.length} abaixo do mínimo:</b> ${baixo.slice(0,4).map(p => p.nome).join(', ')}${baixo.length > 4 ? '…' : ''}</div>`;
+  }
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const limite = new Date(hoje);
+  limite.setDate(limite.getDate() + 7);
+
+  const anivProximos = filIds
+    .flatMap(fid => (D.clientes?.[fid] || []))
+    .map(c => {
+      const data = getProxAnivDate(c.data_aniversario, hoje);
+      if(!data) return null;
+      return { ...c, _anivData: data };
+    })
+    .filter(Boolean)
+    .filter(c => c._anivData <= limite)
+    .sort((a, b) => a._anivData - b._anivData);
+
+  if(anivProximos.length){
+    ah += `<div class="alert al-g">🎂 <b>${anivProximos.length} aniversário(s) nos próximos 7 dias:</b> ${anivProximos.slice(0,4).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 4 ? '…' : ''}</div>`;
   }
 
   const alerts = document.getElementById('dash-alerts');
@@ -332,4 +496,252 @@ export function renderDash(){
       `
       : `<div class="empty" style="padding:12px"><p>Sem vendas no período</p></div>`;
   }
+}
+
+export function limparFormJogo(){
+  const dataPadrao = new Date();
+  dataPadrao.setHours(dataPadrao.getHours() + 2);
+  const dataLocal = new Date(dataPadrao.getTime() - dataPadrao.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+
+  const t = document.getElementById('jogo-titulo');
+  const c = document.getElementById('jogo-campeonato');
+  const d = document.getElementById('jogo-data');
+  const m = document.getElementById('jogo-mandante');
+  const v = document.getElementById('jogo-visitante');
+  const l = document.getElementById('jogo-local');
+
+  if(t) t.value = '';
+  if(c) c.value = '';
+  if(d) d.value = dataLocal;
+  if(m) m.value = '';
+  if(v) v.value = '';
+  if(l) l.value = '';
+}
+
+export function abrirNovoJogo(){
+  limparFormJogo();
+  abrirModal('modal-jogo');
+}
+
+export function abrirSyncJogos(){
+  const urlInp = document.getElementById('jogo-api-url');
+  const filtroInp = document.getElementById('jogo-api-time');
+  if(urlInp){
+    urlInp.value = localStorage.getItem('jogos_api_url') || '';
+  }
+  if(filtroInp){
+    filtroInp.value = localStorage.getItem('jogos_api_filtro') || '';
+  }
+  abrirModal('modal-jogo-sync');
+}
+
+export function usarExemploSyncJogos(apiUrl, filtro = ''){
+  const urlInp = document.getElementById('jogo-api-url');
+  const filtroInp = document.getElementById('jogo-api-time');
+  if(urlInp) urlInp.value = apiUrl || '';
+  if(filtroInp) filtroInp.value = filtro || '';
+}
+
+export async function sincronizarJogosDashboard(){
+  const filialId = getFilialCalendarioId();
+  if(!filialId){
+    toast('Nenhuma filial encontrada para sincronização.');
+    return;
+  }
+
+  const apiUrl = document.getElementById('jogo-api-url')?.value.trim() || '';
+  const filtroTime = (document.getElementById('jogo-api-time')?.value || '').trim().toLowerCase();
+
+  if(!apiUrl){
+    toast('Informe a URL da API de jogos.');
+    return;
+  }
+
+  localStorage.setItem('jogos_api_url', apiUrl);
+  localStorage.setItem('jogos_api_filtro', filtroTime);
+
+  let payload;
+  try{
+    const res = await fetch(apiUrl);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    payload = await res.json();
+  }catch(e){
+    toast('Erro ao consultar API externa: ' + e.message);
+    return;
+  }
+
+  const lista = extrairListaJogos(payload);
+  if(!lista.length){
+    toast('API sem jogos no formato esperado.');
+    return;
+  }
+
+  const normalizados = lista
+    .map(normalizeJogoExterno)
+    .filter(Boolean)
+    .filter(j => {
+      if(!filtroTime) return true;
+      return [j.titulo, j.mandante, j.visitante, j.campeonato]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(filtroTime);
+    });
+
+  if(!normalizados.length){
+    toast('Nenhum jogo elegível para importar.');
+    return;
+  }
+
+  let criados = 0;
+  let erros = 0;
+  const cache = getJogosCache(filialId);
+  const byId = {};
+  cache.forEach(j => { byId[j.id] = j; });
+
+  for(const j of normalizados){
+    const id = j.extId ? `ext-${j.extId}` : uid();
+    const item = {
+      id,
+      filial_id: filialId,
+      titulo: j.titulo,
+      campeonato: j.campeonato,
+      data_hora: j.data_hora,
+      mandante: j.mandante,
+      visitante: j.visitante,
+      local: j.local,
+      status: j.status
+    };
+
+    try{
+      await SB.upsertJogoAgenda(item);
+      byId[id] = item;
+      criados++;
+    }catch(e){
+      erros++;
+      byId[id] = item;
+      console.error('Falha ao upsert jogo externo', item, e);
+    }
+  }
+
+  D.jogos[filialId] = Object.values(byId).sort(
+    (a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0)
+  );
+
+  fecharModal('modal-jogo-sync');
+  renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+  toast(`Sincronização concluída: ${normalizados.length} jogo(s), ${erros} falha(s) de persistência.`);
+}
+
+export async function salvarJogoDashboard(){
+  const filialId = getFilialCalendarioId();
+  if(!filialId){
+    toast('Nenhuma filial encontrada para a agenda.');
+    return;
+  }
+
+  const titulo = document.getElementById('jogo-titulo')?.value.trim() || '';
+  const campeonato = document.getElementById('jogo-campeonato')?.value.trim() || '';
+  const data_hora = document.getElementById('jogo-data')?.value || '';
+  const mandante = document.getElementById('jogo-mandante')?.value.trim() || '';
+  const visitante = document.getElementById('jogo-visitante')?.value.trim() || '';
+  const local = document.getElementById('jogo-local')?.value.trim() || '';
+
+  if(!titulo || !data_hora){
+    toast('Informe pelo menos título e data/hora do jogo.');
+    return;
+  }
+
+  const item = {
+    id: uid(),
+    filial_id: filialId,
+    titulo,
+    campeonato: campeonato || null,
+    data_hora,
+    mandante: mandante || null,
+    visitante: visitante || null,
+    local: local || null,
+    status: 'agendado'
+  };
+
+  let persistiu = true;
+  try{
+    await SB.upsertJogoAgenda(item);
+  }catch(e){
+    persistiu = false;
+    console.error('Erro ao salvar jogo na API', e);
+  }
+
+  const jogos = getJogosCache(filialId);
+  jogos.unshift(item);
+  jogos.sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
+
+  fecharModal('modal-jogo');
+  renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+
+  toast(persistiu ? 'Jogo adicionado!' : 'Jogo salvo localmente (sem persistência no banco).');
+}
+
+export async function removerJogoDashboard(id){
+  const filialId = getFilialCalendarioId();
+  if(!filialId) return;
+  if(!confirm('Remover este jogo da agenda?')) return;
+
+  let persistiu = true;
+  try{
+    await SB.deleteJogoAgenda(id);
+  }catch(e){
+    persistiu = false;
+    console.error('Erro ao remover jogo da API', e);
+  }
+
+  D.jogos[filialId] = getJogosCache(filialId).filter(j => j.id !== id);
+  renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+  toast(persistiu ? 'Jogo removido.' : 'Jogo removido localmente.');
+}
+
+export function renderDashJogos(fsel = 'todas'){
+  const el = document.getElementById('dash-jogos');
+  if(!el) return;
+
+  const filialId = getFilialCalendarioId();
+  if(!filialId){
+    el.innerHTML = `<div class="empty" style="padding:12px"><p>Sem filial para agenda.</p></div>`;
+    return;
+  }
+
+  if(fsel !== 'todas' && fsel !== filialId){
+    const nome = (D.filiais || []).find(f => f.id === filialId)?.nome || 'Filial 1';
+    el.innerHTML = `<div class="empty" style="padding:12px"><p>Agenda disponível em ${nome}.</p></div>`;
+    return;
+  }
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const jogos = getJogosCache(filialId)
+    .filter(j => {
+      const d = new Date(j.data_hora || 0);
+      return !isNaN(d.getTime()) && d >= hoje;
+    })
+    .sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0))
+    .slice(0, 8);
+
+  if(!jogos.length){
+    el.innerHTML = `<div class="empty" style="padding:12px"><p>Sem jogos cadastrados.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = jogos.map(j => `
+    <div class="rrow">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--b);flex-shrink:0;display:inline-block"></span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${j.titulo}</div>
+        <div style="font-size:11px;color:var(--tx3)">${fmtDataHora(j.data_hora)}${j.campeonato ? ' • ' + j.campeonato : ''}</div>
+      </div>
+      <button class="ib" onclick="removerJogoDashboard('${j.id}')">✕</button>
+    </div>
+  `).join('');
 }

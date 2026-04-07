@@ -112,10 +112,20 @@
         </div>
         <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:12px">
         <div class="card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
         <div class="card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
         <div class="card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
+        <div class="card">
+          <div class="fb" style="margin-bottom:10px">
+            <div class="ct" style="margin:0">Próximos jogos</div>
+            <div class="fg2">
+              <button class="btn btn-sm" onclick="abrirSyncJogos()">Sincronizar</button>
+              <button class="btn btn-sm" onclick="abrirNovoJogo()">+ Jogo</button>
+            </div>
+          </div>
+          <div id="dash-jogos"></div>
+        </div>
       </div>
       <div class="card">
         <div class="fb" style="margin-bottom:12px"><div class="ct" style="margin:0">Margem por produto</div></div>
@@ -499,6 +509,62 @@
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn" onclick="fecharModal('modal-campanha')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarCampanha()">Salvar campanha</button>
+    </div>
+  </div>
+</div>
+
+<!-- Jogo Dashboard -->
+<div class="modal-wrap" id="modal-jogo">
+  <div class="modal-bg" onclick="fecharModal('modal-jogo')"></div>
+  <div class="modal-box">
+    <div class="mt">Novo jogo (agenda)</div>
+    <div class="fg c2">
+      <div><div class="fl">Título *</div><input class="inp" id="jogo-titulo" placeholder="Ex: Final do campeonato"></div>
+      <div><div class="fl">Campeonato</div><input class="inp" id="jogo-campeonato" placeholder="Brasileirão"></div>
+    </div>
+    <div class="fg c2">
+      <div><div class="fl">Mandante</div><input class="inp" id="jogo-mandante" placeholder="Time A"></div>
+      <div><div class="fl">Visitante</div><input class="inp" id="jogo-visitante" placeholder="Time B"></div>
+    </div>
+    <div class="fg c2">
+      <div><div class="fl">Data e hora *</div><input class="inp" id="jogo-data" type="datetime-local"></div>
+      <div><div class="fl">Local</div><input class="inp" id="jogo-local" placeholder="Estádio / TV"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="fecharModal('modal-jogo')">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarJogoDashboard()">Salvar jogo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sincronização de jogos -->
+<div class="modal-wrap" id="modal-jogo-sync">
+  <div class="modal-bg" onclick="fecharModal('modal-jogo-sync')"></div>
+  <div class="modal-box">
+    <div class="mt">Sincronizar jogos via API</div>
+    <div class="fg">
+      <div>
+        <div class="fl">URL da API (retorno JSON) *</div>
+        <input class="inp" id="jogo-api-url" placeholder="https://...">
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <button class="btn btn-sm" onclick="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Exemplo TheSportsDB (Brasil Série A)</button>
+      <button class="btn btn-sm" onclick="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')">Exemplo TheSportsDB (time)</button>
+    </div>
+    <div class="fg">
+      <div>
+        <div class="fl">Filtro por time (opcional)</div>
+        <input class="inp" id="jogo-api-time" placeholder="Ex: Flamengo">
+      </div>
+    </div>
+    <div class="panel">
+      <div class="pt">Formatos suportados</div>
+      <p style="font-size:12px;color:var(--tx2)">Array direto ou objetos com `matches`, `response`, `events` ou `data`.</p>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="fecharModal('modal-jogo-sync')">Cancelar</button>
+      <button class="btn btn-p" onclick="sincronizarJogosDashboard()">Sincronizar agora</button>
     </div>
   </div>
 </div>

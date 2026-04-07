@@ -11,7 +11,8 @@ export const D = {
   fornecedores: {},
   cotPrecos: {},
   cotConfig: {},
-  movs: {}
+  movs: {},
+  jogos: {}
 };
 
 // ═══════════════════════════

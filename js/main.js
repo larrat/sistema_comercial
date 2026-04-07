@@ -93,7 +93,15 @@ import {
   initDashboardModule,
   renderDashFilSel,
   renderDash,
-  setP
+  setP,
+  renderDashJogos,
+  abrirNovoJogo,
+  limparFormJogo,
+  salvarJogoDashboard,
+  removerJogoDashboard,
+  abrirSyncJogos,
+  sincronizarJogosDashboard,
+  usarExemploSyncJogos
 } from '../modules/dashboard.js';
 
 import {
@@ -145,6 +153,7 @@ async function carregarDadosFilial(filId) {
       precos,
       cfg,
       movs,
+      jogos,
       campanhas,
       campanhaEnvios
     ] = await Promise.all([
@@ -155,6 +164,7 @@ async function carregarDadosFilial(filId) {
       SB.getCotPrecos(filId),
       SB.getCotConfig(filId),
       SB.getMovs(filId),
+      SB.getJogosAgenda(filId).catch(() => []),
       SB.getCampanhas(filId).catch(() => []),
       SB.getCampanhaEnvios(filId).catch(() => [])
     ]);
@@ -184,6 +194,8 @@ async function carregarDadosFilial(filId) {
     };
 
     D.movs[filId] = movs || [];
+    if (!D.jogos) D.jogos = {};
+    D.jogos[filId] = jogos || [];
 
     if (!D.campanhas) D.campanhas = {};
     if (!D.campanhaEnvios) D.campanhaEnvios = {};
@@ -637,6 +649,14 @@ window.exportCSV = exportCSV;
 window.renderDashFilSel = renderDashFilSel;
 window.renderDash = renderDash;
 window.setP = setP;
+window.renderDashJogos = renderDashJogos;
+window.abrirNovoJogo = abrirNovoJogo;
+window.limparFormJogo = limparFormJogo;
+window.salvarJogoDashboard = salvarJogoDashboard;
+window.removerJogoDashboard = removerJogoDashboard;
+window.abrirSyncJogos = abrirSyncJogos;
+window.sincronizarJogosDashboard = sincronizarJogosDashboard;
+window.usarExemploSyncJogos = usarExemploSyncJogos;
 
 window.renderProdutos = renderProdutos;
 window.renderProdMet = renderProdMet;

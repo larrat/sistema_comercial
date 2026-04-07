@@ -124,6 +124,18 @@ export const SB = {
   insertNota: n => sbReq('notas', 'POST', n, ''),
 
   // =====================================================
+  // AGENDA DE JOGOS
+  // =====================================================
+  getJogosAgenda: fid =>
+    sbReq('jogos_agenda', 'GET', null, `?filial_id=eq.${fid}&order=data_hora.asc`),
+
+  upsertJogoAgenda: j =>
+    sbReq('jogos_agenda', 'POST', j, '?on_conflict=id'),
+
+  deleteJogoAgenda: id =>
+    sbReq(`jogos_agenda?id=eq.${id}`, 'DELETE'),
+
+  // =====================================================
   // CAMPANHAS
   // =====================================================
   getCampanhas: fid =>
