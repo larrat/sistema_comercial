@@ -219,6 +219,29 @@ textarea.inp{resize:vertical;min-height:60px}
 .fg2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ib{background:var(--surf);border:1px solid var(--bd);cursor:pointer;color:var(--tx3);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:6px 9px;border-radius:10px;transition:all .1s;font-family:'DM Mono',monospace;min-width:38px;display:inline-flex;align-items:center;justify-content:center}
 .ib:hover{background:var(--surf2);color:var(--tx);border-color:var(--bd2)}
+.toolbar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.toolbar-main{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  flex:1;
+  min-width:240px;
+}
+.toolbar-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
 
 /* ── EMPTY ── */
 .empty{text-align:center;padding:40px 16px;color:var(--tx3)}
@@ -346,6 +369,8 @@ textarea.inp{resize:vertical;min-height:60px}
   .app-topbar-title{font-size:18px}
   .app-topbar-sub{font-size:11px}
   .app-topbar-actions{width:100%;justify-content:flex-start}
+  .toolbar{align-items:stretch}
+  .toolbar-main,.toolbar-actions{width:100%;justify-content:flex-start}
   .mob-nav{display:block}
   .mg{grid-template-columns:1fr 1fr}
   .fg.c3,.fg.c4{grid-template-columns:1fr 1fr}
@@ -366,6 +391,7 @@ textarea.inp{resize:vertical;min-height:60px}
   .app-topbar{padding:10px}
   .app-topbar-actions #app-act-tertiary{display:none!important}
   .app-topbar-actions .btn{padding:7px 10px;font-size:11px}
+  .toolbar-main .inp,.toolbar-main .sel{max-width:none!important}
   .fg.c2,.fg.c3,.fg.c4{grid-template-columns:1fr}
   .mg{grid-template-columns:1fr 1fr}
   .fil-grid{grid-template-columns:1fr}

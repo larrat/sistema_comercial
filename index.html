@@ -164,12 +164,14 @@
         <button class="btn btn-p" onclick="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
       </div>
       <div class="mg" id="prod-met" style="margin-bottom:14px"></div>
-      <div class="fb" style="margin-bottom:12px">
-        <div class="fg2">
+      <div class="toolbar">
+        <div class="toolbar-main">
           <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" oninput="renderProdutos()">
           <select class="inp sel" id="prod-cat-fil" style="max-width:160px" onchange="renderProdutos()"><option value="">Todas as categorias</option></select>
         </div>
+        <div class="toolbar-actions">
           <button class="btn btn-sm" onclick="exportCSV('produtos')">Exportar CSV</button>
+        </div>
       </div>
       <div class="card"><div id="prod-lista"></div></div>
     </div>
@@ -186,13 +188,15 @@
         <button class="tb" onclick="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
       </div>
       <div class="tc on" id="cli-tc-lista">
-        <div class="fb" style="margin-bottom:12px">
-          <div class="fg2">
+        <div class="toolbar">
+          <div class="toolbar-main">
             <input class="inp" id="cli-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderClientes()">
             <select class="inp sel" id="cli-fil-seg" style="max-width:150px" onchange="renderClientes()"><option value="">Todos os segmentos</option></select>
             <select class="inp sel" id="cli-fil-st" style="max-width:130px" onchange="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
           </div>
-          <button class="btn btn-sm" onclick="exportCSV('clientes')">Exportar CSV</button>
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" onclick="exportCSV('clientes')">Exportar CSV</button>
+          </div>
         </div>
         <div class="card"><div id="cli-lista"></div></div>
       </div>
@@ -206,12 +210,14 @@
         <button class="btn btn-p" onclick="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
       </div>
       <div class="mg" id="ped-met" style="margin-bottom:14px"></div>
-      <div class="fb" style="margin-bottom:12px">
-        <div class="fg2">
+      <div class="toolbar">
+        <div class="toolbar-main">
           <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" oninput="renderPedidos()">
           <select class="inp sel" id="ped-fil-st" style="max-width:150px" onchange="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
         </div>
-        <button class="btn btn-sm" onclick="exportCSV('pedidos')">Exportar CSV</button>
+        <div class="toolbar-actions">
+          <button class="btn btn-sm" onclick="exportCSV('pedidos')">Exportar CSV</button>
+        </div>
       </div>
       <div class="card"><div id="ped-lista"></div></div>
     </div>
@@ -268,8 +274,8 @@
       </div>
       <div class="tc on" id="est-tc-posicao">
         <div class="mg" id="est-met" style="margin-bottom:14px"></div>
-        <div class="fb" style="margin-bottom:12px">
-          <div class="fg2">
+        <div class="toolbar">
+          <div class="toolbar-main">
             <input class="inp" id="est-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstPosicao()">
             <select class="inp sel" id="est-fil" style="max-width:140px" onchange="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
           </div>
@@ -277,8 +283,8 @@
         <div class="card"><div id="est-posicao"></div></div>
       </div>
       <div class="tc" id="est-tc-historico">
-        <div class="fb" style="margin-bottom:12px">
-          <div class="fg2">
+        <div class="toolbar">
+          <div class="toolbar-main">
             <input class="inp" id="est-hist-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstHist()">
             <select class="inp sel" id="est-hist-tipo" style="max-width:140px" onchange="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
           </div>
@@ -291,7 +297,7 @@
     <div class="pg" id="pg-campanhas">
       <div class="ph fb">
         <div><h2>Campanhas</h2><p id="camp-sub">Aniversário, fila e histórico de envios</p></div>
-        <div class="fg2">
+        <div class="toolbar-actions">
           <button class="btn btn-sm" onclick="exportCSV('campanhas')">Exportar CSV</button>
           <button class="btn btn-p" onclick="abrirNovaCampanha()">+ Nova campanha</button>
         </div>
@@ -301,9 +307,11 @@
       <div id="camp-diag"></div>
 
       <div class="card">
-        <div class="fb" style="margin-bottom:12px">
+        <div class="toolbar">
           <div class="ct" style="margin:0">Campanhas cadastradas</div>
-          <button class="btn btn-sm" onclick="refreshCampanhasTela()">Atualizar</button>
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" onclick="refreshCampanhasTela()">Atualizar</button>
+          </div>
         </div>
         <div id="camp-lista"></div>
       </div>
