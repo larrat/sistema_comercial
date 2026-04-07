@@ -125,6 +125,100 @@ import {
 } from '../modules/campanhas.js';
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
+const PAGE_META = {
+  dashboard: {
+    kicker: 'Workspace',
+    title: 'Dashboard',
+    sub: 'Visão geral e oportunidades da filial',
+    primary: { label: 'Novo pedido', run: () => { limparFormPed(); abrirModal('modal-pedido'); } },
+    secondary: { label: 'Novo cliente', run: () => { limparFormCli(); abrirModal('modal-cliente'); } },
+    tertiary: { label: 'Novo produto', run: () => { limparFormProd(); abrirModal('modal-produto'); } }
+  },
+  produtos: {
+    kicker: 'Cadastros',
+    title: 'Produtos',
+    sub: 'Catálogo comercial e precificação',
+    primary: { label: 'Novo produto', run: () => { limparFormProd(); abrirModal('modal-produto'); } },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos') },
+    tertiary: { label: 'Ir clientes', run: () => ir('clientes') }
+  },
+  clientes: {
+    kicker: 'Cadastros',
+    title: 'Clientes',
+    sub: 'Relacionamento e segmentação',
+    primary: { label: 'Novo cliente', run: () => { limparFormCli(); abrirModal('modal-cliente'); } },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes') },
+    tertiary: { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') }
+  },
+  pedidos: {
+    kicker: 'Operações',
+    title: 'Pedidos',
+    sub: 'Orçamentos, vendas e acompanhamento',
+    primary: { label: 'Novo pedido', run: () => { limparFormPed(); abrirModal('modal-pedido'); } },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos') },
+    tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
+  },
+  cotacao: {
+    kicker: 'Operações',
+    title: 'Cotação',
+    sub: 'Fornecedores e comparação de preço',
+    primary: { label: 'Novo fornecedor', run: () => abrirModal('modal-forn') },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('cotacao') },
+    tertiary: { label: 'Travar/Destravar', run: () => cotLock() }
+  },
+  estoque: {
+    kicker: 'Operações',
+    title: 'Estoque',
+    sub: 'Posição, alertas e movimentações',
+    primary: { label: 'Nova movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('estoque') },
+    tertiary: { label: 'Ir produtos', run: () => ir('produtos') }
+  },
+  campanhas: {
+    kicker: 'Operações',
+    title: 'Campanhas',
+    sub: 'Ações comerciais e fila de envios',
+    primary: { label: 'Nova campanha', run: () => abrirNovaCampanha() },
+    secondary: { label: 'Atualizar tela', run: () => refreshCampanhasTela() },
+    tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas') }
+  },
+  filiais: {
+    kicker: 'Sistema',
+    title: 'Filiais',
+    sub: 'Gestão de unidades e troca de contexto',
+    primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); } },
+    secondary: { label: 'Voltar setup', run: () => voltarSetup() },
+    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
+  }
+};
+
+function bindTopbarAction(id, action){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(!action){
+    el.style.display = 'none';
+    el.onclick = null;
+    return;
+  }
+  el.style.display = 'inline-flex';
+  el.textContent = action.label;
+  el.onclick = action.run;
+}
+
+function syncTopbar(page){
+  const meta = PAGE_META[page] || PAGE_META.dashboard;
+  const kicker = document.getElementById('app-kicker');
+  const title = document.getElementById('app-title');
+  const sub = document.getElementById('app-sub');
+
+  if(kicker) kicker.textContent = meta.kicker;
+  if(title) title.textContent = meta.title;
+  if(sub) sub.textContent = meta.sub;
+
+  bindTopbarAction('app-act-primary', meta.primary);
+  bindTopbarAction('app-act-secondary', meta.secondary);
+  bindTopbarAction('app-act-tertiary', meta.tertiary);
+}
 
 function showLoading(on) {
   let el = document.getElementById('sb-loading');
@@ -362,6 +456,7 @@ function ir(p) {
   };
 
   if (renderMap[p]) renderMap[p]();
+  syncTopbar(p);
   window.scrollTo(0, 0);
 }
 
