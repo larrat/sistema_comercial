@@ -919,3 +919,328 @@ body{
     border:1px solid var(--bd);
   }
 }
+
+/* =========================================================
+   FASE B - COMPONENTES PADRONIZADOS (Button, Badge, StatCard,
+   Alert, DataTable, MobileCard)
+   ========================================================= */
+
+/* BUTTON */
+.btn,
+.c-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:38px;
+  padding:9px 14px;
+  border-radius:12px;
+  border:1px solid var(--bd2);
+  background:#FFFFFF;
+  color:var(--tx);
+  font-size:13px;
+  font-weight:700;
+  font-family:'Space Grotesk',sans-serif;
+  white-space:nowrap;
+  text-decoration:none;
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.btn:hover,
+.c-btn:hover{
+  background:#F1F5F9;
+  border-color:#AFC0D2;
+}
+.btn:active,
+.c-btn:active{
+  transform:translateY(1px);
+}
+.btn:disabled,
+.c-btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+.btn-p,
+.c-btn--primary{
+  background:linear-gradient(135deg,#0F766E 0%,#115E59 100%);
+  border-color:#0F766E;
+  color:#FFFFFF;
+}
+.btn-p:hover,
+.c-btn--primary:hover{
+  background:linear-gradient(135deg,#0E6A63 0%,#0F5753 100%);
+  border-color:#0E6A63;
+}
+.btn-r,
+.c-btn--danger{
+  background:#FFFFFF;
+  border-color:#F0C9C9;
+  color:#B91C1C;
+}
+.btn-gh,
+.c-btn--ghost{
+  background:#FFFFFF;
+  border-color:#C9D8E6;
+  color:#1E293B;
+}
+.btn-sm,
+.c-btn--sm{
+  min-height:32px;
+  padding:6px 10px;
+  font-size:12px;
+}
+
+/* BADGE */
+.bdg,
+.c-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:3px 9px;
+  border-radius:999px;
+  border:1px solid transparent;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.bg,
+.c-badge--success{
+  background:var(--gbg);
+  border-color:#BDE6C8;
+  color:var(--gtx);
+}
+.ba,
+.c-badge--warning{
+  background:var(--abg);
+  border-color:#F3D7AB;
+  color:var(--atx);
+}
+.br,
+.c-badge--critical{
+  background:var(--rbg);
+  border-color:#F0C3C3;
+  color:var(--rtx);
+}
+.bb,
+.c-badge--info{
+  background:var(--bbg);
+  border-color:#CBDCFB;
+  color:var(--btx);
+}
+.bk,
+.c-badge--neutral{
+  background:#EDF2F7;
+  border-color:#D8E2EC;
+  color:#3D5368;
+}
+
+/* STAT CARD */
+.met,
+.stat-card{
+  display:grid;
+  gap:4px;
+  min-height:102px;
+  align-content:start;
+  padding:14px 16px;
+  border:1px solid var(--bd);
+  border-radius:14px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFE 100%);
+  box-shadow:var(--sh-soft);
+}
+.ml,
+.stat-card__label{
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--tx3);
+}
+.mv,
+.stat-card__value{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:28px;
+  line-height:1.05;
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:#0F766E;
+}
+.ms,
+.stat-card__meta{
+  font-size:11px;
+  color:var(--tx3);
+}
+
+/* ALERT */
+.alert,
+.c-alert{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px 14px;
+  border:1px solid var(--bd);
+  border-left:5px solid #CBD5E1;
+  border-radius:12px;
+  font-size:13px;
+}
+.al-r,
+.c-alert--critical{
+  background:var(--rbg);
+  color:var(--rtx);
+  border-left-color:var(--r);
+}
+.al-a,
+.c-alert--warning{
+  background:var(--abg);
+  color:var(--atx);
+  border-left-color:var(--a);
+}
+.al-g,
+.c-alert--success{
+  background:var(--gbg);
+  color:var(--gtx);
+  border-left-color:var(--g);
+}
+.c-alert--info{
+  background:var(--bbg);
+  color:var(--btx);
+  border-left-color:var(--b);
+}
+
+/* DATA TABLE */
+.tw,
+.data-table{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid var(--bd);
+  border-radius:14px;
+  background:#FFFFFF;
+}
+.tbl,
+.data-table__table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.tbl th,
+.data-table__table th{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:#F3F7FB;
+  color:#435A70;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  text-align:left;
+  padding:8px 12px;
+  border-bottom:1px solid var(--bd);
+  white-space:nowrap;
+}
+.tbl td,
+.data-table__table td{
+  padding:9px 12px;
+  border-bottom:1px solid #E7EDF3;
+  vertical-align:middle;
+}
+.tbl tr:last-child td,
+.data-table__table tr:last-child td{
+  border-bottom:none;
+}
+.tbl tr:hover td,
+.data-table__table tr:hover td{
+  background:#F8FBFD;
+}
+.tbl td:first-child,.tbl th:first-child,
+.data-table__table td:first-child,.data-table__table th:first-child{
+  padding-left:14px;
+}
+.tbl td:last-child,.tbl th:last-child,
+.data-table__table td:last-child,.data-table__table th:last-child{
+  padding-right:14px;
+}
+
+/* MOBILE CARD */
+.mobile-card,
+.c-mobile-card{
+  padding:12px 14px;
+  margin-bottom:10px;
+  border:1px solid var(--bd);
+  border-radius:14px;
+  background:#FFFFFF;
+  box-shadow:var(--sh-soft);
+}
+.mobile-card-head,
+.c-mobile-card__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.mobile-card-title,
+.c-mobile-card__title{
+  font-size:14px;
+  font-weight:700;
+  line-height:1.25;
+  color:var(--tx);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.mobile-card-sub,
+.c-mobile-card__sub{
+  font-size:11px;
+  color:var(--tx3);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.mobile-card-meta,
+.c-mobile-card__meta{
+  display:grid;
+  gap:4px;
+  margin-bottom:10px;
+  font-size:12px;
+  color:var(--tx2);
+}
+.mobile-card-tags,
+.c-mobile-card__tags{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-bottom:8px;
+}
+.mobile-card-actions,
+.c-mobile-card__actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+@media(max-width:760px){
+  .met,
+  .stat-card{
+    min-height:90px;
+    padding:12px;
+    box-shadow:none;
+  }
+  .mv,
+  .stat-card__value{
+    font-size:22px;
+  }
+  .tw,
+  .data-table{
+    border:none;
+    border-radius:0;
+    background:transparent;
+  }
+  .mobile-card,
+  .c-mobile-card{
+    box-shadow:none;
+  }
+}
