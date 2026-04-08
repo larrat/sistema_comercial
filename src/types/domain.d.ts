@@ -101,6 +101,8 @@ export type PedidoItem = {
   qty: number;
   preco: number;
   custo: number;
+  custo_base?: number;
+  preco_base?: number;
   orig: string;
 };
 
@@ -297,4 +299,110 @@ export type FiliaisAcessosModuleDeps = {
   roleAdminOnly?: string[];
   appRoles?: string[];
   cores?: string[];
+};
+
+export type NotificationItem = {
+  id: Id;
+  prioridade: 'critico' | 'atencao' | 'oportunidade' | string;
+  origem?: string;
+  titulo: string;
+  descricao?: string;
+  meta?: string;
+  acaoLabel?: string;
+  acao?: () => void;
+  resolvido_em?: string;
+};
+
+export type NotificacoesModuleDeps = {
+  calcSaldos?: () => Record<string, { saldo?: number; cm?: number }>;
+  ir?: (page: string) => void;
+  renderMetasNegocio?: () => void;
+  registerNotificationKpi?: (metric: string, delta?: number) => void;
+  logStrategicAction?: (context: string) => void;
+};
+
+export type NavigationPageAction = {
+  label: string;
+  run: () => void;
+  roles?: string[];
+};
+
+export type NavigationPageMeta = {
+  kicker: string;
+  title: string;
+  sub: string;
+  primary?: NavigationPageAction | null;
+  secondary?: NavigationPageAction | null;
+  tertiary?: NavigationPageAction | null;
+};
+
+export type NavigationModuleDeps = {
+  hasRole?: (roles?: string[]) => boolean;
+  canAccessPage?: (page: string) => boolean;
+  getFirstAllowedPage?: (fallback?: string) => string;
+  scheduleRoleUiGuards?: () => void;
+  startPrimaryActionTracking?: (page: string) => void;
+  completePrimaryActionTracking?: (page: string) => void;
+  markConsistencyPage?: (page: string) => void;
+  updateNotiBadge?: () => void;
+  renderDash?: () => void;
+  renderMetasNegocio?: () => void;
+  renderRelatorios?: () => void;
+  renderProdMet?: () => void;
+  renderProdutos?: () => void;
+  renderCliMet?: () => void;
+  renderClientes?: () => void;
+  renderPedMet?: () => void;
+  renderPedidos?: () => void;
+  renderFornSel?: () => void;
+  renderCotForns?: () => void;
+  renderCotLogs?: () => void;
+  renderCotTabela?: () => void;
+  renderEstAlerts?: () => void;
+  renderEstPosicao?: () => void;
+  renderEstHist?: () => void;
+  renderCampanhasMet?: () => void;
+  renderCampanhas?: () => void;
+  renderFilaWhatsApp?: () => void;
+  renderCampanhaEnvios?: () => void;
+  renderFilMet?: () => void;
+  renderFilLista?: () => void;
+  renderAcessosAdmin?: () => void;
+  renderNotificacoes?: () => void;
+  limparFormPedTracked?: () => void;
+  limparFormCliTracked?: () => void;
+  limparFormProdTracked?: () => void;
+  abrirNovaCampanhaTracked?: () => void;
+  gerarFilaCampanhaTracked?: (id: Id) => void | Promise<void>;
+  abrirModal?: (id: string) => void;
+  exportCSV?: (tipo: string) => void;
+  resetMov?: () => void;
+  cotLock?: () => void;
+  voltarSetup?: () => void;
+  limparFormFilial?: () => void;
+  resolverTodasNotificacoesTracked?: () => void;
+  refreshCampanhasTela?: () => void;
+  executarAuditoriaVisual?: () => void;
+  roleManagerPlus?: string[];
+  roleAdminOnly?: string[];
+};
+
+export type OportunidadeJogo = {
+  id: Id;
+  cliente?: string;
+  time?: string;
+  jogo_titulo?: string;
+  jogo_data_hora?: string;
+  jogo?: {
+    titulo?: string;
+    data_hora?: string;
+  };
+  ano_ref?: string;
+  mes_ref?: string;
+  validada?: boolean;
+  validada_em?: string;
+  pedido_id?: Id | null;
+  pedido_num?: number | null;
+  pedido_total?: number | null;
+  observacao_validacao?: string;
 };

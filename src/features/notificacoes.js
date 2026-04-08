@@ -1,18 +1,32 @@
+// @ts-check
+
 import { D, State, P, C } from '../app/store.js';
 import { fmtQ, toast } from '../shared/utils.js';
+
+/** @typedef {import('../types/domain').NotificationItem} NotificationItem */
+/** @typedef {import('../types/domain').NotificacoesModuleDeps} NotificacoesModuleDeps */
 
 const NOTI_HISTORY_KEY = 'sc_noti_hist_v1';
 const NOTI_PRIORITY_ORDER = { critico: 0, atencao: 1, oportunidade: 2 };
 
+/** @type {NonNullable<NotificacoesModuleDeps['calcSaldos']>} */
 let calcSaldosSafe = () => ({});
+/** @type {NonNullable<NotificacoesModuleDeps['ir']>} */
 let irSafe = () => {};
+/** @type {NonNullable<NotificacoesModuleDeps['renderMetasNegocio']>} */
 let renderMetasNegocioSafe = () => {};
+/** @type {NonNullable<NotificacoesModuleDeps['registerNotificationKpi']>} */
 let registerNotificationKpiSafe = () => {};
+/** @type {NonNullable<NotificacoesModuleDeps['logStrategicAction']>} */
 let logStrategicActionSafe = () => {};
 
 let notiFiltroPrioridade = 'todas';
+/** @type {NotificationItem[]} */
 let notiCache = [];
 
+/**
+ * @param {NotificacoesModuleDeps} [deps]
+ */
 export function initNotificacoesModule(deps = {}){
   calcSaldosSafe = typeof deps.calcSaldos === 'function' ? deps.calcSaldos : calcSaldosSafe;
   irSafe = typeof deps.ir === 'function' ? deps.ir : irSafe;
@@ -34,12 +48,18 @@ function getNotiHistory(){
   return Array.isArray(map[State.FIL]) ? map[State.FIL] : [];
 }
 
+/**
+ * @param {NotificationItem[]} list
+ */
 function setNotiHistory(list){
   const map = getNotiHistoryMap();
   map[State.FIL] = list;
   localStorage.setItem(NOTI_HISTORY_KEY, JSON.stringify(map));
 }
 
+/**
+ * @param {string | undefined | null} iso
+ */
 function getProxAniversario(iso){
   if(!iso) return null;
   const parts = String(iso).split('-');
@@ -54,11 +74,19 @@ function getProxAniversario(iso){
   return prox;
 }
 
+/**
+ * @param {Date} base
+ * @param {Date} target
+ */
 function daysDiff(base, target){
   const ms = target.getTime() - base.getTime();
   return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * @param {NotificationItem} a
+ * @param {NotificationItem} b
+ */
 function compareNotifications(a, b){
   const pa = NOTI_PRIORITY_ORDER[a.prioridade] ?? 99;
   const pb = NOTI_PRIORITY_ORDER[b.prioridade] ?? 99;
@@ -66,6 +94,11 @@ function compareNotifications(a, b){
   return String(a.titulo || '').localeCompare(String(b.titulo || ''), 'pt-BR');
 }
 
+/**
+ * @param {Date} now
+ * @param {Record<string, { saldo?: number; cm?: number }>} saldos
+ * @returns {NotificationItem[]}
+ */
 function buildEstoqueNotifications(now, saldos){
   return P().flatMap(p => {
     const s = saldos[p.id] || { saldo: 0 };
@@ -99,6 +132,9 @@ function buildEstoqueNotifications(now, saldos){
   });
 }
 
+/**
+ * @returns {NotificationItem[]}
+ */
 function buildCampanhaNotifications(){
   const envios = D.campanhaEnvios?.[State.FIL] || [];
   const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual');
@@ -115,6 +151,10 @@ function buildCampanhaNotifications(){
   }];
 }
 
+/**
+ * @param {Date} now
+ * @returns {NotificationItem[]}
+ */
 function buildAniversarioNotifications(now){
   return C().flatMap(c => {
     const prox = getProxAniversario(c.data_aniversario);
@@ -136,6 +176,10 @@ function buildAniversarioNotifications(now){
   });
 }
 
+/**
+ * @param {Date} now
+ * @returns {NotificationItem[]}
+ */
 function buildJogosNotifications(now){
   const jogos = (D.jogos?.[State.FIL] || [])
     .filter(j => !!j.data_hora)
@@ -162,6 +206,9 @@ function buildJogosNotifications(now){
   });
 }
 
+/**
+ * @returns {NotificationItem[]}
+ */
 export function buildNotificacoes(){
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -207,11 +254,17 @@ export function updateNotiBadge(){
   }
 }
 
+/**
+ * @param {string} filtro
+ */
 export function setFiltroNotificacoes(filtro){
   notiFiltroPrioridade = filtro || 'todas';
   renderNotificacoes();
 }
 
+/**
+ * @param {string} id
+ */
 export function executarNotificacao(id){
   const n = notiCache.find(x => x.id === id);
   if(!n) return;
@@ -221,6 +274,9 @@ export function executarNotificacao(id){
   renderMetasNegocioSafe();
 }
 
+/**
+ * @param {string} id
+ */
 export function resolverNotificacao(id){
   const n = notiCache.find(x => x.id === id);
   if(!n) return;
@@ -242,6 +298,9 @@ export function resolverNotificacao(id){
   toast('Notificacao movida para historico.');
 }
 
+/**
+ * @param {string} id
+ */
 export function reabrirNotificacao(id){
   const hist = getNotiHistory().filter(x => x.id !== id);
   setNotiHistory(hist);
@@ -284,12 +343,20 @@ export function resolverTodasNotificacoes(){
   toast('Todas notificacoes ativas foram resolvidas.');
 }
 
+/**
+ * @param {string} prioridade
+ */
 function badgeClassForPriority(prioridade){
   if(prioridade === 'critico') return 'br';
   if(prioridade === 'atencao') return 'ba';
   return 'bb';
 }
 
+/**
+ * @param {string} label
+ * @param {string | number} value
+ * @param {string} [style]
+ */
 function renderNotiMetric(label, value, style = ''){
   return `<div class="met"><div class="ml">${label}</div><div class="mv"${style ? ` style="${style}"` : ''}>${value}</div></div>`;
 }

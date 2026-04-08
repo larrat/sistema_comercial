@@ -1,11 +1,18 @@
+// @ts-check
+
 import { D, State } from '../app/store.js';
 import { norm, toast } from '../shared/utils.js';
 import { markInvalidation, markRender } from '../shared/render-metrics.js';
+
+/** @typedef {import('../types/domain').NavigationModuleDeps} NavigationModuleDeps */
+/** @typedef {import('../types/domain').NavigationPageMeta} NavigationPageMeta */
+/** @typedef {import('../types/domain').NavigationPageAction} NavigationPageAction */
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
 const MOBILE_MENU_FAB_IDLE_MS = 1600;
 
+/** @type {Required<NavigationModuleDeps>} */
 let deps = {
   hasRole: () => true,
   canAccessPage: () => true,
@@ -59,6 +66,9 @@ let deps = {
 let pendingPageRender = 0;
 let pendingPageName = '';
 
+/**
+ * @param {NavigationModuleDeps} [nextDeps]
+ */
 export function initNavigationModule(nextDeps = {}){
   deps = {
     ...deps,
@@ -85,6 +95,9 @@ function getPageRenderers(){
   };
 }
 
+/**
+ * @param {string} page
+ */
 function runPageRender(page){
   const renderers = getPageRenderers()[page] || [];
   renderers.forEach(render => {
@@ -93,6 +106,9 @@ function runPageRender(page){
   markRender(page, 'page');
 }
 
+/**
+ * @param {string} page
+ */
 function schedulePageRender(page){
   pendingPageName = page;
   markInvalidation(page, 'page', 'navigation');
@@ -109,6 +125,7 @@ function schedulePageRender(page){
   });
 }
 
+/** @type {Record<string, NavigationPageMeta>} */
 const PAGE_META = {
   dashboard: {
     kicker: 'Resumo',
@@ -214,6 +231,9 @@ export function pageAtual(){
   return String(on.id).replace(/^pg-/, '') || 'dashboard';
 }
 
+/**
+ * @param {string} id
+ */
 function scrollToCampSection(id){
   const el = document.getElementById(id);
   if(!el) return;
@@ -254,6 +274,10 @@ export function getContextualPageMeta(page){
   return meta;
 }
 
+/**
+ * @param {string} id
+ * @param {NavigationPageAction | null | undefined} action
+ */
 function bindTopbarAction(id, action){
   const el = document.getElementById(id);
   if(!el) return;
@@ -272,6 +296,9 @@ function bindTopbarAction(id, action){
   };
 }
 
+/**
+ * @param {string} page
+ */
 export function syncTopbar(page){
   const meta = getContextualPageMeta(page);
   const kicker = document.getElementById('app-kicker');
@@ -289,6 +316,9 @@ export function syncTopbar(page){
   syncSidebarContext(meta);
 }
 
+/**
+ * @param {NavigationPageMeta | null | undefined} meta
+ */
 export function syncSidebarContext(meta){
   const kicker = document.getElementById('sb-context-kicker');
   const title = document.getElementById('sb-context-title');
@@ -300,7 +330,9 @@ export function syncSidebarContext(meta){
 
 export function filterSidebarNav(raw = ''){
   const query = norm(raw || '');
+  /** @type {HTMLButtonElement[]} */
   const items = Array.from(document.querySelectorAll('.sb-nav .ni'));
+  /** @type {HTMLElement[]} */
   const groups = Array.from(document.querySelectorAll('.sb-nav .sb-group'));
   let visibleItems = 0;
 
@@ -312,7 +344,7 @@ export function filterSidebarNav(raw = ''){
   });
 
   groups.forEach(group => {
-    const hasVisibleItems = Array.from(group.querySelectorAll('.ni'))
+    const hasVisibleItems = Array.from(/** @type {NodeListOf<HTMLButtonElement>} */ (group.querySelectorAll('.ni')))
       .some(item => !item.hidden && item.style.display !== 'none');
     group.hidden = !hasVisibleItems;
   });
@@ -322,10 +354,11 @@ export function filterSidebarNav(raw = ''){
 }
 
 export function initSidebarEnhancements(){
-  const input = document.getElementById('sb-search');
+  /** @type {HTMLInputElement | null} */
+  const input = /** @type {HTMLInputElement | null} */ (document.getElementById('sb-search'));
   if(input && !input.dataset.bound){
     input.dataset.bound = '1';
-    input.addEventListener('input', e => filterSidebarNav(e.target.value));
+    input.addEventListener('input', e => filterSidebarNav((/** @type {HTMLInputElement} */ (e.target)).value));
     input.addEventListener('keydown', e => {
       if(e.key === 'Escape'){
         input.value = '';
@@ -371,6 +404,11 @@ function initMobileMenuFab(){
     };
   }
 
+  /**
+   * @param {number} left
+   * @param {number} top
+   * @param {boolean} [persist]
+   */
   function applyPosition(left, top, persist = true){
     const next = clampPosition(left, top);
     fab.style.left = `${next.left}px`;
@@ -472,6 +510,9 @@ function initMobileMenuFab(){
     applyPosition(originLeft + deltaX, originTop + deltaY);
   });
 
+  /**
+   * @param {PointerEvent} event
+   */
   function stopDragging(event){
     if(!dragging || event.pointerId !== pointerId) return;
     dragging = false;
@@ -495,6 +536,9 @@ function initMobileMenuFab(){
   applyStoredPosition();
 }
 
+/**
+ * @param {NavigationPageMeta | null | undefined} meta
+ */
 export function renderQuickLinks(meta){
   const el = document.getElementById('quick-links');
   if(!el) return;
@@ -505,12 +549,14 @@ export function renderQuickLinks(meta){
     .map(a => `<button class="qk" type="button">${a.label}</button>`)
     .join('');
   Array.from(el.querySelectorAll('.qk')).forEach((btn, idx) => {
+    if(!(btn instanceof HTMLButtonElement)) return;
     btn.onclick = actions[idx].run;
   });
 }
 
 function setActivePageVisibility(nextPage){
   document.querySelectorAll('.pg').forEach(page => {
+    if(!(page instanceof HTMLElement)) return;
     const isActive = page.id === `pg-${nextPage}`;
     page.classList.toggle('on', isActive);
     page.style.display = isActive ? 'block' : 'none';
@@ -527,7 +573,10 @@ export function ir(page){
   }
   fecharSb();
 
-  document.querySelectorAll('.ni').forEach(n => n.classList.toggle('on', n.dataset.p === nextPage));
+  document.querySelectorAll('.ni').forEach(n => {
+    if(!(n instanceof HTMLButtonElement)) return;
+    n.classList.toggle('on', n.dataset.p === nextPage);
+  });
   setActivePageVisibility(nextPage);
   document.querySelectorAll('.mob-btn').forEach(b => b.classList.toggle('on', b.id === 'mob-' + nextPage));
 
