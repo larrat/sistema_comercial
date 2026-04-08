@@ -3,7 +3,7 @@
 import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, fecharModal, toast, notify, focusField, fmt } from '../shared/utils.js';
+import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
 
@@ -254,18 +254,129 @@ function normalizePhone(value){
   return String(value || '').replace(/\D+/g, '');
 }
 
-function findClienteDuplicadoPorTelefone({ tel = '', whatsapp = '', editId = null } = {}){
-  const numerosInformados = [normalizePhone(tel), normalizePhone(whatsapp)].filter(Boolean);
-  if(!numerosInformados.length) return null;
+/**
+ * @param {unknown} value
+ */
+function normalizeEmail(value){
+  return String(value || '').trim().toLowerCase();
+}
 
-  return C().find(cliente => {
-    if(!cliente || cliente.id === editId) return false;
-    const numerosCliente = [
-      normalizePhone(cliente.tel),
-      normalizePhone(cliente.whatsapp)
-    ].filter(Boolean);
-    return numerosInformados.some(numero => numerosCliente.includes(numero));
-  }) || null;
+/**
+ * @param {unknown} value
+ */
+function normalizeDoc(value){
+  return String(value || '')
+    .replace(/[^0-9A-Za-z]+/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+/**
+ * @param {{
+ *   doc?: string;
+ *   email?: string;
+ *   tel?: string;
+ *   whatsapp?: string;
+ *   editId?: string | null;
+ * }} [input]
+ */
+function findClienteDuplicadoIdentidade({ doc = '', email = '', tel = '', whatsapp = '', editId = null } = {}){
+  const checks = [
+    {
+      key: 'doc',
+      label: 'documento',
+      fieldId: 'c-doc',
+      value: normalizeDoc(doc),
+      valuesFromCliente: cliente => [normalizeDoc(cliente.doc)]
+    },
+    {
+      key: 'email',
+      label: 'e-mail',
+      fieldId: 'c-email',
+      value: normalizeEmail(email),
+      valuesFromCliente: cliente => [normalizeEmail(cliente.email)]
+    },
+    {
+      key: 'tel',
+      label: 'telefone',
+      fieldId: 'c-tel',
+      value: normalizePhone(tel),
+      valuesFromCliente: cliente => [normalizePhone(cliente.tel), normalizePhone(cliente.whatsapp)]
+    },
+    {
+      key: 'whatsapp',
+      label: 'WhatsApp',
+      fieldId: 'c-whatsapp',
+      value: normalizePhone(whatsapp),
+      valuesFromCliente: cliente => [normalizePhone(cliente.tel), normalizePhone(cliente.whatsapp)]
+    }
+  ];
+
+  for(const check of checks){
+    if(!check.value) continue;
+
+    const clienteDuplicado = C().find(cliente => {
+      if(!cliente || cliente.id === editId) return false;
+      return check.valuesFromCliente(cliente).filter(Boolean).includes(check.value);
+    }) || null;
+
+    if(clienteDuplicado){
+      return {
+        key: check.key,
+        label: check.label,
+        fieldId: check.fieldId,
+        value: check.value,
+        cliente: clienteDuplicado
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * @param {unknown} err
+ */
+function extractClienteConstraintName(err){
+  const details = err && typeof err === 'object' && 'details' in err
+    ? /** @type {{ details?: { response?: { message?: unknown; details?: unknown; code?: unknown } } | unknown }} */ (err).details
+    : null;
+
+  const text = [
+    err && typeof err === 'object' && 'message' in err ? /** @type {{ message?: unknown }} */ (err).message : '',
+    details && typeof details === 'object' && 'response' in details ? details.response?.message : '',
+    details && typeof details === 'object' && 'response' in details ? details.response?.details : '',
+    details && typeof details === 'object' && 'response' in details ? details.response?.code : ''
+  ].map(value => String(value || '')).join(' | ');
+
+  const match = text.match(/ux_clientes_[A-Za-z0-9_]+/);
+  return match ? match[0] : '';
+}
+
+/**
+ * @param {unknown} err
+ * @param {ReturnType<typeof findClienteDuplicadoIdentidade> | null} [fallbackConflict=null]
+ */
+function handleClienteDuplicadoError(err, fallbackConflict = null){
+  const constraint = extractClienteConstraintName(err);
+  const conflictByConstraint =
+    constraint === 'ux_clientes_filial_doc_norm' ? { label: 'documento', fieldId: 'c-doc', cliente: null } :
+    constraint === 'ux_clientes_filial_email_norm' ? { label: 'e-mail', fieldId: 'c-email', cliente: null } :
+    constraint === 'ux_clientes_filial_tel_norm' || constraint === 'ux_clientes_filial_tel_identity' ? { label: 'telefone', fieldId: 'c-tel', cliente: null } :
+    constraint === 'ux_clientes_filial_whatsapp_norm' || constraint === 'ux_clientes_filial_whatsapp_identity' ? { label: 'WhatsApp', fieldId: 'c-whatsapp', cliente: null } :
+    null;
+
+  const conflict = fallbackConflict || conflictByConstraint;
+  if(!conflict) return false;
+
+  notifyGuided({
+    severity: SEVERITY.WARNING,
+    what: `${conflict.label} ja cadastrado para outro cliente${conflict.cliente?.nome ? ` (${conflict.cliente.nome})` : ''}`,
+    impact: 'o cliente nao foi salvo para evitar duplicidade no cadastro',
+    next: `revise o campo ${conflict.label} ou edite o cadastro existente`
+  });
+  focusField(conflict.fieldId, { markError: true });
+  return true;
 }
 
 function getFilteredClientes(){
@@ -579,7 +690,6 @@ export function renderClientes(){
       'cli-lista',
       filtrados.map(renderClienteMobile).join(''),
       'clientes:lista-mobile'
-    );
     return;
   }
 
@@ -775,7 +885,6 @@ export async function fecharVendaCliente(pedidoId, clienteId){
       itens: JSON.stringify(Array.isArray(atualizado.itens) ? atualizado.itens : [])
     });
   }catch(error){
-    notify(
       `Erro ao fechar venda: ${String(error?.message || 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
@@ -899,27 +1008,31 @@ export async function salvarCliente(){
     obs: cliDom.get('c-obs')?.value.trim() || ''
   };
 
-  const clienteDuplicado = findClienteDuplicadoPorTelefone({
+  const clienteDuplicado = findClienteDuplicadoIdentidade({
+    doc: cliente.doc,
+    email: cliente.email,
     tel: cliente.tel,
     whatsapp: cliente.whatsapp,
     editId
   });
 
   if(clienteDuplicado){
-    const numeroDuplicado = cliente.tel && normalizePhone(cliente.tel) === normalizePhone(clienteDuplicado.tel || clienteDuplicado.whatsapp)
-      ? cliente.tel
-      : (cliente.whatsapp || cliente.tel || clienteDuplicado.whatsapp || clienteDuplicado.tel || '');
-    notify(
-      `Atenção: telefone/WhatsApp já cadastrado para ${clienteDuplicado.nome}. Impacto: o cliente não foi salvo. Ação: revise o número ${numeroDuplicado || 'informado'} ou edite o cadastro existente.`,
-      SEVERITY.WARNING
-    );
-    focusField(cliente.whatsapp ? 'c-whatsapp' : 'c-tel', { markError: true });
+    notifyGuided({
+      severity: SEVERITY.WARNING,
+      what: `${clienteDuplicado.label} ja cadastrado para ${clienteDuplicado.cliente.nome}`,
+      impact: 'o cliente nao foi salvo para evitar duplicidade no cadastro',
+      next: `revise o campo ${clienteDuplicado.label} ou edite o cadastro existente`
+    });
+    focusField(clienteDuplicado.fieldId, { markError: true });
     return;
   }
 
   try{
     await SB.upsertCliente(cliente);
   }catch(error){
+    if(handleClienteDuplicadoError(error, clienteDuplicado)){
+      return;
+    }
     notify(
       `Erro ao salvar cliente: ${String(error?.message || 'erro desconhecido')}.`,
       SEVERITY.ERROR
