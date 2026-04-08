@@ -228,7 +228,7 @@ export function editarProd(id){
 
   if(p.hist_cot && p.hist_cot.length > 0){
     const sortedHist = [...p.hist_cot].sort((a, b) => String(b.mes).localeCompare(String(a.mes)));
-    histEl.innerHTML = `
+    const histHtml = `
       <div class="pt">OscilaÃ§Ã£o de PreÃ§o do Fornecedor</div>
       <table class="tbl" style="margin-top:8px">
         <thead><tr><th>MÃªs ref.</th><th>Fornecedor</th><th>PreÃ§o Cotado</th></tr></thead>
@@ -243,6 +243,11 @@ export function editarProd(id){
         </tbody>
       </table>
     `;
+    if(histEl.id === 'p-hist-cot'){
+      prodDom.html('history', 'p-hist-cot', histHtml, 'produtos:historico-cotacao');
+    } else {
+      histEl.innerHTML = histHtml;
+    }
     histEl.style.display = 'block';
   } else {
     histEl.style.display = 'none';

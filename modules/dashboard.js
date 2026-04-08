@@ -741,12 +741,12 @@ export function limparFormJogo(){
   const v = dashDom.get('jogo-visitante');
   const l = dashDom.get('jogo-local');
 
-  if(t) t.value = '';
-  if(c) c.value = '';
-  if(d) d.value = dataLocal;
-  if(m) m.value = '';
-  if(v) v.value = '';
-  if(l) l.value = '';
+  if(t) dashDom.value('jogo-titulo', '');
+  if(c) dashDom.value('jogo-campeonato', '');
+  if(d) dashDom.value('jogo-data', dataLocal);
+  if(m) dashDom.value('jogo-mandante', '');
+  if(v) dashDom.value('jogo-visitante', '');
+  if(l) dashDom.value('jogo-local', '');
 }
 
 export function abrirNovoJogo(){

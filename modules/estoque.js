@@ -22,6 +22,11 @@ const estDom = createScreenDom('estoque', [
   'mov-saldo-panel',
   'mov-preview',
   'mov-dest',
+  'mov-ajuste-row',
+  'mov-transf-row',
+  'mov-qty-row',
+  'mov-custo-wrap',
+  'mov-qty-lbl',
   'ms-saldo',
   'ms-cm',
   'mp-saldo',
@@ -407,50 +412,49 @@ export async function excluirMov(id){
 }
 
 export function refreshMovSel(){
-  const s = document.getElementById('mov-prod');
+  const s = estDom.get('mov-prod');
   if(!s) return;
 
   const cur = s.value;
-  s.innerHTML =
+  estDom.select(
+    'selectors',
+    'mov-prod',
     '<option value="">â€” selecione â€”</option>' +
-    P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
-
-  if(cur) s.value = cur;
+      P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join(''),
+    cur,
+    'estoque:mov-produtos'
+  );
 }
 
 export function refreshDestSel(){
-  const s = document.getElementById('mov-dest');
+  const s = estDom.get('mov-dest');
   if(!s) return;
 
-  s.innerHTML =
+  estDom.select(
+    'selectors',
+    'mov-dest',
     '<option value="">â€” selecione â€”</option>' +
-    (D.filiais || [])
-      .filter(f => f.id !== State.FIL)
-      .map(f => `<option value="${f.id}">${f.nome}</option>`)
-      .join('');
+      (D.filiais || [])
+        .filter(f => f.id !== State.FIL)
+        .map(f => `<option value="${f.id}">${f.nome}</option>`)
+        .join(''),
+    s.value,
+    'estoque:mov-destinos'
+  );
 }
 
 export function resetMov(){
   State.movTipo = 'entrada';
   setTipo('entrada');
 
-  const prod = document.getElementById('mov-prod');
-  const data = document.getElementById('mov-data');
-  const qty = document.getElementById('mov-qty');
-  const custo = document.getElementById('mov-custo');
-  const obs = document.getElementById('mov-obs');
-  const real = document.getElementById('mov-real');
-  const saldoPanel = document.getElementById('mov-saldo-panel');
-  const preview = document.getElementById('mov-preview');
-
-  if(prod) prod.value = '';
-  if(data) data.value = new Date().toISOString().split('T')[0];
-  if(qty) qty.value = '';
-  if(custo) custo.value = '';
-  if(obs) obs.value = '';
-  if(real) real.value = '';
-  if(saldoPanel) saldoPanel.style.display = 'none';
-  if(preview) preview.style.display = 'none';
+  estDom.value('mov-prod', '');
+  estDom.value('mov-data', new Date().toISOString().split('T')[0]);
+  estDom.value('mov-qty', '');
+  estDom.value('mov-custo', '');
+  estDom.value('mov-obs', '');
+  estDom.value('mov-real', '');
+  estDom.display('movement', 'mov-saldo-panel', 'none', 'estoque:mov-reset');
+  estDom.display('movement', 'mov-preview', 'none', 'estoque:mov-reset');
 
   refreshMovSel();
   refreshDestSel();
@@ -459,7 +463,7 @@ export function resetMov(){
 export function abrirMovProd(id){
   resetMov();
   setTimeout(() => {
-    const el = document.getElementById('mov-prod');
+    const el = estDom.get('mov-prod');
     if(el){
       el.value = id;
       movLoadProd();
@@ -476,11 +480,11 @@ export function setTipo(t){
     if(el) el.classList.toggle('sel', x === t);
   });
 
-  const ajusteRow = document.getElementById('mov-ajuste-row');
-  const transfRow = document.getElementById('mov-transf-row');
-  const qtyRow = document.getElementById('mov-qty-row');
-  const custoWrap = document.getElementById('mov-custo-wrap');
-  const qtyLbl = document.getElementById('mov-qty-lbl');
+  const ajusteRow = estDom.get('mov-ajuste-row');
+  const transfRow = estDom.get('mov-transf-row');
+  const qtyRow = estDom.get('mov-qty-row');
+  const custoWrap = estDom.get('mov-custo-wrap');
+  const qtyLbl = estDom.get('mov-qty-lbl');
 
   if(ajusteRow) ajusteRow.style.display = t === 'ajuste' ? 'grid' : 'none';
   if(transfRow) transfRow.style.display = t === 'transf' ? 'grid' : 'none';
@@ -499,11 +503,11 @@ export function setTipo(t){
 }
 
 export function movLoadProd(){
-  const id = document.getElementById('mov-prod')?.value;
+  const id = estDom.get('mov-prod')?.value;
   const saldos = calcSaldos();
 
   if(!id){
-    const panel = document.getElementById('mov-saldo-panel');
+    const panel = estDom.get('mov-saldo-panel');
     if(panel) panel.style.display = 'none';
     return;
   }
@@ -511,10 +515,10 @@ export function movLoadProd(){
   const p = P().find(x => x.id === id);
   const s = saldos[id] || { saldo: 0, cm: 0 };
 
-  const msSaldo = document.getElementById('ms-saldo');
-  const msCm = document.getElementById('ms-cm');
-  const custo = document.getElementById('mov-custo');
-  const panel = document.getElementById('mov-saldo-panel');
+  const msSaldo = estDom.get('ms-saldo');
+  const msCm = estDom.get('ms-cm');
+  const custo = estDom.get('mov-custo');
+  const panel = estDom.get('mov-saldo-panel');
 
   if(msSaldo) msSaldo.textContent = fmtQ(s.saldo) + ' ' + (p ? p.un : '');
   if(msCm) msCm.textContent = fmt(s.cm);
@@ -525,7 +529,7 @@ export function movLoadProd(){
 }
 
 export function movCalc(){
-  const id = document.getElementById('mov-prod')?.value;
+  const id = estDom.get('mov-prod')?.value;
   if(!id) return;
 
   if(State.movTipo === 'ajuste'){
@@ -536,9 +540,9 @@ export function movCalc(){
   const saldos = calcSaldos();
   const s = saldos[id] || { saldo: 0, cm: 0 };
   const p = P().find(x => x.id === id);
-  const qty = parseFloat(document.getElementById('mov-qty')?.value) || 0;
-  const custo = parseFloat(document.getElementById('mov-custo')?.value) || s.cm || 0;
-  const prev = document.getElementById('mov-preview');
+  const qty = parseFloat(estDom.get('mov-qty')?.value) || 0;
+  const custo = parseFloat(estDom.get('mov-custo')?.value) || s.cm || 0;
+  const prev = estDom.get('mov-preview');
 
   if(!prev) return;
 
@@ -557,10 +561,10 @@ export function movCalc(){
     ns = s.saldo - qty;
   }
 
-  const mpSaldo = document.getElementById('mp-saldo');
-  const mpCm = document.getElementById('mp-cm');
-  const mpVal = document.getElementById('mp-val');
-  const mpValWrap = document.getElementById('mp-val-wrap');
+  const mpSaldo = estDom.get('mp-saldo');
+  const mpCm = estDom.get('mp-cm');
+  const mpVal = estDom.get('mp-val');
+  const mpValWrap = estDom.get('mp-val-wrap');
 
   if(mpSaldo) mpSaldo.textContent = fmtQ(ns) + ' ' + (p ? p.un : '');
   if(mpCm) mpCm.textContent = fmt(nc);
@@ -572,13 +576,13 @@ export function movCalc(){
 }
 
 export function movCalcAjuste(){
-  const id = document.getElementById('mov-prod')?.value;
+  const id = estDom.get('mov-prod')?.value;
   if(!id) return;
 
   const saldos = calcSaldos();
   const p = P().find(x => x.id === id);
-  const real = parseFloat(document.getElementById('mov-real')?.value);
-  const prev = document.getElementById('mov-preview');
+  const real = parseFloat(estDom.get('mov-real')?.value);
+  const prev = estDom.get('mov-preview');
 
   if(!prev) return;
 
@@ -590,10 +594,10 @@ export function movCalcAjuste(){
   const s = saldos[id] || { saldo: 0 };
   const diff = real - s.saldo;
 
-  const mpSaldo = document.getElementById('mp-saldo');
-  const mpCm = document.getElementById('mp-cm');
-  const mpVal = document.getElementById('mp-val');
-  const mpValWrap = document.getElementById('mp-val-wrap');
+  const mpSaldo = estDom.get('mp-saldo');
+  const mpCm = estDom.get('mp-cm');
+  const mpVal = estDom.get('mp-val');
+  const mpValWrap = estDom.get('mp-val-wrap');
 
   if(mpSaldo) mpSaldo.textContent = fmtQ(real) + ' ' + (p ? p.un : '');
   if(mpCm) mpCm.textContent = 'â€”';
@@ -605,15 +609,15 @@ export function movCalcAjuste(){
 }
 
 export async function salvarMov(){
-  const prodId = document.getElementById('mov-prod')?.value;
+  const prodId = estDom.get('mov-prod')?.value;
   if(!prodId){
     toast('Selecione produto.');
     return;
   }
 
-  const data = document.getElementById('mov-data')?.value || '';
-  const obs = document.getElementById('mov-obs')?.value.trim() || '';
-  const custo = parseFloat(document.getElementById('mov-custo')?.value) || 0;
+  const data = estDom.get('mov-data')?.value || '';
+  const obs = estDom.get('mov-obs')?.value.trim() || '';
+  const custo = parseFloat(estDom.get('mov-custo')?.value) || 0;
 
   let mov = {
     id: Date.now() + '-' + Math.random().toString(36).slice(2,8),
@@ -627,14 +631,14 @@ export async function salvarMov(){
   };
 
   if(State.movTipo === 'ajuste'){
-    const real = parseFloat(document.getElementById('mov-real')?.value);
+    const real = parseFloat(estDom.get('mov-real')?.value);
     if(isNaN(real) || real < 0){
       toast('Informe o saldo real.');
       return;
     }
     mov.saldo_real = real;
   } else {
-    const qty = parseFloat(document.getElementById('mov-qty')?.value) || 0;
+    const qty = parseFloat(estDom.get('mov-qty')?.value) || 0;
     if(qty <= 0){
       toast('Informe a quantidade.');
       return;
@@ -642,7 +646,7 @@ export async function salvarMov(){
     mov.qty = qty;
 
     if(State.movTipo === 'transf'){
-      const dest = document.getElementById('mov-dest')?.value;
+      const dest = estDom.get('mov-dest')?.value;
       if(!dest){
         toast('Selecione filial destino.');
         return;

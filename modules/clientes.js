@@ -20,6 +20,13 @@ const CLI_FORM_IDS = [
   'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv',
   'c-time','c-resp','c-seg','c-cidade','c-estado','c-obs'
 ];
+const CLI_SELECT_DEFAULTS = {
+  'c-tipo': 'PJ',
+  'c-status': 'ativo',
+  'c-tab': 'padrao',
+  'c-prazo': 'a_vista'
+};
+const CLI_CHECKBOX_IDS = ['c-optin-marketing', 'c-optin-email', 'c-optin-sms'];
 
 export function initClientesModule(callbacks = {}){
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
@@ -502,30 +509,9 @@ export function limparFormCli(){
   const saveBtn = cliDom.get('cli-flow-save');
   if(saveBtn) saveBtn.textContent = 'Salvar cliente';
 
-  [
-    'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv','c-time',
-    'c-resp','c-seg','c-cidade','c-estado','c-obs'
-  ].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
-  });
-
-  const tipo = document.getElementById('c-tipo');
-  const status = document.getElementById('c-status');
-  const tab = document.getElementById('c-tab');
-  const prazo = document.getElementById('c-prazo');
-
-  if(tipo) tipo.value = 'PJ';
-  if(status) status.value = 'ativo';
-  if(tab) tab.value = 'padrao';
-  if(prazo) prazo.value = 'a_vista';
-
-  const optinMarketing = document.getElementById('c-optin-marketing');
-  const optinEmail = document.getElementById('c-optin-email');
-  const optinSms = document.getElementById('c-optin-sms');
-  if(optinMarketing) optinMarketing.checked = false;
-  if(optinEmail) optinEmail.checked = false;
-  if(optinSms) optinSms.checked = false;
+  CLI_FORM_IDS.forEach(id => cliDom.value(id, ''));
+  Object.entries(CLI_SELECT_DEFAULTS).forEach(([id, value]) => cliDom.value(id, value));
+  CLI_CHECKBOX_IDS.forEach(id => cliDom.checked(id, false));
 
   setFlowStepSafe('cli', 1);
 }
@@ -544,20 +530,20 @@ export function editarCli(id){
   cliDom.value('c-nome', c.nome || '');
   cliDom.value('c-apelido', c.apelido || '');
   cliDom.value('c-doc', c.doc || '');
-  document.getElementById('c-tipo').value = c.tipo || 'PJ';
-  document.getElementById('c-status').value = c.status || 'ativo';
-  document.getElementById('c-tel').value = c.tel || '';
-  document.getElementById('c-whatsapp').value = c.whatsapp || '';
-  document.getElementById('c-email').value = c.email || '';
-  document.getElementById('c-aniv').value = c.data_aniversario || '';
-  document.getElementById('c-time').value = parseTimes(c.time).join(', ');
-  document.getElementById('c-resp').value = c.resp || '';
-  document.getElementById('c-seg').value = c.seg || '';
-  document.getElementById('c-tab').value = c.tab || 'padrao';
-  document.getElementById('c-prazo').value = c.prazo || 'a_vista';
-  document.getElementById('c-cidade').value = c.cidade || '';
-  document.getElementById('c-estado').value = c.estado || '';
-  document.getElementById('c-obs').value = c.obs || '';
+  cliDom.value('c-tipo', c.tipo || 'PJ');
+  cliDom.value('c-status', c.status || 'ativo');
+  cliDom.value('c-tel', c.tel || '');
+  cliDom.value('c-whatsapp', c.whatsapp || '');
+  cliDom.value('c-email', c.email || '');
+  cliDom.value('c-aniv', c.data_aniversario || '');
+  cliDom.value('c-time', parseTimes(c.time).join(', '));
+  cliDom.value('c-resp', c.resp || '');
+  cliDom.value('c-seg', c.seg || '');
+  cliDom.value('c-tab', c.tab || 'padrao');
+  cliDom.value('c-prazo', c.prazo || 'a_vista');
+  cliDom.value('c-cidade', c.cidade || '');
+  cliDom.value('c-estado', c.estado || '');
+  cliDom.value('c-obs', c.obs || '');
   cliDom.checked('c-optin-marketing', !!c.optin_marketing);
   cliDom.checked('c-optin-email', !!c.optin_email);
   cliDom.checked('c-optin-sms', !!c.optin_sms);
@@ -568,7 +554,7 @@ export function editarCli(id){
 }
 
 export async function salvarCliente(){
-  const nome = document.getElementById('c-nome').value.trim();
+  const nome = cliDom.get('c-nome')?.value.trim() || '';
   if(!nome){
     notify(MSG.forms.required('Nome do cliente'), SEVERITY.WARNING);
     focusField('c-nome', { markError: true });
@@ -581,23 +567,23 @@ export async function salvarCliente(){
     nome,
     apelido: cliDom.get('c-apelido')?.value.trim() || '',
     doc: cliDom.get('c-doc')?.value.trim() || '',
-    tipo: document.getElementById('c-tipo').value,
-    status: document.getElementById('c-status').value,
-    tel: document.getElementById('c-tel').value.trim(),
-    whatsapp: document.getElementById('c-whatsapp').value.trim(),
-    email: document.getElementById('c-email').value.trim(),
-    data_aniversario: document.getElementById('c-aniv').value || null,
+    tipo: cliDom.get('c-tipo')?.value || 'PJ',
+    status: cliDom.get('c-status')?.value || 'ativo',
+    tel: cliDom.get('c-tel')?.value.trim() || '',
+    whatsapp: cliDom.get('c-whatsapp')?.value.trim() || '',
+    email: cliDom.get('c-email')?.value.trim() || '',
+    data_aniversario: cliDom.get('c-aniv')?.value || null,
     optin_marketing: !!cliDom.get('c-optin-marketing')?.checked,
-    optin_email: !!document.getElementById('c-optin-email').checked,
-    optin_sms: !!document.getElementById('c-optin-sms').checked,
-    time: parseTimes(document.getElementById('c-time').value).join(', '),
-    resp: document.getElementById('c-resp').value.trim(),
-    seg: document.getElementById('c-seg').value.trim(),
-    tab: document.getElementById('c-tab').value,
-    prazo: document.getElementById('c-prazo').value,
-    cidade: document.getElementById('c-cidade').value.trim(),
-    estado: document.getElementById('c-estado').value.trim(),
-    obs: document.getElementById('c-obs').value.trim()
+    optin_email: !!cliDom.get('c-optin-email')?.checked,
+    optin_sms: !!cliDom.get('c-optin-sms')?.checked,
+    time: parseTimes(cliDom.get('c-time')?.value || '').join(', '),
+    resp: cliDom.get('c-resp')?.value.trim() || '',
+    seg: cliDom.get('c-seg')?.value.trim() || '',
+    tab: cliDom.get('c-tab')?.value || 'padrao',
+    prazo: cliDom.get('c-prazo')?.value || 'a_vista',
+    cidade: cliDom.get('c-cidade')?.value.trim() || '',
+    estado: cliDom.get('c-estado')?.value.trim() || '',
+    obs: cliDom.get('c-obs')?.value.trim() || ''
   };
 
   try{
