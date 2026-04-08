@@ -214,6 +214,22 @@ export type CampanhaFilaResult = {
   total_elegiveis: number;
 };
 
+export type MovimentoEstoque = {
+  id: Id;
+  filial_id?: Id | null;
+  prodId?: Id;
+  prod_id?: Id;
+  tipo: string;
+  data?: string;
+  qty?: number;
+  custo?: number;
+  obs?: string;
+  saldo_real?: number;
+  saldoReal?: number;
+  destino?: Id | null;
+  ts?: number;
+};
+
 export type ScreenDom = {
   get(id: string): (HTMLElement & {
     value?: string;
@@ -245,4 +261,40 @@ export type PedidosModuleCallbacks = {
 
 export type DashboardModuleCallbacks = {
   calcSaldosMulti?: (...args: any[]) => Record<string, { saldo: number; cm?: number }>;
+};
+
+export type EstoqueModuleCallbacks = {
+  calcSaldos?: () => Record<string, { saldo: number; cm?: number }>;
+};
+
+export type AuthSetupModuleDeps = {
+  pageAtual?: () => string;
+  ir?: (page: string) => void;
+  filterSidebarNav?: (query?: string) => void;
+  resetRuntimeData?: () => void;
+  showLoading?: (loading: boolean) => void;
+  mostrarTela?: (screen: string) => void;
+  buildSkeletonLines?: (count?: number) => string;
+  carregarDadosFilial?: (filialId: Id) => Promise<void>;
+  refreshProdSel?: () => void;
+  refreshCliDL?: () => void;
+  renderFornSel?: () => void;
+  refreshMovSel?: () => void;
+  refreshDestSel?: () => void;
+  renderDashFilSel?: () => void;
+  renderDash?: () => void;
+  atualizarBadgeEst?: () => void;
+  updateNotiBadge?: () => void;
+  cores?: string[];
+};
+
+export type FiliaisAcessosModuleDeps = {
+  requireRole?: (allowedRoles?: string[], denyMessage?: string) => boolean;
+  renderSetup?: () => Promise<void>;
+  entrar?: () => Promise<void>;
+  renderDashFilSel?: () => void;
+  scheduleRoleUiGuards?: () => void;
+  roleAdminOnly?: string[];
+  appRoles?: string[];
+  cores?: string[];
 };

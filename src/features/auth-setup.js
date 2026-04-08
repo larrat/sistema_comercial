@@ -1,6 +1,11 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State } from '../app/store.js';
 import { uid, norm, toast } from '../shared/utils.js';
+
+/** @typedef {import('../types/domain').AuthSession} AuthSession */
+/** @typedef {import('../types/domain').AuthSetupModuleDeps} AuthSetupModuleDeps */
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 
@@ -59,6 +64,7 @@ export const ROLE_UI_ADMIN_SELECTORS = [
 let roleUiGuardTimer = null;
 let roleUiObserver = null;
 
+/** @type {Required<AuthSetupModuleDeps>} */
 let deps = {
   pageAtual: () => 'dashboard',
   ir: () => {},
@@ -80,6 +86,7 @@ let deps = {
   cores: ['#163F80']
 };
 
+/** @param {AuthSetupModuleDeps} [nextDeps={}] */
 export function initAuthSetupModule(nextDeps = {}){
   deps = {
     ...deps,
@@ -88,26 +95,31 @@ export function initAuthSetupModule(nextDeps = {}){
   };
 }
 
+/** @param {unknown} role */
 export function normalizeUserRole(role){
   const r = norm(role || '');
   return APP_ROLES.includes(r) ? r : 'operador';
 }
 
+/** @returns {string} */
 export function currentUserRole(){
   return normalizeUserRole(State.userRole);
 }
 
+/** @param {string[]} [allowedRoles=[]] */
 export function hasRole(allowedRoles = []){
   const current = currentUserRole();
   return (allowedRoles || []).map(normalizeUserRole).includes(current);
 }
 
+/** @param {string} page */
 export function canAccessPage(page){
   const p = String(page || 'dashboard');
   const allowed = ROLE_PAGE_ACCESS[p] || APP_ROLES;
   return hasRole(allowed);
 }
 
+/** @param {string} [preferred='dashboard'] */
 export function getFirstAllowedPage(preferred = 'dashboard'){
   if(canAccessPage(preferred)) return preferred;
   const order = ['dashboard', 'relatorios', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'notificacoes'];
@@ -120,12 +132,22 @@ export function ensureCurrentPageAccess(){
   deps.ir(getFirstAllowedPage('dashboard'));
 }
 
+/**
+ * @param {string[]} [allowedRoles=[]]
+ * @param {string} [denyMessage='Voce nao tem permissao para esta acao.']
+ */
 export function requireRole(allowedRoles = [], denyMessage = 'Voce nao tem permissao para esta acao.'){
   if(hasRole(allowedRoles)) return true;
   toast(denyMessage);
   return false;
 }
 
+/**
+ * @template {(...args: any[]) => any} T
+ * @param {T} fn
+ * @param {string[]} allowedRoles
+ * @param {string} denyMessage
+ */
 export function buildRoleGuard(fn, allowedRoles, denyMessage){
   return async (...args) => {
     if(!requireRole(allowedRoles, denyMessage)) return;
@@ -214,6 +236,7 @@ export function startRoleUiObserver(){
   roleUiObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-click'] });
 }
 
+/** @param {AuthSession | null | undefined} session */
 export async function carregarContextoUsuario(session){
   State.user = session?.user || null;
   let role = 'operador';
@@ -234,6 +257,7 @@ export async function carregarContextoUsuario(session){
   }
 }
 
+/** @param {AuthSession | null | undefined} session */
 export function renderAuthGate(session){
   const authBox = document.getElementById('setup-auth');
   const filGrid = document.getElementById('fil-grid');
@@ -261,7 +285,8 @@ export function renderAuthGate(session){
 export async function authEntrar(){
   const emailEl = document.getElementById('auth-email');
   const passEl = document.getElementById('auth-password');
-  const btn = document.getElementById('auth-login-btn');
+  /** @type {HTMLButtonElement | null} */
+  const btn = /** @type {HTMLButtonElement | null} */ (document.getElementById('auth-login-btn'));
   const email = emailEl?.value.trim() || '';
   const password = passEl?.value || '';
 

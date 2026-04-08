@@ -1,16 +1,30 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State } from '../app/store.js';
 import { uid, toast, abrirModal, fecharModal } from '../shared/utils.js';
 
+/** @typedef {import('../types/domain').FiliaisAcessosModuleDeps} FiliaisAcessosModuleDeps */
+/** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
+
+/** @type {(allowedRoles?: string[], denyMessage?: string) => boolean} */
 let requireRoleSafe = () => true;
+/** @type {() => Promise<void>} */
 let renderSetupSafe = async () => {};
+/** @type {() => Promise<void>} */
 let entrarSafe = async () => {};
+/** @type {() => void} */
 let renderDashFilSelSafe = () => {};
+/** @type {() => void} */
 let scheduleRoleUiGuardsSafe = () => {};
+/** @type {string[]} */
 let roleAdminOnlySafe = ['admin'];
+/** @type {string[]} */
 let appRolesSafe = ['operador', 'gerente', 'admin'];
+/** @type {string[]} */
 let coresSafe = ['#163F80'];
 
+/** @param {FiliaisAcessosModuleDeps} [deps={}] */
 export function initFiliaisAcessosModule(deps = {}){
   requireRoleSafe = typeof deps.requireRole === 'function' ? deps.requireRole : requireRoleSafe;
   renderSetupSafe = typeof deps.renderSetup === 'function' ? deps.renderSetup : renderSetupSafe;
@@ -22,10 +36,17 @@ export function initFiliaisAcessosModule(deps = {}){
   coresSafe = Array.isArray(deps.cores) && deps.cores.length ? deps.cores : coresSafe;
 }
 
+/** @param {unknown} v */
 function isUuid(v){
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || '').trim());
 }
 
+/**
+ * @template T
+ * @param {T[]} [items=[]]
+ * @param {number} [page=1]
+ * @param {number} [perPage=10]
+ */
 function paginateItems(items = [], page = 1, perPage = 10){
   const safePage = Math.max(1, Number(page || 1));
   const safePerPage = Math.max(1, Number(perPage || 10));
@@ -42,6 +63,13 @@ function paginateItems(items = [], page = 1, perPage = 10){
   };
 }
 
+/**
+ * @param {string} elId
+ * @param {number} page
+ * @param {number} pages
+ * @param {string} onPrev
+ * @param {string} onNext
+ */
 function renderPager(elId, page, pages, onPrev, onNext){
   const el = document.getElementById(elId);
   if(!el) return;
@@ -411,7 +439,16 @@ export async function renderAcessosAdmin(){
     return;
   }
 
-  const data = readResult.data || {};
+  /** @type {AccessAdminReadData} */
+  const data = readResult.data || {
+    ator_user_id: '',
+    papel: 'admin',
+    perfis: [],
+    vinculos: [],
+    filiais: [],
+    auditoria: [],
+    auditoria_limit: 100
+  };
   D.userPerfis = data.perfis || [];
   D.userFiliais = data.vinculos || [];
   D.filiais = data.filiais || D.filiais || [];

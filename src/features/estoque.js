@@ -1,8 +1,14 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State, P, MOVS } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../shared/utils.js';
 
+/** @typedef {import('../types/domain').MovimentoEstoque} MovimentoEstoque */
+/** @typedef {import('../types/domain').ScreenDom} ScreenDom */
+
+/** @type {ScreenDom} */
 const estDom = createScreenDom('estoque', [
   'est-badge',
   'est-alerts',
@@ -35,7 +41,9 @@ const estDom = createScreenDom('estoque', [
   'mp-val-wrap'
 ]);
 
+/** @returns {Record<string, { saldo: number; cm: number }>} */
 export function calcSaldos(){
+  /** @type {Record<string, { saldo: number; cm: number }>} */
   const map = {};
 
   P().forEach(p => {
@@ -69,7 +77,12 @@ export function calcSaldos(){
   return map;
 }
 
+/**
+ * @param {string[]} filIds
+ * @returns {Record<string, { saldo: number; cm: number }>}
+ */
 export function calcSaldosMulti(filIds){
+  /** @type {Record<string, { saldo: number; cm: number }>} */
   const map = {};
 
   filIds.forEach(fid => {
@@ -522,7 +535,7 @@ export function movLoadProd(){
 
   if(msSaldo) msSaldo.textContent = fmtQ(s.saldo) + ' ' + (p ? p.un : '');
   if(msCm) msCm.textContent = fmt(s.cm);
-  if(custo) custo.placeholder = s.cm > 0 ? fmtN(s.cm) : '0,00';
+  if(custo instanceof HTMLInputElement) custo.placeholder = s.cm > 0 ? fmtN(s.cm) : '0,00';
   if(panel) panel.style.display = 'block';
 
   movCalc();
