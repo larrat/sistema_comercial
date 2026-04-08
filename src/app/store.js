@@ -1,8 +1,10 @@
-// js/store.js
+// @ts-check
 
-// ═══════════════════════════
-// BANCO DE DADOS EM MEMÓRIA (CACHE)
-// ═══════════════════════════
+/** @typedef {import('../types/domain').AppCache} AppCache */
+/** @typedef {import('../types/domain').AppState} AppState */
+/** @typedef {import('../types/domain').Pedido} Pedido */
+
+/** @type {AppCache} */
 export const D = {
   filiais: [],
   produtos: {},
@@ -19,55 +21,63 @@ export const D = {
   accessUsers: []
 };
 
-// ═══════════════════════════
-// ESTADO GLOBAL DO APP
-// ═══════════════════════════
+/** @type {AppState} */
 export const State = {
-  FIL: null,         // ID da Filial ativa
-  selFil: null,      // Filial selecionada na tela de Setup
-  user: null,        // Sessão autenticada (Supabase user)
-  userRole: 'operador', // Papel atual do usuário (admin/gerente/operador)
-  acPagePerfis: 1,      // Paginação da tabela de perfis (Acessos)
-  acPageVinculos: 1,    // Paginação da tabela de vínculos (Acessos)
-  acPageAuditoria: 1,   // Paginação da tabela de auditoria (Acessos)
-  dashP: 'mes',      // Período selecionado no dashboard
-  movTipo: 'entrada',// Tipo de movimentação selecionada no estoque
-  editIds: {},       // Guarda IDs em edição (produto, cliente, etc)
-  pedItens: [],      // Carrinho temporário de itens do pedido
-  _mapaCtx: null     // Contexto da importação de planilha de cotação
+  FIL: null,
+  selFil: null,
+  user: null,
+  userRole: 'operador',
+  acPagePerfis: 1,
+  acPageVinculos: 1,
+  acPageAuditoria: 1,
+  dashP: 'mes',
+  movTipo: 'entrada',
+  editIds: {},
+  pedItens: [],
+  _mapaCtx: null
 };
 
-// ═══════════════════════════
-// GETTERS (Acesso rápido aos dados da filial ativa)
-// ═══════════════════════════
-export function P() { 
-  return D.produtos[State.FIL] || (D.produtos[State.FIL] = []); 
+function getFilialKey() {
+  return State.FIL || '';
 }
 
-export function C() { 
-  return D.clientes[State.FIL] || (D.clientes[State.FIL] = []); 
+export function P() {
+  const filialId = getFilialKey();
+  return D.produtos[filialId] || (D.produtos[filialId] = []);
+}
+
+export function C() {
+  const filialId = getFilialKey();
+  return D.clientes[filialId] || (D.clientes[filialId] = []);
 }
 
 export function PD() {
-  const raw = D.pedidos[State.FIL] || (D.pedidos[State.FIL] = []);
-  return raw.map(p => ({
-    ...p, 
-    itens: typeof p.itens === 'string' ? JSON.parse(p.itens || '[]') : (p.itens || [])
+  const filialId = getFilialKey();
+  const raw = D.pedidos[filialId] || (D.pedidos[filialId] = []);
+  return raw.map((pedido) => ({
+    ...pedido,
+    itens: typeof pedido.itens === 'string'
+      ? /** @type {Pedido['itens']} */ (JSON.parse(pedido.itens || '[]'))
+      : (pedido.itens || [])
   }));
 }
 
-export function FORNS() { 
-  return D.fornecedores[State.FIL] || (D.fornecedores[State.FIL] = []); 
+export function FORNS() {
+  const filialId = getFilialKey();
+  return D.fornecedores[filialId] || (D.fornecedores[filialId] = []);
 }
 
-export function CPRECOS() { 
-  return D.cotPrecos[State.FIL] || (D.cotPrecos[State.FIL] = {}); 
+export function CPRECOS() {
+  const filialId = getFilialKey();
+  return D.cotPrecos[filialId] || (D.cotPrecos[filialId] = {});
 }
 
-export function CCFG() { 
-  return D.cotConfig[State.FIL] || (D.cotConfig[State.FIL] = { filial_id: State.FIL, locked: false, logs: [] }); 
+export function CCFG() {
+  const filialId = getFilialKey();
+  return D.cotConfig[filialId] || (D.cotConfig[filialId] = { filial_id: State.FIL, locked: false, logs: [] });
 }
 
-export function MOVS() { 
-  return D.movs[State.FIL] || (D.movs[State.FIL] = []); 
+export function MOVS() {
+  const filialId = getFilialKey();
+  return D.movs[filialId] || (D.movs[filialId] = []);
 }

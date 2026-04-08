@@ -1,10 +1,18 @@
+// @ts-check
+
+/** @typedef {import('../types/domain').DomBindingsDeps} DomBindingsDeps */
+/** @typedef {import('../types/domain').RenderTargetMeta} RenderTargetMeta */
+
 import { markInvalidation } from '../shared/render-metrics.js';
 
+/** @type {DomBindingsDeps} */
 let deps = {};
 let initialized = false;
 let pendingRenderFrame = 0;
+/** @type {Set<string>} */
 let pendingRenderNames = new Set();
 
+/** @type {Record<string, RenderTargetMeta>} */
 const RENDER_TARGETS = {
   renderDash: { page: 'dashboard', area: 'page' },
   renderProdMet: { page: 'produtos', area: 'metrics' },
@@ -17,7 +25,8 @@ const RENDER_TARGETS = {
 };
 
 function getFlowCurrentStep(flow){
-  return Number(document.querySelector(`.flow-chip.on[data-flow-chip="${flow}"]`)?.dataset.step || 1);
+  const chip = document.querySelector(`.flow-chip.on[data-flow-chip="${flow}"]`);
+  return Number(chip instanceof HTMLElement ? chip.dataset.step : 1);
 }
 
 function splitArgs(raw){
@@ -66,7 +75,7 @@ function resolveArg(token, el, event){
   }
   if(trimmed === 'this') return el;
   if(trimmed === 'event') return event;
-  if(trimmed === 'this.value') return el?.value;
+  if(trimmed === 'this.value') return el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement ? el.value : undefined;
   if(/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
   const normalized = trimmed.replace(/^\(/, '');
   const flowMatch = normalized.match(/window\.__flowSteps\?\.([a-z]+)\s*\|\|\s*1\)\s*([+-])\s*(\d+)/);
@@ -241,14 +250,14 @@ function getHandlerRegistry(){
 function resolveHandler(name){
   const registry = getHandlerRegistry();
   return Object.values(registry)
-    .map(group => group[name])
+    .map(group => group[/** @type {keyof typeof group} */ (name)])
     .find(handler => typeof handler === 'function');
 }
 
 function callByName(name, args = []){
   const handler = resolveHandler(name);
   if(typeof handler === 'function'){
-    handler(...args);
+    /** @type {(...callArgs: unknown[]) => unknown} */ (handler)(...args);
   }
 }
 
@@ -294,10 +303,10 @@ function callFieldHandler(name, el, event){
     movCalc: () => deps.movCalc(),
     movCalcAjuste: () => deps.movCalcAjuste(),
     calcProdPreview: () => deps.calcProdPreview(),
-    syncV: () => deps.syncV(el.dataset.arg),
-    syncA: () => deps.syncA(el.dataset.arg),
-    syncProdFromCost: () => deps.syncProdFromCost(),
-    setFiltroNotificacoes: () => deps.setFiltroNotificacoes(el.value)
+      syncV: () => deps.syncV?.(el.dataset.arg),
+      syncA: () => deps.syncA?.(el.dataset.arg),
+      syncProdFromCost: () => deps.syncProdFromCost?.(),
+      setFiltroNotificacoes: () => deps.setFiltroNotificacoes?.(el instanceof HTMLInputElement || el instanceof HTMLSelectElement ? el.value : undefined)
   };
   const handler = fieldHandlers[name];
   if(typeof handler === 'function') handler();
@@ -447,6 +456,9 @@ function onFieldEvent(event){
   }
 }
 
+/**
+ * @param {DomBindingsDeps} [nextDeps={}]
+ */
 export function initDomBindings(nextDeps = {}){
   deps = { ...deps, ...nextDeps };
   if(initialized) return;

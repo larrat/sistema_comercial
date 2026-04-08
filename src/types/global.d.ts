@@ -16,5 +16,6 @@ declare global {
     __SC_RETRY_BASE_MS__?: number;
     __SC_E2E_MODE__?: boolean;
     __SC_E2E_UI_CORE__?: boolean;
+    __SC_DEBUG__?: Record<string, unknown>;
   }
 }

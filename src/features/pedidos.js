@@ -48,7 +48,7 @@ export function renderPedMet(){
   const fat = peds.filter(p => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
   const lucro = peds
     .filter(p => p.status === 'entregue')
-    .reduce((a, p) => a + (p.itens || []).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0), 0);
+    .reduce((a, p) => a + (Array.isArray(p.itens) ? p.itens : []).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0), 0);
   const ab = peds.filter(p => ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)).length;
 
   const el = document.getElementById('ped-met');

@@ -40,6 +40,14 @@ const dashDom = createScreenDom('dashboard', [
   'jogo-api-time'
 ]);
 
+/**
+ * @param {import('../types/domain').Pedido['itens']} itens
+ * @returns {import('../types/domain').PedidoItem[]}
+ */
+function asPedidoItens(itens){
+  return Array.isArray(itens) ? itens : [];
+}
+
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const JOGOS_API_URL_KEY = 'jogos_api_url';
 const JOGOS_API_FILTRO_KEY = 'jogos_api_filtro';
@@ -400,7 +408,7 @@ export function renderDash(){
 
   const fat = entregues.reduce((a, p) => a + (p.total || 0), 0);
   const lucro = entregues.reduce(
-    (a, p) => a + (p.itens || []).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0),
+    (a, p) => a + asPedidoItens(p.itens).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0),
     0
   );
   const mg = fat > 0 ? (lucro / fat) * 100 : 0;
@@ -469,7 +477,7 @@ export function renderDash(){
     })
     .filter(Boolean)
     .filter(c => c._anivData <= limite)
-    .sort((a, b) => a._anivData - b._anivData);
+    .sort((a, b) => a._anivData.getTime() - b._anivData.getTime());
 
   const clientesFilial = filIds.flatMap(fid => (D.clientes?.[fid] || []));
   const clientesComAniversario = clientesFilial.filter(c => !!String(c.data_aniversario || '').trim());
@@ -515,7 +523,7 @@ export function renderDash(){
 
     if(!grupos[k]) grupos[k] = { fat: 0, lucro: 0 };
     grupos[k].fat += p.total || 0;
-    grupos[k].lucro += (p.itens || []).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
+    grupos[k].lucro += asPedidoItens(p.itens).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
   });
 
   const gkeys = Object.keys(grupos).sort().slice(-10);
@@ -587,7 +595,7 @@ export function renderDash(){
 
   const pq = {};
   entregues.forEach(p => {
-    (p.itens || []).forEach(i => {
+    asPedidoItens(p.itens).forEach(i => {
       if(!pq[i.nome]) pq[i.nome] = { fat: 0 };
       pq[i.nome].fat += i.qty * i.preco;
     });
@@ -628,8 +636,10 @@ export function renderDash(){
   const fu = {};
   filIds.forEach(fid => {
     (D.cotConfig?.[fid]?.logs || []).forEach(l => {
-      if(!fu[l.forn]) fu[l.forn] = 0;
-      fu[l.forn]++;
+      const fornecedor = String(l.forn || '').trim();
+      if(!fornecedor) return;
+      if(!fu[fornecedor]) fu[fornecedor] = 0;
+      fu[fornecedor]++;
     });
   });
 
@@ -649,7 +659,7 @@ export function renderDash(){
 
   const mp = {};
   entregues.forEach(p => {
-    (p.itens || []).forEach(i => {
+    asPedidoItens(p.itens).forEach(i => {
       if(!mp[i.nome]) mp[i.nome] = { fat: 0, lucro: 0, qty: 0 };
       mp[i.nome].fat += i.qty * i.preco;
       mp[i.nome].lucro += (i.preco - i.custo) * i.qty;

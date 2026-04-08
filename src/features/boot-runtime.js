@@ -101,20 +101,14 @@
  *   appRoles: string[]
  *   registerNotificationKpi: (metric: string, delta?: number) => void
  *   logStrategicAction: (context: string) => void
- *   initDomBindings: () => void
- *   initGoalTracking: () => void
- *   initQuickCommand: () => void
- *   initSidebarEnhancements: () => void
- *   initFlowWizards: () => void
- *   startRoleUiObserver: () => void
- * }} BootRuntimeDeps
+ * }} RegisterBootRuntimeDeps
  */
 
 /**
  * @typedef {{
  *   registry: ModuleRegistryLike
  *   modules: BootRuntimeModules
- *   deps: BootRuntimeDeps
+ *   deps: RegisterBootRuntimeDeps
  * }} RegisterModulesOptions
  */
 
@@ -122,7 +116,16 @@
  * @typedef {{
  *   appContext: unknown
  *   registry: ModuleRegistryLike
- *   deps: Pick<BootRuntimeDeps, 'initDomBindings' | 'initGoalTracking' | 'initQuickCommand' | 'initSidebarEnhancements' | 'initFlowWizards' | 'startRoleUiObserver' | 'scheduleRoleUiGuards' | 'renderSetup'>
+ *   deps: {
+ *     initDomBindings: () => void
+ *     initGoalTracking: () => void
+ *     initQuickCommand: () => void
+ *     initSidebarEnhancements: () => void
+ *     initFlowWizards: () => void
+ *     startRoleUiObserver: () => void
+ *     scheduleRoleUiGuards: () => void
+ *     renderSetup: () => Promise<void>
+ *   }
  * }} StartRuntimeOptions
  */
 

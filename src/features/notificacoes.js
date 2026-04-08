@@ -185,7 +185,7 @@ function buildJogosNotifications(now){
     .filter(j => !!j.data_hora)
     .map(j => ({ ...j, dt: new Date(j.data_hora) }))
     .filter(j => !Number.isNaN(j.dt.getTime()))
-    .sort((a, b) => a.dt - b.dt)
+    .sort((a, b) => a.dt.getTime() - b.dt.getTime())
     .slice(0, 6);
 
   return jogos.flatMap(j => {

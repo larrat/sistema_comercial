@@ -132,7 +132,7 @@ export function atualizarBadgeEst(){
   if(!b) return;
 
   b.style.display = al.length ? 'inline-flex' : 'none';
-  b.textContent = al.length;
+  b.textContent = String(al.length);
 }
 
 export function renderEstAlerts(){

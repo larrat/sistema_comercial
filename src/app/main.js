@@ -1,3 +1,13 @@
+// @ts-check
+
+/** @typedef {import('../types/domain').Campanha} Campanha */
+/** @typedef {import('../types/domain').Pedido} Pedido */
+/** @typedef {import('../types/domain').PedidoItem} PedidoItem */
+/** @typedef {import('../types/domain').Produto} Produto */
+/** @typedef {import('../types/domain').Cliente} Cliente */
+/** @typedef {import('../types/domain').Fornecedor} Fornecedor */
+/** @typedef {import('../types/domain').AppCache} AppCache */
+
 import { SB } from './api.js';
 import { D, State, P, C, PD, FORNS, CPRECOS, CCFG } from './store.js';
 import { createAppContext } from '../shared/app-context.js';
@@ -272,6 +282,14 @@ window.__SC_DEBUG__ = Object.freeze({
   resetRenderMetrics
 });
 
+/**
+ * @param {Pedido['itens']} itens
+ * @returns {PedidoItem[]}
+ */
+function asPedidoItens(itens){
+  return Array.isArray(itens) ? itens : [];
+}
+
 function resetRuntimeData(){
   D.filiais = [];
   D.produtos = {};
@@ -392,7 +410,7 @@ function exportCSV(tipo) {
     rows = [
       ['Nº', 'Cliente', 'Data', 'Status', 'Tipo', 'Pagamento', 'Prazo', 'Total', 'Lucro', 'Obs'],
       ...PD().map(p => {
-        const lucro = (p.itens || []).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
+        const lucro = asPedidoItens(p.itens).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
         return [p.num, p.cli, p.data, p.status, p.tipo, p.pgto, p.prazo, fmtN(p.total), fmtN(lucro), p.obs || ''];
       })
     ];
@@ -409,12 +427,12 @@ function exportCSV(tipo) {
       ...P().map(p => {
         const prices = forns.map(f => {
           const k = p.id + '_' + f.id;
-          return CPRECOS()[k] !== undefined ? parseFloat(CPRECOS()[k]) : '';
+          return CPRECOS()[k] !== undefined ? Number(CPRECOS()[k]) : null;
         });
-        const valid = prices.filter(v => v !== '' && v > 0);
-        const mp = valid.length ? Math.min(...valid) : '';
+        const valid = prices.filter((v) => typeof v === 'number' && v > 0);
+        const mp = valid.length ? Math.min(...valid) : null;
         const bi = prices.findIndex(v => v === mp);
-        return [p.nome, p.un, ...prices, mp !== '' ? fmtN(mp) : '', bi >= 0 ? forns[bi].nome : ''];
+        return [p.nome, p.un, ...prices.map(v => v == null ? '' : v), mp != null ? fmtN(mp) : '', bi >= 0 ? forns[bi].nome : ''];
       })
     ];
   } else if (tipo === 'estoque') {
@@ -495,7 +513,6 @@ registerApplicationModules({
     renderProdutos,
     calcSaldos,
     setFlowStep,
-    refreshMovSel,
     refreshProdSel,
     refreshCliDL,
     calcSaldosMulti,
@@ -661,9 +678,9 @@ startApplicationRuntime({
       renderItens,
       salvarPedidoTracked,
       salvarCampanhaTracked,
-      carregarCampanhas,
-      carregarCampanhaEnvios,
-      adotarCampanhasParaFilialAtiva,
+      carregarCampanhas: () => { void carregarCampanhas(); },
+      carregarCampanhaEnvios: () => { void carregarCampanhaEnvios(); },
+      adotarCampanhasParaFilialAtiva: () => { void adotarCampanhasParaFilialAtiva(); },
       editarCampanha,
       abrirCampanhaDet,
       removerCampanhaGuard,
