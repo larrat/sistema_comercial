@@ -6471,6 +6471,46 @@ textarea.inp:focus{
   background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
 }
 
+.camp-history-group{
+  display:grid;
+  gap:10px;
+}
+
+.camp-history-group + .camp-history-group{
+  margin-top:16px;
+}
+
+.camp-history-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 14px;
+  border:1px solid rgba(31,72,143,.12);
+  border-radius:16px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F6FAFF 100%);
+}
+
+.camp-history-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--tx);
+}
+
+.camp-history-sub{
+  margin-top:3px;
+  font-size:12px;
+  color:var(--tx2);
+}
+
+.camp-history-meta{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
 #pg-campanhas #camp-wa-fila .tbl td:last-child .fg2{
   justify-content:flex-end;
   flex-wrap:wrap;
@@ -6585,6 +6625,15 @@ textarea.inp:focus{
   #pg-campanhas #camp-wa-fila .mobile-card-actions,
   #pg-campanhas #camp-envios-lista .mobile-card-actions{
     grid-template-columns:1fr;
+  }
+
+  .camp-history-head{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .camp-history-meta{
+    justify-content:flex-start;
   }
 
   .camp-detail-grid{

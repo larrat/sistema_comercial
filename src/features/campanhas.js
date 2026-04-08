@@ -90,6 +90,75 @@ function labelStatusEnvio(status){
   return key || 'â€”';
 }
 
+export async function desfazerStatusEnvio(envioId) {
+  const envio = getEnvioById(String(envioId || '').trim());
+  if (!envio) return;
+
+  if (!confirm(`Desfazer o status de ${labelStatusEnvio(envio.status).toLowerCase()} e devolver este envio para a fila manual?`)) return;
+
+  const payload = {
+    ...envio,
+    status: 'manual',
+    enviado_em: null,
+    erro: null
+  };
+
+  const ok = await persistirStatusEnvio(payload);
+  if (!ok) return;
+  notify('Sucesso: envio devolvido para a fila manual.', SEVERITY.SUCCESS);
+}
+
+function contarResumoEnvios(envios) {
+  return {
+    pendentes: envios.filter(e => e.status === 'manual' || e.status === 'pendente').length,
+    enviados: envios.filter(e => e.status === 'enviado').length,
+    falhas: envios.filter(e => e.status === 'falhou').length
+  };
+}
+
+function renderResumoEnviosCampanha(envios) {
+  const resumo = contarResumoEnvios(envios);
+  return `
+    <span class="bdg bb">Fila: ${resumo.pendentes}</span>
+    <span class="bdg bg">Enviados: ${resumo.enviados}</span>
+    <span class="bdg br">Falhas: ${resumo.falhas}</span>
+  `;
+}
+
+function agruparHistoricoEnviosPorCampanha(envios) {
+  /** @type {Map<string, CampanhaEnvio[]>} */
+  const grupos = new Map();
+  envios.forEach(envio => {
+    const key = String(envio.campanha_id || 'sem-campanha');
+    if (!grupos.has(key)) grupos.set(key, []);
+    grupos.get(key)?.push(envio);
+  });
+
+  return Array.from(grupos.entries())
+    .map(([campanhaId, itens]) => ({
+      campanhaId,
+      campanha: getCampanhasCache().find(c => c.id === campanhaId) || null,
+      envios: itens.slice().sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')))
+    }))
+    .sort((a, b) => String(b.envios[0]?.criado_em || '').localeCompare(String(a.envios[0]?.criado_em || '')));
+}
+
+async function persistirStatusEnvio(payload) {
+  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
+  if (!updateResult.ok) {
+    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
+    return false;
+  }
+
+  const idx = getEnviosCache().findIndex(e => e.id === payload.id);
+  if (idx >= 0) getEnviosCache()[idx] = payload;
+
+  renderCampanhasMet();
+  renderFilaWhatsApp();
+  renderCampanhaEnvios();
+  return true;
+}
+
 export async function marcarSelecionadosEnviados() {
   const selecionados = getFilaWhatsAppSelecionados();
   if (!selecionados.length) {
@@ -97,9 +166,19 @@ export async function marcarSelecionadosEnviados() {
     return;
   }
 
+  if (!confirm(`Confirmar ${selecionados.length} envio(s) como enviado(s)?`)) return;
+
   for (const envio of selecionados) {
+    const payload = {
+      ...envio,
+      status: 'enviado',
+      enviado_em: new Date().toISOString(),
+      erro: null
+    };
+
     // eslint-disable-next-line no-await-in-loop
-    await marcarEnvioEnviado(envio.id);
+    const ok = await persistirStatusEnvio(payload);
+    if (!ok) continue;
   }
 
   campUiState.waSelecionados.clear();
@@ -113,29 +192,24 @@ export async function marcarSelecionadosFalhou() {
     return;
   }
 
+  if (!confirm(`Confirmar ${selecionados.length} envio(s) como falho(s)?`)) return;
+
   const motivo = prompt('Informe o motivo da falha para os envios selecionados:', '') || null;
 
   for (const envio of selecionados) {
     const payload = {
       ...envio,
       status: 'falhou',
-      erro: motivo
+      erro: motivo,
+      enviado_em: null
     };
 
     // eslint-disable-next-line no-await-in-loop
-    const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
-    if (!updateResult.ok) {
-      notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
-      continue;
-    }
-
-    const idx = getEnviosCache().findIndex(e => e.id === envio.id);
-    if (idx >= 0) getEnviosCache()[idx] = payload;
+    const ok = await persistirStatusEnvio(payload);
+    if (!ok) continue;
   }
 
   campUiState.waSelecionados.clear();
-  renderCampanhasMet();
-  renderFilaWhatsApp();
   renderCampanhaEnvios();
   notify('AtenÃ§Ã£o: envios selecionados marcados como falhos.', SEVERITY.WARNING);
 }
@@ -965,6 +1039,92 @@ export function renderFilaWhatsApp() {
   `;
 }
 
+function renderCampanhaEnviosAgrupados(grupos, isMobile) {
+  if (isMobile) {
+    return grupos.map(grupo => `
+      <div class="camp-history-group">
+        <div class="camp-history-head">
+          <div>
+            <div class="camp-history-title">${grupo.campanha?.nome || 'Campanha sem identificacao'}</div>
+            <div class="camp-history-sub">${grupo.campanha ? `${labelCanal(grupo.campanha.canal)} • ${grupo.envios.length} envio(s)` : `${grupo.envios.length} envio(s)`}</div>
+          </div>
+          <div class="camp-history-meta">
+            ${renderResumoEnviosCampanha(grupo.envios)}
+          </div>
+        </div>
+        ${grupo.envios.map(e => {
+          const cliente = (C() || []).find(c => c.id === e.cliente_id);
+          return `
+            <div class="card mobile-card">
+              <div class="mobile-card-head">
+                <div class="mobile-card-grow">
+                  <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
+                  <div class="mobile-card-sub">${labelCanal(e.canal)} • ${formatarDataBR(e.data_ref)}</div>
+                </div>
+                <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span>
+              </div>
+              <div class="mobile-card-meta">
+                <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
+                <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
+              </div>
+              ${(e.status === 'enviado' || e.status === 'falhou') ? `
+                <div class="mobile-card-actions">
+                  <button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer status</button>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `).join('');
+  }
+
+  return grupos.map(grupo => `
+    <div class="camp-history-group">
+      <div class="camp-history-head">
+        <div>
+          <div class="camp-history-title">${grupo.campanha?.nome || 'Campanha sem identificacao'}</div>
+          <div class="camp-history-sub">${grupo.campanha ? `${labelCanal(grupo.campanha.canal)} • ${grupo.envios.length} envio(s)` : `${grupo.envios.length} envio(s)`}</div>
+        </div>
+        <div class="camp-history-meta">
+          ${renderResumoEnviosCampanha(grupo.envios)}
+        </div>
+      </div>
+      <div class="tw">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Canal</th>
+              <th>Destino</th>
+              <th>Status</th>
+              <th>Data ref</th>
+              <th>Criado em</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${grupo.envios.map(e => {
+              const cliente = (C() || []).find(c => c.id === e.cliente_id);
+              return `
+                <tr>
+                  <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
+                  <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
+                  <td>${e.destino || '—'}</td>
+                  <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
+                  <td>${formatarDataBR(e.data_ref)}</td>
+                  <td>${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</td>
+                  <td>${(e.status === 'enviado' || e.status === 'falhou') ? `<button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer</button>` : '—'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `).join('');
+}
+
 export function renderCampanhaEnvios() {
   const envios = getEnviosHistoricoFiltrados();
   const el = document.getElementById('camp-envios-lista');
@@ -975,7 +1135,10 @@ export function renderCampanhaEnvios() {
     return;
   }
 
+  const grupos = agruparHistoricoEnviosPorCampanha(envios);
   const isMobile = window.matchMedia('(max-width: 1280px)').matches;
+  el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
+  return;
   if(isMobile){
     el.innerHTML = envios.map(e => {
       const cliente = (C() || []).find(c => c.id === e.cliente_id);
@@ -1140,24 +1303,18 @@ export async function marcarEnvioEnviado(envioId) {
   const envio = getEnviosCache().find(e => e.id === envioId);
   if (!envio) return;
 
+  const cliente = (C() || []).find(c => c.id === envio.cliente_id);
+  if (!confirm(`Confirmar envio para ${cliente?.nome || 'este cliente'}?`)) return;
+
   const payload = {
     ...envio,
     status: 'enviado',
-    enviado_em: new Date().toISOString()
+    enviado_em: new Date().toISOString(),
+    erro: null
   };
 
-  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
-  if (!updateResult.ok) {
-    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
-    return;
-  }
-
-  const idx = getEnviosCache().findIndex(e => e.id === envioId);
-  if (idx >= 0) getEnviosCache()[idx] = payload;
-
-  renderCampanhasMet();
-  renderFilaWhatsApp();
-  renderCampanhaEnvios();
+  const ok = await persistirStatusEnvio(payload);
+  if (!ok) return;
   notify('Sucesso: envio marcado como enviado.', SEVERITY.SUCCESS);
 }
 
@@ -1165,24 +1322,19 @@ export async function marcarEnvioFalhou(envioId) {
   const envio = getEnviosCache().find(e => e.id === envioId);
   if (!envio) return;
 
+  const cliente = (C() || []).find(c => c.id === envio.cliente_id);
+  if (!confirm(`Confirmar falha de envio para ${cliente?.nome || 'este cliente'}?`)) return;
+
   const motivo = prompt('Informe o motivo da falha:', envio.erro || '') || null;
 
   const payload = {
     ...envio,
     status: 'falhou',
-    erro: motivo
+    erro: motivo,
+    enviado_em: null
   };
 
-  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
-  if (!updateResult.ok) {
-    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
-    return;
-  }
-
-  const idx = getEnviosCache().findIndex(e => e.id === envioId);
-  if (idx >= 0) getEnviosCache()[idx] = payload;
-  renderCampanhasMet();
-  renderFilaWhatsApp();
-  renderCampanhaEnvios();
+  const ok = await persistirStatusEnvio(payload);
+  if (!ok) return;
   notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
 }
