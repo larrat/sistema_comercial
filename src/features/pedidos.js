@@ -129,7 +129,7 @@ export function renderPedidos(){
   const isMobile = window.matchMedia('(max-width: 1080px)').matches;
   if(isMobile){
     el.innerHTML = f.map(p => `
-      <div class="card mobile-card">
+      <div class="mobile-card">
         <div class="mobile-card-head">
           <div class="mobile-card-grow">
             <div class="mobile-card-title">#${p.num} | ${getPedidoClienteLabel(p)}</div>

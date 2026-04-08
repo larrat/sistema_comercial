@@ -324,7 +324,7 @@ function renderClienteMobile(cliente){
   const prazo = PRAZO_LABELS[cliente.prazo] || '-';
 
   return `
-    <div class="card mobile-card">
+    <div class="mobile-card">
       <div class="mobile-card-head">
         <div class="mobile-card-hero">
           <div class="av" style="background:${cor.bg};color:${cor.c}">${esc(ini(cliente.nome))}</div>

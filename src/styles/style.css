@@ -236,7 +236,12 @@ body{
   box-shadow:var(--sh-soft);
   margin-bottom:12px;
 }
-.mobile-card{padding:12px 14px;margin-bottom:10px}
+.mobile-card{
+  background:var(--surf);
+  border:1px solid var(--bd);
+  padding:12px 14px;
+  margin-bottom:10px;
+}
 .mobile-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
 .mobile-card-title{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mobile-card-sub{font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

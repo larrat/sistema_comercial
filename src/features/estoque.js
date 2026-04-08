@@ -220,7 +220,7 @@ export function renderEstPosicao(){
       if(s.saldo <= 0){ stC = 'br'; stL = 'Zerado'; }
       else if(min > 0 && s.saldo < min){ stC = 'ba'; stL = 'Baixo'; }
       return `
-        <div class="card mobile-card">
+        <div class="mobile-card">
           <div class="mobile-card-head">
             <div class="mobile-card-grow">
               <div class="mobile-card-title">${p.nome}</div>
@@ -339,7 +339,7 @@ export function renderEstHist(){
         ? `-> ${fmtQ(m.saldoReal || m.saldo_real)}`
         : sinal + fmtQ(m.qty || 0);
       return `
-        <div class="card mobile-card">
+        <div class="mobile-card">
           <div class="mobile-card-head">
             <div class="mobile-card-grow">
               <div class="mobile-card-title">${p ? p.nome : '-'}</div>

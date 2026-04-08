@@ -122,7 +122,7 @@ export function renderProdutos(){
       const st = zero ? '<span class="bdg br">Zerado</span>' : (baixo ? '<span class="bdg ba">Baixo</span>' : '<span class="bdg bg">OK</span>');
 
       return `
-        <div class="card mobile-card">
+        <div class="mobile-card">
           <div class="mobile-card-head">
             <div style="min-width:0">
               <div class="mobile-card-title">${p.nome}</div>

@@ -758,7 +758,7 @@ export function renderCampanhas() {
         <span class="bdg bg">Enviadas: ${enviadas}</span>
       </div>
       ${campanhas.map(c => `
-      <div class="card mobile-card">
+      <div class="mobile-card">
         <div class="mobile-card-head">
           <div class="mobile-card-grow">
             <div class="mobile-card-title">${c.nome}</div>
@@ -1015,7 +1015,7 @@ export function renderFilaWhatsApp() {
         const cliente = (C() || []).find(c => c.id === e.cliente_id);
         const campanha = getCampanhasCache().find(c => c.id === e.campanha_id);
         return `
-          <div class="card mobile-card">
+          <div class="mobile-card">
             <div class="mobile-card-head">
               <div class="mobile-card-grow">
                 <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
@@ -1104,7 +1104,7 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
         ${grupo.envios.map(e => {
           const cliente = (C() || []).find(c => c.id === e.cliente_id);
           return `
-            <div class="card mobile-card ${isStatusFeedbackAtivo(e.id) ? 'camp-history-item-fresh' : ''}">
+            <div class="mobile-card ${isStatusFeedbackAtivo(e.id) ? 'camp-history-item-fresh' : ''}">
               <div class="mobile-card-head">
                 <div class="mobile-card-grow">
                   <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
