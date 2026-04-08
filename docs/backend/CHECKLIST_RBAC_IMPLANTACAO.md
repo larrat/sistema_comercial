@@ -20,6 +20,7 @@ Data: 2026-04-07
 ## Em execução no ambiente
 
 - [ ] Rodar `04_rbac_v2_admin_only.sql` no Supabase de produção.
+- [ ] Rodar `04b_rbac_v2_validacao.sql` e validar os resultados esperados (zero usuários sem perfil, zero vínculos inválidos).
 - [ ] Validar acesso com 3 contas reais: `admin`, `gerente`, `operador`.
 
 ## Próximos passos recomendados
@@ -29,4 +30,3 @@ Data: 2026-04-07
 - [ ] Adicionar auditoria de segurança por release (checklist obrigatório).
 - [ ] Adicionar testes automatizados para permissões críticas.
 - [ ] Monitorar tentativas negadas por RBAC e revisar mensalmente.
-
