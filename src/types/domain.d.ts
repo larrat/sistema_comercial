@@ -173,6 +173,7 @@ export type UserPerfil = {
 
 export type AccessAdminUser = {
   user_id: Id;
+  nome?: string | null;
   email?: string | null;
   created_at?: string;
 };
