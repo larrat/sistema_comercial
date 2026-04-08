@@ -275,6 +275,18 @@ export const SB = {
     );
     return r && r[0] ? r[0] : null;
   },
+  getUserPerfis: () =>
+    sbReq('user_perfis', 'GET', null, '?select=user_id,papel,criado_em,atualizado_em&order=atualizado_em.desc'),
+  upsertUserPerfil: payload =>
+    sbReq('user_perfis', 'POST', payload, '?on_conflict=user_id'),
+  deleteUserPerfil: userId =>
+    sbReq(`user_perfis?user_id=eq.${userId}`, 'DELETE'),
+  getUserFiliais: () =>
+    sbReq('user_filiais', 'GET', null, '?select=user_id,filial_id,criado_em&order=criado_em.desc'),
+  upsertUserFilial: payload =>
+    sbReq('user_filiais', 'POST', payload, '?on_conflict=user_id,filial_id'),
+  deleteUserFilial: (userId, filialId) =>
+    sbReq(`user_filiais?user_id=eq.${userId}&filial_id=eq.${filialId}`, 'DELETE'),
   fetchJsonWithRetry: async (url, opts = {}) => {
     const res = await resilientFetch(url, {
       method: opts.method || 'GET',

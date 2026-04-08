@@ -34,6 +34,7 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 | Notificações | Sim | Sim | Sim |
 | Campanhas | Sim | Sim | Não |
 | Filiais | Sim | Não | Não |
+| Acessos (RBAC) | Sim | Não | Não |
 
 ## Ações críticas (controle de execução)
 
@@ -41,6 +42,8 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 |---|---|---|---|
 | Exportar CSV (módulo e “Exportar CSVs”) | Sim | Sim | Não |
 | Criar/editar/remover filial | Sim | Não | Não |
+| Criar/editar/remover perfil de acesso | Sim | Não | Não |
+| Vincular/desvincular usuário em filial | Sim | Não | Não |
 | Remover produto | Sim | Sim | Não |
 | Remover cliente | Sim | Sim | Não |
 | Remover pedido | Sim | Sim | Não |

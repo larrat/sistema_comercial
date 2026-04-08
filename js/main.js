@@ -128,7 +128,7 @@ const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A']
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const UX_EVENTS_KEY = 'sc_ux_events_v1';
 const GOAL_METRICS_VERSION = 2;
-const KPI_PAGES = ['dashboard', 'gerencial', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'notificacoes'];
+const KPI_PAGES = ['dashboard', 'gerencial', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'acessos', 'notificacoes'];
 const primaryActionTracker = { page: 'dashboard', clicks: 0, active: false };
 const APP_ROLES = ['operador', 'gerente', 'admin'];
 const ROLE_LABEL = {
@@ -148,7 +148,8 @@ const ROLE_PAGE_ACCESS = {
   estoque: APP_ROLES,
   notificacoes: APP_ROLES,
   campanhas: ROLE_MANAGER_PLUS,
-  filiais: ROLE_ADMIN_ONLY
+  filiais: ROLE_ADMIN_ONLY,
+  acessos: ROLE_ADMIN_ONLY
 };
 const ROLE_UI_MANAGER_SELECTORS = [
   '[onclick*="exportarTudo("]',
@@ -173,7 +174,11 @@ const ROLE_UI_ADMIN_SELECTORS = [
   '[onclick*="criarPrimeiraFilial("]',
   '[onclick*="salvarFilial("]',
   '[onclick*="removerFilial("]',
-  '[onclick*="editarFilial("]'
+  '[onclick*="editarFilial("]',
+  '[onclick*="salvarPerfilAcesso("]',
+  '[onclick*="removerPerfilAcesso("]',
+  '[onclick*="vincularUsuarioFilial("]',
+  '[onclick*="desvincularUsuarioFilial("]'
 ];
 let roleUiGuardTimer = null;
 let roleUiObserver = null;
@@ -198,6 +203,8 @@ function resetRuntimeData(){
   D.campanhas = {};
   D.campanhaEnvios = {};
   D.notas = {};
+  D.userPerfis = [];
+  D.userFiliais = [];
 
   State.FIL = null;
   State.selFil = null;
@@ -310,7 +317,7 @@ function applyRoleUiGuards(root = document){
 
   root.querySelectorAll('[data-p="campanhas"],#pg-campanhas,#mob-campanhas')
     .forEach(el => setRoleUiLock(el, !allowManagerActions));
-  root.querySelectorAll('[data-p="filiais"],#pg-filiais,#mob-filiais')
+  root.querySelectorAll('[data-p="filiais"],#pg-filiais,#mob-filiais,[data-p="acessos"],#pg-acessos,#mob-acessos')
     .forEach(el => setRoleUiLock(el, !allowAdminActions));
 }
 
@@ -509,6 +516,7 @@ const QUICK_COMMANDS = [
   { cmd: '/ cotacao', label: 'Abrir Cotação', run: () => ir('cotacao') },
   { cmd: '/ estoque', label: 'Abrir Estoque', run: () => ir('estoque') },
   { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => ir('campanhas') },
+  { cmd: '/ acessos', label: 'Abrir Acessos', run: () => ir('acessos') },
   { cmd: '/ notificacoes', label: 'Abrir Notificações', run: () => ir('notificacoes') },
   { cmd: '/ filiais', label: 'Abrir Filiais', run: () => ir('filiais') },
   { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
@@ -1391,6 +1399,14 @@ const PAGE_META = {
     sub: 'Gestão de unidades e troca de contexto',
     primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); }, roles: ROLE_ADMIN_ONLY },
     secondary: { label: 'Voltar setup', run: () => voltarSetup() },
+    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
+  },
+  acessos: {
+    kicker: 'Sistema',
+    title: 'Acessos',
+    sub: 'Perfis e vínculos de usuários por filial',
+    primary: { label: 'Atualizar', run: () => renderAcessosAdmin(), roles: ROLE_ADMIN_ONLY },
+    secondary: { label: 'Ir filiais', run: () => ir('filiais'), roles: ROLE_ADMIN_ONLY },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   notificacoes: {
@@ -2392,6 +2408,7 @@ function ir(p) {
     estoque: () => { renderEstAlerts(); renderEstPosicao(); renderEstHist(); },
     campanhas: () => { renderCampanhasMet(); renderCampanhas(); renderFilaWhatsApp(); renderCampanhaEnvios(); },
     filiais: () => { renderFilMet(); renderFilLista(); },
+    acessos: () => { renderAcessosAdmin(); },
     notificacoes: renderNotificacoes
   };
 
@@ -2560,6 +2577,247 @@ function renderFilLista() {
       </div>
     `;
   }).join('');
+}
+
+function isUuid(v){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || '').trim());
+}
+
+function preencherSelectFiliaisAcesso(){
+  const el = document.getElementById('ac-v-filial');
+  if(!el) return;
+  const current = el.value || '';
+  const opts = D.filiais || [];
+  el.innerHTML = opts.length
+    ? opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')
+    : '<option value="">Sem filiais</option>';
+  if(current && opts.some(f => f.id === current)) el.value = current;
+}
+
+function renderAcessosMet(){
+  const el = document.getElementById('ac-met');
+  if(!el) return;
+  const perfis = D.userPerfis || [];
+  const vinculos = D.userFiliais || [];
+  const dist = perfis.reduce((acc, p) => {
+    const k = String(p.papel || 'operador');
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, { admin: 0, gerente: 0, operador: 0 });
+
+  el.innerHTML = `
+    <div class="met"><div class="ml">Perfis</div><div class="mv">${perfis.length}</div></div>
+    <div class="met"><div class="ml">Vínculos</div><div class="mv">${vinculos.length}</div></div>
+    <div class="met"><div class="ml">Admins</div><div class="mv">${dist.admin || 0}</div></div>
+    <div class="met"><div class="ml">Gerentes</div><div class="mv">${dist.gerente || 0}</div></div>
+  `;
+}
+
+function renderAcessosPerfis(){
+  const el = document.getElementById('ac-perfis-lista');
+  if(!el) return;
+  const q = norm(document.getElementById('ac-busca')?.value || '');
+  let items = D.userPerfis || [];
+  if(q) items = items.filter(x => norm(x.user_id).includes(q));
+
+  if(!items.length){
+    el.innerHTML = `<div class="empty"><div class="ico">🔐</div><p>Nenhum perfil encontrado.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Papel</th>
+            <th>Atualizado</th>
+            <th style="text-align:right">Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(p => `
+            <tr>
+              <td><code>${p.user_id}</code></td>
+              <td><span class="bdg ${p.papel === 'admin' ? 'br' : p.papel === 'gerente' ? 'ba' : 'bk'}">${p.papel}</span></td>
+              <td>${p.atualizado_em ? new Date(p.atualizado_em).toLocaleString('pt-BR') : '—'}</td>
+              <td style="text-align:right">
+                <button class="btn btn-sm" onclick="preencherPerfilAcesso('${p.user_id}','${p.papel}')">Editar</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAcessosVinculos(){
+  const el = document.getElementById('ac-vinculos-lista');
+  if(!el) return;
+  const perfMap = new Map((D.userPerfis || []).map(p => [p.user_id, p.papel]));
+  const filMap = new Map((D.filiais || []).map(f => [f.id, f.nome]));
+  const items = D.userFiliais || [];
+
+  if(!items.length){
+    el.innerHTML = `<div class="empty"><div class="ico">🏷️</div><p>Nenhum vínculo cadastrado.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Papel</th>
+            <th>Filial</th>
+            <th style="text-align:right">Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${items.map(v => `
+            <tr>
+              <td><code>${v.user_id}</code></td>
+              <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
+              <td>${filMap.get(v.filial_id) || v.filial_id}</td>
+              <td style="text-align:right">
+                <button class="btn btn-sm" onclick="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function preencherPerfilAcesso(userId, papel){
+  const userEl = document.getElementById('ac-user-id');
+  const papelEl = document.getElementById('ac-papel');
+  if(userEl) userEl.value = userId || '';
+  if(papelEl) papelEl.value = papel || 'operador';
+}
+
+function preencherVinculoAcesso(userId, filialId){
+  const userEl = document.getElementById('ac-v-user-id');
+  const filialEl = document.getElementById('ac-v-filial');
+  if(userEl) userEl.value = userId || '';
+  if(filialEl && filialId) filialEl.value = filialId;
+}
+
+async function renderAcessosAdmin(){
+  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode acessar gestão de acessos.')) return;
+  const perfisEl = document.getElementById('ac-perfis-lista');
+  const vinculosEl = document.getElementById('ac-vinculos-lista');
+  if(perfisEl) perfisEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
+  if(vinculosEl) vinculosEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
+
+  try{
+    const [perfis, vinculos, filiais] = await Promise.all([
+      SB.getUserPerfis(),
+      SB.getUserFiliais(),
+      SB.getFiliais()
+    ]);
+    D.userPerfis = perfis || [];
+    D.userFiliais = vinculos || [];
+    D.filiais = filiais || D.filiais || [];
+  }catch(e){
+    toast('Erro ao carregar acessos: ' + (e?.message || e));
+    return;
+  }
+
+  preencherSelectFiliaisAcesso();
+  renderAcessosMet();
+  renderAcessosPerfis();
+  renderAcessosVinculos();
+  scheduleRoleUiGuards();
+}
+
+async function salvarPerfilAcesso(){
+  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode alterar perfil de acesso.')) return;
+  const userId = (document.getElementById('ac-user-id')?.value || '').trim();
+  const papel = (document.getElementById('ac-papel')?.value || 'operador').trim();
+  if(!isUuid(userId)){
+    toast('Informe um user_id válido (UUID).');
+    return;
+  }
+  if(!APP_ROLES.includes(papel)){
+    toast('Papel inválido.');
+    return;
+  }
+  try{
+    await SB.upsertUserPerfil({ user_id: userId, papel });
+    toast('Perfil salvo com sucesso.');
+    await renderAcessosAdmin();
+  }catch(e){
+    toast('Erro ao salvar perfil: ' + (e?.message || e));
+  }
+}
+
+async function removerPerfilAcesso(){
+  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode remover perfil de acesso.')) return;
+  const userId = (document.getElementById('ac-user-id')?.value || '').trim();
+  if(!isUuid(userId)){
+    toast('Informe um user_id válido (UUID).');
+    return;
+  }
+  if(userId === State.user?.id){
+    toast('Não é permitido remover o próprio perfil.');
+    return;
+  }
+  if(!confirm('Remover perfil deste usuário?')) return;
+  try{
+    await SB.deleteUserPerfil(userId);
+    toast('Perfil removido com sucesso.');
+    await renderAcessosAdmin();
+  }catch(e){
+    toast('Erro ao remover perfil: ' + (e?.message || e));
+  }
+}
+
+async function vincularUsuarioFilial(){
+  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode vincular usuário a filial.')) return;
+  const userId = (document.getElementById('ac-v-user-id')?.value || '').trim();
+  const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
+  if(!isUuid(userId)){
+    toast('Informe um user_id válido (UUID).');
+    return;
+  }
+  if(!filialId){
+    toast('Selecione a filial.');
+    return;
+  }
+  try{
+    await SB.upsertUserFilial({ user_id: userId, filial_id: filialId });
+    toast('Vínculo salvo com sucesso.');
+    await renderAcessosAdmin();
+  }catch(e){
+    toast('Erro ao vincular usuário: ' + (e?.message || e));
+  }
+}
+
+async function desvincularUsuarioFilial(){
+  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode desvincular usuário de filial.')) return;
+  const userId = (document.getElementById('ac-v-user-id')?.value || '').trim();
+  const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
+  if(!isUuid(userId)){
+    toast('Informe um user_id válido (UUID).');
+    return;
+  }
+  if(!filialId){
+    toast('Selecione a filial.');
+    return;
+  }
+  if(!confirm('Desvincular usuário desta filial?')) return;
+  try{
+    await SB.deleteUserFilial(userId, filialId);
+    toast('Vínculo removido com sucesso.');
+    await renderAcessosAdmin();
+  }catch(e){
+    toast('Erro ao desvincular usuário: ' + (e?.message || e));
+  }
 }
 
 async function trocarFilial(id) {
@@ -2824,6 +3082,14 @@ window.removerFilial = removerFilial;
 window.trocarFilial = trocarFilial;
 window.renderFilMet = renderFilMet;
 window.renderFilLista = renderFilLista;
+window.renderAcessosAdmin = renderAcessosAdmin;
+window.renderAcessosPerfis = renderAcessosPerfis;
+window.preencherPerfilAcesso = preencherPerfilAcesso;
+window.preencherVinculoAcesso = preencherVinculoAcesso;
+window.salvarPerfilAcesso = salvarPerfilAcesso;
+window.removerPerfilAcesso = removerPerfilAcesso;
+window.vincularUsuarioFilial = vincularUsuarioFilial;
+window.desvincularUsuarioFilial = desvincularUsuarioFilial;
 
 window.carregarCampanhas = carregarCampanhas;
 window.carregarCampanhaEnvios = carregarCampanhaEnvios;

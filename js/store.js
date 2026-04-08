@@ -12,7 +12,9 @@ export const D = {
   cotPrecos: {},
   cotConfig: {},
   movs: {},
-  jogos: {}
+  jogos: {},
+  userPerfis: [],
+  userFiliais: []
 };
 
 // ═══════════════════════════

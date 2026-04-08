@@ -16,6 +16,7 @@ Data: 2026-04-07
 - [x] Matriz de permissões publicada (`RBAC_MATRIZ_PERMISSOES_2026-04-07.md`).
 - [x] Separação v2 no frontend: `admin` diferente de `gerente` (filiais admin-only).
 - [x] Script de endurecimento v2 no banco criado (`04_rbac_v2_admin_only.sql`).
+- [x] Tela Admin de Acessos no app (gestão de `user_perfis` e `user_filiais`).
 
 ## Em execução no ambiente
 
@@ -25,7 +26,7 @@ Data: 2026-04-07
 
 ## Próximos passos recomendados
 
-- [ ] Criar tela/admin flow para gestão de papéis (`user_perfis`) e vínculos (`user_filiais`).
+- [ ] Adicionar filtros avançados e paginação na tela de Acessos.
 - [ ] Mover regras críticas de campanha/envio para backend (Edge Functions/BFF).
 - [ ] Adicionar auditoria de segurança por release (checklist obrigatório).
 - [ ] Adicionar testes automatizados para permissões críticas.

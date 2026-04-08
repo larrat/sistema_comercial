@@ -89,6 +89,7 @@
       <button class="ni" data-p="notificacoes" onclick="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
       <div class="nl">Sistema</div>
       <button class="ni" data-p="filiais" onclick="ir('filiais')"><span class="ico">FL</span>Filiais</button>
+      <button class="ni" data-p="acessos" onclick="ir('acessos')"><span class="ico">AC</span>Acessos</button>
     </nav>
     <div class="sb-foot">
       <div class="bdg bk" id="sb-role" style="width:100%;justify-content:center;margin-bottom:8px">Operador</div>
@@ -405,6 +406,63 @@
       </div>
       <div class="mg" id="fil-met"></div>
       <div id="fil-lista"></div>
+    </div>
+
+    <!-- ── ACESSOS (ADMIN) ── -->
+    <div class="pg" id="pg-acessos">
+      <div class="ph fb">
+        <div><h2>Acessos</h2><p>Gestão de perfil e vínculo por filial (admin)</p></div>
+        <div class="toolbar-actions">
+          <button class="btn btn-sm" onclick="renderAcessosAdmin()">Atualizar</button>
+        </div>
+      </div>
+      <div class="mg" id="ac-met"></div>
+
+      <div class="card">
+        <div class="ct">Perfil do usuário</div>
+        <div class="fg c3">
+          <div><div class="fl">User ID (UUID)</div><input class="inp" id="ac-user-id" placeholder="00000000-0000-0000-0000-000000000000"></div>
+          <div>
+            <div class="fl">Papel</div>
+            <select class="inp sel" id="ac-papel">
+              <option value="operador">Operador</option>
+              <option value="gerente">Gerente</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="modal-actions-inline" style="align-items:flex-end">
+            <button class="btn btn-p" onclick="salvarPerfilAcesso()">Salvar perfil</button>
+            <button class="btn btn-sm" onclick="removerPerfilAcesso()">Remover perfil</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Vínculo usuário x filial</div>
+        <div class="fg c3">
+          <div><div class="fl">User ID (UUID)</div><input class="inp" id="ac-v-user-id" placeholder="00000000-0000-0000-0000-000000000000"></div>
+          <div><div class="fl">Filial</div><select class="inp sel" id="ac-v-filial"></select></div>
+          <div class="modal-actions-inline" style="align-items:flex-end">
+            <button class="btn btn-p" onclick="vincularUsuarioFilial()">Vincular</button>
+            <button class="btn btn-sm" onclick="desvincularUsuarioFilial()">Desvincular</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="ct ct-inline">Perfis cadastrados</div>
+          <div class="toolbar-main">
+            <input class="inp" id="ac-busca" placeholder="Buscar por user_id..." style="max-width:240px" oninput="renderAcessosPerfis()">
+          </div>
+        </div>
+        <div id="ac-perfis-lista"></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Vínculos usuário x filial</div>
+        <div id="ac-vinculos-lista"></div>
+      </div>
     </div>
 
     <!-- ── NOTIFICAÇÕES ── -->
