@@ -5529,11 +5529,49 @@ textarea.inp:focus{
 #modal-pedido .modal-box{
   width:min(880px,96vw);
   max-height:min(92vh,980px);
-  padding-bottom:18px;
+  padding:0;
+  overflow:hidden;
+}
+
+#modal-pedido .modal-shell{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  min-height:min(92vh,980px);
+  max-height:min(92vh,980px);
+}
+
+#modal-pedido .modal-shell-head{
+  position:sticky;
+  top:0;
+  z-index:3;
+  padding:24px 24px 14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.96) 0%,#FFFFFF 72%);
+  border-bottom:1px solid #E8EEF5;
+  backdrop-filter:blur(8px);
+}
+
+#modal-pedido .modal-shell-body{
+  min-height:0;
+  overflow-y:auto;
+  padding:18px 24px 16px;
+}
+
+#modal-pedido .modal-shell-foot{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  padding:12px 24px 16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,#FFFFFF 18%,#FFFFFF 100%);
+  border-top:1px solid #E5ECF4;
+  backdrop-filter:blur(8px);
+}
+
+#modal-pedido .modal-shell-foot .modal-actions{
+  margin-top:0;
 }
 
 #modal-pedido .mt{
-  margin-bottom:18px;
+  margin-bottom:0;
 }
 
 #modal-pedido .ct{
@@ -5546,17 +5584,15 @@ textarea.inp:focus{
 }
 
 #modal-pedido .modal-actions:not(.modal-actions-inline){
-  position:sticky;
-  bottom:0;
-  z-index:3;
-  background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,#FFFFFF 18%,#FFFFFF 100%);
-  padding-top:12px;
-  padding-bottom:12px;
-  margin-top:14px;
-  border-top:1px solid #E5ECF4;
-  backdrop-filter:blur(8px);
-  border-bottom-left-radius:18px;
-  border-bottom-right-radius:18px;
+  position:static;
+  background:none;
+  padding-top:0;
+  padding-bottom:0;
+  margin-top:0;
+  border-top:none;
+  backdrop-filter:none;
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
 }
 
 #modal-pedido .modal-actions:not(.modal-actions-inline) .btn{
@@ -5646,9 +5682,16 @@ textarea.inp:focus{
     width:100%;
   }
 
-  #modal-pedido .modal-actions:not(.modal-actions-inline){
-    bottom:0;
-    padding-bottom:calc(6px + env(safe-area-inset-bottom,0));
+  #modal-pedido .modal-shell-head{
+    padding:18px 16px 12px;
+  }
+
+  #modal-pedido .modal-shell-body{
+    padding:14px 16px 12px;
+  }
+
+  #modal-pedido .modal-shell-foot{
+    padding:10px 16px calc(14px + env(safe-area-inset-bottom,0));
   }
 
   #pg-clientes .mobile-card-actions,

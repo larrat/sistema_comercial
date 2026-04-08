@@ -729,32 +729,43 @@
 <div class="modal-wrap" id="modal-pedido">
   <div class="modal-bg" data-click="fecharModal('modal-pedido')"></div>
   <div class="modal-box">
-    <div class="mt" id="ped-modal-titulo">Novo pedido</div>
-    <div class="fg c3">
-      <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente"><datalist id="cli-dl"></datalist></div>
-      <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
-      <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+    <div class="modal-shell">
+      <div class="modal-shell-head">
+        <div class="mt" id="ped-modal-titulo">Novo pedido</div>
+      </div>
+      <div class="modal-shell-body">
+        <div class="fg c3">
+          <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente"><datalist id="cli-dl"></datalist></div>
+          <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
+          <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+        </div>
+        <div class="fg c3">
+          <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">A vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartao</option><option value="cheque">Cheque</option></select></div>
+          <div><div class="fl">Prazo</div><select class="inp sel" id="pd-prazo"><option value="imediato">Imediato</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div>
+          <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
+        </div>
+        <div class="div"></div>
+        <div class="ct">Itens do pedido</div>
+        <div class="fg c4" style="margin-bottom:6px">
+          <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod"><option value="">- selecione -</option></select></div>
+          <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
+          <div><div class="fl">Preco unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
+          <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
+        </div>
+        <div class="modal-actions modal-actions-inline">
+          <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
+        </div>
+        <div id="ped-itens"></div>
+        <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">-</span></div></div>
+        <div class="fg" style="margin-top:10px"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
+      </div>
+      <div class="modal-shell-foot">
+        <div class="modal-actions">
+          <button class="btn" data-click="fecharModal('modal-pedido')">Cancelar</button>
+          <button class="btn btn-p" data-click="salvarPedido()">Salvar pedido</button>
+        </div>
+      </div>
     </div>
-    <div class="fg c3">
-      <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">A vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartao</option><option value="cheque">Cheque</option></select></div>
-      <div><div class="fl">Prazo</div><select class="inp sel" id="pd-prazo"><option value="imediato">Imediato</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div>
-      <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
-    </div>
-    <div class="div"></div>
-    <div class="ct">Itens do pedido</div>
-    <div class="fg c4" style="margin-bottom:6px">
-      <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod"><option value="">- selecione -</option></select></div>
-      <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
-      <div><div class="fl">Preco unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
-      <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
-    </div>
-    <div class="modal-actions modal-actions-inline">
-      <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
-    </div>
-    <div id="ped-itens"></div>
-    <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">-</span></div></div>
-    <div class="fg" style="margin-top:10px"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
-    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" data-click="salvarPedido()">Salvar pedido</button></div>
   </div>
 </div>
 
