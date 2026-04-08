@@ -6137,7 +6137,8 @@ textarea.inp:focus{
 }
 
 #modal-campanha .modal-box,
-#modal-campanha-det .modal-box{
+#modal-campanha-det .modal-box,
+#modal-campanha-wa-preview .modal-box{
   background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
 }
 
@@ -6247,6 +6248,40 @@ textarea.inp:focus{
 .camp-detail{
   display:grid;
   gap:14px;
+}
+
+.camp-wa-preview{
+  display:grid;
+  gap:14px;
+}
+
+.camp-wa-preview-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.camp-wa-preview-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.camp-wa-preview-field{
+  padding:14px 15px;
+  border:1px solid #E4EBF4;
+  border-radius:18px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F6FAFE 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.04);
+}
+
+.camp-wa-preview-value{
+  margin-top:6px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--tx);
+  word-break:break-word;
 }
 
 .camp-detail-head{
@@ -6516,6 +6551,10 @@ textarea.inp:focus{
 
   .camp-preview-head{
     flex-direction:column;
+  }
+
+  .camp-wa-preview-grid{
+    grid-template-columns:1fr;
   }
 
   .prod-detail-grid{

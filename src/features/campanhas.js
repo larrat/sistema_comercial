@@ -31,7 +31,8 @@ let campDiag = {
 };
 
 const campUiState = {
-  waSelecionados: new Set()
+  waSelecionados: new Set(),
+  waPreviewAtualId: null
 };
 
 /** @returns {Campanha[]} */
@@ -281,6 +282,14 @@ function getFilaWhatsAppSelecionados() {
   const envios = getFilaWhatsApp().filter(e => campUiState.waSelecionados.has(e.id));
   limparSelecaoFilaInexistente(getFilaWhatsApp());
   return envios;
+}
+
+/**
+ * @param {string | null | undefined} envioId
+ * @returns {CampanhaEnvio | null}
+ */
+function getEnvioById(envioId) {
+  return getEnviosCache().find(e => e.id === envioId) || null;
 }
 
 function renderCampDiag() {
@@ -894,7 +903,7 @@ export function renderFilaWhatsApp() {
               <div>Status: <b class="table-cell-muted">${labelStatusEnvio(e.status)}</b></div>
             </div>
             <div class="mobile-card-actions">
-              <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
+              <button class="btn btn-p btn-sm" data-click="abrirPreviewWhatsAppEnvio('${e.id}')">Pre-visualizar</button>
               <button class="btn btn-sm" title="Marcar como enviado" data-click="marcarEnvioEnviado('${e.id}')">Enviado</button>
               <button class="btn btn-sm" title="Marcar como falhou" data-click="marcarEnvioFalhou('${e.id}')">Falhou</button>
             </div>
@@ -939,7 +948,7 @@ export function renderFilaWhatsApp() {
                 <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
                 <td>
                   <div class="fg2">
-                    <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
+                    <button class="btn btn-p btn-sm" data-click="abrirPreviewWhatsAppEnvio('${e.id}')">Pre-visualizar</button>
                     <button class="btn btn-sm" title="Marcar como enviado" data-click="marcarEnvioEnviado('${e.id}')">Enviado</button>
                     <button class="btn btn-sm" title="Marcar como falhou" data-click="marcarEnvioFalhou('${e.id}')">Falhou</button>
                   </div>
@@ -1017,6 +1026,64 @@ export function renderCampanhaEnvios() {
       </table>
     </div>
   `;
+}
+
+export function abrirPreviewWhatsAppEnvio(envioId) {
+  const envio = getEnvioById(String(envioId || '').trim());
+  const box = document.getElementById('camp-wa-preview-box');
+  if (!envio || !box) {
+    notify('Erro: envio nao encontrado para pre-visualizacao.', SEVERITY.ERROR);
+    return;
+  }
+
+  if (!envio.destino) {
+    notify(MSG.campanhas.missingDestino, SEVERITY.WARNING);
+    return;
+  }
+
+  campUiState.waPreviewAtualId = envio.id;
+
+  const cliente = (C() || []).find(c => c.id === envio.cliente_id);
+  const campanha = getCampanhasCache().find(c => c.id === envio.campanha_id);
+
+  box.innerHTML = `
+    <div class="camp-wa-preview">
+      <div class="camp-wa-preview-head">
+        <div>
+          <div class="camp-preview-title">${cliente?.nome || envio.cliente_id || 'Cliente'}</div>
+          <div class="camp-preview-sub">${campanha?.nome || 'Campanha manual'} • ${labelStatusEnvio(envio.status)}</div>
+        </div>
+        <span class="bdg bb">${labelCanal(envio.canal)}</span>
+      </div>
+
+      <div class="camp-wa-preview-grid">
+        <div class="camp-wa-preview-field">
+          <div class="camp-detail-label">Numero</div>
+          <div class="camp-wa-preview-value">${envio.destino}</div>
+        </div>
+        <div class="camp-wa-preview-field">
+          <div class="camp-detail-label">Data de referencia</div>
+          <div class="camp-wa-preview-value">${formatarDataBR(envio.data_ref) || '—'}</div>
+        </div>
+      </div>
+
+      <div class="panel camp-preview-panel">
+        <div class="pt">Mensagem pronta</div>
+        <div class="camp-preview-body">${String(envio.mensagem || '').replace(/\n/g, '<br>')}</div>
+      </div>
+    </div>
+  `;
+
+  abrirModal('modal-campanha-wa-preview');
+}
+
+export function abrirWhatsAppPreviewAtual() {
+  const envio = getEnvioById(campUiState.waPreviewAtualId);
+  if (!envio) {
+    notify('Erro: preview expirou ou o envio nao esta mais disponivel.', SEVERITY.ERROR);
+    return;
+  }
+  abrirWhatsAppEnvio(envio.id);
 }
 
 export async function abrirWhatsAppEnvio(envioId) {
