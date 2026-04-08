@@ -20,6 +20,12 @@ const dashDom = createScreenDom('dashboard', [
   'dash-margem',
   'dash-oportunidades',
   'dash-jogos',
+  'jogo-titulo',
+  'jogo-campeonato',
+  'jogo-data',
+  'jogo-mandante',
+  'jogo-visitante',
+  'jogo-local',
   'jogo-api-url',
   'jogo-api-time'
 ]);
@@ -728,12 +734,12 @@ export function limparFormJogo(){
     .toISOString()
     .slice(0, 16);
 
-  const t = document.getElementById('jogo-titulo');
-  const c = document.getElementById('jogo-campeonato');
-  const d = document.getElementById('jogo-data');
-  const m = document.getElementById('jogo-mandante');
-  const v = document.getElementById('jogo-visitante');
-  const l = document.getElementById('jogo-local');
+  const t = dashDom.get('jogo-titulo');
+  const c = dashDom.get('jogo-campeonato');
+  const d = dashDom.get('jogo-data');
+  const m = dashDom.get('jogo-mandante');
+  const v = dashDom.get('jogo-visitante');
+  const l = dashDom.get('jogo-local');
 
   if(t) t.value = '';
   if(c) c.value = '';
@@ -899,12 +905,12 @@ export async function salvarJogoDashboard(){
     return;
   }
 
-  const titulo = document.getElementById('jogo-titulo')?.value.trim() || '';
-  const campeonato = document.getElementById('jogo-campeonato')?.value.trim() || '';
-  const data_hora = document.getElementById('jogo-data')?.value || '';
-  const mandante = document.getElementById('jogo-mandante')?.value.trim() || '';
-  const visitante = document.getElementById('jogo-visitante')?.value.trim() || '';
-  const local = document.getElementById('jogo-local')?.value.trim() || '';
+  const titulo = dashDom.get('jogo-titulo')?.value.trim() || '';
+  const campeonato = dashDom.get('jogo-campeonato')?.value.trim() || '';
+  const data_hora = dashDom.get('jogo-data')?.value || '';
+  const mandante = dashDom.get('jogo-mandante')?.value.trim() || '';
+  const visitante = dashDom.get('jogo-visitante')?.value.trim() || '';
+  const local = dashDom.get('jogo-local')?.value.trim() || '';
 
   if(!titulo || !data_hora){
     notify(MSG.jogos.invalidForm, SEVERITY.WARNING);

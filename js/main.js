@@ -2,6 +2,7 @@ import { SB } from './api.js';
 import { D, State, P, C, PD, FORNS, CPRECOS, CCFG } from './store.js';
 import { createAppContext } from '../core/app-context.js';
 import { createModuleRegistry } from '../core/module-registry.js';
+import { getRenderMetrics, resetRenderMetrics } from '../core/render-metrics.js';
 
 import {
   toast,
@@ -250,6 +251,10 @@ const AppContext = createAppContext({
 });
 
 const AppModules = createModuleRegistry();
+window.__SC_DEBUG__ = Object.freeze({
+  getRenderMetrics,
+  resetRenderMetrics
+});
 
 function resetRuntimeData(){
   D.filiais = [];

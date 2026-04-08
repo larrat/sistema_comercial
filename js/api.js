@@ -1,5 +1,6 @@
 const DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
 const DEFAULT_SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+const WARN_CONFIG = window.__SC_WARN_CONFIG__ === true;
 
 const SB_URL =
   window.__SC_SUPABASE_URL__ ||
@@ -11,10 +12,10 @@ const SB_KEY =
   localStorage.getItem('sc_supabase_key') ||
   DEFAULT_SB_KEY;
 
-if (!window.__SC_SUPABASE_URL__ && !localStorage.getItem('sc_supabase_url')) {
+if (WARN_CONFIG && !window.__SC_SUPABASE_URL__ && !localStorage.getItem('sc_supabase_url')) {
   console.warn('Configuração: usando URL Supabase padrão do build. Recomenda-se configurar window.__SC_SUPABASE_URL__.');
 }
-if (!window.__SC_SUPABASE_KEY__ && !localStorage.getItem('sc_supabase_key')) {
+if (WARN_CONFIG && !window.__SC_SUPABASE_KEY__ && !localStorage.getItem('sc_supabase_key')) {
   console.warn('Configuração: usando chave publishable padrão do build. Recomenda-se configurar window.__SC_SUPABASE_KEY__.');
 }
 
