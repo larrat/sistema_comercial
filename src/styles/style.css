@@ -6142,6 +6142,54 @@ textarea.inp:focus{
   background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
 }
 
+#modal-campanha .modal-box{
+  width:min(880px,96vw);
+  max-height:min(92vh,980px);
+  padding:0;
+  overflow:hidden;
+}
+
+#modal-campanha .modal-shell{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  min-height:min(92vh,980px);
+  max-height:min(92vh,980px);
+}
+
+#modal-campanha .modal-shell-head{
+  position:sticky;
+  top:0;
+  z-index:3;
+  padding:24px 24px 14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.96) 0%,#FFFFFF 72%);
+  border-bottom:1px solid #E8EEF5;
+  backdrop-filter:blur(8px);
+}
+
+#modal-campanha .modal-shell-body{
+  min-height:0;
+  overflow-y:auto;
+  padding:18px 24px 124px;
+}
+
+#modal-campanha .modal-shell-foot{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  padding:12px 24px 16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,#FFFFFF 18%,#FFFFFF 100%);
+  border-top:1px solid #E5ECF4;
+  backdrop-filter:blur(8px);
+}
+
+#modal-campanha .modal-shell-foot .modal-actions{
+  margin-top:0;
+}
+
+#modal-campanha .mt{
+  margin-bottom:0;
+}
+
 #modal-campanha .fg{
   padding:14px 16px;
   border:1px solid #E2EAF3;
@@ -6160,6 +6208,10 @@ textarea.inp:focus{
   border:1px solid #E2EAF3;
   border-radius:20px;
   background:linear-gradient(180deg,#FFFFFF 0%,#F8FBFF 100%);
+}
+
+#modal-campanha .camp-preview-panel:last-child{
+  margin-bottom:0;
 }
 
 .camp-preview-hint{
