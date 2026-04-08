@@ -25,10 +25,10 @@ if (WARN_CONFIG && ALLOW_LEGACY_SUPABASE_DEFAULTS) {
   console.warn('Configuracao: usando defaults legados do Supabase por opt-in explicito. Recomenda-se configurar window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__.');
 }
 if (WARN_CONFIG && !CONFIGURED_SB_URL && !ALLOW_LEGACY_SUPABASE_DEFAULTS) {
-  console.warn('Configuracao: URL do Supabase ausente. Configure window.__SC_SUPABASE_URL__ ou sc_supabase_url.');
+  console.warn('Configuracao: URL do Supabase ausente. Configure window.__SC_SUPABASE_URL__ ou grave sc_supabase_url no localStorage.');
 }
 if (WARN_CONFIG && !CONFIGURED_SB_KEY && !ALLOW_LEGACY_SUPABASE_DEFAULTS) {
-  console.warn('Configuracao: chave publishable do Supabase ausente. Configure window.__SC_SUPABASE_KEY__ ou sc_supabase_key.');
+  console.warn('Configuracao: chave publishable do Supabase ausente. Configure window.__SC_SUPABASE_KEY__ ou grave sc_supabase_key no localStorage.');
 }
 
 const REQ_TIMEOUT_MS = Number(window.__SC_REQ_TIMEOUT_MS__ || 12000);
@@ -39,7 +39,7 @@ const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
 function ensureSupabaseConfig() {
   if (SB_URL && SB_KEY) return;
   throw createSbError({
-    message: 'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app. Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.',
+    message: 'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app, ou grave sc_supabase_url/sc_supabase_key no localStorage. Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.',
     code: 'SB_CONFIG_MISSING',
     source: 'config',
     operation: 'bootstrap',
