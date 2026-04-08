@@ -2,6 +2,8 @@ import { D, State } from '../js/store.js';
 import { norm, toast } from '../core/utils.js';
 import { markInvalidation, markRender } from '../core/render-metrics.js';
 
+const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
+
 let deps = {
   hasRole: () => true,
   canAccessPage: () => true,
@@ -90,6 +92,10 @@ function runPageRender(page){
 function schedulePageRender(page){
   pendingPageName = page;
   markInvalidation(page, 'page', 'navigation');
+  if(IS_E2E_UI_CORE){
+    runPageRender(page);
+    return;
+  }
   if(pendingPageRender) return;
   pendingPageRender = window.requestAnimationFrame(() => {
     const pageToRender = pendingPageName;
@@ -342,9 +348,11 @@ function setActivePageVisibility(nextPage){
     page.classList.toggle('on', isActive);
     page.style.display = isActive ? 'block' : 'none';
   });
+  document.body.dataset.currentPage = nextPage;
 }
 
 export function ir(page){
+  document.body.dataset.navState = 'navigating';
   let nextPage = page;
   if(!deps.canAccessPage(nextPage)){
     toast('Voce nao tem permissao para acessar esta area.');
@@ -363,6 +371,7 @@ export function ir(page){
   syncTopbar(nextPage);
   deps.scheduleRoleUiGuards();
   filterSidebarNav(document.getElementById('sb-search')?.value || '');
+  document.body.dataset.navState = 'ready';
   window.scrollTo(0, 0);
 }
 

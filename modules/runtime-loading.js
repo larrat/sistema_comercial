@@ -2,6 +2,8 @@ import { SB } from '../js/api.js';
 import { D } from '../js/store.js';
 import { toast } from '../core/utils.js';
 
+const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
+
 export function initRuntimeLoadingModule(){
   return true;
 }
@@ -53,9 +55,11 @@ export function showLoading(on){
     document.body.appendChild(el);
   }
   el.style.display = on ? 'flex' : 'none';
+  document.body.dataset.runtimeLoading = on ? 'true' : 'false';
 }
 
 export async function carregarDadosFilial(filId){
+  document.body.dataset.runtimeBootstrap = 'starting';
   renderSkeletonState();
   showLoading(true);
   try{
@@ -113,13 +117,13 @@ export async function carregarDadosFilial(filId){
     const campanhas = campanhasResult.ok ? (campanhasResult.data || []) : (D.campanhas?.[filId] || []);
     if(!campanhasResult.ok){
       console.error('Falha ao carregar campanhas na entrada da filial', campanhasResult.error);
-      toast('Nao foi possivel carregar campanhas do banco. Usando cache local.');
+      if(!IS_E2E_UI_CORE) toast('Nao foi possivel carregar campanhas do banco. Usando cache local.');
     }
 
     const campanhaEnvios = campanhaEnviosResult.ok ? (campanhaEnviosResult.data || []) : (D.campanhaEnvios?.[filId] || []);
     if(!campanhaEnviosResult.ok){
       console.error('Falha ao carregar envios de campanhas na entrada da filial', campanhaEnviosResult.error);
-      toast('Nao foi possivel carregar envios de campanha do banco. Usando cache local.');
+      if(!IS_E2E_UI_CORE) toast('Nao foi possivel carregar envios de campanha do banco. Usando cache local.');
     }
 
     D.produtos[filId] = prods || [];
@@ -151,8 +155,10 @@ export async function carregarDadosFilial(filId){
     if(!D.campanhaEnvios) D.campanhaEnvios = {};
     D.campanhas[filId] = campanhas || [];
     D.campanhaEnvios[filId] = campanhaEnvios || [];
+    document.body.dataset.runtimeBootstrap = 'ready';
   }catch(e){
     const err = SB.normalizeError(e);
+    document.body.dataset.runtimeBootstrap = 'error';
     toast('Erro ao carregar: ' + err.message);
     console.error(err);
   }
@@ -180,5 +186,6 @@ export function mostrarTela(id){
       target.style.display = 'block';
     }
   }
+  document.body.dataset.currentScreen = id;
   window.scrollTo(0, 0);
 }

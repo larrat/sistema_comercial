@@ -2,6 +2,8 @@ import { SB } from '../js/api.js';
 import { D, State } from '../js/store.js';
 import { uid, norm, toast } from '../core/utils.js';
 
+const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
+
 export const APP_ROLES = ['operador', 'gerente', 'admin'];
 export const ROLE_LABEL = {
   operador: 'Operador',
@@ -194,6 +196,10 @@ export function applyRoleUiGuards(root = document){
 }
 
 export function scheduleRoleUiGuards(){
+  if(IS_E2E_UI_CORE){
+    applyRoleUiGuards(document);
+    return;
+  }
   if(roleUiGuardTimer) clearTimeout(roleUiGuardTimer);
   roleUiGuardTimer = setTimeout(() => {
     applyRoleUiGuards(document);
@@ -220,7 +226,11 @@ export async function carregarContextoUsuario(session){
   State.userRole = role;
   renderRoleBadge();
   scheduleRoleUiGuards();
-  setTimeout(() => ensureCurrentPageAccess(), 0);
+  if(IS_E2E_UI_CORE){
+    ensureCurrentPageAccess();
+  }else{
+    setTimeout(() => ensureCurrentPageAccess(), 0);
+  }
 }
 
 export function renderAuthGate(session){
@@ -233,6 +243,7 @@ export function renderAuthGate(session){
   if(!authBox || !filGrid || !setupForm || !setupActions || !sub) return false;
 
   if(!session?.access_token){
+    document.body.dataset.authGate = 'login';
     authBox.style.display = 'block';
     filGrid.innerHTML = '';
     setupForm.style.display = 'none';
@@ -241,6 +252,7 @@ export function renderAuthGate(session){
     return false;
   }
 
+  document.body.dataset.authGate = 'authenticated';
   authBox.style.display = 'none';
   return true;
 }
@@ -257,13 +269,16 @@ export async function authEntrar(){
     return;
   }
 
+  document.body.dataset.authFlow = 'submitting';
   if(btn) btn.disabled = true;
   const loginResult = await SB.toResult(() => SB.signInWithPassword({ email, password }));
   if(loginResult.ok){
     toast('Login realizado com sucesso.');
     if(passEl) passEl.value = '';
     await renderSetup();
+    document.body.dataset.authFlow = 'authenticated';
   }else{
+    document.body.dataset.authFlow = 'error';
     toast('Falha no login: ' + (loginResult.error?.message || 'credenciais invalidas'));
   }
   if(btn) btn.disabled = false;
@@ -310,6 +325,7 @@ export function renderSetupGrid(){
 }
 
 export async function renderSetup(){
+  document.body.dataset.setupState = 'starting';
   deps.mostrarTela('screen-setup');
   const sessionResult = await SB.toResult(() => SB.getSession());
   const session = sessionResult.ok ? sessionResult.data : null;
@@ -317,6 +333,7 @@ export async function renderSetup(){
     State.user = null;
     State.userRole = 'operador';
     renderRoleBadge();
+    document.body.dataset.setupState = 'auth-required';
     return;
   }
   await carregarContextoUsuario(session);
@@ -326,6 +343,7 @@ export async function renderSetup(){
   const actions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
   if(grid && form && actions && sub){
+    document.body.dataset.setupState = 'loading-filiais';
     form.style.display = 'none';
     actions.style.display = 'none';
     sub.textContent = 'Carregando filiais...';
@@ -343,6 +361,7 @@ export async function renderSetup(){
   }
   deps.showLoading(false);
   renderSetupGrid();
+  document.body.dataset.setupState = D.filiais.length ? 'filiais-ready' : 'primeira-filial';
 }
 
 export function selFilial(id){
@@ -379,10 +398,12 @@ export async function criarPrimeiraFilial(){
 }
 
 export async function entrar(){
+  document.body.dataset.bootstrapState = 'starting';
   const sessionResult = await SB.toResult(() => SB.getSession());
   const session = sessionResult.ok ? sessionResult.data : null;
   if(!session?.access_token){
     toast('Faca login para continuar.');
+    document.body.dataset.bootstrapState = 'auth-required';
     await renderSetup();
     return;
   }
@@ -390,6 +411,7 @@ export async function entrar(){
 
   if(!State.selFil){
     toast('Selecione uma filial.');
+    document.body.dataset.bootstrapState = 'filial-required';
     return;
   }
 
@@ -403,6 +425,7 @@ export async function entrar(){
   const f = D.filiais.find(x => x.id === State.selFil);
   if(!f){
     toast('Filial nao encontrada.');
+    document.body.dataset.bootstrapState = 'filial-not-found';
     return;
   }
 
@@ -413,6 +436,7 @@ export async function entrar(){
   if(dot) dot.style.background = f.cor;
   if(fname) fname.textContent = f.nome;
 
+  document.body.dataset.bootstrapState = 'loading-runtime';
   await deps.carregarDadosFilial(State.FIL);
 
   deps.mostrarTela('screen-app');
@@ -428,6 +452,7 @@ export async function entrar(){
   deps.updateNotiBadge();
 
   deps.ir('dashboard');
+  document.body.dataset.bootstrapState = 'ready';
 }
 
 export function voltarSetup(){
