@@ -210,11 +210,12 @@ export function startRoleUiObserver(){
 export async function carregarContextoUsuario(session){
   State.user = session?.user || null;
   let role = 'operador';
-  try{
-    const perfil = await SB.getMeuPerfil(session?.user?.id || null);
+  const perfilResult = await SB.toResult(() => SB.getMeuPerfil(session?.user?.id || null));
+  if(perfilResult.ok){
+    const perfil = perfilResult.data;
     role = normalizeUserRole(perfil?.papel || '');
-  }catch(e){
-    console.warn('Perfil nao encontrado em user_perfis. Assumindo operador.', e?.message || e);
+  }else{
+    console.warn('Perfil nao encontrado em user_perfis. Assumindo operador.', perfilResult.error);
   }
   State.userRole = role;
   renderRoleBadge();
@@ -257,16 +258,15 @@ export async function authEntrar(){
   }
 
   if(btn) btn.disabled = true;
-  try{
-    await SB.signInWithPassword({ email, password });
+  const loginResult = await SB.toResult(() => SB.signInWithPassword({ email, password }));
+  if(loginResult.ok){
     toast('Login realizado com sucesso.');
     if(passEl) passEl.value = '';
     await renderSetup();
-  }catch(e){
-    toast('Falha no login: ' + (e?.message || 'credenciais invalidas'));
-  }finally{
-    if(btn) btn.disabled = false;
+  }else{
+    toast('Falha no login: ' + (loginResult.error?.message || 'credenciais invalidas'));
   }
+  if(btn) btn.disabled = false;
 }
 
 export async function sairConta(){
@@ -311,7 +311,8 @@ export function renderSetupGrid(){
 
 export async function renderSetup(){
   deps.mostrarTela('screen-setup');
-  const session = await SB.getSession();
+  const sessionResult = await SB.toResult(() => SB.getSession());
+  const session = sessionResult.ok ? sessionResult.data : null;
   if(!renderAuthGate(session)){
     State.user = null;
     State.userRole = 'operador';
@@ -334,10 +335,11 @@ export async function renderSetup(){
     `;
   }
   deps.showLoading(true);
-  try{
-    D.filiais = await SB.getFiliais() || [];
-  }catch(e){
-    toast('Erro ao buscar filiais: ' + e.message);
+  const filiaisResult = await SB.toResult(() => SB.getFiliais());
+  if(filiaisResult.ok){
+    D.filiais = filiaisResult.data || [];
+  }else{
+    toast('Erro ao buscar filiais: ' + filiaisResult.error.message);
   }
   deps.showLoading(false);
   renderSetupGrid();
@@ -365,10 +367,9 @@ export async function criarPrimeiraFilial(){
     endereco: ''
   };
 
-  try{
-    await SB.upsertFilial(f);
-  }catch(e){
-    toast('Erro ao criar filial: ' + e.message);
+  const saveResult = await SB.toResult(() => SB.upsertFilial(f));
+  if(!saveResult.ok){
+    toast('Erro ao criar filial: ' + saveResult.error.message);
     return;
   }
 
@@ -378,7 +379,8 @@ export async function criarPrimeiraFilial(){
 }
 
 export async function entrar(){
-  const session = await SB.getSession();
+  const sessionResult = await SB.toResult(() => SB.getSession());
+  const session = sessionResult.ok ? sessionResult.data : null;
   if(!session?.access_token){
     toast('Faca login para continuar.');
     await renderSetup();
@@ -391,9 +393,12 @@ export async function entrar(){
     return;
   }
 
-  try{
-    D.filiais = await SB.getFiliais() || [];
-  }catch(e){}
+  const filiaisResult = await SB.toResult(() => SB.getFiliais());
+  if(filiaisResult.ok){
+    D.filiais = filiaisResult.data || [];
+  }else{
+    console.error('Falha ao recarregar filiais na entrada', filiaisResult.error);
+  }
 
   const f = D.filiais.find(x => x.id === State.selFil);
   if(!f){

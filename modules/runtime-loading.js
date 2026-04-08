@@ -60,36 +60,67 @@ export async function carregarDadosFilial(filId){
   showLoading(true);
   try{
     const [
-      prods,
-      clis,
-      peds,
-      forns,
-      precos,
-      cfg,
-      movs,
-      jogos,
-      campanhas,
-      campanhaEnvios
+      prodsResult,
+      clisResult,
+      pedsResult,
+      fornsResult,
+      precosResult,
+      cfgResult,
+      movsResult,
+      jogosResult,
+      campanhasResult,
+      campanhaEnviosResult
     ] = await Promise.all([
-      SB.getProdutos(filId),
-      SB.getClientes(filId),
-      SB.getPedidos(filId),
-      SB.getFornecedores(filId),
-      SB.getCotPrecos(filId),
-      SB.getCotConfig(filId),
-      SB.getMovs(filId),
-      SB.getJogosAgenda(filId).catch(() => []),
-      SB.getCampanhas(filId).catch(e => {
-        console.error('Falha ao carregar campanhas na entrada da filial', e);
-        toast('Nao foi possivel carregar campanhas do banco. Usando cache local.');
-        return D.campanhas?.[filId] || [];
-      }),
-      SB.getCampanhaEnvios(filId).catch(e => {
-        console.error('Falha ao carregar envios de campanhas na entrada da filial', e);
-        toast('Nao foi possivel carregar envios de campanha do banco. Usando cache local.');
-        return D.campanhaEnvios?.[filId] || [];
-      })
+      SB.toResult(() => SB.getProdutos(filId)),
+      SB.toResult(() => SB.getClientes(filId)),
+      SB.toResult(() => SB.getPedidos(filId)),
+      SB.toResult(() => SB.getFornecedores(filId)),
+      SB.toResult(() => SB.getCotPrecos(filId)),
+      SB.toResult(() => SB.getCotConfig(filId)),
+      SB.toResult(() => SB.getMovs(filId)),
+      SB.toResult(() => SB.getJogosAgenda(filId)),
+      SB.toResult(() => SB.getCampanhas(filId)),
+      SB.toResult(() => SB.getCampanhaEnvios(filId))
     ]);
+
+    const baseFailures = [
+      prodsResult,
+      clisResult,
+      pedsResult,
+      fornsResult,
+      precosResult,
+      cfgResult,
+      movsResult
+    ].filter(r => !r.ok);
+
+    if(baseFailures.length){
+      throw baseFailures[0].error;
+    }
+
+    const prods = prodsResult.data;
+    const clis = clisResult.data;
+    const peds = pedsResult.data;
+    const forns = fornsResult.data;
+    const precos = precosResult.data;
+    const cfg = cfgResult.data;
+    const movs = movsResult.data;
+
+    const jogos = jogosResult.ok ? (jogosResult.data || []) : [];
+    if(!jogosResult.ok){
+      console.error('Falha ao carregar jogos na entrada da filial', jogosResult.error);
+    }
+
+    const campanhas = campanhasResult.ok ? (campanhasResult.data || []) : (D.campanhas?.[filId] || []);
+    if(!campanhasResult.ok){
+      console.error('Falha ao carregar campanhas na entrada da filial', campanhasResult.error);
+      toast('Nao foi possivel carregar campanhas do banco. Usando cache local.');
+    }
+
+    const campanhaEnvios = campanhaEnviosResult.ok ? (campanhaEnviosResult.data || []) : (D.campanhaEnvios?.[filId] || []);
+    if(!campanhaEnviosResult.ok){
+      console.error('Falha ao carregar envios de campanhas na entrada da filial', campanhaEnviosResult.error);
+      toast('Nao foi possivel carregar envios de campanha do banco. Usando cache local.');
+    }
 
     D.produtos[filId] = prods || [];
     D.clientes[filId] = clis || [];
@@ -121,8 +152,9 @@ export async function carregarDadosFilial(filId){
     D.campanhas[filId] = campanhas || [];
     D.campanhaEnvios[filId] = campanhaEnvios || [];
   }catch(e){
-    toast('Erro ao carregar: ' + e.message);
-    console.error(e);
+    const err = SB.normalizeError(e);
+    toast('Erro ao carregar: ' + err.message);
+    console.error(err);
   }
   showLoading(false);
 }

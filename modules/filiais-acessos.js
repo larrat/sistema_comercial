@@ -416,21 +416,24 @@ export async function renderAcessosAdmin(){
   const audEl = document.getElementById('ac-auditoria-lista');
   if(audEl) audEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
 
-  try{
-    const [perfis, vinculos, filiais, auditoria] = await Promise.all([
-      SB.getUserPerfis(),
-      SB.getUserFiliais(),
-      SB.getFiliais(),
-      SB.getAcessosAudit()
-    ]);
-    D.userPerfis = perfis || [];
-    D.userFiliais = vinculos || [];
-    D.filiais = filiais || D.filiais || [];
-    D.acessosAudit = auditoria || [];
-  }catch(e){
-    toast('Erro ao carregar acessos: ' + (e?.message || e));
+  const [perfisResult, vinculosResult, filiaisResult, auditoriaResult] = await Promise.all([
+    SB.toResult(() => SB.getUserPerfis()),
+    SB.toResult(() => SB.getUserFiliais()),
+    SB.toResult(() => SB.getFiliais()),
+    SB.toResult(() => SB.getAcessosAudit())
+  ]);
+
+  const firstError = [perfisResult, vinculosResult, filiaisResult, auditoriaResult].find(r => !r.ok);
+  if(firstError){
+    toast('Erro ao carregar acessos: ' + (firstError.error?.message || 'falha inesperada'));
+    console.error('Falha em renderAcessosAdmin', firstError.error);
     return;
   }
+
+  D.userPerfis = perfisResult.data || [];
+  D.userFiliais = vinculosResult.data || [];
+  D.filiais = filiaisResult.data || D.filiais || [];
+  D.acessosAudit = auditoriaResult.data || [];
 
   State.acPagePerfis = 1;
   State.acPageVinculos = 1;
@@ -456,14 +459,14 @@ export async function salvarPerfilAcesso(){
     toast('Papel inválido.');
     return;
   }
-  try{
-    await SB.upsertUserPerfil({ user_id: userId, papel });
-    await registrarAuditoriaAcesso('perfil_upsert', 'user_perfis', userId, null, { papel });
-    toast('Perfil salvo com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao salvar perfil: ' + (e?.message || e));
+  const saveResult = await SB.toResult(() => SB.upsertUserPerfil({ user_id: userId, papel }));
+  if(!saveResult.ok){
+    toast('Erro ao salvar perfil: ' + saveResult.error.message);
+    return;
   }
+  await registrarAuditoriaAcesso('perfil_upsert', 'user_perfis', userId, null, { papel });
+  toast('Perfil salvo com sucesso.');
+  await renderAcessosAdmin();
 }
 
 export async function removerPerfilAcesso(){
@@ -478,14 +481,14 @@ export async function removerPerfilAcesso(){
     return;
   }
   if(!confirm('Remover perfil deste usuário?')) return;
-  try{
-    await SB.deleteUserPerfil(userId);
-    await registrarAuditoriaAcesso('perfil_delete', 'user_perfis', userId, null, {});
-    toast('Perfil removido com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao remover perfil: ' + (e?.message || e));
+  const deleteResult = await SB.toResult(() => SB.deleteUserPerfil(userId));
+  if(!deleteResult.ok){
+    toast('Erro ao remover perfil: ' + deleteResult.error.message);
+    return;
   }
+  await registrarAuditoriaAcesso('perfil_delete', 'user_perfis', userId, null, {});
+  toast('Perfil removido com sucesso.');
+  await renderAcessosAdmin();
 }
 
 export async function vincularUsuarioFilial(){
@@ -500,14 +503,14 @@ export async function vincularUsuarioFilial(){
     toast('Selecione a filial.');
     return;
   }
-  try{
-    await SB.upsertUserFilial({ user_id: userId, filial_id: filialId });
-    await registrarAuditoriaAcesso('vinculo_upsert', 'user_filiais', userId, filialId, {});
-    toast('Vínculo salvo com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao vincular usuário: ' + (e?.message || e));
+  const saveResult = await SB.toResult(() => SB.upsertUserFilial({ user_id: userId, filial_id: filialId }));
+  if(!saveResult.ok){
+    toast('Erro ao vincular usuário: ' + saveResult.error.message);
+    return;
   }
+  await registrarAuditoriaAcesso('vinculo_upsert', 'user_filiais', userId, filialId, {});
+  toast('Vínculo salvo com sucesso.');
+  await renderAcessosAdmin();
 }
 
 export async function desvincularUsuarioFilial(){
@@ -523,14 +526,14 @@ export async function desvincularUsuarioFilial(){
     return;
   }
   if(!confirm('Desvincular usuário desta filial?')) return;
-  try{
-    await SB.deleteUserFilial(userId, filialId);
-    await registrarAuditoriaAcesso('vinculo_delete', 'user_filiais', userId, filialId, {});
-    toast('Vínculo removido com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao desvincular usuário: ' + (e?.message || e));
+  const deleteResult = await SB.toResult(() => SB.deleteUserFilial(userId, filialId));
+  if(!deleteResult.ok){
+    toast('Erro ao desvincular usuário: ' + deleteResult.error.message);
+    return;
   }
+  await registrarAuditoriaAcesso('vinculo_delete', 'user_filiais', userId, filialId, {});
+  toast('Vínculo removido com sucesso.');
+  await renderAcessosAdmin();
 }
 
 export async function trocarFilial(id){

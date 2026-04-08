@@ -382,23 +382,57 @@ function isBirthdayWithinDays(birthDate, baseDate = new Date(), maxDays = 0) {
 }
 
 export const SB = {
+  contractVersion: 'v1',
+  normalizeError: normalizeSbError,
+  toResult: toSbResult,
+  isSbError: err => err?.name === 'SbApiError',
   signInWithPassword: async ({ email, password }) => {
     ensureSupabaseConfig();
-    const res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        apikey: SB_KEY,
-        Authorization: 'Bearer ' + SB_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`Login inválido (${res.status})${txt ? `: ${txt}` : ''}`);
+    let res;
+    try {
+      res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          apikey: SB_KEY,
+          Authorization: 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+    } catch (err) {
+      throw normalizeSbError(err, {
+        code: 'SB_AUTH_LOGIN_FAILED',
+        source: 'auth',
+        operation: 'signInWithPassword',
+        resource: 'auth_session',
+        details: { email }
+      });
     }
-    const payload = normalizeSessionPayload(await res.json());
-    if (!payload) throw new Error('Não foi possível iniciar sessão.');
+    const data = await readResponseData(res);
+    if (!res.ok) {
+      throw createSbError({
+        message: `Login invalido (${res.status}).`,
+        status: res.status,
+        code: 'SB_AUTH_INVALID_CREDENTIALS',
+        source: 'auth',
+        operation: 'signInWithPassword',
+        resource: 'auth_session',
+        details: { email, response: data },
+        retryable: false
+      });
+    }
+    const payload = normalizeSessionPayload(data);
+    if (!payload) {
+      throw createSbError({
+        message: 'Nao foi possivel iniciar sessao.',
+        code: 'SB_AUTH_INVALID_PAYLOAD',
+        source: 'auth',
+        operation: 'signInWithPassword',
+        resource: 'auth_session',
+        details: { email, response: data },
+        retryable: false
+      });
+    }
     writeAuthSession(payload);
     return payload;
   },
@@ -447,20 +481,38 @@ export const SB = {
   logAcessoAdmin: payload =>
     sbReq('acessos_auditoria', 'POST', payload),
   fetchJsonWithRetry: async (url, opts = {}) => {
-    const res = await resilientFetch(url, {
-      method: opts.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {})
-      },
-      body: opts.body ? JSON.stringify(opts.body) : undefined
-    });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`HTTP ${res.status}${txt ? `: ${txt}` : ''}`);
+    let res;
+    try {
+      res = await resilientFetch(url, {
+        method: opts.method || 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(opts.headers || {})
+        },
+        body: opts.body ? JSON.stringify(opts.body) : undefined
+      });
+    } catch (err) {
+      throw normalizeSbError(err, {
+        code: 'SB_EXTERNAL_FETCH_FAILED',
+        source: 'external',
+        operation: opts.method || 'GET',
+        resource: url
+      });
     }
-    const txt = await res.text();
-    return txt ? JSON.parse(txt) : null;
+    const data = await readResponseData(res);
+    if (!res.ok) {
+      throw createSbError({
+        message: `Falha HTTP ${res.status} ao consultar recurso externo.`,
+        status: res.status,
+        code: 'SB_EXTERNAL_HTTP_ERROR',
+        source: 'external',
+        operation: opts.method || 'GET',
+        resource: url,
+        details: { response: data },
+        retryable: shouldRetry(res.status)
+      });
+    }
+    return data;
   },
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
