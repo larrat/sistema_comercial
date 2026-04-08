@@ -5000,6 +5000,164 @@ textarea.inp:focus{
 }
 
 /* =========================================================
+   CLIENTES / PEDIDOS REFINEMENT
+   ========================================================= */
+#modal-cliente .flow-head{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:4px;
+  border:1px solid #DEE8F2;
+  border-radius:16px;
+  background:linear-gradient(180deg,#FBFDFF 0%,#F5F9FD 100%);
+}
+
+#modal-cliente .flow-chip{
+  flex:1 1 120px;
+  justify-content:center;
+  text-align:center;
+}
+
+#modal-cliente .flow-step,
+#modal-pedido .fg,
+#modal-pedido #ped-itens,
+#modal-pedido #ped-total{
+  padding:16px;
+  border:1px solid #E2EAF3;
+  border-radius:18px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FAFCFF 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.04);
+}
+
+#modal-cliente .flow-step{
+  margin-bottom:12px;
+}
+
+#modal-cliente .flow-step .fg:last-child,
+#modal-pedido .fg:last-child{
+  margin-bottom:0;
+}
+
+#modal-pedido > .fg{
+  margin-bottom:12px;
+}
+
+#modal-pedido .div{
+  margin:18px 0 14px;
+}
+
+#modal-pedido #ped-itens{
+  min-height:72px;
+}
+
+#modal-pedido .ped-items-wrap{
+  border:none;
+  border-radius:14px;
+  background:#F8FBFF;
+}
+
+#modal-pedido #ped-total{
+  display:block;
+  margin-top:12px;
+}
+
+#modal-pedido #ped-total .fb{
+  align-items:center;
+}
+
+#pg-clientes .card > #cli-lista,
+#pg-pedidos .card > #ped-lista{
+  min-width:0;
+}
+
+#pg-clientes .tw,
+#pg-pedidos .tw{
+  border-radius:18px;
+}
+
+#pg-clientes .tbl td,
+#pg-clientes .tbl th{
+  vertical-align:middle;
+}
+
+#pg-clientes .tbl td:nth-child(2),
+#pg-clientes .tbl td:nth-child(3),
+#pg-clientes .tbl td:nth-child(5){
+  min-width:0;
+}
+
+#pg-clientes .tbl td .fg2{
+  row-gap:6px;
+}
+
+#pg-clientes .tbl .btn{
+  min-height:34px;
+  padding:6px 10px;
+}
+
+#pg-clientes .mobile-card,
+#pg-pedidos .mobile-card{
+  padding:16px;
+  border-radius:18px;
+}
+
+#pg-clientes .mobile-card-head,
+#pg-pedidos .mobile-card-head{
+  margin-bottom:10px;
+}
+
+#pg-clientes .mobile-card-title,
+#pg-pedidos .mobile-card-title{
+  line-height:1.3;
+}
+
+#pg-clientes .mobile-card-meta,
+#pg-pedidos .mobile-card-meta{
+  padding:10px 12px;
+  border:1px solid #E4EBF4;
+  border-radius:14px;
+  background:#F8FBFF;
+}
+
+#pg-clientes .mobile-card-actions,
+#pg-pedidos .mobile-card-actions{
+  margin-top:12px;
+}
+
+#pg-clientes .mobile-card-actions .btn,
+#pg-pedidos .mobile-card-actions .btn{
+  min-height:36px;
+  padding-inline:12px;
+}
+
+@media(max-width:760px){
+  #modal-cliente .flow-chip{
+    flex:1 1 calc(50% - 6px);
+  }
+
+  #modal-cliente .flow-step,
+  #modal-pedido .fg,
+  #modal-pedido #ped-itens,
+  #modal-pedido #ped-total{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  #pg-clientes .mobile-card-actions,
+  #pg-pedidos .mobile-card-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+
+  #pg-clientes .mobile-card-actions .btn,
+  #pg-pedidos .mobile-card-actions .btn{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+/* =========================================================
    DASHBOARD DETAIL REFINEMENT
    ========================================================= */
 #pg-dashboard #dash-tp,
