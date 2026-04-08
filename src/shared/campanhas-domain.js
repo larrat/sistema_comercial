@@ -1,3 +1,5 @@
+// @ts-check
+
 export function fmtDateYYYYMMDD(date) {
   const d = new Date(date);
   const y = d.getFullYear();

@@ -1,3 +1,5 @@
+// @ts-check
+
 (() => {
   // Configuracao publica de runtime. A publishable key do Supabase
   // nao e segredo e precisa estar disponivel tambem no ambiente publicado.
