@@ -246,12 +246,14 @@ export type ScreenDom = {
     checked?: boolean;
     disabled?: boolean;
   }) | null;
+  pick(...ids: string[]): Record<string, HTMLElement | null>;
   html(scope: string, id: string, html: string, signature?: string): void;
   text(scope: string, id: string, text: string, signature?: string): void;
   value(id: string, value: string | number): void;
   checked(id: string, checked: boolean): void;
   display(scope: string, id: string, value: string, signature?: string): void;
   select(scope: string, id: string, html: string, current?: string, signature?: string): void;
+  invalidate(...ids: string[]): void;
 };
 
 export type ProdutoModuleCallbacks = {
@@ -461,6 +463,29 @@ export type AppState = {
 export type RenderTargetMeta = {
   page: string;
   area: string;
+};
+
+export type AppContext = {
+  registerService<T = unknown>(name: string, value: T): T;
+  getService<T = unknown>(name: string): T;
+  hasService(name: string): boolean;
+  setConfig<T = unknown>(key: string, value: T): T;
+  getConfig<T = unknown>(key: string, fallback?: T): T;
+  registerCleanup(name: string, cleanup: () => void): void;
+  dispose(name?: string | null): void;
+};
+
+export type ModuleDefinition = {
+  name: string;
+  dependsOn?: string[];
+  init: (app: AppContext) => void | (() => void) | Promise<void | (() => void)>;
+};
+
+export type ModuleRegistry = {
+  register(def: ModuleDefinition): void;
+  initAll(app: AppContext): Promise<void>;
+  init(name: string, app: AppContext): Promise<void>;
+  list(): string[];
 };
 
 export type DomBindingsDeps = {
