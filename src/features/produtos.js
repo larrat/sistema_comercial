@@ -1,8 +1,8 @@
-﻿import { SB } from '../js/api.js';
-import { D, State, P } from '../js/store.js';
-import { createScreenDom } from '../core/dom.js';
-import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, notify, focusField } from '../core/utils.js';
-import { SEVERITY } from '../core/messages.js';
+import { SB } from '../app/api.js';
+import { D, State, P } from '../app/store.js';
+import { createScreenDom } from '../shared/dom.js';
+import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, notify, focusField } from '../shared/utils.js';
+import { SEVERITY } from '../shared/messages.js';
 
 let calcSaldosSafe = () => ({});
 let setFlowStepSafe = () => {};
@@ -417,3 +417,4 @@ export function refreshProdSel(){
     'produtos:pedido-selector'
   );
 }
+

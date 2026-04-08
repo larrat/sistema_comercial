@@ -1,12 +1,12 @@
-import { SB } from '../js/api.js';
-import { D, State, P, FORNS, CPRECOS, CCFG } from '../js/store.js';
-import { uid, fmt, toast } from '../core/utils.js';
+import { SB } from '../app/api.js';
+import { D, State, P, FORNS, CPRECOS, CCFG } from '../app/store.js';
+import { uid, fmt, toast } from '../shared/utils.js';
 import {
   cotFile,
   confirmarMapa,
   renderMapaBody,
   setImportacaoCallbacks
-} from '../cotacao/importacao.js';
+} from './cotacao/importacao.js';
 
 export function initCotacaoModule(callbacks = {}){
   setImportacaoCallbacks(callbacks);
@@ -307,3 +307,4 @@ export {
   confirmarMapa,
   renderMapaBody
 };
+

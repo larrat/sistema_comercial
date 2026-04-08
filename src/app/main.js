@@ -1,8 +1,8 @@
 import { SB } from './api.js';
 import { D, State, P, C, PD, FORNS, CPRECOS, CCFG } from './store.js';
-import { createAppContext } from '../core/app-context.js';
-import { createModuleRegistry } from '../core/module-registry.js';
-import { getRenderMetrics, resetRenderMetrics } from '../core/render-metrics.js';
+import { createAppContext } from '../shared/app-context.js';
+import { createModuleRegistry } from '../shared/module-registry.js';
+import { getRenderMetrics, resetRenderMetrics } from '../shared/render-metrics.js';
 
 import {
   toast,
@@ -14,7 +14,7 @@ import {
   fmtN,
   mk2mg,
   prV
-} from '../core/utils.js';
+} from '../shared/utils.js';
 
 import {
   initCotacaoModule,
@@ -29,7 +29,7 @@ import {
   cotFile,
   confirmarMapa,
   renderMapaBody
-} from '../modules/cotacao.js';
+} from '../features/cotacao.js';
 
 import {
   initProdutosModule,
@@ -43,7 +43,7 @@ import {
   salvarProduto,
   removerProd,
   refreshProdSel
-} from '../modules/produtos.js';
+} from '../features/produtos.js';
 
 import {
   initClientesModule,
@@ -57,7 +57,7 @@ import {
   salvarCliente,
   removerCli,
   refreshCliDL
-} from '../modules/clientes.js';
+} from '../features/clientes.js';
 
 import {
   initPedidosModule,
@@ -71,7 +71,7 @@ import {
   salvarPedido,
   removerPed,
   verPed
-} from '../modules/pedidos.js';
+} from '../features/pedidos.js';
 
 import {
   calcSaldos,
@@ -90,7 +90,7 @@ import {
   movCalcAjuste,
   salvarMov,
   excluirMov
-} from '../modules/estoque.js';
+} from '../features/estoque.js';
 
 import {
   initDashboardModule,
@@ -105,7 +105,7 @@ import {
   abrirSyncJogos,
   sincronizarJogosDashboard,
   usarExemploSyncJogos
-} from '../modules/dashboard.js';
+} from '../features/dashboard.js';
 
 import {
   carregarCampanhas,
@@ -125,7 +125,7 @@ import {
   abrirWhatsAppEnvio,
   marcarEnvioEnviado,
   marcarEnvioFalhou
-} from '../modules/campanhas.js';
+} from '../features/campanhas.js';
 
 import {
   initNotificacoesModule,
@@ -137,7 +137,7 @@ import {
   resolverNotificacao,
   reabrirNotificacao,
   resolverTodasNotificacoes
-} from '../modules/notificacoes.js';
+} from '../features/notificacoes.js';
 
 import {
   initTelemetriaModule,
@@ -154,7 +154,7 @@ import {
   initGoalTracking,
   resetUxKpis,
   executarAcaoGerencial
-} from '../modules/telemetria.js';
+} from '../features/telemetria.js';
 
 import {
   initAuthSetupModule,
@@ -175,7 +175,7 @@ import {
   criarPrimeiraFilial,
   entrar,
   voltarSetup
-} from '../modules/auth-setup.js';
+} from '../features/auth-setup.js';
 
 import {
   initFiliaisAcessosModule,
@@ -198,7 +198,7 @@ import {
   removerPerfilAcesso,
   vincularUsuarioFilial,
   desvincularUsuarioFilial
-} from '../modules/filiais-acessos.js';
+} from '../features/filiais-acessos.js';
 
 import {
   initNavigationModule,
@@ -209,7 +209,7 @@ import {
   switchTab,
   abrirSb,
   fecharSb
-} from '../modules/navigation.js';
+} from '../features/navigation.js';
 
 import {
   initUxWorkflowsModule,
@@ -218,7 +218,7 @@ import {
   initQuickCommand,
   setFlowStep,
   initFlowWizards
-} from '../modules/ux-workflows.js';
+} from '../features/ux-workflows.js';
 
 import {
   initRuntimeLoadingModule,
@@ -226,16 +226,16 @@ import {
   showLoading,
   carregarDadosFilial,
   mostrarTela
-} from '../modules/runtime-loading.js';
+} from '../features/runtime-loading.js';
 
 import {
   registerApplicationModules,
   startApplicationRuntime
-} from '../modules/boot-runtime.js';
+} from '../features/boot-runtime.js';
 
 import {
   initDomBindings
-} from '../modules/dom-bindings.js';
+} from '../features/dom-bindings.js';
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 
@@ -673,3 +673,4 @@ startApplicationRuntime({
     renderSetup
   }
 });
+

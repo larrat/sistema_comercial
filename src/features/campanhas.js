@@ -1,7 +1,7 @@
-import { SB } from '../js/api.js';
-import { D, State, C } from '../js/store.js';
-import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../core/utils.js';
-import { MSG, SEVERITY } from '../core/messages.js';
+import { SB } from '../app/api.js';
+import { D, State, C } from '../app/store.js';
+import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../shared/utils.js';
+import { MSG, SEVERITY } from '../shared/messages.js';
 
 let campDiag = {
   filialId: null,
@@ -743,3 +743,4 @@ export async function marcarEnvioFalhou(envioId) {
   renderCampanhaEnvios();
   notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
 }
+

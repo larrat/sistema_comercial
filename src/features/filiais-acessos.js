@@ -1,6 +1,6 @@
-import { SB } from '../js/api.js';
-import { D, State } from '../js/store.js';
-import { uid, toast, abrirModal, fecharModal } from '../core/utils.js';
+import { SB } from '../app/api.js';
+import { D, State } from '../app/store.js';
+import { uid, toast, abrirModal, fecharModal } from '../shared/utils.js';
 
 let requireRoleSafe = () => true;
 let renderSetupSafe = async () => {};
@@ -526,3 +526,4 @@ export async function trocarFilial(id){
   await renderSetupSafe();
   toast('Filial alterada!');
 }
+

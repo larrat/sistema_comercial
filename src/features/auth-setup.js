@@ -1,6 +1,6 @@
-import { SB } from '../js/api.js';
-import { D, State } from '../js/store.js';
-import { uid, norm, toast } from '../core/utils.js';
+import { SB } from '../app/api.js';
+import { D, State } from '../app/store.js';
+import { uid, norm, toast } from '../shared/utils.js';
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 
@@ -458,3 +458,4 @@ export async function entrar(){
 export function voltarSetup(){
   return renderSetup();
 }
+

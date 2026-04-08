@@ -1,6 +1,6 @@
-import { SB } from '../js/api.js';
-import { D, State, P, FORNS, CPRECOS, CCFG } from '../js/store.js';
-import { uid, norm, toast, abrirModal, fecharModal, chunkArray } from '../core/utils.js';
+import { SB } from '../../app/api.js';
+import { D, State, P, FORNS, CPRECOS, CCFG } from '../../app/store.js';
+import { uid, norm, toast, abrirModal, fecharModal, chunkArray } from '../../shared/utils.js';
 import { detectarCabecalho, scoreSheet, normalizarNumeroBR, colunaTemValoresNumericos } from './parsing.js';
 import { applySavedLayoutToSheet, getSelectedHeaderName } from './layout.js';
 import { setImportProgress, resetImportProgress, renderImportResumo, validarPreImportacao, pareceAbaDeCombo } from './progress.js';
@@ -650,3 +650,4 @@ export async function confirmarMapa(){
     toast(`✓ ${novos} novos produtos, ${atualizados} atualizados, ${ignorados} ignorados`);
   }
 }
+

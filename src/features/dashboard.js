@@ -1,8 +1,8 @@
-﻿import { SB } from '../js/api.js';
-import { D, State, P } from '../js/store.js';
-import { createScreenDom } from '../core/dom.js';
-import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../core/utils.js';
-import { MSG, SEVERITY } from '../core/messages.js';
+import { SB } from '../app/api.js';
+import { D, State, P } from '../app/store.js';
+import { createScreenDom } from '../shared/dom.js';
+import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../shared/utils.js';
+import { MSG, SEVERITY } from '../shared/messages.js';
 
 let calcSaldosMultiSafe = () => ({});
 const dashDom = createScreenDom('dashboard', [
@@ -1013,3 +1013,4 @@ export function renderDashJogos(fsel = 'todas'){
     </div>
   `).join(''), 'dashboard:jogos-lista');
 }
+

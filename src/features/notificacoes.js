@@ -1,5 +1,5 @@
-import { D, State, P, C } from '../js/store.js';
-import { fmtQ, toast } from '../core/utils.js';
+import { D, State, P, C } from '../app/store.js';
+import { fmtQ, toast } from '../shared/utils.js';
 
 const NOTI_HISTORY_KEY = 'sc_noti_hist_v1';
 const NOTI_PRIORITY_ORDER = { critico: 0, atencao: 1, oportunidade: 2 };
@@ -361,4 +361,5 @@ export function renderNotificacoes(){
     </div>
   `).join('');
 }
+
 

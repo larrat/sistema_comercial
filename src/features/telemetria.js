@@ -1,5 +1,5 @@
-import { D, State } from '../js/store.js';
-import { uid, norm, toast } from '../core/utils.js';
+import { D, State } from '../app/store.js';
+import { uid, norm, toast } from '../shared/utils.js';
 
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const UX_EVENTS_KEY = 'sc_ux_events_v1';
@@ -515,3 +515,4 @@ export function resetUxKpis(){
   deps.onMetricsReset();
   toast('KPIs de UX resetados com sucesso.');
 }
+

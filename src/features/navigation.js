@@ -1,6 +1,6 @@
-import { D, State } from '../js/store.js';
-import { norm, toast } from '../core/utils.js';
-import { markInvalidation, markRender } from '../core/render-metrics.js';
+import { D, State } from '../app/store.js';
+import { norm, toast } from '../shared/utils.js';
+import { markInvalidation, markRender } from '../shared/render-metrics.js';
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 
@@ -405,3 +405,4 @@ export function fecharSb(){
   const close = document.getElementById('sb-close');
   if(close) close.style.display = 'none';
 }
+

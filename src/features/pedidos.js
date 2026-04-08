@@ -1,7 +1,7 @@
-import { SB } from '../js/api.js';
-import { D, State, P, PD } from '../js/store.js';
-import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../core/utils.js';
-import { MSG, SEVERITY } from '../core/messages.js';
+import { SB } from '../app/api.js';
+import { D, State, P, PD } from '../app/store.js';
+import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../shared/utils.js';
+import { MSG, SEVERITY } from '../shared/messages.js';
 
 let refreshProdSelSafe = () => {};
 let refreshCliDLSafe = () => {};
@@ -473,3 +473,4 @@ export function verPed(id){
 
   abrirModal('modal-ped-det');
 }
+

@@ -1,4 +1,4 @@
-import { markInvalidation } from '../core/render-metrics.js';
+import { markInvalidation } from '../shared/render-metrics.js';
 
 let deps = {};
 let initialized = false;
@@ -437,3 +437,4 @@ export function initDomBindings(nextDeps = {}){
   document.addEventListener('input', onFieldEvent);
   document.addEventListener('change', onFieldEvent);
 }
+

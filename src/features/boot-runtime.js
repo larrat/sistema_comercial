@@ -229,3 +229,4 @@ export function startApplicationRuntime({ appContext, registry, deps }){
 
   start();
 }
+

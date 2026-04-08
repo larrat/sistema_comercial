@@ -1,6 +1,6 @@
-import { SB } from '../js/api.js';
-import { D } from '../js/store.js';
-import { toast } from '../core/utils.js';
+import { SB } from '../app/api.js';
+import { D } from '../app/store.js';
+import { toast } from '../shared/utils.js';
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 
@@ -189,3 +189,4 @@ export function mostrarTela(id){
   document.body.dataset.currentScreen = id;
   window.scrollTo(0, 0);
 }
+

@@ -1,8 +1,8 @@
-import { SB } from '../js/api.js';
-import { D, State, C } from '../js/store.js';
-import { createScreenDom } from '../core/dom.js';
-import { abrirModal, toast, notify, focusField } from '../core/utils.js';
-import { MSG, SEVERITY } from '../core/messages.js';
+import { SB } from '../app/api.js';
+import { D, State, C } from '../app/store.js';
+import { createScreenDom } from '../shared/dom.js';
+import { abrirModal, toast, notify, focusField } from '../shared/utils.js';
+import { MSG, SEVERITY } from '../shared/messages.js';
 
 let setFlowStepSafe = () => {};
 
@@ -723,3 +723,4 @@ export function refreshCliDL(){
     'clientes:datalist'
   );
 }
+

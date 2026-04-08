@@ -1,4 +1,4 @@
-import { toast, norm, fmt, prV } from '../core/utils.js';
+import { toast, norm, fmt, prV } from '../shared/utils.js';
 
 let deps = {
   ir: () => {},
@@ -344,3 +344,4 @@ export function initFlowWizards(){
     });
   });
 }
+

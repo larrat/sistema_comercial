@@ -1,7 +1,7 @@
-﻿import { SB } from '../js/api.js';
-import { D, State, P, MOVS } from '../js/store.js';
-import { createScreenDom } from '../core/dom.js';
-import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../core/utils.js';
+import { SB } from '../app/api.js';
+import { D, State, P, MOVS } from '../app/store.js';
+import { createScreenDom } from '../shared/dom.js';
+import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../shared/utils.js';
 
 const estDom = createScreenDom('estoque', [
   'est-badge',
@@ -707,3 +707,4 @@ export async function salvarMov(){
 
   toast('Movimentacao registrada!');
 }
+
