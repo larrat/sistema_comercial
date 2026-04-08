@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SB_URL = Deno.env.get('SUPABASE_URL') || '';
 const SB_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
 const SB_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const APP_INVITE_REDIRECT_TO = Deno.env.get('APP_INVITE_REDIRECT_TO') || '';
 const APP_ROLES = ['admin', 'gerente', 'operador'] as const;
 
 type RequestBody = {
@@ -10,6 +11,7 @@ type RequestBody = {
   nome?: string | null;
   papel?: string | null;
   filial_id?: string | null;
+  redirect_to?: string | null;
   detalhes?: Record<string, unknown> | null;
 };
 
@@ -35,6 +37,17 @@ function isEmail(value: unknown) {
 function normalizeDetalhes(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   return value as Record<string, unknown>;
+}
+
+function normalizeRedirectUrl(value: unknown) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    return url.toString();
+  } catch {
+    return '';
+  }
 }
 
 async function lookupUserByEmail(
@@ -111,6 +124,7 @@ Deno.serve(async req => {
   const nome = String(body?.nome || '').trim();
   const papel = String(body?.papel || '').trim();
   const filialId = String(body?.filial_id || '').trim();
+  const redirectTo = normalizeRedirectUrl(APP_INVITE_REDIRECT_TO) || normalizeRedirectUrl(body?.redirect_to);
   const detalhes = normalizeDetalhes(body?.detalhes);
 
   if (!isEmail(email)) {
@@ -188,7 +202,8 @@ Deno.serve(async req => {
 
   if (!invitedUserId) {
     const invitePayload = {
-      data: nome ? { full_name: nome, name: nome, nome } : {}
+      data: nome ? { full_name: nome, name: nome, nome } : {},
+      redirectTo: redirectTo || undefined
     };
 
     const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
@@ -240,7 +255,12 @@ Deno.serve(async req => {
 
   const { error: perfilUpsertError } = await supabase
     .from('user_perfis')
-    .upsert({ user_id: alvoUserId, papel }, { onConflict: 'user_id' });
+    .upsert({
+      user_id: alvoUserId,
+      papel,
+      user_nome: nome || lookupBefore.data?.nome || null,
+      user_email: email
+    }, { onConflict: 'user_id' });
 
   if (perfilUpsertError) {
     return json({
@@ -256,7 +276,12 @@ Deno.serve(async req => {
   if (filialId) {
     const { error: vinculoUpsertError } = await supabase
       .from('user_filiais')
-      .upsert({ user_id: alvoUserId, filial_id: filialId }, { onConflict: 'user_id,filial_id' });
+      .upsert({
+        user_id: alvoUserId,
+        filial_id: filialId,
+        user_nome: nome || lookupBefore.data?.nome || null,
+        user_email: email
+      }, { onConflict: 'user_id,filial_id' });
 
     if (vinculoUpsertError) {
       return json({

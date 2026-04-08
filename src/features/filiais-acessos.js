@@ -670,6 +670,8 @@ export async function salvarPerfilAcesso(){
   const saveResult = await SB.toResult(() => SB.upsertUserPerfilEdge({
     user_id: userId,
     papel,
+    user_nome: resolvedUser?.nome || null,
+    user_email: resolvedUser?.email || null,
     detalhes: { origem: 'ui_acessos', email: resolvedUser?.email || null }
   }));
   if(!saveResult.ok){
@@ -720,7 +722,13 @@ export async function vincularUsuarioFilial(){
     toast('Selecione a filial.');
     return;
   }
-  const saveResult = await SB.toResult(() => SB.upsertUserFilialEdge({ user_id: userId, filial_id: filialId, detalhes: { origem: 'ui_acessos', email: resolvedUser?.email || null } }));
+  const saveResult = await SB.toResult(() => SB.upsertUserFilialEdge({
+    user_id: userId,
+    filial_id: filialId,
+    user_nome: resolvedUser?.nome || null,
+    user_email: resolvedUser?.email || null,
+    detalhes: { origem: 'ui_acessos', email: resolvedUser?.email || null }
+  }));
   if(!saveResult.ok){
     toast('Erro ao vincular usuario: ' + saveResult.error.message);
     return;
@@ -776,6 +784,7 @@ export async function convidarUsuarioAcesso(){
     nome: nome || null,
     papel,
     filial_id: filialId || null,
+    redirect_to: window.location.origin,
     detalhes: {
       origem: 'ui_acessos_convite_v2'
     }
