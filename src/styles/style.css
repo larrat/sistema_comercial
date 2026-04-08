@@ -4998,3 +4998,112 @@ textarea.inp:focus{
     text-align:left;
   }
 }
+
+/* =========================================================
+   DASHBOARD DETAIL REFINEMENT
+   ========================================================= */
+#pg-dashboard #dash-tp,
+#pg-dashboard #dash-forn{
+  display:grid;
+  gap:10px;
+}
+
+#pg-dashboard #dash-tp .rrow,
+#pg-dashboard #dash-forn .rrow{
+  padding:12px 0;
+}
+
+#pg-dashboard #dash-tp .rnum,
+#pg-dashboard #dash-forn .rnum{
+  width:18px;
+  height:18px;
+  min-width:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:#F3F7FB;
+  color:#6A7F93;
+  font-size:10px;
+}
+
+#pg-dashboard #dash-tp .rbar{
+  background:#E5ECF5;
+}
+
+#pg-dashboard #dash-tp .rbar-f{
+  background:linear-gradient(90deg,#234387 0%,#4A72D4 100%) !important;
+}
+
+#pg-dashboard #dash-forn .rbar{
+  background:#E6EFE9;
+}
+
+#pg-dashboard #dash-forn .rbar-f{
+  background:linear-gradient(90deg,#177245 0%,#3FA06F 100%) !important;
+}
+
+#pg-dashboard #dash-tp .rval,
+#pg-dashboard #dash-forn .rval{
+  color:#274056;
+  font-weight:700;
+}
+
+#pg-dashboard #dash-forn .empty,
+#pg-dashboard #dash-tp .empty{
+  min-height:88px;
+}
+
+#pg-dashboard #dash-margem{
+  display:grid;
+  gap:12px;
+}
+
+#pg-dashboard #dash-margem .tw{
+  border-radius:18px;
+  border-color:#DFE8F2;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FAFCFF 100%);
+}
+
+#pg-dashboard #dash-margem .tbl th{
+  padding-top:13px;
+  padding-bottom:13px;
+  color:#73869A;
+  background:linear-gradient(180deg,#F7FAFE 0%,#F2F6FB 100%);
+}
+
+#pg-dashboard #dash-margem .tbl td{
+  padding-top:14px;
+  padding-bottom:14px;
+}
+
+#pg-dashboard #dash-margem .tbl td:first-child{
+  font-weight:700;
+  color:#1C3145;
+}
+
+#pg-dashboard #dash-margem .tbl td:nth-child(2),
+#pg-dashboard #dash-margem .tbl td:nth-child(3),
+#pg-dashboard #dash-margem .tbl td:nth-child(4),
+#pg-dashboard #dash-margem .tbl td:nth-child(5){
+  text-align:right;
+}
+
+#pg-dashboard #dash-margem .tbl td:last-child{
+  text-align:left;
+}
+
+#pg-dashboard #dash-margem .bdg{
+  min-width:64px;
+  justify-content:center;
+}
+
+@media(max-width:960px){
+  #pg-dashboard #dash-margem .tw{
+    overflow-x:auto;
+  }
+
+  #pg-dashboard #dash-margem .tbl{
+    min-width:720px;
+  }
+}
