@@ -1,4 +1,4 @@
-import { SB } from '../js/api.js';
+﻿import { SB } from '../js/api.js';
 import { D, State, P, MOVS } from '../js/store.js';
 import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../core/utils.js';
 
@@ -103,10 +103,10 @@ export function renderEstAlerts(){
 
   let h = '';
   if(crit.length){
-    h += `<div class="alert al-r">🚨 <b>${crit.length} zerado(s):</b> ${crit.map(p => p.nome).join(', ')}</div>`;
+    h += `<div class="alert al-r">ðŸš¨ <b>${crit.length} zerado(s):</b> ${crit.map(p => p.nome).join(', ')}</div>`;
   }
   if(baixo.length){
-    h += `<div class="alert al-a">⚠ <b>${baixo.length} abaixo do mínimo:</b> ${baixo.map(p => p.nome).join(', ')}</div>`;
+    h += `<div class="alert al-a">âš  <b>${baixo.length} abaixo do mÃ­nimo:</b> ${baixo.map(p => p.nome).join(', ')}</div>`;
   }
 
   const el = document.getElementById('est-alerts');
@@ -163,7 +163,7 @@ export function renderEstPosicao(){
   if(!el) return;
 
   if(!filtered.length){
-    el.innerHTML = `<div class="empty"><div class="ico">📦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre produtos em "Produtos".'}</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">ðŸ“¦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre produtos em "Produtos".'}</p></div>`;
     return;
   }
 
@@ -182,17 +182,17 @@ export function renderEstPosicao(){
           <div class="mobile-card-head">
             <div style="min-width:0">
               <div class="mobile-card-title">${p.nome}</div>
-              <div class="mobile-card-sub">${p.sku || 'Sem SKU'} • ${p.un}</div>
+              <div class="mobile-card-sub">${p.sku || 'Sem SKU'} â€¢ ${p.un}</div>
             </div>
             <span class="bdg ${stC}">${stL}</span>
           </div>
           <div class="mobile-card-meta">
-            <div>Saldo: <b style="color:var(--tx)">${fmtQ(s.saldo)} ${p.un}</b>${min > 0 ? ` • mín. ${fmtQ(min)}` : ''}</div>
-            <div>Custo médio: <b style="color:var(--tx)">${fmt(s.cm)}</b></div>
+            <div>Saldo: <b style="color:var(--tx)">${fmtQ(s.saldo)} ${p.un}</b>${min > 0 ? ` â€¢ mÃ­n. ${fmtQ(min)}` : ''}</div>
+            <div>Custo mÃ©dio: <b style="color:var(--tx)">${fmt(s.cm)}</b></div>
             <div>Valor em estoque: <b style="color:var(--tx)">${fmt(valor)}</b></div>
           </div>
           <div class="mobile-card-actions">
-            <button class="btn btn-p btn-sm" title="Movimentar produto" onclick="abrirMovProd('${p.id}')">Movimentar</button>
+            <button class="btn btn-p btn-sm" title="Movimentar produto" data-click="abrirMovProd('${p.id}')">Movimentar</button>
           </div>
         </div>
       `;
@@ -208,9 +208,9 @@ export function renderEstPosicao(){
             <th>Produto</th>
             <th>SKU</th>
             <th>Saldo</th>
-            <th>Custo Médio</th>
+            <th>Custo MÃ©dio</th>
             <th>Valor Total</th>
-            <th>Mínimo</th>
+            <th>MÃ­nimo</th>
             <th>Status</th>
             <th></th>
           </tr>
@@ -236,16 +236,16 @@ export function renderEstPosicao(){
             return `
               <tr>
                 <td style="font-weight:600">${p.nome}</td>
-                <td style="color:var(--tx3);font-size:12px">${p.sku || '—'}</td>
+                <td style="color:var(--tx3);font-size:12px">${p.sku || 'â€”'}</td>
                 <td>
                   <div style="font-weight:600">${fmtQ(s.saldo)} ${p.un}</div>
                   ${min > 0 ? `<div class="sbar"><div class="sbar-f" style="width:${pctBar}%;background:${s.saldo <= 0 ? 'var(--r)' : s.saldo < min ? 'var(--a)' : 'var(--g)'}"></div></div>` : ''}
                 </td>
                 <td>${fmt(s.cm)}</td>
                 <td style="font-weight:600">${fmt(s.saldo * s.cm)}</td>
-                <td style="color:var(--tx2)">${min > 0 ? fmtQ(min) + ' ' + p.un : '—'}</td>
+                <td style="color:var(--tx2)">${min > 0 ? fmtQ(min) + ' ' + p.un : 'â€”'}</td>
                 <td><span class="bdg ${stC}">${stL}</span></td>
-                <td><button class="ib" title="Movimentar produto" onclick="abrirMovProd('${p.id}')">MOV</button></td>
+                <td><button class="ib" title="Movimentar produto" data-click="abrirMovProd('${p.id}')">MOV</button></td>
               </tr>
             `;
           }).join('')}
@@ -274,15 +274,15 @@ export function renderEstHist(){
   if(!el) return;
 
   if(!movs.length){
-    el.innerHTML = `<div class="empty"><div class="ico">📋</div><p>Nenhuma movimentação.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">ðŸ“‹</div><p>Nenhuma movimentaÃ§Ã£o.</p></div>`;
     return;
   }
 
   const tiInfo = {
     entrada:{ ico:'EN', lbl:'Entrada' },
-    saida:{ ico:'SA', lbl:'Saída' },
+    saida:{ ico:'SA', lbl:'SaÃ­da' },
     ajuste:{ ico:'AJ', lbl:'Ajuste' },
-    transf:{ ico:'TR', lbl:'Transferência' }
+    transf:{ ico:'TR', lbl:'TransferÃªncia' }
   };
 
   const isMobile = window.matchMedia('(max-width: 760px)').matches;
@@ -291,27 +291,27 @@ export function renderEstHist(){
       const prodId = m.prodId || m.prod_id;
       const p = P().find(x => x.id === prodId);
       const ti = tiInfo[m.tipo] || { ico:'?', lbl:m.tipo };
-      const sinal = m.tipo === 'entrada' ? '+' : m.tipo === 'saida' ? '-' : '±';
+      const sinal = m.tipo === 'entrada' ? '+' : m.tipo === 'saida' ? '-' : 'Â±';
       const cor = m.tipo === 'entrada' ? 'var(--g)' : m.tipo === 'saida' ? 'var(--r)' : 'var(--tx)';
       const qShow = m.tipo === 'ajuste'
-        ? `→ ${fmtQ(m.saldoReal || m.saldo_real)}`
+        ? `â†’ ${fmtQ(m.saldoReal || m.saldo_real)}`
         : sinal + fmtQ(m.qty || 0);
       return `
         <div class="card mobile-card">
           <div class="mobile-card-head">
             <div style="min-width:0">
-              <div class="mobile-card-title">${p ? p.nome : '—'}</div>
-              <div class="mobile-card-sub">${m.data || '—'} • ${ti.lbl}</div>
+              <div class="mobile-card-title">${p ? p.nome : 'â€”'}</div>
+              <div class="mobile-card-sub">${m.data || 'â€”'} â€¢ ${ti.lbl}</div>
             </div>
             <span class="bdg bk">${ti.ico}</span>
           </div>
           <div class="mobile-card-meta">
             <div>Quantidade: <b style="color:${cor}">${qShow} ${p ? p.un : ''}</b></div>
-            <div>Custo: <b style="color:var(--tx)">${m.custo > 0 ? fmt(m.custo) : '—'}</b></div>
-            <div>Obs: <b style="color:var(--tx2)">${m.obs || '—'}</b></div>
+            <div>Custo: <b style="color:var(--tx)">${m.custo > 0 ? fmt(m.custo) : 'â€”'}</b></div>
+            <div>Obs: <b style="color:var(--tx2)">${m.obs || 'â€”'}</b></div>
           </div>
           <div class="mobile-card-actions">
-            <button class="btn btn-sm" title="Excluir movimentação" onclick="excluirMov('${m.id}')">Excluir</button>
+            <button class="btn btn-sm" title="Excluir movimentaÃ§Ã£o" data-click="excluirMov('${m.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -340,22 +340,22 @@ export function renderEstHist(){
             const p = P().find(x => x.id === prodId);
             const ti = tiInfo[m.tipo] || { ico:'?', lbl:m.tipo };
 
-            const sinal = m.tipo === 'entrada' ? '+' : m.tipo === 'saida' ? '-' : '±';
+            const sinal = m.tipo === 'entrada' ? '+' : m.tipo === 'saida' ? '-' : 'Â±';
             const cor = m.tipo === 'entrada' ? 'var(--g)' : m.tipo === 'saida' ? 'var(--r)' : 'var(--tx)';
             const qShow = m.tipo === 'ajuste'
-              ? `→ ${fmtQ(m.saldoReal || m.saldo_real)}`
+              ? `â†’ ${fmtQ(m.saldoReal || m.saldo_real)}`
               : sinal + fmtQ(m.qty || 0);
 
             return `
               <tr>
                 <td><div style="width:26px;height:26px;border-radius:8px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;border:1px solid var(--bd)">${ti.ico}</div></td>
-                <td style="font-weight:600">${p ? p.nome : '—'}</td>
-                <td style="color:var(--tx2);font-size:12px">${m.data || '—'}</td>
+                <td style="font-weight:600">${p ? p.nome : 'â€”'}</td>
+                <td style="color:var(--tx2);font-size:12px">${m.data || 'â€”'}</td>
                 <td><span class="bdg bk">${ti.lbl}</span></td>
                 <td style="font-weight:600;color:${cor}">${qShow} ${p ? p.un : ''}</td>
-                <td style="color:var(--tx2)">${m.custo > 0 ? fmt(m.custo) : '—'}</td>
-                <td style="font-size:12px;color:var(--tx2)">${m.obs || '—'}</td>
-                <td><button class="ib" title="Excluir movimentação" onclick="excluirMov('${m.id}')">DEL</button></td>
+                <td style="color:var(--tx2)">${m.custo > 0 ? fmt(m.custo) : 'â€”'}</td>
+                <td style="font-size:12px;color:var(--tx2)">${m.obs || 'â€”'}</td>
+                <td><button class="ib" title="Excluir movimentaÃ§Ã£o" data-click="excluirMov('${m.id}')">DEL</button></td>
               </tr>
             `;
           }).join('')}
@@ -366,7 +366,7 @@ export function renderEstHist(){
 }
 
 export async function excluirMov(id){
-  if(!confirm('Excluir movimentação?')) return;
+  if(!confirm('Excluir movimentaÃ§Ã£o?')) return;
 
   try{
     await SB.deleteMov(id);
@@ -388,7 +388,7 @@ export function refreshMovSel(){
 
   const cur = s.value;
   s.innerHTML =
-    '<option value="">— selecione —</option>' +
+    '<option value="">â€” selecione â€”</option>' +
     P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
 
   if(cur) s.value = cur;
@@ -399,7 +399,7 @@ export function refreshDestSel(){
   if(!s) return;
 
   s.innerHTML =
-    '<option value="">— selecione —</option>' +
+    '<option value="">â€” selecione â€”</option>' +
     (D.filiais || [])
       .filter(f => f.id !== State.FIL)
       .map(f => `<option value="${f.id}">${f.nome}</option>`)
@@ -465,7 +465,7 @@ export function setTipo(t){
 
   const lbls = {
     entrada:'Quantidade recebida',
-    saida:'Quantidade saída',
+    saida:'Quantidade saÃ­da',
     transf:'Quantidade transferida'
   };
 
@@ -540,7 +540,7 @@ export function movCalc(){
 
   if(mpSaldo) mpSaldo.textContent = fmtQ(ns) + ' ' + (p ? p.un : '');
   if(mpCm) mpCm.textContent = fmt(nc);
-  if(mpVal) mpVal.textContent = State.movTipo === 'entrada' ? fmt(qty * custo) : '—';
+  if(mpVal) mpVal.textContent = State.movTipo === 'entrada' ? fmt(qty * custo) : 'â€”';
   if(mpValWrap) mpValWrap.style.display = State.movTipo === 'entrada' ? 'inline' : 'none';
   if(mpCm?.parentElement) mpCm.parentElement.style.display = '';
 
@@ -572,7 +572,7 @@ export function movCalcAjuste(){
   const mpValWrap = document.getElementById('mp-val-wrap');
 
   if(mpSaldo) mpSaldo.textContent = fmtQ(real) + ' ' + (p ? p.un : '');
-  if(mpCm) mpCm.textContent = '—';
+  if(mpCm) mpCm.textContent = 'â€”';
   if(mpVal) mpVal.textContent = (diff >= 0 ? '+' : '') + fmtQ(diff) + ' ' + (p ? p.un : '');
   if(mpValWrap) mpValWrap.style.display = 'inline';
   if(mpCm?.parentElement) mpCm.parentElement.style.display = 'none';
@@ -636,7 +636,7 @@ export async function salvarMov(){
           prod_id: destProd.id,
           tipo: 'entrada',
           data,
-          obs: 'Transferência de ' + ((D.filiais.find(f => f.id === State.FIL) || {}).nome || ''),
+          obs: 'TransferÃªncia de ' + ((D.filiais.find(f => f.id === State.FIL) || {}).nome || ''),
           ts: Date.now() + 1,
           custo,
           qty
@@ -677,5 +677,5 @@ export async function salvarMov(){
   renderEstAlerts();
   renderEstHist();
 
-  toast('Movimentação registrada!');
+  toast('MovimentaÃ§Ã£o registrada!');
 }

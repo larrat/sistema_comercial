@@ -27,7 +27,7 @@
       <div class="fg">
         <div><div class="fl">Senha</div><input class="inp" id="auth-password" type="password" placeholder="••••••••"></div>
       </div>
-      <button class="btn btn-p" id="auth-login-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="authEntrar()">Entrar com conta</button>
+      <button class="btn btn-p" id="auth-login-btn" style="width:100%;justify-content:center;margin-top:4px" data-action="authEntrar">Entrar com conta</button>
     </div>
 
     <!-- Lista de filiais -->
@@ -45,13 +45,13 @@
       <div class="fg">
         <div><div class="fl">Cor identificadora</div><input class="inp" id="sf-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
       </div>
-      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px" onclick="criarPrimeiraFilial()">Criar filial e entrar →</button>
+      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px" data-click="criarPrimeiraFilial()">Criar filial e entrar →</button>
     </div>
 
     <!-- Ações -->
     <div id="setup-actions" class="fb" style="display:none">
-      <button class="btn btn-gh btn-sm" onclick="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
-      <button class="btn btn-p" onclick="entrar()">Entrar →</button>
+      <button class="btn btn-gh btn-sm" data-click="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
+      <button class="btn btn-p" data-click="entrar()">Entrar →</button>
     </div>
   </div>
 </div>
@@ -59,16 +59,16 @@
 <!-- ══ APP ══ -->
 <div id="screen-app" class="screen">
   <!-- Sidebar overlay (mobile) -->
-  <div class="sb-overlay" id="sb-overlay" onclick="fecharSb()"></div>
+  <div class="sb-overlay" id="sb-overlay" data-click="fecharSb()"></div>
 
   <!-- Sidebar -->
   <aside class="sb" id="sb">
     <div class="sb-head">
       <div class="fb">
         <div class="sb-brand">Sistema Comercial</div>
-        <button class="ib" id="sb-close" onclick="fecharSb()" style="display:none">Fechar</button>
+        <button class="ib" id="sb-close" data-click="fecharSb()" style="display:none">Fechar</button>
       </div>
-      <div class="sb-pill" onclick="voltarSetup()">
+      <div class="sb-pill" data-click="voltarSetup()">
         <div class="sb-pdot" id="sb-dot"></div>
         <span class="sb-pname" id="sb-fname">—</span>
         <span style="font-size:11px;color:var(--tx3);margin-left:2px">Trocar</span>
@@ -85,26 +85,26 @@
     <nav class="sb-nav">
       <section class="sb-group" data-group="Visão geral">
         <div class="nl">Visão geral</div>
-        <button class="ni on" data-p="dashboard" data-label="Dashboard Workspace visão geral oportunidades" onclick="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
-        <button class="ni" data-p="gerencial" data-label="Gerencial gestão metas desempenho" onclick="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
+        <button class="ni on" data-p="dashboard" data-label="Dashboard Workspace visão geral oportunidades" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
+        <button class="ni" data-p="gerencial" data-label="Gerencial gestão metas desempenho" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
       </section>
       <section class="sb-group" data-group="Cadastros">
         <div class="nl">Cadastros</div>
-        <button class="ni" data-p="produtos" data-label="Produtos catálogo cadastro precificação" onclick="ir('produtos')"><span class="ico">PR</span>Produtos</button>
-        <button class="ni" data-p="clientes" data-label="Clientes relacionamento segmentação cadastro" onclick="ir('clientes')"><span class="ico">CL</span>Clientes</button>
+        <button class="ni" data-p="produtos" data-label="Produtos catálogo cadastro precificação" data-click="ir('produtos')"><span class="ico">PR</span>Produtos</button>
+        <button class="ni" data-p="clientes" data-label="Clientes relacionamento segmentação cadastro" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
       </section>
       <section class="sb-group" data-group="Operações">
         <div class="nl">Operações</div>
-        <button class="ni" data-p="pedidos" data-label="Pedidos orçamentos vendas operações" onclick="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
-        <button class="ni" data-p="cotacao" data-label="Cotação fornecedores comparação preço" onclick="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
-        <button class="ni" data-p="estoque" data-label="Estoque posição alertas movimentações" onclick="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
-        <button class="ni" data-p="campanhas" data-label="Campanhas ações comerciais envios" onclick="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
-        <button class="ni" data-p="notificacoes" data-label="Notificações alertas oportunidades inbox" onclick="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
+        <button class="ni" data-p="pedidos" data-label="Pedidos orçamentos vendas operações" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
+        <button class="ni" data-p="cotacao" data-label="Cotação fornecedores comparação preço" data-click="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
+        <button class="ni" data-p="estoque" data-label="Estoque posição alertas movimentações" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
+        <button class="ni" data-p="campanhas" data-label="Campanhas ações comerciais envios" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
+        <button class="ni" data-p="notificacoes" data-label="Notificações alertas oportunidades inbox" data-click="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
       </section>
       <section class="sb-group" data-group="Sistema">
         <div class="nl">Sistema</div>
-        <button class="ni" data-p="filiais" data-label="Filiais sistema unidades contexto" onclick="ir('filiais')"><span class="ico">FL</span>Filiais</button>
-        <button class="ni" data-p="acessos" data-label="Acessos sistema usuários perfis permissões" onclick="ir('acessos')"><span class="ico">AC</span>Acessos</button>
+        <button class="ni" data-p="filiais" data-label="Filiais sistema unidades contexto" data-click="ir('filiais')"><span class="ico">FL</span>Filiais</button>
+        <button class="ni" data-p="acessos" data-label="Acessos sistema usuários perfis permissões" data-click="ir('acessos')"><span class="ico">AC</span>Acessos</button>
       </section>
       <div class="sb-empty" id="sb-empty" style="display:none">
         <div class="sb-empty-title">Nenhuma área encontrada</div>
@@ -113,8 +113,8 @@
     </nav>
     <div class="sb-foot">
       <div class="bdg bk" id="sb-role" style="width:100%;justify-content:center;margin-bottom:8px">Operador</div>
-      <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" onclick="exportarTudo()">Exportar CSVs</button>
-      <button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="sairConta()">Sair</button>
+      <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" data-click="exportarTudo()">Exportar CSVs</button>
+      <button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px" data-click="sairConta()">Sair</button>
     </div>
   </aside>
 
@@ -138,21 +138,21 @@
       <div class="ph fb">
         <div><h2>Dashboard</h2><p id="dash-desc">Este mês</p></div>
         <div class="fg2">
-          <select class="inp sel" id="dash-fil" style="font-size:12px;max-width:150px" onchange="renderDash()"></select>
+          <select class="inp sel" id="dash-fil" style="font-size:12px;max-width:150px" data-change="renderDash()"></select>
           <div class="pseg" id="dash-pseg">
-            <button onclick="setP('semana',this)">Semana</button>
-            <button class="on" onclick="setP('mes',this)">Mês</button>
-            <button onclick="setP('ano',this)">Ano</button>
-            <button onclick="setP('tudo',this)">Tudo</button>
+            <button data-click="setP('semana',this)">Semana</button>
+            <button class="on" data-click="setP('mes',this)">Mês</button>
+            <button data-click="setP('ano',this)">Ano</button>
+            <button data-click="setP('tudo',this)">Tudo</button>
           </div>
         </div>
       </div>
 
       <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
-        <button class="btn btn-sm" type="button" onclick="ir('gerencial')">Gerencial</button>
-        <button class="btn btn-sm" type="button" onclick="ir('campanhas')">Campanhas</button>
-        <button class="btn btn-sm" type="button" onclick="ir('notificacoes')">Alertas</button>
-        <button class="btn btn-p btn-sm" type="button" onclick="limparFormPed();abrirModal('modal-pedido')">Novo pedido</button>
+        <button class="btn btn-sm" type="button" data-click="ir('gerencial')">Gerencial</button>
+        <button class="btn btn-sm" type="button" data-click="ir('campanhas')">Campanhas</button>
+        <button class="btn btn-sm" type="button" data-click="ir('notificacoes')">Alertas</button>
+        <button class="btn btn-p btn-sm" type="button" data-click="limparFormPed();abrirModal('modal-pedido')">Novo pedido</button>
       </div>
 
       <section class="dash-section dash-section--operacao">
@@ -165,7 +165,7 @@
           <div class="card dash-card dash-card--oportunidades">
             <div class="fb mb-10">
               <div class="ct ct-inline">Oportunidades por time</div>
-              <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" onchange="renderDash()">
+              <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" data-change="renderDash()">
                 <option value="todas">Todas</option>
                 <option value="a">Série A</option>
                 <option value="b">Série B</option>
@@ -178,8 +178,8 @@
             <div class="fb mb-10">
               <div class="ct ct-inline">Próximos jogos</div>
               <div class="fg2">
-                <button class="btn btn-sm" onclick="abrirSyncJogos()">Sincronizar</button>
-                <button class="btn btn-sm" onclick="abrirNovoJogo()">+ Jogo</button>
+                <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
+                <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
               </div>
             </div>
             <div id="dash-jogos"></div>
@@ -222,8 +222,8 @@
       <div class="ph fb">
         <div><h2>Gerencial</h2><p>Acompanhamento contínuo de metas e produtividade</p></div>
         <div class="toolbar-actions">
-          <button class="btn btn-sm" onclick="renderMetasNegocio()">Atualizar KPIs</button>
-          <button class="btn btn-sm" onclick="resetUxKpis()">Resetar KPIs UX</button>
+          <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
+          <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
         </div>
       </div>
       <div class="card dash-card dash-card--metas">
@@ -252,16 +252,16 @@
     <div class="pg" id="pg-produtos">
       <div class="ph fb">
         <div><h2>Produtos</h2><p>Cadastro único — precificação, estoque e pedidos</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
+        <button class="btn btn-p" data-click="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
       </div>
       <div class="mg" id="prod-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" oninput="renderProdutos()">
-          <select class="inp sel" id="prod-cat-fil" style="max-width:160px" onchange="renderProdutos()"><option value="">Todas as categorias</option></select>
+          <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" data-input="renderProdutos()">
+          <select class="inp sel" id="prod-cat-fil" style="max-width:160px" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
         </div>
         <div class="toolbar-actions">
-          <button class="btn btn-sm" onclick="exportCSV('produtos')">Exportar CSV</button>
+          <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
         </div>
       </div>
       <div class="card"><div id="prod-lista"></div></div>
@@ -271,22 +271,22 @@
     <div class="pg" id="pg-clientes">
       <div class="ph fb">
         <div><h2>Clientes</h2><p id="cli-sub">Carteira da filial</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-cliente');limparFormCli()">+ Novo cliente</button>
+        <button class="btn btn-p" data-click="abrirModal('modal-cliente');limparFormCli()">+ Novo cliente</button>
       </div>
       <div class="mg" id="cli-met"></div>
       <div class="tabs">
-        <button class="tb on" onclick="switchTab('cli','lista')">Lista</button>
-        <button class="tb" onclick="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
+        <button class="tb on" data-click="switchTab('cli','lista')">Lista</button>
+        <button class="tb" data-click="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
       </div>
       <div class="tc on" id="cli-tc-lista">
         <div class="toolbar">
           <div class="toolbar-main">
-            <input class="inp" id="cli-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderClientes()">
-            <select class="inp sel" id="cli-fil-seg" style="max-width:150px" onchange="renderClientes()"><option value="">Todos os segmentos</option></select>
-            <select class="inp sel" id="cli-fil-st" style="max-width:130px" onchange="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
+            <input class="inp" id="cli-busca" placeholder="Buscar..." style="max-width:180px" data-input="renderClientes()">
+            <select class="inp sel" id="cli-fil-seg" style="max-width:150px" data-change="renderClientes()"><option value="">Todos os segmentos</option></select>
+            <select class="inp sel" id="cli-fil-st" style="max-width:130px" data-change="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
           </div>
           <div class="toolbar-actions">
-            <button class="btn btn-sm" onclick="exportCSV('clientes')">Exportar CSV</button>
+            <button class="btn btn-sm" data-click="exportCSV('clientes')">Exportar CSV</button>
           </div>
         </div>
         <div class="card"><div id="cli-lista"></div></div>
@@ -298,16 +298,16 @@
     <div class="pg" id="pg-pedidos">
       <div class="ph fb">
         <div><h2>Pedidos</h2><p id="ped-sub">Orçamentos e vendas</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
+        <button class="btn btn-p" data-click="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
       </div>
       <div class="mg" id="ped-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" oninput="renderPedidos()">
-          <select class="inp sel" id="ped-fil-st" style="max-width:150px" onchange="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
+          <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" data-input="renderPedidos()">
+          <select class="inp sel" id="ped-fil-st" style="max-width:150px" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
         </div>
         <div class="toolbar-actions">
-          <button class="btn btn-sm" onclick="exportCSV('pedidos')">Exportar CSV</button>
+          <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
         </div>
       </div>
       <div class="card"><div id="ped-lista"></div></div>
@@ -317,31 +317,31 @@
     <div class="pg" id="pg-cotacao">
       <div class="ph"><h2>Cotação</h2><p id="cot-sub">Fornecedores da filial ativa</p></div>
       <div class="tabs">
-        <button class="tb on" onclick="switchTab('cot','importar')">Importar</button>
-        <button class="tb" onclick="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
-        <button class="tb" onclick="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
+        <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
+        <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
+        <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
       </div>
       <div class="tc on" id="cot-tc-importar">
         <div class="card">
           <div class="ct">Importar planilha de fornecedor</div>
           <div class="fg c2" style="margin-bottom:12px">
             <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">— selecione —</option></select></div>
-            <div style="display:flex;align-items:flex-end"><button class="btn" onclick="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
+            <div style="display:flex;align-items:flex-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
           </div>
-          <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" onchange="cotFile(event)"><div style="font-size:22px;margin-bottom:6px">📂</div><strong style="font-size:13px">Clique ou arraste o arquivo</strong><p style="font-size:12px;color:var(--tx3);margin-top:4px">.xlsx .xls .csv — qualquer layout</p></div>
+          <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div style="font-size:22px;margin-bottom:6px">📂</div><strong style="font-size:13px">Clique ou arraste o arquivo</strong><p style="font-size:12px;color:var(--tx3);margin-top:4px">.xlsx .xls .csv — qualquer layout</p></div>
         </div>
         <div class="card"><div class="ct">Histórico de importações</div><div id="cot-logs"></div></div>
       </div>
       <div class="tc" id="cot-tc-fornecedores">
-        <div class="fb" style="margin-bottom:12px"><span></span><button class="btn btn-p" onclick="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
+        <div class="fb" style="margin-bottom:12px"><span></span><button class="btn btn-p" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
         <div class="card"><div id="cot-forns-lista"></div></div>
       </div>
       <div class="tc" id="cot-tc-cotacao">
         <div class="fb" style="margin-bottom:12px">
           <div class="mg" id="cot-met" style="margin:0;flex:1"></div>
           <div class="fg2" style="flex-shrink:0">
-            <button class="btn btn-sm" onclick="exportCSV('cotacao')">Exportar CSV</button>
-            <button class="btn btn-sm" id="cot-lock-btn" onclick="cotLock()">Travar</button>
+            <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
+            <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
           </div>
         </div>
         <div id="cot-lock-alert" style="display:none" class="alert al-a">Cotação travada — valores protegidos</div>
@@ -354,21 +354,21 @@
       <div class="ph fb">
         <div><h2>Estoque</h2><p id="est-sub">Movimentações da filial</p></div>
         <div class="fg2">
-          <button class="btn btn-sm" onclick="exportCSV('estoque')">Exportar CSV</button>
-          <button class="btn btn-p" onclick="abrirModal('modal-mov');resetMov()">+ Movimentação</button>
+          <button class="btn btn-sm" data-click="exportCSV('estoque')">Exportar CSV</button>
+          <button class="btn btn-p" data-click="abrirModal('modal-mov');resetMov()">+ Movimentação</button>
         </div>
       </div>
       <div id="est-alerts"></div>
       <div class="tabs">
-        <button class="tb on" onclick="switchTab('est','posicao');renderEstPosicao()">Posição</button>
-        <button class="tb" onclick="switchTab('est','historico');renderEstHist()">Histórico</button>
+        <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">Posição</button>
+        <button class="tb" data-click="switchTab('est','historico');renderEstHist()">Histórico</button>
       </div>
       <div class="tc on" id="est-tc-posicao">
         <div class="mg" id="est-met"></div>
         <div class="toolbar">
           <div class="toolbar-main">
-            <input class="inp" id="est-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstPosicao()">
-            <select class="inp sel" id="est-fil" style="max-width:140px" onchange="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
+            <input class="inp" id="est-busca" placeholder="Buscar..." style="max-width:180px" data-input="renderEstPosicao()">
+            <select class="inp sel" id="est-fil" style="max-width:140px" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
           </div>
         </div>
         <div class="card"><div id="est-posicao"></div></div>
@@ -376,8 +376,8 @@
       <div class="tc" id="est-tc-historico">
         <div class="toolbar">
           <div class="toolbar-main">
-            <input class="inp" id="est-hist-busca" placeholder="Buscar..." style="max-width:180px" oninput="renderEstHist()">
-            <select class="inp sel" id="est-hist-tipo" style="max-width:140px" onchange="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
+            <input class="inp" id="est-hist-busca" placeholder="Buscar..." style="max-width:180px" data-input="renderEstHist()">
+            <select class="inp sel" id="est-hist-tipo" style="max-width:140px" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
           </div>
         </div>
         <div class="card"><div id="est-hist"></div></div>
@@ -389,8 +389,8 @@
       <div class="ph fb">
         <div><h2>Campanhas</h2><p id="camp-sub">Aniversário, fila e histórico de envios</p></div>
         <div class="toolbar-actions">
-          <button class="btn btn-sm" onclick="exportCSV('campanhas')">Exportar CSV</button>
-          <button class="btn btn-p" onclick="abrirNovaCampanha()">+ Nova campanha</button>
+          <button class="btn btn-sm" data-click="exportCSV('campanhas')">Exportar CSV</button>
+          <button class="btn btn-p" data-click="abrirNovaCampanha()">+ Nova campanha</button>
         </div>
       </div>
 
@@ -401,7 +401,7 @@
         <div class="toolbar">
           <div class="ct ct-inline">Campanhas cadastradas</div>
           <div class="toolbar-actions">
-            <button class="btn btn-sm" onclick="refreshCampanhasTela()">Atualizar</button>
+            <button class="btn btn-sm" data-click="refreshCampanhasTela()">Atualizar</button>
           </div>
         </div>
         <div id="camp-lista"></div>
@@ -422,7 +422,7 @@
     <div class="pg" id="pg-filiais">
       <div class="ph fb">
         <div><h2>Filiais</h2><p>Gerencie todas as filiais</p></div>
-        <button class="btn btn-p" onclick="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
+        <button class="btn btn-p" data-click="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
       </div>
       <div class="mg" id="fil-met"></div>
       <div id="fil-lista"></div>
@@ -433,7 +433,7 @@
       <div class="ph fb">
         <div><h2>Acessos</h2><p>Gestão de perfil e vínculo por filial (admin)</p></div>
         <div class="toolbar-actions">
-          <button class="btn btn-sm" onclick="renderAcessosAdmin()">Atualizar</button>
+          <button class="btn btn-sm" data-click="renderAcessosAdmin()">Atualizar</button>
         </div>
       </div>
       <div class="mg" id="ac-met"></div>
@@ -451,8 +451,8 @@
             </select>
           </div>
           <div class="modal-actions-inline" style="align-items:flex-end">
-            <button class="btn btn-p" onclick="salvarPerfilAcesso()">Salvar perfil</button>
-            <button class="btn btn-sm" onclick="removerPerfilAcesso()">Remover perfil</button>
+            <button class="btn btn-p" data-click="salvarPerfilAcesso()">Salvar perfil</button>
+            <button class="btn btn-sm" data-click="removerPerfilAcesso()">Remover perfil</button>
           </div>
         </div>
       </div>
@@ -463,8 +463,8 @@
           <div><div class="fl">User ID (UUID)</div><input class="inp" id="ac-v-user-id" placeholder="00000000-0000-0000-0000-000000000000"></div>
           <div><div class="fl">Filial</div><select class="inp sel" id="ac-v-filial"></select></div>
           <div class="modal-actions-inline" style="align-items:flex-end">
-            <button class="btn btn-p" onclick="vincularUsuarioFilial()">Vincular</button>
-            <button class="btn btn-sm" onclick="desvincularUsuarioFilial()">Desvincular</button>
+            <button class="btn btn-p" data-click="vincularUsuarioFilial()">Vincular</button>
+            <button class="btn btn-sm" data-click="desvincularUsuarioFilial()">Desvincular</button>
           </div>
         </div>
       </div>
@@ -473,8 +473,8 @@
         <div class="toolbar">
           <div class="ct ct-inline">Perfis cadastrados</div>
           <div class="toolbar-main">
-            <input class="inp" id="ac-busca" placeholder="Buscar por user_id..." style="max-width:240px" oninput="renderAcessosPerfis()">
-            <select class="inp sel" id="ac-fil-papel" style="max-width:180px" onchange="renderAcessosPerfis()">
+            <input class="inp" id="ac-busca" placeholder="Buscar por user_id..." style="max-width:240px" data-input="renderAcessosPerfis()">
+            <select class="inp sel" id="ac-fil-papel" style="max-width:180px" data-change="renderAcessosPerfis()">
               <option value="todos">Todos papéis</option>
               <option value="admin">Admin</option>
               <option value="gerente">Gerente</option>
@@ -490,7 +490,7 @@
         <div class="toolbar">
           <div class="ct ct-inline">Vínculos usuário x filial</div>
           <div class="toolbar-main">
-            <select class="inp sel" id="ac-fil-filial" style="max-width:260px" onchange="renderAcessosVinculos()">
+            <select class="inp sel" id="ac-fil-filial" style="max-width:260px" data-change="renderAcessosVinculos()">
               <option value="todas">Todas filiais</option>
             </select>
           </div>
@@ -511,13 +511,13 @@
       <div class="ph fb">
         <div><h2>Notificações</h2><p>Inbox de alertas com prioridade e ação direta</p></div>
         <div class="toolbar-actions">
-          <button class="btn btn-sm" onclick="renderNotificacoes()">Atualizar</button>
-          <button class="btn btn-p" onclick="resolverTodasNotificacoes()">Resolver todas</button>
+          <button class="btn btn-sm" data-click="renderNotificacoes()">Atualizar</button>
+          <button class="btn btn-p" data-click="resolverTodasNotificacoes()">Resolver todas</button>
         </div>
       </div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <select class="inp sel" id="noti-fil-prioridade" style="max-width:180px" onchange="setFiltroNotificacoes(this.value)">
+          <select class="inp sel" id="noti-fil-prioridade" style="max-width:180px" data-change="setFiltroNotificacoes(this.value)">
             <option value="todas">Todas prioridades</option>
             <option value="critico">Crítico</option>
             <option value="atencao">Atenção</option>
@@ -541,12 +541,12 @@
   <!-- Mobile bottom nav -->
   <nav class="mob-nav">
     <div class="mob-items">
-      <button class="mob-btn on" id="mob-dashboard" onclick="ir('dashboard')"><span class="mico">DS</span>Início</button>
-      <button class="mob-btn" id="mob-gerencial" onclick="ir('gerencial')"><span class="mico">GR</span>Gestão</button>
-      <button class="mob-btn" id="mob-pedidos" onclick="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
-      <button class="mob-btn" id="mob-campanhas" onclick="ir('campanhas')"><span class="mico">CP</span>Camp.</button>
-      <button class="mob-btn" id="mob-notificacoes" onclick="ir('notificacoes')"><span class="mico">NT</span>Alertas</button>
-      <button class="mob-btn" id="mob-menu" onclick="abrirSb()"><span class="mico">MN</span>Menu</button>
+      <button class="mob-btn on" id="mob-dashboard" data-click="ir('dashboard')"><span class="mico">DS</span>Início</button>
+      <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')"><span class="mico">GR</span>Gestão</button>
+      <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
+      <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')"><span class="mico">CP</span>Camp.</button>
+      <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')"><span class="mico">NT</span>Alertas</button>
+      <button class="mob-btn" id="mob-menu" data-click="abrirSb()"><span class="mico">MN</span>Menu</button>
     </div>
   </nav>
 </div>
@@ -555,7 +555,7 @@
 
 <!-- Filial -->
 <div class="modal-wrap" id="modal-filial">
-  <div class="modal-bg" onclick="fecharModal('modal-filial')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-filial')"></div>
   <div class="modal-box">
     <div class="mt" id="filial-modal-titulo">Nova filial</div>
     <div class="fg c2">
@@ -569,22 +569,22 @@
     <div class="fg"><div><div class="fl">Endereço (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, número, bairro"></div></div>
     <div class="div"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="fecharModal('modal-filial')">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarFilial()">Salvar filial</button>
+      <button class="btn" data-click="fecharModal('modal-filial')">Cancelar</button>
+      <button class="btn btn-p" data-click="salvarFilial()">Salvar filial</button>
     </div>
   </div>
 </div>
 
 <!-- Produto -->
 <div class="modal-wrap" id="modal-produto">
-  <div class="modal-bg" onclick="fecharModal('modal-produto')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-produto')"></div>
   <div class="modal-box">
     <div class="mt" id="prod-modal-titulo">Novo produto</div>
     <div class="flow-head">
-      <button class="flow-chip on" type="button" data-flow-chip="prod" data-step="1" onclick="setFlowStep('prod',1)">1 Dados</button>
-      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="2" onclick="setFlowStep('prod',2)">2 Comercial</button>
-      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="3" onclick="setFlowStep('prod',3)">3 Estoque</button>
-      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="4" onclick="setFlowStep('prod',4)">4 Resumo</button>
+      <button class="flow-chip on" type="button" data-flow-chip="prod" data-step="1" data-click="setFlowStep('prod',1)">1 Dados</button>
+      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="2" data-click="setFlowStep('prod',2)">2 Comercial</button>
+      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="3" data-click="setFlowStep('prod',3)">3 Estoque</button>
+      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="4" data-click="setFlowStep('prod',4)">4 Resumo</button>
     </div>
 
     <div class="flow-step on" data-flow-id="prod" data-step="1">
@@ -595,23 +595,23 @@
       <div class="fg c3">
         <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m²</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
         <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aço, elétrico"></div>
-        <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" oninput="calcProdPreview()"></div>
+        <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" data-input="calcProdPreview()"></div>
       </div>
     </div>
 
     <div class="flow-step" data-flow-id="prod" data-step="2">
       <div class="modal-split">
         <div class="panel"><div class="pt">Varejo</div>
-          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" oninput="syncV('mk')"></div></div>
-          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" oninput="syncV('mg')"></div></div>
+          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" data-input="syncV('mk')"></div></div>
+          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" data-input="syncV('mg')"></div></div>
           <div class="fg c2">
             <div><div class="fl">Qtd mín. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
             <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
           </div>
         </div>
         <div class="panel"><div class="pt">Atacado</div>
-          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" oninput="syncA('mk')"></div></div>
-          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" oninput="syncA('mg')"></div></div>
+          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" data-input="syncA('mk')"></div></div>
+          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" data-input="syncA('mg')"></div></div>
           <div class="fg c2">
             <div><div class="fl">Preço fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
             <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
@@ -645,26 +645,26 @@
     </div>
 
     <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="prod-flow-prev" onclick="setFlowStep('prod', (window.__flowSteps?.prod || 1) - 1)">← Voltar</button>
-      <button class="btn btn-sm" type="button" id="prod-flow-next" onclick="setFlowStep('prod', (window.__flowSteps?.prod || 1) + 1)">Próximo →</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-prev" data-click="setFlowStep('prod', (window.__flowSteps?.prod || 1) - 1)">← Voltar</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-next" data-click="setFlowStep('prod', (window.__flowSteps?.prod || 1) + 1)">Próximo →</button>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="fecharModal('modal-produto')">Cancelar</button>
-      <button class="btn btn-p" id="prod-flow-save" onclick="salvarProduto()">Salvar produto</button>
+      <button class="btn" data-click="fecharModal('modal-produto')">Cancelar</button>
+      <button class="btn btn-p" id="prod-flow-save" data-click="salvarProduto()">Salvar produto</button>
     </div>
   </div>
 </div>
 
 <!-- Cliente -->
 <div class="modal-wrap" id="modal-cliente">
-  <div class="modal-bg" onclick="fecharModal('modal-cliente')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-cliente')"></div>
   <div class="modal-box">
     <div class="mt" id="cli-modal-titulo">Novo cliente</div>
     <div class="flow-head">
-      <button class="flow-chip on" type="button" data-flow-chip="cli" data-step="1" onclick="setFlowStep('cli',1)">1 Dados</button>
-      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="2" onclick="setFlowStep('cli',2)">2 Comercial</button>
-      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="3" onclick="setFlowStep('cli',3)">3 Marketing</button>
-      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="4" onclick="setFlowStep('cli',4)">4 Resumo</button>
+      <button class="flow-chip on" type="button" data-flow-chip="cli" data-step="1" data-click="setFlowStep('cli',1)">1 Dados</button>
+      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="2" data-click="setFlowStep('cli',2)">2 Comercial</button>
+      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="3" data-click="setFlowStep('cli',3)">3 Marketing</button>
+      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="4" data-click="setFlowStep('cli',4)">4 Resumo</button>
     </div>
 
     <div class="flow-step on" data-flow-id="cli" data-step="1">
@@ -706,22 +706,22 @@
     </div>
 
     <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="cli-flow-prev" onclick="setFlowStep('cli', (window.__flowSteps?.cli || 1) - 1)">← Voltar</button>
-      <button class="btn btn-sm" type="button" id="cli-flow-next" onclick="setFlowStep('cli', (window.__flowSteps?.cli || 1) + 1)">Próximo →</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-prev" data-click="setFlowStep('cli', (window.__flowSteps?.cli || 1) - 1)">← Voltar</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-next" data-click="setFlowStep('cli', (window.__flowSteps?.cli || 1) + 1)">Próximo →</button>
     </div>
-    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" onclick="salvarCliente()">Salvar</button></div>
+    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">Salvar</button></div>
   </div>
 </div>
 
 <!-- Detalhe cliente -->
 <div class="modal-wrap" id="modal-cli-det">
-  <div class="modal-bg" onclick="fecharModal('modal-cli-det')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-cli-det')"></div>
   <div class="modal-box" id="cli-det-box"></div>
 </div>
 
 <!-- Pedido -->
 <div class="modal-wrap" id="modal-pedido">
-  <div class="modal-bg" onclick="fecharModal('modal-pedido')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-pedido')"></div>
   <div class="modal-box">
     <div class="mt" id="ped-modal-titulo">Novo pedido</div>
     <div class="fg c3">
@@ -743,24 +743,24 @@
       <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
     </div>
     <div class="modal-actions modal-actions-inline">
-      <button class="btn btn-sm" onclick="addItem()">+ Adicionar item</button>
+      <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
     </div>
     <div id="ped-itens"></div>
     <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">—</span></div></div>
     <div class="fg" style="margin-top:10px"><div><div class="fl">Observações</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
-    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" onclick="salvarPedido()">Salvar pedido</button></div>
+    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" data-click="salvarPedido()">Salvar pedido</button></div>
   </div>
 </div>
 
 <!-- Detalhe pedido -->
 <div class="modal-wrap" id="modal-ped-det">
-  <div class="modal-bg" onclick="fecharModal('modal-ped-det')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-ped-det')"></div>
   <div class="modal-box" id="ped-det-box"></div>
 </div>
 
 <!-- Campanha -->
 <div class="modal-wrap" id="modal-campanha">
-  <div class="modal-bg" onclick="fecharModal('modal-campanha')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-campanha')"></div>
   <div class="modal-box">
     <div class="mt" id="campanha-modal-titulo">Nova campanha</div>
 
@@ -792,15 +792,15 @@
 
     <div class="div"></div>
     <div class="modal-actions">
-      <button class="btn" onclick="fecharModal('modal-campanha')">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarCampanha()">Salvar campanha</button>
+      <button class="btn" data-click="fecharModal('modal-campanha')">Cancelar</button>
+      <button class="btn btn-p" data-click="salvarCampanha()">Salvar campanha</button>
     </div>
   </div>
 </div>
 
 <!-- Jogo Dashboard -->
 <div class="modal-wrap" id="modal-jogo">
-  <div class="modal-bg" onclick="fecharModal('modal-jogo')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-jogo')"></div>
   <div class="modal-box">
     <div class="mt">Novo jogo (agenda)</div>
     <div class="fg c2">
@@ -816,15 +816,15 @@
       <div><div class="fl">Local</div><input class="inp" id="jogo-local" placeholder="Estádio / TV"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="fecharModal('modal-jogo')">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarJogoDashboard()">Salvar jogo</button>
+      <button class="btn" data-click="fecharModal('modal-jogo')">Cancelar</button>
+      <button class="btn btn-p" data-click="salvarJogoDashboard()">Salvar jogo</button>
     </div>
   </div>
 </div>
 
 <!-- Sincronização de jogos -->
 <div class="modal-wrap" id="modal-jogo-sync">
-  <div class="modal-bg" onclick="fecharModal('modal-jogo-sync')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-jogo-sync')"></div>
   <div class="modal-box">
     <div class="mt">Sincronizar jogos por API</div>
     <div class="fg">
@@ -834,10 +834,10 @@
       </div>
     </div>
     <div class="fg2" style="margin-bottom:12px">
-      <button class="btn btn-sm" onclick="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Série A</button>
-      <button class="btn btn-sm" onclick="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Série B</button>
-      <button class="btn btn-sm" onclick="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Série C</button>
-      <button class="btn btn-sm" onclick="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')">Por time</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Série A</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Série B</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Série C</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')">Por time</button>
     </div>
     <div class="fg">
       <div>
@@ -850,26 +850,26 @@
       <p style="font-size:12px;color:var(--tx2)">Array direto ou objeto com `matches`, `response`, `events` ou `data`.</p>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="fecharModal('modal-jogo-sync')">Cancelar</button>
-      <button class="btn btn-p" onclick="sincronizarJogosDashboard()">Sincronizar agora</button>
+      <button class="btn" data-click="fecharModal('modal-jogo-sync')">Cancelar</button>
+      <button class="btn btn-p" data-click="sincronizarJogosDashboard()">Sincronizar agora</button>
     </div>
   </div>
 </div>
 
 <!-- Fornecedor cotação -->
 <div class="modal-wrap" id="modal-forn">
-  <div class="modal-bg" onclick="fecharModal('modal-forn')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-forn')"></div>
   <div class="modal-box">
     <div class="mt">Novo fornecedor</div>
     <div class="fg"><div><div class="fl">Nome *</div><input class="inp" id="fn-nome"></div></div>
     <div class="fg c2"><div><div class="fl">Contato</div><input class="inp" id="fn-contato"></div><div><div class="fl">Prazo entrega (dias)</div><input class="inp" id="fn-prazo" type="number" min="0"></div></div>
-    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" onclick="salvarForn()">Salvar</button></div>
+    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" data-click="salvarForn()">Salvar</button></div>
   </div>
 </div>
 
 <!-- Mapeamento de colunas -->
 <div class="modal-wrap" id="modal-mapa">
-  <div class="modal-bg" onclick="fecharModal('modal-mapa')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-mapa')"></div>
   <div class="modal-box modal-box-wide">
     <div class="mt" id="mapa-titulo">Mapear colunas</div>
     <div id="mapa-body"></div>
@@ -878,29 +878,29 @@
 
 <!-- Movimentação estoque -->
 <div class="modal-wrap" id="modal-mov">
-  <div class="modal-bg" onclick="fecharModal('modal-mov')"></div>
+  <div class="modal-bg" data-click="fecharModal('modal-mov')"></div>
   <div class="modal-box">
     <div class="mt">Nova movimentação</div>
     <div class="tc-grid">
-      <div class="tc-card sel" id="tc-entrada" onclick="setTipo('entrada')"><div class="ti">EN</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
-      <div class="tc-card" id="tc-saida" onclick="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saída</div><div class="ts">Venda / consumo</div></div>
-      <div class="tc-card" id="tc-ajuste" onclick="setTipo('ajuste')"><div class="ti">AJ</div><div class="tl">Ajuste</div><div class="ts">Inventário</div></div>
-      <div class="tc-card" id="tc-transf" onclick="setTipo('transf')"><div class="ti">TR</div><div class="tl">Transferência</div><div class="ts">Entre filiais</div></div>
+      <div class="tc-card sel" id="tc-entrada" data-click="setTipo('entrada')"><div class="ti">EN</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
+      <div class="tc-card" id="tc-saida" data-click="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saída</div><div class="ts">Venda / consumo</div></div>
+      <div class="tc-card" id="tc-ajuste" data-click="setTipo('ajuste')"><div class="ti">AJ</div><div class="tl">Ajuste</div><div class="ts">Inventário</div></div>
+      <div class="tc-card" id="tc-transf" data-click="setTipo('transf')"><div class="ti">TR</div><div class="tl">Transferência</div><div class="ts">Entre filiais</div></div>
     </div>
     <div class="fg c2">
-      <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" onchange="movLoadProd()"><option value="">— selecione —</option></select></div>
+      <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" data-change="movLoadProd()"><option value="">— selecione —</option></select></div>
       <div><div class="fl">Data</div><input class="inp" id="mov-data" type="date"></div>
     </div>
     <div id="mov-saldo-panel" style="display:none" class="panel"><div class="pt">Posição atual</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Saldo: <b id="ms-saldo">—</b></span><span>Custo médio: <b id="ms-cm">—</b></span></div></div>
     <div class="fg c2" id="mov-qty-row">
-      <div><div class="fl" id="mov-qty-lbl">Quantidade *</div><input class="inp" id="mov-qty" type="number" min="0" step="0.01" oninput="movCalc()"></div>
-      <div id="mov-custo-wrap"><div class="fl">Custo unitário (R$)</div><input class="inp" id="mov-custo" type="number" step="0.01" oninput="movCalc()"></div>
+      <div><div class="fl" id="mov-qty-lbl">Quantidade *</div><input class="inp" id="mov-qty" type="number" min="0" step="0.01" data-input="movCalc()"></div>
+      <div id="mov-custo-wrap"><div class="fl">Custo unitário (R$)</div><input class="inp" id="mov-custo" type="number" step="0.01" data-input="movCalc()"></div>
     </div>
-    <div id="mov-ajuste-row" style="display:none" class="fg"><div><div class="fl">Saldo real (contagem física)</div><input class="inp" id="mov-real" type="number" step="0.01" oninput="movCalcAjuste()"></div></div>
+    <div id="mov-ajuste-row" style="display:none" class="fg"><div><div class="fl">Saldo real (contagem física)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
     <div id="mov-transf-row" style="display:none" class="fg"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">— selecione —</option></select></div></div>
     <div id="mov-preview" style="display:none" class="panel"><div class="pt">Prévia</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Novo saldo: <b id="mp-saldo">—</b></span><span>Custo médio: <b id="mp-cm">—</b></span><span id="mp-val-wrap">Total: <b id="mp-val">—</b></span></div></div>
     <div class="fg"><div><div class="fl">Observação</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referência..."></div></div>
-    <div class="modal-actions"><button class="btn" onclick="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" onclick="salvarMov()">Confirmar</button></div>
+    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" data-click="salvarMov()">Confirmar</button></div>
   </div>
 </div>
 

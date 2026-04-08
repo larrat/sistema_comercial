@@ -1,4 +1,4 @@
-import { SB } from '../js/api.js';
+﻿import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
 import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
@@ -90,7 +90,7 @@ function shouldAutoSyncJogos(fid){
 }
 
 function fmtDataHora(v){
-  if(!v) return '—';
+  if(!v) return 'â€”';
   const d = new Date(v);
   if(isNaN(d.getTime())) return String(v);
   return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
@@ -340,9 +340,9 @@ export function renderDash(){
 
   const pLabels = {
     semana:'Esta semana',
-    mes:'Este mês',
+    mes:'Este mÃªs',
     ano:'Este ano',
-    tudo:'Todos os períodos'
+    tudo:'Todos os perÃ­odos'
   };
 
   const fLabel =
@@ -351,7 +351,7 @@ export function renderDash(){
       : (D.filiais || []).find(f => f.id === fsel)?.nome || '';
 
   const desc = document.getElementById('dash-desc');
-  if(desc) desc.textContent = fLabel + ' — ' + pLabels[State.dashP];
+  if(desc) desc.textContent = fLabel + ' â€” ' + pLabels[State.dashP];
 
   renderDashJogos(fsel);
 
@@ -389,7 +389,7 @@ export function renderDash(){
         <div class="mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}">${pct(mg)}</div>
       </div>
       <div class="met">
-        <div class="ml">Ticket médio</div>
+        <div class="ml">Ticket mÃ©dio</div>
         <div class="mv kpi-value-sm">${fmt(tk)}</div>
       </div>
       <div class="met">
@@ -416,10 +416,10 @@ export function renderDash(){
 
   let ah = '';
   if(crit.length){
-    ah += `<div class="alert al-r"><b>Estoque crítico:</b> ${crit.length} produto(s) zerado(s). ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-r"><b>Estoque crÃ­tico:</b> ${crit.length} produto(s) zerado(s). ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? 'â€¦' : ''}</div>`;
   }
   if(baixo.length){
-    ah += `<div class="alert al-a"><b>Estoque em atenção:</b> ${baixo.length} item(ns) abaixo do mínimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-a"><b>Estoque em atenÃ§Ã£o:</b> ${baixo.length} item(ns) abaixo do mÃ­nimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? 'â€¦' : ''}</div>`;
   }
 
   const hoje = new Date();
@@ -439,7 +439,7 @@ export function renderDash(){
     .sort((a, b) => a._anivData - b._anivData);
 
   if(anivProximos.length){
-    ah += `<div class="alert al-g"><b>Aniversários próximos:</b> ${anivProximos.length} cliente(s) nos próximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? '…' : ''}</div>`;
+    ah += `<div class="alert al-g"><b>AniversÃ¡rios prÃ³ximos:</b> ${anivProximos.length} cliente(s) nos prÃ³ximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? 'â€¦' : ''}</div>`;
   }
 
   const filialJogosId = getFilialCalendarioId();
@@ -479,8 +479,8 @@ export function renderDash(){
   });
 
   if(oportunidades.length){
-    const serieTxt = serieSel === 'todas' ? 'todas as séries' : `Série ${serieSel.toUpperCase()}`;
-    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegível(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '…' : ''}</div>`;
+    const serieTxt = serieSel === 'todas' ? 'todas as sÃ©ries' : `SÃ©rie ${serieSel.toUpperCase()}`;
+    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegÃ­vel(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? 'â€¦' : ''}</div>`;
   }
 
   const alerts = document.getElementById('dash-alerts');
@@ -544,9 +544,9 @@ export function renderDash(){
   });
 
   const stLbl = {
-    orcamento:'Orçamento',
+    orcamento:'OrÃ§amento',
     confirmado:'Confirmado',
-    em_separacao:'Em separação',
+    em_separacao:'Em separaÃ§Ã£o',
     entregue:'Entregue',
     cancelado:'Cancelado'
   };
@@ -615,7 +615,7 @@ export function renderDash(){
             </div>
           `;
         }).join('')
-      : `<div class="empty" style="padding:12px"><p>✓ Sem alertas</p></div>`;
+      : `<div class="empty" style="padding:12px"><p>âœ“ Sem alertas</p></div>`;
   }
 
   const fu = {};
@@ -640,7 +640,7 @@ export function renderDash(){
             <span class="rval" style="color:var(--tx2)">${c}x</span>
           </div>
         `).join('')
-      : `<div class="empty" style="padding:12px"><p>Nenhuma importação</p></div>`;
+      : `<div class="empty" style="padding:12px"><p>Nenhuma importaÃ§Ã£o</p></div>`;
   }
 
   const mp = {};
@@ -689,12 +689,12 @@ export function renderDash(){
           </table>
         </div>
       `
-      : `<div class="empty" style="padding:12px"><p>Sem vendas no período</p></div>`;
+      : `<div class="empty" style="padding:12px"><p>Sem vendas no perÃ­odo</p></div>`;
   }
 
   const dashOportunidades = document.getElementById('dash-oportunidades');
   if(dashOportunidades){
-    const serieLabel = serieSel === 'todas' ? 'Todas as séries' : `Série ${serieSel.toUpperCase()}`;
+    const serieLabel = serieSel === 'todas' ? 'Todas as sÃ©ries' : `SÃ©rie ${serieSel.toUpperCase()}`;
     dashOportunidades.innerHTML = `
       <div class="rrow" style="margin-bottom:8px">
         <span class="bdg bk">${serieLabel}</span>
@@ -702,18 +702,18 @@ export function renderDash(){
         <span class="bdg ${oportunidades.length ? 'ba' : 'bk'}">Semana: ${oportunidades.length}</span>
       </div>
       <div class="dash-op-actions">
-        <button class="btn btn-sm" onclick="ir('campanhas')">Abrir campanhas</button>
-        <button class="btn btn-p btn-sm" onclick="abrirNovaCampanha()">Nova campanha</button>
+        <button class="btn btn-sm" data-click="ir('campanhas')">Abrir campanhas</button>
+        <button class="btn btn-p btn-sm" data-click="abrirNovaCampanha()">Nova campanha</button>
       </div>
       ${oportunidades.length
       ? oportunidades.slice(0, 5).map(o => `
           <div class="rrow dash-op-item">
             <span style="width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;display:inline-block"></span>
             <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.cliente} • ${o.time}</div>
-              <div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} • ${fmtDataHora(o.jogo.data_hora)}</div>
+              <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.cliente} â€¢ ${o.time}</div>
+              <div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} â€¢ ${fmtDataHora(o.jogo.data_hora)}</div>
             </div>
-            <button class="btn btn-sm" onclick="ir('campanhas')">Acionar</button>
+            <button class="btn btn-sm" data-click="ir('campanhas')">Acionar</button>
           </div>
         `).join('')
       : `<div class="empty" style="padding:12px"><p>Sem oportunidades por jogos na semana</p></div>`}
@@ -929,7 +929,7 @@ export async function salvarJogoDashboard(){
     await SB.upsertJogoAgenda(item);
   }catch(e){
     console.error('Erro ao salvar jogo na API', e);
-    notify('Erro: jogo não foi salvo no banco. Ação: tente novamente.', SEVERITY.ERROR);
+    notify('Erro: jogo nÃ£o foi salvo no banco. AÃ§Ã£o: tente novamente.', SEVERITY.ERROR);
     return;
   }
 
@@ -952,7 +952,7 @@ export async function removerJogoDashboard(id){
     await SB.deleteJogoAgenda(id);
   }catch(e){
     console.error('Erro ao remover jogo da API', e);
-    notify('Erro: não foi possível remover no banco. Ação: tente novamente.', SEVERITY.ERROR);
+    notify('Erro: nÃ£o foi possÃ­vel remover no banco. AÃ§Ã£o: tente novamente.', SEVERITY.ERROR);
     return;
   }
 
@@ -973,7 +973,7 @@ export function renderDashJogos(fsel = 'todas'){
 
   if(fsel !== 'todas' && fsel !== filialId){
     const nome = (D.filiais || []).find(f => f.id === filialId)?.nome || 'Filial 1';
-    el.innerHTML = `<div class="empty" style="padding:12px"><p>Agenda disponível em ${nome}.</p></div>`;
+    el.innerHTML = `<div class="empty" style="padding:12px"><p>Agenda disponÃ­vel em ${nome}.</p></div>`;
     return;
   }
 
@@ -1004,9 +1004,9 @@ export function renderDashJogos(fsel = 'todas'){
       <span style="width:8px;height:8px;border-radius:50%;background:var(--b);flex-shrink:0;display:inline-block"></span>
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${j.titulo}</div>
-        <div style="font-size:11px;color:var(--tx3)">${fmtDataHora(j.data_hora)}${j.campeonato ? ' • ' + j.campeonato : ''}</div>
+        <div style="font-size:11px;color:var(--tx3)">${fmtDataHora(j.data_hora)}${j.campeonato ? ' â€¢ ' + j.campeonato : ''}</div>
       </div>
-      <button class="ib" title="Excluir jogo" onclick="removerJogoDashboard('${j.id}')">DEL</button>
+      <button class="ib" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">DEL</button>
     </div>
   `).join('');
 }
