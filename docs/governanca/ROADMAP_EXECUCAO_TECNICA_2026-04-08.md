@@ -40,12 +40,13 @@ Incidente de seguranca, regressao silenciosa de comportamento entre ambientes e 
   - preparar checklist operacional da primeira onda
 
 ### Fase 2 - Estabilizacao Obrigatoria
-- status: planejada
+- status: em andamento
 - foco:
   - contratos minimos da camada `SB.*`
   - smoke tests dos fluxos criticos
   - falha explicita de persistencia
   - reforco de autorizacao funcional
+  - primeira onda backend (`script first`) preparada com runner unico
 
 ### Fase 3 - Backend de Dominio
 - status: planejada

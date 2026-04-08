@@ -24,33 +24,33 @@ export const ROLE_PAGE_ACCESS = {
   acessos: ROLE_ADMIN_ONLY
 };
 export const ROLE_UI_MANAGER_SELECTORS = [
-  '[onclick*="exportarTudo("]',
-  '[onclick*="exportCSV("]',
-  '[onclick*="removerProd("]',
-  '[onclick*="removerCli("]',
-  '[onclick*="removerPed("]',
-  '[onclick*="remForn("]',
-  '[onclick*="excluirMov("]',
-  '[onclick*="abrirNovaCampanha("]',
-  '[onclick*="salvarCampanha("]',
-  '[onclick*="removerCampanha("]',
-  '[onclick*="gerarFilaCampanha("]',
-  '[onclick*="marcarEnvioEnviado("]',
-  '[onclick*="marcarEnvioFalhou("]',
-  '[onclick*="abrirSyncJogos("]',
-  '[onclick*="sincronizarJogosDashboard("]',
-  '[onclick*="salvarJogoDashboard("]',
-  '[onclick*="removerJogoDashboard("]'
+  '[data-click*="exportarTudo("]',
+  '[data-click*="exportCSV("]',
+  '[data-click*="removerProd("]',
+  '[data-click*="removerCli("]',
+  '[data-click*="removerPed("]',
+  '[data-click*="remForn("]',
+  '[data-click*="excluirMov("]',
+  '[data-click*="abrirNovaCampanha("]',
+  '[data-click*="salvarCampanha("]',
+  '[data-click*="removerCampanha("]',
+  '[data-click*="gerarFilaCampanha("]',
+  '[data-click*="marcarEnvioEnviado("]',
+  '[data-click*="marcarEnvioFalhou("]',
+  '[data-click*="abrirSyncJogos("]',
+  '[data-click*="sincronizarJogosDashboard("]',
+  '[data-click*="salvarJogoDashboard("]',
+  '[data-click*="removerJogoDashboard("]'
 ];
 export const ROLE_UI_ADMIN_SELECTORS = [
-  '[onclick*="criarPrimeiraFilial("]',
-  '[onclick*="salvarFilial("]',
-  '[onclick*="removerFilial("]',
-  '[onclick*="editarFilial("]',
-  '[onclick*="salvarPerfilAcesso("]',
-  '[onclick*="removerPerfilAcesso("]',
-  '[onclick*="vincularUsuarioFilial("]',
-  '[onclick*="desvincularUsuarioFilial("]'
+  '[data-click*="criarPrimeiraFilial("]',
+  '[data-click*="salvarFilial("]',
+  '[data-click*="removerFilial("]',
+  '[data-click*="editarFilial("]',
+  '[data-click*="salvarPerfilAcesso("]',
+  '[data-click*="removerPerfilAcesso("]',
+  '[data-click*="vincularUsuarioFilial("]',
+  '[data-click*="desvincularUsuarioFilial("]'
 ];
 
 let roleUiGuardTimer = null;
@@ -204,7 +204,7 @@ export function scheduleRoleUiGuards(){
 export function startRoleUiObserver(){
   if(roleUiObserver || typeof MutationObserver === 'undefined') return;
   roleUiObserver = new MutationObserver(() => scheduleRoleUiGuards());
-  roleUiObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['onclick'] });
+  roleUiObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-click'] });
 }
 
 export async function carregarContextoUsuario(session){
