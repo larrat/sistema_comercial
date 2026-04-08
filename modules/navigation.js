@@ -101,17 +101,17 @@ function schedulePageRender(page){
 
 const PAGE_META = {
   dashboard: {
-    kicker: 'Workspace',
+    kicker: 'Resumo',
     title: 'Dashboard',
-    sub: 'Visao geral e oportunidades da filial',
+    sub: 'Visao geral da filial',
     primary: { label: 'Novo pedido', run: () => { deps.limparFormPedTracked(); deps.abrirModal('modal-pedido'); } },
     secondary: { label: 'Novo cliente', run: () => { deps.limparFormCliTracked(); deps.abrirModal('modal-cliente'); } },
     tertiary: { label: 'Novo produto', run: () => { deps.limparFormProdTracked(); deps.abrirModal('modal-produto'); } }
   },
   gerencial: {
-    kicker: 'Gestao',
+    kicker: 'Indicadores',
     title: 'Gerencial',
-    sub: 'Metas de negocio e desempenho continuo',
+    sub: 'Metas e desempenho',
     primary: { label: 'Atualizar KPIs', run: () => deps.renderMetasNegocio() },
     secondary: { label: 'Auditoria visual', run: () => deps.executarAuditoriaVisual() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
@@ -119,7 +119,7 @@ const PAGE_META = {
   produtos: {
     kicker: 'Cadastros',
     title: 'Produtos',
-    sub: 'Catalogo comercial e precificacao',
+    sub: 'Catalogo e precos',
     primary: { label: 'Novo produto', run: () => { deps.limparFormProdTracked(); deps.abrirModal('modal-produto'); } },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('produtos'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Ir clientes', run: () => ir('clientes') }
@@ -127,39 +127,39 @@ const PAGE_META = {
   clientes: {
     kicker: 'Cadastros',
     title: 'Clientes',
-    sub: 'Relacionamento e segmentacao',
+    sub: 'Relacionamento e segmentos',
     primary: { label: 'Novo cliente', run: () => { deps.limparFormCliTracked(); deps.abrirModal('modal-cliente'); } },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('clientes'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') }
   },
   pedidos: {
-    kicker: 'Operacoes',
+    kicker: 'Vendas',
     title: 'Pedidos',
-    sub: 'Orcamentos, vendas e acompanhamento',
+    sub: 'Orcamentos e vendas',
     primary: { label: 'Novo pedido', run: () => { deps.limparFormPedTracked(); deps.abrirModal('modal-pedido'); } },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('pedidos'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
   },
   cotacao: {
-    kicker: 'Operacoes',
+    kicker: 'Compras',
     title: 'Cotacao',
-    sub: 'Fornecedores e comparacao de preco',
+    sub: 'Fornecedores e precos',
     primary: { label: 'Novo fornecedor', run: () => deps.abrirModal('modal-forn') },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('cotacao'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Travar/Destravar', run: () => deps.cotLock() }
   },
   estoque: {
-    kicker: 'Operacoes',
+    kicker: 'Operacao',
     title: 'Estoque',
-    sub: 'Posicao, alertas e movimentacoes',
+    sub: 'Saldo e movimentacoes',
     primary: { label: 'Nova movimentacao', run: () => { deps.resetMov(); deps.abrirModal('modal-mov'); } },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('estoque'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Ir produtos', run: () => ir('produtos') }
   },
   campanhas: {
-    kicker: 'Operacoes',
+    kicker: 'Marketing',
     title: 'Campanhas',
-    sub: 'Acoes comerciais e fila de envios',
+    sub: 'Acoes e envios',
     primary: { label: 'Nova campanha', run: () => deps.abrirNovaCampanhaTracked(), roles: deps.roleManagerPlus },
     secondary: { label: 'Atualizar tela', run: () => deps.refreshCampanhasTela() },
     tertiary: { label: 'Exportar CSV', run: () => deps.exportCSV('campanhas'), roles: deps.roleManagerPlus }
@@ -167,7 +167,7 @@ const PAGE_META = {
   filiais: {
     kicker: 'Sistema',
     title: 'Filiais',
-    sub: 'Gestao de unidades e troca de contexto',
+    sub: 'Unidades e contexto',
     primary: { label: 'Nova filial', run: () => { deps.limparFormFilial(); deps.abrirModal('modal-filial'); }, roles: deps.roleAdminOnly },
     secondary: { label: 'Voltar setup', run: () => deps.voltarSetup() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
@@ -175,15 +175,15 @@ const PAGE_META = {
   acessos: {
     kicker: 'Sistema',
     title: 'Acessos',
-    sub: 'Perfis e vinculos de usuarios por filial',
+    sub: 'Perfis e permissoes',
     primary: { label: 'Atualizar', run: () => deps.renderAcessosAdmin(), roles: deps.roleAdminOnly },
     secondary: { label: 'Ir filiais', run: () => ir('filiais'), roles: deps.roleAdminOnly },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   notificacoes: {
-    kicker: 'Inbox',
+    kicker: 'Alertas',
     title: 'Notificacoes',
-    sub: 'Alertas criticos, atencao e oportunidades',
+    sub: 'Criticos, atencao e oportunidade',
     primary: { label: 'Resolver todas', run: () => deps.resolverTodasNotificacoesTracked() },
     secondary: { label: 'Atualizar', run: () => deps.renderNotificacoes() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
@@ -275,9 +275,9 @@ export function syncSidebarContext(meta){
   const kicker = document.getElementById('sb-context-kicker');
   const title = document.getElementById('sb-context-title');
   const sub = document.getElementById('sb-context-sub');
-  if(kicker) kicker.textContent = meta?.kicker || 'Workspace';
+  if(kicker) kicker.textContent = meta?.kicker || 'Resumo';
   if(title) title.textContent = meta?.title || 'Dashboard';
-  if(sub) sub.textContent = meta?.sub || 'Visao geral da operacao atual';
+  if(sub) sub.textContent = meta?.sub || 'Visao geral';
 }
 
 export function filterSidebarNav(raw = ''){

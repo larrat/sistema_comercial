@@ -1,10 +1,11 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
 import { createScreenDom } from '../core/dom.js';
-import { abrirModal, fecharModal, toast, notify, focusField } from '../core/utils.js';
+import { abrirModal, toast, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
 
 let setFlowStepSafe = () => {};
+
 const cliDom = createScreenDom('clientes', [
   'cli-met',
   'cli-fil-seg',
@@ -14,100 +15,155 @@ const cliDom = createScreenDom('clientes', [
   'cli-segs-lista',
   'cli-modal-titulo',
   'cli-flow-save',
-  'cli-dl'
+  'cli-dl',
+  'cli-det-box'
 ]);
+
 const CLI_FORM_IDS = [
-  'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv',
-  'c-time','c-resp','c-seg','c-cidade','c-estado','c-obs'
+  'c-nome', 'c-apelido', 'c-doc', 'c-tel', 'c-whatsapp', 'c-email', 'c-aniv',
+  'c-time', 'c-resp', 'c-seg', 'c-cidade', 'c-estado', 'c-obs'
 ];
+
 const CLI_SELECT_DEFAULTS = {
   'c-tipo': 'PJ',
   'c-status': 'ativo',
   'c-tab': 'padrao',
   'c-prazo': 'a_vista'
 };
+
 const CLI_CHECKBOX_IDS = ['c-optin-marketing', 'c-optin-email', 'c-optin-sms'];
+
+const AVC = [
+  { bg: '#E6EEF9', c: '#0F2F5E' },
+  { bg: '#E6F4EC', c: '#0D3D22' },
+  { bg: '#FAF0D6', c: '#5C3900' },
+  { bg: '#FAEBE9', c: '#731F18' }
+];
+
+const ST_B = {
+  ativo: '<span class="bdg bg">Ativo</span>',
+  inativo: '<span class="bdg bk">Inativo</span>',
+  prospecto: '<span class="bdg bb">Prospecto</span>'
+};
+
+const TAB_LABELS = {
+  padrao: 'Padrao',
+  especial: '<span class="bdg ba">Especial</span>',
+  vip: '<span class="bdg br">VIP</span>'
+};
+
+const PRAZO_LABELS = {
+  a_vista: 'A vista',
+  '7d': '7d',
+  '15d': '15d',
+  '30d': '30d',
+  '60d': '60d'
+};
+
+const PRAZO_DETALHE_LABELS = {
+  a_vista: 'A vista',
+  '7d': '7 dias',
+  '15d': '15 dias',
+  '30d': '30 dias',
+  '60d': '60 dias'
+};
 
 export function initClientesModule(callbacks = {}){
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
 }
 
-const AVC = [
-  { bg:'#E6EEF9', c:'#0F2F5E' },
-  { bg:'#E6F4EC', c:'#0D3D22' },
-  { bg:'#FAF0D6', c:'#5C3900' },
-  { bg:'#FAEBE9', c:'#731F18' }
-];
-
-function avc(n){
-  const nome = String(n || 'X');
-  return AVC[nome.charCodeAt(0) % AVC.length];
+function esc(value){
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-function ini(n){
-  const p = String(n || '').trim().split(' ').filter(Boolean);
-  if(!p.length) return 'CL';
-  return (p[0][0] + (p[1] ? p[1][0] : '')).toUpperCase();
+function avc(nome){
+  const value = String(nome || 'X');
+  return AVC[value.charCodeAt(0) % AVC.length];
+}
+
+function ini(nome){
+  const parts = String(nome || '').trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return 'CL';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
 }
 
 function fmtAniv(iso){
   if(!iso) return '';
-  const [y, m, d] = String(iso).split('-');
-  if(!y || !m || !d) return iso;
-  return `${d}/${m}`;
+  const [year, month, day] = String(iso).split('-');
+  if(!year || !month || !day) return iso;
+  return `${day}/${month}`;
 }
 
 function getDiasParaAniversario(iso){
   if(!iso) return null;
-  const [, m, d] = String(iso).split('-').map(Number);
-  if(!m || !d) return null;
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  let alvo = new Date(now.getFullYear(), m - 1, d);
+
+  const [, month, day] = String(iso).split('-').map(Number);
+  if(!month || !day) return null;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  let alvo = new Date(hoje.getFullYear(), month - 1, day);
   alvo.setHours(0, 0, 0, 0);
-  if(alvo < now){
-    alvo = new Date(now.getFullYear() + 1, m - 1, d);
+
+  if(alvo < hoje){
+    alvo = new Date(hoje.getFullYear() + 1, month - 1, day);
     alvo.setHours(0, 0, 0, 0);
   }
-  const diffMs = alvo.getTime() - now.getTime();
-  return Math.round(diffMs / 86400000);
+
+  return Math.round((alvo.getTime() - hoje.getTime()) / 86400000);
 }
 
-function getBadgeAniversario(c){
-  if(!c?.data_aniversario) return '';
-  const dias = getDiasParaAniversario(c.data_aniversario);
-  if(dias == null) return `<span class="bdg bb">ðŸŽ‚ ${fmtAniv(c.data_aniversario)}</span>`;
-  if(dias === 0) return '<span class="bdg br">ðŸŽ‚ Hoje</span>';
-  if(dias <= 7) return `<span class="bdg ba">ðŸŽ‚ ${dias}d</span>`;
-  return `<span class="bdg bb">ðŸŽ‚ ${fmtAniv(c.data_aniversario)}</span>`;
+function getBadgeAniversario(cliente){
+  if(!cliente?.data_aniversario) return '';
+
+  const dias = getDiasParaAniversario(cliente.data_aniversario);
+  if(dias == null){
+    return `<span class="bdg bb">Aniv ${esc(fmtAniv(cliente.data_aniversario))}</span>`;
+  }
+  if(dias === 0){
+    return '<span class="bdg br">Aniv hoje</span>';
+  }
+  if(dias <= 7){
+    return `<span class="bdg ba">Aniv ${dias}d</span>`;
+  }
+  return `<span class="bdg bb">Aniv ${esc(fmtAniv(cliente.data_aniversario))}</span>`;
 }
 
-function getContatoInfo(c){
-  const temWhatsapp = !!String(c?.whatsapp || '').trim();
-  const temTel = !!String(c?.tel || '').trim();
-  const temEmail = !!String(c?.email || '').trim();
+function getContatoInfo(cliente){
+  const whatsapp = String(cliente?.whatsapp || '').trim();
+  const tel = String(cliente?.tel || '').trim();
+  const email = String(cliente?.email || '').trim();
 
-  if(temWhatsapp){
+  if(whatsapp){
     return {
-      principal: `WhatsApp: ${c.whatsapp}`,
-      secundario: temTel && c.tel !== c.whatsapp ? `Telefone: ${c.tel}` : '',
+      principal: `WhatsApp: ${whatsapp}`,
+      secundario: tel && tel !== whatsapp ? `Telefone: ${tel}` : '',
       badge: '<span class="bdg bg">WhatsApp</span>'
     };
   }
-  if(temTel){
+
+  if(tel){
     return {
-      principal: `Telefone: ${c.tel}`,
-      secundario: temEmail ? c.email : '',
-      badge: '<span class="bdg ba">Somente telefone</span>'
+      principal: `Telefone: ${tel}`,
+      secundario: email,
+      badge: '<span class="bdg ba">Telefone</span>'
     };
   }
-  if(temEmail){
+
+  if(email){
     return {
-      principal: c.email,
+      principal: email,
       secundario: '',
-      badge: '<span class="bdg bb">Somente e-mail</span>'
+      badge: '<span class="bdg bb">E-mail</span>'
     };
   }
+
   return {
     principal: 'Sem contato',
     secundario: '',
@@ -115,24 +171,18 @@ function getContatoInfo(c){
   };
 }
 
-const ST_B = {
-  ativo:'<span class="bdg bg">Ativo</span>',
-  inativo:'<span class="bdg bk">Inativo</span>',
-  prospecto:'<span class="bdg bb">Prospecto</span>'
-};
-
-function normTxt(v){
-  return String(v || '')
+function normTxt(value){
+  return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
 }
 
-function parseTimes(v){
-  const raw = Array.isArray(v)
-    ? v
-    : String(v || '').split(/[,;\n]+/);
+function parseTimes(value){
+  const raw = Array.isArray(value)
+    ? value
+    : String(value || '').split(/[,;\n]+/);
 
   const seen = new Set();
   const out = [];
@@ -149,121 +199,213 @@ function parseTimes(v){
   return out;
 }
 
-export function renderCliMet(){
-  const c = C();
-  const a = c.filter(x => x.status === 'ativo').length;
-  const pr = c.filter(x => x.status === 'prospecto').length;
-  const segs = [...new Set(c.map(x => x.seg).filter(Boolean))].length;
+function getFilteredClientes(){
+  const q = normTxt(cliDom.get('cli-busca')?.value || '');
+  const seg = cliDom.get('cli-fil-seg')?.value || '';
+  const status = cliDom.get('cli-fil-st')?.value || '';
 
-  const cur = cliDom.get('cli-fil-seg')?.value || '';
+  return C().filter(cliente => {
+    const termos = [
+      cliente.nome,
+      cliente.apelido,
+      cliente.seg,
+      cliente.resp,
+      cliente.email,
+      cliente.tel,
+      cliente.whatsapp,
+      parseTimes(cliente.time).join(' ')
+    ].map(normTxt).join(' ');
+
+    return (!q || termos.includes(q))
+      && (!seg || cliente.seg === seg)
+      && (!status || cliente.status === status);
+  });
+}
+
+function renderEstadoVazio(){
+  const texto = C().length
+    ? 'Nenhum cliente encontrado com os filtros atuais.'
+    : 'Clique em "Novo cliente" para cadastrar o primeiro.';
+
+  cliDom.html(
+    'list',
+    'cli-lista',
+    `<div class="empty"><div class="ico">CL</div><p>${esc(texto)}</p></div>`,
+    'clientes:lista-vazia'
+  );
+}
+
+function renderTagsCliente(cliente, contato, times){
+  return [
+    getBadgeAniversario(cliente),
+    contato.badge,
+    cliente.optin_marketing ? '<span class="bdg bg">MKT</span>' : '',
+    cliente.optin_email ? '<span class="bdg bk">E-mail</span>' : '',
+    cliente.optin_sms ? '<span class="bdg bk">SMS</span>' : '',
+    cliente.seg ? `<span class="bdg bk">${esc(cliente.seg)}</span>` : '',
+    ...times.map(time => `<span class="bdg bb">${esc(time)}</span>`)
+  ].filter(Boolean).join('');
+}
+
+function renderClienteMobile(cliente){
+  const cor = avc(cliente.nome);
+  const contato = getContatoInfo(cliente);
+  const times = parseTimes(cliente.time);
+  const tabela = TAB_LABELS[cliente.tab] || '-';
+  const prazo = PRAZO_LABELS[cliente.prazo] || '-';
+
+  return `
+    <div class="card mobile-card">
+      <div class="mobile-card-head">
+        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+          <div class="av" style="background:${cor.bg};color:${cor.c}">${esc(ini(cliente.nome))}</div>
+          <div style="min-width:0">
+            <div class="mobile-card-title">${esc(cliente.nome)}</div>
+            ${cliente.apelido ? `<div class="mobile-card-sub">${esc(cliente.apelido)}</div>` : ''}
+          </div>
+        </div>
+        <div>${ST_B[cliente.status] || ''}</div>
+      </div>
+
+      <div class="mobile-card-meta" style="margin-bottom:8px">
+        <div>${esc(contato.principal)}</div>
+        ${contato.secundario ? `<div>${esc(contato.secundario)}</div>` : ''}
+        ${cliente.email && !contato.principal.includes(cliente.email) ? `<div>${esc(cliente.email)}</div>` : ''}
+        <div>${tabela} - ${esc(prazo)}</div>
+      </div>
+
+      <div class="mobile-card-tags" style="gap:4px">
+        ${renderTagsCliente(cliente, contato, times)}
+      </div>
+
+      <div class="mobile-card-actions">
+        <button class="btn btn-sm" data-click="abrirCliDet('${cliente.id}')">Detalhes</button>
+        <button class="btn btn-p btn-sm" data-click="editarCli('${cliente.id}')">Editar</button>
+        <button class="btn btn-sm" data-click="removerCli('${cliente.id}')">Excluir</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderClienteDesktop(cliente){
+  const cor = avc(cliente.nome);
+  const contato = getContatoInfo(cliente);
+  const times = parseTimes(cliente.time);
+
+  return `
+    <tr>
+      <td><div class="av" style="background:${cor.bg};color:${cor.c}">${esc(ini(cliente.nome))}</div></td>
+      <td>
+        <div style="font-weight:600">${esc(cliente.nome)}</div>
+        ${cliente.apelido ? `<div style="font-size:11px;color:var(--tx3)">${esc(cliente.apelido)}</div>` : ''}
+      </td>
+      <td>
+        <div>${esc(contato.principal)}</div>
+        ${contato.secundario ? `<div style="font-size:11px;color:var(--tx3)">${esc(contato.secundario)}</div>` : ''}
+        ${cliente.email && !contato.principal.includes(cliente.email) ? `<div style="font-size:11px;color:var(--tx3)">${esc(cliente.email)}</div>` : ''}
+      </td>
+      <td>
+        <div class="fg2" style="gap:4px">
+          ${getBadgeAniversario(cliente) || '<span style="color:var(--tx3)">-</span>'}
+          ${contato.badge}
+          ${cliente.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
+          ${cliente.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
+          ${cliente.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
+        </div>
+      </td>
+      <td>
+        <div class="fg2" style="gap:4px">
+          ${cliente.seg ? `<span class="bdg bk">${esc(cliente.seg)}</span>` : ''}
+          ${times.map(time => `<span class="bdg bb">${esc(time)}</span>`).join('')}
+          ${!cliente.seg && !times.length ? '-' : ''}
+        </div>
+      </td>
+      <td>${TAB_LABELS[cliente.tab] || '-'}</td>
+      <td style="color:var(--tx2)">${esc(PRAZO_LABELS[cliente.prazo] || '-')}</td>
+      <td>${ST_B[cliente.status] || ''}</td>
+      <td>
+        <div class="fg2">
+          <button class="btn btn-sm" data-click="abrirCliDet('${cliente.id}')">Detalhes</button>
+          <button class="btn btn-p btn-sm" data-click="editarCli('${cliente.id}')">Editar</button>
+          <button class="btn btn-sm" data-click="removerCli('${cliente.id}')">Excluir</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function renderNotasHtml(notas){
+  if(!notas.length){
+    return '<div style="font-size:13px;color:var(--tx3)">Nenhuma nota.</div>';
+  }
+
+  return notas.map(nota => `
+    <div class="nota">
+      <div>${esc(nota.texto)}</div>
+      <div class="nota-d">${esc(nota.data)}</div>
+    </div>
+  `).join('');
+}
+
+function getDetailElements(id){
+  return {
+    input: document.getElementById(`nota-inp-${id}`),
+    list: document.getElementById(`notas-${id}`)
+  };
+}
+
+function syncNotasCache(id, notas){
+  if(!D.notas) D.notas = {};
+  D.notas[id] = Array.isArray(notas) ? [...notas] : [];
+}
+
+function renderNotasCliente(id){
+  const { list } = getDetailElements(id);
+  if(!list) return;
+  list.innerHTML = renderNotasHtml(D.notas?.[id] || []);
+}
+
+export function renderCliMet(){
+  const clientes = C();
+  const ativos = clientes.filter(cliente => cliente.status === 'ativo').length;
+  const prospectos = clientes.filter(cliente => cliente.status === 'prospecto').length;
+  const segmentos = [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))].length;
+  const currentSeg = cliDom.get('cli-fil-seg')?.value || '';
 
   cliDom.html('metrics', 'cli-met', `
-    <div class="met"><div class="ml">Total</div><div class="mv">${c.length}</div></div>
-    <div class="met"><div class="ml">Ativos</div><div class="mv">${a}</div></div>
-    <div class="met"><div class="ml">Prospectos</div><div class="mv">${pr}</div></div>
-    <div class="met"><div class="ml">Segmentos</div><div class="mv">${segs}</div></div>
+    <div class="met"><div class="ml">Total</div><div class="mv">${clientes.length}</div></div>
+    <div class="met"><div class="ml">Ativos</div><div class="mv">${ativos}</div></div>
+    <div class="met"><div class="ml">Prospectos</div><div class="mv">${prospectos}</div></div>
+    <div class="met"><div class="ml">Segmentos</div><div class="mv">${segmentos}</div></div>
   `, 'clientes:metrics');
 
   cliDom.select(
     'filters',
     'cli-fil-seg',
     '<option value="">Todos os segmentos</option>' +
-      [...new Set(c.map(x => x.seg).filter(Boolean))]
-        .sort()
-        .map(s => `<option value="${s}">${s}</option>`)
+      [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b))
+        .map(seg => `<option value="${esc(seg)}">${esc(seg)}</option>`)
         .join(''),
-    cur,
+    currentSeg,
     'clientes:segmentos'
   );
 }
 
 export function renderClientes(){
-  const buscaEl = cliDom.get('cli-busca');
-  const segEl = cliDom.get('cli-fil-seg');
-  const stEl = cliDom.get('cli-fil-st');
-  const el = cliDom.get('cli-lista');
-
-  if(!el) return;
-
-  const q = (buscaEl?.value || '').toLowerCase();
-  const seg = segEl?.value || '';
-  const st = stEl?.value || '';
-
-  const f = C().filter(c =>
-    (!q || c.nome.toLowerCase().includes(q) || (c.apelido || '').toLowerCase().includes(q) || parseTimes(c.time).join(' ').toLowerCase().includes(q)) &&
-    (!seg || c.seg === seg) &&
-    (!st || c.status === st)
-  );
-
-  if(!f.length){
-    cliDom.html('list', 'cli-lista', `<div class="empty"><div class="ico">Ã°Å¸â€˜Â¥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`, 'clientes:lista-vazia');
+  const filtrados = getFilteredClientes();
+  if(!filtrados.length){
+    renderEstadoVazio();
     return;
   }
 
-  if(!f.length){
-    el.innerHTML = `<div class="empty"><div class="ico">ðŸ‘¥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`;
-    return;
-  }
-
-  const tabLbl = {
-    padrao:'PadrÃ£o',
-    especial:'<span class="bdg ba">Especial</span>',
-    vip:'<span class="bdg br">VIP</span>'
-  };
-
-  const prazoLbl = {
-    a_vista:'Ã€ vista',
-    '7d':'7d',
-    '15d':'15d',
-    '30d':'30d',
-    '60d':'60d'
-  };
-
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
-  if(isMobile){
-    cliDom.html('list', 'cli-lista', f.map(c => {
-      const cor = avc(c.nome);
-      const times = parseTimes(c.time);
-      const contato = getContatoInfo(c);
-
-      return `
-        <div class="card mobile-card">
-          <div class="mobile-card-head">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0">
-              <div class="av" style="background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div>
-              <div style="min-width:0">
-                <div class="mobile-card-title">${c.nome}</div>
-                ${c.apelido ? `<div class="mobile-card-sub">${c.apelido}</div>` : ''}
-              </div>
-            </div>
-            <div>${ST_B[c.status] || ''}</div>
-          </div>
-
-          <div class="mobile-card-meta" style="margin-bottom:8px">
-            <div>${contato.principal}</div>
-            ${contato.secundario ? `<div>${contato.secundario}</div>` : ''}
-            ${c.email && contato.principal !== c.email ? `<div>${c.email}</div>` : ''}
-            <div>${tabLbl[c.tab] || 'â€”'} â€¢ ${prazoLbl[c.prazo] || 'â€”'}</div>
-          </div>
-
-          <div class="mobile-card-tags" style="gap:4px">
-            ${getBadgeAniversario(c)}
-            ${contato.badge}
-            ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
-            ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
-            ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
-            ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
-            ${times.map(t => `<span class="bdg bb">âš½ ${t}</span>`).join('')}
-          </div>
-
-          <div class="mobile-card-actions">
-            <button class="btn btn-sm" title="Ver cliente" data-click="abrirCliDet('${c.id}')">Detalhes</button>
-            <button class="btn btn-p btn-sm" title="Editar cliente" data-click="editarCli('${c.id}')">Editar</button>
-            <button class="btn btn-sm" title="Excluir cliente" data-click="removerCli('${c.id}')">Excluir</button>
-          </div>
-        </div>
-      `;
-    }).join(''), 'clientes:lista-mobile');
+  if(window.matchMedia('(max-width: 760px)').matches){
+    cliDom.html(
+      'list',
+      'cli-lista',
+      filtrados.map(renderClienteMobile).join(''),
+      'clientes:lista-mobile'
+    );
     return;
   }
 
@@ -283,86 +425,45 @@ export function renderClientes(){
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          ${f.map(c => {
-            const cor = avc(c.nome);
-            const times = parseTimes(c.time);
-            const contato = getContatoInfo(c);
-            return `
-              <tr>
-                <td><div class="av" style="background:${cor.bg};color:${cor.c}">${ini(c.nome)}</div></td>
-                <td>
-                  <div style="font-weight:600">${c.nome}</div>
-                  ${c.apelido ? `<div style="font-size:11px;color:var(--tx3)">${c.apelido}</div>` : ''}
-                </td>
-                <td>
-                  <div>${contato.principal}</div>
-                  ${contato.secundario ? `<div style="font-size:11px;color:var(--tx3)">${contato.secundario}</div>` : ''}
-                  ${c.email && contato.principal !== c.email ? `<div style="font-size:11px;color:var(--tx3)">${c.email}</div>` : ''}
-                </td>
-                <td>
-                  <div class="fg2" style="gap:4px">
-                    ${getBadgeAniversario(c) || '<span style="color:var(--tx3)">â€”</span>'}
-                    ${contato.badge}
-                    ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
-                    ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
-                    ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
-                  </div>
-                </td>
-                <td>
-                  <div class="fg2" style="gap:4px">
-                    ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
-                    ${times.map(t => `<span class="bdg bb">âš½ ${t}</span>`).join('')}
-                    ${!c.seg && !times.length ? 'â€”' : ''}
-                  </div>
-                </td>
-                <td>${tabLbl[c.tab] || 'â€”'}</td>
-                <td style="color:var(--tx2)">${prazoLbl[c.prazo] || 'â€”'}</td>
-                <td>${ST_B[c.status] || ''}</td>
-                <td>
-                  <div class="fg2">
-                    <button class="btn btn-sm" title="Ver cliente" data-click="abrirCliDet('${c.id}')">Detalhes</button>
-                    <button class="btn btn-p btn-sm" title="Editar cliente" data-click="editarCli('${c.id}')">Editar</button>
-                    <button class="btn btn-sm" title="Excluir cliente" data-click="removerCli('${c.id}')">Excluir</button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
+        <tbody>${filtrados.map(renderClienteDesktop).join('')}</tbody>
       </table>
     </div>
   `, 'clientes:lista-desktop');
 }
 
 export function renderCliSegs(){
-  const segs = [...new Set(C().map(c => c.seg || 'Sem segmento'))].sort();
   const el = cliDom.get('cli-segs-lista');
   if(!el) return;
 
-  cliDom.html('segments', 'cli-segs-lista', segs.map(seg => {
-    const cls = C().filter(c => (c.seg || 'Sem segmento') === seg);
+  const segmentos = [...new Set(C().map(cliente => cliente.seg || 'Sem segmento'))]
+    .sort((a, b) => a.localeCompare(b));
+
+  cliDom.html('segments', 'cli-segs-lista', segmentos.map(seg => {
+    const clientes = C().filter(cliente => (cliente.seg || 'Sem segmento') === seg);
 
     return `
       <div class="card">
         <div class="fb" style="margin-bottom:10px">
-          <div style="font-weight:600">${seg}</div>
-          <span class="bdg bb">${cls.length}</span>
+          <div style="font-weight:600">${esc(seg)}</div>
+          <span class="bdg bb">${clientes.length}</span>
         </div>
         <div class="fg2">
-          ${cls.map(c => `
-            <div
-              data-click="abrirCliDet('${c.id}')"
-              style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--bd);border-radius:var(--rad);cursor:pointer;transition:all .12s"
-              onmouseover="this.style.background='var(--surf2)'"
-              onmouseout="this.style.background=''"
-            >
-              <div class="av" style="width:26px;height:26px;font-size:11px;background:${avc(c.nome).bg};color:${avc(c.nome).c}">
-                ${ini(c.nome)}
-              </div>
-              <span style="font-size:13px;font-weight:500">${c.apelido || c.nome}</span>
-            </div>
-          `).join('')}
+          ${clientes.map(cliente => {
+            const cor = avc(cliente.nome);
+            return `
+              <button
+                class="btn"
+                type="button"
+                data-click="abrirCliDet('${cliente.id}')"
+                style="display:flex;align-items:center;gap:8px;padding:7px 10px"
+              >
+                <div class="av" style="width:26px;height:26px;font-size:11px;background:${cor.bg};color:${cor.c}">
+                  ${esc(ini(cliente.nome))}
+                </div>
+                <span style="font-size:13px;font-weight:500">${esc(cliente.apelido || cliente.nome)}</span>
+              </button>
+            `;
+          }).join('')}
         </div>
       </div>
     `;
@@ -370,39 +471,40 @@ export function renderCliSegs(){
 }
 
 export async function abrirCliDet(id){
-  const c = C().find(x => x.id === id);
-  if(!c) return;
+  const cliente = C().find(item => item.id === id);
+  if(!cliente) return;
 
-  const cor = avc(c.nome);
+  const cor = avc(cliente.nome);
   let notas = [];
 
   try{
     notas = await SB.getNotas(id) || [];
-  }catch(e){
-    console.error('Erro ao carregar notas do cliente', e);
+  }catch(error){
+    console.error('Erro ao carregar notas do cliente', error);
   }
 
-  const prazoLbl = {
-    a_vista:'Ã€ vista',
-    '7d':'7 dias',
-    '15d':'15 dias',
-    '30d':'30 dias',
-    '60d':'60 dias'
-  };
+  syncNotasCache(id, notas);
 
-  const box = document.getElementById('cli-det-box');
-  if(!box) return;
+  const times = parseTimes(cliente.time);
+  const contato = [
+    cliente.resp ? `Resp: ${cliente.resp}` : '',
+    cliente.tel || '',
+    cliente.whatsapp ? `WhatsApp: ${cliente.whatsapp}` : '',
+    cliente.email || '',
+    cliente.data_aniversario ? `Aniversario: ${fmtAniv(cliente.data_aniversario)}` : '',
+    cliente.cidade ? `${cliente.cidade}${cliente.estado ? ` - ${cliente.estado}` : ''}` : ''
+  ].filter(Boolean);
 
-  box.innerHTML = `
+  cliDom.html('detail', 'cli-det-box', `
     <div class="fb" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:12px">
         <div class="av" style="width:44px;height:44px;font-size:16px;background:${cor.bg};color:${cor.c}">
-          ${ini(c.nome)}
+          ${esc(ini(cliente.nome))}
         </div>
         <div>
-          <div style="font-size:16px;font-weight:600">${c.nome}</div>
-          ${c.apelido ? `<div style="font-size:13px;color:var(--tx2)">${c.apelido}</div>` : ''}
-          <div style="margin-top:4px">${ST_B[c.status] || ''}</div>
+          <div style="font-size:16px;font-weight:600">${esc(cliente.nome)}</div>
+          ${cliente.apelido ? `<div style="font-size:13px;color:var(--tx2)">${esc(cliente.apelido)}</div>` : ''}
+          <div style="margin-top:4px">${ST_B[cliente.status] || ''}</div>
         </div>
       </div>
     </div>
@@ -410,104 +512,74 @@ export async function abrirCliDet(id){
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;font-size:13px">
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Contato</div>
-        ${[
-          c.resp && `Resp: ${c.resp}`,
-          c.tel,
-          c.whatsapp && `WhatsApp: ${c.whatsapp}`,
-          c.email,
-          c.data_aniversario && `AniversÃ¡rio: ${c.data_aniversario}`,
-          c.cidade && `${c.cidade}${c.estado ? ' - ' + c.estado : ''}`
-        ].filter(Boolean).map(x => `<div style="margin-bottom:3px">${x}</div>`).join('') || 'â€”'}
+        ${contato.length ? contato.map(item => `<div style="margin-bottom:3px">${esc(item)}</div>`).join('') : '-'}
       </div>
 
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div>
-        <div>Tabela: ${({ padrao:'PadrÃ£o', especial:'Especial', vip:'VIP' }[c.tab] || 'â€”')}</div>
-        <div>Prazo: ${prazoLbl[c.prazo] || 'â€”'}</div>
-        ${parseTimes(c.time).length ? `<div>Time(s): ${parseTimes(c.time).join(', ')}</div>` : ''}
-        ${c.seg ? `<div>Segmento: ${c.seg}</div>` : ''}
+        <div>Tabela: ${TAB_LABELS[cliente.tab] || '-'}</div>
+        <div>Prazo: ${esc(PRAZO_DETALHE_LABELS[cliente.prazo] || '-')}</div>
+        ${times.length ? `<div>Times: ${esc(times.join(', '))}</div>` : ''}
+        ${cliente.seg ? `<div>Segmento: ${esc(cliente.seg)}</div>` : ''}
       </div>
     </div>
 
-    ${c.obs ? `
+    ${cliente.obs ? `
       <div class="panel" style="margin-bottom:12px">
-        <div class="pt">ObservaÃ§Ãµes</div>
-        <p style="font-size:13px">${c.obs}</p>
+        <div class="pt">Observacoes</div>
+        <p style="font-size:13px">${esc(cliente.obs)}</p>
       </div>
     ` : ''}
 
-    <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / histÃ³rico</div>
+    <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / historico</div>
     <div class="fg2" style="margin-bottom:8px">
       <input class="inp" id="nota-inp-${id}" placeholder="Adicionar nota..." style="flex:1">
       <button class="btn btn-sm" data-click="addNota('${id}')">+</button>
     </div>
 
-    <div id="notas-${id}">
-      ${notas.length
-        ? notas.map(n => `
-            <div class="nota">
-              <div>${n.texto}</div>
-              <div class="nota-d">${n.data}</div>
-            </div>
-          `).join('')
-        : '<div style="font-size:13px;color:var(--tx3)">Nenhuma nota.</div>'
-      }
-    </div>
+    <div id="notas-${id}">${renderNotasHtml(D.notas?.[id] || [])}</div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
       <button class="btn" data-click="fecharModal('modal-cli-det')">Fechar</button>
       <button class="btn btn-p" data-click="fecharModal('modal-cli-det');editarCli('${id}')">Editar</button>
     </div>
-  `;
+  `, 'clientes:detalhe');
 
   abrirModal('modal-cli-det');
 }
 
 export async function addNota(id){
-  const inp = document.getElementById('nota-inp-' + id);
-  const txt = (inp?.value || '').trim();
-  if(!txt) return;
+  const { input } = getDetailElements(id);
+  const texto = input?.value.trim() || '';
+  if(!texto) return;
 
   const nota = {
     cliente_id: id,
-    texto: txt,
+    texto,
     data: new Date().toLocaleString('pt-BR')
   };
 
   try{
     await SB.insertNota(nota);
-  }catch(e){
-    toast('Erro: ' + e.message);
+  }catch(error){
+    toast(`Erro: ${error.message}`);
     return;
   }
 
   if(!D.notas) D.notas = {};
-  if(!D.notas[id]) D.notas[id] = [];
+  if(!Array.isArray(D.notas[id])) D.notas[id] = [];
   D.notas[id].unshift(nota);
 
-  if(inp) inp.value = '';
-
-  const notasEl = document.getElementById('notas-' + id);
-  if(notasEl){
-    notasEl.innerHTML = D.notas[id]
-      .map(n => `
-        <div class="nota">
-          <div>${n.texto}</div>
-          <div class="nota-d">${n.data}</div>
-        </div>
-      `).join('');
-  }
-
+  if(input) input.value = '';
+  renderNotasCliente(id);
   toast('Nota adicionada!');
 }
 
 export function limparFormCli(){
   State.editIds.cli = null;
 
-  const titulo = cliDom.get('cli-modal-titulo');
-  if(titulo) titulo.textContent = 'Novo cliente';
-  const saveBtn = cliDom.get('cli-flow-save');
-  if(saveBtn) saveBtn.textContent = 'Salvar cliente';
+  cliDom.text('modal', 'cli-modal-titulo', 'Novo cliente', 'clientes:modal-titulo');
+  cliDom.text('modal', 'cli-flow-save', 'Salvar cliente', 'clientes:modal-acao');
 
   CLI_FORM_IDS.forEach(id => cliDom.value(id, ''));
   Object.entries(CLI_SELECT_DEFAULTS).forEach(([id, value]) => cliDom.value(id, value));
@@ -517,39 +589,36 @@ export function limparFormCli(){
 }
 
 export function editarCli(id){
-  const c = C().find(x => x.id === id);
-  if(!c) return;
+  const cliente = C().find(item => item.id === id);
+  if(!cliente) return;
 
   State.editIds.cli = id;
 
-  const titulo = cliDom.get('cli-modal-titulo');
-  if(titulo) titulo.textContent = 'Editar cliente';
-  const saveBtn = cliDom.get('cli-flow-save');
-  if(saveBtn) saveBtn.textContent = 'Atualizar cliente';
+  cliDom.text('modal', 'cli-modal-titulo', 'Editar cliente', 'clientes:modal-titulo');
+  cliDom.text('modal', 'cli-flow-save', 'Atualizar cliente', 'clientes:modal-acao');
 
-  cliDom.value('c-nome', c.nome || '');
-  cliDom.value('c-apelido', c.apelido || '');
-  cliDom.value('c-doc', c.doc || '');
-  cliDom.value('c-tipo', c.tipo || 'PJ');
-  cliDom.value('c-status', c.status || 'ativo');
-  cliDom.value('c-tel', c.tel || '');
-  cliDom.value('c-whatsapp', c.whatsapp || '');
-  cliDom.value('c-email', c.email || '');
-  cliDom.value('c-aniv', c.data_aniversario || '');
-  cliDom.value('c-time', parseTimes(c.time).join(', '));
-  cliDom.value('c-resp', c.resp || '');
-  cliDom.value('c-seg', c.seg || '');
-  cliDom.value('c-tab', c.tab || 'padrao');
-  cliDom.value('c-prazo', c.prazo || 'a_vista');
-  cliDom.value('c-cidade', c.cidade || '');
-  cliDom.value('c-estado', c.estado || '');
-  cliDom.value('c-obs', c.obs || '');
-  cliDom.checked('c-optin-marketing', !!c.optin_marketing);
-  cliDom.checked('c-optin-email', !!c.optin_email);
-  cliDom.checked('c-optin-sms', !!c.optin_sms);
+  cliDom.value('c-nome', cliente.nome || '');
+  cliDom.value('c-apelido', cliente.apelido || '');
+  cliDom.value('c-doc', cliente.doc || '');
+  cliDom.value('c-tipo', cliente.tipo || 'PJ');
+  cliDom.value('c-status', cliente.status || 'ativo');
+  cliDom.value('c-tel', cliente.tel || '');
+  cliDom.value('c-whatsapp', cliente.whatsapp || '');
+  cliDom.value('c-email', cliente.email || '');
+  cliDom.value('c-aniv', cliente.data_aniversario || '');
+  cliDom.value('c-time', parseTimes(cliente.time).join(', '));
+  cliDom.value('c-resp', cliente.resp || '');
+  cliDom.value('c-seg', cliente.seg || '');
+  cliDom.value('c-tab', cliente.tab || 'padrao');
+  cliDom.value('c-prazo', cliente.prazo || 'a_vista');
+  cliDom.value('c-cidade', cliente.cidade || '');
+  cliDom.value('c-estado', cliente.estado || '');
+  cliDom.value('c-obs', cliente.obs || '');
+  cliDom.checked('c-optin-marketing', !!cliente.optin_marketing);
+  cliDom.checked('c-optin-email', !!cliente.optin_email);
+  cliDom.checked('c-optin-sms', !!cliente.optin_sms);
 
   setFlowStepSafe('cli', 1);
-
   abrirModal('modal-cliente');
 }
 
@@ -561,8 +630,9 @@ export async function salvarCliente(){
     return;
   }
 
-  const c = {
-    id: State.editIds.cli || (Date.now() + '-' + Math.random().toString(36).slice(2,8)),
+  const editId = State.editIds.cli;
+  const cliente = {
+    id: editId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     filial_id: State.FIL,
     nome,
     apelido: cliDom.get('c-apelido')?.value.trim() || '',
@@ -587,59 +657,69 @@ export async function salvarCliente(){
   };
 
   try{
-    await SB.upsertCliente(c);
-  }catch(e){
+    await SB.upsertCliente(cliente);
+  }catch(error){
     notify(
-      `Erro: falha ao salvar cliente (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro nÃ£o foi concluÃ­do. AÃ§Ã£o: revise os dados e tente novamente.`,
+      `Erro ao salvar cliente: ${String(error?.message || 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
     return;
   }
 
-  if(State.editIds.cli){
-    D.clientes[State.FIL] = C().map(x => x.id === State.editIds.cli ? c : x);
+  if(!D.clientes[State.FIL]) D.clientes[State.FIL] = [];
+
+  if(editId){
+    D.clientes[State.FIL] = C().map(item => item.id === editId ? cliente : item);
   } else {
-    if(!D.clientes[State.FIL]) D.clientes[State.FIL] = [];
-    D.clientes[State.FIL].push(c);
+    D.clientes[State.FIL].push(cliente);
   }
 
   fecharModal('modal-cliente');
   renderCliMet();
   renderClientes();
+  renderCliSegs();
   refreshCliDL();
 
-  const canais = [c.whatsapp ? 'WhatsApp' : '', c.tel ? 'Telefone' : '', c.email ? 'E-mail' : ''].filter(Boolean);
-  const prontoCamp = c.optin_marketing && canais.length > 0;
+  const canais = [
+    cliente.whatsapp ? 'WhatsApp' : '',
+    cliente.tel ? 'Telefone' : '',
+    cliente.email ? 'E-mail' : ''
+  ].filter(Boolean);
+  const prontoCampanha = cliente.optin_marketing && canais.length > 0;
+
   notify(
-    State.editIds.cli
-      ? `Cliente atualizado: ${c.nome} â€¢ Canais: ${canais.join(', ') || 'nenhum'} â€¢ Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
-      : `Cliente cadastrado: ${c.nome} â€¢ Canais: ${canais.join(', ') || 'nenhum'} â€¢ Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`,
+    editId
+      ? `Cliente atualizado: ${cliente.nome} - Canais: ${canais.join(', ') || 'nenhum'} - Campanhas: ${prontoCampanha ? 'pronto' : 'parcial'}`
+      : `Cliente cadastrado: ${cliente.nome} - Canais: ${canais.join(', ') || 'nenhum'} - Campanhas: ${prontoCampanha ? 'pronto' : 'parcial'}`,
     SEVERITY.SUCCESS
   );
 }
 
 export async function removerCli(id){
-  if(!confirm('Remover?')) return;
+  if(!confirm('Remover cliente?')) return;
 
   try{
     await SB.deleteCliente(id);
-  }catch(e){
-    toast('Erro: ' + e.message);
+  }catch(error){
+    toast(`Erro: ${error.message}`);
     return;
   }
 
-  D.clientes[State.FIL] = C().filter(c => c.id !== id);
+  D.clientes[State.FIL] = C().filter(cliente => cliente.id !== id);
 
   renderCliMet();
   renderClientes();
+  renderCliSegs();
   refreshCliDL();
 
-  toast('Removido.');
+  toast('Cliente removido.');
 }
 
 export function refreshCliDL(){
-  const dl = cliDom.get('cli-dl');
-  if(dl){
-    cliDom.html('selectors', 'cli-dl', C().map(c => `<option value="${c.nome}">`).join(''), 'clientes:datalist');
-  }
+  cliDom.html(
+    'selectors',
+    'cli-dl',
+    C().map(cliente => `<option value="${esc(cliente.nome)}">`).join(''),
+    'clientes:datalist'
+  );
 }

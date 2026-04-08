@@ -74,41 +74,33 @@
         <span style="font-size:11px;color:var(--tx3);margin-left:2px">Trocar</span>
       </div>
       <div class="sb-search">
-        <input class="inp sb-search-input" id="sb-search" type="search" placeholder="Buscar área..." aria-label="Buscar no menu lateral">
-      </div>
-      <div class="sb-context" id="sb-context">
-        <div class="sb-context-kicker" id="sb-context-kicker">Workspace</div>
-        <div class="sb-context-title" id="sb-context-title">Dashboard</div>
-        <div class="sb-context-sub" id="sb-context-sub">Visão geral e oportunidades da filial</div>
+        <input class="inp sb-search-input" id="sb-search" type="search" placeholder="Buscar tela..." aria-label="Buscar no menu lateral">
       </div>
     </div>
     <nav class="sb-nav">
-      <section class="sb-group" data-group="Visão geral">
-        <div class="nl">Visão geral</div>
-        <button class="ni on" data-p="dashboard" data-label="Dashboard Workspace visão geral oportunidades" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
-        <button class="ni" data-p="gerencial" data-label="Gerencial gestão metas desempenho" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
+      <section class="sb-group" data-group="Principal">
+        <div class="nl">Principal</div>
+        <button class="ni on" data-p="dashboard" data-label="dashboard resumo painel" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
+        <button class="ni" data-p="gerencial" data-label="gerencial metas indicadores" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
       </section>
-      <section class="sb-group" data-group="Cadastros">
-        <div class="nl">Cadastros</div>
-        <button class="ni" data-p="produtos" data-label="Produtos catálogo cadastro precificação" data-click="ir('produtos')"><span class="ico">PR</span>Produtos</button>
-        <button class="ni" data-p="clientes" data-label="Clientes relacionamento segmentação cadastro" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
-      </section>
-      <section class="sb-group" data-group="Operações">
-        <div class="nl">Operações</div>
-        <button class="ni" data-p="pedidos" data-label="Pedidos orçamentos vendas operações" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
-        <button class="ni" data-p="cotacao" data-label="Cotação fornecedores comparação preço" data-click="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
-        <button class="ni" data-p="estoque" data-label="Estoque posição alertas movimentações" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
-        <button class="ni" data-p="campanhas" data-label="Campanhas ações comerciais envios" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
-        <button class="ni" data-p="notificacoes" data-label="Notificações alertas oportunidades inbox" data-click="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
+      <section class="sb-group" data-group="Operacao">
+        <div class="nl">Operacao</div>
+        <button class="ni" data-p="produtos" data-label="produtos cadastro preco" data-click="ir('produtos')"><span class="ico">PR</span>Produtos</button>
+        <button class="ni" data-p="clientes" data-label="clientes relacionamento cadastro" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
+        <button class="ni" data-p="pedidos" data-label="pedidos vendas orcamentos" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
+        <button class="ni" data-p="cotacao" data-label="cotacao fornecedores preco" data-click="ir('cotacao')"><span class="ico">CT</span>Cotacao</button>
+        <button class="ni" data-p="estoque" data-label="estoque saldo alertas" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
+        <button class="ni" data-p="campanhas" data-label="campanhas envios" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
+        <button class="ni" data-p="notificacoes" data-label="alertas notificacoes inbox" data-click="ir('notificacoes')"><span class="ico">NT</span>Alertas <span class="nb" id="noti-badge" style="display:none">!</span></button>
       </section>
       <section class="sb-group" data-group="Sistema">
         <div class="nl">Sistema</div>
-        <button class="ni" data-p="filiais" data-label="Filiais sistema unidades contexto" data-click="ir('filiais')"><span class="ico">FL</span>Filiais</button>
-        <button class="ni" data-p="acessos" data-label="Acessos sistema usuários perfis permissões" data-click="ir('acessos')"><span class="ico">AC</span>Acessos</button>
+        <button class="ni" data-p="filiais" data-label="filiais unidades" data-click="ir('filiais')"><span class="ico">FL</span>Filiais</button>
+        <button class="ni" data-p="acessos" data-label="acessos usuarios permissoes" data-click="ir('acessos')"><span class="ico">AC</span>Acessos</button>
       </section>
       <div class="sb-empty" id="sb-empty" style="display:none">
-        <div class="sb-empty-title">Nenhuma área encontrada</div>
-        <div class="sb-empty-sub">Tente buscar por nome ou objetivo da tela.</div>
+        <div class="sb-empty-title">Nenhuma tela encontrada</div>
+        <div class="sb-empty-sub">Tente buscar por nome.</div>
       </div>
     </nav>
     <div class="sb-foot">

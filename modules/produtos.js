@@ -42,7 +42,7 @@ export function renderProdMet(){
   prodDom.html('metrics', 'prod-met', `
     <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
     <div class="met"><div class="ml">Categorias</div><div class="mv">${cats.length}</div></div>
-    <div class="met"><div class="ml">Com precificaÃ§Ã£o</div><div class="mv">${prods.filter(p => p.mkv > 0).length}</div></div>
+    <div class="met"><div class="ml">Com precificacao</div><div class="mv">${prods.filter(p => p.mkv > 0).length}</div></div>
   `, 'produtos:metrics');
 
   prodDom.select(
@@ -72,7 +72,7 @@ export function renderProdutos(){
   );
 
   if(!filtrados.length){
-    prodDom.html('list', 'prod-lista', `<div class="empty"><div class="ico">ðŸ“¦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`, 'produtos:lista-vazia');
+    prodDom.html('list', 'prod-lista', `<div class="empty"><div class="ico">PR</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`, 'produtos:lista-vazia');
     return;
   }
 
@@ -91,16 +91,16 @@ export function renderProdutos(){
           <div class="mobile-card-head">
             <div style="min-width:0">
               <div class="mobile-card-title">${p.nome}</div>
-              <div class="mobile-card-sub">${p.sku || 'Sem SKU'}${p.cat ? ` â€¢ ${p.cat}` : ''}</div>
+              <div class="mobile-card-sub">${p.sku || 'Sem SKU'}${p.cat ? ` - ${p.cat}` : ''}</div>
             </div>
             <div>${st}</div>
           </div>
 
           <div class="mobile-card-meta">
             <div>Custo: <b style="color:var(--tx)">${fmt(p.custo)}</b></div>
-            <div>Varejo: <b style="color:var(--tx)">${p.mkv > 0 ? fmt(pv) : 'â€”'}</b> ${p.mkv > 0 ? `<span class="bdg bb" style="font-size:10px">${p.mkv.toFixed(0)}%</span>` : ''}</div>
-            <div>Atacado: <b style="color:var(--tx)">${pa > 0 ? fmt(pa) : 'â€”'}</b></div>
-            <div>Saldo: <b style="color:${zero ? 'var(--r)' : baixo ? 'var(--a)' : 'var(--tx)'}">${fmtQ(s.saldo)} ${p.un}</b> ${p.emin > 0 ? `â€¢ mÃ­n. ${fmtQ(p.emin)}` : ''}</div>
+            <div>Varejo: <b style="color:var(--tx)">${p.mkv > 0 ? fmt(pv) : '-'}</b> ${p.mkv > 0 ? `<span class="bdg bb" style="font-size:10px">${p.mkv.toFixed(0)}%</span>` : ''}</div>
+            <div>Atacado: <b style="color:var(--tx)">${pa > 0 ? fmt(pa) : '-'}</b></div>
+            <div>Saldo: <b style="color:${zero ? 'var(--r)' : baixo ? 'var(--a)' : 'var(--tx)'}">${fmtQ(s.saldo)} ${p.un}</b> ${p.emin > 0 ? `- min. ${fmtQ(p.emin)}` : ''}</div>
           </div>
 
           <div class="mobile-card-actions">
@@ -127,7 +127,7 @@ export function renderProdutos(){
             <th>Varejo</th>
             <th>Atacado</th>
             <th>Saldo</th>
-            <th>MÃ­n.</th>
+            <th>Min.</th>
             <th></th>
           </tr>
         </thead>
@@ -142,14 +142,14 @@ export function renderProdutos(){
             return `
               <tr>
                 <td style="font-weight:600">${p.nome}</td>
-                <td style="color:var(--tx3);font-size:12px">${p.sku || 'â€”'}</td>
+                <td style="color:var(--tx3);font-size:12px">${p.sku || '-'}</td>
                 <td>${p.un}</td>
-                <td>${p.cat ? `<span class="bdg bk">${p.cat}</span>` : 'â€”'}</td>
+                <td>${p.cat ? `<span class="bdg bk">${p.cat}</span>` : '-'}</td>
                 <td>${fmt(p.custo)}</td>
-                <td>${p.mkv > 0 ? `${fmt(pv)} <span class="bdg bb" style="font-size:10px">${p.mkv.toFixed(0)}%</span>` : 'â€”'}</td>
-                <td>${pa > 0 ? fmt(pa) : 'â€”'}</td>
+                <td>${p.mkv > 0 ? `${fmt(pv)} <span class="bdg bb" style="font-size:10px">${p.mkv.toFixed(0)}%</span>` : '-'}</td>
+                <td>${pa > 0 ? fmt(pa) : '-'}</td>
                 <td><span style="font-weight:600;color:${zero ? 'var(--r)' : baixo ? 'var(--a)' : 'inherit'}">${fmtQ(s.saldo)} ${p.un}</span></td>
-                <td style="color:var(--tx2)">${p.emin > 0 ? fmtQ(p.emin) : 'â€”'}</td>
+                <td style="color:var(--tx2)">${p.emin > 0 ? fmtQ(p.emin) : '-'}</td>
                 <td>
                   <div class="fg2">
                     <button class="ib" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">MOV</button>
@@ -229,9 +229,9 @@ export function editarProd(id){
   if(p.hist_cot && p.hist_cot.length > 0){
     const sortedHist = [...p.hist_cot].sort((a, b) => String(b.mes).localeCompare(String(a.mes)));
     const histHtml = `
-      <div class="pt">OscilaÃ§Ã£o de PreÃ§o do Fornecedor</div>
+      <div class="pt">Oscilacao de Preco do Fornecedor</div>
       <table class="tbl" style="margin-top:8px">
-        <thead><tr><th>MÃªs ref.</th><th>Fornecedor</th><th>PreÃ§o Cotado</th></tr></thead>
+        <thead><tr><th>Mes ref.</th><th>Fornecedor</th><th>Preco cotado</th></tr></thead>
         <tbody>
           ${sortedHist.map(h => `
             <tr>
@@ -300,9 +300,9 @@ export function calcProdPreview(){
     const pa = pfa > 0 ? pfa : (mka > 0 ? prV(c, mka) : 0);
 
     prodDom.text('preview', 'ppv-v', fmt(pv), 'produtos:preview');
-    prodDom.text('preview', 'ppv-vmin', dv > 0 ? fmt(pv * (1 - dv / 100)) : 'â€”', 'produtos:preview');
-    prodDom.text('preview', 'ppv-a', pa > 0 ? fmt(pa) : 'â€”', 'produtos:preview');
-    prodDom.text('preview', 'ppv-amin', (pa > 0 && da > 0) ? fmt(pa * (1 - da / 100)) : 'â€”', 'produtos:preview');
+    prodDom.text('preview', 'ppv-vmin', dv > 0 ? fmt(pv * (1 - dv / 100)) : '-', 'produtos:preview');
+    prodDom.text('preview', 'ppv-a', pa > 0 ? fmt(pa) : '-', 'produtos:preview');
+    prodDom.text('preview', 'ppv-amin', (pa > 0 && da > 0) ? fmt(pa * (1 - da / 100)) : '-', 'produtos:preview');
     prodDom.display('preview', 'prod-preview', 'block', 'produtos:preview');
   } else {
     prodDom.display('preview', 'prod-preview', 'none', 'produtos:preview');
@@ -315,7 +315,7 @@ export async function salvarProduto(){
 
   if(!nome || custo <= 0){
     notify(
-      'AtenÃ§Ã£o: nome e custo sÃ£o obrigatÃ³rios. Impacto: produto nÃ£o pode ser salvo. AÃ§Ã£o: preencha nome e custo maior que zero.',
+      'Atencao: nome e custo sao obrigatorios. Impacto: produto nao pode ser salvo. Acao: preencha nome e custo maior que zero.',
       SEVERITY.WARNING
     );
     if(!nome) focusField('p-nome', { markError: true });
@@ -349,7 +349,7 @@ export async function salvarProduto(){
     await SB.upsertProduto(p);
   }catch(e){
     notify(
-      `Erro: falha ao salvar produto (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro nÃ£o foi concluÃ­do. AÃ§Ã£o: valide os campos e tente novamente.`,
+      `Erro: falha ao salvar produto (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro nao foi concluido. Acao: valide os campos e tente novamente.`,
       SEVERITY.ERROR
     );
     return;
@@ -373,8 +373,8 @@ export async function salvarProduto(){
   const pa = p.pfa > 0 ? p.pfa : (p.custo > 0 && p.mka > 0 ? prV(p.custo, p.mka) : 0);
   notify(
     State.editIds.prod
-      ? `Produto atualizado: ${p.nome} â€¢ Varejo ${pv > 0 ? fmt(pv) : 'â€”'} â€¢ Atacado ${pa > 0 ? fmt(pa) : 'â€”'}`
-      : `Produto salvo: ${p.nome} â€¢ Varejo ${pv > 0 ? fmt(pv) : 'â€”'} â€¢ Atacado ${pa > 0 ? fmt(pa) : 'â€”'}`,
+      ? `Produto atualizado: ${p.nome} - Varejo ${pv > 0 ? fmt(pv) : '-'} - Atacado ${pa > 0 ? fmt(pa) : '-'}`
+      : `Produto salvo: ${p.nome} - Varejo ${pv > 0 ? fmt(pv) : '-'} - Atacado ${pa > 0 ? fmt(pa) : '-'}`,
     SEVERITY.SUCCESS
   );
 }
@@ -411,7 +411,7 @@ export function refreshProdSel(){
   prodDom.select(
     'selectors',
     'pi-prod',
-    '<option value="">â€” selecione â€”</option>' +
+    '<option value="">- selecione -</option>' +
       P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join(''),
     cur,
     'produtos:pedido-selector'
