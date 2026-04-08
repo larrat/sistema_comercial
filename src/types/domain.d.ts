@@ -108,6 +108,36 @@ export type Pedido = {
   total: number;
 };
 
+export type Campanha = {
+  id: Id;
+  filial_id?: Id | null;
+  nome: string;
+  tipo?: string;
+  canal?: string;
+  dias_antecedencia?: number;
+  assunto?: string | null;
+  mensagem?: string;
+  cupom?: string | null;
+  desconto?: number;
+  ativo?: boolean;
+  criado_em?: string;
+};
+
+export type CampanhaEnvio = {
+  id: Id;
+  filial_id?: Id | null;
+  campanha_id?: Id | null;
+  cliente_id?: Id | null;
+  canal?: string;
+  destino?: string | null;
+  mensagem?: string;
+  status?: string;
+  data_ref?: string;
+  criado_em?: string;
+  enviado_em?: string | null;
+  erro?: string | null;
+};
+
 export type ScreenDom = {
   get(id: string): (HTMLElement & {
     value?: string;
@@ -134,4 +164,8 @@ export type ClientesModuleCallbacks = {
 export type PedidosModuleCallbacks = {
   refreshProdSel?: () => void;
   refreshCliDL?: () => void;
+};
+
+export type DashboardModuleCallbacks = {
+  calcSaldosMulti?: (...args: any[]) => Record<string, unknown>;
 };
