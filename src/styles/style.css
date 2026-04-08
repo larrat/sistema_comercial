@@ -7168,8 +7168,10 @@ textarea.inp:focus{
 .mt-4{margin-top:4px}
 .mt-8{margin-top:8px}
 .mb-8{margin-bottom:8px}
+.is-hidden{display:none!important}
 .form-gap-bottom{margin-bottom:12px}
 .form-gap-bottom-xs{margin-bottom:10px}
+.form-gap-bottom-xxs{margin-bottom:6px}
 
 .toolbar-inline-end{
   display:flex;
@@ -7209,6 +7211,83 @@ textarea.inp:focus{
   margin-top:4px;
   font-size:12px;
   color:var(--tx3);
+}
+
+.preview-kicker{
+  font-size:11px;
+  color:var(--tx3);
+}
+
+.preview-value{
+  font-weight:600;
+}
+
+.optin-choice{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+}
+
+.inline-choice{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.inline-choice--tall{
+  min-height:36px;
+  padding:0 2px;
+}
+
+.inline-choice__text{
+  font-size:13px;
+  color:var(--tx2);
+}
+
+.panel-copy{
+  font-size:12px;
+  color:var(--tx2);
+}
+
+.panel-inline-metrics{
+  font-size:13px;
+  display:flex;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+
+.runtime-loading{
+  position:fixed;
+  inset:0;
+  background:rgba(246,245,242,.88);
+  z-index:8000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  font-size:14px;
+  font-weight:500;
+  color:var(--tx2);
+  font-family:DM Sans,sans-serif;
+  backdrop-filter:blur(2px);
+}
+
+.runtime-loading.is-on{
+  display:flex;
+}
+
+.runtime-loading__spinner{
+  width:22px;
+  height:22px;
+  border:2.5px solid var(--bd2);
+  border-top-color:var(--acc);
+  border-radius:50%;
+  animation:runtime-spinner .7s linear infinite;
+}
+
+@keyframes runtime-spinner{
+  to{transform:rotate(360deg)}
 }
 
 .mobile-card-hero{

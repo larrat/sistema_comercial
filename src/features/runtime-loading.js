@@ -55,16 +55,12 @@ export function showLoading(on){
   if(!el){
     el = document.createElement('div');
     el.id = 'sb-loading';
-    el.style.cssText =
-      'position:fixed;inset:0;background:rgba(246,245,242,.88);z-index:8000;display:none;align-items:center;justify-content:center;gap:12px;font-size:14px;font-weight:500;color:var(--tx2);font-family:DM Sans,sans-serif;backdrop-filter:blur(2px)';
+    el.className = 'runtime-loading';
     el.innerHTML =
-      '<div style="width:22px;height:22px;border:2.5px solid var(--bd2);border-top-color:var(--acc);border-radius:50%;animation:sp .7s linear infinite"></div>Carregando dados...';
-    const st = document.createElement('style');
-    st.textContent = '@keyframes sp{to{transform:rotate(360deg)}}';
-    document.head.appendChild(st);
+      '<div class="runtime-loading__spinner"></div><span>Carregando dados...</span>';
     document.body.appendChild(el);
   }
-  el.style.display = on ? 'flex' : 'none';
+  el.classList.toggle('is-on', on);
   document.body.dataset.runtimeLoading = on ? 'true' : 'false';
 }
 

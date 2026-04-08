@@ -611,7 +611,7 @@ export function abrirSb(){
   document.getElementById('sb')?.classList.add('on');
   document.getElementById('sb-overlay')?.classList.add('on');
   const close = document.getElementById('sb-close');
-  if(close) close.style.display = 'flex';
+  if(close instanceof HTMLElement) close.hidden = false;
   document.getElementById('sb-search')?.focus();
 }
 
@@ -619,6 +619,6 @@ export function fecharSb(){
   document.getElementById('sb')?.classList.remove('on');
   document.getElementById('sb-overlay')?.classList.remove('on');
   const close = document.getElementById('sb-close');
-  if(close) close.style.display = 'none';
+  if(close instanceof HTMLElement) close.hidden = true;
 }
 

@@ -65,6 +65,15 @@ export const ROLE_UI_ADMIN_SELECTORS = [
 let roleUiGuardTimer = null;
 let roleUiObserver = null;
 
+/**
+ * @param {Element | null | undefined} el
+ * @param {boolean} hidden
+ */
+function setHidden(el, hidden){
+  if(!(el instanceof HTMLElement)) return;
+  el.hidden = hidden;
+}
+
 /** @type {Required<AuthSetupModuleDeps>} */
 let deps = {
   pageAtual: () => 'dashboard',
@@ -270,16 +279,16 @@ export function renderAuthGate(session){
 
   if(!session?.access_token){
     document.body.dataset.authGate = 'login';
-    authBox.style.display = 'block';
+    setHidden(authBox, false);
     filGrid.innerHTML = '';
-    setupForm.style.display = 'none';
-    setupActions.style.display = 'none';
+    setHidden(setupForm, true);
+    setHidden(setupActions, true);
     sub.textContent = 'Faca login para acessar suas filiais';
     return false;
   }
 
   document.body.dataset.authGate = 'authenticated';
-  authBox.style.display = 'none';
+  setHidden(authBox, true);
   return true;
 }
 
@@ -328,15 +337,15 @@ export function renderSetupGrid(){
 
   if(!D.filiais.length){
     grid.innerHTML = '';
-    form.style.display = 'block';
-    actions.style.display = 'none';
+    setHidden(form, false);
+    setHidden(actions, true);
     sub.textContent = 'Crie sua primeira filial para comecar';
     scheduleRoleUiGuards();
     return;
   }
 
-  form.style.display = 'none';
-  actions.style.display = 'flex';
+  setHidden(form, true);
+  setHidden(actions, false);
   sub.textContent = 'Selecione a filial para continuar';
 
   grid.innerHTML = D.filiais.map(f => `
@@ -371,12 +380,12 @@ export async function renderSetup(){
   const sub = document.getElementById('setup-sub');
   if(grid && form && actions && sub){
     document.body.dataset.setupState = 'loading-filiais';
-    form.style.display = 'none';
-    actions.style.display = 'none';
+    setHidden(form, true);
+    setHidden(actions, true);
     sub.textContent = 'Carregando filiais...';
     grid.innerHTML = `
-      <div class="sk-card" style="grid-column:1/-1">${deps.buildSkeletonLines(3)}</div>
-      <div class="sk-card" style="grid-column:1/-1">${deps.buildSkeletonLines(3)}</div>
+      <div class="sk-card metric-grid-fill">${deps.buildSkeletonLines(3)}</div>
+      <div class="sk-card metric-grid-fill">${deps.buildSkeletonLines(3)}</div>
     `;
   }
   deps.showLoading(true);

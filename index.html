@@ -20,7 +20,7 @@
     <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
 
     <!-- Login -->
-    <div id="setup-auth" style="display:none">
+    <div id="setup-auth" hidden>
       <div class="fg">
         <div><div class="fl">E-mail</div><input class="inp" id="auth-email" type="email" placeholder="seu@email.com"></div>
       </div>
@@ -34,7 +34,7 @@
     <div class="fil-grid" id="fil-grid"></div>
 
     <!-- Formulário inline (quando não há filiais) -->
-    <div id="setup-form" style="display:none">
+    <div id="setup-form" hidden>
       <div class="fg">
         <div><div class="fl">Nome da filial *</div><input class="inp" id="sf-nome" placeholder="Ex: Matriz Fortaleza"></div>
       </div>
@@ -49,7 +49,7 @@
     </div>
 
     <!-- Ações -->
-    <div id="setup-actions" class="fb" style="display:none">
+    <div id="setup-actions" class="fb" hidden>
       <button class="btn btn-gh btn-sm" data-click="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
       <button class="btn btn-p" data-click="entrar()">Entrar ></button>
     </div>
@@ -66,7 +66,7 @@
     <div class="sb-head">
       <div class="fb">
         <div class="sb-brand">Sistema Comercial</div>
-      <button class="ib" id="sb-close" data-click="fecharSb()" style="display:none">Fechar</button>
+      <button class="ib" id="sb-close" data-click="fecharSb()" hidden>Fechar</button>
       </div>
       <div class="sb-pill" data-click="voltarSetup()">
         <div class="sb-pdot" id="sb-dot"></div>
@@ -90,16 +90,16 @@
         <button class="ni" data-p="clientes" data-label="Clientes" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
         <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
         <button class="ni" data-p="cotacao" data-label="Cotacao" data-click="ir('cotacao')"><span class="ico">CT</span>Cotacao</button>
-        <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
+        <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb is-hidden" id="est-badge">!</span></button>
         <button class="ni" data-p="campanhas" data-label="Campanhas" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
-        <button class="ni" data-p="notificacoes" data-label="Alertas" data-click="ir('notificacoes')"><span class="ico">NT</span>Alertas <span class="nb" id="noti-badge" style="display:none">!</span></button>
+        <button class="ni" data-p="notificacoes" data-label="Alertas" data-click="ir('notificacoes')"><span class="ico">NT</span>Alertas <span class="nb is-hidden" id="noti-badge">!</span></button>
       </section>
       <section class="sb-group" data-group="Sistema">
         <div class="nl">Sistema</div>
         <button class="ni" data-p="filiais" data-label="Filiais" data-click="ir('filiais')"><span class="ico">FL</span>Filiais</button>
         <button class="ni" data-p="acessos" data-label="Acessos" data-click="ir('acessos')"><span class="ico">AC</span>Acessos</button>
       </section>
-      <div class="sb-empty" id="sb-empty" style="display:none">
+      <div class="sb-empty is-hidden" id="sb-empty">
         <div class="sb-empty-title">Nenhuma tela encontrada</div>
         <div class="sb-empty-sub">Tente buscar por nome.</div>
       </div>
@@ -190,7 +190,7 @@
         <div class="dash-grid-main">
           <div class="card"><div class="ct">Faturamento e lucro</div>
             <div class="barchart" id="dash-chart"></div>
-            <div id="dash-chart-empty" class="empty dash-empty-compact" style="display:none"><p>Sem pedidos entregues no periodo</p></div>
+            <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden"><p>Sem pedidos entregues no periodo</p></div>
             <div class="dash-chart-legend">
               <span><span class="dash-legend-swatch dash-legend-swatch--fat"></span>Faturamento</span>
               <span><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span>
@@ -397,7 +397,7 @@
             <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
           </div>
         </div>
-        <div id="cot-lock-alert" style="display:none" class="alert al-a">Cotacao travada | valores protegidos</div>
+        <div id="cot-lock-alert" class="alert al-a is-hidden">Cotacao travada | valores protegidos</div>
         <div class="card"><div id="cot-tabela"></div></div>
       </div>
     </div>
@@ -743,13 +743,13 @@
           </div>
         </div>
       </div>
-      <div id="prod-preview" style="display:none" class="panel">
+      <div id="prod-preview" class="panel is-hidden">
         <div class="pt">Previa de precos</div>
         <div class="preview-grid-4">
-          <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">-</div></div>
-          <div><div style="font-size:11px;color:var(--tx3)">Var. min.</div><div style="font-weight:600" id="ppv-vmin">-</div></div>
-          <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">-</div></div>
-          <div><div style="font-size:11px;color:var(--tx3)">Atac. min.</div><div style="font-weight:600" id="ppv-amin">-</div></div>
+          <div><div class="preview-kicker">Varejo</div><div class="preview-value" id="ppv-v">-</div></div>
+          <div><div class="preview-kicker">Var. min.</div><div class="preview-value" id="ppv-vmin">-</div></div>
+          <div><div class="preview-kicker">Atacado</div><div class="preview-value" id="ppv-a">-</div></div>
+          <div><div class="preview-kicker">Atac. min.</div><div class="preview-value" id="ppv-amin">-</div></div>
         </div>
       </div>
     </div>
@@ -824,9 +824,9 @@
         <div>
           <div class="fl">Opt-ins de marketing</div>
           <div class="optins-box fg2">
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-marketing" type="checkbox"> Marketing</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-email" type="checkbox"> E-mail</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input id="c-optin-sms" type="checkbox"> SMS</label>
+            <label class="optin-choice"><input id="c-optin-marketing" type="checkbox"> Marketing</label>
+            <label class="optin-choice"><input id="c-optin-email" type="checkbox"> E-mail</label>
+            <label class="optin-choice"><input id="c-optin-sms" type="checkbox"> SMS</label>
           </div>
         </div>
       </div>
@@ -879,7 +879,7 @@
         </div>
         <div class="div"></div>
         <div class="ct">Itens do pedido</div>
-        <div class="fg c5" style="margin-bottom:6px">
+        <div class="fg c5 form-gap-bottom-xxs">
           <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod" data-change="preencherValoresItemPedido()"><option value="">- selecione -</option></select></div>
           <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
           <div><div class="fl">Preco unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
@@ -890,7 +890,7 @@
           <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
         </div>
         <div id="ped-itens"></div>
-        <div id="ped-total" style="display:none" class="panel ped-total-panel"><div class="fb"><span class="ped-total-label">Total do pedido</span><span class="ped-total-value" id="ped-total-val">-</span></div></div>
+        <div id="ped-total" class="panel ped-total-panel is-hidden"><div class="fb"><span class="ped-total-label">Total do pedido</span><span class="ped-total-value" id="ped-total-val">-</span></div></div>
         <div class="fg form-gap-top"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
       </div>
       <div class="modal-shell-foot">
@@ -930,7 +930,7 @@
         </select>
       </div>
       <div><div class="fl">Dias de antecedencia</div><input class="inp" id="camp-dias" type="number" min="0" step="1" data-input="renderCampanhaPreview()"></div>
-      <div><div class="fl">Ativa</div><label style="display:flex;align-items:center;gap:8px;height:36px;padding:0 2px"><input id="camp-ativo" type="checkbox" checked> <span style="font-size:13px;color:var(--tx2)">Campanha habilitada</span></label></div>
+      <div><div class="fl">Ativa</div><label class="inline-choice inline-choice--tall"><input id="camp-ativo" type="checkbox" checked> <span class="inline-choice__text">Campanha habilitada</span></label></div>
     </div>
 
     <div class="fg c2">
@@ -1025,7 +1025,7 @@
         <input class="inp" id="jogo-api-url" placeholder="https://...">
       </div>
     </div>
-    <div class="fg2" style="margin-bottom:12px">
+    <div class="fg2 form-gap-bottom">
       <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Serie A</button>
       <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Serie B</button>
       <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Serie C</button>
@@ -1039,7 +1039,7 @@
     </div>
     <div class="panel">
       <div class="pt">Formatos suportados</div>
-      <p style="font-size:12px;color:var(--tx2)">Array direto ou objeto com `matches`, `response`, `events` ou `data`.</p>
+      <p class="panel-copy">Array direto ou objeto com `matches`, `response`, `events` ou `data`.</p>
     </div>
     <div class="modal-actions">
       <button class="btn" data-click="fecharModal('modal-jogo-sync')">Cancelar</button>
@@ -1083,14 +1083,14 @@
       <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" data-change="movLoadProd()"><option value="">- selecione -</option></select></div>
       <div><div class="fl">Data</div><input class="inp" id="mov-data" type="date"></div>
     </div>
-    <div id="mov-saldo-panel" style="display:none" class="panel"><div class="pt">Posicao atual</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Saldo: <b id="ms-saldo">-</b></span><span>Custo medio: <b id="ms-cm">-</b></span></div></div>
+    <div id="mov-saldo-panel" class="panel is-hidden"><div class="pt">Posicao atual</div><div class="panel-inline-metrics"><span>Saldo: <b id="ms-saldo">-</b></span><span>Custo medio: <b id="ms-cm">-</b></span></div></div>
     <div class="fg c2" id="mov-qty-row">
       <div><div class="fl" id="mov-qty-lbl">Quantidade *</div><input class="inp" id="mov-qty" type="number" min="0" step="0.01" data-input="movCalc()"></div>
       <div id="mov-custo-wrap"><div class="fl">Custo unitário (R$)</div><input class="inp" id="mov-custo" type="number" step="0.01" data-input="movCalc()"></div>
     </div>
-    <div id="mov-ajuste-row" style="display:none" class="fg"><div><div class="fl">Saldo real (contagem fisica)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
-    <div id="mov-transf-row" style="display:none" class="fg"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">- selecione -</option></select></div></div>
-    <div id="mov-preview" style="display:none" class="panel"><div class="pt">Previa</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Novo saldo: <b id="mp-saldo">-</b></span><span>Custo medio: <b id="mp-cm">-</b></span><span id="mp-val-wrap">Total: <b id="mp-val">-</b></span></div></div>
+    <div id="mov-ajuste-row" class="fg is-hidden"><div><div class="fl">Saldo real (contagem fisica)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
+    <div id="mov-transf-row" class="fg is-hidden"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">- selecione -</option></select></div></div>
+    <div id="mov-preview" class="panel is-hidden"><div class="pt">Previa</div><div class="panel-inline-metrics"><span>Novo saldo: <b id="mp-saldo">-</b></span><span>Custo medio: <b id="mp-cm">-</b></span><span id="mp-val-wrap">Total: <b id="mp-val">-</b></span></div></div>
     <div class="fg"><div><div class="fl">Observacao</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referencia..."></div></div>
     <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" data-click="salvarMov()">Confirmar</button></div>
   </div>
