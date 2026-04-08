@@ -14,6 +14,7 @@ const prodDom = createScreenDom('produtos', [
   'prod-lista',
   'prod-modal-titulo',
   'prod-flow-save',
+  'prod-det-box',
   'p-un',
   'prod-preview',
   'p-hist-cot',
@@ -118,6 +119,7 @@ export function renderProdutos(){
           </div>
 
           <div class="mobile-card-actions">
+            <button class="ib" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">DET</button>
             <button class="ib" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">MOV</button>
             <button class="ib" title="Editar produto" data-click="editarProd('${p.id}')">EDT</button>
             <button class="ib" title="Excluir produto" data-click="removerProd('${p.id}')">DEL</button>
@@ -166,6 +168,7 @@ export function renderProdutos(){
                 <td style="color:var(--tx2)">${p.emin > 0 ? fmtQ(p.emin) : '-'}</td>
                 <td>
                   <div class="fg2">
+                    <button class="ib" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">DET</button>
                     <button class="ib" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">MOV</button>
                     <button class="ib" title="Editar produto" data-click="editarProd('${p.id}')">EDT</button>
                     <button class="ib" title="Excluir produto" data-click="removerProd('${p.id}')">DEL</button>
@@ -271,6 +274,99 @@ export function editarProd(id){
   calcProdPreview();
   setFlowStepSafe('prod', 1);
   abrirModal('modal-produto');
+}
+
+export function abrirProdDet(id){
+  const p = P().find(x => x.id === id);
+  const box = prodDom.get('prod-det-box');
+  if(!p || !box) return;
+
+  const saldos = calcSaldosSafe();
+  const s = saldos[p.id] || { saldo: 0, cm: 0 };
+  const varejo = p.mkv > 0 ? prV(p.custo, p.mkv) : 0;
+  const atacado = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
+  const margemV = varejo > 0 ? ((varejo - p.custo) / varejo) * 100 : 0;
+  const margemA = atacado > 0 ? ((atacado - p.custo) / atacado) * 100 : 0;
+  const status = s.saldo <= 0
+    ? '<span class="bdg br">Zerado</span>'
+    : (p.emin > 0 && s.saldo < p.emin ? '<span class="bdg ba">Baixo</span>' : '<span class="bdg bg">OK</span>');
+
+  prodDom.html('detail', 'prod-det-box', `
+    <div class="prod-detail">
+      <div class="prod-detail-head fb">
+        <div>
+          <div class="prod-detail-title">${p.nome}</div>
+          <div class="prod-detail-sub">${p.sku || 'Sem SKU'}${p.cat ? ` - ${p.cat}` : ''}</div>
+        </div>
+        <div class="prod-detail-status">${status}</div>
+      </div>
+
+      <div class="prod-detail-grid">
+        <div class="prod-detail-kpi">
+          <div class="prod-detail-label">Custo</div>
+          <div class="prod-detail-value">${fmt(p.custo)}</div>
+        </div>
+        <div class="prod-detail-kpi">
+          <div class="prod-detail-label">Varejo</div>
+          <div class="prod-detail-value">${varejo > 0 ? fmt(varejo) : '-'}</div>
+          <div class="prod-detail-meta">${margemV > 0 ? `${margemV.toFixed(1)}% margem` : 'Sem regra'}</div>
+        </div>
+        <div class="prod-detail-kpi">
+          <div class="prod-detail-label">Atacado</div>
+          <div class="prod-detail-value">${atacado > 0 ? fmt(atacado) : '-'}</div>
+          <div class="prod-detail-meta">${margemA > 0 ? `${margemA.toFixed(1)}% margem` : 'Sem regra'}</div>
+        </div>
+        <div class="prod-detail-kpi">
+          <div class="prod-detail-label">Saldo</div>
+          <div class="prod-detail-value">${fmtQ(s.saldo)} ${p.un}</div>
+          <div class="prod-detail-meta">${p.emin > 0 ? `Min. ${fmtQ(p.emin)}` : 'Sem minimo'}</div>
+        </div>
+        <div class="prod-detail-kpi">
+          <div class="prod-detail-label">Custo medio</div>
+          <div class="prod-detail-value">${fmt(s.cm || p.ecm || p.custo)}</div>
+        </div>
+        <div class="prod-detail-kpi">
+          <div class="prod-detail-label">Comercial</div>
+          <div class="prod-detail-value">${p.qtmin > 0 ? `${fmtQ(p.qtmin)} un` : '-'}</div>
+          <div class="prod-detail-meta">Desc. varejo ${Number(p.dv || 0)}% · atacado ${Number(p.da || 0)}%</div>
+        </div>
+      </div>
+
+      ${p.hist_cot?.length ? `
+        <div class="panel prod-detail-section">
+          <div class="pt">Oscilacao de custo</div>
+          <div class="tw">
+            <table class="tbl prod-detail-table">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Fornecedor</th>
+                  <th>Preco</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${[...p.hist_cot].sort((a, b) => String(b.mes).localeCompare(String(a.mes))).map(h => `
+                  <tr>
+                    <td>${String(h.mes || '').split('-').reverse().join('/')}</td>
+                    <td>${h.forn || '-'}</td>
+                    <td>${fmt(h.preco || 0)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="prod-detail-actions">
+        <button class="btn" data-click="fecharModal('modal-prod-det')">Fechar</button>
+        <button class="btn" data-click="fecharModal('modal-prod-det');abrirMovProd('${p.id}')">Movimentar</button>
+        <button class="btn btn-p" data-click="fecharModal('modal-prod-det');editarProd('${p.id}')">Editar</button>
+      </div>
+    </div>
+  `, 'produtos:detalhe');
+
+  abrirModal('modal-prod-det');
 }
 
 export function syncV(t){

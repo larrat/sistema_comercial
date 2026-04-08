@@ -5399,8 +5399,229 @@ textarea.inp:focus{
     grid-template-columns:1fr;
   }
 
-  .cli-detail-actions .btn,
-  .ped-detail-actions .btn{
+.cli-detail-actions .btn,
+.ped-detail-actions .btn{
+  width:100%;
+  justify-content:center;
+  }
+}
+
+/* =========================================================
+   PRODUTOS / CAMPANHAS REFINEMENT
+   ========================================================= */
+#pg-produtos .card > #prod-lista,
+#pg-campanhas .card > #camp-lista,
+#pg-campanhas .card > #camp-wa-fila,
+#pg-campanhas .card > #camp-envios-lista{
+  min-width:0;
+}
+
+#pg-produtos .tw,
+#pg-campanhas .tw{
+  border-radius:18px;
+}
+
+#pg-produtos .tbl td,
+#pg-produtos .tbl th,
+#pg-campanhas .tbl td,
+#pg-campanhas .tbl th{
+  vertical-align:middle;
+}
+
+#pg-produtos .tbl td:first-child,
+#pg-campanhas #camp-lista .tbl td:first-child{
+  font-weight:700;
+}
+
+#pg-produtos .tbl td .fg2,
+#pg-campanhas .tbl td .fg2{
+  row-gap:6px;
+  align-items:center;
+}
+
+#pg-produtos .mobile-card,
+#pg-campanhas .mobile-card{
+  padding:16px;
+  border-radius:18px;
+}
+
+#pg-produtos .mobile-card-head,
+#pg-campanhas .mobile-card-head{
+  margin-bottom:10px;
+}
+
+#pg-produtos .mobile-card-title,
+#pg-campanhas .mobile-card-title{
+  line-height:1.3;
+}
+
+#pg-produtos .mobile-card-meta,
+#pg-campanhas .mobile-card-meta{
+  padding:10px 12px;
+  border:1px solid #E4EBF4;
+  border-radius:14px;
+  background:#F8FBFF;
+}
+
+#pg-produtos .mobile-card-actions,
+#pg-campanhas .mobile-card-actions{
+  margin-top:12px;
+}
+
+#pg-produtos .mobile-card-actions .ib,
+#pg-campanhas .mobile-card-actions .btn,
+#pg-campanhas .mobile-card-actions .ib{
+  min-height:36px;
+  justify-content:center;
+}
+
+#pg-produtos .tbl .ib,
+#pg-campanhas .tbl .ib{
+  min-width:40px;
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#pg-campanhas .camp-quick{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px 12px;
+  margin-bottom:12px;
+  border:1px solid #E4EBF4;
+  border-radius:16px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F7FBFF 100%);
+}
+
+#pg-campanhas .camp-actions{
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+#pg-campanhas #camp-lista .tbl td,
+#pg-campanhas #camp-wa-fila .tbl td,
+#pg-campanhas #camp-envios-lista .tbl td{
+  white-space:normal;
+}
+
+#pg-campanhas #camp-wa-fila .btn.btn-p,
+#pg-campanhas #camp-lista .btn.btn-p{
+  box-shadow:0 8px 18px rgba(31,72,143,.16);
+}
+
+#modal-prod-det .modal-box{
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
+}
+
+.prod-detail{
+  display:grid;
+  gap:14px;
+}
+
+.prod-detail-head{
+  align-items:flex-start;
+  gap:12px;
+}
+
+.prod-detail-title{
+  font-size:18px;
+  font-weight:700;
+  line-height:1.2;
+  color:var(--tx);
+}
+
+.prod-detail-sub{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--tx2);
+}
+
+.prod-detail-status{
+  display:flex;
+  align-items:center;
+}
+
+.prod-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.prod-detail-kpi{
+  padding:14px 15px;
+  border:1px solid #E4EBF4;
+  border-radius:18px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F6FAFE 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.04);
+  min-width:0;
+}
+
+.prod-detail-label{
+  margin-bottom:8px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--tx3);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+.prod-detail-value{
+  font-size:18px;
+  font-weight:700;
+  color:var(--tx);
+  line-height:1.2;
+  word-break:break-word;
+}
+
+.prod-detail-meta{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--tx2);
+  line-height:1.4;
+}
+
+.prod-detail-section{
+  margin-bottom:0!important;
+}
+
+.prod-detail-table td,
+.prod-detail-table th{
+  vertical-align:middle;
+}
+
+.prod-detail-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  margin-top:4px;
+}
+
+@media(max-width:760px){
+  #pg-produtos .mobile-card-actions,
+  #pg-campanhas .mobile-card-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+
+  #pg-produtos .mobile-card-actions .ib,
+  #pg-campanhas .mobile-card-actions .btn,
+  #pg-campanhas .mobile-card-actions .ib{
+    width:100%;
+  }
+
+  .prod-detail-grid{
+    grid-template-columns:1fr;
+  }
+
+  .prod-detail-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .prod-detail-actions .btn{
     width:100%;
     justify-content:center;
   }

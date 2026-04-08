@@ -127,6 +127,7 @@ function getHandlerRegistry(){
     produtos: {
       renderProdutos: deps.renderProdutos,
       salvarProduto: deps.salvarProdutoTracked,
+      abrirProdDet: deps.abrirProdDet,
       editarProd: deps.editarProd,
       removerProd: deps.removerProdGuard,
       refreshProdSel: deps.refreshProdSel
