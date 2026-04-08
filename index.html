@@ -25,7 +25,7 @@
         <div><div class="fl">E-mail</div><input class="inp" id="auth-email" type="email" placeholder="seu@email.com"></div>
       </div>
       <div class="fg">
-        <div><div class="fl">Senha</div><input class="inp" id="auth-password" type="password" placeholder="••••••••"></div>
+        <div><div class="fl">Senha</div><input class="inp" id="auth-password" type="password" placeholder="********"></div>
       </div>
       <button class="btn btn-p" id="auth-login-btn" style="width:100%;justify-content:center;margin-top:4px" data-action="authEntrar">Entrar com conta</button>
     </div>
@@ -45,13 +45,13 @@
       <div class="fg">
         <div><div class="fl">Cor identificadora</div><input class="inp" id="sf-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
       </div>
-      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px" data-click="criarPrimeiraFilial()">Criar filial e entrar →</button>
+      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px" data-click="criarPrimeiraFilial()">Criar filial e entrar ></button>
     </div>
 
     <!-- Ações -->
     <div id="setup-actions" class="fb" style="display:none">
       <button class="btn btn-gh btn-sm" data-click="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
-      <button class="btn btn-p" data-click="entrar()">Entrar →</button>
+      <button class="btn btn-p" data-click="entrar()">Entrar ></button>
     </div>
   </div>
 </div>
@@ -70,7 +70,7 @@
       </div>
       <div class="sb-pill" data-click="voltarSetup()">
         <div class="sb-pdot" id="sb-dot"></div>
-        <span class="sb-pname" id="sb-fname">—</span>
+        <span class="sb-pname" id="sb-fname">-</span>
         <span style="font-size:11px;color:var(--tx3);margin-left:2px">Trocar</span>
       </div>
       <div class="sb-search">
@@ -116,24 +116,24 @@
       <div>
         <div class="app-topbar-kicker" id="app-kicker">Workspace</div>
         <div class="app-topbar-title" id="app-title">Dashboard</div>
-        <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
+        <div class="app-topbar-sub" id="app-sub">Visao geral e oportunidades</div>
       </div>
       <div class="app-topbar-actions">
-        <button class="btn btn-sm" id="app-act-secondary" type="button">Ação 2</button>
-        <button class="btn btn-sm" id="app-act-tertiary" type="button">Ação 3</button>
-        <button class="btn btn-p" id="app-act-primary" type="button">Ação principal</button>
+        <button class="btn btn-sm" id="app-act-secondary" type="button">Acao 2</button>
+        <button class="btn btn-sm" id="app-act-tertiary" type="button">Acao 3</button>
+        <button class="btn btn-p" id="app-act-primary" type="button">Acao principal</button>
       </div>
     </div>
 
     <!-- ── DASHBOARD ── -->
     <div class="pg on" id="pg-dashboard">
       <div class="ph fb">
-        <div><h2>Dashboard</h2><p id="dash-desc">Este mês</p></div>
+        <div><h2>Dashboard</h2><p id="dash-desc">Este mes</p></div>
         <div class="fg2">
           <select class="inp sel" id="dash-fil" style="font-size:12px;max-width:150px" data-change="renderDash()"></select>
           <div class="pseg" id="dash-pseg">
             <button data-click="setP('semana',this)">Semana</button>
-            <button class="on" data-click="setP('mes',this)">Mês</button>
+            <button class="on" data-click="setP('mes',this)">Mes</button>
             <button data-click="setP('ano',this)">Ano</button>
             <button data-click="setP('tudo',this)">Tudo</button>
           </div>
@@ -149,8 +149,8 @@
 
       <section class="dash-section dash-section--operacao">
         <div class="dash-section-head">
-          <h3>Operação rápida</h3>
-          <p>Ações que precisam de decisão agora</p>
+          <h3>Operacao rapida</h3>
+          <p>Acoes que precisam de decisao agora</p>
         </div>
         <div id="dash-alerts"></div>
         <div class="dash-grid-cards dash-grid-cards--operacao">
@@ -159,16 +159,16 @@
               <div class="ct ct-inline">Oportunidades por time</div>
               <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" data-change="renderDash()">
                 <option value="todas">Todas</option>
-                <option value="a">Série A</option>
-                <option value="b">Série B</option>
-                <option value="c">Série C</option>
+                <option value="a">Serie A</option>
+                <option value="b">Serie B</option>
+                <option value="c">Serie C</option>
               </select>
             </div>
             <div id="dash-oportunidades"></div>
           </div>
           <div class="card dash-card dash-card--jogos">
             <div class="fb mb-10">
-              <div class="ct ct-inline">Próximos jogos</div>
+              <div class="ct ct-inline">Proximos jogos</div>
               <div class="fg2">
                 <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
                 <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
@@ -182,14 +182,14 @@
 
       <section class="dash-section dash-section--analise">
         <div class="dash-section-head">
-          <h3>Análise do negócio</h3>
-          <p>Leitura de desempenho e tendência comercial</p>
+          <h3>Analise do negocio</h3>
+          <p>Leitura de desempenho e tendencia comercial</p>
         </div>
         <div class="mg" id="dash-met"></div>
         <div class="dash-grid-main">
           <div class="card"><div class="ct">Faturamento e lucro</div>
             <div class="barchart" id="dash-chart"></div>
-            <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no período</p></div>
+            <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no periodo</p></div>
             <div class="dash-chart-legend">
               <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#163F80;margin-right:4px"></span>Faturamento</span>
               <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#156038;margin-right:4px"></span>Lucro</span>
@@ -212,14 +212,14 @@
     <!-- ── GERENCIAL ── -->
     <div class="pg" id="pg-gerencial">
       <div class="ph fb">
-        <div><h2>Gerencial</h2><p>Acompanhamento contínuo de metas e produtividade</p></div>
+        <div><h2>Gerencial</h2><p>Acompanhamento continuo de metas e produtividade</p></div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
           <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
         </div>
       </div>
       <div class="card dash-card dash-card--metas">
-        <div class="ct">Metas de negócio (contínuo)</div>
+        <div class="ct">Metas de negocio (continuo)</div>
         <div id="dash-metas-negocio"></div>
       </div>
       <div class="card dash-card">
@@ -235,7 +235,7 @@
         <div id="ger-insights"></div>
       </div>
       <div class="card dash-card">
-        <div class="ct">Recomendações acionáveis</div>
+        <div class="ct">Recomendacoes acionaveis</div>
         <div id="ger-recomendacoes"></div>
       </div>
     </div>
@@ -243,7 +243,7 @@
     <!-- ── PRODUTOS ── -->
     <div class="pg" id="pg-produtos">
       <div class="ph fb">
-        <div><h2>Produtos</h2><p>Cadastro único — precificação, estoque e pedidos</p></div>
+        <div><h2>Produtos</h2><p>Cadastro unico - precificacao, estoque e pedidos</p></div>
         <button class="btn btn-p" data-click="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
       </div>
       <div class="mg" id="prod-met"></div>
@@ -289,14 +289,14 @@
     <!-- ── PEDIDOS ── -->
     <div class="pg" id="pg-pedidos">
       <div class="ph fb">
-        <div><h2>Pedidos</h2><p id="ped-sub">Orçamentos e vendas</p></div>
+        <div><h2>Pedidos</h2><p id="ped-sub">Orcamentos e vendas</p></div>
         <button class="btn btn-p" data-click="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
       </div>
       <div class="mg" id="ped-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <input class="inp" id="ped-busca" placeholder="Cliente ou nº..." style="max-width:180px" data-input="renderPedidos()">
-          <select class="inp sel" id="ped-fil-st" style="max-width:150px" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
+          <input class="inp" id="ped-busca" placeholder="Cliente ou numero..." style="max-width:180px" data-input="renderPedidos()">
+          <select class="inp sel" id="ped-fil-st" style="max-width:150px" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
         </div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
@@ -305,24 +305,24 @@
       <div class="card"><div id="ped-lista"></div></div>
     </div>
 
-    <!-- ── COTAÇÃO ── -->
+    <!-- COTACAO -->
     <div class="pg" id="pg-cotacao">
-      <div class="ph"><h2>Cotação</h2><p id="cot-sub">Fornecedores da filial ativa</p></div>
+      <div class="ph"><h2>Cotacao</h2><p id="cot-sub">Fornecedores da filial ativa</p></div>
       <div class="tabs">
         <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
         <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
-        <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
+        <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotacao</button>
       </div>
       <div class="tc on" id="cot-tc-importar">
         <div class="card">
           <div class="ct">Importar planilha de fornecedor</div>
           <div class="fg c2" style="margin-bottom:12px">
-            <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">— selecione —</option></select></div>
+            <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">- selecione -</option></select></div>
             <div style="display:flex;align-items:flex-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
           </div>
-          <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div style="font-size:22px;margin-bottom:6px">📂</div><strong style="font-size:13px">Clique ou arraste o arquivo</strong><p style="font-size:12px;color:var(--tx3);margin-top:4px">.xlsx .xls .csv — qualquer layout</p></div>
+          <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div style="font-size:22px;margin-bottom:6px">ARQ</div><strong style="font-size:13px">Clique ou arraste o arquivo</strong><p style="font-size:12px;color:var(--tx3);margin-top:4px">.xlsx .xls .csv - qualquer layout</p></div>
         </div>
-        <div class="card"><div class="ct">Histórico de importações</div><div id="cot-logs"></div></div>
+        <div class="card"><div class="ct">Historico de importacoes</div><div id="cot-logs"></div></div>
       </div>
       <div class="tc" id="cot-tc-fornecedores">
         <div class="fb" style="margin-bottom:12px"><span></span><button class="btn btn-p" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
@@ -336,7 +336,7 @@
             <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
           </div>
         </div>
-        <div id="cot-lock-alert" style="display:none" class="alert al-a">Cotação travada — valores protegidos</div>
+        <div id="cot-lock-alert" style="display:none" class="alert al-a">Cotacao travada - valores protegidos</div>
         <div class="card"><div id="cot-tabela"></div></div>
       </div>
     </div>
@@ -347,12 +347,12 @@
         <div><h2>Estoque</h2><p id="est-sub">Movimentações da filial</p></div>
         <div class="fg2">
           <button class="btn btn-sm" data-click="exportCSV('estoque')">Exportar CSV</button>
-          <button class="btn btn-p" data-click="abrirModal('modal-mov');resetMov()">+ Movimentação</button>
+          <button class="btn btn-p" data-click="abrirModal('modal-mov');resetMov()">+ Movimentacao</button>
         </div>
       </div>
       <div id="est-alerts"></div>
       <div class="tabs">
-        <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">Posição</button>
+        <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">Posicao</button>
         <button class="tb" data-click="switchTab('est','historico');renderEstHist()">Histórico</button>
       </div>
       <div class="tc on" id="est-tc-posicao">
@@ -423,7 +423,7 @@
     <!-- ── ACESSOS (ADMIN) ── -->
     <div class="pg" id="pg-acessos">
       <div class="ph fb">
-        <div><h2>Acessos</h2><p>Gestão de perfil e vínculo por filial (admin)</p></div>
+        <div><h2>Acessos</h2><p>Gestao de perfil e vinculo por filial (admin)</p></div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="renderAcessosAdmin()">Atualizar</button>
         </div>
@@ -501,7 +501,7 @@
     <!-- ── NOTIFICAÇÕES ── -->
     <div class="pg" id="pg-notificacoes">
       <div class="ph fb">
-        <div><h2>Notificações</h2><p>Inbox de alertas com prioridade e ação direta</p></div>
+        <div><h2>Notificacoes</h2><p>Inbox de alertas com prioridade e acao direta</p></div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="renderNotificacoes()">Atualizar</button>
           <button class="btn btn-p" data-click="resolverTodasNotificacoes()">Resolver todas</button>
@@ -512,7 +512,7 @@
           <select class="inp sel" id="noti-fil-prioridade" style="max-width:180px" data-change="setFiltroNotificacoes(this.value)">
             <option value="todas">Todas prioridades</option>
             <option value="critico">Crítico</option>
-            <option value="atencao">Atenção</option>
+            <option value="atencao">Atencao</option>
             <option value="oportunidade">Oportunidade</option>
           </select>
         </div>
@@ -534,7 +534,7 @@
   <nav class="mob-nav">
     <div class="mob-items">
       <button class="mob-btn on" id="mob-dashboard" data-click="ir('dashboard')"><span class="mico">DS</span>Início</button>
-      <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')"><span class="mico">GR</span>Gestão</button>
+      <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')"><span class="mico">GR</span>Gestao</button>
       <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
       <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')"><span class="mico">CP</span>Camp.</button>
       <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')"><span class="mico">NT</span>Alertas</button>
@@ -558,7 +558,7 @@
       <div><div class="fl">Estado</div><input class="inp" id="fil-estado" placeholder="CE"></div>
       <div><div class="fl">Cor</div><input class="inp" id="fil-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
     </div>
-    <div class="fg"><div><div class="fl">Endereço (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, número, bairro"></div></div>
+    <div class="fg"><div><div class="fl">Endereco (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, numero, bairro"></div></div>
     <div class="div"></div>
     <div class="modal-actions">
       <button class="btn" data-click="fecharModal('modal-filial')">Cancelar</button>
@@ -582,11 +582,11 @@
     <div class="flow-step on" data-flow-id="prod" data-step="1">
       <div class="fg c2">
         <div><div class="fl">Nome *</div><input class="inp" id="p-nome" placeholder="Nome do produto"></div>
-        <div><div class="fl">SKU / Código</div><input class="inp" id="p-sku" placeholder="PRD-001"></div>
+        <div><div class="fl">SKU / Codigo</div><input class="inp" id="p-sku" placeholder="PRD-001"></div>
       </div>
       <div class="fg c3">
-        <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m²</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
-        <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aço, elétrico"></div>
+        <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m2</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
+        <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aco, eletrico"></div>
         <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" data-input="calcProdPreview()"></div>
       </div>
     </div>
@@ -597,35 +597,35 @@
           <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" data-input="syncV('mk')"></div></div>
           <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" data-input="syncV('mg')"></div></div>
           <div class="fg c2">
-            <div><div class="fl">Qtd mín. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
-            <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
+            <div><div class="fl">Qtd min. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
+            <div><div class="fl">Desc. max. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
           </div>
         </div>
         <div class="panel"><div class="pt">Atacado</div>
           <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" data-input="syncA('mk')"></div></div>
           <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" data-input="syncA('mg')"></div></div>
           <div class="fg c2">
-            <div><div class="fl">Preço fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
-            <div><div class="fl">Desc. máx. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
+            <div><div class="fl">Preco fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
+            <div><div class="fl">Desc. max. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
           </div>
         </div>
       </div>
       <div id="prod-preview" style="display:none" class="panel">
-        <div class="pt">Prévia de preços</div>
+        <div class="pt">Previa de precos</div>
         <div class="preview-grid-4">
-          <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">—</div></div>
-          <div><div style="font-size:11px;color:var(--tx3)">Var. mín.</div><div style="font-weight:600" id="ppv-vmin">—</div></div>
-          <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">—</div></div>
-          <div><div style="font-size:11px;color:var(--tx3)">Atac. mín.</div><div style="font-weight:600" id="ppv-amin">—</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Varejo</div><div style="font-weight:600" id="ppv-v">-</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Var. min.</div><div style="font-weight:600" id="ppv-vmin">-</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Atacado</div><div style="font-weight:600" id="ppv-a">-</div></div>
+          <div><div style="font-size:11px;color:var(--tx3)">Atac. min.</div><div style="font-weight:600" id="ppv-amin">-</div></div>
         </div>
       </div>
     </div>
 
     <div class="flow-step" data-flow-id="prod" data-step="3">
       <div class="fg c3">
-        <div><div class="fl">Estoque mínimo</div><input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0"></div>
+        <div><div class="fl">Estoque minimo</div><input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0"></div>
         <div><div class="fl">Saldo inicial</div><input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0"></div>
-        <div><div class="fl">Custo médio inicial</div><input class="inp" id="p-ecm" type="number" step="0.01" min="0" placeholder="= custo"></div>
+        <div><div class="fl">Custo medio inicial</div><input class="inp" id="p-ecm" type="number" step="0.01" min="0" placeholder="= custo"></div>
       </div>
     </div>
 
@@ -637,8 +637,8 @@
     </div>
 
     <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="prod-flow-prev" data-flow="prod" data-flow-nav="-1">← Voltar</button>
-      <button class="btn btn-sm" type="button" id="prod-flow-next" data-flow="prod" data-flow-nav="1">Próximo →</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-prev" data-flow="prod" data-flow-nav="-1">< Voltar</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-next" data-flow="prod" data-flow-nav="1">Proximo ></button>
     </div>
     <div class="modal-actions">
       <button class="btn" data-click="fecharModal('modal-produto')">Cancelar</button>
@@ -660,7 +660,7 @@
     </div>
 
     <div class="flow-step on" data-flow-id="cli" data-step="1">
-      <div class="fg c2"><div><div class="fl">Nome / Razão social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
+      <div class="fg c2"><div><div class="fl">Nome / Razao social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
       <div class="fg c3"><div><div class="fl">CPF / CNPJ</div><input class="inp" id="c-doc"></div><div><div class="fl">Tipo</div><select class="inp sel" id="c-tipo"><option value="PJ">PJ</option><option value="PF">PF</option></select></div><div><div class="fl">Status</div><select class="inp sel" id="c-status"><option value="ativo">Ativo</option><option value="prospecto">Prospecto</option><option value="inativo">Inativo</option></select></div></div>
       <div class="fg c3">
         <div><div class="fl">Telefone</div><input class="inp" id="c-tel"></div>
@@ -670,14 +670,14 @@
     </div>
 
     <div class="flow-step" data-flow-id="cli" data-step="2">
-      <div class="fg"><div><div class="fl">Responsável / Comprador</div><input class="inp" id="c-resp"></div></div>
-      <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preço</div><select class="inp sel" id="c-tab"><option value="padrao">Padrão</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">À vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
+      <div class="fg"><div><div class="fl">Responsavel / Comprador</div><input class="inp" id="c-resp"></div></div>
+      <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preco</div><select class="inp sel" id="c-tab"><option value="padrao">Padrao</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">A vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
       <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
     </div>
 
     <div class="flow-step" data-flow-id="cli" data-step="3">
       <div class="fg c2">
-        <div><div class="fl">Data de aniversário</div><input class="inp" id="c-aniv" type="date"></div>
+        <div><div class="fl">Data de aniversario</div><input class="inp" id="c-aniv" type="date"></div>
         <div>
           <div class="fl">Opt-ins de marketing</div>
           <div class="optins-box fg2">
@@ -687,7 +687,7 @@
           </div>
         </div>
       </div>
-      <div class="fg"><div><div class="fl">Observações</div><textarea class="inp" id="c-obs"></textarea></div></div>
+      <div class="fg"><div><div class="fl">Observacoes</div><textarea class="inp" id="c-obs"></textarea></div></div>
     </div>
 
     <div class="flow-step" data-flow-id="cli" data-step="4">
@@ -698,8 +698,8 @@
     </div>
 
     <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="cli-flow-prev" data-flow="cli" data-flow-nav="-1">← Voltar</button>
-      <button class="btn btn-sm" type="button" id="cli-flow-next" data-flow="cli" data-flow-nav="1">Próximo →</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-prev" data-flow="cli" data-flow-nav="-1">< Voltar</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-next" data-flow="cli" data-flow-nav="1">Proximo ></button>
     </div>
     <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">Salvar</button></div>
   </div>
@@ -719,27 +719,27 @@
     <div class="fg c3">
       <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente"><datalist id="cli-dl"></datalist></div>
       <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
-      <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+      <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
     </div>
     <div class="fg c3">
-      <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">À vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartão</option><option value="cheque">Cheque</option></select></div>
+      <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">A vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartao</option><option value="cheque">Cheque</option></select></div>
       <div><div class="fl">Prazo</div><select class="inp sel" id="pd-prazo"><option value="imediato">Imediato</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div>
       <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
     </div>
     <div class="div"></div>
     <div class="ct">Itens do pedido</div>
     <div class="fg c4" style="margin-bottom:6px">
-      <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod"><option value="">— selecione —</option></select></div>
+      <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod"><option value="">- selecione -</option></select></div>
       <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
-      <div><div class="fl">Preço unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
+      <div><div class="fl">Preco unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
       <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
     </div>
     <div class="modal-actions modal-actions-inline">
       <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
     </div>
     <div id="ped-itens"></div>
-    <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">—</span></div></div>
-    <div class="fg" style="margin-top:10px"><div><div class="fl">Observações</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
+    <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">-</span></div></div>
+    <div class="fg" style="margin-top:10px"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
     <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-pedido')">Cancelar</button><button class="btn btn-p" data-click="salvarPedido()">Salvar pedido</button></div>
   </div>
 </div>
@@ -757,8 +757,8 @@
     <div class="mt" id="campanha-modal-titulo">Nova campanha</div>
 
     <div class="fg c2">
-      <div><div class="fl">Nome *</div><input class="inp" id="camp-nome" placeholder="Ex: Aniversariantes do mês"></div>
-      <div><div class="fl">Tipo</div><select class="inp sel" id="camp-tipo"><option value="aniversario">Aniversário</option></select></div>
+      <div><div class="fl">Nome *</div><input class="inp" id="camp-nome" placeholder="Ex: Aniversariantes do mes"></div>
+      <div><div class="fl">Tipo</div><select class="inp sel" id="camp-tipo"><option value="aniversario">Aniversario</option></select></div>
     </div>
 
     <div class="fg c3">
@@ -770,7 +770,7 @@
           <option value="sms">SMS</option>
         </select>
       </div>
-      <div><div class="fl">Dias de antecedência</div><input class="inp" id="camp-dias" type="number" min="0" step="1"></div>
+      <div><div class="fl">Dias de antecedencia</div><input class="inp" id="camp-dias" type="number" min="0" step="1"></div>
       <div><div class="fl">Ativa</div><label style="display:flex;align-items:center;gap:8px;height:36px;padding:0 2px"><input id="camp-ativo" type="checkbox" checked> <span style="font-size:13px;color:var(--tx2)">Campanha habilitada</span></label></div>
     </div>
 
@@ -779,7 +779,7 @@
       <div><div class="fl">Desconto (%)</div><input class="inp" id="camp-desconto" type="number" min="0" step="0.1"></div>
     </div>
 
-    <div class="fg"><div><div class="fl">Assunto (opcional)</div><input class="inp" id="camp-assunto" placeholder="Feliz aniversário!"></div></div>
+    <div class="fg"><div><div class="fl">Assunto (opcional)</div><input class="inp" id="camp-assunto" placeholder="Feliz aniversario!"></div></div>
     <div class="fg"><div><div class="fl">Mensagem *</div><textarea class="inp" id="camp-mensagem" rows="6" placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"></textarea></div></div>
 
     <div class="div"></div>
@@ -796,8 +796,8 @@
   <div class="modal-box">
     <div class="mt">Novo jogo (agenda)</div>
     <div class="fg c2">
-      <div><div class="fl">Título *</div><input class="inp" id="jogo-titulo" placeholder="Ex: Final do campeonato"></div>
-      <div><div class="fl">Campeonato</div><input class="inp" id="jogo-campeonato" placeholder="Brasileirão"></div>
+      <div><div class="fl">Titulo *</div><input class="inp" id="jogo-titulo" placeholder="Ex: Final do campeonato"></div>
+      <div><div class="fl">Campeonato</div><input class="inp" id="jogo-campeonato" placeholder="Brasileirao"></div>
     </div>
     <div class="fg c2">
       <div><div class="fl">Mandante</div><input class="inp" id="jogo-mandante" placeholder="Time A"></div>
@@ -805,7 +805,7 @@
     </div>
     <div class="fg c2">
       <div><div class="fl">Data e hora *</div><input class="inp" id="jogo-data" type="datetime-local"></div>
-      <div><div class="fl">Local</div><input class="inp" id="jogo-local" placeholder="Estádio / TV"></div>
+      <div><div class="fl">Local</div><input class="inp" id="jogo-local" placeholder="Estadio / TV"></div>
     </div>
     <div class="modal-actions">
       <button class="btn" data-click="fecharModal('modal-jogo')">Cancelar</button>
@@ -814,7 +814,7 @@
   </div>
 </div>
 
-<!-- Sincronização de jogos -->
+<!-- Sincronizacao de jogos -->
 <div class="modal-wrap" id="modal-jogo-sync">
   <div class="modal-bg" data-click="fecharModal('modal-jogo-sync')"></div>
   <div class="modal-box">
@@ -826,9 +826,9 @@
       </div>
     </div>
     <div class="fg2" style="margin-bottom:12px">
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Série A</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Série B</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Série C</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Serie A</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Serie B</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Serie C</button>
       <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')">Por time</button>
     </div>
     <div class="fg">
@@ -848,7 +848,7 @@
   </div>
 </div>
 
-<!-- Fornecedor cotação -->
+<!-- Fornecedor cotacao -->
 <div class="modal-wrap" id="modal-forn">
   <div class="modal-bg" data-click="fecharModal('modal-forn')"></div>
   <div class="modal-box">
@@ -868,30 +868,30 @@
   </div>
 </div>
 
-<!-- Movimentação estoque -->
+<!-- Movimentacao estoque -->
 <div class="modal-wrap" id="modal-mov">
   <div class="modal-bg" data-click="fecharModal('modal-mov')"></div>
   <div class="modal-box">
-    <div class="mt">Nova movimentação</div>
+    <div class="mt">Nova movimentacao</div>
     <div class="tc-grid">
       <div class="tc-card sel" id="tc-entrada" data-click="setTipo('entrada')"><div class="ti">EN</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
-      <div class="tc-card" id="tc-saida" data-click="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saída</div><div class="ts">Venda / consumo</div></div>
-      <div class="tc-card" id="tc-ajuste" data-click="setTipo('ajuste')"><div class="ti">AJ</div><div class="tl">Ajuste</div><div class="ts">Inventário</div></div>
-      <div class="tc-card" id="tc-transf" data-click="setTipo('transf')"><div class="ti">TR</div><div class="tl">Transferência</div><div class="ts">Entre filiais</div></div>
+      <div class="tc-card" id="tc-saida" data-click="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saida</div><div class="ts">Venda / consumo</div></div>
+      <div class="tc-card" id="tc-ajuste" data-click="setTipo('ajuste')"><div class="ti">AJ</div><div class="tl">Ajuste</div><div class="ts">Inventario</div></div>
+      <div class="tc-card" id="tc-transf" data-click="setTipo('transf')"><div class="ti">TR</div><div class="tl">Transferencia</div><div class="ts">Entre filiais</div></div>
     </div>
     <div class="fg c2">
-      <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" data-change="movLoadProd()"><option value="">— selecione —</option></select></div>
+      <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" data-change="movLoadProd()"><option value="">- selecione -</option></select></div>
       <div><div class="fl">Data</div><input class="inp" id="mov-data" type="date"></div>
     </div>
-    <div id="mov-saldo-panel" style="display:none" class="panel"><div class="pt">Posição atual</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Saldo: <b id="ms-saldo">—</b></span><span>Custo médio: <b id="ms-cm">—</b></span></div></div>
+    <div id="mov-saldo-panel" style="display:none" class="panel"><div class="pt">Posicao atual</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Saldo: <b id="ms-saldo">-</b></span><span>Custo medio: <b id="ms-cm">-</b></span></div></div>
     <div class="fg c2" id="mov-qty-row">
       <div><div class="fl" id="mov-qty-lbl">Quantidade *</div><input class="inp" id="mov-qty" type="number" min="0" step="0.01" data-input="movCalc()"></div>
       <div id="mov-custo-wrap"><div class="fl">Custo unitário (R$)</div><input class="inp" id="mov-custo" type="number" step="0.01" data-input="movCalc()"></div>
     </div>
-    <div id="mov-ajuste-row" style="display:none" class="fg"><div><div class="fl">Saldo real (contagem física)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
-    <div id="mov-transf-row" style="display:none" class="fg"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">— selecione —</option></select></div></div>
-    <div id="mov-preview" style="display:none" class="panel"><div class="pt">Prévia</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Novo saldo: <b id="mp-saldo">—</b></span><span>Custo médio: <b id="mp-cm">—</b></span><span id="mp-val-wrap">Total: <b id="mp-val">—</b></span></div></div>
-    <div class="fg"><div><div class="fl">Observação</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referência..."></div></div>
+    <div id="mov-ajuste-row" style="display:none" class="fg"><div><div class="fl">Saldo real (contagem fisica)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
+    <div id="mov-transf-row" style="display:none" class="fg"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">- selecione -</option></select></div></div>
+    <div id="mov-preview" style="display:none" class="panel"><div class="pt">Previa</div><div style="font-size:13px;display:flex;gap:1.5rem;flex-wrap:wrap"><span>Novo saldo: <b id="mp-saldo">-</b></span><span>Custo medio: <b id="mp-cm">-</b></span><span id="mp-val-wrap">Total: <b id="mp-val">-</b></span></div></div>
+    <div class="fg"><div><div class="fl">Observacao</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referencia..."></div></div>
     <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" data-click="salvarMov()">Confirmar</button></div>
   </div>
 </div>
