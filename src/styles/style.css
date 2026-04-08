@@ -5327,6 +5327,7 @@ textarea.inp:focus{
 #modal-pedido .modal-box{
   width:min(880px,96vw);
   max-height:min(92vh,980px);
+  padding-bottom:18px;
 }
 
 #modal-pedido .mt{
@@ -5344,7 +5345,7 @@ textarea.inp:focus{
 
 #modal-pedido .modal-actions:not(.modal-actions-inline){
   position:sticky;
-  bottom:-24px;
+  bottom:0;
   z-index:3;
   background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,#FFFFFF 18%,#FFFFFF 100%);
   padding-top:12px;
@@ -5352,6 +5353,8 @@ textarea.inp:focus{
   margin-top:14px;
   border-top:1px solid #E5ECF4;
   backdrop-filter:blur(8px);
+  border-bottom-left-radius:18px;
+  border-bottom-right-radius:18px;
 }
 
 #modal-pedido .modal-actions:not(.modal-actions-inline) .btn{
