@@ -209,6 +209,15 @@ import {
   fecharSb
 } from '../modules/navigation.js';
 
+import {
+  initUxWorkflowsModule,
+  executarAuditoriaVisual,
+  executarAuditoriaAceite,
+  initQuickCommand,
+  setFlowStep,
+  initFlowWizards
+} from '../modules/ux-workflows.js';
+
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 
 const AppContext = createAppContext({
@@ -307,367 +316,6 @@ async function gerarFilaCampanhaTracked(id){
   logStrategicAction('campanhas');
   await gerarFilaCampanha(id);
   renderMetasNegocio();
-}
-
-function executarAuditoriaVisual(){
-  const checks = [];
-  const add = (ok, item, detalhe = '') => checks.push({ ok, item, detalhe });
-  const has = id => !!document.getElementById(id);
-  add(has('app-title') && has('app-sub') && has('app-act-primary'), 'Topbar global');
-  add(has('pg-clientes') && has('cli-lista') && has('modal-cliente'), 'Fluxo Clientes');
-  add(has('pg-campanhas') && has('camp-lista') && has('camp-wa-fila') && has('modal-campanha'), 'Fluxo Campanhas');
-  const btnPrimario = document.getElementById('app-act-primary');
-  add(!!String(btnPrimario?.textContent || '').trim(), 'CTA primario com rotulo');
-  const falhas = checks.filter(c => !c.ok);
-  const ok = checks.length - falhas.length;
-  console.table(checks.map(c => ({ status: c.ok ? 'OK' : 'FALHA', item: c.item, detalhe: c.detalhe || '' })));
-  toast(falhas.length ? `Auditoria visual: ${ok}/${checks.length} OK (${falhas.length} falha(s)).` : `Auditoria visual: ${ok}/${checks.length} OK.`);
-}
-
-function cssVar(name){
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-}
-
-function executarAuditoriaAceite(){
-  const checks = [];
-  const add = (frente, ok, item, detalhe = '') => checks.push({ frente, ok, item, detalhe });
-  const btn = document.querySelector('.btn');
-  const card = document.querySelector('.card');
-  const panel = document.querySelector('.panel');
-  const radiusMd = cssVar('--radius-md');
-  const radiusLg = cssVar('--radius-lg');
-  const shadowMd = cssVar('--shadow-md');
-  add('Consistencia visual', !!radiusMd && !!radiusLg && !!shadowMd, 'Tokens base de radius/sombra');
-  if(btn){
-    const s = getComputedStyle(btn);
-    add('Consistencia visual', s.borderRadius === radiusMd, 'Botao usa radius padronizado', `button radius: ${s.borderRadius}`);
-  }
-  if(card && panel){
-    const sc = getComputedStyle(card);
-    const sp = getComputedStyle(panel);
-    add('Consistencia visual', sc.borderRadius === sp.borderRadius, 'Card e Panel com raio consistente', `card:${sc.borderRadius} panel:${sp.borderRadius}`);
-  }
-  const total = checks.length;
-  const ok = checks.filter(c => c.ok).length;
-  const falhas = checks.filter(c => !c.ok);
-  console.table(checks.map(c => ({ frente: c.frente, status: c.ok ? 'OK' : 'FALHA', item: c.item, detalhe: c.detalhe || '' })));
-  toast(falhas.length ? `Aceite por frente: ${ok}/${total} OK (${falhas.length} pendencia(s)).` : `Aceite por frente: ${ok}/${total} OK.`);
-}
-
-const QUICK_COMMANDS = [
-  { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => ir('dashboard') },
-  { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => ir('gerencial') },
-  { cmd: '/ produtos', label: 'Abrir Produtos', run: () => ir('produtos') },
-  { cmd: '/ clientes', label: 'Abrir Clientes', run: () => ir('clientes') },
-  { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => ir('pedidos') },
-  { cmd: '/ cotacao', label: 'Abrir Cotacao', run: () => ir('cotacao') },
-  { cmd: '/ estoque', label: 'Abrir Estoque', run: () => ir('estoque') },
-  { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => ir('campanhas') },
-  { cmd: '/ acessos', label: 'Abrir Acessos', run: () => ir('acessos') },
-  { cmd: '/ notificacoes', label: 'Abrir Notificacoes', run: () => ir('notificacoes') },
-  { cmd: '/ filiais', label: 'Abrir Filiais', run: () => ir('filiais') },
-  { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
-  { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
-  { cmd: '/ novo produto', label: 'Novo Produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
-  { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => abrirNovaCampanhaTracked() },
-  { cmd: '/ nova mov', label: 'Nova Movimentacao', run: () => { resetMov(); abrirModal('modal-mov'); } },
-  { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => abrirSyncJogos() },
-  { cmd: '/ auditoria visual', label: 'Auditoria Visual', run: () => executarAuditoriaVisual() },
-  { cmd: '/ auditoria aceite', label: 'Auditoria de Aceite', run: () => executarAuditoriaAceite() }
-];
-
-function findQuickCommand(raw){
-  const v = norm(raw).replace(/^\/\s*/, '');
-  if(!v) return null;
-  return QUICK_COMMANDS.find(c => norm(c.cmd).replace(/^\/\s*/, '') === v) ||
-    QUICK_COMMANDS.find(c => norm(c.cmd).replace(/^\/\s*/, '').includes(v));
-}
-
-function executeQuickCommand(raw){
-  const found = findQuickCommand(raw);
-  if(!found){
-    toast('Comando não encontrado. Ex: / clientes, / nova campanha');
-    return false;
-  }
-  found.run();
-  return true;
-}
-
-function initQuickCommand(){
-  const input = document.getElementById('quick-cmd');
-  const dl = document.getElementById('quick-cmd-list');
-  if(!input || !dl) return;
-
-  dl.innerHTML = QUICK_COMMANDS
-    .map(c => `<option value="${c.cmd}">${c.label}</option>`)
-    .join('');
-
-  input.addEventListener('keydown', e => {
-    if(e.key !== 'Enter') return;
-    const ok = executeQuickCommand(input.value);
-    if(ok) input.value = '';
-  });
-
-  document.addEventListener('keydown', e => {
-    if(e.key !== '/') return;
-    const target = e.target;
-    const editing = target && (
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.isContentEditable
-    );
-    if(editing) return;
-    e.preventDefault();
-    input.focus();
-    input.select();
-  });
-}
-
-const FLOW_MAX = { prod: 4, cli: 4 };
-window.__flowSteps = { prod: 1, cli: 1 };
-
-function flowVal(id, fallback = '—'){
-  const el = document.getElementById(id);
-  if(!el) return fallback;
-  const raw = ('value' in el ? el.value : el.textContent) ?? '';
-  const v = String(raw).trim();
-  return v || fallback;
-}
-
-function focusField(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.focus();
-  if(typeof el.select === 'function') el.select();
-}
-
-function validateFlowStep(flow, step){
-  if(flow === 'prod'){
-    if(step === 1){
-      const nome = flowVal('p-nome', '');
-      const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
-      if(!nome){
-        toast('Produto: informe o nome para continuar.');
-        focusField('p-nome');
-        return false;
-      }
-      if(custo <= 0){
-        toast('Produto: informe um custo maior que zero.');
-        focusField('p-custo');
-        return false;
-      }
-    }
-    if(step === 2){
-      const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
-      const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
-      const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
-      if(mkv <= 0 && pfa <= 0 && mka <= 0){
-        toast('Produto: defina markup varejo ou preço/markup de atacado.');
-        focusField('p-mkv');
-        return false;
-      }
-    }
-    return true;
-  }
-
-  if(flow === 'cli'){
-    if(step === 1){
-      const nome = flowVal('c-nome', '');
-      if(!nome){
-        toast('Cliente: informe o nome para continuar.');
-        focusField('c-nome');
-        return false;
-      }
-    }
-    if(step === 2){
-      const tab = flowVal('c-tab', '');
-      const prazo = flowVal('c-prazo', '');
-      if(!tab || !prazo){
-        toast('Cliente: complete os dados comerciais (tabela e prazo).');
-        focusField(!tab ? 'c-tab' : 'c-prazo');
-        return false;
-      }
-    }
-    return true;
-  }
-
-  return true;
-}
-
-function renderFlowSummary(flow){
-  if(flow === 'prod'){
-    const el = document.getElementById('prod-flow-resumo');
-    if(!el) return;
-    const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
-    const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
-    const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
-    const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
-    const un = flowVal('p-un', '');
-    const nome = flowVal('p-nome', '');
-    const sku = flowVal('p-sku', '—');
-    const cat = flowVal('p-cat', '—');
-    const pv = custo > 0 && mkv > 0 ? prV(custo, mkv) : 0;
-    const pa = pfa > 0 ? pfa : (custo > 0 && mka > 0 ? prV(custo, mka) : 0);
-    const margemV = pv > 0 ? ((pv - custo) / pv) * 100 : 0;
-    const margemA = pa > 0 ? ((pa - custo) / pa) * 100 : 0;
-    const inconsistencias = [];
-    if(pv > 0 && pv <= custo) inconsistencias.push('Preço varejo está menor/igual ao custo.');
-    if(pa > 0 && pa <= custo) inconsistencias.push('Preço atacado está menor/igual ao custo.');
-    if(pa > 0 && pv > 0 && pa > pv) inconsistencias.push('Preço atacado está acima do varejo.');
-    if((parseFloat(document.getElementById('p-emin')?.value || 0) || 0) < 0) inconsistencias.push('Estoque mínimo negativo.');
-
-    const checks = [
-      { ok: !!nome, label: 'Nome do produto' },
-      { ok: !!un, label: 'Unidade' },
-      { ok: custo > 0, label: 'Custo válido' },
-      { ok: mkv > 0 || mka > 0 || pfa > 0, label: 'Regra de preço definida' }
-    ];
-
-    const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
-    const incHtml = inconsistencias.length
-      ? `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div>${inconsistencias.map(i => `<div style="margin-bottom:4px">- ${i}</div>`).join('')}</div>`
-      : `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div><div>Nenhuma inconsistência crítica detectada.</div></div>`;
-
-    el.innerHTML = `
-      <div class="fg2" style="margin-bottom:10px;gap:6px">${checkHtml}</div>
-      <div class="fg c2">
-        <div><div class="fl">Produto</div><div><b>${nome || '—'}</b></div></div>
-        <div><div class="fl">SKU</div><div>${sku}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Unidade / Categoria</div><div>${un || '—'} • ${cat}</div></div>
-        <div><div class="fl">Custo</div><div>${custo > 0 ? fmt(custo) : '—'}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Preço Varejo</div><div>${pv > 0 ? `${fmt(pv)} (${margemV.toFixed(1)}% margem)` : '—'}</div></div>
-        <div><div class="fl">Preço Atacado</div><div>${pa > 0 ? `${fmt(pa)} (${margemA.toFixed(1)}% margem)` : '—'}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Estoque inicial</div><div>${flowVal('p-esal')}</div></div>
-        <div><div class="fl">Estoque mínimo</div><div>${flowVal('p-emin')}</div></div>
-      </div>
-      ${incHtml}
-    `;
-    return;
-  }
-
-  if(flow === 'cli'){
-    const el = document.getElementById('cli-flow-resumo');
-    if(!el) return;
-    const optins = [
-      document.getElementById('c-optin-marketing')?.checked ? 'Marketing' : '',
-      document.getElementById('c-optin-email')?.checked ? 'E-mail' : '',
-      document.getElementById('c-optin-sms')?.checked ? 'SMS' : ''
-    ].filter(Boolean).join(', ');
-    const nome = flowVal('c-nome', '');
-    const whatsapp = flowVal('c-whatsapp', '');
-    const tel = flowVal('c-tel', '');
-    const email = flowVal('c-email', '');
-    const contatoCount = [whatsapp, tel, email].filter(Boolean).length;
-    const optinEmail = !!document.getElementById('c-optin-email')?.checked;
-    const optinSms = !!document.getElementById('c-optin-sms')?.checked;
-    const optinMkt = !!document.getElementById('c-optin-marketing')?.checked;
-    const inconsistencias = [];
-    if(optinEmail && !email) inconsistencias.push('Opt-in de e-mail marcado sem e-mail cadastrado.');
-    if(optinSms && !tel) inconsistencias.push('Opt-in de SMS marcado sem telefone.');
-    if(optinMkt && !whatsapp && !tel && !email) inconsistencias.push('Opt-in de marketing marcado sem canal de contato.');
-
-    const checks = [
-      { ok: !!nome, label: 'Nome do cliente' },
-      { ok: contatoCount > 0, label: 'Pelo menos 1 canal de contato' },
-      { ok: !!flowVal('c-tab', ''), label: 'Tabela comercial' },
-      { ok: !!flowVal('c-prazo', ''), label: 'Prazo comercial' }
-    ];
-    const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
-    const canais = [
-      whatsapp ? 'WhatsApp' : '',
-      tel ? 'Telefone' : '',
-      email ? 'E-mail' : ''
-    ].filter(Boolean).join(', ') || 'Nenhum';
-    const incHtml = inconsistencias.length
-      ? `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div>${inconsistencias.map(i => `<div style="margin-bottom:4px">- ${i}</div>`).join('')}</div>`
-      : `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistências</div><div>Nenhuma inconsistência crítica detectada.</div></div>`;
-    el.innerHTML = `
-      <div class="fg2" style="margin-bottom:10px;gap:6px">${checkHtml}</div>
-      <div class="fg c2">
-        <div><div class="fl">Cliente</div><div><b>${nome || '—'}</b></div></div>
-        <div><div class="fl">Apelido</div><div>${flowVal('c-apelido')}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Documento / Tipo</div><div>${flowVal('c-doc')} • ${flowVal('c-tipo')}</div></div>
-        <div><div class="fl">Status</div><div>${flowVal('c-status')}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Contato</div><div>${flowVal('c-tel')} • ${flowVal('c-whatsapp')} • ${flowVal('c-email')}</div></div>
-        <div><div class="fl">Aniversário</div><div>${flowVal('c-aniv')}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Comercial</div><div>${flowVal('c-seg')} • ${flowVal('c-tab')} • ${flowVal('c-prazo')}</div></div>
-        <div><div class="fl">Time(s)</div><div>${flowVal('c-time')}</div></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Cidade / Estado</div><div>${flowVal('c-cidade')} • ${flowVal('c-estado')}</div></div>
-        <div><div class="fl">Opt-ins</div><div>${optins || 'Nenhum'}</div></div>
-      </div>
-      <div class="panel" style="margin-top:10px">
-        <div class="pt">Impacto comercial</div>
-        <div>Canal(is) disponível(is): <b>${canais}</b></div>
-        <div style="margin-top:4px">Pronto para campanhas: <b>${(optinMkt && contatoCount > 0) ? 'Sim' : 'Parcial'}</b></div>
-      </div>
-      ${incHtml}
-    `;
-  }
-}
-
-function setFlowStep(flow, rawStep){
-  const max = FLOW_MAX[flow];
-  if(!max) return;
-  const current = window.__flowSteps[flow] || 1;
-  let step = Math.max(1, Math.min(max, Number(rawStep) || 1));
-
-  if(step > current){
-    for(let s = current; s < step; s += 1){
-      if(!validateFlowStep(flow, s)){
-        step = current;
-        break;
-      }
-    }
-  }
-
-  window.__flowSteps[flow] = step;
-
-  document.querySelectorAll(`.flow-step[data-flow-id="${flow}"]`).forEach(el => {
-    el.classList.toggle('on', Number(el.dataset.step) === step);
-  });
-  document.querySelectorAll(`.flow-chip[data-flow-chip="${flow}"]`).forEach(el => {
-    el.classList.toggle('on', Number(el.dataset.step) === step);
-  });
-
-  const prev = document.getElementById(`${flow}-flow-prev`);
-  const next = document.getElementById(`${flow}-flow-next`);
-  const save = document.getElementById(`${flow}-flow-save`);
-  if(prev) prev.disabled = step <= 1;
-  if(next) next.style.display = step >= max ? 'none' : 'inline-flex';
-  if(save) save.style.display = step >= max ? 'inline-flex' : 'none';
-
-  if(step === max) renderFlowSummary(flow);
-}
-
-function initFlowWizards(){
-  ['prod','cli'].forEach(flow => setFlowStep(flow, 1));
-  [
-    'p-nome','p-sku','p-un','p-cat','p-custo','p-mkv','p-mka','p-pfa','p-esal','p-emin',
-    'c-nome','c-apelido','c-doc','c-tipo','c-status','c-tel','c-whatsapp','c-email','c-aniv',
-    'c-seg','c-tab','c-prazo','c-time','c-cidade','c-estado','c-optin-marketing','c-optin-email','c-optin-sms'
-  ].forEach(id => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    const evt = el.tagName === 'SELECT' || el.type === 'checkbox' ? 'change' : 'input';
-    el.addEventListener(evt, () => {
-      if(window.__flowSteps.prod === FLOW_MAX.prod) renderFlowSummary('prod');
-      if(window.__flowSteps.cli === FLOW_MAX.cli) renderFlowSummary('cli');
-    });
-  });
 }
 
 function buildSkeletonLines(lines = 3){
@@ -966,6 +614,22 @@ AppModules.register({
       abrirModal,
       fmt,
       onMetricsReset: () => renderMetasNegocio()
+    });
+  }
+});
+
+AppModules.register({
+  name: 'ux-workflows',
+  init(){
+    initUxWorkflowsModule({
+      ir,
+      limparFormPedTracked,
+      limparFormCliTracked,
+      limparFormProdTracked,
+      abrirNovaCampanhaTracked,
+      abrirModal,
+      resetMov,
+      abrirSyncJogos
     });
   }
 });
