@@ -1,6 +1,11 @@
 export {};
 
 declare global {
+  interface HTMLElement {
+    value?: string;
+    checked?: boolean;
+  }
+
   interface Window {
     __SC_SUPABASE_URL__?: string;
     __SC_SUPABASE_KEY__?: string;
