@@ -242,10 +242,10 @@ function renderFlowSummary(flow){
     ];
     const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
     const incHtml = inconsistencias.length
-      ? `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistencias</div>${inconsistencias.map(i => `<div style="margin-bottom:4px">- ${i}</div>`).join('')}</div>`
-      : `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistencias</div><div>Nenhuma inconsistência critica detectada.</div></div>`;
+      ? `<div class="panel form-gap-top-xs"><div class="pt">Inconsistencias</div>${inconsistencias.map(i => `<div class="detail-line">- ${i}</div>`).join('')}</div>`
+      : `<div class="panel form-gap-top-xs"><div class="pt">Inconsistencias</div><div>Nenhuma inconsistência critica detectada.</div></div>`;
     el.innerHTML = `
-      <div class="fg2" style="margin-bottom:10px;gap:6px">${checkHtml}</div>
+      <div class="fg2 form-gap-bottom-xs gap-6">${checkHtml}</div>
       <div class="fg c2"><div><div class="fl">Produto</div><div><b>${nome || '—'}</b></div></div><div><div class="fl">SKU</div><div>${sku}</div></div></div>
       <div class="fg c2"><div><div class="fl">Unidade / Categoria</div><div>${un || '—'} • ${cat}</div></div><div><div class="fl">Custo</div><div>${custo > 0 ? fmt(custo) : '—'}</div></div></div>
       <div class="fg c2"><div><div class="fl">Preco Varejo</div><div>${pv > 0 ? `${fmt(pv)} (${margemV.toFixed(1)}% margem)` : '—'}</div></div><div><div class="fl">Preco Atacado</div><div>${pa > 0 ? `${fmt(pa)} (${margemA.toFixed(1)}% margem)` : '—'}</div></div></div>
@@ -284,16 +284,16 @@ function renderFlowSummary(flow){
     const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
     const canais = [whatsapp ? 'WhatsApp' : '', tel ? 'Telefone' : '', email ? 'E-mail' : ''].filter(Boolean).join(', ') || 'Nenhum';
     const incHtml = inconsistencias.length
-      ? `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistencias</div>${inconsistencias.map(i => `<div style="margin-bottom:4px">- ${i}</div>`).join('')}</div>`
-      : `<div class="panel" style="margin-top:10px"><div class="pt">Inconsistencias</div><div>Nenhuma inconsistência critica detectada.</div></div>`;
+      ? `<div class="panel form-gap-top-xs"><div class="pt">Inconsistencias</div>${inconsistencias.map(i => `<div class="detail-line">- ${i}</div>`).join('')}</div>`
+      : `<div class="panel form-gap-top-xs"><div class="pt">Inconsistencias</div><div>Nenhuma inconsistência critica detectada.</div></div>`;
     el.innerHTML = `
-      <div class="fg2" style="margin-bottom:10px;gap:6px">${checkHtml}</div>
+      <div class="fg2 form-gap-bottom-xs gap-6">${checkHtml}</div>
       <div class="fg c2"><div><div class="fl">Cliente</div><div><b>${nome || '—'}</b></div></div><div><div class="fl">Apelido</div><div>${flowVal('c-apelido')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Documento / Tipo</div><div>${flowVal('c-doc')} • ${flowVal('c-tipo')}</div></div><div><div class="fl">Status</div><div>${flowVal('c-status')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Contato</div><div>${flowVal('c-tel')} • ${flowVal('c-whatsapp')} • ${flowVal('c-email')}</div></div><div><div class="fl">Aniversario</div><div>${flowVal('c-aniv')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Comercial</div><div>${flowVal('c-seg')} • ${flowVal('c-tab')} • ${flowVal('c-prazo')}</div></div><div><div class="fl">Time(s)</div><div>${flowVal('c-time')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Cidade / Estado</div><div>${flowVal('c-cidade')} • ${flowVal('c-estado')}</div></div><div><div class="fl">Opt-ins</div><div>${optins || 'Nenhum'}</div></div></div>
-      <div class="panel" style="margin-top:10px"><div class="pt">Impacto comercial</div><div>Canal(is) disponivel(is): <b>${canais}</b></div><div style="margin-top:4px">Pronto para campanhas: <b>${(optinMkt && contatoCount > 0) ? 'Sim' : 'Parcial'}</b></div></div>
+      <div class="panel form-gap-top-xs"><div class="pt">Impacto comercial</div><div>Canal(is) disponivel(is): <b>${canais}</b></div><div class="form-gap-top-xxs">Pronto para campanhas: <b>${(optinMkt && contatoCount > 0) ? 'Sim' : 'Parcial'}</b></div></div>
       ${incHtml}
     `;
   }

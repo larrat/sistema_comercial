@@ -337,17 +337,17 @@ function renderUxJourneyKpis(summary){
     <div class="tw">
       <table class="tbl">
         <thead>
-          <tr><th>Jornada</th><th style="text-align:right">Tempo medio</th><th style="text-align:right">Inicios</th><th style="text-align:right">Conclusoes</th><th style="text-align:right">Abandono</th><th style="text-align:right">Retrabalho</th><th style="text-align:right">Cliques</th></tr>
+          <tr><th>Jornada</th><th class="table-align-right">Tempo medio</th><th class="table-align-right">Inicios</th><th class="table-align-right">Conclusoes</th><th class="table-align-right">Abandono</th><th class="table-align-right">Retrabalho</th><th class="table-align-right">Cliques</th></tr>
         </thead>
         <tbody>
           ${rows.map(j => {
             const d = summary.journeys?.[j] || {};
-            return `<tr><td style="font-weight:600;text-transform:capitalize">${j}</td><td style="text-align:right">${formatMs(d.avgMs || 0)}</td><td style="text-align:right">${d.started || 0}</td><td style="text-align:right">${d.completed || 0}</td><td style="text-align:right">${(d.abandonmentRate || 0).toFixed(1)}%</td><td style="text-align:right">${(d.reworkRate || 0).toFixed(1)}%</td><td style="text-align:right">${(d.clicksAvg || 0).toFixed(1)}</td></tr>`;
+            return `<tr><td class="table-cell-strong telemetry-capitalize">${j}</td><td class="table-align-right">${formatMs(d.avgMs || 0)}</td><td class="table-align-right">${d.started || 0}</td><td class="table-align-right">${d.completed || 0}</td><td class="table-align-right">${(d.abandonmentRate || 0).toFixed(1)}%</td><td class="table-align-right">${(d.reworkRate || 0).toFixed(1)}%</td><td class="table-align-right">${(d.clicksAvg || 0).toFixed(1)}</td></tr>`;
           }).join('')}
         </tbody>
       </table>
     </div>
-    <div class="dash-goals-foot" style="margin-top:10px">
+    <div class="dash-goals-foot form-gap-top-xs">
       <span class="bdg ${summary.avgAbandonmentRate <= 20 ? 'bg' : 'ba'}">Abandono medio ${summary.avgAbandonmentRate.toFixed(1)}%</span>
       <span class="bdg ${summary.avgReworkRate <= 20 ? 'bg' : 'ba'}">Retrabalho medio ${summary.avgReworkRate.toFixed(1)}%</span>
     </div>
@@ -359,7 +359,7 @@ function renderUxEventsPanel(){
   if(!el) return;
   const events = getUxEvents();
   if(!events.length){
-    el.innerHTML = `<div class="empty" style="padding:12px"><p>Sem eventos registrados ainda.</p></div>`;
+    el.innerHTML = `<div class="empty dash-empty-compact"><p>Sem eventos registrados ainda.</p></div>`;
     return;
   }
   const byType = events.reduce((acc, ev) => {
@@ -371,7 +371,7 @@ function renderUxEventsPanel(){
   const recent = events.slice(0, 12);
   el.innerHTML = `
     <div class="dash-goals-foot">${topTypes.map(([k, n]) => `<span class="bdg bk">${k}: ${n}</span>`).join('')}</div>
-    <div class="tw" style="margin-top:10px">
+    <div class="tw form-gap-top-xs">
       <table class="tbl">
         <thead><tr><th>Quando</th><th>Tipo</th><th>Pagina</th><th>Detalhe</th></tr></thead>
         <tbody>
@@ -440,7 +440,7 @@ function renderGerencialLayer(summary){
   if(!insightEl || !recEl) return;
   const model = buildGerencialModel(summary);
   if(!model.insights.length){
-    insightEl.innerHTML = `<div class="empty" style="padding:12px"><p>Sem insights disponiveis com os dados atuais.</p></div>`;
+    insightEl.innerHTML = `<div class="empty dash-empty-compact"><p>Sem insights disponiveis com os dados atuais.</p></div>`;
   }else{
     insightEl.innerHTML = `<div class="ger-insights-grid">${model.insights.map(item => `<article class="ger-insight-card ger-insight-${item.kind}"><div class="ger-insight-head"><span class="bdg ${mapInsightToBadgeClass(item.kind)}">${item.kind}</span><span class="bdg bk">${item.metric}</span></div><h4>${item.title}</h4><p>${item.description}</p><button class="btn btn-sm" data-click="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
   }
@@ -462,10 +462,10 @@ export function renderMetasNegocio(){
   }).join(' · ');
   el.innerHTML = `
     <div class="dash-goals-grid">
-      <div class="dash-goal-item"><div class="fb"><div style="font-size:12px;color:var(--tx2)">Tempo de acoes criticas</div><span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div><div style="font-size:11px;color:var(--tx3)">Atual ${formatMs(s.currentAvg)} · Meta 20%</div></div>
-      <div class="dash-goal-item"><div class="fb"><div style="font-size:12px;color:var(--tx2)">Retrabalho por erro visual</div><span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div><div style="font-size:11px;color:var(--tx3)">Validacao ${s.m.errors.validation} · Operacao ${s.m.errors.operation}</div></div>
-      <div class="dash-goal-item"><div class="fb"><div style="font-size:12px;color:var(--tx2)">Uso de acoes estrategicas</div><span class="bdg ${s.strategicProgress >= 100 ? 'bg' : 'bb'}">${s.strategicTotal}</span></div><div class="sbar"><div class="sbar-f" style="width:${s.strategicProgress}%;background:var(--g)"></div></div><div style="font-size:11px;color:var(--tx3)">Camp ${s.m.strategic.campanhas} · Noti ${s.m.strategic.notificacoes} · Opp ${s.m.strategic.oportunidades}</div></div>
-      <div class="dash-goal-item"><div class="fb"><div style="font-size:12px;color:var(--tx2)">Consistencia entre modulos</div><span class="bdg ${s.consistencyProgress >= 100 ? 'bg' : 'ba'}">${s.consistencyDone}/4</span></div><div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div><div style="font-size:11px;color:var(--tx3)">Dashboard · Clientes · Campanhas · Pedidos</div></div>
+      <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Tempo de acoes criticas</div><span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div><div style="font-size:11px;color:var(--tx3)">Atual ${formatMs(s.currentAvg)} · Meta 20%</div></div>
+      <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Retrabalho por erro visual</div><span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div><div style="font-size:11px;color:var(--tx3)">Validacao ${s.m.errors.validation} · Operacao ${s.m.errors.operation}</div></div>
+      <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Uso de acoes estrategicas</div><span class="bdg ${s.strategicProgress >= 100 ? 'bg' : 'bb'}">${s.strategicTotal}</span></div><div class="sbar"><div class="sbar-f" style="width:${s.strategicProgress}%;background:var(--g)"></div></div><div style="font-size:11px;color:var(--tx3)">Camp ${s.m.strategic.campanhas} · Noti ${s.m.strategic.notificacoes} · Opp ${s.m.strategic.oportunidades}</div></div>
+      <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Consistencia entre modulos</div><span class="bdg ${s.consistencyProgress >= 100 ? 'bg' : 'ba'}">${s.consistencyDone}/4</span></div><div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div><div style="font-size:11px;color:var(--tx3)">Dashboard · Clientes · Campanhas · Pedidos</div></div>
     </div>
     <div class="dash-goals-foot">
       <span class="bdg ${mobileMeta >= 70 ? 'bg' : 'ba'}">Mobile ${s.mobileCompletionRate.toFixed(1)}%</span>

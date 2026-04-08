@@ -30,12 +30,12 @@ export function renderImportResumo(resumo){
 
   const ignoradosHtml = (resumo.ignoradosExemplos || []).length
     ? `
-      <div style="margin-top:10px">
+      <div class="form-gap-top-xs">
         <div class="fl">Exemplos de linhas ignoradas</div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+        <div class="import-ignore-list">
           ${resumo.ignoradosExemplos.map(x => `
-            <div style="font-size:12px;color:var(--tx2);padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--surf2)">
-              <b>Linha ${x.linha}</b> — ${x.motivo}${x.nome ? ` <span style="color:var(--tx3)">(${x.nome})</span>` : ''}
+            <div class="import-ignore-item">
+              <b>Linha ${x.linha}</b> — ${x.motivo}${x.nome ? ` <span class="table-cell-muted">(${x.nome})</span>` : ''}
             </div>
           `).join('')}
         </div>
@@ -44,9 +44,9 @@ export function renderImportResumo(resumo){
     : '';
 
   el.innerHTML = `
-    <div class="panel" style="margin-top:12px">
+    <div class="panel form-gap-top">
       <div class="pt">Resumo da Importação</div>
-      <div class="fg c2" style="margin-top:8px">
+      <div class="fg c2 form-gap-top-xs">
         <div class="met"><div class="ml">Novos</div><div class="mv">${resumo.novos || 0}</div></div>
         <div class="met"><div class="ml">Atualizados</div><div class="mv">${resumo.atualizados || 0}</div></div>
         <div class="met"><div class="ml">Ignorados</div><div class="mv">${resumo.ignorados || 0}</div></div>

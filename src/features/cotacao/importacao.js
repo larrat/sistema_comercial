@@ -92,18 +92,18 @@ export function renderMapaBody(){
   const mesAtual = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
 
   document.getElementById('mapa-body').innerHTML = `
-    <p style="font-size:13px;color:var(--tx2);margin-bottom:10px">
+    <p class="detail-copy form-gap-bottom-xs table-cell-muted">
       Arquivo: <b>${ctx.filename}</b>
       &nbsp;&nbsp;•&nbsp;&nbsp;Aba: <b>${sheet.name}</b>
     </p>
 
     ${ctx.layoutSalvo ? `
-      <div style="margin-bottom:12px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--surf2);font-size:13px;color:var(--tx2)">
+      <div class="import-layout-banner">
         ✓ Layout salvo encontrado para <b>${ctx.forn.nome}</b>${ctx.layoutSalvo.sheet_name ? ` — aba preferida: <b>${ctx.layoutSalvo.sheet_name}</b>` : ''}
       </div>
     ` : ''}
 
-    <div style="margin-bottom:12px">
+    <div class="form-gap-bottom">
       <div class="fl">Aba da planilha</div>
       <select class="inp sel" id="map-sheet" onchange="renderMapaBody()">
         ${ctx.sheets.map((s, i) => `
@@ -114,8 +114,8 @@ export function renderMapaBody(){
       </select>
     </div>
 
-    <div class="map-prev" style="overflow-x:auto; margin-bottom:12px">
-      <table class="tbl" style="white-space:nowrap">
+    <div class="map-prev tw map-prev-wrap form-gap-bottom">
+      <table class="tbl map-prev-table">
         <thead>
           <tr>${headers.map(h => `<th>${h.label}</th>`).join('')}</tr>
         </thead>
@@ -129,7 +129,7 @@ export function renderMapaBody(){
       </table>
     </div>
 
-    <div class="fg c2" style="margin-bottom:10px">
+    <div class="fg c2 form-gap-bottom-xs">
       <div>
         <div class="fl">Mês da Cotação</div>
         <input type="month" class="inp" id="map-mes" value="${ctx.mesCotacao || mesAtual}">
@@ -140,7 +140,7 @@ export function renderMapaBody(){
       </div>
     </div>
 
-    <div class="fg c2" style="margin-bottom:10px">
+    <div class="fg c2 form-gap-bottom-xs">
       <div>
         <div class="fl">Descrição (Produto) *</div>
         <select class="inp sel" id="map-nome">${opts.replace(`value="${gN}"`, `value="${gN}" selected`)}</select>
@@ -163,16 +163,16 @@ export function renderMapaBody(){
       </div>
     </div>
 
-    <div id="map-progress-wrap" style="display:none;margin-top:12px">
+    <div id="map-progress-wrap" class="form-gap-top" style="display:none">
       <div class="fl" id="map-progress-text">Processando...</div>
-      <div style="width:100%;height:10px;background:var(--bd);border-radius:999px;overflow:hidden;margin-top:6px">
-        <div id="map-progress-bar" style="width:0%;height:100%;background:var(--acc);transition:width .2s ease"></div>
+      <div class="progress-shell">
+        <div id="map-progress-bar" class="progress-bar-inline" style="width:0%"></div>
       </div>
     </div>
 
     <div id="map-resumo"></div>
 
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+    <div class="modal-actions-inline modal-actions-inline--end form-gap-top-md">
       <button class="btn" onclick="fecharModal('modal-mapa')">Cancelar</button>
       <button class="btn btn-p" onclick="confirmarMapa()">Confirmar importação</button>
     </div>
@@ -189,7 +189,7 @@ export function renderMapaBody(){
     const resumo = document.getElementById('map-resumo');
     if(resumo){
       resumo.innerHTML = `
-        <div class="alert al-a" style="margin-top:12px">
+        <div class="alert al-a form-gap-top">
           ⚠ Esta aba parece ser de <b>combo/kit</b>, não de cotação unitária.
           Prefira uma aba com <b>DESCRIÇÃO</b> e <b>VALOR UN LIQ</b>.
         </div>

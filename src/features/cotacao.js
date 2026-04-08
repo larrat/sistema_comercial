@@ -36,14 +36,14 @@ export function renderCotLogs(){
   }
 
   el.innerHTML = logs.map(l => `
-    <div class="fb cot-log-row" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap">
+    <div class="fb cot-log-row cot-log-row-shell">
       <div>
-        <span style="font-weight:600">${l.arquivo}</span>
-        <span class="bdg bb" style="margin-left:6px">${l.forn}</span>
-        ${l.mes ? `<span class="bdg bk" style="margin-left:6px" title="Mes de referencia">MES ${l.mes.split('-').reverse().join('/')}</span>` : ''}
+        <span class="table-cell-strong">${l.arquivo}</span>
+        <span class="bdg bb cot-chip-gap">${l.forn}</span>
+        ${l.mes ? `<span class="bdg bk cot-chip-gap" title="Mes de referencia">MES ${l.mes.split('-').reverse().join('/')}</span>` : ''}
       </div>
       <div class="fg2 cot-log-meta">
-        <span style="color:var(--tx3);font-size:12px">${l.data}</span>
+        <span class="table-cell-caption table-cell-muted">${l.data}</span>
         <span class="bdg bg">${l.novos || 0} novos</span>
         ${l.atu ? `<span class="bdg ba">${l.atu} atualizados</span>` : ''}
         ${l.falhas ? `<span class="bdg br">${l.falhas} falha(s)</span>` : ''}
@@ -84,8 +84,8 @@ export function renderCotForns(){
 
             return `
               <tr>
-                <td style="font-weight:600">${f.nome}</td>
-                <td style="color:var(--tx2)">${f.contato || '-'}</td>
+                <td class="table-cell-strong">${f.nome}</td>
+                <td class="table-cell-muted">${f.contato || '-'}</td>
                 <td>${f.prazo || '-'}</td>
                 <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
                 <td><button class="btn btn-sm" title="Excluir fornecedor" data-click="remForn('${f.id}')">Excluir</button></td>
@@ -205,8 +205,8 @@ export function renderCotTabela(){
           <tr>
             <th>Produto</th>
             <th>Un</th>
-            ${forns.map(f => `<th style="text-align:right">${f.nome}</th>`).join('')}
-            <th style="text-align:center">Melhor</th>
+            ${forns.map(f => `<th class="table-align-right">${f.nome}</th>`).join('')}
+            <th class="table-align-center">Melhor</th>
           </tr>
         </thead>
         <tbody>
@@ -223,7 +223,7 @@ export function renderCotTabela(){
     const minP = valid.length ? Math.min(...valid) : null;
     const maxP = valid.length ? Math.max(...valid) : null;
 
-    html += `<tr><td style="font-weight:600">${p.nome}</td><td style="color:var(--tx2)">${p.un}</td>`;
+    html += `<tr><td class="table-cell-strong">${p.nome}</td><td class="table-cell-muted">${p.un}</td>`;
 
     forns.forEach((f) => {
       const k = p.id + '_' + f.id;
@@ -238,30 +238,30 @@ export function renderCotTabela(){
       const isWorst = val !== null && val === maxP && valid.length > 1 && minP !== maxP;
       const bg = isBest ? 'background:var(--gbg)' : isWorst ? 'background:var(--rbg)' : '';
 
-      html += `<td style="text-align:right;${bg}">`;
+      html += `<td class="table-align-right"${bg ? ` style="${bg}"` : ''}>`;
 
       if(cot.locked){
         html += val !== null && val > 0 ? fmt(val) : '-';
       } else {
-        html += `<input class="inp" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" data-change="updPreco('${p.id}','${f.id}',this.value)">`;
+        html += `<input class="inp cot-table-input" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" data-change="updPreco('${p.id}','${f.id}',this.value)">`;
       }
 
       html += `</td>`;
     });
 
-    html += `<td style="text-align:center">${minP !== null ? `<span class="bdg bg">${fmt(minP)}</span>` : '-'}</td></tr>`;
+    html += `<td class="table-align-center">${minP !== null ? `<span class="bdg bg">${fmt(minP)}</span>` : '-'}</td></tr>`;
   });
 
   const allTot = Object.values(fTot).filter(v => v > 0);
   const bestTot = allTot.length ? Math.min(...allTot) : null;
 
   html += `
-      <tr style="font-weight:600;border-top:1px solid var(--bd)">
-        <td colspan="2" style="color:var(--tx2)">Total</td>
+      <tr class="cot-total-row">
+        <td colspan="2" class="table-cell-muted">Total</td>
         ${forns.map(f => {
           const t = fTot[f.id];
           const isBest = t > 0 && t === bestTot && allTot.length > 1;
-          return `<td style="text-align:right;font-weight:600;${isBest ? 'background:var(--gbg)' : ''}">${fmt(t)}</td>`;
+          return `<td class="table-align-right table-cell-strong"${isBest ? ' style="background:var(--gbg)"' : ''}>${fmt(t)}</td>`;
         }).join('')}
         <td></td>
       </tr>
@@ -285,7 +285,7 @@ export function renderCotTabela(){
     <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
     <div class="met"><div class="ml">Fornecedores</div><div class="mv">${forns.length}</div></div>
     <div class="met"><div class="ml">Preenchimento</div><div class="mv">${pct2}%</div></div>
-    <div class="met"><div class="ml">Melhor fornecedor</div><div class="mv" style="font-size:14px">${bestForn ? bestForn.nome : '-'}</div></div>
+    <div class="met"><div class="ml">Melhor fornecedor</div><div class="mv kpi-value-sm">${bestForn ? bestForn.nome : '-'}</div></div>
   `;
 }
 
