@@ -1,7 +1,16 @@
+// @ts-check
+
 import { D } from '../app/store.js';
+
+/** @typedef {import('../types/domain').OportunidadeJogo} OportunidadeJogo */
+/** @typedef {import('../types/domain').Cliente} Cliente */
+/** @typedef {import('../types/domain').JogoAgenda} JogoAgenda */
 
 const OPORTUNIDADES_JOGOS_STORE_KEY = 'sc_oportunidades_jogos_store_v1';
 
+/**
+ * @param {unknown} v
+ */
 function normTxt(v){
   return String(v || '')
     .normalize('NFD')
@@ -10,6 +19,10 @@ function normTxt(v){
     .trim();
 }
 
+/**
+ * @param {unknown} v
+ * @returns {string[]}
+ */
 function parseTimes(v){
   const raw = Array.isArray(v)
     ? v
@@ -30,6 +43,10 @@ function parseTimes(v){
   return out;
 }
 
+/**
+ * @param {JogoAgenda | null | undefined} jogo
+ * @param {string} time
+ */
 function jogoTemTime(jogo, time){
   const t = normTxt(time);
   if(!t) return false;
@@ -38,6 +55,10 @@ function jogoTemTime(jogo, time){
     .some(x => x.includes(t));
 }
 
+/**
+ * @param {JogoAgenda | null | undefined} jogo
+ * @param {string} [serie]
+ */
 function jogoEhDaSerie(jogo, serie = 'todas'){
   const s = String(serie || 'todas').toLowerCase();
   if(s === 'todas') return true;
@@ -51,11 +72,17 @@ function jogoEhDaSerie(jogo, serie = 'todas'){
   return true;
 }
 
+/**
+ * @param {JogoAgenda | null | undefined} jogo
+ */
 function getJogoDate(jogo){
   const date = new Date(jogo?.data_hora || 0);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+/**
+ * @returns {Record<string, OportunidadeJogo[]>}
+ */
 function getStore(){
   try{
     const parsed = JSON.parse(localStorage.getItem(OPORTUNIDADES_JOGOS_STORE_KEY) || '{}');
@@ -65,10 +92,19 @@ function getStore(){
   }
 }
 
+/**
+ * @param {Record<string, OportunidadeJogo[]>} store
+ */
 function setStore(store){
   localStorage.setItem(OPORTUNIDADES_JOGOS_STORE_KEY, JSON.stringify(store));
 }
 
+/**
+ * @param {string} fid
+ * @param {Cliente | null | undefined} cliente
+ * @param {string} time
+ * @param {JogoAgenda | null | undefined} jogo
+ */
 function buildOpportunityId(fid, cliente, time, jogo){
   const base = [
     String(fid || ''),
@@ -87,6 +123,11 @@ function buildOpportunityId(fid, cliente, time, jogo){
   return `opp-${Math.abs(hash)}`;
 }
 
+/**
+ * @param {string} fid
+ * @param {{ serie?: string, now?: Date, daysAhead?: number }} [options]
+ * @returns {OportunidadeJogo[]}
+ */
 export function getOportunidadesJogosDaFilial(fid, { serie = 'todas', now = new Date(), daysAhead = 7 } = {}){
   if(!fid) return [];
 
@@ -138,6 +179,11 @@ export function getOportunidadesJogosDaFilial(fid, { serie = 'todas', now = new 
     .sort((a, b) => a.data.getTime() - b.data.getTime());
 }
 
+/**
+ * @param {string} fid
+ * @param {OportunidadeJogo[]} [oportunidades]
+ * @returns {OportunidadeJogo[]}
+ */
 export function syncHistoricoOportunidadesJogos(fid, oportunidades = []){
   if(!fid) return [];
 
@@ -175,15 +221,30 @@ export function syncHistoricoOportunidadesJogos(fid, oportunidades = []){
   return list;
 }
 
+/**
+ * @param {string} fid
+ * @returns {OportunidadeJogo[]}
+ */
 export function getHistoricoOportunidadesJogos(fid){
   const store = getStore();
   return Array.isArray(store[fid]) ? store[fid] : [];
 }
 
+/**
+ * @param {string} fid
+ * @param {string} id
+ * @returns {OportunidadeJogo | null}
+ */
 export function getOportunidadeJogoById(fid, id){
   return getHistoricoOportunidadesJogos(fid).find(item => item.id === id) || null;
 }
 
+/**
+ * @param {string} fid
+ * @param {string} oportunidadeId
+ * @param {{ pedido_id?: string | null, pedido_num?: number | null, pedido_total?: number | null, observacao_validacao?: string }} [payload]
+ * @returns {OportunidadeJogo | null}
+ */
 export function salvarValidacaoOportunidadeJogo(fid, oportunidadeId, payload = {}){
   if(!fid || !oportunidadeId) return null;
 

@@ -1,6 +1,10 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D } from '../app/store.js';
 import { toast } from '../shared/utils.js';
+
+/** @typedef {import('../types/domain').Pedido} Pedido */
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 
@@ -8,6 +12,9 @@ export function initRuntimeLoadingModule(){
   return true;
 }
 
+/**
+ * @param {number} [lines]
+ */
 export function buildSkeletonLines(lines = 3){
   return Array.from({ length: lines })
     .map(() => '<span class="sk-line"></span>')
@@ -40,6 +47,9 @@ export function renderSkeletonState(){
   });
 }
 
+/**
+ * @param {boolean} on
+ */
 export function showLoading(on){
   let el = document.getElementById('sb-loading');
   if(!el){
@@ -58,6 +68,9 @@ export function showLoading(on){
   document.body.dataset.runtimeLoading = on ? 'true' : 'false';
 }
 
+/**
+ * @param {string} filId
+ */
 export async function carregarDadosFilial(filId){
   document.body.dataset.runtimeBootstrap = 'starting';
   renderSkeletonState();
@@ -128,10 +141,14 @@ export async function carregarDadosFilial(filId){
 
     D.produtos[filId] = prods || [];
     D.clientes[filId] = clis || [];
-    D.pedidos[filId] = (peds || []).map(p => ({
-      ...p,
-      itens: typeof p.itens === 'string' ? JSON.parse(p.itens || '[]') : (p.itens || [])
-    }));
+    D.pedidos[filId] = (peds || []).map((p) => {
+      /** @type {Pedido} */
+      const pedido = /** @type {Pedido} */ (p);
+      return {
+        ...pedido,
+        itens: typeof pedido.itens === 'string' ? JSON.parse(pedido.itens || '[]') : (pedido.itens || [])
+      };
+    });
     D.fornecedores[filId] = forns || [];
 
     if(!D.cotPrecos[filId]) D.cotPrecos[filId] = {};
@@ -165,8 +182,12 @@ export async function carregarDadosFilial(filId){
   showLoading(false);
 }
 
+/**
+ * @param {string} id
+ */
 export function mostrarTela(id){
   document.querySelectorAll('.screen').forEach(s => {
+    if(!(s instanceof HTMLElement)) return;
     s.classList.remove('on');
     if(s.id === 'screen-setup'){
       s.style.display = 'none';
@@ -177,7 +198,8 @@ export function mostrarTela(id){
     }
   });
 
-  const target = document.getElementById(id);
+  /** @type {HTMLElement | null} */
+  const target = /** @type {HTMLElement | null} */ (document.getElementById(id));
   if(target){
     target.classList.add('on');
     if(id === 'screen-setup' || id === 'screen-app'){

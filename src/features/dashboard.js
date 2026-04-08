@@ -10,18 +10,7 @@ import { getOportunidadesJogosDaFilial, syncHistoricoOportunidadesJogos } from '
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
 /** @typedef {import('../types/domain').DashboardModuleCallbacks} DashboardModuleCallbacks */
 /** @typedef {import('../types/domain').JogoAgenda} JogoAgenda */
-/**
- * @typedef {object} OportunidadeJogo
- * @property {string} id
- * @property {string | null} cliente_id
- * @property {string} cliente
- * @property {string} time
- * @property {string | null} jogo_id
- * @property {JogoAgenda} jogo
- * @property {Date} data
- * @property {string} mes_ref
- * @property {string} ano_ref
- */
+/** @typedef {import('../types/domain').OportunidadeJogo} OportunidadeJogo */
 
 /** @type {NonNullable<DashboardModuleCallbacks['calcSaldosMulti']>} */
 let calcSaldosMultiSafe = () => ({});

@@ -1,3 +1,134 @@
+// @ts-check
+
+/**
+ * @typedef {{
+ *   register(def: { name: string, init: (app: unknown) => unknown }): void
+ *   initAll(app: unknown): Promise<void>
+ * }} ModuleRegistryLike
+ */
+
+/**
+ * @typedef {{
+ *   initCotacaoModule: (deps?: Record<string, unknown>) => unknown
+ *   initProdutosModule: (deps?: Record<string, unknown>) => unknown
+ *   initClientesModule: (deps?: Record<string, unknown>) => unknown
+ *   initPedidosModule: (deps?: Record<string, unknown>) => unknown
+ *   initDashboardModule: (deps?: Record<string, unknown>) => unknown
+ *   initTelemetriaModule: (deps?: Record<string, unknown>) => unknown
+ *   initRuntimeLoadingModule: (deps?: Record<string, unknown>) => unknown
+ *   initUxWorkflowsModule: (deps?: Record<string, unknown>) => unknown
+ *   initAuthSetupModule: (deps?: Record<string, unknown>) => unknown
+ *   initNavigationModule: (deps?: Record<string, unknown>) => unknown
+ *   initFiliaisAcessosModule: (deps?: Record<string, unknown>) => unknown
+ *   initNotificacoesModule: (deps?: Record<string, unknown>) => unknown
+ * }} BootRuntimeModules
+ */
+
+/**
+ * @typedef {{
+ *   renderCotLogs: () => void
+ *   renderProdMet: () => void
+ *   renderProdutos: () => void
+ *   calcSaldos: () => Record<string, { saldo?: number, cm?: number }>
+ *   setFlowStep: (...args: any[]) => void
+ *   refreshMovSel: () => void
+ *   refreshCliDL: () => void
+ *   calcSaldosMulti: (...args: any[]) => Record<string, { saldo?: number, cm?: number }>
+ *   pageAtual: () => string
+ *   getNotificacoesResumo: () => unknown
+ *   ir: (page: string) => void
+ *   abrirNovaCampanhaTracked: () => void
+ *   limparFormPedTracked: () => void
+ *   abrirModal: (id: string) => void
+ *   fmt: (value: unknown) => string
+ *   limparFormCliTracked: () => void
+ *   limparFormProdTracked: () => void
+ *   resetMov: () => void
+ *   abrirSyncJogos: () => void
+ *   filterSidebarNav: (query?: string) => void
+ *   resetRuntimeData: () => void
+ *   showLoading: (on: boolean) => void
+ *   mostrarTela: (id: string) => void
+ *   buildSkeletonLines: (count?: number) => string
+ *   carregarDadosFilial: (filialId: string) => Promise<void>
+ *   refreshProdSel: () => void
+ *   renderFornSel: () => void
+ *   refreshDestSel: () => void
+ *   renderDashFilSel: () => void
+ *   renderDash: () => void
+ *   atualizarBadgeEst: () => void
+ *   updateNotiBadge: () => void
+ *   cores: string[]
+ *   hasRole: (roles?: string[]) => boolean
+ *   canAccessPage: (page: string) => boolean
+ *   getFirstAllowedPage: (fallback?: string) => string
+ *   scheduleRoleUiGuards: () => void
+ *   startPrimaryActionTracking: (page: string) => void
+ *   completePrimaryActionTracking: (page: string) => void
+ *   markConsistencyPage: (page: string) => void
+ *   renderMetasNegocio: () => void
+ *   renderRelatorios: () => void
+ *   renderCliMet: () => void
+ *   renderClientes: () => void
+ *   renderPedMet: () => void
+ *   renderPedidos: () => void
+ *   renderCotForns: () => void
+ *   renderCotTabela: () => void
+ *   renderEstAlerts: () => void
+ *   renderEstPosicao: () => void
+ *   renderEstHist: () => void
+ *   renderCampanhasMet: () => void
+ *   renderCampanhas: () => void
+ *   renderFilaWhatsApp: () => void
+ *   renderCampanhaEnvios: () => void
+ *   renderFilMet: () => void
+ *   renderFilLista: () => void
+ *   renderAcessosAdmin: () => void
+ *   renderNotificacoes: () => void
+ *   gerarFilaCampanhaTracked: (id: string) => void | Promise<void>
+ *   exportCSV: (tipo: string) => void
+ *   cotLock: () => void
+ *   voltarSetup: () => void
+ *   limparFormFilial: () => void
+ *   resolverTodasNotificacoesTracked: () => void
+ *   refreshCampanhasTela: () => void
+ *   executarAuditoriaVisual: () => void
+ *   roleManagerPlus: string[]
+ *   roleAdminOnly: string[]
+ *   requireRole: (allowedRoles?: string[], denyMessage?: string) => boolean
+ *   renderSetup: () => Promise<void>
+ *   entrar: () => Promise<void>
+ *   appRoles: string[]
+ *   registerNotificationKpi: (metric: string, delta?: number) => void
+ *   logStrategicAction: (context: string) => void
+ *   initDomBindings: () => void
+ *   initGoalTracking: () => void
+ *   initQuickCommand: () => void
+ *   initSidebarEnhancements: () => void
+ *   initFlowWizards: () => void
+ *   startRoleUiObserver: () => void
+ * }} BootRuntimeDeps
+ */
+
+/**
+ * @typedef {{
+ *   registry: ModuleRegistryLike
+ *   modules: BootRuntimeModules
+ *   deps: BootRuntimeDeps
+ * }} RegisterModulesOptions
+ */
+
+/**
+ * @typedef {{
+ *   appContext: unknown
+ *   registry: ModuleRegistryLike
+ *   deps: Pick<BootRuntimeDeps, 'initDomBindings' | 'initGoalTracking' | 'initQuickCommand' | 'initSidebarEnhancements' | 'initFlowWizards' | 'startRoleUiObserver' | 'scheduleRoleUiGuards' | 'renderSetup'>
+ * }} StartRuntimeOptions
+ */
+
+/**
+ * @param {RegisterModulesOptions} options
+ */
 export function registerApplicationModules({ registry, modules, deps }){
   registry.register({
     name: 'cotacao',
@@ -200,6 +331,9 @@ export function registerApplicationModules({ registry, modules, deps }){
   });
 }
 
+/**
+ * @param {StartRuntimeOptions} options
+ */
 export function startApplicationRuntime({ appContext, registry, deps }){
   async function bootstrapApplication(){
     await registry.initAll(appContext);

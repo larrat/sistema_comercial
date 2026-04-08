@@ -389,16 +389,25 @@ export type NavigationModuleDeps = {
 
 export type OportunidadeJogo = {
   id: Id;
+  filial_id?: Id | null;
+  cliente_id?: Id | null;
   cliente?: string;
   time?: string;
+  jogo_id?: Id | null;
   jogo_titulo?: string;
+  jogo_campeonato?: string | null;
   jogo_data_hora?: string;
   jogo?: {
     titulo?: string;
     data_hora?: string;
+    mandante?: string | null;
+    visitante?: string | null;
+    campeonato?: string | null;
   };
+  data?: Date;
   ano_ref?: string;
   mes_ref?: string;
+  criado_em?: string;
   validada?: boolean;
   validada_em?: string;
   pedido_id?: Id | null;
