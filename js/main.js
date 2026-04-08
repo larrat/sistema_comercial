@@ -1,5 +1,7 @@
 import { SB } from './api.js';
 import { D, State, P, C, PD, FORNS, CPRECOS, CCFG } from './store.js';
+import { createAppContext } from '../core/app-context.js';
+import { createModuleRegistry } from '../core/module-registry.js';
 
 import {
   toast,
@@ -193,6 +195,19 @@ const ROLE_UI_ADMIN_SELECTORS = [
 ];
 let roleUiGuardTimer = null;
 let roleUiObserver = null;
+
+const AppContext = createAppContext({
+  services: {
+    SB,
+    D,
+    State
+  },
+  config: {
+    appName: 'sistema_comercial'
+  }
+});
+
+const AppModules = createModuleRegistry();
 
 const JOURNEY_MODAL_MAP = {
   'modal-produto': 'produto',
@@ -2868,35 +2883,65 @@ const removerCampanhaGuard = buildRoleGuard(removerCampanha, ROLE_MANAGER_PLUS, 
 const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 
-initCotacaoModule({
-  renderCotLogs,
-  renderProdMet,
-  renderProdutos
+AppModules.register({
+  name: 'cotacao',
+  init(){
+    initCotacaoModule({
+      renderCotLogs,
+      renderProdMet,
+      renderProdutos
+    });
+  }
 });
 
-initProdutosModule({
-  calcSaldos
+AppModules.register({
+  name: 'produtos',
+  init(){
+    initProdutosModule({
+      calcSaldos
+    });
+  }
 });
 
-initPedidosModule({
-  refreshProdSel,
-  refreshCliDL
+AppModules.register({
+  name: 'pedidos',
+  init(){
+    initPedidosModule({
+      refreshProdSel,
+      refreshCliDL
+    });
+  }
 });
 
-initDashboardModule({
-  calcSaldosMulti
+AppModules.register({
+  name: 'dashboard',
+  init(){
+    initDashboardModule({
+      calcSaldosMulti
+    });
+  }
 });
 
-initNotificacoesModule({
-  calcSaldos,
-  ir,
-  renderMetasNegocio,
-  registerNotificationKpi,
-  logStrategicAction
+AppModules.register({
+  name: 'notificacoes',
+  init(){
+    initNotificacoesModule({
+      calcSaldos,
+      ir,
+      renderMetasNegocio,
+      registerNotificationKpi,
+      logStrategicAction
+    });
+  }
 });
+
+async function bootstrapApplication(){
+  await AppModules.initAll(AppContext);
+}
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
+    bootstrapApplication().catch(e => console.error('Falha no bootstrap da aplicacao:', e));
     initGoalTracking();
     initQuickCommand();
     initSidebarEnhancements();
@@ -2906,6 +2951,7 @@ if (document.readyState === 'loading') {
     renderSetup();
   });
 } else {
+  bootstrapApplication().catch(e => console.error('Falha no bootstrap da aplicacao:', e));
   initGoalTracking();
   initQuickCommand();
   initSidebarEnhancements();
