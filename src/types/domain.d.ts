@@ -39,6 +39,7 @@ export type Fornecedor = {
   filial_id?: Id | null;
   nome: string;
   contato?: string;
+  prazo?: string;
   tel?: string;
   email?: string;
   obs?: string;
@@ -49,9 +50,14 @@ export type Produto = {
   id: Id;
   filial_id?: Id | null;
   nome: string;
+  descricao_padrao?: string;
   sku?: string;
   un: string;
+  unidade?: string;
   cat?: string;
+  categoria?: string;
+  codigo_fornecedor?: string | null;
+  codigo_barras?: string | null;
   custo: number;
   mkv: number;
   mka?: number;
@@ -67,7 +73,52 @@ export type Produto = {
     mes?: string;
     forn?: string;
     preco?: number;
+    tabela?: number | null;
+    desconto?: number | null;
   }>;
+};
+
+export type CotacaoLog = {
+  arquivo?: string;
+  aba?: string;
+  forn?: string | null;
+  mes?: string;
+  data?: string;
+  novos?: number;
+  atu?: number;
+  falhas?: number;
+};
+
+export type CotacaoConfig = {
+  filial_id: Id | null;
+  locked: boolean;
+  logs: CotacaoLog[];
+};
+
+export type CotacaoSheet = {
+  name: string;
+  rows: Array<Array<string | number | null | undefined>>;
+  score?: number;
+};
+
+export type CotacaoLayout = {
+  sheet_name?: string | null;
+  start_line?: number | null;
+  col_descricao?: string | null;
+  col_categoria?: string | null;
+  col_tabela?: string | null;
+  col_desconto?: string | null;
+  col_preco_liq?: string | null;
+};
+
+export type CotacaoMapaContext = {
+  forn: Fornecedor;
+  filename: string;
+  sheets: CotacaoSheet[];
+  sheetIdx?: number;
+  mesCotacao?: string;
+  startLine?: number;
+  layoutSalvo?: CotacaoLayout | null;
 };
 
 export type Cliente = {
@@ -348,6 +399,28 @@ export type NotificacoesModuleDeps = {
   logStrategicAction?: (context: string) => void;
 };
 
+export type TelemetriaModuleDeps = {
+  pageAtual?: () => string;
+  getNotificacoesResumo?: () => { critico: number; oportunidade: number };
+  ir?: (page: string) => void;
+  abrirNovaCampanhaTracked?: () => void;
+  limparFormPedTracked?: () => void;
+  abrirModal?: (id: string) => void;
+  fmt?: (value: unknown) => string;
+  onMetricsReset?: () => void;
+};
+
+export type UxWorkflowsModuleDeps = {
+  ir?: (page: string) => void;
+  limparFormPedTracked?: () => void;
+  limparFormCliTracked?: () => void;
+  limparFormProdTracked?: () => void;
+  abrirNovaCampanhaTracked?: () => void;
+  abrirModal?: (id: string) => void;
+  resetMov?: () => void;
+  abrirSyncJogos?: () => void;
+};
+
 export type NavigationPageAction = {
   label: string;
   run: () => void;
@@ -450,7 +523,7 @@ export type AppCache = {
   pedidos: Record<string, Pedido[]>;
   fornecedores: Record<string, Fornecedor[]>;
   cotPrecos: Record<string, Record<string, number>>;
-  cotConfig: Record<string, { filial_id: Id | null; locked: boolean; logs: Array<{ forn?: string | null }> }>;
+  cotConfig: Record<string, CotacaoConfig>;
   movs: Record<string, MovimentoEstoque[]>;
   jogos: Record<string, JogoAgenda[]>;
   campanhas?: Record<string, Campanha[]>;
@@ -474,7 +547,7 @@ export type AppState = {
   movTipo: string;
   editIds: Record<string, Id | null | undefined>;
   pedItens: PedidoItem[];
-  _mapaCtx: unknown;
+  _mapaCtx: CotacaoMapaContext | null;
 };
 
 export type RenderTargetMeta = {
