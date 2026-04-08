@@ -1,14 +1,38 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State, P, PD } from '../app/store.js';
 import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
+/** @typedef {import('../types/domain').Pedido} Pedido */
+/** @typedef {import('../types/domain').PedidoItem} PedidoItem */
+/** @typedef {import('../types/domain').PedidosModuleCallbacks} PedidosModuleCallbacks */
+
 let refreshProdSelSafe = () => {};
 let refreshCliDLSafe = () => {};
 
+/**
+ * @param {PedidosModuleCallbacks} [callbacks]
+ */
 export function initPedidosModule(callbacks = {}){
   refreshProdSelSafe = callbacks.refreshProdSel || (() => {});
   refreshCliDLSafe = callbacks.refreshCliDL || (() => {});
+}
+
+/**
+ * @param {Pedido | undefined} pedido
+ * @returns {PedidoItem[]}
+ */
+function getPedidoItens(pedido){
+  if(!pedido?.itens) return [];
+  if(Array.isArray(pedido.itens)) return pedido.itens;
+  try{
+    const parsed = JSON.parse(pedido.itens || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  }catch{
+    return [];
+  }
 }
 
 const ST_PED = {
@@ -169,7 +193,7 @@ export function limparFormPed(){
   if(prazoEl) prazoEl.value = 'imediato';
   if(tipoEl) tipoEl.value = 'varejo';
   if(prodEl) prodEl.value = '';
-  if(qtyEl) qtyEl.value = 1;
+  if(qtyEl) qtyEl.value = '1';
   if(precoEl) precoEl.value = '';
 
   refreshProdSelSafe();
@@ -177,12 +201,16 @@ export function limparFormPed(){
   renderItens();
 }
 
+/**
+ * @param {string} id
+ */
 export function editarPed(id){
+  /** @type {Pedido | undefined} */
   const p = PD().find(x => x.id === id);
   if(!p) return;
 
   State.editIds.ped = id;
-  State.pedItens = [...(p.itens || []).map(i => ({ ...i }))];
+  State.pedItens = [...getPedidoItens(p).map(i => ({ ...i }))];
 
   const titulo = document.getElementById('ped-modal-titulo');
   if(titulo) titulo.textContent = 'Editar pedido #' + p.num;
@@ -238,12 +266,15 @@ export function addItem(){
   const precoEl = document.getElementById('pi-preco');
 
   if(prodEl) prodEl.value = '';
-  if(qtyEl) qtyEl.value = 1;
+  if(qtyEl) qtyEl.value = '1';
   if(precoEl) precoEl.value = '';
 
   renderItens();
 }
 
+/**
+ * @param {number} i
+ */
 export function remItem(i){
   if(!State.pedItens) State.pedItens = [];
   State.pedItens.splice(i, 1);
@@ -359,6 +390,9 @@ export async function salvarPedido(){
   notify(State.editIds.ped ? 'Sucesso: pedido atualizado.' : 'Sucesso: pedido #' + ped.num + ' criado.', SEVERITY.SUCCESS);
 }
 
+/**
+ * @param {string} id
+ */
 export async function removerPed(id){
   if(!confirm('Remover pedido?')) return;
 
@@ -375,11 +409,16 @@ export async function removerPed(id){
   toast('Removido.');
 }
 
+/**
+ * @param {string} id
+ */
 export function verPed(id){
+  /** @type {Pedido | undefined} */
   const p = PD().find(x => x.id === id);
   if(!p) return;
 
-  const lucro = (p.itens || []).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
+  const itens = getPedidoItens(p);
+  const lucro = itens.reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
 
   const pgtoLbl = {
     a_vista:'A vista',
@@ -444,7 +483,7 @@ export function verPed(id){
           </tr>
         </thead>
         <tbody>
-          ${(p.itens || []).map(i => `
+          ${itens.map(i => `
             <tr>
               <td style="font-weight:600">${i.nome}</td>
               <td><span class="bdg ${i.orig === 'estoque' ? 'bg' : 'bb'}" style="font-size:10px">${i.orig === 'estoque' ? 'Est.' : 'Forn.'}</span></td>

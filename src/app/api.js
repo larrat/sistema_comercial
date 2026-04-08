@@ -1,3 +1,9 @@
+// @ts-check
+
+/** @typedef {import('../types/domain').AuthSession} AuthSession */
+/** @typedef {import('../types/domain').SbApiError} SbApiError */
+/** @typedef {import('../types/domain').SbResult<unknown>} UnknownSbResult */
+
 const LEGACY_DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
 const LEGACY_DEFAULT_SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
 const ALLOW_LEGACY_SUPABASE_DEFAULTS = window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ === true;
@@ -47,16 +53,37 @@ function ensureSupabaseConfig() {
   });
 }
 
+/**
+ * @param {number} ms
+ */
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * @param {number | null | undefined} status
+ * @param {unknown} err
+ */
 function shouldRetry(status, err) {
-  if (err?.name === 'AbortError') return true;
+  if (err instanceof Error && err.name === 'AbortError') return true;
   if (status == null) return true;
   return status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
 }
 
+/**
+ * @param {{
+ *   message?: string;
+ *   status?: number | null;
+ *   code?: string;
+ *   source?: string;
+ *   operation?: string;
+ *   resource?: string | null;
+ *   details?: unknown;
+ *   retryable?: boolean;
+ *   cause?: unknown;
+ * }} [input]
+ * @returns {SbApiError}
+ */
 function createSbError({
   message,
   status = null,
@@ -68,7 +95,7 @@ function createSbError({
   retryable = false,
   cause = null
 } = {}) {
-  const err = new Error(message || 'Falha inesperada na camada SB.');
+  const err = /** @type {SbApiError} */ (new Error(message || 'Falha inesperada na camada SB.'));
   err.name = 'SbApiError';
   err.status = status;
   err.code = code;
@@ -81,21 +108,41 @@ function createSbError({
   return err;
 }
 
+/**
+ * @param {unknown} err
+ * @param {{
+ *   message?: string;
+ *   status?: number | null;
+ *   code?: string;
+ *   source?: string;
+ *   operation?: string;
+ *   resource?: string | null;
+ *   details?: unknown;
+ *   retryable?: boolean;
+ * }} [fallback]
+ * @returns {SbApiError}
+ */
 function normalizeSbError(err, fallback = {}) {
-  if (err?.name === 'SbApiError') return err;
+  if (err instanceof Error && err.name === 'SbApiError') return /** @type {SbApiError} */ (err);
   return createSbError({
-    message: err?.message || fallback.message || 'Falha inesperada na camada SB.',
-    status: err?.status ?? fallback.status ?? null,
-    code: err?.code || fallback.code || 'SB_UNHANDLED',
-    source: err?.source || fallback.source || 'api',
-    operation: err?.operation || fallback.operation || 'unknown',
-    resource: err?.resource || fallback.resource || null,
-    details: err?.details || fallback.details || null,
-    retryable: typeof err?.retryable === 'boolean' ? err.retryable : !!fallback.retryable,
+    message: err instanceof Error ? err.message : fallback.message || 'Falha inesperada na camada SB.',
+    status: err && typeof err === 'object' && 'status' in err ? /** @type {{status?: number | null}} */ (err).status ?? fallback.status ?? null : fallback.status ?? null,
+    code: err && typeof err === 'object' && 'code' in err ? String(/** @type {{code?: unknown}} */ (err).code || fallback.code || 'SB_UNHANDLED') : fallback.code || 'SB_UNHANDLED',
+    source: err && typeof err === 'object' && 'source' in err ? String(/** @type {{source?: unknown}} */ (err).source || fallback.source || 'api') : fallback.source || 'api',
+    operation: err && typeof err === 'object' && 'operation' in err ? String(/** @type {{operation?: unknown}} */ (err).operation || fallback.operation || 'unknown') : fallback.operation || 'unknown',
+    resource: err && typeof err === 'object' && 'resource' in err ? /** @type {{resource?: string | null}} */ (err).resource || fallback.resource || null : fallback.resource || null,
+    details: err && typeof err === 'object' && 'details' in err ? /** @type {{details?: unknown}} */ (err).details || fallback.details || null : fallback.details || null,
+    retryable: err && typeof err === 'object' && 'retryable' in err && typeof /** @type {{retryable?: unknown}} */ (err).retryable === 'boolean'
+      ? /** @type {{retryable: boolean}} */ (err).retryable
+      : !!fallback.retryable,
     cause: err
   });
 }
 
+/**
+ * @param {Response} res
+ * @returns {Promise<any>}
+ */
 async function readResponseData(res) {
   const txt = await res.text().catch(() => '');
   if (!txt) return null;
@@ -106,6 +153,13 @@ async function readResponseData(res) {
   }
 }
 
+/**
+ * @param {number} status
+ * @param {string} resource
+ * @param {string} operation
+ * @param {unknown} details
+ * @returns {SbApiError}
+ */
 function buildSupabaseHttpError(status, resource, operation, details) {
   if (status === 401 || status === 403) {
     return createSbError({
@@ -145,6 +199,11 @@ function buildSupabaseHttpError(status, resource, operation, details) {
   });
 }
 
+/**
+ * @template T
+ * @param {Promise<T> | (() => Promise<T>)} promiseOrFactory
+ * @returns {Promise<import('../types/domain').SbResult<T>>}
+ */
 async function toSbResult(promiseOrFactory) {
   try {
     const data = await (typeof promiseOrFactory === 'function' ? promiseOrFactory() : promiseOrFactory);
@@ -154,6 +213,11 @@ async function toSbResult(promiseOrFactory) {
   }
 }
 
+/**
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @param {number} [timeoutMs]
+ */
 async function fetchWithTimeout(url, options = {}, timeoutMs = REQ_TIMEOUT_MS) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), timeoutMs);
@@ -164,6 +228,10 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = REQ_TIMEOUT_MS) {
   }
 }
 
+/**
+ * @param {string} url
+ * @param {RequestInit} [options]
+ */
 async function resilientFetch(url, options = {}) {
   let lastErr = null;
   let lastStatus = null;
@@ -209,6 +277,9 @@ async function resilientFetch(url, options = {}) {
   });
 }
 
+/**
+ * @returns {AuthSession | null}
+ */
 function readAuthSession() {
   try {
     return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
@@ -217,6 +288,9 @@ function readAuthSession() {
   }
 }
 
+/**
+ * @param {AuthSession | null} session
+ */
 function writeAuthSession(session) {
   if (!session) {
     localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -225,6 +299,10 @@ function writeAuthSession(session) {
   localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
 }
 
+/**
+ * @param {any} payload
+ * @returns {AuthSession | null}
+ */
 function normalizeSessionPayload(payload) {
   if (!payload || !payload.access_token) return null;
   const expiresAt =
@@ -240,6 +318,10 @@ function normalizeSessionPayload(payload) {
   };
 }
 
+/**
+ * @param {AuthSession | null} current
+ * @returns {Promise<AuthSession | null>}
+ */
 async function refreshAuthSession(current) {
   if (!current?.refresh_token) return current;
   ensureSupabaseConfig();
@@ -309,7 +391,7 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
     });
   }
 
-  const data = await readResponseData(res);
+  const data = /** @type {any} */ (await readResponseData(res));
   if (!res.ok) {
     console.error('Supabase erro', {
       status: res.status,
@@ -690,12 +772,12 @@ export const SB = {
     sbReq(`campanha_envios?id=eq.${id}`, 'DELETE'),
 
   existeCampanhaEnvioNoDia: async ({ campanha_id, cliente_id, canal, data_ref }) => {
-    const r = await sbReq(
+    const r = /** @type {any[] | null} */ (await sbReq(
       'campanha_envios',
       'GET',
       null,
       `?campanha_id=eq.${campanha_id}&cliente_id=eq.${cliente_id}&canal=eq.${canal}&data_ref=eq.${data_ref}&limit=1`
-    );
+    ));
     return !!(r && r.length);
   },
   gerarFilaCampanhaEdge: (campanha_id, dry_run = false) =>

@@ -1,11 +1,19 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, toast, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
+/** @typedef {import('../types/domain').Cliente} Cliente */
+/** @typedef {import('../types/domain').ClientesModuleCallbacks} ClientesModuleCallbacks */
+/** @typedef {import('../types/domain').ScreenDom} ScreenDom */
+
+/** @type {NonNullable<ClientesModuleCallbacks['setFlowStep']>} */
 let setFlowStepSafe = () => {};
 
+/** @type {ScreenDom} */
 const cliDom = createScreenDom('clientes', [
   'cli-met',
   'cli-fil-seg',
@@ -68,10 +76,16 @@ const PRAZO_DETALHE_LABELS = {
   '60d': '60 dias'
 };
 
+/**
+ * @param {ClientesModuleCallbacks} [callbacks]
+ */
 export function initClientesModule(callbacks = {}){
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
 }
 
+/**
+ * @param {unknown} value
+ */
 function esc(value){
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -81,17 +95,26 @@ function esc(value){
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * @param {unknown} nome
+ */
 function avc(nome){
   const value = String(nome || 'X');
   return AVC[value.charCodeAt(0) % AVC.length];
 }
 
+/**
+ * @param {unknown} nome
+ */
 function ini(nome){
   const parts = String(nome || '').trim().split(/\s+/).filter(Boolean);
   if(!parts.length) return 'CL';
   return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
 }
 
+/**
+ * @param {string | null | undefined} iso
+ */
 function fmtAniv(iso){
   if(!iso) return '';
   const [year, month, day] = String(iso).split('-');
@@ -99,6 +122,9 @@ function fmtAniv(iso){
   return `${day}/${month}`;
 }
 
+/**
+ * @param {string | null | undefined} iso
+ */
 function getDiasParaAniversario(iso){
   if(!iso) return null;
 
@@ -119,6 +145,9 @@ function getDiasParaAniversario(iso){
   return Math.round((alvo.getTime() - hoje.getTime()) / 86400000);
 }
 
+/**
+ * @param {Cliente | null | undefined} cliente
+ */
 function getBadgeAniversario(cliente){
   if(!cliente?.data_aniversario) return '';
 
@@ -135,6 +164,9 @@ function getBadgeAniversario(cliente){
   return `<span class="bdg bb">Aniv ${esc(fmtAniv(cliente.data_aniversario))}</span>`;
 }
 
+/**
+ * @param {Cliente | null | undefined} cliente
+ */
 function getContatoInfo(cliente){
   const whatsapp = String(cliente?.whatsapp || '').trim();
   const tel = String(cliente?.tel || '').trim();
@@ -171,6 +203,9 @@ function getContatoInfo(cliente){
   };
 }
 
+/**
+ * @param {unknown} value
+ */
 function normTxt(value){
   return String(value || '')
     .normalize('NFD')
@@ -179,6 +214,9 @@ function normTxt(value){
     .trim();
 }
 
+/**
+ * @param {string | string[] | null | undefined} value
+ */
 function parseTimes(value){
   const raw = Array.isArray(value)
     ? value
@@ -199,6 +237,9 @@ function parseTimes(value){
   return out;
 }
 
+/**
+ * @param {unknown} value
+ */
 function normalizePhone(value){
   return String(value || '').replace(/\D+/g, '');
 }

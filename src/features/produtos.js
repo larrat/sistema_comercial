@@ -1,12 +1,21 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State, P } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, notify, focusField } from '../shared/utils.js';
 import { SEVERITY } from '../shared/messages.js';
 
+/** @typedef {import('../types/domain').Produto} Produto */
+/** @typedef {import('../types/domain').ProdutoModuleCallbacks} ProdutoModuleCallbacks */
+/** @typedef {import('../types/domain').ScreenDom} ScreenDom */
+
+/** @type {NonNullable<ProdutoModuleCallbacks['calcSaldos']>} */
 let calcSaldosSafe = () => ({});
+/** @type {NonNullable<ProdutoModuleCallbacks['setFlowStep']>} */
 let setFlowStepSafe = () => {};
 let refreshMovSelSafe = () => {};
+/** @type {ScreenDom} */
 const prodDom = createScreenDom('produtos', [
   'prod-met',
   'prod-cat-fil',
@@ -29,6 +38,10 @@ const PROD_FORM_IDS = [
   'p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'
 ];
 
+/**
+ * @param {number | string | null | undefined} custo
+ * @param {number | string | null | undefined} preco
+ */
 function priceToMarkup(custo, preco){
   const c = Number(custo || 0);
   const p = Number(preco || 0);
@@ -36,6 +49,10 @@ function priceToMarkup(custo, preco){
   return ((p / c) - 1) * 100;
 }
 
+/**
+ * @param {number | string | null | undefined} custo
+ * @param {number | string | null | undefined} preco
+ */
 function priceToMargin(custo, preco){
   const c = Number(custo || 0);
   const p = Number(preco || 0);
@@ -43,6 +60,9 @@ function priceToMargin(custo, preco){
   return ((p - c) / p) * 100;
 }
 
+/**
+ * @param {ProdutoModuleCallbacks} [callbacks]
+ */
 export function initProdutosModule(callbacks = {}){
   calcSaldosSafe = callbacks.calcSaldos || (() => ({}));
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
@@ -205,7 +225,11 @@ export function limparFormProd(){
   setFlowStepSafe('prod', 1);
 }
 
+/**
+ * @param {string} id
+ */
 export function editarProd(id){
+  /** @type {Produto | undefined} */
   const p = P().find(x => x.id === id);
   if(!p) return;
 
@@ -276,7 +300,11 @@ export function editarProd(id){
   abrirModal('modal-produto');
 }
 
+/**
+ * @param {string} id
+ */
 export function abrirProdDet(id){
+  /** @type {Produto | undefined} */
   const p = P().find(x => x.id === id);
   const box = prodDom.get('prod-det-box');
   if(!p || !box) return;
