@@ -227,7 +227,10 @@ function getEnviosHistoricoFiltrados() {
 
 function getFilaWhatsApp() {
   return getEnviosCache()
-    .filter(e => e.canal === 'whatsapp_manual')
+    .filter(e =>
+      e.canal === 'whatsapp_manual' &&
+      (e.status === 'manual' || e.status === 'pendente')
+    )
     .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
 }
 
