@@ -248,24 +248,56 @@
           <button class="btn btn-sm" data-click="renderRelatorios()">Atualizar</button>
         </div>
       </div>
-      <div class="mg" id="rel-met"></div>
-      <div class="toolbar">
-        <div class="toolbar-main">
-          <select class="inp sel" id="rel-ano" style="max-width:150px" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
-          <select class="inp sel" id="rel-mes" style="max-width:170px" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
+      <div class="tabs rel-tabs">
+        <button class="tb on" data-tab-group="relatorios" data-tab="oportunidades">Oportunidades por jogos</button>
+        <button class="tb" data-tab-group="relatorios" data-tab="performance">Performance comercial</button>
+        <button class="tb" data-tab-group="relatorios" data-tab="clientes">Base de clientes</button>
+      </div>
+
+      <div class="tc on" id="relatorios-tc-oportunidades">
+        <div class="mg" id="rel-met"></div>
+        <div class="toolbar">
+          <div class="toolbar-main">
+            <select class="inp sel" id="rel-ano" style="max-width:150px" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
+            <select class="inp sel" id="rel-mes" style="max-width:170px" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">Resumo por mes</div>
+          <div id="rel-resumo"></div>
+        </div>
+        <div class="card">
+          <div class="ct">Oportunidades abertas</div>
+          <div id="rel-oportunidades"></div>
+        </div>
+        <div class="card">
+          <div class="ct">Validacoes realizadas</div>
+          <div id="rel-validacoes"></div>
         </div>
       </div>
-      <div class="card">
-        <div class="ct">Resumo por mes</div>
-        <div id="rel-resumo"></div>
+
+      <div class="tc" id="relatorios-tc-performance">
+        <div class="mg" id="rel-perf-met"></div>
+        <div class="card">
+          <div class="ct">Status dos pedidos</div>
+          <div id="rel-perf-status"></div>
+        </div>
+        <div class="card">
+          <div class="ct">Top clientes por faturamento</div>
+          <div id="rel-perf-clientes"></div>
+        </div>
       </div>
-      <div class="card">
-        <div class="ct">Oportunidades abertas</div>
-        <div id="rel-oportunidades"></div>
-      </div>
-      <div class="card">
-        <div class="ct">Validacoes realizadas</div>
-        <div id="rel-validacoes"></div>
+
+      <div class="tc" id="relatorios-tc-clientes">
+        <div class="mg" id="rel-cli-met"></div>
+        <div class="card">
+          <div class="ct">Status da base</div>
+          <div id="rel-cli-status"></div>
+        </div>
+        <div class="card">
+          <div class="ct">Segmentos e opt-ins</div>
+          <div id="rel-cli-segmentos"></div>
+        </div>
       </div>
     </div>
 
@@ -805,14 +837,15 @@
         <div class="fg c3">
           <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">A vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartao</option><option value="cheque">Cheque</option></select></div>
           <div><div class="fl">Prazo</div><select class="inp sel" id="pd-prazo"><option value="imediato">Imediato</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div>
-          <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
+          <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo" data-change="preencherValoresItemPedido()"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
         </div>
         <div class="div"></div>
         <div class="ct">Itens do pedido</div>
-        <div class="fg c4" style="margin-bottom:6px">
-          <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod"><option value="">- selecione -</option></select></div>
+        <div class="fg c5" style="margin-bottom:6px">
+          <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod" data-change="preencherValoresItemPedido()"><option value="">- selecione -</option></select></div>
           <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
           <div><div class="fl">Preco unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
+          <div><div class="fl">Custo aplicado (R$)</div><input class="inp" id="pi-custo" type="number" step="0.01" placeholder="custo do produto"></div>
           <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
         </div>
         <div class="modal-actions modal-actions-inline">
