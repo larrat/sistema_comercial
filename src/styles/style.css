@@ -4939,16 +4939,18 @@ textarea.inp:focus{
   grid-template-columns:minmax(104px,auto) minmax(120px,1fr) 28px;
   align-items:center;
   gap:12px;
-  padding:8px 0;
+  padding:10px 0;
+  min-height:44px;
 }
 
 #pg-dashboard #dash-status .bdg{
   min-width:0;
-  justify-content:flex-start;
+  justify-content:center;
+  text-align:center;
 }
 
 #pg-dashboard #dash-status .rbar{
-  height:6px;
+  height:8px;
   border-radius:999px;
   background:#DDE6EF;
 }
@@ -4959,9 +4961,10 @@ textarea.inp:focus{
 }
 
 #pg-dashboard #dash-status .rval{
-  min-width:28px;
+  min-width:32px;
   padding-left:0;
   text-align:right;
+  color:#284053;
 }
 
 #pg-dashboard #dash-tp .rrow,
@@ -4970,11 +4973,12 @@ textarea.inp:focus{
   grid-template-columns:18px minmax(120px,1fr) minmax(120px,1fr) auto;
   align-items:center;
   gap:12px;
+  min-height:48px;
 }
 
 #pg-dashboard #dash-tp .rbar,
 #pg-dashboard #dash-forn .rbar{
-  height:6px;
+  height:8px;
   border-radius:999px;
   background:#E2EAF3;
 }
@@ -5073,6 +5077,41 @@ textarea.inp:focus{
   align-items:center;
 }
 
+#modal-pedido .modal-box{
+  width:min(880px,96vw);
+  max-height:min(92vh,980px);
+}
+
+#modal-pedido .mt{
+  margin-bottom:18px;
+}
+
+#modal-pedido .ct{
+  margin-bottom:10px;
+}
+
+#modal-pedido textarea.inp{
+  min-height:96px;
+  resize:vertical;
+}
+
+#modal-pedido .modal-actions:not(.modal-actions-inline){
+  position:sticky;
+  bottom:-24px;
+  z-index:3;
+  background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,#FFFFFF 18%,#FFFFFF 100%);
+  padding-top:12px;
+  padding-bottom:12px;
+  margin-top:14px;
+  border-top:1px solid #E5ECF4;
+  backdrop-filter:blur(8px);
+}
+
+#modal-pedido .modal-actions:not(.modal-actions-inline) .btn{
+  min-width:148px;
+  justify-content:center;
+}
+
 #pg-clientes .card > #cli-lista,
 #pg-pedidos .card > #ped-lista{
   min-width:0;
@@ -5149,6 +5188,15 @@ textarea.inp:focus{
   #modal-pedido #ped-total{
     padding:14px;
     border-radius:16px;
+  }
+
+  #modal-pedido .modal-box{
+    width:100%;
+  }
+
+  #modal-pedido .modal-actions:not(.modal-actions-inline){
+    bottom:0;
+    padding-bottom:calc(6px + env(safe-area-inset-bottom,0));
   }
 
   #pg-clientes .mobile-card-actions,
@@ -5406,11 +5454,53 @@ textarea.inp:focus{
 #pg-dashboard #dash-forn .rval{
   color:#274056;
   font-weight:700;
+  min-width:72px;
+  text-align:right;
 }
 
 #pg-dashboard #dash-forn .empty,
 #pg-dashboard #dash-tp .empty{
   min-height:88px;
+}
+
+#pg-dashboard #dash-status,
+#pg-dashboard #dash-tp,
+#pg-dashboard #dash-forn{
+  display:grid;
+  gap:10px;
+}
+
+#pg-dashboard #dash-status .rrow,
+#pg-dashboard #dash-tp .rrow,
+#pg-dashboard #dash-forn .rrow{
+  padding-inline:2px;
+}
+
+#pg-dashboard #dash-status .empty,
+#pg-dashboard #dash-tp .empty,
+#pg-dashboard #dash-forn .empty{
+  min-height:96px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  border-radius:16px;
+  background:linear-gradient(180deg,#FBFDFF 0%,#F6FAFD 100%);
+}
+
+#pg-dashboard #dash-tp .rrow > span:nth-child(2),
+#pg-dashboard #dash-forn .rrow > span:nth-child(2){
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:600;
+  color:#24384D;
+}
+
+#pg-dashboard #dash-status .bdg,
+#pg-dashboard #dash-tp .bdg,
+#pg-dashboard #dash-forn .bdg{
+  min-height:28px;
 }
 
 #pg-dashboard #dash-margem{
