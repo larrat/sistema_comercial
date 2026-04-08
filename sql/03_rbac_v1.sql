@@ -1,6 +1,8 @@
 -- 03_rbac_v1.sql
--- RBAC v1 por usuário autenticado.
--- Papéis suportados: admin, gerente, operador.
+-- CAMINHO OFICIAL APOS 02_rls_producao.sql.
+-- RBAC v1 por usuario autenticado.
+-- Papeis suportados: admin, gerente, operador.
+-- Nao aplicar em ambiente que ainda dependa de 01b_rls_anon_dev.sql.
 
 begin;
 

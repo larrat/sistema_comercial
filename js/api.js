@@ -1,28 +1,48 @@
-const DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
-const DEFAULT_SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+const LEGACY_DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
+const LEGACY_DEFAULT_SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+const ALLOW_LEGACY_SUPABASE_DEFAULTS = window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ === true;
 const WARN_CONFIG = window.__SC_WARN_CONFIG__ === true;
 
-const SB_URL =
+const CONFIGURED_SB_URL =
   window.__SC_SUPABASE_URL__ ||
   localStorage.getItem('sc_supabase_url') ||
-  DEFAULT_SB_URL;
+  '';
 
-const SB_KEY =
+const SB_URL =
+  CONFIGURED_SB_URL ||
+  (ALLOW_LEGACY_SUPABASE_DEFAULTS ? LEGACY_DEFAULT_SB_URL : '');
+
+const CONFIGURED_SB_KEY =
   window.__SC_SUPABASE_KEY__ ||
   localStorage.getItem('sc_supabase_key') ||
-  DEFAULT_SB_KEY;
+  '';
 
-if (WARN_CONFIG && !window.__SC_SUPABASE_URL__ && !localStorage.getItem('sc_supabase_url')) {
-  console.warn('Configuração: usando URL Supabase padrão do build. Recomenda-se configurar window.__SC_SUPABASE_URL__.');
+const SB_KEY =
+  CONFIGURED_SB_KEY ||
+  (ALLOW_LEGACY_SUPABASE_DEFAULTS ? LEGACY_DEFAULT_SB_KEY : '');
+
+if (WARN_CONFIG && ALLOW_LEGACY_SUPABASE_DEFAULTS) {
+  console.warn('Configuracao: usando defaults legados do Supabase por opt-in explicito. Recomenda-se configurar window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__.');
 }
-if (WARN_CONFIG && !window.__SC_SUPABASE_KEY__ && !localStorage.getItem('sc_supabase_key')) {
-  console.warn('Configuração: usando chave publishable padrão do build. Recomenda-se configurar window.__SC_SUPABASE_KEY__.');
+if (WARN_CONFIG && !CONFIGURED_SB_URL && !ALLOW_LEGACY_SUPABASE_DEFAULTS) {
+  console.warn('Configuracao: URL do Supabase ausente. Configure window.__SC_SUPABASE_URL__ ou sc_supabase_url.');
+}
+if (WARN_CONFIG && !CONFIGURED_SB_KEY && !ALLOW_LEGACY_SUPABASE_DEFAULTS) {
+  console.warn('Configuracao: chave publishable do Supabase ausente. Configure window.__SC_SUPABASE_KEY__ ou sc_supabase_key.');
 }
 
 const REQ_TIMEOUT_MS = Number(window.__SC_REQ_TIMEOUT_MS__ || 12000);
 const RETRY_MAX = Number(window.__SC_RETRY_MAX__ || 2);
 const RETRY_BASE_MS = Number(window.__SC_RETRY_BASE_MS__ || 250);
 const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
+
+function ensureSupabaseConfig() {
+  if (SB_URL && SB_KEY) return;
+  throw new Error(
+    'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app.'
+    + ' Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.'
+  );
+}
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -103,6 +123,7 @@ function normalizeSessionPayload(payload) {
 
 async function refreshAuthSession(current) {
   if (!current?.refresh_token) return current;
+  ensureSupabaseConfig();
   const res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
     method: 'POST',
     headers: {
@@ -136,6 +157,7 @@ async function getAuthBearerForRequest() {
 }
 
 async function sbReq(table, method = 'GET', body = null, params = '') {
+  ensureSupabaseConfig();
   const prefer =
     method === 'POST'
       ? (params.includes('on_conflict')
@@ -230,6 +252,7 @@ function isBirthdayWithinDays(birthDate, baseDate = new Date(), maxDays = 0) {
 
 export const SB = {
   signInWithPassword: async ({ email, password }) => {
+    ensureSupabaseConfig();
     const res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: {
@@ -318,23 +341,7 @@ export const SB = {
   deleteProduto: id => sbReq(`produtos?id=eq.${id}`, 'DELETE'),
 
   getClientes: fid => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
-  upsertCliente: async c => {
-    try{
-      return await sbReq('clientes', 'POST', c, '?on_conflict=id');
-    }catch(e){
-      const msg = String(e?.message || '');
-      const semColunaTime =
-        msg.includes("Could not find the 'time' column") ||
-        msg.includes('"time" column of') ||
-        msg.includes('PGRST204');
-
-      if(!semColunaTime) throw e;
-
-      const { time, ...payloadLegado } = c || {};
-      console.warn('Fallback upsertCliente sem coluna time. Aplique ALTER TABLE para persistir times.', time);
-      return sbReq('clientes', 'POST', payloadLegado, '?on_conflict=id');
-    }
-  },
+  upsertCliente: c => sbReq('clientes', 'POST', c, '?on_conflict=id'),
   deleteCliente: id => sbReq(`clientes?id=eq.${id}`, 'DELETE'),
 
   getPedidos: fid => sbReq('pedidos', 'GET', null, `?filial_id=eq.${fid}&order=num.desc`),

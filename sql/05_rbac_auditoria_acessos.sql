@@ -1,5 +1,7 @@
 -- 05_rbac_auditoria_acessos.sql
--- Auditoria administrativa para alterações de perfis e vínculos RBAC.
+-- CAMINHO OFICIAL APOS 04_rbac_v2_admin_only.sql.
+-- Auditoria administrativa para alteracoes de perfis e vinculos RBAC.
+-- Aplicar somente depois de validar RBAC e RLS do ambiente.
 
 begin;
 

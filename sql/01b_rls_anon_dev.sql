@@ -1,16 +1,24 @@
 -- 01b_rls_anon_dev.sql
--- Use este script somente se o app estiver sem autenticação (chave publishable no frontend).
--- Em produção, prefira o 02_rls_producao.sql.
+-- USO RESTRITO:
+-- - somente para ambiente local/dev explicitamente controlado
+-- - proibido para homologacao e producao
+-- - nao faz parte do caminho oficial de saneamento
+-- Script oficial para ambiente seguro: 02_rls_producao.sql
 
 begin;
 
--- Guardrail de segurança:
--- Este script só executa quando a sessão define explicitamente:
+-- Guardrail de seguranca:
+-- Este script so executa quando a sessao define explicitamente:
 --   set app.allow_anon_rls = 'true';
+--   set app.environment = 'dev';
 do $$
 begin
   if coalesce(current_setting('app.allow_anon_rls', true), 'false') <> 'true' then
-    raise exception 'Bloqueado: 01b_rls_anon_dev.sql exige "set app.allow_anon_rls = true" na sessão.';
+    raise exception 'Bloqueado: 01b_rls_anon_dev.sql exige "set app.allow_anon_rls = true" na sessao.';
+  end if;
+
+  if coalesce(current_setting('app.environment', true), '') not in ('dev', 'local') then
+    raise exception 'Bloqueado: 01b_rls_anon_dev.sql exige "set app.environment = dev" ou "local" na sessao.';
   end if;
 end
 $$;

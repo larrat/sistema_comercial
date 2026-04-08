@@ -1,6 +1,7 @@
 -- 04_rbac_v2_admin_only.sql
+-- CAMINHO OFICIAL APOS 03_rbac_v1.sql.
 -- RBAC v2: separa admin de gerente no banco (RLS/policies).
--- Pré-requisito:
+-- Pre-requisito:
 --   1) 03_rbac_v1.sql aplicado
 --   2) 02_rls_producao.sql aplicado
 

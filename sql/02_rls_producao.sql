@@ -1,6 +1,14 @@
 -- 02_rls_producao.sql
--- Objetivo: modelo RLS seguro por filial para ambiente de produção.
--- Pré-requisito: app usar autenticação Supabase (auth.uid())
+-- CAMINHO OFICIAL PARA AMBIENTE SEGURO.
+-- Objetivo: modelo RLS seguro por filial para ambiente de producao.
+-- Pre-requisito: app usar autenticacao Supabase (auth.uid()).
+-- Ordem recomendada:
+--   1) 01_schema_alignment.sql
+--   2) 02_rls_producao.sql
+--   3) 03_rbac_v1.sql
+--   4) 04_rbac_v2_admin_only.sql
+--   5) 05_rbac_auditoria_acessos.sql
+-- Nao combinar com 01b_rls_anon_dev.sql no mesmo ambiente.
 
 begin;
 
