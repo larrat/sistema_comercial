@@ -205,6 +205,10 @@ body{
   gap:12px;
   margin-bottom:20px;
 }
+.ring{
+  box-shadow:0 0 0 3px rgba(59, 130, 246, .18), var(--sh);
+  border-color:rgba(59, 130, 246, .45)!important;
+}
 .ph{margin-bottom:20px}
 .ph h2{
   font-family:'Space Grotesk',sans-serif;

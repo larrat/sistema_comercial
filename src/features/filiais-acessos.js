@@ -560,6 +560,24 @@ function preencherFiltroFiliaisAcesso(){
   if(current && (current === 'todas' || opts.some(f => f.id === current))) el.value = current;
 }
 
+/**
+ * @param {string} inputId
+ * @param {string} [focusId]
+ */
+function bringAccessEditorIntoView(inputId, focusId = inputId){
+  const inputEl = document.getElementById(inputId);
+  if(!(inputEl instanceof HTMLElement)) return;
+  const cardEl = inputEl.closest('.card');
+  if(cardEl instanceof HTMLElement){
+    cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    cardEl.classList.add('ring');
+    window.setTimeout(() => cardEl.classList.remove('ring'), 1600);
+  }else{
+    inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  focusField(focusId, { markSuccess: true });
+}
+
 export function preencherPerfilAcesso(userId, papel){
   const userEl = document.getElementById('ac-user-id');
   const papelEl = document.getElementById('ac-papel');
@@ -567,6 +585,8 @@ export function preencherPerfilAcesso(userId, papel){
   if(userEl) userEl.value = email || userId || '';
   if(papelEl) papelEl.value = papel || 'operador';
   if(userEl) resolveAccessUserRef(userEl.value, { inputId: 'ac-user-id', hintId: 'ac-user-id-help', silent: true });
+  bringAccessEditorIntoView('ac-user-id', 'ac-papel');
+  toast('Perfil carregado no formulário para edição.');
 }
 
 export function preencherVinculoAcesso(userId, filialId){
@@ -576,6 +596,8 @@ export function preencherVinculoAcesso(userId, filialId){
   if(userEl) userEl.value = email || userId || '';
   if(filialEl && filialId) filialEl.value = filialId;
   if(userEl) resolveAccessUserRef(userEl.value, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help', silent: true });
+  bringAccessEditorIntoView('ac-v-user-id', filialId ? 'ac-v-filial' : 'ac-v-user-id');
+  toast('Vínculo carregado no formulário para edição.');
 }
 
 export async function renderAcessosAdmin(){
