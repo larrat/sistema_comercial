@@ -54,7 +54,7 @@ Objetivo: estabilizar contratos, testes minimos, persistencia explicita e autori
 - [ ] registrar matriz de autorizacao funcional por fluxo critico
 
 ### 5. Estado global e organizacao do frontend
-- [ ] mapear os dominios mais acoplados em `js/store.js`
+- [ ] mapear os dominios mais acoplados em `src/app/store.js`
 - [ ] definir primeira segmentacao do estado por dominio
 - [ ] reduzir dependencia direta de estado global mutavel nos fluxos criticos
 - [ ] registrar pontos que ainda nao podem sair do store central nesta fase
@@ -67,14 +67,14 @@ Objetivo: estabilizar contratos, testes minimos, persistencia explicita e autori
 - [ ] diff validado dos arquivos alterados
 
 ## Arquivos foco da fase
-- `js/api.js`
-- `js/store.js`
-- `modules/auth-setup.js`
-- `modules/runtime-loading.js`
-- `modules/filiais-acessos.js`
-- `modules/campanhas.js`
-- `modules/dashboard.js`
-- `cotacao/importacao.js`
+- `src/app/api.js`
+- `src/app/store.js`
+- `src/features/auth-setup.js`
+- `src/features/runtime-loading.js`
+- `src/features/filiais-acessos.js`
+- `src/features/campanhas.js`
+- `src/features/dashboard.js`
+- `src/features/cotacao/importacao.js`
 - `docs/backend/CONTRATO_MINIMO_SB_V1.md`
 - `docs/governanca/ROADMAP_EXECUCAO_TECNICA_2026-04-08.md`
 - `docs/governanca/FLUXOS_CRITICOS_SMOKE_SUITE_FASE_2.md`
@@ -82,6 +82,8 @@ Objetivo: estabilizar contratos, testes minimos, persistencia explicita e autori
 - `docs/governanca/EXECUCAO_BACKEND_SUITE_FASE_2.md`
 - `docs/governanca/EXECUCAO_UI_CORE_FASE_2.md`
 - `docs/governanca/EXECUCAO_SUITE_COMPLETA_FASE_2.md`
+- `docs/governanca/FECHAMENTO_OPERACIONAL_FASES_1_E_2.md`
+- `docs/governanca/CHECKLIST_APROVACAO_FASES_1_E_2.md`
 - `docs/governanca/IMPLEMENTACAO_ONDA_B_FASE_2.md`
 - `scripts/smoke/run-fase-2-backend-suite.ps1`
 - `scripts/smoke/run-fase-2-ui-core.ps1`

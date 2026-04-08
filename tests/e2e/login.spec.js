@@ -12,6 +12,7 @@ test.describe('UI Core - Login', () => {
     await openSetup(page);
     await performLogin(page);
 
+    await expect.poll(async () => page.evaluate(() => document.body.dataset.setupState || '')).toMatch(/filiais-ready|primeira-filial/);
     await expect(page.locator('#setup-auth')).toBeHidden();
     await expect(page.locator('#fil-grid')).toBeVisible();
   });

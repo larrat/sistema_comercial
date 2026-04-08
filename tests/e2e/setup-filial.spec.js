@@ -12,6 +12,8 @@ test.describe('UI Core - Setup de Filial', () => {
     await openSetup(page);
     await performLogin(page);
 
+    const setupState = await page.evaluate(() => document.body.dataset.setupState || '');
+
     const filiais = page.locator('#fil-grid .fil-opt');
     const setupForm = page.locator('#setup-form');
     const setupActions = page.locator('#setup-actions');
@@ -19,12 +21,14 @@ test.describe('UI Core - Setup de Filial', () => {
     const hasFiliais = (await filiais.count()) > 0;
 
     if (hasFiliais) {
+      expect(setupState).toBe('filiais-ready');
       await expect(filiais.first()).toBeVisible();
       await expect(setupActions).toBeVisible();
       await expect(setupForm).toBeHidden();
       return;
     }
 
+    expect(setupState).toBe('primeira-filial');
     await expect(setupForm).toBeVisible();
     await expect(setupActions).toBeHidden();
   });

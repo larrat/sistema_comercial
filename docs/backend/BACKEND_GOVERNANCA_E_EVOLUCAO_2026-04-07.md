@@ -2,13 +2,13 @@
 
 Data: 2026-04-07
 Perfil da análise: Staff/Principal Backend Engineering
-Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em módulos front (`modules/*`), scripts SQL de schema e RLS (`sql/*`).
+Escopo analisado: camada de acesso a dados (`src/app/api.js`), regras de domínio em módulos front (`src/features/*`), scripts SQL de schema e RLS (`sql/*`).
 
 ## 1. Leitura executiva do backend
 
 ### Estado atual percebido da arquitetura
 - O sistema opera em modelo "frontend + Supabase PostgREST" sem serviço backend dedicado (BFF/API própria).
-- A camada `js/api.js` concentra chamadas REST diretas ao banco e parte de regra de negócio (ex.: elegibilidade de campanha/aniversário).
+- A camada `src/app/api.js` concentra chamadas REST diretas ao banco e parte de regra de negócio (ex.: elegibilidade de campanha/aniversário).
 - Há coexistência de dois modelos de segurança: ambiente aberto para `anon` e ambiente com RLS por `authenticated`.
 
 ### Nível de maturidade do backend
@@ -17,7 +17,7 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
 - Fraca em isolamento de domínio, segurança operacional, observabilidade e contratos versionados.
 
 ### Principais riscos imediatos
-- Chave e endpoint Supabase embutidos no cliente (`js/api.js:1-2`).
+- Chave e endpoint Supabase embutidos no cliente (`src/app/api.js:1-2`).
 - Potencial uso de RLS aberto para `anon` em produção se script incorreto for aplicado (`sql/01b_rls_anon_dev.sql:24-64`).
 - Regras críticas no cliente, com risco de bypass e inconsistência entre usuários/sessões.
 - Falhas de persistência com fallback local podem mascarar erro real (ex.: campanhas/jogos).
@@ -38,7 +38,7 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
 
 ### Organização do código e modularidade
 - Organização funcional por módulo de tela, não por bounded context de backend.
-- `js/api.js` atua como "gateway" único para DB, mas mistura acesso a dados + utilitários de negócio.
+- `src/app/api.js` atua como "gateway" único para DB, mas mistura acesso a dados + utilitários de negócio.
 
 ### Separação de responsabilidades
 - Separação incompleta:
@@ -46,7 +46,7 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
   - regra de negócio (elegibilidade campanha),
   - fallback de compatibilidade de schema,
   - tratamento de erro.
-- Regras de domínio estão em `modules/campanhas.js` e `js/api.js`, sem camada de domínio consolidada.
+- Regras de domínio estão em `src/features/campanhas.js` e `src/app/api.js`, sem camada de domínio consolidada.
 
 ### Acoplamento entre módulos
 - Alto acoplamento entre UI state (`store.js`) e persistência.
@@ -75,7 +75,7 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
 
 ### Previsibilidade de payloads
 - Previsibilidade parcial.
-- Há compatibilidade ad-hoc para coluna ausente (`upsertCliente` com fallback sem `time`, `js/api.js:106-121`).
+- Há compatibilidade ad-hoc para coluna ausente (`upsertCliente` com fallback sem `time`, `src/app/api.js:106-121`).
 
 ### Padronização de respostas
 - Resposta retorna JSON cru do PostgREST (`sbReq`), sem envelope padrão (`data`, `error`, `meta`).
@@ -102,14 +102,14 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
 ## 4. Avaliação de regras de negócio
 
 ### Centralização ou dispersão
-- Dispersas entre `js/api.js` e módulos de UI.
+- Dispersas entre `src/app/api.js` e módulos de UI.
 
 ### Duplicidade de validações
 - Validações de formulário no front coexistem com regras implícitas do banco.
 - Sem fonte única de regra de domínio server-side.
 
 ### Regras críticas misturadas com lógica de transporte
-- Elegibilidade de campanhas/aniversários dentro do client data layer (`js/api.js:294-315`).
+- Elegibilidade de campanhas/aniversários dentro do client data layer (`src/app/api.js:294-315`).
 
 ### Risco de inconsistência entre fluxos
 - Alto: diferentes telas podem implementar filtros/regras de forma divergente.
@@ -132,7 +132,7 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
 - Não há camada server dedicada para sanitização e políticas centralizadas.
 
 ### Exposição de dados sensíveis
-- URL do projeto e chave publishable expostas no cliente (`js/api.js:1-2`).
+- URL do projeto e chave publishable expostas no cliente (`src/app/api.js:1-2`).
 - Em Supabase isso é esperado para `anon/publishable`, mas exige RLS impecável e monitorado.
 
 ### Risco de elevação de privilégio
@@ -150,7 +150,7 @@ Escopo analisado: camada de acesso a dados (`js/api.js`), regras de domínio em 
 ## 6. Performance e confiabilidade
 
 ### Gargalos em operações críticas
-- Queries de aniversariantes elegíveis carregam base e filtram no cliente (`js/api.js:294+`), escalabilidade limitada.
+- Queries de aniversariantes elegíveis carregam base e filtram no cliente (`src/app/api.js:294+`), escalabilidade limitada.
 
 ### Concorrência e consistência transacional
 - Ausência de transações de domínio coordenadas para fluxos multi-etapa.

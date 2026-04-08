@@ -11,6 +11,7 @@ test.describe('UI Core - Bootstrap da Filial', () => {
 
     await openSetup(page);
     await performLogin(page);
+    await expect.poll(async () => page.evaluate(() => document.body.dataset.setupState || '')).toBe('filiais-ready');
     await selectFirstFilialAndEnter(page, test);
 
     await expectBootstrapOk(page);

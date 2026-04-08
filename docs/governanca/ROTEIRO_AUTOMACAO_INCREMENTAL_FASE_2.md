@@ -93,7 +93,7 @@ A Fase 2 deve seguir esta ordem:
 
 - Artefatos atuais:
   - [acessos-admin-read.ps1](/e:/Programas/sistema_comercial/scripts/smoke/acessos-admin-read.ps1)
-  - [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js)
+  - [filiais-acessos.js](/e:/Programas/sistema_comercial/src/features/filiais-acessos.js)
 
 - Recomendacao:
   - automatizar contrato por script primeiro

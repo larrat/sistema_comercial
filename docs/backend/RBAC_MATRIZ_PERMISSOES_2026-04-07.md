@@ -64,9 +64,9 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 
 ## Implementação de referência
 
-- Estado e guards de papel: `js/main.js`
-- Carregamento do perfil de usuário: `js/api.js` (`SB.getMeuPerfil`)
-- Papel no estado global: `js/store.js`
+- Estado e guards de papel: `src/app/main.js`
+- Carregamento do perfil de usuário: `src/app/api.js` (`SB.getMeuPerfil`)
+- Papel no estado global: `src/app/store.js`
 - Tabela de perfis: `sql/03_rbac_v1.sql` (`public.user_perfis`)
 - Seed e auditoria operacional: `sql/03b_rbac_seed_e_auditoria.sql`
 - Endurecimento admin-only (v2): `sql/04_rbac_v2_admin_only.sql`

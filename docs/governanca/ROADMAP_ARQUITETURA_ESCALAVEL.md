@@ -1,23 +1,23 @@
 # Roadmap de Arquitetura Escalavel
 
 ## Objetivo
-Migrar o sistema de um modelo centralizado em `js/main.js` para uma arquitetura modular, com bootstrap previsivel, servicos compartilhados e fronteiras claras por dominio.
+Migrar o sistema de um modelo centralizado em `src/app/main.js` para uma arquitetura modular, com bootstrap previsivel, servicos compartilhados e fronteiras claras por dominio.
 
 ## Problemas atuais
-- `js/main.js` concentra regras de negocio, navegacao, UI, seguranca e bootstrap.
+- `src/app/main.js` concentra regras de negocio, navegacao, UI, seguranca e bootstrap.
 - Estado global e efeitos colaterais ficam espalhados.
 - Modulos usam dependencias implicitas via `window`, `localStorage` e caches globais.
 - O custo de adicionar novas features cresce a cada tela.
 
 ## Modelo alvo
-- `core/`
+- `src/shared/`
   - runtime comum
   - contexto da aplicacao
   - registro de modulos
   - servicos compartilhados
-- `modules/`
+- `src/features/`
   - cada dominio com init, handlers, renderizacao e adaptadores
-- `js/main.js`
+- `src/app/main.js`
   - somente composicao, boot e exposicoes legadas temporarias
 
 ## Fases
@@ -43,4 +43,4 @@ Migrar o sistema de um modelo centralizado em `js/main.js` para uma arquitetura 
 ## Regra para novas evolucoes
 - toda nova feature entra como modulo registrado
 - dependencias devem ser explicitas via contexto
-- evitar nova logica de negocio em `js/main.js`
+- evitar nova logica de negocio em `src/app/main.js`

@@ -1,7 +1,7 @@
 # Contrato Minimo SB v1
 
 Data base: 2026-04-08  
-Escopo: padronizacao minima da camada `SB.*` em `js/api.js`.
+Escopo: padronizacao minima da camada `SB.*` em `src/app/api.js`.
 
 ## Objetivo
 - manter compatibilidade com os consumidores atuais
@@ -67,4 +67,4 @@ const clientes = result.data || [];
 ## Proximo passo
 - migrar consumidores mais sensiveis para `SB.toResult(...)`
 - padronizar envelope de sucesso/erro para fluxos criticos
-- reduzir regra de dominio em `js/api.js`
+- reduzir regra de dominio em `src/app/api.js`

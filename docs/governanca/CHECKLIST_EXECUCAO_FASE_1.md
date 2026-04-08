@@ -52,7 +52,7 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - [ ] registrar decisao sobre migracao de leitura administrativa sensivel para backend na frente de acessos
 
 ## Arquivos foco da fase
-- `js/api.js`
+- `src/app/api.js`
 - `sql/01b_rls_anon_dev.sql`
 - `sql/02_rls_producao.sql`
 - `sql/03_rbac_v1.sql`

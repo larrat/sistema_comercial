@@ -41,7 +41,7 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
 
 ## 4. Roadmap executivo (3 sprints)
 ## Sprint 1 (Semana 1) - Base de design e consistência
-- Consolidar tema premium em `css/style.css` sem conflito de estilos legados.
+- Consolidar tema premium em `src/styles/style.css` sem conflito de estilos legados.
 - Harmonizar hierarquia tipográfica e contraste.
 - Revisar estados visuais (hover, focus, disabled, loading, erro, sucesso).
 - Entregável: Design System v1 aplicado no shell e componentes globais.
@@ -95,7 +95,7 @@ Elevar o sistema para um padrão premium, moderno e consistente, com foco em:
 `docs: adicionar plano executivo da fase B (ui premium e responsividade)`
 
 ## 10. Progresso Sprint 3 (iniciado em 07/04/2026)
-- Limpeza de duplicidades CSS (clientes/campanhas) iniciada em `css/style.css`, removendo regras antigas redundantes que conflitam com a camada final do Design System.
+- Limpeza de duplicidades CSS (clientes/campanhas) iniciada em `src/styles/style.css`, removendo regras antigas redundantes que conflitam com a camada final do Design System.
 - Validação de estabilidade visual iniciada com comando rápido `/ auditoria visual` (verificação de topbar, fluxos críticos e render de listas).
 - Governança formalizada no documento `GOVERNANCA_VISUAL.md` com:
   - semântica de prioridade;

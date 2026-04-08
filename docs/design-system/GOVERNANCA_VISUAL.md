@@ -4,7 +4,7 @@
 Manter a interface premium, consistente e escalável sem regressão visual entre módulos.
 
 ## Fonte da Verdade
-- Arquivo base: `css/style.css`
+- Arquivo base: `src/styles/style.css`
 - Camadas ativas:
 1. tokens e componentes globais;
 2. fluxos críticos (dashboard/clientes/campanhas);

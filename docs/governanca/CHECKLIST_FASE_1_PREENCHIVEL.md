@@ -12,7 +12,7 @@ Uso: marcar o que ja foi concluido no codigo e o que ainda depende de ambiente
 
 - [ ] remover defaults sensiveis como caminho operacional  
   Status sugerido: Agora  
-  Obs: hardening feito em `js/api.js`
+  Obs: hardening feito em `src/app/api.js`
 
 - [ ] exigir `window.__SC_SUPABASE_URL__` e `window.__SC_SUPABASE_KEY__` ou equivalentes persistidos  
   Status sugerido: Agora  

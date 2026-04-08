@@ -31,8 +31,8 @@ Objetivo: definir a menor suite de smoke capaz de validar os fluxos mais sensive
 Validar entrada no sistema e criacao/recuperacao de sessao.
 
 ### Ponto tecnico principal
-- [auth-setup.js](/e:/Programas/sistema_comercial/modules/auth-setup.js)
-- [api.js](/e:/Programas/sistema_comercial/js/api.js)
+- [auth-setup.js](/e:/Programas/sistema_comercial/src/features/auth-setup.js)
+- [api.js](/e:/Programas/sistema_comercial/src/app/api.js)
 
 ### Pre-condicao
 - usuario valido existente
@@ -60,8 +60,8 @@ Validar entrada no sistema e criacao/recuperacao de sessao.
 Validar o primeiro corte operacional apos o login.
 
 ### Ponto tecnico principal
-- [auth-setup.js](/e:/Programas/sistema_comercial/modules/auth-setup.js)
-- [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js)
+- [auth-setup.js](/e:/Programas/sistema_comercial/src/features/auth-setup.js)
+- [filiais-acessos.js](/e:/Programas/sistema_comercial/src/features/filiais-acessos.js)
 
 ### Pre-condicao
 - usuario autenticado
@@ -89,8 +89,8 @@ Validar o primeiro corte operacional apos o login.
 Validar o bootstrap de dados criticos da operacao.
 
 ### Ponto tecnico principal
-- [runtime-loading.js](/e:/Programas/sistema_comercial/modules/runtime-loading.js)
-- [api.js](/e:/Programas/sistema_comercial/js/api.js)
+- [runtime-loading.js](/e:/Programas/sistema_comercial/src/features/runtime-loading.js)
+- [api.js](/e:/Programas/sistema_comercial/src/app/api.js)
 
 ### Pre-condicao
 - usuario autenticado
@@ -121,7 +121,7 @@ Validar o bootstrap de dados criticos da operacao.
 Validar o primeiro backend de dominio leve adotado na base.
 
 ### Ponto tecnico principal
-- [campanhas.js](/e:/Programas/sistema_comercial/modules/campanhas.js)
+- [campanhas.js](/e:/Programas/sistema_comercial/src/features/campanhas.js)
 - [campanhas-gerar-fila/index.ts](/e:/Programas/sistema_comercial/supabase/functions/campanhas-gerar-fila/index.ts)
 - [campanhas-gerar-fila.ps1](/e:/Programas/sistema_comercial/scripts/smoke/campanhas-gerar-fila.ps1)
 
@@ -151,7 +151,7 @@ Validar o primeiro backend de dominio leve adotado na base.
 Validar a retirada da escrita administrativa do browser.
 
 ### Ponto tecnico principal
-- [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js)
+- [filiais-acessos.js](/e:/Programas/sistema_comercial/src/features/filiais-acessos.js)
 - [acessos-admin/index.ts](/e:/Programas/sistema_comercial/supabase/functions/acessos-admin/index.ts)
 - [acessos-admin.ps1](/e:/Programas/sistema_comercial/scripts/smoke/acessos-admin.ps1)
 
@@ -181,7 +181,7 @@ Validar a retirada da escrita administrativa do browser.
 Validar a agregacao backend da leitura administrativa.
 
 ### Ponto tecnico principal
-- [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js)
+- [filiais-acessos.js](/e:/Programas/sistema_comercial/src/features/filiais-acessos.js)
 - [acessos-admin-read/index.ts](/e:/Programas/sistema_comercial/supabase/functions/acessos-admin-read/index.ts)
 - [acessos-admin-read.ps1](/e:/Programas/sistema_comercial/scripts/smoke/acessos-admin-read.ps1)
 

@@ -126,8 +126,8 @@ Codigos previstos:
 
 ## Integracao atual
 
-- [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js) ja usa a function nas 4 operacoes administrativas de escrita
-- a camada [api.js](/e:/Programas/sistema_comercial/js/api.js) expoe helpers `*Edge` para o fluxo de acessos
+- [filiais-acessos.js](/e:/Programas/sistema_comercial/src/features/filiais-acessos.js) ja usa a function nas 4 operacoes administrativas de escrita
+- a camada [api.js](/e:/Programas/sistema_comercial/src/app/api.js) expoe helpers `*Edge` para o fluxo de acessos
 
 ## Proximo passo recomendado
 

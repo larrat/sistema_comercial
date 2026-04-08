@@ -1,10 +1,16 @@
 (() => {
   const host = window.location.hostname || '';
   const protocol = window.location.protocol || '';
+  const isPrivateIpv4 =
+    /^10\./.test(host) ||
+    /^192\.168\./.test(host) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
   const isLocalRuntime =
     protocol === 'file:' ||
     host === 'localhost' ||
-    host === '127.0.0.1';
+    host === '127.0.0.1' ||
+    host.endsWith('.local') ||
+    isPrivateIpv4;
 
   if (!isLocalRuntime) return;
 
@@ -12,6 +18,8 @@
   // Em ambientes publicados, este arquivo nao injeta configuracao.
   window.__SC_SUPABASE_URL__ = window.__SC_SUPABASE_URL__ || 'https://eiycrokqwhmfmjackjni.supabase.co';
   window.__SC_SUPABASE_KEY__ = window.__SC_SUPABASE_KEY__ || 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+  localStorage.setItem('sc_supabase_url', window.__SC_SUPABASE_URL__);
+  localStorage.setItem('sc_supabase_key', window.__SC_SUPABASE_KEY__);
 
   // Warnings locais ajudam a diagnosticar configuracao e contratos em ambiente de dev.
   window.__SC_WARN_CONFIG__ = typeof window.__SC_WARN_CONFIG__ === 'boolean'

@@ -109,5 +109,5 @@ await fetch('/functions/v1/campanhas-gerar-fila', {
 ## Proximo passo recomendado
 1. publicar a function no ambiente Supabase
 2. executar smoke test do contrato em `docs/backend/SMOKE_TEST_EDGE_FUNCTION_CAMPANHAS.md`
-3. adaptar `modules/campanhas.js` para usar backend no lugar da geracao local
+3. adaptar `src/features/campanhas.js` para usar backend no lugar da geracao local
 4. repetir o mesmo padrao para `acessos`

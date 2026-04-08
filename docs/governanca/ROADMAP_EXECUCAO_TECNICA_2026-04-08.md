@@ -25,7 +25,7 @@ Conter risco de seguranca e impedir que a base continue crescendo em cima de pad
 Incidente de seguranca, regressao silenciosa de comportamento entre ambientes e continuidade de crescimento tecnico sem controle.
 
 ### Ponto mais sensivel da base
-`js/api.js`, porque hoje concentra configuracao de ambiente, sessao, transporte, fallback de schema e parte da regra de negocio.
+`src/app/api.js`, porque hoje concentra configuracao de ambiente, sessao, transporte, fallback de schema e parte da regra de negocio.
 
 ---
 
@@ -86,7 +86,7 @@ Reduzir risco critico e interromper crescimento inseguro.
   - `sql/03_rbac_v1.sql`
   - `sql/04_rbac_v2_admin_only.sql`
   - `sql/05_rbac_auditoria_acessos.sql`
-- Remover defaults sensiveis hardcoded de `js/api.js`
+- Remover defaults sensiveis hardcoded de `src/app/api.js`
 - Proibir novos fallbacks estruturais no cliente para schema e persistencia
 - Criar checklist de ambiente obrigatorio para release
 
@@ -125,7 +125,7 @@ Diminuir fragilidade operacional e criar base minima de previsibilidade.
   - criar/editar pedido
   - criar campanha e gerar fila
   - tela admin de acessos
-- Bloquear fallback de schema em `js/api.js`
+- Bloquear fallback de schema em `src/app/api.js`
 - Criar contrato minimo de erro/resposta para camada `SB.*`
 - Reforcar autorizacao funcional, nao apenas visual
 - Iniciar segmentacao do estado por dominio
@@ -163,7 +163,7 @@ Tirar regra critica do browser e criar fronteira real de dominio.
   - acessos e auditoria administrativa
   - validacoes criticas multi-etapa
   - consultas de elegibilidade e agregacoes caras
-- Transformar `js/api.js` em client gateway fino
+- Transformar `src/app/api.js` em client gateway fino
 - Criar services por dominio
 - Mover filtros e agregacoes relevantes para SQL/functions
 
@@ -180,7 +180,7 @@ Alto
 
 ### Criterio de aceite
 - campanhas e acessos criticos nao dependem mais de regra central no cliente
-- `js/api.js` deixa de conter regra critica de negocio
+- `src/app/api.js` deixa de conter regra critica de negocio
 
 ## Prioridade 3 - Observabilidade, Testes e Governanca Continua
 
@@ -237,7 +237,7 @@ Baixo / medio
 - Definicao de pronto: operacoes criticas passam por backend de dominio
 
 ### Regras de Dominio
-- Diagnostico resumido: regras dispersas entre `modules/*`, `js/api.js` e `js/store.js`
+- Diagnostico resumido: regras dispersas entre `src/features/*`, `src/app/api.js` e `src/app/store.js`
 - Problema central: ausencia de fonte unica de verdade
 - Acao corretiva: service layer por dominio
 - Dono principal: Staff / Principal + Backend Lead
@@ -291,7 +291,7 @@ Baixo / medio
 - Definicao de pronto: ambiente sobe apenas com configuracao valida e rastreavel
 
 ### Estado Global e Organizacao do Frontend
-- Diagnostico resumido: `js/store.js` central e mutavel
+- Diagnostico resumido: `src/app/store.js` central e mutavel
 - Problema central: acoplamento, efeito colateral e regressao
 - Acao corretiva: slices por dominio, menos side effects, menos regra compartilhada opaca
 - Dono principal: Front-end Senior
@@ -515,15 +515,15 @@ Baixo / medio
 ## 9. Regras de Bloqueio Imediato
 
 ### Fica proibido a partir de agora
-- criar nova regra critica em `modules/*`
-- adicionar novo fallback estrutural em `js/api.js`
+- criar nova regra critica em `src/features/*`
+- adicionar novo fallback estrutural em `src/app/api.js`
 - usar `sql/01b_rls_anon_dev.sql` como caminho aceitavel fora de dev controlado
 - mascarar falha de persistencia com cache local como comportamento normal
 
 ### Exige aprovacao formal
 - qualquer alteracao em RLS / RBAC
-- qualquer mudanca em `js/api.js`
-- qualquer mudanca em `js/store.js`
+- qualquer mudanca em `src/app/api.js`
+- qualquer mudanca em `src/app/store.js`
 - qualquer fluxo multi-etapa que grave em multiplas tabelas
 
 ### Deve ser congelado ate refatoracao
@@ -615,8 +615,8 @@ O alvo nao e apenas um sistema funcional. O alvo e uma operacao tecnicamente gov
 
 ## 13. Lista de Bloqueios Imediatos
 
-- novos fallbacks em `js/api.js`
-- novas regras criticas em `modules/*`
+- novos fallbacks em `src/app/api.js`
+- novas regras criticas em `src/features/*`
 - uso operacional do SQL `01b`
 - release sem checklist e gate
 - mudancas sensiveis sem ownership e validacao

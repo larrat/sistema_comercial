@@ -8,8 +8,6 @@ import {
   toast,
   abrirModal,
   fecharModal,
-  uid,
-  norm,
   fmt,
   fmtN,
   mk2mg,
