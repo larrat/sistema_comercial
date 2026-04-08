@@ -1,6 +1,34 @@
 ﻿import { SB } from '../js/api.js';
 import { D, State, P, MOVS } from '../js/store.js';
+import { createScreenDom } from '../core/dom.js';
 import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../core/utils.js';
+
+const estDom = createScreenDom('estoque', [
+  'est-badge',
+  'est-alerts',
+  'est-busca',
+  'est-fil',
+  'est-met',
+  'est-posicao',
+  'est-hist-busca',
+  'est-hist-tipo',
+  'est-hist',
+  'mov-prod',
+  'mov-data',
+  'mov-qty',
+  'mov-custo',
+  'mov-obs',
+  'mov-real',
+  'mov-saldo-panel',
+  'mov-preview',
+  'mov-dest',
+  'ms-saldo',
+  'ms-cm',
+  'mp-saldo',
+  'mp-cm',
+  'mp-val',
+  'mp-val-wrap'
+]);
 
 export function calcSaldos(){
   const map = {};
@@ -82,7 +110,7 @@ export function atualizarBadgeEst(){
     return s && p.emin > 0 && s.saldo < p.emin;
   });
 
-  const b = document.getElementById('est-badge');
+  const b = estDom.get('est-badge');
   if(!b) return;
 
   b.style.display = al.length ? 'inline-flex' : 'none';
@@ -109,16 +137,15 @@ export function renderEstAlerts(){
     h += `<div class="alert al-a">âš  <b>${baixo.length} abaixo do mÃ­nimo:</b> ${baixo.map(p => p.nome).join(', ')}</div>`;
   }
 
-  const el = document.getElementById('est-alerts');
-  if(el) el.innerHTML = h;
+  estDom.html('alerts', 'est-alerts', h, 'estoque:alerts');
 
   atualizarBadgeEst();
 }
 
 export function renderEstPosicao(){
   const saldos = calcSaldos();
-  const q = (document.getElementById('est-busca')?.value || '').toLowerCase();
-  const f = document.getElementById('est-fil')?.value || '';
+  const q = (estDom.get('est-busca')?.value || '').toLowerCase();
+  const f = estDom.get('est-fil')?.value || '';
 
   let tv = 0;
   P().forEach(p => {
@@ -136,15 +163,12 @@ export function renderEstPosicao(){
     return s && s.saldo <= 0;
   }).length;
 
-  const met = document.getElementById('est-met');
-  if(met){
-    met.innerHTML = `
-      <div class="met"><div class="ml">Produtos</div><div class="mv">${P().length}</div></div>
-      <div class="met"><div class="ml">Valor em estoque</div><div class="mv" style="font-size:15px">${fmt(tv)}</div></div>
-      <div class="met"><div class="ml">Em alerta</div><div class="mv" style="color:var(--a)">${atv}</div></div>
-      <div class="met"><div class="ml">Zerados</div><div class="mv" style="color:var(--r)">${zt}</div></div>
-    `;
-  }
+  estDom.html('metrics', 'est-met', `
+    <div class="met"><div class="ml">Produtos</div><div class="mv">${P().length}</div></div>
+    <div class="met"><div class="ml">Valor em estoque</div><div class="mv" style="font-size:15px">${fmt(tv)}</div></div>
+    <div class="met"><div class="ml">Em alerta</div><div class="mv" style="color:var(--a)">${atv}</div></div>
+    <div class="met"><div class="ml">Zerados</div><div class="mv" style="color:var(--r)">${zt}</div></div>
+  `, 'estoque:metrics');
 
   const filtered = P().filter(p => {
     const s = saldos[p.id] || { saldo: 0, cm: 0 };
@@ -159,17 +183,17 @@ export function renderEstPosicao(){
     return mq && mf;
   });
 
-  const el = document.getElementById('est-posicao');
+  const el = estDom.get('est-posicao');
   if(!el) return;
 
   if(!filtered.length){
-    el.innerHTML = `<div class="empty"><div class="ico">ðŸ“¦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre produtos em "Produtos".'}</p></div>`;
+    estDom.html('position', 'est-posicao', `<div class="empty"><div class="ico">ðŸ“¦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre produtos em "Produtos".'}</p></div>`, 'estoque:posicao-vazia');
     return;
   }
 
   const isMobile = window.matchMedia('(max-width: 760px)').matches;
   if(isMobile){
-    el.innerHTML = filtered.map(p => {
+    estDom.html('position', 'est-posicao', filtered.map(p => {
       const s = saldos[p.id] || { saldo: 0, cm: 0 };
       const min = p.emin || 0;
       const valor = s.saldo * s.cm;
@@ -196,11 +220,11 @@ export function renderEstPosicao(){
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''), 'estoque:posicao-mobile');
     return;
   }
 
-  el.innerHTML = `
+  estDom.html('position', 'est-posicao', `
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -252,12 +276,12 @@ export function renderEstPosicao(){
         </tbody>
       </table>
     </div>
-  `;
+  `, 'estoque:posicao-desktop');
 }
 
 export function renderEstHist(){
-  const q = (document.getElementById('est-hist-busca')?.value || '').toLowerCase();
-  const tf = document.getElementById('est-hist-tipo')?.value || '';
+  const q = (estDom.get('est-hist-busca')?.value || '').toLowerCase();
+  const tf = estDom.get('est-hist-tipo')?.value || '';
 
   const movs = [...(MOVS() || [])]
     .sort((a, b) => (b.ts || 0) - (a.ts || 0))
@@ -270,11 +294,11 @@ export function renderEstHist(){
       );
     });
 
-  const el = document.getElementById('est-hist');
+  const el = estDom.get('est-hist');
   if(!el) return;
 
   if(!movs.length){
-    el.innerHTML = `<div class="empty"><div class="ico">ðŸ“‹</div><p>Nenhuma movimentaÃ§Ã£o.</p></div>`;
+    estDom.html('history', 'est-hist', `<div class="empty"><div class="ico">ðŸ“‹</div><p>Nenhuma movimentaÃ§Ã£o.</p></div>`, 'estoque:hist-vazio');
     return;
   }
 
@@ -287,7 +311,7 @@ export function renderEstHist(){
 
   const isMobile = window.matchMedia('(max-width: 760px)').matches;
   if(isMobile){
-    el.innerHTML = movs.map(m => {
+    estDom.html('history', 'est-hist', movs.map(m => {
       const prodId = m.prodId || m.prod_id;
       const p = P().find(x => x.id === prodId);
       const ti = tiInfo[m.tipo] || { ico:'?', lbl:m.tipo };
@@ -315,11 +339,11 @@ export function renderEstHist(){
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''), 'estoque:hist-mobile');
     return;
   }
 
-  el.innerHTML = `
+  estDom.html('history', 'est-hist', `
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -362,7 +386,7 @@ export function renderEstHist(){
         </tbody>
       </table>
     </div>
-  `;
+  `, 'estoque:hist-desktop');
 }
 
 export async function excluirMov(id){

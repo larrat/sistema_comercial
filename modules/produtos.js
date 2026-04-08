@@ -1,11 +1,32 @@
 ﻿import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
+import { createScreenDom } from '../core/dom.js';
 import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, notify, focusField } from '../core/utils.js';
 import { SEVERITY } from '../core/messages.js';
 
 let calcSaldosSafe = () => ({});
 let setFlowStepSafe = () => {};
 let refreshMovSelSafe = () => {};
+const prodDom = createScreenDom('produtos', [
+  'prod-met',
+  'prod-cat-fil',
+  'prod-busca',
+  'prod-lista',
+  'prod-modal-titulo',
+  'prod-flow-save',
+  'p-un',
+  'prod-preview',
+  'p-hist-cot',
+  'ppv-v',
+  'ppv-vmin',
+  'ppv-a',
+  'ppv-amin',
+  'pi-prod'
+]);
+const PROD_FORM_IDS = [
+  'p-nome','p-sku','p-cat','p-mkv','p-mgv','p-qtmin','p-dv',
+  'p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'
+];
 
 export function initProdutosModule(callbacks = {}){
   calcSaldosSafe = callbacks.calcSaldos || (() => ({}));
@@ -16,30 +37,28 @@ export function initProdutosModule(callbacks = {}){
 export function renderProdMet(){
   const prods = P();
   const cats = [...new Set(prods.map(p => p.cat).filter(Boolean))];
+  const cur = prodDom.get('prod-cat-fil')?.value || '';
 
-  const met = document.getElementById('prod-met');
-  if(met){
-    met.innerHTML = `
-      <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
-      <div class="met"><div class="ml">Categorias</div><div class="mv">${cats.length}</div></div>
-      <div class="met"><div class="ml">Com precificaÃ§Ã£o</div><div class="mv">${prods.filter(p => p.mkv > 0).length}</div></div>
-    `;
-  }
+  prodDom.html('metrics', 'prod-met', `
+    <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
+    <div class="met"><div class="ml">Categorias</div><div class="mv">${cats.length}</div></div>
+    <div class="met"><div class="ml">Com precificaÃ§Ã£o</div><div class="mv">${prods.filter(p => p.mkv > 0).length}</div></div>
+  `, 'produtos:metrics');
 
-  const sel = document.getElementById('prod-cat-fil');
-  if(sel){
-    const cur = sel.value;
-    sel.innerHTML =
-      '<option value="">Todas as categorias</option>' +
-      cats.sort().map(c => `<option value="${c}">${c}</option>`).join('');
-    sel.value = cur;
-  }
+  prodDom.select(
+    'filters',
+    'prod-cat-fil',
+    '<option value="">Todas as categorias</option>' +
+      cats.sort().map(c => `<option value="${c}">${c}</option>`).join(''),
+    cur,
+    'produtos:categorias'
+  );
 }
 
 export function renderProdutos(){
-  const buscaEl = document.getElementById('prod-busca');
-  const catEl = document.getElementById('prod-cat-fil');
-  const el = document.getElementById('prod-lista');
+  const buscaEl = prodDom.get('prod-busca');
+  const catEl = prodDom.get('prod-cat-fil');
+  const el = prodDom.get('prod-lista');
 
   if(!el) return;
 
@@ -53,13 +72,13 @@ export function renderProdutos(){
   );
 
   if(!filtrados.length){
-    el.innerHTML = `<div class="empty"><div class="ico">ðŸ“¦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`;
+    prodDom.html('list', 'prod-lista', `<div class="empty"><div class="ico">ðŸ“¦</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`, 'produtos:lista-vazia');
     return;
   }
 
   const isMobile = window.matchMedia('(max-width: 760px)').matches;
   if(isMobile){
-    el.innerHTML = filtrados.map(p => {
+    prodDom.html('list', 'prod-lista', filtrados.map(p => {
       const pv = prV(p.custo, p.mkv);
       const pa = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
       const s = saldos[p.id] || { saldo: 0, cm: 0 };
@@ -91,11 +110,11 @@ export function renderProdutos(){
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''), 'produtos:lista-mobile');
     return;
   }
 
-  el.innerHTML = `
+  prodDom.html('list', 'prod-lista', `
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -144,32 +163,26 @@ export function renderProdutos(){
         </tbody>
       </table>
     </div>
-  `;
+  `, 'produtos:lista-desktop');
 }
 
 export function limparFormProd(){
   State.editIds.prod = null;
 
-  const titulo = document.getElementById('prod-modal-titulo');
+  const titulo = prodDom.get('prod-modal-titulo');
   if(titulo) titulo.textContent = 'Novo produto';
-  const saveBtn = document.getElementById('prod-flow-save');
+  const saveBtn = prodDom.get('prod-flow-save');
   if(saveBtn) saveBtn.textContent = 'Salvar produto';
 
-  [
-    'p-nome','p-sku','p-cat','p-mkv','p-mgv','p-qtmin','p-dv',
-    'p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'
-  ].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.value = '';
-  });
+  PROD_FORM_IDS.forEach(id => prodDom.value(id, ''));
 
-  const un = document.getElementById('p-un');
+  const un = prodDom.get('p-un');
   if(un) un.value = 'un';
 
-  const preview = document.getElementById('prod-preview');
+  const preview = prodDom.get('prod-preview');
   if(preview) preview.style.display = 'none';
 
-  const histEl = document.getElementById('p-hist-cot');
+  const histEl = prodDom.get('p-hist-cot');
   if(histEl) histEl.style.display = 'none';
 
   setFlowStepSafe('prod', 1);
@@ -181,29 +194,29 @@ export function editarProd(id){
 
   State.editIds.prod = id;
 
-  const titulo = document.getElementById('prod-modal-titulo');
+  const titulo = prodDom.get('prod-modal-titulo');
   if(titulo) titulo.textContent = 'Editar produto';
-  const saveBtn = document.getElementById('prod-flow-save');
+  const saveBtn = prodDom.get('prod-flow-save');
   if(saveBtn) saveBtn.textContent = 'Atualizar produto';
 
-  document.getElementById('p-nome').value = p.nome;
-  document.getElementById('p-sku').value = p.sku || '';
-  document.getElementById('p-un').value = p.un || 'un';
-  document.getElementById('p-cat').value = p.cat || '';
-  document.getElementById('p-custo').value = p.custo ?? '';
-  document.getElementById('p-mkv').value = Number(p.mkv || 0).toFixed(1);
-  document.getElementById('p-mgv').value = mk2mg(Number(p.mkv || 0)).toFixed(1);
-  document.getElementById('p-qtmin').value = p.qtmin || '';
-  document.getElementById('p-dv').value = p.dv || '';
-  document.getElementById('p-mka').value = Number(p.mka || 0).toFixed(1);
-  document.getElementById('p-mga').value = mk2mg(Number(p.mka || 0)).toFixed(1);
-  document.getElementById('p-pfa').value = p.pfa || '';
-  document.getElementById('p-da').value = p.da || '';
-  document.getElementById('p-emin').value = p.emin || '';
-  document.getElementById('p-esal').value = p.esal || '';
-  document.getElementById('p-ecm').value = p.ecm || '';
+  prodDom.value('p-nome', p.nome);
+  prodDom.value('p-sku', p.sku || '');
+  prodDom.value('p-un', p.un || 'un');
+  prodDom.value('p-cat', p.cat || '');
+  prodDom.value('p-custo', p.custo ?? '');
+  prodDom.value('p-mkv', Number(p.mkv || 0).toFixed(1));
+  prodDom.value('p-mgv', mk2mg(Number(p.mkv || 0)).toFixed(1));
+  prodDom.value('p-qtmin', p.qtmin || '');
+  prodDom.value('p-dv', p.dv || '');
+  prodDom.value('p-mka', Number(p.mka || 0).toFixed(1));
+  prodDom.value('p-mga', mk2mg(Number(p.mka || 0)).toFixed(1));
+  prodDom.value('p-pfa', p.pfa || '');
+  prodDom.value('p-da', p.da || '');
+  prodDom.value('p-emin', p.emin || '');
+  prodDom.value('p-esal', p.esal || '');
+  prodDom.value('p-ecm', p.ecm || '');
 
-  let histEl = document.getElementById('p-hist-cot');
+  let histEl = prodDom.get('p-hist-cot');
   if(!histEl){
     histEl = document.createElement('div');
     histEl.id = 'p-hist-cot';
@@ -241,39 +254,39 @@ export function editarProd(id){
 }
 
 export function syncV(t){
-  const mk = parseFloat(document.getElementById('p-mkv').value) || 0;
-  const mg = parseFloat(document.getElementById('p-mgv').value) || 0;
+  const mk = parseFloat(prodDom.get('p-mkv')?.value) || 0;
+  const mg = parseFloat(prodDom.get('p-mgv')?.value) || 0;
 
   if(t === 'mk' && mk > 0){
-    document.getElementById('p-mgv').value = mk2mg(mk).toFixed(1);
+    prodDom.value('p-mgv', mk2mg(mk).toFixed(1));
   } else if(t === 'mg' && mg > 0){
-    document.getElementById('p-mkv').value = mg2mk(mg).toFixed(1);
+    prodDom.value('p-mkv', mg2mk(mg).toFixed(1));
   }
 
   calcProdPreview();
 }
 
 export function syncA(t){
-  const mk = parseFloat(document.getElementById('p-mka').value) || 0;
-  const mg = parseFloat(document.getElementById('p-mga').value) || 0;
+  const mk = parseFloat(prodDom.get('p-mka')?.value) || 0;
+  const mg = parseFloat(prodDom.get('p-mga')?.value) || 0;
 
   if(t === 'mk' && mk > 0){
-    document.getElementById('p-mga').value = mk2mg(mk).toFixed(1);
+    prodDom.value('p-mga', mk2mg(mk).toFixed(1));
   } else if(t === 'mg' && mg > 0){
-    document.getElementById('p-mka').value = mg2mk(mg).toFixed(1);
+    prodDom.value('p-mka', mg2mk(mg).toFixed(1));
   }
 
   calcProdPreview();
 }
 
 export function calcProdPreview(){
-  const c = parseFloat(document.getElementById('p-custo').value) || 0;
-  const mkv = parseFloat(document.getElementById('p-mkv').value) || 0;
-  const mka = parseFloat(document.getElementById('p-mka').value) || 0;
-  const pfa = parseFloat(document.getElementById('p-pfa').value) || 0;
-  const dv = parseFloat(document.getElementById('p-dv').value) || 0;
-  const da = parseFloat(document.getElementById('p-da').value) || 0;
-  const prev = document.getElementById('prod-preview');
+  const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
+  const mkv = parseFloat(prodDom.get('p-mkv')?.value) || 0;
+  const mka = parseFloat(prodDom.get('p-mka')?.value) || 0;
+  const pfa = parseFloat(prodDom.get('p-pfa')?.value) || 0;
+  const dv = parseFloat(prodDom.get('p-dv')?.value) || 0;
+  const da = parseFloat(prodDom.get('p-da')?.value) || 0;
+  const prev = prodDom.get('prod-preview');
 
   if(!prev) return;
 
@@ -281,20 +294,19 @@ export function calcProdPreview(){
     const pv = prV(c, mkv);
     const pa = pfa > 0 ? pfa : (mka > 0 ? prV(c, mka) : 0);
 
-    document.getElementById('ppv-v').textContent = fmt(pv);
-    document.getElementById('ppv-vmin').textContent = dv > 0 ? fmt(pv * (1 - dv / 100)) : 'â€”';
-    document.getElementById('ppv-a').textContent = pa > 0 ? fmt(pa) : 'â€”';
-    document.getElementById('ppv-amin').textContent = (pa > 0 && da > 0) ? fmt(pa * (1 - da / 100)) : 'â€”';
-
-    prev.style.display = 'block';
+    prodDom.text('preview', 'ppv-v', fmt(pv), 'produtos:preview');
+    prodDom.text('preview', 'ppv-vmin', dv > 0 ? fmt(pv * (1 - dv / 100)) : 'â€”', 'produtos:preview');
+    prodDom.text('preview', 'ppv-a', pa > 0 ? fmt(pa) : 'â€”', 'produtos:preview');
+    prodDom.text('preview', 'ppv-amin', (pa > 0 && da > 0) ? fmt(pa * (1 - da / 100)) : 'â€”', 'produtos:preview');
+    prodDom.display('preview', 'prod-preview', 'block', 'produtos:preview');
   } else {
-    prev.style.display = 'none';
+    prodDom.display('preview', 'prod-preview', 'none', 'produtos:preview');
   }
 }
 
 export async function salvarProduto(){
-  const nome = document.getElementById('p-nome').value.trim();
-  const custo = parseFloat(document.getElementById('p-custo').value) || 0;
+  const nome = prodDom.get('p-nome')?.value.trim() || '';
+  const custo = parseFloat(prodDom.get('p-custo')?.value) || 0;
 
   if(!nome || custo <= 0){
     notify(
@@ -312,19 +324,19 @@ export async function salvarProduto(){
     id: State.editIds.prod || uid(),
     filial_id: State.FIL,
     nome,
-    sku: document.getElementById('p-sku').value.trim(),
-    un: document.getElementById('p-un').value,
-    cat: document.getElementById('p-cat').value.trim(),
+    sku: prodDom.get('p-sku')?.value.trim() || '',
+    un: prodDom.get('p-un')?.value || 'un',
+    cat: prodDom.get('p-cat')?.value.trim() || '',
     custo,
-    mkv: parseFloat(document.getElementById('p-mkv').value) || 0,
-    mka: parseFloat(document.getElementById('p-mka').value) || 0,
-    pfa: parseFloat(document.getElementById('p-pfa').value) || 0,
-    dv: parseFloat(document.getElementById('p-dv').value) || 0,
-    da: parseFloat(document.getElementById('p-da').value) || 0,
-    qtmin: parseFloat(document.getElementById('p-qtmin').value) || 0,
-    emin: parseFloat(document.getElementById('p-emin').value) || 0,
-    esal: parseFloat(document.getElementById('p-esal').value) || 0,
-    ecm: parseFloat(document.getElementById('p-ecm').value) || custo,
+    mkv: parseFloat(prodDom.get('p-mkv')?.value) || 0,
+    mka: parseFloat(prodDom.get('p-mka')?.value) || 0,
+    pfa: parseFloat(prodDom.get('p-pfa')?.value) || 0,
+    dv: parseFloat(prodDom.get('p-dv')?.value) || 0,
+    da: parseFloat(prodDom.get('p-da')?.value) || 0,
+    qtmin: parseFloat(prodDom.get('p-qtmin')?.value) || 0,
+    emin: parseFloat(prodDom.get('p-emin')?.value) || 0,
+    esal: parseFloat(prodDom.get('p-esal')?.value) || 0,
+    ecm: parseFloat(prodDom.get('p-ecm')?.value) || custo,
     hist_cot: existing ? (existing.hist_cot || []) : []
   };
 
@@ -387,12 +399,16 @@ export async function removerProd(id){
 }
 
 export function refreshProdSel(){
-  const s = document.getElementById('pi-prod');
+  const s = prodDom.get('pi-prod');
   if(!s) return;
 
   const cur = s.value;
-  s.innerHTML =
+  prodDom.select(
+    'selectors',
+    'pi-prod',
     '<option value="">â€” selecione â€”</option>' +
-    P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join('');
-  s.value = cur;
+      P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join(''),
+    cur,
+    'produtos:pedido-selector'
+  );
 }

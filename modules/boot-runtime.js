@@ -223,9 +223,3 @@ export function startApplicationRuntime({ appContext, registry, deps }){
 
   start();
 }
-
-export function bindWindowApi(api){
-  Object.entries(api).forEach(([key, value]) => {
-    window[key] = value;
-  });
-}

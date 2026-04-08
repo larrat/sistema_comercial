@@ -1,9 +1,28 @@
 ﻿import { SB } from '../js/api.js';
 import { D, State, P } from '../js/store.js';
+import { createScreenDom } from '../core/dom.js';
 import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
 
 let calcSaldosMultiSafe = () => ({});
+const dashDom = createScreenDom('dashboard', [
+  'dash-fil',
+  'dash-opp-camp',
+  'dash-desc',
+  'dash-met',
+  'dash-alerts',
+  'dash-chart',
+  'dash-chart-empty',
+  'dash-status',
+  'dash-tp',
+  'dash-ea',
+  'dash-forn',
+  'dash-margem',
+  'dash-oportunidades',
+  'dash-jogos',
+  'jogo-api-url',
+  'jogo-api-time'
+]);
 
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const JOGOS_API_URL_KEY = 'jogos_api_url';
@@ -323,19 +342,23 @@ export function setP(p, btn){
 }
 
 export function renderDashFilSel(){
-  const s = document.getElementById('dash-fil');
+  const s = dashDom.get('dash-fil');
   if(!s) return;
 
   const cur = s.value;
-  s.innerHTML =
+  dashDom.select(
+    'filters',
+    'dash-fil',
     '<option value="todas">Todas as filiais</option>' +
-    (D.filiais || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
-  s.value = cur || 'todas';
+      (D.filiais || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join(''),
+    cur || 'todas',
+    'dashboard:filiais'
+  );
 }
 
 export function renderDash(){
-  const fsel = document.getElementById('dash-fil')?.value || 'todas';
-  const serieSel = document.getElementById('dash-opp-camp')?.value || 'todas';
+  const fsel = dashDom.get('dash-fil')?.value || 'todas';
+  const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';
   const range = getRange();
 
   const pLabels = {
@@ -350,8 +373,7 @@ export function renderDash(){
       ? 'Consolidado'
       : (D.filiais || []).find(f => f.id === fsel)?.nome || '';
 
-  const desc = document.getElementById('dash-desc');
-  if(desc) desc.textContent = fLabel + ' â€” ' + pLabels[State.dashP];
+  dashDom.text('header', 'dash-desc', fLabel + ' â€” ' + pLabels[State.dashP], 'dashboard:descricao');
 
   renderDashJogos(fsel);
 
@@ -372,32 +394,29 @@ export function renderDash(){
   const tk = entregues.length ? fat / entregues.length : 0;
   const abertos = allPeds.filter(p => ['orcamento','confirmado','em_separacao'].includes(p.status)).length;
 
-  const met = document.getElementById('dash-met');
-  if(met){
-    met.innerHTML = `
-      <div class="met">
-        <div class="ml">Faturamento</div>
-        <div class="mv kpi-value-sm">${fmt(fat)}</div>
-        <div class="ms">${entregues.length} entregue(s)</div>
-      </div>
-      <div class="met">
-        <div class="ml">Lucro bruto</div>
-        <div class="mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}">${fmt(lucro)}</div>
-      </div>
-      <div class="met">
-        <div class="ml">Margem</div>
-        <div class="mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}">${pct(mg)}</div>
-      </div>
-      <div class="met">
-        <div class="ml">Ticket mÃ©dio</div>
-        <div class="mv kpi-value-sm">${fmt(tk)}</div>
-      </div>
-      <div class="met">
-        <div class="ml">Em aberto</div>
-        <div class="mv tone-warning">${abertos}</div>
-      </div>
-    `;
-  }
+  dashDom.html('metrics', 'dash-met', `
+    <div class="met">
+      <div class="ml">Faturamento</div>
+      <div class="mv kpi-value-sm">${fmt(fat)}</div>
+      <div class="ms">${entregues.length} entregue(s)</div>
+    </div>
+    <div class="met">
+      <div class="ml">Lucro bruto</div>
+      <div class="mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}">${fmt(lucro)}</div>
+    </div>
+    <div class="met">
+      <div class="ml">Margem</div>
+      <div class="mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}">${pct(mg)}</div>
+    </div>
+    <div class="met">
+      <div class="ml">Ticket mÃ©dio</div>
+      <div class="mv kpi-value-sm">${fmt(tk)}</div>
+    </div>
+    <div class="met">
+      <div class="ml">Em aberto</div>
+      <div class="mv tone-warning">${abertos}</div>
+    </div>
+  `, 'dashboard:metrics');
 
   const saldos = calcSaldosMultiSafe(filIds);
   const allProds = filIds.flatMap(fid =>
@@ -483,11 +502,10 @@ export function renderDash(){
     ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegÃ­vel(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? 'â€¦' : ''}</div>`;
   }
 
-  const alerts = document.getElementById('dash-alerts');
-  if(alerts) alerts.innerHTML = ah;
+  dashDom.html('alerts', 'dash-alerts', ah, 'dashboard:alerts');
 
-  const chartEl = document.getElementById('dash-chart');
-  const emEl = document.getElementById('dash-chart-empty');
+  const chartEl = dashDom.get('dash-chart');
+  const emEl = dashDom.get('dash-chart-empty');
 
   const grupos = {};
   entregues.forEach(p => {
@@ -514,7 +532,7 @@ export function renderDash(){
 
       const mxF = Math.max(...gkeys.map(k => grupos[k].fat), 1);
 
-      chartEl.innerHTML = gkeys.map(k => {
+      dashDom.html('chart', 'dash-chart', gkeys.map(k => {
         const g = grupos[k];
         const hF = Math.round((g.fat / mxF) * 100);
         const hL = Math.round((Math.max(0, g.lucro) / mxF) * 100);
@@ -534,7 +552,7 @@ export function renderDash(){
             <div class="bc-lbl">${lbl}</div>
           </div>
         `;
-      }).join('');
+      }).join(''), 'dashboard:chart');
     }
   }
 
@@ -561,16 +579,13 @@ export function renderDash(){
 
   const tot = allPeds.length || 1;
 
-  const dashStatus = document.getElementById('dash-status');
-  if(dashStatus){
-    dashStatus.innerHTML = Object.entries(stMap).map(([k, v]) => `
+  dashDom.html('status', 'dash-status', Object.entries(stMap).map(([k, v]) => `
       <div class="rrow">
         <span class="bdg ${stCls[k]}">${stLbl[k]}</span>
         <div class="rbar"><div class="rbar-f" style="width:${Math.round((v / tot) * 100)}%;background:var(--bd2)"></div></div>
         <span style="font-size:13px;font-weight:600;min-width:20px;text-align:right">${v}</span>
       </div>
-    `).join('');
-  }
+    `).join(''), 'dashboard:status');
 
   const pq = {};
   entregues.forEach(p => {
@@ -583,9 +598,7 @@ export function renderDash(){
   const tp = Object.entries(pq).sort((a, b) => b[1].fat - a[1].fat).slice(0, 5);
   const mxP = tp.length ? tp[0][1].fat : 1;
 
-  const dashTp = document.getElementById('dash-tp');
-  if(dashTp){
-    dashTp.innerHTML = tp.length
+  dashDom.html('top-products', 'dash-tp', tp.length
       ? tp.map(([n, d], i) => `
           <div class="rrow">
             <span class="rnum">${i + 1}</span>
@@ -594,17 +607,14 @@ export function renderDash(){
             <span class="rval">${fmtK(d.fat)}</span>
           </div>
         `).join('')
-      : `<div class="empty" style="padding:12px"><p>Sem vendas</p></div>`;
-  }
+      : `<div class="empty" style="padding:12px"><p>Sem vendas</p></div>`, 'dashboard:top-produtos');
 
   const alertProds = allProds.filter(p => {
     const s = saldos[p._fid + '_' + p.id];
     return s && p.emin > 0 && s.saldo < p.emin;
   }).slice(0, 5);
 
-  const dashEa = document.getElementById('dash-ea');
-  if(dashEa){
-    dashEa.innerHTML = alertProds.length
+  dashDom.html('stock-alerts', 'dash-ea', alertProds.length
       ? alertProds.map(p => {
           const s = saldos[p._fid + '_' + p.id];
           return `
@@ -615,8 +625,7 @@ export function renderDash(){
             </div>
           `;
         }).join('')
-      : `<div class="empty" style="padding:12px"><p>âœ“ Sem alertas</p></div>`;
-  }
+      : `<div class="empty" style="padding:12px"><p>âœ“ Sem alertas</p></div>`, 'dashboard:estoque-alerta');
 
   const fu = {};
   filIds.forEach(fid => {
@@ -629,9 +638,7 @@ export function renderDash(){
   const tf = Object.entries(fu).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const mxF2 = tf.length ? tf[0][1] : 1;
 
-  const dashForn = document.getElementById('dash-forn');
-  if(dashForn){
-    dashForn.innerHTML = tf.length
+  dashDom.html('suppliers', 'dash-forn', tf.length
       ? tf.map(([n, c], i) => `
           <div class="rrow">
             <span class="rnum">${i + 1}</span>
@@ -640,8 +647,7 @@ export function renderDash(){
             <span class="rval" style="color:var(--tx2)">${c}x</span>
           </div>
         `).join('')
-      : `<div class="empty" style="padding:12px"><p>Nenhuma importaÃ§Ã£o</p></div>`;
-  }
+      : `<div class="empty" style="padding:12px"><p>Nenhuma importaÃ§Ã£o</p></div>`, 'dashboard:fornecedores');
 
   const mp = {};
   entregues.forEach(p => {
@@ -655,9 +661,7 @@ export function renderDash(){
 
   const tmg = Object.entries(mp).sort((a, b) => b[1].fat - a[1].fat).slice(0, 8);
 
-  const dashMargem = document.getElementById('dash-margem');
-  if(dashMargem){
-    dashMargem.innerHTML = tmg.length
+  dashDom.html('margin', 'dash-margem', tmg.length
       ? `
         <div class="tw">
           <table class="tbl">
@@ -689,13 +693,10 @@ export function renderDash(){
           </table>
         </div>
       `
-      : `<div class="empty" style="padding:12px"><p>Sem vendas no perÃ­odo</p></div>`;
-  }
+      : `<div class="empty" style="padding:12px"><p>Sem vendas no perÃ­odo</p></div>`, 'dashboard:margem');
 
-  const dashOportunidades = document.getElementById('dash-oportunidades');
-  if(dashOportunidades){
-    const serieLabel = serieSel === 'todas' ? 'Todas as sÃ©ries' : `SÃ©rie ${serieSel.toUpperCase()}`;
-    dashOportunidades.innerHTML = `
+  const serieLabel = serieSel === 'todas' ? 'Todas as sÃ©ries' : `SÃ©rie ${serieSel.toUpperCase()}`;
+  dashDom.html('opportunities', 'dash-oportunidades', `
       <div class="rrow" style="margin-bottom:8px">
         <span class="bdg bk">${serieLabel}</span>
         <span class="bdg ${oportunidadesHoje.length ? 'bg' : 'bk'}">Hoje: ${oportunidadesHoje.length}</span>
@@ -717,8 +718,7 @@ export function renderDash(){
           </div>
         `).join('')
       : `<div class="empty" style="padding:12px"><p>Sem oportunidades por jogos na semana</p></div>`}
-    `;
-  }
+    `, 'dashboard:oportunidades');
 }
 
 export function limparFormJogo(){
@@ -749,8 +749,8 @@ export function abrirNovoJogo(){
 }
 
 export function abrirSyncJogos(){
-  const urlInp = document.getElementById('jogo-api-url');
-  const filtroInp = document.getElementById('jogo-api-time');
+  const urlInp = dashDom.get('jogo-api-url');
+  const filtroInp = dashDom.get('jogo-api-time');
   if(urlInp){
     urlInp.value = localStorage.getItem(JOGOS_API_URL_KEY) || '';
   }
@@ -761,8 +761,8 @@ export function abrirSyncJogos(){
 }
 
 export function usarExemploSyncJogos(apiUrl, filtro = ''){
-  const urlInp = document.getElementById('jogo-api-url');
-  const filtroInp = document.getElementById('jogo-api-time');
+  const urlInp = dashDom.get('jogo-api-url');
+  const filtroInp = dashDom.get('jogo-api-time');
   if(urlInp) urlInp.value = apiUrl || '';
   if(filtroInp) filtroInp.value = filtro || '';
 }
@@ -781,13 +781,13 @@ export async function sincronizarJogosDashboard(options = {}){
 
   const apiUrl = String(
     forcedApiUrl ||
-    document.getElementById('jogo-api-url')?.value.trim() ||
+    dashDom.get('jogo-api-url')?.value.trim() ||
     localStorage.getItem(JOGOS_API_URL_KEY) ||
     ''
   ).trim();
   const filtroTime = String(
     forcedFiltroTime ||
-    document.getElementById('jogo-api-time')?.value ||
+    dashDom.get('jogo-api-time')?.value ||
     localStorage.getItem(JOGOS_API_FILTRO_KEY) ||
     ''
   ).trim().toLowerCase();
@@ -873,7 +873,7 @@ export async function sincronizarJogosDashboard(options = {}){
     setJogosAutoSyncAt(filialId);
 
     if(!auto) fecharModal('modal-jogo-sync');
-    renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+    renderDashJogos(dashDom.get('dash-fil')?.value || 'todas');
     if(!silent){
       notify(MSG.jogos.syncResult({ processados: normalizados.length, falhas: erros }), erros > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS);
     }
@@ -938,7 +938,7 @@ export async function salvarJogoDashboard(){
   D.jogos[filialId] = sortJogosAgenda(jogos);
 
   fecharModal('modal-jogo');
-  renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+  renderDashJogos(dashDom.get('dash-fil')?.value || 'todas');
 
   notify('Sucesso: jogo adicionado na agenda.', SEVERITY.SUCCESS);
 }
@@ -957,23 +957,23 @@ export async function removerJogoDashboard(id){
   }
 
   D.jogos[filialId] = getJogosCache(filialId).filter(j => j.id !== id);
-  renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+  renderDashJogos(dashDom.get('dash-fil')?.value || 'todas');
   notify('Sucesso: jogo removido da agenda.', SEVERITY.SUCCESS);
 }
 
 export function renderDashJogos(fsel = 'todas'){
-  const el = document.getElementById('dash-jogos');
+  const el = dashDom.get('dash-jogos');
   if(!el) return;
 
   const filialId = getFilialCalendarioId();
   if(!filialId){
-    el.innerHTML = `<div class="empty" style="padding:12px"><p>Sem filial para agenda.</p></div>`;
+    dashDom.html('games', 'dash-jogos', `<div class="empty" style="padding:12px"><p>Sem filial para agenda.</p></div>`, 'dashboard:jogos-sem-filial');
     return;
   }
 
   if(fsel !== 'todas' && fsel !== filialId){
     const nome = (D.filiais || []).find(f => f.id === filialId)?.nome || 'Filial 1';
-    el.innerHTML = `<div class="empty" style="padding:12px"><p>Agenda disponÃ­vel em ${nome}.</p></div>`;
+    dashDom.html('games', 'dash-jogos', `<div class="empty" style="padding:12px"><p>Agenda disponÃ­vel em ${nome}.</p></div>`, 'dashboard:jogos-outra-filial');
     return;
   }
 
@@ -995,11 +995,11 @@ export function renderDashJogos(fsel = 'todas'){
     .slice(0, 8);
 
   if(!jogos.length){
-    el.innerHTML = `<div class="empty" style="padding:12px"><p>Sem jogos cadastrados.</p></div>`;
+    dashDom.html('games', 'dash-jogos', `<div class="empty" style="padding:12px"><p>Sem jogos cadastrados.</p></div>`, 'dashboard:jogos-vazio');
     return;
   }
 
-  el.innerHTML = jogos.map(j => `
+  dashDom.html('games', 'dash-jogos', jogos.map(j => `
     <div class="rrow">
       <span style="width:8px;height:8px;border-radius:50%;background:var(--b);flex-shrink:0;display:inline-block"></span>
       <div style="flex:1;min-width:0">
@@ -1008,5 +1008,5 @@ export function renderDashJogos(fsel = 'todas'){
       </div>
       <button class="ib" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">DEL</button>
     </div>
-  `).join('');
+  `).join(''), 'dashboard:jogos-lista');
 }

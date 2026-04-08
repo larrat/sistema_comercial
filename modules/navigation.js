@@ -1,5 +1,6 @@
 import { D, State } from '../js/store.js';
 import { norm, toast } from '../core/utils.js';
+import { markInvalidation, markRender } from '../core/render-metrics.js';
 
 let deps = {
   hasRole: () => true,
@@ -50,6 +51,8 @@ let deps = {
   roleManagerPlus: ['admin', 'gerente'],
   roleAdminOnly: ['admin']
 };
+let pendingPageRender = 0;
+let pendingPageName = '';
 
 export function initNavigationModule(nextDeps = {}){
   deps = {
@@ -58,6 +61,42 @@ export function initNavigationModule(nextDeps = {}){
     roleManagerPlus: Array.isArray(nextDeps.roleManagerPlus) ? nextDeps.roleManagerPlus : deps.roleManagerPlus,
     roleAdminOnly: Array.isArray(nextDeps.roleAdminOnly) ? nextDeps.roleAdminOnly : deps.roleAdminOnly
   };
+}
+
+function getPageRenderers(){
+  return {
+    dashboard: [deps.renderDash],
+    gerencial: [deps.renderMetasNegocio],
+    produtos: [deps.renderProdMet, deps.renderProdutos],
+    clientes: [deps.renderCliMet, deps.renderClientes],
+    pedidos: [deps.renderPedMet, deps.renderPedidos],
+    cotacao: [deps.renderFornSel, deps.renderCotForns, deps.renderCotLogs, deps.renderCotTabela],
+    estoque: [deps.renderEstAlerts, deps.renderEstPosicao, deps.renderEstHist],
+    campanhas: [deps.renderCampanhasMet, deps.renderCampanhas, deps.renderFilaWhatsApp, deps.renderCampanhaEnvios],
+    filiais: [deps.renderFilMet, deps.renderFilLista],
+    acessos: [deps.renderAcessosAdmin],
+    notificacoes: [deps.renderNotificacoes]
+  };
+}
+
+function runPageRender(page){
+  const renderers = getPageRenderers()[page] || [];
+  renderers.forEach(render => {
+    if(typeof render === 'function') render();
+  });
+  markRender(page, 'page');
+}
+
+function schedulePageRender(page){
+  pendingPageName = page;
+  markInvalidation(page, 'page', 'navigation');
+  if(pendingPageRender) return;
+  pendingPageRender = window.requestAnimationFrame(() => {
+    const pageToRender = pendingPageName;
+    pendingPageRender = 0;
+    pendingPageName = '';
+    runPageRender(pageToRender);
+  });
 }
 
 const PAGE_META = {
@@ -308,21 +347,7 @@ export function ir(page){
   document.getElementById('pg-' + nextPage)?.classList.add('on');
   document.querySelectorAll('.mob-btn').forEach(b => b.classList.toggle('on', b.id === 'mob-' + nextPage));
 
-  const renderMap = {
-    dashboard: () => { deps.renderDash(); },
-    gerencial: () => { deps.renderMetasNegocio(); },
-    produtos: () => { deps.renderProdMet(); deps.renderProdutos(); },
-    clientes: () => { deps.renderCliMet(); deps.renderClientes(); },
-    pedidos: () => { deps.renderPedMet(); deps.renderPedidos(); },
-    cotacao: () => { deps.renderFornSel(); deps.renderCotForns(); deps.renderCotLogs(); deps.renderCotTabela(); },
-    estoque: () => { deps.renderEstAlerts(); deps.renderEstPosicao(); deps.renderEstHist(); },
-    campanhas: () => { deps.renderCampanhasMet(); deps.renderCampanhas(); deps.renderFilaWhatsApp(); deps.renderCampanhaEnvios(); },
-    filiais: () => { deps.renderFilMet(); deps.renderFilLista(); },
-    acessos: () => { deps.renderAcessosAdmin(); },
-    notificacoes: deps.renderNotificacoes
-  };
-
-  if(renderMap[nextPage]) renderMap[nextPage]();
+  schedulePageRender(nextPage);
   deps.startPrimaryActionTracking(nextPage);
   deps.markConsistencyPage(nextPage);
   deps.updateNotiBadge();

@@ -1,5 +1,20 @@
+import { markInvalidation } from '../core/render-metrics.js';
+
 let deps = {};
 let initialized = false;
+let pendingRenderFrame = 0;
+let pendingRenderNames = new Set();
+
+const RENDER_TARGETS = {
+  renderDash: { page: 'dashboard', area: 'page' },
+  renderProdMet: { page: 'produtos', area: 'metrics' },
+  renderProdutos: { page: 'produtos', area: 'list' },
+  renderCliMet: { page: 'clientes', area: 'metrics' },
+  renderClientes: { page: 'clientes', area: 'list' },
+  renderEstAlerts: { page: 'estoque', area: 'alerts' },
+  renderEstPosicao: { page: 'estoque', area: 'position' },
+  renderEstHist: { page: 'estoque', area: 'history' }
+};
 
 function getFlowCurrentStep(flow){
   return Number(document.querySelector(`.flow-chip.on[data-flow-chip="${flow}"]`)?.dataset.step || 1);
@@ -64,87 +79,159 @@ function resolveArg(token, el, event){
   return trimmed;
 }
 
-function callByName(name, args = []){
-  const handlers = {
-    abrirModal: deps.abrirModal,
-    fecharModal: deps.fecharModal,
-    authEntrar: deps.authEntrar,
-    criarPrimeiraFilial: deps.criarPrimeiraFilial,
-    limparFormFilial: deps.limparFormFilial,
-    entrar: deps.entrar,
-    fecharSb: deps.fecharSb,
-    voltarSetup: deps.voltarSetup,
-    ir: deps.ir,
-    exportarTudo: deps.exportarTudo,
-    sairConta: deps.sairConta,
-    renderDash: deps.renderDash,
-    setP: deps.setP,
-    limparFormPed: deps.limparFormPedTracked,
-    abrirSyncJogos: deps.abrirSyncJogos,
-    abrirNovoJogo: deps.abrirNovoJogo,
-    renderMetasNegocio: deps.renderMetasNegocio,
-    resetUxKpis: deps.resetUxKpis,
-    limparFormProd: deps.limparFormProdTracked,
-    renderProdutos: deps.renderProdutos,
-    exportCSV: deps.exportCSV,
-    limparFormCli: deps.limparFormCliTracked,
-    switchTab: deps.switchTab,
-    renderCliSegs: deps.renderCliSegs,
-    renderClientes: deps.renderClientes,
-    renderPedidos: deps.renderPedidos,
-    renderCotForns: deps.renderCotForns,
-    renderCotTabela: deps.renderCotTabela,
-    cotFile: deps.cotFile,
-    cotLock: deps.cotLock,
-    resetMov: deps.resetMov,
-    renderEstPosicao: deps.renderEstPosicao,
-    renderEstHist: deps.renderEstHist,
-    abrirNovaCampanha: deps.abrirNovaCampanhaTracked,
-    removerJogoDashboard: deps.removerJogoDashboardGuard,
-    abrirMovProd: deps.abrirMovProd,
-    editarProd: deps.editarProd,
-    removerProd: deps.removerProdGuard,
-    excluirMov: deps.excluirMovGuard,
-    refreshCampanhasTela: deps.refreshCampanhasTela,
-    renderAcessosAdmin: deps.renderAcessosAdmin,
-    salvarPerfilAcesso: deps.salvarPerfilAcesso,
-    removerPerfilAcesso: deps.removerPerfilAcesso,
-    vincularUsuarioFilial: deps.vincularUsuarioFilial,
-    desvincularUsuarioFilial: deps.desvincularUsuarioFilial,
-    renderAcessosPerfis: deps.renderAcessosPerfis,
-    renderAcessosVinculos: deps.renderAcessosVinculos,
-    renderNotificacoes: deps.renderNotificacoes,
-    resolverTodasNotificacoes: deps.resolverTodasNotificacoesTracked,
-    abrirSb: deps.abrirSb,
-    salvarFilial: deps.salvarFilial,
-    setFlowStep: deps.setFlowStep,
-    calcProdPreview: deps.calcProdPreview,
-    syncV: deps.syncV,
-    syncA: deps.syncA,
-    salvarProduto: deps.salvarProdutoTracked,
-    salvarCliente: deps.salvarClienteTracked,
-    addItem: deps.addItem,
-    salvarPedido: deps.salvarPedidoTracked,
-    salvarCampanha: deps.salvarCampanhaTracked,
-    salvarJogoDashboard: deps.salvarJogoDashboardGuard,
-    usarExemploSyncJogos: deps.usarExemploSyncJogos,
-    sincronizarJogosDashboard: deps.sincronizarJogosDashboardGuard,
-    salvarForn: deps.salvarForn,
-    setTipo: deps.setTipo,
-    movLoadProd: deps.movLoadProd,
-    movCalc: deps.movCalc,
-    movCalcAjuste: deps.movCalcAjuste,
-    salvarMov: deps.salvarMov,
-    setFiltroNotificacoes: deps.setFiltroNotificacoes,
-    executarAcaoGerencial: deps.executarAcaoGerencial
+function getHandlerRegistry(){
+  return {
+    shell: {
+      abrirModal: deps.abrirModal,
+      fecharModal: deps.fecharModal,
+      abrirSb: deps.abrirSb,
+      fecharSb: deps.fecharSb,
+      exportCSV: deps.exportCSV,
+      exportarTudo: deps.exportarTudo
+    },
+    auth: {
+      authEntrar: deps.authEntrar,
+      criarPrimeiraFilial: deps.criarPrimeiraFilial,
+      entrar: deps.entrar,
+      sairConta: deps.sairConta,
+      voltarSetup: deps.voltarSetup,
+      selFilial: deps.selFilial
+    },
+    navigation: {
+      ir: deps.ir,
+      switchTab: deps.switchTab,
+      renderMetasNegocio: deps.renderMetasNegocio,
+      resetUxKpis: deps.resetUxKpis,
+      executarAcaoGerencial: deps.executarAcaoGerencial
+    },
+    workflow: {
+      setFlowStep: deps.setFlowStep,
+      limparFormProd: deps.limparFormProdTracked,
+      limparFormCli: deps.limparFormCliTracked,
+      limparFormPed: deps.limparFormPedTracked,
+      calcProdPreview: deps.calcProdPreview,
+      syncV: deps.syncV,
+      syncA: deps.syncA
+    },
+    dashboard: {
+      renderDash: deps.renderDash,
+      setP: deps.setP,
+      abrirSyncJogos: deps.abrirSyncJogos,
+      abrirNovoJogo: deps.abrirNovoJogo,
+      salvarJogoDashboard: deps.salvarJogoDashboardGuard,
+      removerJogoDashboard: deps.removerJogoDashboardGuard,
+      usarExemploSyncJogos: deps.usarExemploSyncJogos,
+      sincronizarJogosDashboard: deps.sincronizarJogosDashboardGuard
+    },
+    produtos: {
+      renderProdutos: deps.renderProdutos,
+      salvarProduto: deps.salvarProdutoTracked,
+      editarProd: deps.editarProd,
+      removerProd: deps.removerProdGuard,
+      refreshProdSel: deps.refreshProdSel
+    },
+    clientes: {
+      renderClientes: deps.renderClientes,
+      renderCliSegs: deps.renderCliSegs,
+      salvarCliente: deps.salvarClienteTracked,
+      editarCli: deps.editarCli,
+      removerCli: deps.removerCliGuard,
+      abrirCliDet: deps.abrirCliDet,
+      addNota: deps.addNota
+    },
+    pedidos: {
+      renderPedidos: deps.renderPedidos,
+      salvarPedido: deps.salvarPedidoTracked,
+      addItem: deps.addItem,
+      editarPed: deps.editarPed,
+      removerPed: deps.removerPedGuard,
+      verPed: deps.verPed,
+      remItem: deps.remItem,
+      renderItens: deps.renderItens
+    },
+    cotacao: {
+      renderCotForns: deps.renderCotForns,
+      renderCotTabela: deps.renderCotTabela,
+      renderCotLogs: deps.renderCotLogs,
+      cotFile: deps.cotFile,
+      cotLock: deps.cotLock,
+      salvarForn: deps.salvarForn,
+      remForn: deps.remFornGuard,
+      confirmarMapa: deps.confirmarMapa,
+      renderMapaBody: deps.renderMapaBody,
+      updPreco: deps.updPreco
+    },
+    estoque: {
+      resetMov: deps.resetMov,
+      renderEstPosicao: deps.renderEstPosicao,
+      renderEstHist: deps.renderEstHist,
+      abrirMovProd: deps.abrirMovProd,
+      excluirMov: deps.excluirMovGuard,
+      setTipo: deps.setTipo,
+      movLoadProd: deps.movLoadProd,
+      movCalc: deps.movCalc,
+      movCalcAjuste: deps.movCalcAjuste,
+      salvarMov: deps.salvarMov
+    },
+    filiais: {
+      limparFormFilial: deps.limparFormFilial,
+      salvarFilial: deps.salvarFilial,
+      editarFilial: deps.editarFilial,
+      removerFilial: deps.removerFilial,
+      trocarFilial: deps.trocarFilial
+    },
+    acessos: {
+      renderAcessosAdmin: deps.renderAcessosAdmin,
+      salvarPerfilAcesso: deps.salvarPerfilAcesso,
+      removerPerfilAcesso: deps.removerPerfilAcesso,
+      vincularUsuarioFilial: deps.vincularUsuarioFilial,
+      desvincularUsuarioFilial: deps.desvincularUsuarioFilial,
+      renderAcessosPerfis: deps.renderAcessosPerfis,
+      renderAcessosVinculos: deps.renderAcessosVinculos,
+      renderAcessosAuditoria: deps.renderAcessosAuditoria,
+      changeAcessosPage: deps.changeAcessosPage,
+      preencherPerfilAcesso: deps.preencherPerfilAcesso,
+      preencherVinculoAcesso: deps.preencherVinculoAcesso
+    },
+    campanhas: {
+      abrirNovaCampanha: deps.abrirNovaCampanhaTracked,
+      refreshCampanhasTela: deps.refreshCampanhasTela,
+      salvarCampanha: deps.salvarCampanhaTracked,
+      carregarCampanhas: deps.carregarCampanhas,
+      carregarCampanhaEnvios: deps.carregarCampanhaEnvios,
+      adotarCampanhasParaFilialAtiva: deps.adotarCampanhasParaFilialAtiva,
+      editarCampanha: deps.editarCampanha,
+      removerCampanha: deps.removerCampanhaGuard,
+      renderCampanhas: deps.renderCampanhas,
+      gerarFilaCampanha: deps.gerarFilaCampanhaTracked,
+      renderFilaWhatsApp: deps.renderFilaWhatsApp,
+      renderCampanhaEnvios: deps.renderCampanhaEnvios,
+      abrirWhatsAppEnvio: deps.abrirWhatsAppEnvio,
+      marcarEnvioEnviado: deps.marcarEnvioEnviadoGuard,
+      marcarEnvioFalhou: deps.marcarEnvioFalhouGuard
+    },
+    notificacoes: {
+      renderNotificacoes: deps.renderNotificacoes,
+      executarNotificacao: deps.executarNotificacao,
+      resolverNotificacao: deps.resolverNotificacao,
+      reabrirNotificacao: deps.reabrirNotificacao,
+      resolverTodasNotificacoes: deps.resolverTodasNotificacoesTracked,
+      setFiltroNotificacoes: deps.setFiltroNotificacoes
+    }
   };
-  const handler = handlers[name];
+}
+
+function resolveHandler(name){
+  const registry = getHandlerRegistry();
+  return Object.values(registry)
+    .map(group => group[name])
+    .find(handler => typeof handler === 'function');
+}
+
+function callByName(name, args = []){
+  const handler = resolveHandler(name);
   if(typeof handler === 'function'){
     handler(...args);
-    return;
-  }
-  if(typeof window[name] === 'function'){
-    window[name](...args);
   }
 }
 
@@ -162,24 +249,29 @@ function runExpression(expression, el, event){
     });
 }
 
+function flushPendingRenders(){
+  pendingRenderFrame = 0;
+  const names = [...pendingRenderNames];
+  pendingRenderNames.clear();
+  names.forEach(name => callByName(name));
+}
+
+function queueRender(name){
+  const target = RENDER_TARGETS[name];
+  if(target){
+    markInvalidation(target.page, target.area, `dom-bindings:${name}`);
+  }
+  pendingRenderNames.add(name);
+  if(pendingRenderFrame) return;
+  pendingRenderFrame = window.requestAnimationFrame(flushPendingRenders);
+}
+
 function callRender(name){
-  const renderers = {
-    renderDash: deps.renderDash,
-    renderProdutos: deps.renderProdutos,
-    renderClientes: deps.renderClientes,
-    renderPedidos: deps.renderPedidos,
-    renderEstPosicao: deps.renderEstPosicao,
-    renderEstHist: deps.renderEstHist,
-    renderAcessosPerfis: deps.renderAcessosPerfis,
-    renderAcessosVinculos: deps.renderAcessosVinculos,
-    renderNotificacoes: deps.renderNotificacoes
-  };
-  const handler = renderers[name];
-  if(typeof handler === 'function') handler();
+  queueRender(name);
 }
 
 function callFieldHandler(name, el, event){
-  const handlers = {
+  const fieldHandlers = {
     cotFile: () => deps.cotFile(event),
     movLoadProd: () => deps.movLoadProd(),
     movCalc: () => deps.movCalc(),
@@ -189,7 +281,7 @@ function callFieldHandler(name, el, event){
     syncA: () => deps.syncA(el.dataset.arg),
     setFiltroNotificacoes: () => deps.setFiltroNotificacoes(el.value)
   };
-  const handler = handlers[name];
+  const handler = fieldHandlers[name];
   if(typeof handler === 'function') handler();
 }
 

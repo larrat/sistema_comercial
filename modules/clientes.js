@@ -1,9 +1,25 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
+import { createScreenDom } from '../core/dom.js';
 import { abrirModal, fecharModal, toast, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
 
 let setFlowStepSafe = () => {};
+const cliDom = createScreenDom('clientes', [
+  'cli-met',
+  'cli-fil-seg',
+  'cli-busca',
+  'cli-fil-st',
+  'cli-lista',
+  'cli-segs-lista',
+  'cli-modal-titulo',
+  'cli-flow-save',
+  'cli-dl'
+]);
+const CLI_FORM_IDS = [
+  'c-nome','c-apelido','c-doc','c-tel','c-whatsapp','c-email','c-aniv',
+  'c-time','c-resp','c-seg','c-cidade','c-estado','c-obs'
+];
 
 export function initClientesModule(callbacks = {}){
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
@@ -132,34 +148,33 @@ export function renderCliMet(){
   const pr = c.filter(x => x.status === 'prospecto').length;
   const segs = [...new Set(c.map(x => x.seg).filter(Boolean))].length;
 
-  const met = document.getElementById('cli-met');
-  if(met){
-    met.innerHTML = `
-      <div class="met"><div class="ml">Total</div><div class="mv">${c.length}</div></div>
-      <div class="met"><div class="ml">Ativos</div><div class="mv">${a}</div></div>
-      <div class="met"><div class="ml">Prospectos</div><div class="mv">${pr}</div></div>
-      <div class="met"><div class="ml">Segmentos</div><div class="mv">${segs}</div></div>
-    `;
-  }
+  const cur = cliDom.get('cli-fil-seg')?.value || '';
 
-  const sel = document.getElementById('cli-fil-seg');
-  if(sel){
-    const cur = sel.value;
-    sel.innerHTML =
-      '<option value="">Todos os segmentos</option>' +
+  cliDom.html('metrics', 'cli-met', `
+    <div class="met"><div class="ml">Total</div><div class="mv">${c.length}</div></div>
+    <div class="met"><div class="ml">Ativos</div><div class="mv">${a}</div></div>
+    <div class="met"><div class="ml">Prospectos</div><div class="mv">${pr}</div></div>
+    <div class="met"><div class="ml">Segmentos</div><div class="mv">${segs}</div></div>
+  `, 'clientes:metrics');
+
+  cliDom.select(
+    'filters',
+    'cli-fil-seg',
+    '<option value="">Todos os segmentos</option>' +
       [...new Set(c.map(x => x.seg).filter(Boolean))]
         .sort()
         .map(s => `<option value="${s}">${s}</option>`)
-        .join('');
-    sel.value = cur;
-  }
+        .join(''),
+    cur,
+    'clientes:segmentos'
+  );
 }
 
 export function renderClientes(){
-  const buscaEl = document.getElementById('cli-busca');
-  const segEl = document.getElementById('cli-fil-seg');
-  const stEl = document.getElementById('cli-fil-st');
-  const el = document.getElementById('cli-lista');
+  const buscaEl = cliDom.get('cli-busca');
+  const segEl = cliDom.get('cli-fil-seg');
+  const stEl = cliDom.get('cli-fil-st');
+  const el = cliDom.get('cli-lista');
 
   if(!el) return;
 
@@ -172,6 +187,11 @@ export function renderClientes(){
     (!seg || c.seg === seg) &&
     (!st || c.status === st)
   );
+
+  if(!f.length){
+    cliDom.html('list', 'cli-lista', `<div class="empty"><div class="ico">Ã°Å¸â€˜Â¥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`, 'clientes:lista-vazia');
+    return;
+  }
 
   if(!f.length){
     el.innerHTML = `<div class="empty"><div class="ico">ðŸ‘¥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`;
@@ -194,7 +214,7 @@ export function renderClientes(){
 
   const isMobile = window.matchMedia('(max-width: 760px)').matches;
   if(isMobile){
-    el.innerHTML = f.map(c => {
+    cliDom.html('list', 'cli-lista', f.map(c => {
       const cor = avc(c.nome);
       const times = parseTimes(c.time);
       const contato = getContatoInfo(c);
@@ -236,11 +256,11 @@ export function renderClientes(){
           </div>
         </div>
       `;
-    }).join('');
+    }).join(''), 'clientes:lista-mobile');
     return;
   }
 
-  el.innerHTML = `
+  cliDom.html('list', 'cli-lista', `
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -305,15 +325,15 @@ export function renderClientes(){
         </tbody>
       </table>
     </div>
-  `;
+  `, 'clientes:lista-desktop');
 }
 
 export function renderCliSegs(){
   const segs = [...new Set(C().map(c => c.seg || 'Sem segmento'))].sort();
-  const el = document.getElementById('cli-segs-lista');
+  const el = cliDom.get('cli-segs-lista');
   if(!el) return;
 
-  el.innerHTML = segs.map(seg => {
+  cliDom.html('segments', 'cli-segs-lista', segs.map(seg => {
     const cls = C().filter(c => (c.seg || 'Sem segmento') === seg);
 
     return `
@@ -339,7 +359,7 @@ export function renderCliSegs(){
         </div>
       </div>
     `;
-  }).join('');
+  }).join(''), 'clientes:segmentos-lista');
 }
 
 export async function abrirCliDet(id){
@@ -477,9 +497,9 @@ export async function addNota(id){
 export function limparFormCli(){
   State.editIds.cli = null;
 
-  const titulo = document.getElementById('cli-modal-titulo');
+  const titulo = cliDom.get('cli-modal-titulo');
   if(titulo) titulo.textContent = 'Novo cliente';
-  const saveBtn = document.getElementById('cli-flow-save');
+  const saveBtn = cliDom.get('cli-flow-save');
   if(saveBtn) saveBtn.textContent = 'Salvar cliente';
 
   [
@@ -516,14 +536,14 @@ export function editarCli(id){
 
   State.editIds.cli = id;
 
-  const titulo = document.getElementById('cli-modal-titulo');
+  const titulo = cliDom.get('cli-modal-titulo');
   if(titulo) titulo.textContent = 'Editar cliente';
-  const saveBtn = document.getElementById('cli-flow-save');
+  const saveBtn = cliDom.get('cli-flow-save');
   if(saveBtn) saveBtn.textContent = 'Atualizar cliente';
 
-  document.getElementById('c-nome').value = c.nome || '';
-  document.getElementById('c-apelido').value = c.apelido || '';
-  document.getElementById('c-doc').value = c.doc || '';
+  cliDom.value('c-nome', c.nome || '');
+  cliDom.value('c-apelido', c.apelido || '');
+  cliDom.value('c-doc', c.doc || '');
   document.getElementById('c-tipo').value = c.tipo || 'PJ';
   document.getElementById('c-status').value = c.status || 'ativo';
   document.getElementById('c-tel').value = c.tel || '';
@@ -538,9 +558,9 @@ export function editarCli(id){
   document.getElementById('c-cidade').value = c.cidade || '';
   document.getElementById('c-estado').value = c.estado || '';
   document.getElementById('c-obs').value = c.obs || '';
-  document.getElementById('c-optin-marketing').checked = !!c.optin_marketing;
-  document.getElementById('c-optin-email').checked = !!c.optin_email;
-  document.getElementById('c-optin-sms').checked = !!c.optin_sms;
+  cliDom.checked('c-optin-marketing', !!c.optin_marketing);
+  cliDom.checked('c-optin-email', !!c.optin_email);
+  cliDom.checked('c-optin-sms', !!c.optin_sms);
 
   setFlowStepSafe('cli', 1);
 
@@ -559,15 +579,15 @@ export async function salvarCliente(){
     id: State.editIds.cli || (Date.now() + '-' + Math.random().toString(36).slice(2,8)),
     filial_id: State.FIL,
     nome,
-    apelido: document.getElementById('c-apelido').value.trim(),
-    doc: document.getElementById('c-doc').value.trim(),
+    apelido: cliDom.get('c-apelido')?.value.trim() || '',
+    doc: cliDom.get('c-doc')?.value.trim() || '',
     tipo: document.getElementById('c-tipo').value,
     status: document.getElementById('c-status').value,
     tel: document.getElementById('c-tel').value.trim(),
     whatsapp: document.getElementById('c-whatsapp').value.trim(),
     email: document.getElementById('c-email').value.trim(),
     data_aniversario: document.getElementById('c-aniv').value || null,
-    optin_marketing: !!document.getElementById('c-optin-marketing').checked,
+    optin_marketing: !!cliDom.get('c-optin-marketing')?.checked,
     optin_email: !!document.getElementById('c-optin-email').checked,
     optin_sms: !!document.getElementById('c-optin-sms').checked,
     time: parseTimes(document.getElementById('c-time').value).join(', '),
@@ -632,8 +652,8 @@ export async function removerCli(id){
 }
 
 export function refreshCliDL(){
-  const dl = document.getElementById('cli-dl');
+  const dl = cliDom.get('cli-dl');
   if(dl){
-    dl.innerHTML = C().map(c => `<option value="${c.nome}">`).join('');
+    cliDom.html('selectors', 'cli-dl', C().map(c => `<option value="${c.nome}">`).join(''), 'clientes:datalist');
   }
 }
