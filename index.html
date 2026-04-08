@@ -131,7 +131,7 @@
       <div class="ph fb">
         <div><h2>Dashboard</h2><p id="dash-desc">Este mes</p></div>
         <div class="fg2">
-          <select class="inp sel" id="dash-fil" style="font-size:12px;max-width:150px" data-change="renderDash()"></select>
+          <select class="inp sel select-w-sm input-compact" id="dash-fil" data-change="renderDash()"></select>
           <div class="pseg" id="dash-pseg">
             <button data-click="setP('semana',this)">Semana</button>
             <button class="on" data-click="setP('mes',this)">Mes</button>
@@ -158,7 +158,7 @@
           <div class="card dash-card dash-card--oportunidades">
             <div class="fb mb-10">
               <div class="ct ct-inline">Oportunidades por time</div>
-              <select class="inp sel" id="dash-opp-camp" style="font-size:12px;max-width:130px" data-change="renderDash()">
+              <select class="inp sel select-w-xs input-compact" id="dash-opp-camp" data-change="renderDash()">
                 <option value="todas">Todas</option>
                 <option value="a">Serie A</option>
                 <option value="b">Serie B</option>
@@ -190,10 +190,10 @@
         <div class="dash-grid-main">
           <div class="card"><div class="ct">Faturamento e lucro</div>
             <div class="barchart" id="dash-chart"></div>
-            <div id="dash-chart-empty" class="empty" style="display:none;padding:14px"><p>Sem pedidos entregues no periodo</p></div>
+            <div id="dash-chart-empty" class="empty dash-empty-compact" style="display:none"><p>Sem pedidos entregues no periodo</p></div>
             <div class="dash-chart-legend">
-              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#163F80;margin-right:4px"></span>Faturamento</span>
-              <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#156038;margin-right:4px"></span>Lucro</span>
+              <span><span class="dash-legend-swatch dash-legend-swatch--fat"></span>Faturamento</span>
+              <span><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span>
             </div>
           </div>
           <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
@@ -258,8 +258,8 @@
         <div class="mg" id="rel-met"></div>
         <div class="toolbar">
           <div class="toolbar-main">
-            <select class="inp sel" id="rel-ano" style="max-width:150px" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
-            <select class="inp sel" id="rel-mes" style="max-width:170px" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
+            <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
+            <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
           </div>
         </div>
         <div class="card">
@@ -310,8 +310,8 @@
       <div class="mg" id="prod-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <input class="inp" id="prod-busca" placeholder="Buscar produto..." style="max-width:200px" data-input="renderProdutos()">
-          <select class="inp sel" id="prod-cat-fil" style="max-width:160px" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
+          <input class="inp input-w-md" id="prod-busca" placeholder="Buscar produto..." data-input="renderProdutos()">
+          <select class="inp sel select-w-md" id="prod-cat-fil" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
         </div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
@@ -334,9 +334,9 @@
       <div class="tc on" id="cli-tc-lista">
         <div class="toolbar">
           <div class="toolbar-main">
-            <input class="inp" id="cli-busca" placeholder="Buscar..." style="max-width:180px" data-input="renderClientes()">
-            <select class="inp sel" id="cli-fil-seg" style="max-width:150px" data-change="renderClientes()"><option value="">Todos os segmentos</option></select>
-            <select class="inp sel" id="cli-fil-st" style="max-width:130px" data-change="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
+            <input class="inp input-w-sm" id="cli-busca" placeholder="Buscar..." data-input="renderClientes()">
+            <select class="inp sel select-w-sm" id="cli-fil-seg" data-change="renderClientes()"><option value="">Todos os segmentos</option></select>
+            <select class="inp sel select-w-xs" id="cli-fil-st" data-change="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
           </div>
           <div class="toolbar-actions">
             <button class="btn btn-sm" data-click="exportCSV('clientes')">Exportar CSV</button>
@@ -356,8 +356,8 @@
       <div class="mg" id="ped-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <input class="inp" id="ped-busca" placeholder="Cliente ou numero..." style="max-width:180px" data-input="renderPedidos()">
-          <select class="inp sel" id="ped-fil-st" style="max-width:150px" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
+          <input class="inp input-w-sm" id="ped-busca" placeholder="Cliente ou numero..." data-input="renderPedidos()">
+          <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
         </div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
@@ -462,7 +462,7 @@
 
       <div class="card">
         <div class="ct">Fila de WhatsApp manual</div>
-        <div class="toolbar" style="margin-bottom:12px">
+        <div class="toolbar toolbar-gap-sm">
           <div class="toolbar-actions">
             <button class="btn btn-sm" data-click="toggleSelecionarTodosFilaWhatsApp()">Selecionar todos</button>
             <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
@@ -475,17 +475,17 @@
 
       <div class="card">
         <div class="ct">Histórico de envios</div>
-        <div class="toolbar" style="margin-bottom:12px">
+        <div class="toolbar toolbar-gap-sm">
           <div class="toolbar-main">
-            <input class="inp" id="camp-envios-busca" placeholder="Buscar cliente ou destino..." style="max-width:240px" data-input="renderCampanhaEnvios()">
-            <select class="inp sel" id="camp-envios-fil-status" style="max-width:170px" data-change="renderCampanhaEnvios()">
+            <input class="inp input-w-lg" id="camp-envios-busca" placeholder="Buscar cliente ou destino..." data-input="renderCampanhaEnvios()">
+            <select class="inp sel select-w-md" id="camp-envios-fil-status" data-change="renderCampanhaEnvios()">
               <option value="">Todos status</option>
               <option value="manual">Manual</option>
               <option value="pendente">Pendente</option>
               <option value="enviado">Enviado</option>
               <option value="falhou">Falhou</option>
             </select>
-            <select class="inp sel" id="camp-envios-fil-canal" style="max-width:180px" data-change="renderCampanhaEnvios()">
+            <select class="inp sel select-w-md" id="camp-envios-fil-canal" data-change="renderCampanhaEnvios()">
               <option value="">Todos canais</option>
               <option value="whatsapp_manual">WhatsApp manual</option>
               <option value="email">E-mail</option>
@@ -860,8 +860,8 @@
           <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
         </div>
         <div id="ped-itens"></div>
-        <div id="ped-total" style="display:none" class="panel"><div class="fb"><span style="color:var(--tx2)">Total do pedido</span><span style="font-size:18px;font-weight:600" id="ped-total-val">-</span></div></div>
-        <div class="fg" style="margin-top:10px"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
+        <div id="ped-total" style="display:none" class="panel ped-total-panel"><div class="fb"><span class="ped-total-label">Total do pedido</span><span class="ped-total-value" id="ped-total-val">-</span></div></div>
+        <div class="fg form-gap-top"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
       </div>
       <div class="modal-shell-foot">
         <div class="modal-actions">
