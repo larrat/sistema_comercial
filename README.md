@@ -26,12 +26,21 @@ Aplicacao SPA browser-first com runtime modular no front, Edge Functions no Supa
 ## Comandos uteis
 
 ```powershell
+npm run typecheck
+npm run typecheck:strict
 npm run test:e2e:login
 npm run test:e2e:setup-filial
 npm run test:e2e:bootstrap-filial
 npm run test:e2e:onda-b
 npm run test:e2e:fase-2
 ```
+
+## TypeScript gradual
+
+- base permissiva: `tsconfig.json`
+- trilha estrita: `tsconfig.strict.json`
+- guia de adocao: `docs/arquitetura/TYPESCRIPT_GRADUAL.md`
+- escopo atual da checagem: `src/` (front)
 
 ## Observacoes
 
