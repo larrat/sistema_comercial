@@ -4,6 +4,7 @@ import { markInvalidation, markRender } from '../shared/render-metrics.js';
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
+const MOBILE_MENU_FAB_IDLE_MS = 1600;
 
 let deps = {
   hasRole: () => true,
@@ -343,6 +344,7 @@ function initMobileMenuFab(){
   let startY = 0;
   let originLeft = 0;
   let originTop = 0;
+  let idleTimer = 0;
 
   function isMobileViewport(){
     return window.matchMedia('(max-width: 760px)').matches;
@@ -370,8 +372,34 @@ function initMobileMenuFab(){
     }
   }
 
+  function clearIdleTimer(){
+    if(idleTimer){
+      window.clearTimeout(idleTimer);
+      idleTimer = 0;
+    }
+  }
+
+  function scheduleIdleState(){
+    clearIdleTimer();
+    fab.classList.remove('is-idle');
+    if(!isMobileViewport() || dragging) return;
+    idleTimer = window.setTimeout(() => {
+      fab.classList.add('is-idle');
+    }, MOBILE_MENU_FAB_IDLE_MS);
+  }
+
+  function snapToEdge(){
+    const rect = fab.getBoundingClientRect();
+    const snappedLeft = rect.left + rect.width / 2 < window.innerWidth / 2
+      ? 8
+      : window.innerWidth - rect.width - 8;
+    applyPosition(snappedLeft, rect.top);
+  }
+
   function applyStoredPosition(){
     if(!isMobileViewport()){
+      clearIdleTimer();
+      fab.classList.remove('is-idle');
       fab.style.left = '';
       fab.style.top = '';
       fab.style.right = '';
@@ -394,6 +422,7 @@ function initMobileMenuFab(){
     fab.style.top = '';
     fab.style.right = `${defaultOffset.right}px`;
     fab.style.bottom = `${defaultOffset.bottom}px`;
+    scheduleIdleState();
   }
 
   fab.addEventListener('click', (event) => {
@@ -408,6 +437,8 @@ function initMobileMenuFab(){
 
   fab.addEventListener('pointerdown', (event) => {
     if(!isMobileViewport()) return;
+    clearIdleTimer();
+    fab.classList.remove('is-idle');
     pointerId = event.pointerId;
     dragging = true;
     moved = false;
@@ -439,6 +470,10 @@ function initMobileMenuFab(){
     }
     fab.classList.remove('is-dragging');
     pointerId = null;
+    if(moved){
+      snapToEdge();
+    }
+    scheduleIdleState();
     window.setTimeout(() => {
       moved = false;
     }, 0);
