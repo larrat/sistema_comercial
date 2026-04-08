@@ -4,6 +4,9 @@
 
 begin;
 
+drop function if exists public.admin_access_users_index();
+drop function if exists public.admin_lookup_user_by_email(text);
+
 create or replace function public.admin_access_users_index()
 returns table (
   user_id uuid,
