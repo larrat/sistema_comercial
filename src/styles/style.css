@@ -4856,3 +4856,145 @@ textarea.inp:focus{
     text-align:left;
   }
 }
+
+/* =========================================================
+   DASHBOARD DENSITY REFINEMENT
+   ========================================================= */
+#pg-dashboard #dash-met{
+  gap:14px;
+  align-items:stretch;
+}
+
+#pg-dashboard #dash-met .met{
+  min-height:108px;
+  padding:16px 18px;
+  border-radius:18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+#pg-dashboard #dash-met .ml{
+  min-height:28px;
+  display:flex;
+  align-items:flex-start;
+  letter-spacing:.09em;
+}
+
+#pg-dashboard #dash-met .mv{
+  font-size:20px;
+  line-height:1.1;
+}
+
+#pg-dashboard #dash-met .ms{
+  min-height:18px;
+  font-size:12px;
+}
+
+#pg-dashboard .barchart{
+  height:82px;
+  padding-top:0;
+  margin-top:4px;
+}
+
+#pg-dashboard .bc-col{
+  gap:5px;
+}
+
+#pg-dashboard .bc-val{
+  font-size:11px;
+  min-height:16px;
+}
+
+#pg-dashboard .bc-lbl{
+  font-size:11px;
+  line-height:1.2;
+}
+
+#pg-dashboard .bc-bar{
+  border-radius:999px;
+  min-height:4px;
+}
+
+#pg-dashboard .dash-chart-legend{
+  gap:16px;
+  padding-top:10px;
+}
+
+#pg-dashboard #dash-status{
+  display:grid;
+  gap:8px;
+}
+
+#pg-dashboard #dash-status .rrow{
+  display:grid;
+  grid-template-columns:minmax(104px,auto) minmax(120px,1fr) 28px;
+  align-items:center;
+  gap:12px;
+  padding:8px 0;
+}
+
+#pg-dashboard #dash-status .bdg{
+  min-width:0;
+  justify-content:flex-start;
+}
+
+#pg-dashboard #dash-status .rbar{
+  height:6px;
+  border-radius:999px;
+  background:#DDE6EF;
+}
+
+#pg-dashboard #dash-status .rbar-f{
+  border-radius:999px;
+  background:linear-gradient(90deg,#98B7FF 0%,#C7D8FF 100%) !important;
+}
+
+#pg-dashboard #dash-status .rval{
+  min-width:28px;
+  padding-left:0;
+  text-align:right;
+}
+
+#pg-dashboard #dash-tp .rrow,
+#pg-dashboard #dash-forn .rrow{
+  display:grid;
+  grid-template-columns:18px minmax(120px,1fr) minmax(120px,1fr) auto;
+  align-items:center;
+  gap:12px;
+}
+
+#pg-dashboard #dash-tp .rbar,
+#pg-dashboard #dash-forn .rbar{
+  height:6px;
+  border-radius:999px;
+  background:#E2EAF3;
+}
+
+#pg-dashboard #dash-tp .rbar-f,
+#pg-dashboard #dash-forn .rbar-f{
+  border-radius:999px;
+}
+
+@media(max-width:960px){
+  #pg-dashboard #dash-met{
+    gap:12px;
+  }
+
+  #pg-dashboard #dash-met .met{
+    min-height:100px;
+  }
+
+  #pg-dashboard #dash-status .rrow,
+  #pg-dashboard #dash-tp .rrow,
+  #pg-dashboard #dash-forn .rrow{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  #pg-dashboard #dash-status .rval,
+  #pg-dashboard #dash-tp .rval,
+  #pg-dashboard #dash-forn .rval{
+    text-align:left;
+  }
+}
