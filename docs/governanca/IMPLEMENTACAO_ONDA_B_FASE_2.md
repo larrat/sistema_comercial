@@ -13,6 +13,7 @@ Objetivo: colocar em pé a base real da automacao UI para:
 - base minima de Playwright em [package.json](/e:/Programas/sistema_comercial/package.json)
 - configuracao em [playwright.config.js](/e:/Programas/sistema_comercial/playwright.config.js)
 - base compartilhada em [ui-core.helpers.js](/e:/Programas/sistema_comercial/tests/e2e/support/ui-core.helpers.js)
+- runner unificado em [run-fase-2-ui-core.ps1](/e:/Programas/sistema_comercial/scripts/smoke/run-fase-2-ui-core.ps1)
 - specs separados em:
   - [login.spec.js](/e:/Programas/sistema_comercial/tests/e2e/login.spec.js)
   - [setup-filial.spec.js](/e:/Programas/sistema_comercial/tests/e2e/setup-filial.spec.js)
@@ -55,6 +56,12 @@ $env:E2E_LOGIN_EMAIL="usuario@dominio.com"
 $env:E2E_LOGIN_PASSWORD="senha"
 $env:E2E_SUPABASE_URL="https://SEU-PROJETO.supabase.co"
 $env:E2E_SUPABASE_KEY="SUA_PUBLISHABLE_KEY"
+npm run test:e2e:onda-b
+```
+
+Ou, se quiser rodar o agregador simples do Playwright:
+
+```powershell
 npm run test:e2e:ui-core
 ```
 
@@ -76,4 +83,4 @@ npm run test:e2e:bootstrap-filial
 
 1. executar os specs em uma maquina com Node
 2. ajustar o ambiente base (`E2E_BASE_URL`)
-3. se passar, decidir se a suite continua separada ou ganha um agregador serial
+3. se passar, consolidar evidencias da Onda B no checklist da Fase 2

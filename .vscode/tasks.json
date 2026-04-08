@@ -1,0 +1,108 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "E2E: Install Playwright Chromium",
+      "type": "shell",
+      "command": "npx.cmd",
+      "args": [
+        "playwright",
+        "install",
+        "chromium"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "E2E: Login",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": [
+        "run",
+        "test:e2e:login"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "E2E: Setup Filial",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": [
+        "run",
+        "test:e2e:setup-filial"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "E2E: Bootstrap Filial",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": [
+        "run",
+        "test:e2e:bootstrap-filial"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "E2E: Onda B",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": [
+        "run",
+        "test:e2e:onda-b"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "E2E: Fase 2",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": [
+        "run",
+        "test:e2e:fase-2"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

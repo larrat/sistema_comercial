@@ -38,6 +38,7 @@ Objetivo: estabilizar contratos, testes minimos, persistencia explicita e autori
 - [ ] automatizar smoke de campanhas
 - [ ] automatizar smoke de acessos
 - [ ] registrar comando unico ou sequencia oficial de execucao
+- [ ] validar runner unico da Fase 2 cobrindo Onda A e Onda B
 
 ### 3. Persistencia e falha explicita
 - [ ] mapear pontos que ainda fazem fallback controlado no frontend
@@ -80,10 +81,16 @@ Objetivo: estabilizar contratos, testes minimos, persistencia explicita e autori
 - `docs/governanca/ROTEIRO_AUTOMACAO_INCREMENTAL_FASE_2.md`
 - `docs/governanca/EXECUCAO_BACKEND_SUITE_FASE_2.md`
 - `docs/governanca/EXECUCAO_UI_CORE_FASE_2.md`
+- `docs/governanca/EXECUCAO_SUITE_COMPLETA_FASE_2.md`
 - `docs/governanca/IMPLEMENTACAO_ONDA_B_FASE_2.md`
+- `scripts/smoke/run-fase-2-backend-suite.ps1`
+- `scripts/smoke/run-fase-2-ui-core.ps1`
+- `scripts/smoke/run-fase-2-suite.ps1`
 - `package.json`
 - `playwright.config.js`
-- `tests/e2e/ui-core.spec.js`
+- `tests/e2e/login.spec.js`
+- `tests/e2e/setup-filial.spec.js`
+- `tests/e2e/bootstrap-filial.spec.js`
 
 ## Criterio de saida da Fase 2
 - contratos minimos da camada `SB.*` aplicados nos fluxos criticos

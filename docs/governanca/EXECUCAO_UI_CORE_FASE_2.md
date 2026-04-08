@@ -159,9 +159,16 @@ Garantir que o bootstrap da filial conclui sem deixar o app em estado inconsiste
 
 ## Entregavel esperado depois da implementacao
 
-- um spec UI cobrindo os 3 fluxos em sequencia
+- 3 specs UI separados
+- 1 runner operacional executando os 3 fluxos em sequencia
 - evidencias de execucao
 - integracao desse spec na smoke suite minima da Fase 2
+
+## Comando operacional recomendado
+
+```powershell
+npm run test:e2e:onda-b
+```
 
 ## Referencias
 

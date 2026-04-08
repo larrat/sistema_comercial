@@ -5,6 +5,8 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:ui-core": "playwright test tests/e2e/login.spec.js tests/e2e/setup-filial.spec.js tests/e2e/bootstrap-filial.spec.js",
+    "test:e2e:onda-b": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke/run-fase-2-ui-core.ps1",
+    "test:e2e:fase-2": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke/run-fase-2-suite.ps1",
     "test:e2e:login": "playwright test tests/e2e/login.spec.js",
     "test:e2e:setup-filial": "playwright test tests/e2e/setup-filial.spec.js",
     "test:e2e:bootstrap-filial": "playwright test tests/e2e/bootstrap-filial.spec.js"
