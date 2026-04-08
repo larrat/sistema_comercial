@@ -125,15 +125,17 @@ export async function carregarCampanhas() {
     erro: null
   };
 
-  try {
-    const campanhas = await SB.getCampanhas(State.FIL);
+  const campanhasResult = await SB.toResult(() => SB.getCampanhas(State.FIL));
+  if (campanhasResult.ok) {
+    const campanhas = campanhasResult.data;
     if (!D.campanhas) D.campanhas = {};
     D.campanhas[State.FIL] = campanhas || [];
     campDiag.carregadasFilial = D.campanhas[State.FIL].length;
 
     if (!D.campanhas[State.FIL].length) {
-      try {
-        const all = await SB.getCampanhasAll();
+      const allResult = await SB.toResult(() => SB.getCampanhasAll());
+      if (allResult.ok) {
+        const all = allResult.data;
         const sameFilial = (all || []).filter(c => String(c.filial_id || '') === String(State.FIL || ''));
         const outrasFiliais = (all || []).filter(c => String(c.filial_id || '') !== String(State.FIL || ''));
 
@@ -148,36 +150,36 @@ export async function carregarCampanhas() {
         } else if ((all || []).length) {
           campDiag.origem = 'api-sem-filial';
         }
-      } catch (ef) {
+      } else {
         campDiag.origem = 'api-filial';
-        campDiag.erro = String(ef?.message || ef || '');
+        campDiag.erro = String(allResult.error?.message || allResult.error || '');
       }
     }
 
     renderCampDiag();
     return D.campanhas[State.FIL];
-  } catch (e) {
-    console.error('Falha ao carregar campanhas', e);
-    toast('Falha ao carregar campanhas do banco. Exibindo dados locais.');
-    campDiag.origem = 'cache';
-    campDiag.erro = String(e?.message || e || '');
-    campDiag.carregadasFilial = getCampanhasCache().length;
-    renderCampDiag();
-    return getCampanhasCache();
   }
+
+  console.error('Falha ao carregar campanhas', campanhasResult.error);
+  toast('Falha ao carregar campanhas do banco. Exibindo dados locais.');
+  campDiag.origem = 'cache';
+  campDiag.erro = String(campanhasResult.error?.message || campanhasResult.error || '');
+  campDiag.carregadasFilial = getCampanhasCache().length;
+  renderCampDiag();
+  return getCampanhasCache();
 }
 
 export async function carregarCampanhaEnvios() {
-  try {
-    const envios = await SB.getCampanhaEnvios(State.FIL);
+  const enviosResult = await SB.toResult(() => SB.getCampanhaEnvios(State.FIL));
+  if (enviosResult.ok) {
+    const envios = enviosResult.data;
     if (!D.campanhaEnvios) D.campanhaEnvios = {};
     D.campanhaEnvios[State.FIL] = envios || [];
     return D.campanhaEnvios[State.FIL];
-  } catch (e) {
-    console.error('Falha ao carregar envios de campanhas', e);
-    toast('Falha ao carregar envios do banco. Exibindo dados locais.');
-    return getEnviosCache();
   }
+  console.error('Falha ao carregar envios de campanhas', enviosResult.error);
+  toast('Falha ao carregar envios do banco. Exibindo dados locais.');
+  return getEnviosCache();
 }
 
 export async function refreshCampanhasTela() {
@@ -220,11 +222,10 @@ export async function adotarCampanhasParaFilialAtiva() {
       filial_id: State.FIL
     };
 
-    try {
-      await SB.upsertCampanha(nova);
-    } catch (e) {
+    const persistResult = await SB.toResult(() => SB.upsertCampanha(nova));
+    if (!persistResult.ok) {
       falhasPersistencia++;
-      console.error('Falha ao persistir campanha importada', nova, e);
+      console.error('Falha ao persistir campanha importada', nova, persistResult.error);
     }
 
     atuais.unshift(nova);
@@ -323,11 +324,10 @@ export async function salvarCampanha() {
     ativo
   };
 
-  try {
-    await SB.upsertCampanha(item);
-  } catch (e) {
-    console.error('Erro ao salvar campanha no banco', e);
-    notify(MSG.campanhas.saveFailed(e?.message), SEVERITY.ERROR);
+  const saveResult = await SB.toResult(() => SB.upsertCampanha(item));
+  if (!saveResult.ok) {
+    console.error('Erro ao salvar campanha no banco', saveResult.error);
+    notify(MSG.campanhas.saveFailed(saveResult.error?.message), SEVERITY.ERROR);
     return;
   }
 
@@ -345,10 +345,9 @@ export async function salvarCampanha() {
 export async function removerCampanha(id) {
   if (!confirm('Remover campanha?')) return;
 
-  try {
-    await SB.deleteCampanha(id);
-  } catch (e) {
-    console.error('Erro ao remover campanha no banco', e);
+  const deleteResult = await SB.toResult(() => SB.deleteCampanha(id));
+  if (!deleteResult.ok) {
+    console.error('Erro ao remover campanha no banco', deleteResult.error);
     notify('Erro: não foi possível remover no banco. Ação: tente novamente.', SEVERITY.ERROR);
     return;
   }
@@ -505,18 +504,18 @@ export async function gerarFilaCampanha(campanhaId) {
     return;
   }
 
-  let clientes = [];
-  try {
-    clientes = await SB.getClientesElegiveisCampanhaAniversario(State.FIL, campanha, new Date());
-  } catch (e) {
+  const clientesResult = await SB.toResult(() => SB.getClientesElegiveisCampanhaAniversario(State.FIL, campanha, new Date()));
+  let clientes = clientesResult.ok ? (clientesResult.data || []) : [];
+  if (!clientesResult.ok) {
     setBotaoGerarFilaLoading(campanhaId, false);
-    notify(MSG.campanhas.queueFetchFailed(e?.message), SEVERITY.ERROR);
+    notify(MSG.campanhas.queueFetchFailed(clientesResult.error?.message), SEVERITY.ERROR);
     return;
   }
 
   if (!clientes.length) {
-    try{
-      const todos = await SB.getClientes(State.FIL);
+    const todosResult = await SB.toResult(() => SB.getClientes(State.FIL));
+    if(todosResult.ok){
+      const todos = todosResult.data;
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       const limite = new Date(hoje);
@@ -541,7 +540,7 @@ export async function gerarFilaCampanha(campanhaId) {
         ),
         SEVERITY.INFO
       );
-    }catch{
+    }else{
       notify(MSG.campanhas.noEligible(), SEVERITY.INFO);
     }
     setBotaoGerarFilaLoading(campanhaId, false);
@@ -564,19 +563,18 @@ export async function gerarFilaCampanha(campanhaId) {
       continue;
     }
 
-    let existe = false;
-    try{
-      existe = await SB.existeCampanhaEnvioNoDia({
+    const existeResult = await SB.toResult(() => SB.existeCampanhaEnvioNoDia({
         campanha_id: campanha.id,
         cliente_id: cliente.id,
         canal: campanha.canal,
         data_ref: dataRef
-      });
-    }catch(e){
-      console.error('Erro ao verificar duplicidade de envio', { cliente, campanha }, e);
+      }));
+    if(!existeResult.ok){
+      console.error('Erro ao verificar duplicidade de envio', { cliente, campanha }, existeResult.error);
       falhas++;
       continue;
     }
+    const existe = !!existeResult.data;
 
     if (existe) {
       ignorados++;
@@ -601,12 +599,12 @@ export async function gerarFilaCampanha(campanhaId) {
       data_ref: dataRef
     };
 
-    try {
-      await SB.insertCampanhaEnvio(envio);
+    const envioResult = await SB.toResult(() => SB.insertCampanhaEnvio(envio));
+    if (envioResult.ok) {
       getEnviosCache().unshift(envio);
       criados++;
-    } catch (e) {
-      console.error('Erro ao criar envio', envio, e);
+    } else {
+      console.error('Erro ao criar envio', envio, envioResult.error);
       falhas++;
       ignorados++;
     }
@@ -807,10 +805,9 @@ export async function marcarEnvioEnviado(envioId) {
     enviado_em: new Date().toISOString()
   };
 
-  try {
-    await SB.updateCampanhaEnvio(payload);
-  } catch (e) {
-    notify(MSG.campanhas.envioUpdateFailed(e?.message), SEVERITY.ERROR);
+  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
+  if (!updateResult.ok) {
+    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
     return;
   }
 
@@ -835,10 +832,9 @@ export async function marcarEnvioFalhou(envioId) {
     erro: motivo
   };
 
-  try {
-    await SB.updateCampanhaEnvio(payload);
-  } catch (e) {
-    notify(MSG.campanhas.envioUpdateFailed(e?.message), SEVERITY.ERROR);
+  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
+  if (!updateResult.ok) {
+    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
     return;
   }
 
