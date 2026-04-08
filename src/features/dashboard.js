@@ -349,20 +349,20 @@ export function setP(p, btn){
 export function renderDashFilSel(){
   const s = dashDom.get('dash-fil');
   if(!s) return;
-
-  const cur = s.value;
+  const filialAtiva = (D.filiais || []).find(f => f.id === State.FIL);
+  const label = filialAtiva?.nome || 'Filial ativa';
   dashDom.select(
     'filters',
     'dash-fil',
-    '<option value="todas">Todas as filiais</option>' +
-      (D.filiais || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join(''),
-    cur || 'todas',
+    `<option value="${State.FIL || ''}">${label}</option>`,
+    State.FIL || '',
     'dashboard:filiais'
   );
+  s.disabled = true;
 }
 
 export function renderDash(){
-  const fsel = dashDom.get('dash-fil')?.value || 'todas';
+  const fsel = State.FIL || dashDom.get('dash-fil')?.value || '';
   const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';
   const range = getRange();
 
@@ -373,16 +373,13 @@ export function renderDash(){
     tudo:'Todos os periodos'
   };
 
-  const fLabel =
-    fsel === 'todas'
-      ? 'Consolidado'
-      : (D.filiais || []).find(f => f.id === fsel)?.nome || '';
+  const fLabel = (D.filiais || []).find(f => f.id === fsel)?.nome || 'Filial ativa';
 
   dashDom.text('header', 'dash-desc', `${fLabel} - ${pLabels[State.dashP]}`, 'dashboard:descricao');
 
   renderDashJogos(fsel);
 
-  const filIds = fsel === 'todas' ? (D.filiais || []).map(f => f.id) : [fsel];
+  const filIds = fsel ? [fsel] : [];
 
   const allPeds = filIds.flatMap(fid =>
     (D.pedidos?.[fid] || []).map(p => ({ ...p, _fid: fid }))

@@ -3474,19 +3474,21 @@ textarea.inp:focus{
 
   .ni{
     position:relative;
+    display:flex;
+    align-items:center;
     justify-content:center;
     padding:10px 0;
     font-size:0;
   }
 
   .ni .ico{
-    margin:0;
+    margin:0 auto;
   }
 
   .ni .nb{
     position:absolute;
-    right:8px;
-    top:8px;
+    right:6px;
+    top:6px;
   }
 
   .ni::after{
@@ -4730,5 +4732,127 @@ textarea.inp:focus{
   #pg-dashboard .dash-card,
   .app-topbar{
     transition:none !important;
+  }
+}
+
+/* =========================================================
+   DASHBOARD CLEANUP
+   ========================================================= */
+#pg-dashboard .dash-section{
+  padding:0;
+  border:none;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+
+#pg-dashboard .dash-section-head{
+  margin-bottom:14px;
+  padding-inline:2px;
+}
+
+#pg-dashboard .dash-section-head p{
+  max-width:320px;
+  padding-left:16px;
+  text-align:right;
+}
+
+#pg-dashboard .dash-grid-cards{
+  gap:16px;
+}
+
+#pg-dashboard .dash-card{
+  padding:18px 20px;
+  border-radius:22px;
+}
+
+#pg-dashboard .dash-card .ct,
+#pg-dashboard .dash-card .ml,
+#pg-dashboard .dash-card .ms,
+#pg-dashboard .dash-card .rnum,
+#pg-dashboard .dash-card .rval,
+#pg-dashboard .dash-card .empty p{
+  line-height:1.4;
+}
+
+#pg-dashboard .dash-card > *{
+  min-width:0;
+}
+
+#pg-dashboard .dash-card .ct{
+  padding-right:4px;
+}
+
+#pg-dashboard .rrow{
+  min-width:0;
+}
+
+#pg-dashboard .rrow > div,
+#pg-dashboard .rrow > span{
+  min-width:0;
+}
+
+#pg-dashboard .rnum{
+  min-width:18px;
+  text-align:center;
+}
+
+#pg-dashboard .rval{
+  min-width:78px;
+  padding-left:10px;
+}
+
+#pg-dashboard #dash-status .rrow,
+#pg-dashboard #dash-tp .rrow,
+#pg-dashboard #dash-forn .rrow,
+#pg-dashboard #dash-jogos .rrow,
+#pg-dashboard #dash-oportunidades .dash-op-item{
+  align-items:center;
+}
+
+#pg-dashboard #dash-status .bdg,
+#pg-dashboard #dash-oportunidades .bdg{
+  justify-content:center;
+  text-align:center;
+}
+
+#pg-dashboard #dash-jogos .ib{
+  min-width:38px;
+  padding-inline:10px;
+  justify-content:center;
+}
+
+#pg-dashboard .empty{
+  padding:14px 12px !important;
+  border-style:dashed;
+  border-radius:14px;
+  background:transparent;
+  box-shadow:none;
+}
+
+#pg-dashboard #dash-ea .empty,
+#pg-dashboard #dash-forn .empty,
+#pg-dashboard #dash-oportunidades .empty,
+#pg-dashboard #dash-jogos .empty{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:74px;
+}
+
+#pg-dashboard #dash-alerts .alert{
+  overflow-wrap:anywhere;
+}
+
+@media(max-width:960px){
+  #pg-dashboard .dash-section-head{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  #pg-dashboard .dash-section-head p{
+    max-width:none;
+    padding-left:0;
+    text-align:left;
   }
 }
