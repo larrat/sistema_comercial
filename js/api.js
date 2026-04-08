@@ -38,10 +38,13 @@ const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
 
 function ensureSupabaseConfig() {
   if (SB_URL && SB_KEY) return;
-  throw new Error(
-    'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app.'
-    + ' Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.'
-  );
+  throw createSbError({
+    message: 'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app. Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.',
+    code: 'SB_CONFIG_MISSING',
+    source: 'config',
+    operation: 'bootstrap',
+    retryable: false
+  });
 }
 
 function delay(ms) {
@@ -52,6 +55,103 @@ function shouldRetry(status, err) {
   if (err?.name === 'AbortError') return true;
   if (status == null) return true;
   return status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
+}
+
+function createSbError({
+  message,
+  status = null,
+  code = 'SB_UNKNOWN',
+  source = 'api',
+  operation = 'unknown',
+  resource = null,
+  details = null,
+  retryable = false,
+  cause = null
+} = {}) {
+  const err = new Error(message || 'Falha inesperada na camada SB.');
+  err.name = 'SbApiError';
+  err.status = status;
+  err.code = code;
+  err.source = source;
+  err.operation = operation;
+  err.resource = resource;
+  err.details = details;
+  err.retryable = retryable;
+  if (cause) err.cause = cause;
+  return err;
+}
+
+function normalizeSbError(err, fallback = {}) {
+  if (err?.name === 'SbApiError') return err;
+  return createSbError({
+    message: err?.message || fallback.message || 'Falha inesperada na camada SB.',
+    status: err?.status ?? fallback.status ?? null,
+    code: err?.code || fallback.code || 'SB_UNHANDLED',
+    source: err?.source || fallback.source || 'api',
+    operation: err?.operation || fallback.operation || 'unknown',
+    resource: err?.resource || fallback.resource || null,
+    details: err?.details || fallback.details || null,
+    retryable: typeof err?.retryable === 'boolean' ? err.retryable : !!fallback.retryable,
+    cause: err
+  });
+}
+
+async function readResponseData(res) {
+  const txt = await res.text().catch(() => '');
+  if (!txt) return null;
+  try {
+    return JSON.parse(txt);
+  } catch {
+    return txt;
+  }
+}
+
+function buildSupabaseHttpError(status, resource, operation, details) {
+  if (status === 401 || status === 403) {
+    return createSbError({
+      message: `Acesso negado ao recurso ${resource} (${status}). Verifique sessao, papel e politicas RLS.`,
+      status,
+      code: 'SB_AUTH_FORBIDDEN',
+      source: 'supabase',
+      operation,
+      resource,
+      details,
+      retryable: false
+    });
+  }
+
+  if (status === 404) {
+    return createSbError({
+      message: `Recurso nao encontrado: ${resource}. Verifique schema e migrations aplicadas.`,
+      status,
+      code: 'SB_RESOURCE_NOT_FOUND',
+      source: 'supabase',
+      operation,
+      resource,
+      details,
+      retryable: false
+    });
+  }
+
+  return createSbError({
+    message: `Falha HTTP ${status} na operacao ${operation} de ${resource}.`,
+    status,
+    code: 'SB_HTTP_ERROR',
+    source: 'supabase',
+    operation,
+    resource,
+    details,
+    retryable: shouldRetry(status)
+  });
+}
+
+async function toSbResult(promiseOrFactory) {
+  try {
+    const data = await (typeof promiseOrFactory === 'function' ? promiseOrFactory() : promiseOrFactory);
+    return { ok: true, data, error: null };
+  } catch (err) {
+    return { ok: false, data: null, error: normalizeSbError(err) };
+  }
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = REQ_TIMEOUT_MS) {
@@ -86,8 +186,27 @@ async function resilientFetch(url, options = {}) {
       await delay(RETRY_BASE_MS * (attempt + 1));
     }
   }
-  if (lastErr) throw lastErr;
-  throw new Error('Falha de rede persistente' + (lastStatus ? ` (HTTP ${lastStatus})` : ''));
+  if (lastErr) {
+    throw createSbError({
+      message: 'Falha de rede persistente.',
+      status: lastErr?.status ?? null,
+      code: 'SB_NETWORK_ERROR',
+      source: 'network',
+      operation: 'fetch',
+      details: { url, method: options?.method || 'GET' },
+      retryable: true,
+      cause: lastErr
+    });
+  }
+  throw createSbError({
+    message: 'Falha de rede persistente' + (lastStatus ? ` (HTTP ${lastStatus})` : ''),
+    status: lastStatus,
+    code: 'SB_NETWORK_ERROR',
+    source: 'network',
+    operation: 'fetch',
+    details: { url, method: options?.method || 'GET' },
+    retryable: true
+  });
 }
 
 function readAuthSession() {
@@ -158,6 +277,7 @@ async function getAuthBearerForRequest() {
 
 async function sbReq(table, method = 'GET', body = null, params = '') {
   ensureSupabaseConfig();
+  const operation = `${method} ${table}`;
   const prefer =
     method === 'POST'
       ? (params.includes('on_conflict')
@@ -167,34 +287,45 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
 
   const authBearer = await getAuthBearerForRequest();
 
-  const res = await resilientFetch(`${SB_URL}/rest/v1/${table}${params}`, {
-    method,
-    headers: {
-      apikey: SB_KEY,
-      Authorization: authBearer,
-      'Content-Type': 'application/json',
-      ...(prefer ? { Prefer: prefer } : {})
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-
-  if (!res.ok) {
-    const e = await res.text();
-    console.error('Supabase erro', res.status, table, params, e);
-
-    if (res.status === 401 || res.status === 403) {
-      throw new Error('Chave inválida (' + res.status + '). Verifique SB_KEY.');
-    }
-
-    if (res.status === 404) {
-      throw new Error('Tabela não encontrada: ' + table + '. Execute o SQL de criação.');
-    }
-
-    throw new Error(res.status + ': ' + e);
+  let res;
+  try {
+    res = await resilientFetch(`${SB_URL}/rest/v1/${table}${params}`, {
+      method,
+      headers: {
+        apikey: SB_KEY,
+        Authorization: authBearer,
+        'Content-Type': 'application/json',
+        ...(prefer ? { Prefer: prefer } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  } catch (err) {
+    throw normalizeSbError(err, {
+      code: 'SB_REQUEST_FAILED',
+      source: 'supabase',
+      operation,
+      resource: table,
+      details: { method, params }
+    });
   }
 
-  const t = await res.text();
-  return t ? JSON.parse(t) : null;
+  const data = await readResponseData(res);
+  if (!res.ok) {
+    console.error('Supabase erro', {
+      status: res.status,
+      table,
+      params,
+      method,
+      data
+    });
+    throw buildSupabaseHttpError(res.status, table, operation, {
+      method,
+      params,
+      response: data
+    });
+  }
+
+  return data;
 }
 
 function fmtDateYYYYMMDD(date) {

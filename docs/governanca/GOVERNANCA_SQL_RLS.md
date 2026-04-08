@@ -15,6 +15,11 @@ Escopo: uso seguro dos scripts SQL de RLS e RBAC.
 4. `sql/04_rbac_v2_admin_only.sql`
 5. `sql/05_rbac_auditoria_acessos.sql`
 
+## Comportamento esperado do caminho oficial
+- `sql/02_rls_producao.sql` deve limpar politicas legadas `app_all_*` abertas para `anon`
+- se o ambiente ja recebeu `01b` em algum momento, reaplicar o caminho oficial e obrigatorio
+- a validacao da Fase 1 so passa com `politicas_anon_abertas = 0`
+
 ## Uso permitido do 01b
 - somente em ambiente `dev` ou `local`
 - somente com sessao explicitamente marcada

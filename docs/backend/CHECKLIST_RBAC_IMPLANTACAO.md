@@ -24,6 +24,7 @@ Data: 2026-04-07
 
 - [ ] Rodar `04_rbac_v2_admin_only.sql` no Supabase de produção.
 - [ ] Rodar `04b_rbac_v2_validacao.sql` e validar os resultados esperados (zero usuários sem perfil, zero vínculos inválidos).
+- [ ] Rodar `05b_validacao_fase_1_rls_rbac.sql` e anexar evidências da Fase 1.
 - [ ] Validar acesso com 3 contas reais: `admin`, `gerente`, `operador`.
 
 ## Próximos passos recomendados

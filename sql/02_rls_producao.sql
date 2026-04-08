@@ -64,6 +64,22 @@ drop policy if exists p_filiais_delete on public.filiais;
 drop policy if exists p_user_filiais_select on public.user_filiais;
 drop policy if exists p_user_filiais_write on public.user_filiais;
 
+-- Limpeza de políticas abertas legadas do caminho anon/dev (01b)
+drop policy if exists app_all_filiais on public.filiais;
+drop policy if exists app_all_produtos on public.produtos;
+drop policy if exists app_all_clientes on public.clientes;
+drop policy if exists app_all_pedidos on public.pedidos;
+drop policy if exists app_all_fornecedores on public.fornecedores;
+drop policy if exists app_all_cotacao_precos on public.cotacao_precos;
+drop policy if exists app_all_cotacao_historico on public.cotacao_historico;
+drop policy if exists app_all_cotacao_layouts on public.cotacao_layouts;
+drop policy if exists app_all_cotacao_config on public.cotacao_config;
+drop policy if exists app_all_movimentacoes on public.movimentacoes;
+drop policy if exists app_all_notas on public.notas;
+drop policy if exists app_all_jogos_agenda on public.jogos_agenda;
+drop policy if exists app_all_campanhas on public.campanhas;
+drop policy if exists app_all_campanha_envios on public.campanha_envios;
+
 -- Filiais: usuário vê apenas filiais vinculadas
 create policy p_filiais_select on public.filiais
 for select to authenticated

@@ -27,6 +27,8 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - [ ] validar `sql/05_rbac_auditoria_acessos.sql`
 - [ ] executar checklist por role e por tabela critica
 - [ ] seguir ordem oficial documentada em `docs/governanca/GOVERNANCA_SQL_RLS.md`
+- [ ] executar `sql/05b_validacao_fase_1_rls_rbac.sql`
+- [ ] registrar evidencias seguindo `docs/governanca/VALIDACAO_RLS_RBAC_FASE_1.md`
 
 ### 3. Schema e persistencia
 - [ ] remover fallback de schema no cliente
@@ -46,8 +48,10 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - `sql/03_rbac_v1.sql`
 - `sql/04_rbac_v2_admin_only.sql`
 - `sql/05_rbac_auditoria_acessos.sql`
+- `sql/05b_validacao_fase_1_rls_rbac.sql`
 - `docs/governanca/ROADMAP_EXECUCAO_TECNICA_2026-04-08.md`
 - `docs/governanca/GOVERNANCA_SQL_RLS.md`
+- `docs/governanca/VALIDACAO_RLS_RBAC_FASE_1.md`
 
 ## Criterio de saida da Fase 1
 - nenhum ambiente produtivo depende de defaults sensiveis embutidos
