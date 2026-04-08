@@ -77,10 +77,9 @@ async function purgeExpiredJogos(fid, { persist = true, silent = true } = {}){
 
   if(persist){
     await Promise.all(expirados.map(async jogo => {
-      try{
-        await SB.deleteJogoAgenda(jogo.id);
-      }catch(e){
-        console.error('Erro ao limpar jogo expirado', jogo, e);
+      const deleteResult = await SB.toResult(() => SB.deleteJogoAgenda(jogo.id));
+      if(!deleteResult.ok){
+        console.error('Erro ao limpar jogo expirado', jogo, deleteResult.error);
       }
     }));
   }
@@ -811,12 +810,12 @@ export async function sincronizarJogosDashboard(options = {}){
 
   const syncPromise = (async () => {
     let payload;
-    try{
-      payload = await SB.fetchJsonWithRetry(apiUrl);
-    }catch(e){
-      if(!silent) notify(MSG.jogos.fetchFailed(e?.message), SEVERITY.ERROR);
+    const payloadResult = await SB.toResult(() => SB.fetchJsonWithRetry(apiUrl));
+    if(!payloadResult.ok){
+      if(!silent) notify(MSG.jogos.fetchFailed(payloadResult.error?.message), SEVERITY.ERROR);
       return;
     }
+    payload = payloadResult.data;
 
     const lista = extrairListaJogos(payload);
     if(!lista.length){
@@ -863,14 +862,14 @@ export async function sincronizarJogosDashboard(options = {}){
         status: j.status
       };
 
-      try{
-        await SB.upsertJogoAgenda(item);
+      const saveResult = await SB.toResult(() => SB.upsertJogoAgenda(item));
+      if(saveResult.ok){
         byId[id] = item;
         criados++;
-      }catch(e){
+      }else{
         erros++;
         byId[id] = item;
-        console.error('Falha ao upsert jogo externo', item, e);
+        console.error('Falha ao upsert jogo externo', item, saveResult.error);
       }
     }
 
@@ -931,10 +930,9 @@ export async function salvarJogoDashboard(){
     status: 'agendado'
   };
 
-  try{
-    await SB.upsertJogoAgenda(item);
-  }catch(e){
-    console.error('Erro ao salvar jogo na API', e);
+  const saveResult = await SB.toResult(() => SB.upsertJogoAgenda(item));
+  if(!saveResult.ok){
+    console.error('Erro ao salvar jogo na API', saveResult.error);
     notify('Erro: jogo nao foi salvo no banco. Acao: tente novamente.', SEVERITY.ERROR);
     return;
   }
@@ -954,10 +952,9 @@ export async function removerJogoDashboard(id){
   if(!filialId) return;
   if(!confirm('Remover este jogo da agenda?')) return;
 
-  try{
-    await SB.deleteJogoAgenda(id);
-  }catch(e){
-    console.error('Erro ao remover jogo da API', e);
+  const deleteResult = await SB.toResult(() => SB.deleteJogoAgenda(id));
+  if(!deleteResult.ok){
+    console.error('Erro ao remover jogo da API', deleteResult.error);
     notify('Erro: nao foi possivel remover no banco. Acao: tente novamente.', SEVERITY.ERROR);
     return;
   }
