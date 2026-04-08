@@ -514,52 +514,54 @@ export async function abrirCliDet(id){
   ].filter(Boolean);
 
   cliDom.html('detail', 'cli-det-box', `
-    <div class="fb" style="margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="av" style="width:44px;height:44px;font-size:16px;background:${cor.bg};color:${cor.c}">
+    <div class="cli-detail">
+      <div class="cli-detail-head fb">
+        <div class="cli-detail-hero">
+          <div class="av cli-detail-avatar" style="background:${cor.bg};color:${cor.c}">
           ${esc(ini(cliente.nome))}
         </div>
-        <div>
-          <div style="font-size:16px;font-weight:600">${esc(cliente.nome)}</div>
-          ${cliente.apelido ? `<div style="font-size:13px;color:var(--tx2)">${esc(cliente.apelido)}</div>` : ''}
-          <div style="margin-top:4px">${ST_B[cliente.status] || ''}</div>
+          <div>
+            <div class="cli-detail-title">${esc(cliente.nome)}</div>
+            ${cliente.apelido ? `<div class="cli-detail-sub">${esc(cliente.apelido)}</div>` : ''}
+            <div class="cli-detail-status">${ST_B[cliente.status] || ''}</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;font-size:13px">
-      <div>
-        <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Contato</div>
+      <div class="cli-detail-grid">
+        <div class="cli-detail-panel">
+          <div class="cli-detail-label">Contato</div>
         ${contato.length ? contato.map(item => `<div style="margin-bottom:3px">${esc(item)}</div>`).join('') : '-'}
-      </div>
+        </div>
 
-      <div>
-        <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div>
-        <div>Tabela: ${TAB_LABELS[cliente.tab] || '-'}</div>
-        <div>Prazo: ${esc(PRAZO_DETALHE_LABELS[cliente.prazo] || '-')}</div>
+        <div class="cli-detail-panel">
+          <div class="cli-detail-label">Comercial</div>
+          <div>Tabela: ${TAB_LABELS[cliente.tab] || '-'}</div>
+          <div>Prazo: ${esc(PRAZO_DETALHE_LABELS[cliente.prazo] || '-')}</div>
         ${times.length ? `<div>Times: ${esc(times.join(', '))}</div>` : ''}
         ${cliente.seg ? `<div>Segmento: ${esc(cliente.seg)}</div>` : ''}
+        </div>
       </div>
-    </div>
 
     ${cliente.obs ? `
-      <div class="panel" style="margin-bottom:12px">
+        <div class="panel cli-detail-section">
         <div class="pt">Observacoes</div>
-        <p style="font-size:13px">${esc(cliente.obs)}</p>
+          <p style="font-size:13px">${esc(cliente.obs)}</p>
       </div>
     ` : ''}
 
-    <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / historico</div>
-    <div class="fg2" style="margin-bottom:8px">
+      <div class="cli-detail-label" style="margin-bottom:8px">Notas / historico</div>
+      <div class="fg2 cli-detail-notes-input" style="margin-bottom:8px">
       <input class="inp" id="nota-inp-${id}" placeholder="Adicionar nota..." style="flex:1">
       <button class="btn btn-sm" data-click="addNota('${id}')">+</button>
     </div>
 
-    <div id="notas-${id}">${renderNotasHtml(D.notas?.[id] || [])}</div>
+      <div class="cli-detail-notes" id="notas-${id}">${renderNotasHtml(D.notas?.[id] || [])}</div>
 
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <div class="cli-detail-actions">
       <button class="btn" data-click="fecharModal('modal-cli-det')">Fechar</button>
       <button class="btn btn-p" data-click="fecharModal('modal-cli-det');editarCli('${id}')">Editar</button>
+      </div>
     </div>
   `, 'clientes:detalhe');
 

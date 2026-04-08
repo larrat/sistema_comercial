@@ -101,7 +101,7 @@ export function renderPedidos(){
 
   el.innerHTML = `
     <div class="tw">
-      <table class="tbl">
+      <table class="tbl orders-table">
         <thead>
           <tr>
             <th>No.</th>
@@ -127,7 +127,7 @@ export function renderPedidos(){
               <td style="font-size:12px;color:var(--tx2)">${pgtoLbl[p.pgto] || p.pgto || '-'}</td>
               <td>${ST_PED[p.status] || ''}</td>
               <td>
-                <div class="fg2">
+                <div class="fg2 orders-row-actions">
                   <button class="ib" title="Ver pedido" data-click="verPed('${p.id}')">VER</button>
                   <button class="ib" title="Editar pedido" data-click="editarPed('${p.id}')">EDT</button>
                   <button class="ib" title="Excluir pedido" data-click="removerPed('${p.id}')">DEL</button>
@@ -401,12 +401,13 @@ export function verPed(id){
   if(!box) return;
 
   box.innerHTML = `
-    <div class="fb" style="margin-bottom:16px">
-      <div class="mt" style="margin:0">Pedido #${p.num}</div>
+    <div class="ped-detail">
+      <div class="ped-detail-head fb">
+        <div class="mt ped-detail-title" style="margin:0">Pedido #${p.num}</div>
       ${ST_PED[p.status] || ''}
     </div>
 
-    <div class="ped-detail-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:13px">
+      <div class="ped-detail-grid">
       ${[
         ['Cliente', p.cli],
         ['Data', p.data || '-'],
@@ -415,22 +416,22 @@ export function verPed(id){
         ['Prazo', prazoLbl[p.prazo] || p.prazo],
         ['Lucro estimado', `<span style="color:var(--g);font-weight:600">${fmt(lucro)}</span>`]
       ].map(([l, v]) => `
-        <div>
-          <div style="font-size:11px;color:var(--tx3)">${l}</div>
-          <div>${v}</div>
+        <div class="ped-detail-kpi">
+          <div class="ped-detail-label">${l}</div>
+          <div class="ped-detail-value">${v}</div>
         </div>
       `).join('')}
     </div>
 
     ${p.obs ? `
-      <div class="panel" style="margin-bottom:12px">
+        <div class="panel ped-detail-section">
         <div class="pt">Observacoes</div>
         <p style="font-size:13px">${p.obs}</p>
       </div>
     ` : ''}
 
-    <div class="tw">
-      <table class="tbl">
+      <div class="tw ped-detail-table-wrap">
+        <table class="tbl ped-detail-table">
         <thead>
           <tr>
             <th>Produto</th>
@@ -465,9 +466,10 @@ export function verPed(id){
       </table>
     </div>
 
-    <div class="ped-detail-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <div class="ped-detail-actions">
       <button class="btn" data-click="fecharModal('modal-ped-det')">Fechar</button>
       <button class="btn btn-p" data-click="fecharModal('modal-ped-det');editarPed('${p.id}')">Editar</button>
+      </div>
     </div>
   `;
 
