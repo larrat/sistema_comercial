@@ -1,5 +1,6 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
+import { filtrarClientesElegiveisCampanhaAniversario, montarMensagemCampanha } from '../core/campanhas-domain.js';
 import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
 
@@ -504,13 +505,13 @@ export async function gerarFilaCampanha(campanhaId) {
     return;
   }
 
-  const clientesResult = await SB.toResult(() => SB.getClientesElegiveisCampanhaAniversario(State.FIL, campanha, new Date()));
-  let clientes = clientesResult.ok ? (clientesResult.data || []) : [];
-  if (!clientesResult.ok) {
+  const clientesBaseResult = await SB.toResult(() => SB.getClientes(State.FIL));
+  if (!clientesBaseResult.ok) {
     setBotaoGerarFilaLoading(campanhaId, false);
-    notify(MSG.campanhas.queueFetchFailed(clientesResult.error?.message), SEVERITY.ERROR);
+    notify(MSG.campanhas.queueFetchFailed(clientesBaseResult.error?.message), SEVERITY.ERROR);
     return;
   }
+  let clientes = filtrarClientesElegiveisCampanhaAniversario(clientesBaseResult.data || [], campanha, new Date());
 
   if (!clientes.length) {
     const todosResult = await SB.toResult(() => SB.getClientes(State.FIL));
@@ -581,7 +582,7 @@ export async function gerarFilaCampanha(campanhaId) {
       continue;
     }
 
-    const mensagem = SB.montarMensagemCampanha({
+    const mensagem = montarMensagemCampanha({
       mensagem: campanha.mensagem,
       cliente,
       campanha
