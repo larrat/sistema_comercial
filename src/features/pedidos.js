@@ -67,7 +67,7 @@ export function renderPedidos(){
     cheque:'Cheque'
   };
 
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1080px)').matches;
   if(isMobile){
     el.innerHTML = f.map(p => `
       <div class="card mobile-card">

@@ -2181,6 +2181,7 @@ html,body{
   color:var(--tx-strong);
   text-rendering:optimizeLegibility;
   -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
 }
 
 body{
@@ -2858,6 +2859,9 @@ body{
 
 .main{
   padding:var(--space-6);
+  min-width:0;
+  width:min(calc(100vw - 236px),100%);
+  overflow-x:hidden;
 }
 
 .ph{
@@ -3342,10 +3346,80 @@ textarea.inp:focus{
 #pg-pedidos #ped-lista .tw,
 #pg-pedidos .ped-items-wrap{
   overflow-x:auto;
+  max-width:100%;
 }
 
 #pg-pedidos #ped-met .met{
   min-width:145px;
+}
+
+@media(max-width:1180px){
+  .sb{
+    width:216px;
+  }
+
+  .main{
+    width:100%;
+    margin-left:216px;
+  }
+
+  .app-topbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .app-topbar-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  #pg-pedidos #ped-met{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  #pg-pedidos .toolbar{
+    align-items:stretch;
+  }
+
+  #pg-pedidos .toolbar-main,
+  #pg-pedidos .toolbar-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  #pg-pedidos .toolbar-main .inp,
+  #pg-pedidos .toolbar-main .sel{
+    flex:1 1 220px;
+    max-width:none!important;
+    min-width:0;
+  }
+
+  #pg-clientes #cli-met,
+  #pg-campanhas #camp-met{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  #pg-clientes .toolbar,
+  #pg-campanhas .toolbar{
+    align-items:stretch;
+  }
+
+  #pg-clientes .toolbar-main,
+  #pg-clientes .toolbar-actions,
+  #pg-campanhas .toolbar-main,
+  #pg-campanhas .toolbar-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  #pg-clientes .toolbar-main .inp,
+  #pg-clientes .toolbar-main .sel,
+  #pg-campanhas .toolbar-main .inp,
+  #pg-campanhas .toolbar-main .sel{
+    flex:1 1 220px;
+    max-width:none!important;
+    min-width:0;
+  }
 }
 
 #pg-pedidos .mobile-card{
@@ -3425,6 +3499,32 @@ textarea.inp:focus{
   border-color:rgba(15,23,42,.08);
 }
 
+#pg-clientes #cli-lista .tw,
+#pg-campanhas #camp-lista .tw,
+#pg-campanhas #camp-wa-fila .tw,
+#pg-campanhas #camp-envios-lista .tw{
+  max-width:100%;
+}
+
+#pg-clientes .mobile-card{
+  border-color:rgba(15,23,42,.08);
+}
+
+#pg-clientes .mobile-card-meta,
+#pg-campanhas #camp-lista .mobile-card-meta,
+#pg-campanhas #camp-wa-fila .mobile-card-meta,
+#pg-campanhas #camp-envios-lista .mobile-card-meta{
+  padding:10px 12px;
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:var(--radius-md);
+  background:#F8FBFF;
+}
+
+#pg-clientes .mobile-card-actions,
+#pg-campanhas .mobile-card-actions{
+  margin-top:12px;
+}
+
 #pg-campanhas #camp-lista .mobile-card-tags{
   margin-top:10px;
 }
@@ -3462,5 +3562,12 @@ textarea.inp:focus{
 
   #ped-det-box .ped-detail-grid{
     grid-template-columns:1fr!important;
+  }
+}
+
+@media(max-width:1080px){
+  #pg-clientes .tw,
+  #pg-campanhas .tw{
+    display:none;
   }
 }
