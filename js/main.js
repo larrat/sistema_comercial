@@ -137,6 +137,40 @@ import {
   resolverTodasNotificacoes
 } from '../modules/notificacoes.js';
 
+import {
+  initFiliaisAcessosModule,
+  limparFormFilial,
+  editarFilial,
+  salvarFilial,
+  removerFilial,
+  trocarFilial,
+  renderFilMet,
+  renderFilLista,
+  renderAcessosMet,
+  renderAcessosPerfis,
+  renderAcessosVinculos,
+  renderAcessosAuditoria,
+  changeAcessosPage,
+  preencherPerfilAcesso,
+  preencherVinculoAcesso,
+  renderAcessosAdmin,
+  salvarPerfilAcesso,
+  removerPerfilAcesso,
+  vincularUsuarioFilial,
+  desvincularUsuarioFilial
+} from '../modules/filiais-acessos.js';
+
+import {
+  initNavigationModule,
+  pageAtual,
+  filterSidebarNav,
+  initSidebarEnhancements,
+  ir,
+  switchTab,
+  abrirSb,
+  fecharSb
+} from '../modules/navigation.js';
+
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const UX_EVENTS_KEY = 'sc_ux_events_v1';
@@ -1348,241 +1382,6 @@ async function gerarFilaCampanhaTracked(id){
   renderMetasNegocio();
 }
 
-const PAGE_META = {
-  dashboard: {
-    kicker: 'Workspace',
-    title: 'Dashboard',
-    sub: 'Visão geral e oportunidades da filial',
-    primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
-    secondary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
-    tertiary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } }
-  },
-  gerencial: {
-    kicker: 'Gestão',
-    title: 'Gerencial',
-    sub: 'Metas de negócio e desempenho contínuo',
-    primary: { label: 'Atualizar KPIs', run: () => renderMetasNegocio() },
-    secondary: { label: 'Auditoria visual', run: () => executarAuditoriaVisual() },
-    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
-  },
-  produtos: {
-    kicker: 'Cadastros',
-    title: 'Produtos',
-    sub: 'Catálogo comercial e precificação',
-    primary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos'), roles: ROLE_MANAGER_PLUS },
-    tertiary: { label: 'Ir clientes', run: () => ir('clientes') }
-  },
-  clientes: {
-    kicker: 'Cadastros',
-    title: 'Clientes',
-    sub: 'Relacionamento e segmentação',
-    primary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes'), roles: ROLE_MANAGER_PLUS },
-    tertiary: { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') }
-  },
-  pedidos: {
-    kicker: 'Operações',
-    title: 'Pedidos',
-    sub: 'Orçamentos, vendas e acompanhamento',
-    primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos'), roles: ROLE_MANAGER_PLUS },
-    tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
-  },
-  cotacao: {
-    kicker: 'Operações',
-    title: 'Cotação',
-    sub: 'Fornecedores e comparação de preço',
-    primary: { label: 'Novo fornecedor', run: () => abrirModal('modal-forn') },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('cotacao'), roles: ROLE_MANAGER_PLUS },
-    tertiary: { label: 'Travar/Destravar', run: () => cotLock() }
-  },
-  estoque: {
-    kicker: 'Operações',
-    title: 'Estoque',
-    sub: 'Posição, alertas e movimentações',
-    primary: { label: 'Nova movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('estoque'), roles: ROLE_MANAGER_PLUS },
-    tertiary: { label: 'Ir produtos', run: () => ir('produtos') }
-  },
-  campanhas: {
-    kicker: 'Operações',
-    title: 'Campanhas',
-    sub: 'Ações comerciais e fila de envios',
-    primary: { label: 'Nova campanha', run: () => abrirNovaCampanhaTracked(), roles: ROLE_MANAGER_PLUS },
-    secondary: { label: 'Atualizar tela', run: () => refreshCampanhasTela() },
-    tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_MANAGER_PLUS }
-  },
-  filiais: {
-    kicker: 'Sistema',
-    title: 'Filiais',
-    sub: 'Gestão de unidades e troca de contexto',
-    primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); }, roles: ROLE_ADMIN_ONLY },
-    secondary: { label: 'Voltar setup', run: () => voltarSetup() },
-    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
-  },
-  acessos: {
-    kicker: 'Sistema',
-    title: 'Acessos',
-    sub: 'Perfis e vínculos de usuários por filial',
-    primary: { label: 'Atualizar', run: () => renderAcessosAdmin(), roles: ROLE_ADMIN_ONLY },
-    secondary: { label: 'Ir filiais', run: () => ir('filiais'), roles: ROLE_ADMIN_ONLY },
-    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
-  },
-  notificacoes: {
-    kicker: 'Inbox',
-    title: 'Notificações',
-    sub: 'Alertas críticos, atenção e oportunidades',
-    primary: { label: 'Resolver todas', run: () => resolverTodasNotificacoesTracked() },
-    secondary: { label: 'Atualizar', run: () => renderNotificacoes() },
-    tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
-  }
-};
-
-function pageAtual(){
-  const on = document.querySelector('.pg.on');
-  if(!on?.id) return 'dashboard';
-  return String(on.id).replace(/^pg-/, '') || 'dashboard';
-}
-
-function scrollToCampSection(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function getContextualPageMeta(page){
-  const base = PAGE_META[page] || PAGE_META.dashboard;
-  const meta = {
-    ...base,
-    primary: base.primary ? { ...base.primary } : null,
-    secondary: base.secondary ? { ...base.secondary } : null,
-    tertiary: base.tertiary ? { ...base.tertiary } : null
-  };
-
-  if(page === 'clientes'){
-    const segTabAtiva = !!document.getElementById('cli-tc-segs')?.classList.contains('on');
-    meta.tertiary = segTabAtiva
-      ? { label: 'Voltar lista', run: () => switchTab('cli', 'lista') }
-      : { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') };
-  }
-
-  if(page === 'campanhas'){
-    const envios = D.campanhaEnvios?.[State.FIL] || [];
-    const campanhas = D.campanhas?.[State.FIL] || [];
-    const pendentes = envios.filter(e => e.canal === 'whatsapp_manual' && (e.status === 'manual' || e.status === 'pendente'));
-    const primeiraAtiva = campanhas.find(c => c.ativo);
-
-    meta.secondary = pendentes.length
-      ? { label: `Fila WhatsApp (${pendentes.length})`, run: () => scrollToCampSection('camp-wa-fila') }
-      : { label: 'Atualizar tela', run: () => refreshCampanhasTela() };
-
-    meta.tertiary = primeiraAtiva
-      ? { label: 'Rodar 1ª ativa', run: () => gerarFilaCampanhaTracked(primeiraAtiva.id), roles: ROLE_MANAGER_PLUS }
-      : { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_MANAGER_PLUS };
-  }
-
-  return meta;
-}
-
-function bindTopbarAction(id, action){
-  const el = document.getElementById(id);
-  if(!el) return;
-  if(!action || (action.roles && !hasRole(action.roles))){
-    el.style.display = 'none';
-    el.onclick = null;
-    return;
-  }
-  el.style.display = 'inline-flex';
-  el.textContent = action.label;
-  el.onclick = () => {
-    if(id === 'app-act-primary'){
-      completePrimaryActionTracking(pageAtual());
-    }
-    action.run();
-  };
-}
-
-function syncTopbar(page){
-  const meta = getContextualPageMeta(page);
-  const kicker = document.getElementById('app-kicker');
-  const title = document.getElementById('app-title');
-  const sub = document.getElementById('app-sub');
-
-  if(kicker) kicker.textContent = meta.kicker;
-  if(title) title.textContent = meta.title;
-  if(sub) sub.textContent = meta.sub;
-
-  bindTopbarAction('app-act-primary', meta.primary);
-  bindTopbarAction('app-act-secondary', meta.secondary);
-  bindTopbarAction('app-act-tertiary', meta.tertiary);
-  renderQuickLinks(meta);
-  syncSidebarContext(meta);
-}
-
-function syncSidebarContext(meta){
-  const kicker = document.getElementById('sb-context-kicker');
-  const title = document.getElementById('sb-context-title');
-  const sub = document.getElementById('sb-context-sub');
-  if(kicker) kicker.textContent = meta?.kicker || 'Workspace';
-  if(title) title.textContent = meta?.title || 'Dashboard';
-  if(sub) sub.textContent = meta?.sub || 'Visão geral da operação atual';
-}
-
-function filterSidebarNav(raw = ''){
-  const query = norm(raw || '');
-  const items = Array.from(document.querySelectorAll('.sb-nav .ni'));
-  const groups = Array.from(document.querySelectorAll('.sb-nav .sb-group'));
-  let visibleItems = 0;
-
-  items.forEach(item => {
-    const haystack = norm(item.dataset.label || item.textContent || '');
-    const match = !query || haystack.includes(query);
-    item.hidden = !match;
-    if(match && item.style.display !== 'none') visibleItems += 1;
-  });
-
-  groups.forEach(group => {
-    const hasVisibleItems = Array.from(group.querySelectorAll('.ni'))
-      .some(item => !item.hidden && item.style.display !== 'none');
-    group.hidden = !hasVisibleItems;
-  });
-
-  const empty = document.getElementById('sb-empty');
-  if(empty) empty.style.display = visibleItems ? 'none' : 'block';
-}
-
-function initSidebarEnhancements(){
-  const input = document.getElementById('sb-search');
-  if(input && !input.dataset.bound){
-    input.dataset.bound = '1';
-    input.addEventListener('input', e => filterSidebarNav(e.target.value));
-    input.addEventListener('keydown', e => {
-      if(e.key === 'Escape'){
-        input.value = '';
-        filterSidebarNav('');
-        input.blur();
-      }
-    });
-  }
-  filterSidebarNav(input?.value || '');
-  syncSidebarContext(getContextualPageMeta(pageAtual()));
-}
-
-function renderQuickLinks(meta){
-  const el = document.getElementById('quick-links');
-  if(!el) return;
-  const actions = [meta?.primary, meta?.secondary, meta?.tertiary]
-    .filter(a => a && (!a.roles || hasRole(a.roles)))
-    .slice(0, 2);
-  el.innerHTML = actions
-    .map(a => `<button class="qk" type="button">${a.label}</button>`)
-    .join('');
-  Array.from(el.querySelectorAll('.qk')).forEach((btn, idx) => {
-    btn.onclick = actions[idx].run;
-  });
-}
-
 function findQuickCommand(raw){
   const v = norm(raw).replace(/^\/\s*/, '');
   if(!v) return null;
@@ -2166,609 +1965,6 @@ function resolverTodasNotificacoesTracked(){
   renderMetasNegocio();
 }
 
-function ir(p) {
-  if (!canAccessPage(p)){
-    toast('Você não tem permissão para acessar esta área.');
-    p = getFirstAllowedPage('dashboard');
-  }
-  fecharSb();
-
-  document.querySelectorAll('.ni').forEach(n => n.classList.toggle('on', n.dataset.p === p));
-  document.querySelectorAll('.pg').forEach(x => x.classList.remove('on'));
-  document.getElementById('pg-' + p)?.classList.add('on');
-  document.querySelectorAll('.mob-btn').forEach(b => b.classList.toggle('on', b.id === 'mob-' + p));
-
-  const renderMap = {
-    dashboard: () => { renderDash(); },
-    gerencial: () => { renderMetasNegocio(); },
-    produtos: () => { renderProdMet(); renderProdutos(); },
-    clientes: () => { renderCliMet(); renderClientes(); },
-    pedidos: () => { renderPedMet(); renderPedidos(); },
-    cotacao: () => { renderFornSel(); renderCotForns(); renderCotLogs(); renderCotTabela(); },
-    estoque: () => { renderEstAlerts(); renderEstPosicao(); renderEstHist(); },
-    campanhas: () => { renderCampanhasMet(); renderCampanhas(); renderFilaWhatsApp(); renderCampanhaEnvios(); },
-    filiais: () => { renderFilMet(); renderFilLista(); },
-    acessos: () => { renderAcessosAdmin(); },
-    notificacoes: renderNotificacoes
-  };
-
-  if (renderMap[p]) renderMap[p]();
-  startPrimaryActionTracking(p);
-  markConsistencyPage(p);
-  updateNotiBadge();
-  syncTopbar(p);
-  scheduleRoleUiGuards();
-  filterSidebarNav(document.getElementById('sb-search')?.value || '');
-  window.scrollTo(0, 0);
-}
-
-function switchTab(grp, name) {
-  const prefix = grp + '-tc-';
-  document.querySelectorAll(`[id^="${prefix}"]`).forEach(t => t.classList.remove('on'));
-  document.getElementById(prefix + name)?.classList.add('on');
-
-  document.querySelectorAll(`#pg-${grp} .tb`).forEach((b, i) => {
-    const ids = Array.from(document.querySelectorAll(`[id^="${prefix}"]`)).map(t => t.id.replace(prefix, ''));
-    b.classList.toggle('on', ids[i] === name);
-  });
-
-  const atual = pageAtual();
-  if(atual === grp){
-    syncTopbar(atual);
-  }
-}
-
-function abrirSb() {
-  document.getElementById('sb')?.classList.add('on');
-  document.getElementById('sb-overlay')?.classList.add('on');
-  const close = document.getElementById('sb-close');
-  if (close) close.style.display = 'flex';
-  document.getElementById('sb-search')?.focus();
-}
-
-function fecharSb() {
-  document.getElementById('sb')?.classList.remove('on');
-  document.getElementById('sb-overlay')?.classList.remove('on');
-  const close = document.getElementById('sb-close');
-  if (close) close.style.display = 'none';
-}
-
-function limparFormFilial() {
-  State.editIds.filial = null;
-  document.getElementById('filial-modal-titulo').textContent = 'Nova filial';
-  ['fil-nome', 'fil-cidade', 'fil-estado', 'fil-end'].forEach(i => {
-    const el = document.getElementById(i);
-    if (el) el.value = '';
-  });
-  document.getElementById('fil-cor').value = CORES[D.filiais.length % CORES.length];
-}
-
-function editarFilial(id) {
-  const f = D.filiais.find(x => x.id === id);
-  if (!f) return;
-
-  State.editIds.filial = id;
-  document.getElementById('filial-modal-titulo').textContent = 'Editar filial';
-  document.getElementById('fil-nome').value = f.nome;
-  document.getElementById('fil-cidade').value = f.cidade || '';
-  document.getElementById('fil-estado').value = f.estado || '';
-  document.getElementById('fil-end').value = f.endereco || '';
-  document.getElementById('fil-cor').value = f.cor;
-  abrirModal('modal-filial');
-}
-
-async function salvarFilial() {
-  if (!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode salvar filial.')) return;
-  const nome = document.getElementById('fil-nome')?.value.trim();
-  if (!nome) {
-    toast('Informe o nome.');
-    return;
-  }
-
-  const f = {
-    id: State.editIds.filial || uid(),
-    nome,
-    cidade: document.getElementById('fil-cidade')?.value.trim() || '',
-    estado: document.getElementById('fil-estado')?.value.trim() || '',
-    endereco: document.getElementById('fil-end')?.value.trim() || '',
-    cor: document.getElementById('fil-cor')?.value || CORES[0]
-  };
-
-  try {
-    await SB.upsertFilial(f);
-  } catch (e) {
-    toast('Erro: ' + e.message);
-    return;
-  }
-
-  fecharModal('modal-filial');
-  await renderSetup();
-  renderFilLista();
-  renderFilMet();
-  renderDashFilSel();
-
-  toast(State.editIds.filial ? 'Filial atualizada!' : 'Filial criada!');
-}
-
-async function removerFilial(id) {
-  if (!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode remover filial.')) return;
-  if (!confirm('Remover filial e dados?')) return;
-
-  try {
-    await SB.deleteFilial(id);
-  } catch (e) {
-    toast('Erro: ' + e.message);
-    return;
-  }
-
-  D.filiais = D.filiais.filter(f => f.id !== id);
-  renderFilLista();
-  renderFilMet();
-  await renderSetup();
-  renderDashFilSel();
-  toast('Filial removida.');
-}
-
-function renderFilMet() {
-  const el = document.getElementById('fil-met');
-  if (!el) return;
-
-  el.innerHTML = `
-    <div class="met"><div class="ml">Filiais</div><div class="mv">${D.filiais.length}</div></div>
-    <div class="met"><div class="ml">Total produtos</div><div class="mv">${Object.values(D.produtos).flat().length}</div></div>
-    <div class="met"><div class="ml">Total pedidos</div><div class="mv">${Object.values(D.pedidos).flat().length}</div></div>
-  `;
-}
-
-function renderFilLista() {
-  const el = document.getElementById('fil-lista');
-  if (!el) return;
-
-  if (!D.filiais.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">🏢</div><p>Nenhuma filial cadastrada.</p></div>`;
-    return;
-  }
-
-  el.innerHTML = D.filiais.map(f => {
-    const prods = (D.produtos[f.id] || []).length;
-    const clis = (D.clientes[f.id] || []).length;
-    const peds = (D.pedidos[f.id] || []).length;
-    const ativa = f.id === State.FIL;
-
-    return `
-      <div class="card fb" style="${ativa ? 'border-color:var(--acc)' : ''}">
-        <div style="display:flex;align-items:center;gap:12px;flex:1">
-          <div style="width:14px;height:14px;border-radius:50%;background:${f.cor};flex-shrink:0"></div>
-          <div>
-            <div style="font-weight:600;font-size:15px">
-              ${f.nome}${ativa ? ` <span class="bdg bb" style="font-size:10px;vertical-align:middle">Ativa</span>` : ''}
-            </div>
-            <div style="font-size:12px;color:var(--tx3)">${f.cidade || ''}${f.estado ? ' - ' + f.estado : ''}</div>
-            <div style="display:flex;gap:6px;margin-top:6px">
-              <span class="bdg bk">${prods} produto(s)</span>
-              <span class="bdg bk">${clis} cliente(s)</span>
-              <span class="bdg bk">${peds} pedido(s)</span>
-            </div>
-          </div>
-        </div>
-        <div class="fg2">
-          ${!ativa ? `<button class="btn btn-sm" onclick="trocarFilial('${f.id}')">Selecionar</button>` : ''}
-          <button class="ib" onclick="editarFilial('${f.id}')">✏</button>
-          <button class="ib" onclick="removerFilial('${f.id}')">✕</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function isUuid(v){
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || '').trim());
-}
-
-function preencherSelectFiliaisAcesso(){
-  const el = document.getElementById('ac-v-filial');
-  if(!el) return;
-  const current = el.value || '';
-  const opts = D.filiais || [];
-  el.innerHTML = opts.length
-    ? opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')
-    : '<option value="">Sem filiais</option>';
-  if(current && opts.some(f => f.id === current)) el.value = current;
-}
-
-function renderAcessosMet(){
-  const el = document.getElementById('ac-met');
-  if(!el) return;
-  const perfis = D.userPerfis || [];
-  const vinculos = D.userFiliais || [];
-  const dist = perfis.reduce((acc, p) => {
-    const k = String(p.papel || 'operador');
-    acc[k] = (acc[k] || 0) + 1;
-    return acc;
-  }, { admin: 0, gerente: 0, operador: 0 });
-
-  el.innerHTML = `
-    <div class="met"><div class="ml">Perfis</div><div class="mv">${perfis.length}</div></div>
-    <div class="met"><div class="ml">Vínculos</div><div class="mv">${vinculos.length}</div></div>
-    <div class="met"><div class="ml">Admins</div><div class="mv">${dist.admin || 0}</div></div>
-    <div class="met"><div class="ml">Gerentes</div><div class="mv">${dist.gerente || 0}</div></div>
-  `;
-}
-
-function paginateItems(items = [], page = 1, perPage = 10){
-  const safePage = Math.max(1, Number(page || 1));
-  const safePerPage = Math.max(1, Number(perPage || 10));
-  const total = items.length;
-  const pages = Math.max(1, Math.ceil(total / safePerPage));
-  const clamped = Math.min(safePage, pages);
-  const start = (clamped - 1) * safePerPage;
-  return {
-    page: clamped,
-    pages,
-    total,
-    perPage: safePerPage,
-    slice: items.slice(start, start + safePerPage)
-  };
-}
-
-function renderPager(elId, page, pages, onPrev, onNext){
-  const el = document.getElementById(elId);
-  if(!el) return;
-  if(pages <= 1){
-    el.innerHTML = '';
-    return;
-  }
-  el.innerHTML = `
-    <button class="btn btn-sm" ${page <= 1 ? 'disabled' : ''} onclick="${onPrev}">Anterior</button>
-    <span class="bdg bk">Página ${page} de ${pages}</span>
-    <button class="btn btn-sm" ${page >= pages ? 'disabled' : ''} onclick="${onNext}">Próxima</button>
-  `;
-}
-
-function renderAcessosPerfis(){
-  const el = document.getElementById('ac-perfis-lista');
-  if(!el) return;
-  const q = norm(document.getElementById('ac-busca')?.value || '');
-  const papel = (document.getElementById('ac-fil-papel')?.value || 'todos').trim();
-  let items = D.userPerfis || [];
-  if(q) items = items.filter(x => norm(x.user_id).includes(q));
-  if(papel !== 'todos') items = items.filter(x => String(x.papel) === papel);
-
-  if(!items.length){
-    el.innerHTML = `<div class="empty"><div class="ico">🔐</div><p>Nenhum perfil encontrado.</p></div>`;
-    renderPager('ac-perfis-pager', 1, 1, '', '');
-    return;
-  }
-  const p = paginateItems(items, State.acPagePerfis, 8);
-  State.acPagePerfis = p.page;
-
-  el.innerHTML = `
-    <div class="tw">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>User ID</th>
-            <th>Papel</th>
-            <th>Atualizado</th>
-            <th style="text-align:right">Ação</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${p.slice.map(pf => `
-            <tr>
-              <td><code>${pf.user_id}</code></td>
-              <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${pf.papel}</span></td>
-              <td>${pf.atualizado_em ? new Date(pf.atualizado_em).toLocaleString('pt-BR') : '—'}</td>
-              <td style="text-align:right">
-                <button class="btn btn-sm" onclick="preencherPerfilAcesso('${pf.user_id}','${pf.papel}')">Editar</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  renderPager(
-    'ac-perfis-pager',
-    p.page,
-    p.pages,
-    'changeAcessosPage(\'perfis\',-1)',
-    'changeAcessosPage(\'perfis\',1)'
-  );
-}
-
-function renderAcessosVinculos(){
-  const el = document.getElementById('ac-vinculos-lista');
-  if(!el) return;
-  const perfMap = new Map((D.userPerfis || []).map(p => [p.user_id, p.papel]));
-  const filMap = new Map((D.filiais || []).map(f => [f.id, f.nome]));
-  const filtroFilial = (document.getElementById('ac-fil-filial')?.value || 'todas').trim();
-  let items = D.userFiliais || [];
-  if(filtroFilial !== 'todas') items = items.filter(v => String(v.filial_id) === filtroFilial);
-
-  if(!items.length){
-    el.innerHTML = `<div class="empty"><div class="ico">🏷️</div><p>Nenhum vínculo cadastrado.</p></div>`;
-    renderPager('ac-vinculos-pager', 1, 1, '', '');
-    return;
-  }
-  const p = paginateItems(items, State.acPageVinculos, 8);
-  State.acPageVinculos = p.page;
-
-  el.innerHTML = `
-    <div class="tw">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>User ID</th>
-            <th>Papel</th>
-            <th>Filial</th>
-            <th style="text-align:right">Ação</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${p.slice.map(v => `
-            <tr>
-              <td><code>${v.user_id}</code></td>
-              <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
-              <td>${filMap.get(v.filial_id) || v.filial_id}</td>
-              <td style="text-align:right">
-                <button class="btn btn-sm" onclick="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  renderPager(
-    'ac-vinculos-pager',
-    p.page,
-    p.pages,
-    'changeAcessosPage(\'vinculos\',-1)',
-    'changeAcessosPage(\'vinculos\',1)'
-  );
-}
-
-function renderAcessosAuditoria(){
-  const el = document.getElementById('ac-auditoria-lista');
-  if(!el) return;
-  const items = D.acessosAudit || [];
-  if(!items.length){
-    el.innerHTML = `<div class="empty"><div class="ico">🧾</div><p>Nenhum evento de auditoria disponível.</p></div>`;
-    renderPager('ac-auditoria-pager', 1, 1, '', '');
-    return;
-  }
-  const p = paginateItems(items, State.acPageAuditoria, 10);
-  State.acPageAuditoria = p.page;
-  const filMap = new Map((D.filiais || []).map(f => [f.id, f.nome]));
-
-  el.innerHTML = `
-    <div class="tw">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Quando</th>
-            <th>Ação</th>
-            <th>Recurso</th>
-            <th>Ator</th>
-            <th>Alvo</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${p.slice.map(a => `
-            <tr>
-              <td>${a.criado_em ? new Date(a.criado_em).toLocaleString('pt-BR') : '—'}</td>
-              <td><span class="bdg ba">${a.acao || 'acao'}</span></td>
-              <td>${a.recurso || '—'}</td>
-              <td><code>${a.ator_user_id || '—'}</code></td>
-              <td>
-                <div><code>${a.alvo_user_id || '—'}</code></div>
-                <div style="font-size:11px;color:var(--tx3)">${a.alvo_filial_id ? (filMap.get(a.alvo_filial_id) || a.alvo_filial_id) : '—'}</div>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-  renderPager(
-    'ac-auditoria-pager',
-    p.page,
-    p.pages,
-    'changeAcessosPage(\'auditoria\',-1)',
-    'changeAcessosPage(\'auditoria\',1)'
-  );
-}
-
-function changeAcessosPage(tipo, delta){
-  if(tipo === 'perfis'){
-    State.acPagePerfis = Math.max(1, Number(State.acPagePerfis || 1) + Number(delta || 0));
-    renderAcessosPerfis();
-    return;
-  }
-  if(tipo === 'vinculos'){
-    State.acPageVinculos = Math.max(1, Number(State.acPageVinculos || 1) + Number(delta || 0));
-    renderAcessosVinculos();
-    return;
-  }
-  State.acPageAuditoria = Math.max(1, Number(State.acPageAuditoria || 1) + Number(delta || 0));
-  renderAcessosAuditoria();
-}
-
-function preencherFiltroFiliaisAcesso(){
-  const el = document.getElementById('ac-fil-filial');
-  if(!el) return;
-  const current = el.value || 'todas';
-  const opts = D.filiais || [];
-  el.innerHTML = `
-    <option value="todas">Todas filiais</option>
-    ${opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
-  `;
-  if(current && (current === 'todas' || opts.some(f => f.id === current))) el.value = current;
-}
-
-async function registrarAuditoriaAcesso(acao, recurso, alvoUserId = null, alvoFilialId = null, detalhes = {}){
-  try{
-    await SB.logAcessoAdmin({
-      ator_user_id: State.user?.id || null,
-      acao,
-      recurso,
-      alvo_user_id: alvoUserId || null,
-      alvo_filial_id: alvoFilialId || null,
-      detalhes: detalhes || {}
-    });
-  }catch(e){
-    console.error('Falha ao registrar auditoria de acesso:', e?.message || e);
-  }
-}
-
-function preencherPerfilAcesso(userId, papel){
-  const userEl = document.getElementById('ac-user-id');
-  const papelEl = document.getElementById('ac-papel');
-  if(userEl) userEl.value = userId || '';
-  if(papelEl) papelEl.value = papel || 'operador';
-}
-
-function preencherVinculoAcesso(userId, filialId){
-  const userEl = document.getElementById('ac-v-user-id');
-  const filialEl = document.getElementById('ac-v-filial');
-  if(userEl) userEl.value = userId || '';
-  if(filialEl && filialId) filialEl.value = filialId;
-}
-
-async function renderAcessosAdmin(){
-  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode acessar gestão de acessos.')) return;
-  const perfisEl = document.getElementById('ac-perfis-lista');
-  const vinculosEl = document.getElementById('ac-vinculos-lista');
-  if(perfisEl) perfisEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
-  if(vinculosEl) vinculosEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
-  const audEl = document.getElementById('ac-auditoria-lista');
-  if(audEl) audEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
-
-  try{
-    const [perfis, vinculos, filiais, auditoria] = await Promise.all([
-      SB.getUserPerfis(),
-      SB.getUserFiliais(),
-      SB.getFiliais(),
-      SB.getAcessosAudit()
-    ]);
-    D.userPerfis = perfis || [];
-    D.userFiliais = vinculos || [];
-    D.filiais = filiais || D.filiais || [];
-    D.acessosAudit = auditoria || [];
-  }catch(e){
-    toast('Erro ao carregar acessos: ' + (e?.message || e));
-    return;
-  }
-
-  State.acPagePerfis = 1;
-  State.acPageVinculos = 1;
-  State.acPageAuditoria = 1;
-  preencherSelectFiliaisAcesso();
-  preencherFiltroFiliaisAcesso();
-  renderAcessosMet();
-  renderAcessosPerfis();
-  renderAcessosVinculos();
-  renderAcessosAuditoria();
-  scheduleRoleUiGuards();
-}
-
-async function salvarPerfilAcesso(){
-  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode alterar perfil de acesso.')) return;
-  const userId = (document.getElementById('ac-user-id')?.value || '').trim();
-  const papel = (document.getElementById('ac-papel')?.value || 'operador').trim();
-  if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
-    return;
-  }
-  if(!APP_ROLES.includes(papel)){
-    toast('Papel inválido.');
-    return;
-  }
-  try{
-    await SB.upsertUserPerfil({ user_id: userId, papel });
-    await registrarAuditoriaAcesso('perfil_upsert', 'user_perfis', userId, null, { papel });
-    toast('Perfil salvo com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao salvar perfil: ' + (e?.message || e));
-  }
-}
-
-async function removerPerfilAcesso(){
-  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode remover perfil de acesso.')) return;
-  const userId = (document.getElementById('ac-user-id')?.value || '').trim();
-  if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
-    return;
-  }
-  if(userId === State.user?.id){
-    toast('Não é permitido remover o próprio perfil.');
-    return;
-  }
-  if(!confirm('Remover perfil deste usuário?')) return;
-  try{
-    await SB.deleteUserPerfil(userId);
-    await registrarAuditoriaAcesso('perfil_delete', 'user_perfis', userId, null, {});
-    toast('Perfil removido com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao remover perfil: ' + (e?.message || e));
-  }
-}
-
-async function vincularUsuarioFilial(){
-  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode vincular usuário a filial.')) return;
-  const userId = (document.getElementById('ac-v-user-id')?.value || '').trim();
-  const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
-  if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
-    return;
-  }
-  if(!filialId){
-    toast('Selecione a filial.');
-    return;
-  }
-  try{
-    await SB.upsertUserFilial({ user_id: userId, filial_id: filialId });
-    await registrarAuditoriaAcesso('vinculo_upsert', 'user_filiais', userId, filialId, {});
-    toast('Vínculo salvo com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao vincular usuário: ' + (e?.message || e));
-  }
-}
-
-async function desvincularUsuarioFilial(){
-  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode desvincular usuário de filial.')) return;
-  const userId = (document.getElementById('ac-v-user-id')?.value || '').trim();
-  const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
-  if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
-    return;
-  }
-  if(!filialId){
-    toast('Selecione a filial.');
-    return;
-  }
-  if(!confirm('Desvincular usuário desta filial?')) return;
-  try{
-    await SB.deleteUserFilial(userId, filialId);
-    await registrarAuditoriaAcesso('vinculo_delete', 'user_filiais', userId, filialId, {});
-    toast('Vínculo removido com sucesso.');
-    await renderAcessosAdmin();
-  }catch(e){
-    toast('Erro ao desvincular usuário: ' + (e?.message || e));
-  }
-}
-
-async function trocarFilial(id) {
-  State.selFil = id;
-  await entrar();
-  await renderSetup();
-  toast('Filial alterada!');
-}
-
 function exportCSV(tipo) {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode exportar CSV.')) return;
   const saldos = calcSaldos();
@@ -2918,6 +2114,76 @@ AppModules.register({
   init(){
     initDashboardModule({
       calcSaldosMulti
+    });
+  }
+});
+
+AppModules.register({
+  name: 'navigation',
+  init(){
+    initNavigationModule({
+      hasRole,
+      canAccessPage,
+      getFirstAllowedPage,
+      scheduleRoleUiGuards,
+      startPrimaryActionTracking,
+      completePrimaryActionTracking,
+      markConsistencyPage,
+      updateNotiBadge,
+      renderDash,
+      renderMetasNegocio,
+      renderProdMet,
+      renderProdutos,
+      renderCliMet,
+      renderClientes,
+      renderPedMet,
+      renderPedidos,
+      renderFornSel,
+      renderCotForns,
+      renderCotLogs,
+      renderCotTabela,
+      renderEstAlerts,
+      renderEstPosicao,
+      renderEstHist,
+      renderCampanhasMet,
+      renderCampanhas,
+      renderFilaWhatsApp,
+      renderCampanhaEnvios,
+      renderFilMet,
+      renderFilLista,
+      renderAcessosAdmin,
+      renderNotificacoes,
+      limparFormPedTracked,
+      limparFormCliTracked,
+      limparFormProdTracked,
+      abrirNovaCampanhaTracked,
+      gerarFilaCampanhaTracked,
+      abrirModal,
+      exportCSV,
+      resetMov,
+      cotLock,
+      voltarSetup,
+      limparFormFilial,
+      resolverTodasNotificacoesTracked,
+      refreshCampanhasTela,
+      roleManagerPlus: ROLE_MANAGER_PLUS,
+      roleAdminOnly: ROLE_ADMIN_ONLY
+    });
+  }
+});
+
+AppModules.register({
+  name: 'filiais-acessos',
+  init(){
+    initFiliaisAcessosModule({
+      requireRole,
+      renderSetup,
+      entrar,
+      renderDashFilSel,
+      scheduleRoleUiGuards,
+      roleAdminOnly: ROLE_ADMIN_ONLY,
+      appRoles: APP_ROLES,
+      cores: CORES
     });
   }
 });
