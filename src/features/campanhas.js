@@ -230,6 +230,53 @@ function getFilaWhatsApp() {
     .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
 }
 
+/**
+ * @param {string} campanhaId
+ * @returns {CampanhaEnvio | null}
+ */
+function getPrimeiroEnvioWhatsAppPendenteCampanha(campanhaId) {
+  return getFilaWhatsApp().find(e =>
+    e.campanha_id === campanhaId &&
+    (e.status === 'manual' || e.status === 'pendente') &&
+    !!String(e.destino || '').trim()
+  ) || null;
+}
+
+function abrirJanelaPreparacaoWhatsApp() {
+  const win = window.open('', '_blank');
+  if (!win) return null;
+  try {
+    win.document.write(`
+      <title>Preparando WhatsApp</title>
+      <body style="font-family:Arial,sans-serif;padding:24px;line-height:1.5">
+        <h2>Preparando conversa no WhatsApp...</h2>
+        <p>Aguarde enquanto geramos a fila e montamos a mensagem.</p>
+      </body>
+    `);
+    win.document.close();
+  } catch {
+    // Se o navegador restringir o write, seguimos com a aba aberta.
+  }
+  return win;
+}
+
+/**
+ * @param {Window | null} win
+ * @param {CampanhaEnvio | null} envio
+ * @returns {boolean}
+ */
+function redirecionarJanelaWhatsApp(win, envio) {
+  if (!envio?.destino) return false;
+  const url = buildWhatsAppUrl(envio.destino, envio.mensagem);
+  if (win && !win.closed) {
+    win.location.href = url;
+    win.focus?.();
+    return true;
+  }
+  window.open(url, '_blank', 'noopener,noreferrer');
+  return true;
+}
+
 function getFilaWhatsAppSelecionados() {
   const envios = getFilaWhatsApp().filter(e => campUiState.waSelecionados.has(e.id));
   limparSelecaoFilaInexistente(getFilaWhatsApp());
@@ -744,16 +791,21 @@ export async function gerarFilaCampanha(campanhaId) {
     return;
   }
 
+  const prepararWhatsApp = campanha.canal === 'whatsapp_manual';
+  const janelaWhatsApp = prepararWhatsApp ? abrirJanelaPreparacaoWhatsApp() : null;
+
   setBotaoGerarFilaLoading(campanhaId, true);
 
   if(!campanha.ativo){
     setBotaoGerarFilaLoading(campanhaId, false);
+    if (janelaWhatsApp && !janelaWhatsApp.closed) janelaWhatsApp.close();
     notify(MSG.campanhas.inactive, SEVERITY.WARNING);
     return;
   }
   const queueResult = await SB.toResult(() => SB.gerarFilaCampanhaEdge(campanhaId, false));
   if (!queueResult.ok) {
     setBotaoGerarFilaLoading(campanhaId, false);
+    if (janelaWhatsApp && !janelaWhatsApp.closed) janelaWhatsApp.close();
     notify(MSG.campanhas.queueFetchFailed(queueResult.error?.message), SEVERITY.ERROR);
     return;
   }
@@ -770,13 +822,24 @@ export async function gerarFilaCampanha(campanhaId) {
   };
   await carregarCampanhaEnvios();
   renderCampanhasMet();
+  renderCampanhas();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
   setBotaoGerarFilaLoading(campanhaId, false);
 
   if (!Number(resumo.total_elegiveis || 0) && !Number(resumo.criados || 0)) {
+    if (janelaWhatsApp && !janelaWhatsApp.closed) janelaWhatsApp.close();
     notify(MSG.campanhas.noEligible(), SEVERITY.INFO);
     return;
+  }
+
+  if (prepararWhatsApp) {
+    const primeiroEnvio = getPrimeiroEnvioWhatsAppPendenteCampanha(campanhaId);
+    const abriuConversa = redirecionarJanelaWhatsApp(janelaWhatsApp, primeiroEnvio);
+    if (!abriuConversa) {
+      if (janelaWhatsApp && !janelaWhatsApp.closed) janelaWhatsApp.close();
+      notify('Fila gerada, mas nenhum envio com numero valido ficou disponivel para abrir no WhatsApp.', SEVERITY.WARNING);
+    }
   }
 
   notify(
