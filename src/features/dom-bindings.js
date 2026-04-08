@@ -233,6 +233,8 @@ function getHandlerRegistry(){
       renderCampanhaEnvios: deps.renderCampanhaEnvios,
       toggleEnvioFilaSelecionado: deps.toggleEnvioFilaSelecionado,
       toggleSelecionarTodosFilaWhatsApp: deps.toggleSelecionarTodosFilaWhatsApp,
+      abrirPreviewWhatsAppEnvio: deps.abrirPreviewWhatsAppEnvio,
+      abrirWhatsAppPreviewAtual: deps.abrirWhatsAppPreviewAtual,
       abrirWhatsAppEnvio: deps.abrirWhatsAppEnvio,
       abrirWhatsAppLote: deps.abrirWhatsAppLote,
       marcarEnvioEnviado: deps.marcarEnvioEnviadoGuard,
