@@ -317,7 +317,9 @@ export function initSidebarEnhancements(){
     });
   }
   filterSidebarNav(input?.value || '');
-  syncSidebarContext(getContextualPageMeta(pageAtual()));
+  const current = pageAtual();
+  setActivePageVisibility(current);
+  syncSidebarContext(getContextualPageMeta(current));
 }
 
 export function renderQuickLinks(meta){
@@ -334,6 +336,14 @@ export function renderQuickLinks(meta){
   });
 }
 
+function setActivePageVisibility(nextPage){
+  document.querySelectorAll('.pg').forEach(page => {
+    const isActive = page.id === `pg-${nextPage}`;
+    page.classList.toggle('on', isActive);
+    page.style.display = isActive ? 'block' : 'none';
+  });
+}
+
 export function ir(page){
   let nextPage = page;
   if(!deps.canAccessPage(nextPage)){
@@ -343,8 +353,7 @@ export function ir(page){
   fecharSb();
 
   document.querySelectorAll('.ni').forEach(n => n.classList.toggle('on', n.dataset.p === nextPage));
-  document.querySelectorAll('.pg').forEach(x => x.classList.remove('on'));
-  document.getElementById('pg-' + nextPage)?.classList.add('on');
+  setActivePageVisibility(nextPage);
   document.querySelectorAll('.mob-btn').forEach(b => b.classList.toggle('on', b.id === 'mob-' + nextPage));
 
   schedulePageRender(nextPage);
