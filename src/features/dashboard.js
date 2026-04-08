@@ -482,6 +482,14 @@ export function renderDash(){
     .filter(c => c._anivData <= limite)
     .sort((a, b) => a._anivData - b._anivData);
 
+  const clientesFilial = filIds.flatMap(fid => (D.clientes?.[fid] || []));
+  const clientesComAniversario = clientesFilial.filter(c => !!String(c.data_aniversario || '').trim());
+  const clientesSemAniversario = Math.max(0, clientesFilial.length - clientesComAniversario.length);
+
+  if(clientesFilial.length){
+    ah += `<div class="alert al-b"><b>Aniversario cadastrado:</b> ${clientesComAniversario.length} de ${clientesFilial.length} cliente(s) com data de aniversario preenchida.${clientesSemAniversario ? ` Faltam ${clientesSemAniversario} cadastro(s).` : ''}</div>`;
+  }
+
   if(anivProximos.length){
     ah += `<div class="alert al-g"><b>Aniversarios proximos:</b> ${anivProximos.length} cliente(s) nos proximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? '...' : ''}</div>`;
   }
