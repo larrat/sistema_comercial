@@ -1,8 +1,23 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
+/** @typedef {import('../types/domain').Campanha} Campanha */
+/** @typedef {import('../types/domain').CampanhaEnvio} CampanhaEnvio */
+
+/** @type {{
+ *   filialId: string | null;
+ *   carregadasFilial: number;
+ *   totalBanco: number | null;
+ *   outrasFiliais: number | null;
+ *   candidatasOutrasFiliais: Campanha[];
+ *   origem: string;
+ *   erro: string | null;
+ * }}
+ */
 let campDiag = {
   filialId: null,
   carregadasFilial: 0,
@@ -13,12 +28,14 @@ let campDiag = {
   erro: null
 };
 
+/** @returns {Campanha[]} */
 function getCampanhasCache() {
   if (!D.campanhas) D.campanhas = {};
   if (!D.campanhas[State.FIL]) D.campanhas[State.FIL] = [];
   return D.campanhas[State.FIL];
 }
 
+/** @returns {CampanhaEnvio[]} */
 function getEnviosCache() {
   if (!D.campanhaEnvios) D.campanhaEnvios = {};
   if (!D.campanhaEnvios[State.FIL]) D.campanhaEnvios[State.FIL] = [];
@@ -55,6 +72,15 @@ function labelCanal(v){
   if(key === 'email') return 'E-mail';
   if(key === 'sms') return 'SMS';
   return key || '—';
+}
+
+function labelStatusEnvio(status){
+  const key = String(status || '').trim();
+  if(key === 'manual') return 'Manual';
+  if(key === 'pendente') return 'Pendente';
+  if(key === 'enviado') return 'Enviado';
+  if(key === 'falhou') return 'Falhou';
+  return key || 'â€”';
 }
 
 function badgeSaudeCampanha(campanha, envios){
@@ -411,6 +437,7 @@ export function renderCampanhas() {
         </div>
 
         <div class="mobile-card-actions">
+          <button class="btn btn-sm" title="Detalhes da campanha" data-click="abrirCampanhaDet('${c.id}')">Detalhes</button>
           <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
           <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
           <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
@@ -458,6 +485,7 @@ export function renderCampanhas() {
               </td>
               <td>
                 <div class="fg2 camp-actions">
+                  <button class="btn btn-sm" title="Detalhes da campanha" data-click="abrirCampanhaDet('${c.id}')">Detalhes</button>
                   <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
                   <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
                   <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
@@ -469,6 +497,85 @@ export function renderCampanhas() {
       </table>
     </div>
   `;
+}
+
+export function abrirCampanhaDet(campanhaId) {
+  const campanha = getCampanhasCache().find(c => c.id === campanhaId);
+  const box = document.getElementById('campanha-det-box');
+  if (!campanha || !box) return;
+
+  const envios = getEnviosCache().filter(e => e.campanha_id === campanha.id);
+  const fila = envios.filter(e => e.status === 'manual' || e.status === 'pendente');
+  const enviados = envios.filter(e => e.status === 'enviado');
+  const falhas = envios.filter(e => e.status === 'falhou');
+  const recentes = envios
+    .slice()
+    .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')))
+    .slice(0, 5);
+
+  box.innerHTML = `
+    <div class="camp-detail">
+      <div class="camp-detail-head fb">
+        <div>
+          <div class="camp-detail-title">${campanha.nome}</div>
+          <div class="camp-detail-sub">${campanha.tipo || 'aniversario'} • ${labelCanal(campanha.canal)} • ${campanha.ativo ? 'Campanha ativa' : 'Campanha inativa'}</div>
+        </div>
+        <div class="camp-detail-status">
+          ${campanha.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
+          ${badgeSaudeCampanha(campanha, envios)}
+        </div>
+      </div>
+
+      <div class="camp-detail-grid">
+        <div class="camp-detail-kpi">
+          <div class="camp-detail-label">Antecedencia</div>
+          <div class="camp-detail-value">${Number(campanha.dias_antecedencia || 0)} dia(s)</div>
+        </div>
+        <div class="camp-detail-kpi">
+          <div class="camp-detail-label">Oferta</div>
+          <div class="camp-detail-value">${Number(campanha.desconto || 0)}%</div>
+          <div class="camp-detail-meta">${campanha.cupom ? `Cupom ${campanha.cupom}` : 'Sem cupom'}</div>
+        </div>
+        <div class="camp-detail-kpi">
+          <div class="camp-detail-label">Fila</div>
+          <div class="camp-detail-value">${fila.length}</div>
+          <div class="camp-detail-meta">${enviados.length} enviado(s) • ${falhas.length} falha(s)</div>
+        </div>
+      </div>
+
+      <div class="panel camp-detail-section">
+        <div class="pt">Mensagem da campanha</div>
+        <div class="camp-detail-message">${String(campanha.mensagem || '').replace(/\n/g, '<br>')}</div>
+      </div>
+
+      <div class="panel camp-detail-section">
+        <div class="pt">Envios recentes</div>
+        ${recentes.length ? `
+          <div class="camp-detail-list">
+            ${recentes.map(envio => {
+              const cliente = (C() || []).find(c => c.id === envio.cliente_id);
+              return `
+                <div class="camp-detail-row">
+                  <div class="camp-detail-row-main">
+                    <div class="camp-detail-row-title">${cliente?.nome || envio.cliente_id}</div>
+                    <div class="camp-detail-row-sub">${envio.destino || '—'} • ${formatarDataBR(envio.data_ref)}${envio.criado_em ? ` • ${new Date(envio.criado_em).toLocaleString('pt-BR')}` : ''}</div>
+                  </div>
+                  <span class="bdg ${envio.status === 'enviado' ? 'bg' : envio.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(envio.status)}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : `<div class="empty" style="padding:12px"><p>Nenhum envio associado ainda.</p></div>`}
+      </div>
+
+      <div class="camp-detail-actions">
+        <button class="btn" data-click="editarCampanha('${campanha.id}')">Editar campanha</button>
+        <button class="btn btn-p" data-click="gerarFilaCampanha('${campanha.id}')">Gerar fila</button>
+      </div>
+    </div>
+  `;
+
+  abrirModal('modal-campanha-det');
 }
 
 export async function gerarFilaCampanha(campanhaId) {

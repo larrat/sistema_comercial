@@ -5761,6 +5761,189 @@ textarea.inp:focus{
   box-shadow:0 8px 18px rgba(31,72,143,.16);
 }
 
+#modal-campanha .modal-box,
+#modal-campanha-det .modal-box{
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
+}
+
+#modal-campanha .fg{
+  padding:14px 16px;
+  border:1px solid #E2EAF3;
+  border-radius:18px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FAFCFF 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.04);
+}
+
+#modal-campanha textarea.inp{
+  min-height:128px;
+  resize:vertical;
+}
+
+#modal-campanha .modal-actions{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,#FFFFFF 18%,#FFFFFF 100%);
+  padding-top:12px;
+  padding-bottom:12px;
+  margin-top:14px;
+  border-top:1px solid #E5ECF4;
+  backdrop-filter:blur(8px);
+  border-bottom-left-radius:18px;
+  border-bottom-right-radius:18px;
+}
+
+.camp-detail{
+  display:grid;
+  gap:14px;
+}
+
+.camp-detail-head{
+  align-items:flex-start;
+  gap:12px;
+}
+
+.camp-detail-title{
+  font-size:20px;
+  font-weight:700;
+  line-height:1.2;
+  color:var(--tx);
+}
+
+.camp-detail-sub{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--tx2);
+}
+
+.camp-detail-status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.camp-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.camp-detail-kpi{
+  padding:14px 15px;
+  border:1px solid #E4EBF4;
+  border-radius:18px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F6FAFE 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.04);
+  min-width:0;
+}
+
+.camp-detail-label{
+  margin-bottom:8px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--tx3);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+
+.camp-detail-value{
+  font-size:18px;
+  font-weight:700;
+  color:var(--tx);
+  line-height:1.2;
+}
+
+.camp-detail-meta{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--tx2);
+  line-height:1.4;
+}
+
+.camp-detail-section{
+  margin-bottom:0!important;
+}
+
+.camp-detail-message{
+  font-size:13px;
+  line-height:1.7;
+  color:var(--tx);
+  padding:2px 2px 0;
+}
+
+.camp-detail-list{
+  display:grid;
+  gap:10px;
+}
+
+.camp-detail-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 2px;
+  border-bottom:1px solid #E8EFF7;
+}
+
+.camp-detail-row:last-child{
+  border-bottom:none;
+  padding-bottom:2px;
+}
+
+.camp-detail-row-main{
+  flex:1;
+  min-width:0;
+}
+
+.camp-detail-row-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--tx);
+}
+
+.camp-detail-row-sub{
+  margin-top:3px;
+  font-size:11px;
+  color:var(--tx2);
+  line-height:1.45;
+}
+
+.camp-detail-actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  margin-top:4px;
+}
+
+#pg-campanhas #camp-lista .mobile-card,
+#pg-campanhas #camp-wa-fila .mobile-card,
+#pg-campanhas #camp-envios-lista .mobile-card{
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
+}
+
+#pg-campanhas #camp-wa-fila .mobile-card-actions,
+#pg-campanhas #camp-envios-lista .mobile-card-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+
+#pg-campanhas #camp-wa-fila .tw,
+#pg-campanhas #camp-envios-lista .tw{
+  background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
+}
+
+#pg-campanhas #camp-wa-fila .tbl td:last-child .fg2{
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+
+#pg-campanhas #camp-envios-lista .tbl td:nth-child(3),
+#pg-campanhas #camp-wa-fila .tbl td:nth-child(2){
+  font-size:12px;
+  color:var(--tx2);
+}
+
 #modal-prod-det .modal-box{
   background:linear-gradient(180deg,#FFFFFF 0%,#FBFDFF 100%);
 }
@@ -5860,6 +6043,25 @@ textarea.inp:focus{
   #pg-campanhas .mobile-card-actions .btn,
   #pg-campanhas .mobile-card-actions .ib{
     width:100%;
+  }
+
+  #pg-campanhas #camp-wa-fila .mobile-card-actions,
+  #pg-campanhas #camp-envios-lista .mobile-card-actions{
+    grid-template-columns:1fr;
+  }
+
+  .camp-detail-grid{
+    grid-template-columns:1fr;
+  }
+
+  .camp-detail-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .camp-detail-actions .btn{
+    width:100%;
+    justify-content:center;
   }
 
   .prod-detail-grid{

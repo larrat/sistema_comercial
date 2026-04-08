@@ -203,6 +203,7 @@ function getHandlerRegistry(){
       carregarCampanhaEnvios: deps.carregarCampanhaEnvios,
       adotarCampanhasParaFilialAtiva: deps.adotarCampanhasParaFilialAtiva,
       editarCampanha: deps.editarCampanha,
+      abrirCampanhaDet: deps.abrirCampanhaDet,
       removerCampanha: deps.removerCampanhaGuard,
       renderCampanhas: deps.renderCampanhas,
       gerarFilaCampanha: deps.gerarFilaCampanhaTracked,
