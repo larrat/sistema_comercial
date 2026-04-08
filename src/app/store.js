@@ -15,7 +15,8 @@ export const D = {
   jogos: {},
   userPerfis: [],
   userFiliais: [],
-  acessosAudit: []
+  acessosAudit: [],
+  accessUsers: []
 };
 
 // ═══════════════════════════

@@ -520,7 +520,11 @@
       <div class="card">
         <div class="ct">Perfil do usuário</div>
         <div class="fg c3">
-          <div><div class="fl">User ID (UUID)</div><input class="inp" id="ac-user-id" placeholder="00000000-0000-0000-0000-000000000000"></div>
+          <div>
+            <div class="fl">E-mail ou User ID</div>
+            <input class="inp" id="ac-user-id" placeholder="usuario@empresa.com ou UUID" data-change="resolverPerfilAcessoRef()">
+            <div class="field-help" id="ac-user-id-help">Digite o e-mail do usuário para resolver automaticamente.</div>
+          </div>
           <div>
             <div class="fl">Papel</div>
             <select class="inp sel" id="ac-papel">
@@ -539,7 +543,11 @@
       <div class="card">
         <div class="ct">Vínculo usuário x filial</div>
         <div class="fg c3">
-          <div><div class="fl">User ID (UUID)</div><input class="inp" id="ac-v-user-id" placeholder="00000000-0000-0000-0000-000000000000"></div>
+          <div>
+            <div class="fl">E-mail ou User ID</div>
+            <input class="inp" id="ac-v-user-id" placeholder="usuario@empresa.com ou UUID" data-change="resolverVinculoAcessoRef()">
+            <div class="field-help" id="ac-v-user-id-help">Digite o e-mail do usuário para vincular sem precisar copiar UUID.</div>
+          </div>
           <div><div class="fl">Filial</div><select class="inp sel" id="ac-v-filial"></select></div>
           <div class="modal-actions-inline" style="align-items:flex-end">
             <button class="btn btn-p" data-click="vincularUsuarioFilial()">Vincular</button>
@@ -552,7 +560,7 @@
         <div class="toolbar">
           <div class="ct ct-inline">Perfis cadastrados</div>
           <div class="toolbar-main">
-            <input class="inp" id="ac-busca" placeholder="Buscar por user_id..." style="max-width:240px" data-input="renderAcessosPerfis()">
+            <input class="inp" id="ac-busca" placeholder="Buscar por e-mail ou user_id..." style="max-width:240px" data-input="renderAcessosPerfis()">
             <select class="inp sel" id="ac-fil-papel" style="max-width:180px" data-change="renderAcessosPerfis()">
               <option value="todos">Todos papéis</option>
               <option value="admin">Admin</option>

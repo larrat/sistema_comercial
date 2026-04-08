@@ -199,7 +199,9 @@ function getHandlerRegistry(){
       renderAcessosAuditoria: deps.renderAcessosAuditoria,
       changeAcessosPage: deps.changeAcessosPage,
       preencherPerfilAcesso: deps.preencherPerfilAcesso,
-      preencherVinculoAcesso: deps.preencherVinculoAcesso
+      preencherVinculoAcesso: deps.preencherVinculoAcesso,
+      resolverPerfilAcessoRef: deps.resolverPerfilAcessoRef,
+      resolverVinculoAcessoRef: deps.resolverVinculoAcessoRef
     },
     campanhas: {
       abrirNovaCampanha: deps.abrirNovaCampanhaTracked,

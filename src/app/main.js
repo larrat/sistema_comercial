@@ -207,6 +207,8 @@ import {
   changeAcessosPage,
   preencherPerfilAcesso,
   preencherVinculoAcesso,
+  resolverPerfilAcessoRef,
+  resolverVinculoAcessoRef,
   renderAcessosAdmin,
   salvarPerfilAcesso,
   removerPerfilAcesso,
@@ -286,6 +288,7 @@ function resetRuntimeData(){
   D.userPerfis = [];
   D.userFiliais = [];
   D.acessosAudit = [];
+  D.accessUsers = [];
 
   State.FIL = null;
   State.selFil = null;
@@ -624,6 +627,8 @@ startApplicationRuntime({
       changeAcessosPage,
       preencherPerfilAcesso,
       preencherVinculoAcesso,
+      resolverPerfilAcessoRef,
+      resolverVinculoAcessoRef,
       renderNotificacoes,
       executarNotificacao,
       resolverNotificacao,

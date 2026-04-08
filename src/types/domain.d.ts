@@ -170,6 +170,12 @@ export type UserPerfil = {
   atualizado_em?: string;
 };
 
+export type AccessAdminUser = {
+  user_id: Id;
+  email?: string | null;
+  created_at?: string;
+};
+
 export type UserFilial = {
   user_id: Id;
   filial_id: Id;

@@ -12,6 +12,7 @@
 /** @typedef {import('../types/domain').Campanha} Campanha */
 /** @typedef {import('../types/domain').CampanhaEnvio} CampanhaEnvio */
 /** @typedef {import('../types/domain').UserPerfil} UserPerfil */
+/** @typedef {import('../types/domain').AccessAdminUser} AccessAdminUser */
 /** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
 /** @typedef {import('../types/domain').AccessAdminOperationData} AccessAdminOperationData */
 /** @typedef {import('../types/domain').CampanhaFilaResult} CampanhaFilaResult */
@@ -422,6 +423,44 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
   return data;
 }
 
+async function sbRpc(fnName, payload = null) {
+  ensureSupabaseConfig();
+  const operation = `RPC ${fnName}`;
+  const authBearer = await getAuthBearerForRequest();
+
+  let res;
+  try {
+    res = await resilientFetch(`${SB_URL}/rest/v1/rpc/${fnName}`, {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY,
+        Authorization: authBearer,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload || {})
+    });
+  } catch (err) {
+    throw normalizeSbError(err, {
+      code: 'SB_RPC_FAILED',
+      source: 'supabase',
+      operation,
+      resource: fnName
+    });
+  }
+
+  const data = /** @type {any} */ (await readResponseData(res));
+  if (!res.ok) {
+    console.error('Supabase RPC erro', {
+      status: res.status,
+      fnName,
+      data
+    });
+    throw buildSupabaseHttpError(res.status, fnName, operation, { response: data });
+  }
+
+  return data;
+}
+
 async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST', query = null } = {}) {
   ensureSupabaseConfig();
   const session = await getActiveAuthSession();
@@ -586,6 +625,14 @@ export const SB = {
       method: 'GET',
       query: { auditoria_limit }
     }),
+  /** @returns {Promise<AccessAdminUser[]>} */
+  getAcessosAdminUsersIndex: () =>
+    sbRpc('admin_access_users_index'),
+  /** @param {string} email @returns {Promise<AccessAdminUser | null>} */
+  lookupAccessUserByEmail: async email => {
+    const r = /** @type {AccessAdminUser[] | null} */ (await sbRpc('admin_lookup_user_by_email', { p_email: email }));
+    return r && r[0] ? r[0] : null;
+  },
   upsertUserPerfilEdge: ({ user_id, papel, detalhes = {} }) =>
     invokeEdgeFunction('acessos-admin', {
       action: 'perfil_upsert',

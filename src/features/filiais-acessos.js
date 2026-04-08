@@ -2,10 +2,11 @@
 
 import { SB } from '../app/api.js';
 import { D, State } from '../app/store.js';
-import { uid, toast, abrirModal, fecharModal } from '../shared/utils.js';
+import { uid, toast, abrirModal, fecharModal, markFieldState, focusField } from '../shared/utils.js';
 
 /** @typedef {import('../types/domain').FiliaisAcessosModuleDeps} FiliaisAcessosModuleDeps */
 /** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
+/** @typedef {import('../types/domain').AccessAdminUser} AccessAdminUser */
 
 /** @type {(allowedRoles?: string[], denyMessage?: string) => boolean} */
 let requireRoleSafe = () => true;
@@ -39,6 +40,116 @@ export function initFiliaisAcessosModule(deps = {}){
 /** @param {unknown} v */
 function isUuid(v){
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v || '').trim());
+}
+
+/** @param {unknown} v */
+function normalizeEmail(v){
+  return String(v || '').trim().toLowerCase();
+}
+
+/** @param {unknown} v */
+function isEmail(v){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(v));
+}
+
+/**
+ * @param {string} inputId
+ * @param {string} hintId
+ * @param {string} message
+ * @param {'error'|'success'|''} [state='']
+ */
+function setAccessFieldHelp(inputId, hintId, message, state = ''){
+  const hintEl = document.getElementById(hintId);
+  if(hintEl) hintEl.textContent = message || '';
+  if(state){
+    markFieldState(inputId, state);
+    return;
+  }
+  const inputEl = document.getElementById(inputId);
+  if(inputEl) inputEl.classList.remove('is-error', 'is-success');
+}
+
+/**
+ * @param {AccessAdminUser | null | undefined} user
+ */
+function cacheAccessUser(user){
+  if(!user?.user_id) return;
+  if(!Array.isArray(D.accessUsers)) D.accessUsers = [];
+  const email = normalizeEmail(user.email || '');
+  const next = { ...user, email };
+  const idx = D.accessUsers.findIndex(
+    item => item.user_id === next.user_id || (!!email && normalizeEmail(item.email || '') === email)
+  );
+  if(idx >= 0) D.accessUsers[idx] = { ...D.accessUsers[idx], ...next };
+  else D.accessUsers.unshift(next);
+}
+
+/**
+ * @param {string} ref
+ * @returns {AccessAdminUser | null}
+ */
+function findAccessUserByRef(ref){
+  const raw = String(ref || '').trim();
+  if(!raw) return null;
+  if(!Array.isArray(D.accessUsers)) return null;
+  if(isUuid(raw)) return D.accessUsers.find(item => item.user_id === raw) || null;
+  const email = normalizeEmail(raw);
+  if(!isEmail(email)) return null;
+  return D.accessUsers.find(item => normalizeEmail(item.email || '') === email) || null;
+}
+
+/**
+ * @param {string} ref
+ * @param {{ inputId: string, hintId: string, silent?: boolean }} options
+ * @returns {Promise<AccessAdminUser | { user_id: string, email?: string | null } | null>}
+ */
+async function resolveAccessUserRef(ref, { inputId, hintId, silent = false }){
+  const raw = String(ref || '').trim();
+
+  if(!raw){
+    setAccessFieldHelp(inputId, hintId, 'Digite o e-mail do usuário para resolver automaticamente.');
+    return null;
+  }
+
+  if(isUuid(raw)){
+    const cached = findAccessUserByRef(raw);
+    setAccessFieldHelp(
+      inputId,
+      hintId,
+      cached?.email ? `UUID informado. Usuário encontrado: ${cached.email}` : 'UUID informado manualmente.',
+      'success'
+    );
+    return cached || { user_id: raw, email: cached?.email || null };
+  }
+
+  if(!isEmail(raw)){
+    setAccessFieldHelp(inputId, hintId, 'Informe um e-mail válido ou UUID.', 'error');
+    if(!silent) focusField(inputId, { markError: true });
+    return null;
+  }
+
+  const cached = findAccessUserByRef(raw);
+  if(cached){
+    setAccessFieldHelp(inputId, hintId, `Usuário encontrado: ${cached.user_id}`, 'success');
+    return cached;
+  }
+
+  const lookupResult = await SB.toResult(() => SB.lookupAccessUserByEmail(raw));
+  if(!lookupResult.ok){
+    setAccessFieldHelp(inputId, hintId, 'Não foi possível consultar o e-mail. Verifique se a função SQL de lookup foi aplicada.', 'error');
+    if(!silent) toast('Erro ao consultar e-mail de usuário: ' + lookupResult.error.message);
+    return null;
+  }
+
+  if(!lookupResult.data?.user_id){
+    setAccessFieldHelp(inputId, hintId, 'Nenhum usuário do Auth foi encontrado com esse e-mail.', 'error');
+    if(!silent) focusField(inputId, { markError: true });
+    return null;
+  }
+
+  cacheAccessUser(lookupResult.data);
+  setAccessFieldHelp(inputId, hintId, `Usuário encontrado: ${lookupResult.data.user_id}`, 'success');
+  return lookupResult.data;
 }
 
 /**
@@ -247,8 +358,9 @@ export function renderAcessosPerfis(){
   if(!el) return;
   const q = String(document.getElementById('ac-busca')?.value || '').trim().toLowerCase();
   const papel = (document.getElementById('ac-fil-papel')?.value || 'todos').trim();
+  const userMap = new Map((D.accessUsers || []).map(user => [user.user_id, user]));
   let items = D.userPerfis || [];
-  if(q) items = items.filter(x => String(x.user_id || '').toLowerCase().includes(q));
+  if(q) items = items.filter(x => String(x.user_id || '').toLowerCase().includes(q) || normalizeEmail(userMap.get(x.user_id)?.email || '').includes(q));
   if(papel !== 'todos') items = items.filter(x => String(x.papel) === papel);
 
   if(!items.length){
@@ -265,6 +377,7 @@ export function renderAcessosPerfis(){
         <thead>
           <tr>
             <th>User ID</th>
+            <th>E-mail</th>
             <th>Papel</th>
             <th>Atualizado</th>
             <th style="text-align:right">Ação</th>
@@ -274,6 +387,7 @@ export function renderAcessosPerfis(){
           ${p.slice.map(pf => `
             <tr>
               <td><code>${pf.user_id}</code></td>
+              <td style="color:var(--tx2)">${userMap.get(pf.user_id)?.email || '-'}</td>
               <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${pf.papel}</span></td>
               <td>${pf.atualizado_em ? new Date(pf.atualizado_em).toLocaleString('pt-BR') : '-'}</td>
               <td style="text-align:right">
@@ -293,6 +407,7 @@ export function renderAcessosVinculos(){
   if(!el) return;
   const perfMap = new Map((D.userPerfis || []).map(p => [p.user_id, p.papel]));
   const filMap = new Map((D.filiais || []).map(f => [f.id, f.nome]));
+  const userMap = new Map((D.accessUsers || []).map(user => [user.user_id, user]));
   const filtroFilial = (document.getElementById('ac-fil-filial')?.value || 'todas').trim();
   let items = D.userFiliais || [];
   if(filtroFilial !== 'todas') items = items.filter(v => String(v.filial_id) === filtroFilial);
@@ -311,6 +426,7 @@ export function renderAcessosVinculos(){
         <thead>
           <tr>
             <th>User ID</th>
+            <th>E-mail</th>
             <th>Papel</th>
             <th>Filial</th>
             <th style="text-align:right">Ação</th>
@@ -320,6 +436,7 @@ export function renderAcessosVinculos(){
           ${p.slice.map(v => `
             <tr>
               <td><code>${v.user_id}</code></td>
+              <td style="color:var(--tx2)">${userMap.get(v.user_id)?.email || '-'}</td>
               <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
               <td>${filMap.get(v.filial_id) || v.filial_id}</td>
               <td style="text-align:right">
@@ -409,15 +526,19 @@ function preencherFiltroFiliaisAcesso(){
 export function preencherPerfilAcesso(userId, papel){
   const userEl = document.getElementById('ac-user-id');
   const papelEl = document.getElementById('ac-papel');
-  if(userEl) userEl.value = userId || '';
+  const email = findAccessUserByRef(userId)?.email || '';
+  if(userEl) userEl.value = email || userId || '';
   if(papelEl) papelEl.value = papel || 'operador';
+  if(userEl) resolveAccessUserRef(userEl.value, { inputId: 'ac-user-id', hintId: 'ac-user-id-help', silent: true });
 }
 
 export function preencherVinculoAcesso(userId, filialId){
   const userEl = document.getElementById('ac-v-user-id');
   const filialEl = document.getElementById('ac-v-filial');
-  if(userEl) userEl.value = userId || '';
+  const email = findAccessUserByRef(userId)?.email || '';
+  if(userEl) userEl.value = email || userId || '';
   if(filialEl && filialId) filialEl.value = filialId;
+  if(userEl) resolveAccessUserRef(userEl.value, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help', silent: true });
 }
 
 export async function renderAcessosAdmin(){
@@ -453,6 +574,8 @@ export async function renderAcessosAdmin(){
   D.userFiliais = data.vinculos || [];
   D.filiais = data.filiais || D.filiais || [];
   D.acessosAudit = data.auditoria || [];
+  const usersResult = await SB.toResult(() => SB.getAcessosAdminUsersIndex());
+  D.accessUsers = usersResult.ok ? (usersResult.data || []) : [];
 
   State.acPagePerfis = 1;
   State.acPageVinculos = 1;
@@ -466,12 +589,24 @@ export async function renderAcessosAdmin(){
   scheduleRoleUiGuardsSafe();
 }
 
+export async function resolverPerfilAcessoRef(){
+  const ref = (document.getElementById('ac-user-id')?.value || '').trim();
+  await resolveAccessUserRef(ref, { inputId: 'ac-user-id', hintId: 'ac-user-id-help', silent: true });
+}
+
+export async function resolverVinculoAcessoRef(){
+  const ref = (document.getElementById('ac-v-user-id')?.value || '').trim();
+  await resolveAccessUserRef(ref, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help', silent: true });
+}
+
 export async function salvarPerfilAcesso(){
   if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode alterar perfil de acesso.')) return;
-  const userId = (document.getElementById('ac-user-id')?.value || '').trim();
+  const userRef = (document.getElementById('ac-user-id')?.value || '').trim();
   const papel = (document.getElementById('ac-papel')?.value || 'operador').trim();
+  const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-user-id', hintId: 'ac-user-id-help' });
+  const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
+    toast('Informe um e-mail existente ou user_id valido.');
     return;
   }
   if(!appRolesSafe.includes(papel)){
@@ -481,7 +616,7 @@ export async function salvarPerfilAcesso(){
   const saveResult = await SB.toResult(() => SB.upsertUserPerfilEdge({
     user_id: userId,
     papel,
-    detalhes: { origem: 'ui_acessos' }
+    detalhes: { origem: 'ui_acessos', email: resolvedUser?.email || null }
   }));
   if(!saveResult.ok){
     toast('Erro ao salvar perfil: ' + saveResult.error.message);
@@ -493,18 +628,21 @@ export async function salvarPerfilAcesso(){
 
 export async function removerPerfilAcesso(){
   if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode remover perfil de acesso.')) return;
-  const userId = (document.getElementById('ac-user-id')?.value || '').trim();
+  const userRef = (document.getElementById('ac-user-id')?.value || '').trim();
+  const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-user-id', hintId: 'ac-user-id-help' });
+  const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
+    toast('Informe um e-mail existente ou user_id valido.');
     return;
   }
   if(userId === State.user?.id){
-    toast('Não é permitido remover o próprio perfil.');
+    toast('Nao e permitido remover o proprio perfil.');
     return;
   }
-  if(!confirm('Remover perfil deste usuário?')) return;
+  if(!confirm('Remover perfil deste usuario?')) return;
   const deleteResult = await SB.toResult(() => SB.deleteUserPerfilEdge(userId, {
-    origem: 'ui_acessos'
+    origem: 'ui_acessos',
+    email: resolvedUser?.email || null
   }));
   if(!deleteResult.ok){
     toast('Erro ao remover perfil: ' + deleteResult.error.message);
@@ -515,45 +653,49 @@ export async function removerPerfilAcesso(){
 }
 
 export async function vincularUsuarioFilial(){
-  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode vincular usuário a filial.')) return;
-  const userId = (document.getElementById('ac-v-user-id')?.value || '').trim();
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode vincular usuario a filial.')) return;
+  const userRef = (document.getElementById('ac-v-user-id')?.value || '').trim();
   const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
+  const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help' });
+  const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
+    toast('Informe um e-mail existente ou user_id valido.');
     return;
   }
   if(!filialId){
     toast('Selecione a filial.');
     return;
   }
-  const saveResult = await SB.toResult(() => SB.upsertUserFilialEdge({ user_id: userId, filial_id: filialId, detalhes: { origem: 'ui_acessos' } }));
+  const saveResult = await SB.toResult(() => SB.upsertUserFilialEdge({ user_id: userId, filial_id: filialId, detalhes: { origem: 'ui_acessos', email: resolvedUser?.email || null } }));
   if(!saveResult.ok){
-    toast('Erro ao vincular usuário: ' + saveResult.error.message);
+    toast('Erro ao vincular usuario: ' + saveResult.error.message);
     return;
   }
-  toast('Vínculo salvo com sucesso.');
+  toast('Vinculo salvo com sucesso.');
   await renderAcessosAdmin();
 }
 
 export async function desvincularUsuarioFilial(){
-  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode desvincular usuário de filial.')) return;
-  const userId = (document.getElementById('ac-v-user-id')?.value || '').trim();
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode desvincular usuario de filial.')) return;
+  const userRef = (document.getElementById('ac-v-user-id')?.value || '').trim();
   const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
+  const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help' });
+  const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um user_id válido (UUID).');
+    toast('Informe um e-mail existente ou user_id valido.');
     return;
   }
   if(!filialId){
     toast('Selecione a filial.');
     return;
   }
-  if(!confirm('Desvincular usuário desta filial?')) return;
-  const deleteResult = await SB.toResult(() => SB.deleteUserFilialEdge(userId, filialId, { origem: 'ui_acessos' }));
+  if(!confirm('Desvincular usuario desta filial?')) return;
+  const deleteResult = await SB.toResult(() => SB.deleteUserFilialEdge(userId, filialId, { origem: 'ui_acessos', email: resolvedUser?.email || null }));
   if(!deleteResult.ok){
-    toast('Erro ao desvincular usuário: ' + deleteResult.error.message);
+    toast('Erro ao desvincular usuario: ' + deleteResult.error.message);
     return;
   }
-  toast('Vínculo removido com sucesso.');
+  toast('Vinculo removido com sucesso.');
   await renderAcessosAdmin();
 }
 
