@@ -3,6 +3,18 @@
 /** @typedef {import('../types/domain').AuthSession} AuthSession */
 /** @typedef {import('../types/domain').SbApiError} SbApiError */
 /** @typedef {import('../types/domain').SbResult<unknown>} UnknownSbResult */
+/** @typedef {import('../types/domain').Filial} Filial */
+/** @typedef {import('../types/domain').Produto} Produto */
+/** @typedef {import('../types/domain').Cliente} Cliente */
+/** @typedef {import('../types/domain').Pedido} Pedido */
+/** @typedef {import('../types/domain').Fornecedor} Fornecedor */
+/** @typedef {import('../types/domain').JogoAgenda} JogoAgenda */
+/** @typedef {import('../types/domain').Campanha} Campanha */
+/** @typedef {import('../types/domain').CampanhaEnvio} CampanhaEnvio */
+/** @typedef {import('../types/domain').UserPerfil} UserPerfil */
+/** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
+/** @typedef {import('../types/domain').AccessAdminOperationData} AccessAdminOperationData */
+/** @typedef {import('../types/domain').CampanhaFilaResult} CampanhaFilaResult */
 
 const LEGACY_DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
 const LEGACY_DEFAULT_SB_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
@@ -565,8 +577,10 @@ export const SB = {
     );
     return r && r[0] ? r[0] : null;
   },
+  /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminOperationData>} */
   acessosAdminEdge: payload =>
     invokeEdgeFunction('acessos-admin', payload),
+  /** @param {{ auditoria_limit?: number }} [params] @returns {Promise<AccessAdminReadData>} */
   getAcessosAdminReadEdge: ({ auditoria_limit = 100 } = {}) =>
     invokeEdgeFunction('acessos-admin-read', null, {
       method: 'GET',
@@ -634,23 +648,28 @@ export const SB = {
     return data;
   },
   invokeEdgeFunction,
+  /** @returns {Promise<Filial[]>} */
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: id => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
 
+  /** @param {string} fid @returns {Promise<Produto[]>} */
   getProdutos: fid => sbReq('produtos', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
   upsertProduto: p => sbReq('produtos', 'POST', p, '?on_conflict=id'),
   upsertProdutosLote: items => sbReq('produtos', 'POST', items, '?on_conflict=id'),
   deleteProduto: id => sbReq(`produtos?id=eq.${id}`, 'DELETE'),
 
+  /** @param {string} fid @returns {Promise<Cliente[]>} */
   getClientes: fid => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
   upsertCliente: c => sbReq('clientes', 'POST', c, '?on_conflict=id'),
   deleteCliente: id => sbReq(`clientes?id=eq.${id}`, 'DELETE'),
 
+  /** @param {string} fid @returns {Promise<Pedido[]>} */
   getPedidos: fid => sbReq('pedidos', 'GET', null, `?filial_id=eq.${fid}&order=num.desc`),
   upsertPedido: p => sbReq('pedidos', 'POST', p, '?on_conflict=id'),
   deletePedido: id => sbReq(`pedidos?id=eq.${id}`, 'DELETE'),
 
+  /** @param {string} fid @returns {Promise<Fornecedor[]>} */
   getFornecedores: fid => sbReq('fornecedores', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
   upsertFornecedor: f => sbReq('fornecedores', 'POST', f, '?on_conflict=id'),
   deleteFornecedor: id => sbReq(`fornecedores?id=eq.${id}`, 'DELETE'),
@@ -699,6 +718,7 @@ export const SB = {
   // =====================================================
   // AGENDA DE JOGOS
   // =====================================================
+  /** @param {string} fid @returns {Promise<JogoAgenda[]>} */
   getJogosAgenda: fid =>
     sbReq('jogos_agenda', 'GET', null, `?filial_id=eq.${fid}&order=data_hora.asc`),
 
@@ -711,12 +731,15 @@ export const SB = {
   // =====================================================
   // CAMPANHAS
   // =====================================================
+  /** @param {string} fid @returns {Promise<Campanha[]>} */
   getCampanhas: fid =>
     sbReq('campanhas', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
 
+  /** @returns {Promise<Campanha[]>} */
   getCampanhasAll: () =>
     sbReq('campanhas', 'GET', null, '?order=criado_em.desc'),
 
+  /** @param {string} id @returns {Promise<Campanha | null>} */
   getCampanhaById: async id => {
     const r = await sbReq('campanhas', 'GET', null, `?id=eq.${id}&limit=1`);
     return r && r[0] ? r[0] : null;
@@ -726,6 +749,7 @@ export const SB = {
 
   deleteCampanha: id => sbReq(`campanhas?id=eq.${id}`, 'DELETE'),
 
+  /** @param {string} fid @returns {Promise<Campanha[]>} */
   getCampanhasAtivasAniversario: fid =>
     sbReq(
       'campanhas',
@@ -737,15 +761,19 @@ export const SB = {
   // =====================================================
   // CAMPANHA_ENVIOS
   // =====================================================
+  /** @param {string} fid @returns {Promise<CampanhaEnvio[]>} */
   getCampanhaEnvios: fid =>
     sbReq('campanha_envios', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
 
+  /** @param {string} campanhaId @returns {Promise<CampanhaEnvio[]>} */
   getCampanhaEnviosByCampanha: campanhaId =>
     sbReq('campanha_envios', 'GET', null, `?campanha_id=eq.${campanhaId}&order=criado_em.desc`),
 
+  /** @param {string} clienteId @returns {Promise<CampanhaEnvio[]>} */
   getCampanhaEnviosByCliente: clienteId =>
     sbReq('campanha_envios', 'GET', null, `?cliente_id=eq.${clienteId}&order=criado_em.desc`),
 
+  /** @param {string} fid @returns {Promise<CampanhaEnvio[]>} */
   getCampanhaEnviosPendentes: fid =>
     sbReq(
       'campanha_envios',
@@ -780,6 +808,7 @@ export const SB = {
     ));
     return !!(r && r.length);
   },
+  /** @param {string} campanha_id @param {boolean} [dry_run=false] @returns {Promise<CampanhaFilaResult>} */
   gerarFilaCampanhaEdge: (campanha_id, dry_run = false) =>
     invokeEdgeFunction('campanhas-gerar-fila', { campanha_id, dry_run }),
 

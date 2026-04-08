@@ -7,17 +7,19 @@ import { MSG, SEVERITY } from '../shared/messages.js';
 
 /** @typedef {import('../types/domain').Campanha} Campanha */
 /** @typedef {import('../types/domain').CampanhaEnvio} CampanhaEnvio */
-
-/** @type {{
- *   filialId: string | null;
- *   carregadasFilial: number;
- *   totalBanco: number | null;
- *   outrasFiliais: number | null;
- *   candidatasOutrasFiliais: Campanha[];
- *   origem: string;
- *   erro: string | null;
- * }}
+/** @typedef {import('../types/domain').CampanhaFilaResult} CampanhaFilaResult */
+/**
+ * @typedef {object} CampanhaDiagnostico
+ * @property {string | null} filialId
+ * @property {number} carregadasFilial
+ * @property {number | null} totalBanco
+ * @property {number | null} outrasFiliais
+ * @property {Campanha[]} candidatasOutrasFiliais
+ * @property {string} origem
+ * @property {string | null} erro
  */
+
+/** @type {CampanhaDiagnostico} */
 let campDiag = {
   filialId: null,
   carregadasFilial: 0,
@@ -599,7 +601,16 @@ export async function gerarFilaCampanha(campanhaId) {
     return;
   }
 
-  const resumo = queueResult.data || {};
+  /** @type {CampanhaFilaResult} */
+  const resumo = queueResult.data || {
+    campanha_id: campanhaId,
+    filial_id: State.FIL,
+    dry_run: false,
+    criados: 0,
+    ignorados: 0,
+    falhas: 0,
+    total_elegiveis: 0
+  };
   await carregarCampanhaEnvios();
   renderCampanhasMet();
   renderFilaWhatsApp();

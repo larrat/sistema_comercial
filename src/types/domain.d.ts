@@ -33,6 +33,17 @@ export type Filial = {
   criado_em?: string;
 };
 
+export type Fornecedor = {
+  id: Id;
+  filial_id?: Id | null;
+  nome: string;
+  contato?: string;
+  tel?: string;
+  email?: string;
+  obs?: string;
+  criado_em?: string;
+};
+
 export type Produto = {
   id: Id;
   filial_id?: Id | null;
@@ -136,6 +147,71 @@ export type CampanhaEnvio = {
   criado_em?: string;
   enviado_em?: string | null;
   erro?: string | null;
+};
+
+export type JogoAgenda = {
+  id: Id;
+  filial_id?: Id | null;
+  titulo: string;
+  campeonato?: string | null;
+  data_hora?: string | null;
+  mandante?: string | null;
+  visitante?: string | null;
+  local?: string | null;
+  status?: string | null;
+};
+
+export type UserPerfil = {
+  user_id: Id;
+  papel: string;
+  criado_em?: string;
+  atualizado_em?: string;
+};
+
+export type UserFilial = {
+  user_id: Id;
+  filial_id: Id;
+  criado_em?: string;
+};
+
+export type AcessoAuditoria = {
+  id?: Id;
+  ator_user_id?: Id | null;
+  acao?: string;
+  recurso?: string;
+  alvo_user_id?: Id | null;
+  alvo_filial_id?: Id | null;
+  detalhes?: Record<string, unknown> | null;
+  criado_em?: string;
+};
+
+export type AccessAdminReadData = {
+  ator_user_id: Id;
+  papel: string;
+  perfis: UserPerfil[];
+  vinculos: UserFilial[];
+  filiais: Filial[];
+  auditoria: AcessoAuditoria[];
+  auditoria_limit: number;
+};
+
+export type AccessAdminOperationData = {
+  action: string;
+  ator_user_id: Id;
+  alvo_user_id: Id;
+  alvo_filial_id?: Id | null;
+  recurso: string;
+  result: unknown;
+};
+
+export type CampanhaFilaResult = {
+  campanha_id: Id;
+  filial_id?: Id | null;
+  dry_run: boolean;
+  criados: number;
+  ignorados: number;
+  falhas: number;
+  total_elegiveis: number;
 };
 
 export type ScreenDom = {

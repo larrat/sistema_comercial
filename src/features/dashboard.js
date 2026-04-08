@@ -9,6 +9,19 @@ import { getOportunidadesJogosDaFilial, syncHistoricoOportunidadesJogos } from '
 
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
 /** @typedef {import('../types/domain').DashboardModuleCallbacks} DashboardModuleCallbacks */
+/** @typedef {import('../types/domain').JogoAgenda} JogoAgenda */
+/**
+ * @typedef {object} OportunidadeJogo
+ * @property {string} id
+ * @property {string | null} cliente_id
+ * @property {string} cliente
+ * @property {string} time
+ * @property {string | null} jogo_id
+ * @property {JogoAgenda} jogo
+ * @property {Date} data
+ * @property {string} mes_ref
+ * @property {string} ano_ref
+ */
 
 /** @type {NonNullable<DashboardModuleCallbacks['calcSaldosMulti']>} */
 let calcSaldosMultiSafe = () => ({});
@@ -473,6 +486,7 @@ export function renderDash(){
     ah += `<div class="alert al-g"><b>Aniversarios proximos:</b> ${anivProximos.length} cliente(s) nos proximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? '...' : ''}</div>`;
   }
 
+  /** @type {OportunidadeJogo[]} */
   const oportunidades = getOportunidadesJogosDaFilial(fsel, { serie: serieSel });
   syncHistoricoOportunidadesJogos(fsel, oportunidades);
 
