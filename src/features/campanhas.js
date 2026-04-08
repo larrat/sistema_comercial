@@ -30,6 +30,10 @@ let campDiag = {
   erro: null
 };
 
+const campUiState = {
+  waSelecionados: new Set()
+};
+
 /** @returns {Campanha[]} */
 function getCampanhasCache() {
   if (!D.campanhas) D.campanhas = {};
@@ -85,6 +89,56 @@ function labelStatusEnvio(status){
   return key || 'â€”';
 }
 
+export async function marcarSelecionadosEnviados() {
+  const selecionados = getFilaWhatsAppSelecionados();
+  if (!selecionados.length) {
+    notify('Selecione pelo menos um envio da fila para marcar como enviado.', SEVERITY.INFO);
+    return;
+  }
+
+  for (const envio of selecionados) {
+    // eslint-disable-next-line no-await-in-loop
+    await marcarEnvioEnviado(envio.id);
+  }
+
+  campUiState.waSelecionados.clear();
+  renderFilaWhatsApp();
+}
+
+export async function marcarSelecionadosFalhou() {
+  const selecionados = getFilaWhatsAppSelecionados();
+  if (!selecionados.length) {
+    notify('Selecione pelo menos um envio da fila para marcar como falhou.', SEVERITY.INFO);
+    return;
+  }
+
+  const motivo = prompt('Informe o motivo da falha para os envios selecionados:', '') || null;
+
+  for (const envio of selecionados) {
+    const payload = {
+      ...envio,
+      status: 'falhou',
+      erro: motivo
+    };
+
+    // eslint-disable-next-line no-await-in-loop
+    const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
+    if (!updateResult.ok) {
+      notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
+      continue;
+    }
+
+    const idx = getEnviosCache().findIndex(e => e.id === envio.id);
+    if (idx >= 0) getEnviosCache()[idx] = payload;
+  }
+
+  campUiState.waSelecionados.clear();
+  renderCampanhasMet();
+  renderFilaWhatsApp();
+  renderCampanhaEnvios();
+  notify('AtenÃ§Ã£o: envios selecionados marcados como falhos.', SEVERITY.WARNING);
+}
+
 function badgeSaudeCampanha(campanha, envios){
   if(!campanha?.ativo) return '<span class="bdg br">Inativa</span>';
   const fila = (envios || []).filter(e => e.campanha_id === campanha.id && (e.status === 'manual' || e.status === 'pendente')).length;
@@ -106,6 +160,80 @@ function setInputValue(id, value) {
 
 function getInputValue(id) {
   return document.getElementById(id)?.value ?? '';
+}
+
+function getClientePreviewCampanha() {
+  const clientes = C() || [];
+  return clientes[0] || null;
+}
+
+function formatarValorPct(v) {
+  const num = Number(v || 0);
+  return Number.isFinite(num) ? `${num}%` : '0%';
+}
+
+function substituirTokensCampanha(template, campanha = {}) {
+  const cliente = getClientePreviewCampanha();
+  const nome = String(cliente?.nome || 'Cliente especial').trim();
+  const primeiroNome = nome.split(/\s+/)[0] || nome;
+  const hoje = new Date();
+  const validade = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 7)
+    .toLocaleDateString('pt-BR');
+  const values = {
+    nome,
+    apelido: primeiroNome,
+    primeiro_nome: primeiroNome,
+    desconto: formatarValorPct(campanha.desconto),
+    cupom: campanha.cupom || 'SEM-CUPOM',
+    validade
+  };
+
+  return String(template || '').replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_, key) => {
+    const value = values[key];
+    return value == null ? '' : String(value);
+  });
+}
+
+function limparSelecaoFilaInexistente(envios) {
+  const idsAtuais = new Set((envios || []).map(e => e.id));
+  campUiState.waSelecionados.forEach(id => {
+    if (!idsAtuais.has(id)) campUiState.waSelecionados.delete(id);
+  });
+}
+
+function getEnviosHistoricoFiltrados() {
+  const busca = String(getInputValue('camp-envios-busca') || '').trim().toLowerCase();
+  const status = String(getInputValue('camp-envios-fil-status') || '').trim();
+  const canal = String(getInputValue('camp-envios-fil-canal') || '').trim();
+
+  return getEnviosCache()
+    .slice()
+    .filter(e => !status || String(e.status || '') === status)
+    .filter(e => !canal || String(e.canal || '') === canal)
+    .filter(e => {
+      if (!busca) return true;
+      const cliente = (C() || []).find(c => c.id === e.cliente_id);
+      const haystack = [
+        cliente?.nome,
+        e.destino,
+        e.cliente_id,
+        e.mensagem
+      ].join(' ').toLowerCase();
+      return haystack.includes(busca);
+    })
+    .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
+}
+
+function getFilaWhatsApp() {
+  return getEnviosCache()
+    .filter(e => e.canal === 'whatsapp_manual')
+    .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
+}
+
+function getFilaWhatsAppSelecionados() {
+  const envios = getFilaWhatsApp().filter(e => campUiState.waSelecionados.has(e.id));
+  limparSelecaoFilaInexistente(getFilaWhatsApp());
+  return envios;
 }
 
 function renderCampDiag() {
@@ -265,6 +393,7 @@ export function limparFormCampanha() {
 
   const ativo = document.getElementById('camp-ativo');
   if (ativo) ativo.checked = true;
+  renderCampanhaPreview();
 }
 
 export function abrirNovaCampanha() {
@@ -294,7 +423,35 @@ export function editarCampanha(id) {
   const ativo = document.getElementById('camp-ativo');
   if (ativo) ativo.checked = !!campanha.ativo;
 
+  renderCampanhaPreview();
   abrirModal('modal-campanha');
+}
+
+export function renderCampanhaPreview() {
+  const el = document.getElementById('camp-preview');
+  if (!el) return;
+
+  const nome = getInputValue('camp-nome').trim();
+  const mensagem = getInputValue('camp-mensagem').trim();
+  const assunto = getInputValue('camp-assunto').trim();
+  const cupom = getInputValue('camp-cupom').trim();
+  const desconto = Number(getInputValue('camp-desconto') || 0);
+  const cliente = getClientePreviewCampanha();
+  const preview = substituirTokensCampanha(mensagem, { cupom, desconto });
+
+  el.innerHTML = `
+    <div class="camp-preview-head">
+      <div>
+        <div class="camp-preview-title">${nome || 'Campanha sem nome'}</div>
+        <div class="camp-preview-sub">${cliente?.nome || 'Cliente exemplo da filial ativa'}${assunto ? ` • ${assunto}` : ''}</div>
+      </div>
+      <div class="camp-preview-tags">
+        ${desconto ? `<span class="bdg bb">${formatarValorPct(desconto)}</span>` : ''}
+        ${cupom ? `<span class="bdg bk">${cupom}</span>` : ''}
+      </div>
+    </div>
+    <div class="camp-preview-body">${String(preview || 'Digite a mensagem para ver o preview.').replace(/\n/g, '<br>')}</div>
+  `;
 }
 
 export async function salvarCampanha() {
@@ -633,12 +790,11 @@ export async function gerarFilaCampanha(campanhaId) {
 }
 
 export function renderFilaWhatsApp() {
-  const envios = getEnviosCache()
-    .filter(e => e.canal === 'whatsapp_manual')
-    .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
+  const envios = getFilaWhatsApp();
 
   const el = document.getElementById('camp-wa-fila');
   if (!el) return;
+  limparSelecaoFilaInexistente(envios);
 
   if (!envios.length) {
     el.innerHTML = `<div class="empty"><div class="ico">💬</div><p>Nenhum WhatsApp pendente.</p></div>`;
@@ -647,6 +803,7 @@ export function renderFilaWhatsApp() {
 
   const pendentes = envios.filter(e => e.status === 'manual' || e.status === 'pendente').length;
   const falhas = envios.filter(e => e.status === 'falhou').length;
+  const selecionados = envios.filter(e => campUiState.waSelecionados.has(e.id)).length;
   const isMobile = window.matchMedia('(max-width: 1280px)').matches;
 
   if(isMobile){
@@ -654,6 +811,7 @@ export function renderFilaWhatsApp() {
       <div class="camp-quick">
         <span class="bdg bb">Pendentes: ${pendentes}</span>
         <span class="bdg br">Falhas: ${falhas}</span>
+        <span class="bdg bk">Selecionados: ${selecionados}</span>
       </div>
       ${envios.map(e => {
         const cliente = (C() || []).find(c => c.id === e.cliente_id);
@@ -665,11 +823,12 @@ export function renderFilaWhatsApp() {
                 <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
                 <div class="mobile-card-sub">${campanha?.nome || '—'} • ${formatarDataBR(e.data_ref)}</div>
               </div>
-              <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span>
+              <label class="camp-select-chip"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"><span>Selecionar</span></label>
             </div>
             <div class="mobile-card-meta">
               <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
               <div>Canal: <b style="color:var(--tx2)">${labelCanal(e.canal)}</b></div>
+              <div>Status: <b style="color:var(--tx2)">${labelStatusEnvio(e.status)}</b></div>
             </div>
             <div class="mobile-card-actions">
               <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
@@ -687,11 +846,13 @@ export function renderFilaWhatsApp() {
     <div class="camp-quick">
       <span class="bdg bb">Pendentes: ${pendentes}</span>
       <span class="bdg br">Falhas: ${falhas}</span>
+      <span class="bdg bk">Selecionados: ${selecionados}</span>
     </div>
     <div class="tw">
       <table class="tbl">
         <thead>
           <tr>
+            <th style="width:48px;text-align:center">Sel</th>
             <th>Cliente</th>
             <th>Destino</th>
             <th>Campanha</th>
@@ -707,11 +868,12 @@ export function renderFilaWhatsApp() {
 
             return `
               <tr>
+                <td style="text-align:center"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"></td>
                 <td style="font-weight:600">${cliente?.nome || e.cliente_id}</td>
                 <td>${e.destino || '—'}</td>
                 <td>${campanha?.nome || '—'}</td>
                 <td>${formatarDataBR(e.data_ref)}</td>
-                <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span></td>
+                <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
                 <td>
                   <div class="fg2">
                     <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
@@ -729,7 +891,7 @@ export function renderFilaWhatsApp() {
 }
 
 export function renderCampanhaEnvios() {
-  const envios = getEnviosCache().slice().sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
+  const envios = getEnviosHistoricoFiltrados();
   const el = document.getElementById('camp-envios-lista');
   if (!el) return;
 
@@ -749,7 +911,7 @@ export function renderCampanhaEnvios() {
               <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
               <div class="mobile-card-sub">${labelCanal(e.canal)} • ${formatarDataBR(e.data_ref)}</div>
             </div>
-            <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span>
+            <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span>
           </div>
           <div class="mobile-card-meta">
             <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
@@ -782,7 +944,7 @@ export function renderCampanhaEnvios() {
                 <td style="font-weight:600">${cliente?.nome || e.cliente_id}</td>
                 <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
                 <td>${e.destino || '—'}</td>
-                <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span></td>
+                <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
                 <td>${formatarDataBR(e.data_ref)}</td>
                 <td>${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</td>
               </tr>
@@ -808,6 +970,37 @@ export async function abrirWhatsAppEnvio(envioId) {
 
   const url = buildWhatsAppUrl(envio.destino, envio.mensagem);
   window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+export function toggleEnvioFilaSelecionado(envioId) {
+  if (campUiState.waSelecionados.has(envioId)) campUiState.waSelecionados.delete(envioId);
+  else campUiState.waSelecionados.add(envioId);
+  renderFilaWhatsApp();
+}
+
+export function toggleSelecionarTodosFilaWhatsApp() {
+  const elegiveis = getFilaWhatsApp().filter(e => e.status === 'manual' || e.status === 'pendente');
+  const todosSelecionados = elegiveis.length > 0 && elegiveis.every(e => campUiState.waSelecionados.has(e.id));
+
+  if (todosSelecionados) elegiveis.forEach(e => campUiState.waSelecionados.delete(e.id));
+  else elegiveis.forEach(e => campUiState.waSelecionados.add(e.id));
+
+  renderFilaWhatsApp();
+}
+
+export function abrirWhatsAppLote() {
+  const selecionados = getFilaWhatsAppSelecionados();
+  if (!selecionados.length) {
+    notify('Selecione pelo menos um envio da fila para abrir em lote.', SEVERITY.INFO);
+    return;
+  }
+
+  selecionados.forEach(envio => {
+    if (!envio.destino) return;
+    window.open(buildWhatsAppUrl(envio.destino, envio.mensagem), '_blank', 'noopener,noreferrer');
+  });
+
+  notify(`Sucesso: ${selecionados.length} conversa(s) abertas em lote.`, SEVERITY.SUCCESS);
 }
 
 export async function marcarEnvioEnviado(envioId) {

@@ -126,12 +126,18 @@ import {
   removerCampanha,
   renderCampanhasMet,
   renderCampanhas,
+  renderCampanhaPreview,
   gerarFilaCampanha,
   renderFilaWhatsApp,
   renderCampanhaEnvios,
+  toggleEnvioFilaSelecionado,
+  toggleSelecionarTodosFilaWhatsApp,
   abrirWhatsAppEnvio,
+  abrirWhatsAppLote,
   marcarEnvioEnviado,
-  marcarEnvioFalhou
+  marcarEnvioFalhou,
+  marcarSelecionadosEnviados,
+  marcarSelecionadosFalhou
 } from '../features/campanhas.js';
 
 import {
@@ -460,6 +466,8 @@ const sincronizarJogosDashboardGuard = buildRoleGuard(sincronizarJogosDashboard,
 const removerCampanhaGuard = buildRoleGuard(removerCampanha, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover campanha.');
 const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
+const marcarSelecionadosEnviadosGuard = buildRoleGuard(marcarSelecionadosEnviados, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
+const marcarSelecionadosFalhouGuard = buildRoleGuard(marcarSelecionadosFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
 
 registerApplicationModules({
   registry: AppModules,
@@ -653,12 +661,18 @@ startApplicationRuntime({
       abrirCampanhaDet,
       removerCampanhaGuard,
       renderCampanhas,
+      renderCampanhaPreview,
       gerarFilaCampanhaTracked,
       renderFilaWhatsApp,
       renderCampanhaEnvios,
+      toggleEnvioFilaSelecionado,
+      toggleSelecionarTodosFilaWhatsApp,
       abrirWhatsAppEnvio,
+      abrirWhatsAppLote,
       marcarEnvioEnviadoGuard,
       marcarEnvioFalhouGuard,
+      marcarSelecionadosEnviadosGuard,
+      marcarSelecionadosFalhouGuard,
       salvarJogoDashboardGuard,
       usarExemploSyncJogos,
       sincronizarJogosDashboardGuard,

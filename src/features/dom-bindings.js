@@ -211,12 +211,18 @@ function getHandlerRegistry(){
       abrirCampanhaDet: deps.abrirCampanhaDet,
       removerCampanha: deps.removerCampanhaGuard,
       renderCampanhas: deps.renderCampanhas,
+      renderCampanhaPreview: deps.renderCampanhaPreview,
       gerarFilaCampanha: deps.gerarFilaCampanhaTracked,
       renderFilaWhatsApp: deps.renderFilaWhatsApp,
       renderCampanhaEnvios: deps.renderCampanhaEnvios,
+      toggleEnvioFilaSelecionado: deps.toggleEnvioFilaSelecionado,
+      toggleSelecionarTodosFilaWhatsApp: deps.toggleSelecionarTodosFilaWhatsApp,
       abrirWhatsAppEnvio: deps.abrirWhatsAppEnvio,
+      abrirWhatsAppLote: deps.abrirWhatsAppLote,
       marcarEnvioEnviado: deps.marcarEnvioEnviadoGuard,
-      marcarEnvioFalhou: deps.marcarEnvioFalhouGuard
+      marcarEnvioFalhou: deps.marcarEnvioFalhouGuard,
+      marcarSelecionadosEnviados: deps.marcarSelecionadosEnviadosGuard,
+      marcarSelecionadosFalhou: deps.marcarSelecionadosFalhouGuard
     },
     notificacoes: {
       renderNotificacoes: deps.renderNotificacoes,

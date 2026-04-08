@@ -6030,6 +6030,82 @@ textarea.inp:focus{
   resize:vertical;
 }
 
+#modal-campanha .camp-preview-panel{
+  margin-top:14px;
+  border:1px solid #E2EAF3;
+  border-radius:20px;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F8FBFF 100%);
+}
+
+.camp-preview-hint{
+  margin-top:4px;
+  font-size:12px;
+  color:var(--tx2);
+}
+
+.camp-preview{
+  margin-top:12px;
+  padding:14px 16px;
+  border:1px dashed rgba(31,72,143,.22);
+  border-radius:16px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F7FAFE 100%);
+}
+
+.camp-preview-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.camp-preview-title{
+  font-size:15px;
+  font-weight:700;
+  color:var(--tx);
+}
+
+.camp-preview-sub{
+  margin-top:3px;
+  font-size:12px;
+  color:var(--tx2);
+}
+
+.camp-preview-tags{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.camp-preview-body{
+  font-size:13px;
+  line-height:1.7;
+  color:var(--tx);
+}
+
+.camp-select-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border:1px solid rgba(31,72,143,.18);
+  border-radius:999px;
+  background:#F8FBFF;
+  font-size:11px;
+  font-weight:700;
+  color:var(--tx2);
+}
+
+.camp-select-chip input{
+  margin:0;
+}
+
+#pg-campanhas #camp-wa-fila input[type="checkbox"]{
+  width:16px;
+  height:16px;
+  accent-color:#2F63F4;
+}
+
 #modal-campanha .modal-actions{
   position:sticky;
   bottom:0;
@@ -6313,6 +6389,10 @@ textarea.inp:focus{
   .camp-detail-actions .btn{
     width:100%;
     justify-content:center;
+  }
+
+  .camp-preview-head{
+    flex-direction:column;
   }
 
   .prod-detail-grid{

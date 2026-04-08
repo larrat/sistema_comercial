@@ -430,11 +430,37 @@
 
       <div class="card">
         <div class="ct">Fila de WhatsApp manual</div>
+        <div class="toolbar" style="margin-bottom:12px">
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" data-click="toggleSelecionarTodosFilaWhatsApp()">Selecionar todos</button>
+            <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
+            <button class="btn btn-sm" data-click="marcarSelecionadosEnviados()">Marcar enviados</button>
+            <button class="btn btn-sm" data-click="marcarSelecionadosFalhou()">Marcar falhou</button>
+          </div>
+        </div>
         <div id="camp-wa-fila"></div>
       </div>
 
       <div class="card">
         <div class="ct">Histórico de envios</div>
+        <div class="toolbar" style="margin-bottom:12px">
+          <div class="toolbar-main">
+            <input class="inp" id="camp-envios-busca" placeholder="Buscar cliente ou destino..." style="max-width:240px" data-input="renderCampanhaEnvios()">
+            <select class="inp sel" id="camp-envios-fil-status" style="max-width:170px" data-change="renderCampanhaEnvios()">
+              <option value="">Todos status</option>
+              <option value="manual">Manual</option>
+              <option value="pendente">Pendente</option>
+              <option value="enviado">Enviado</option>
+              <option value="falhou">Falhou</option>
+            </select>
+            <select class="inp sel" id="camp-envios-fil-canal" style="max-width:180px" data-change="renderCampanhaEnvios()">
+              <option value="">Todos canais</option>
+              <option value="whatsapp_manual">WhatsApp manual</option>
+              <option value="email">E-mail</option>
+              <option value="sms">SMS</option>
+            </select>
+          </div>
+        </div>
         <div id="camp-envios-lista"></div>
       </div>
     </div>
@@ -694,13 +720,17 @@
 <div class="modal-wrap" id="modal-cliente">
   <div class="modal-bg" data-click="fecharModal('modal-cliente')"></div>
   <div class="modal-box">
-    <div class="mt" id="cli-modal-titulo">Novo cliente</div>
-    <div class="flow-head">
+    <div class="modal-shell">
+      <div class="modal-shell-head">
+        <div class="mt" id="cli-modal-titulo">Novo cliente</div>
+        <div class="flow-head">
       <button class="flow-chip on" type="button" data-flow-chip="cli" data-step="1" data-click="setFlowStep('cli',1)">1 Dados</button>
       <button class="flow-chip" type="button" data-flow-chip="cli" data-step="2" data-click="setFlowStep('cli',2)">2 Comercial</button>
       <button class="flow-chip" type="button" data-flow-chip="cli" data-step="3" data-click="setFlowStep('cli',3)">3 Marketing</button>
       <button class="flow-chip" type="button" data-flow-chip="cli" data-step="4" data-click="setFlowStep('cli',4)">4 Resumo</button>
-    </div>
+        </div>
+      </div>
+      <div class="modal-shell-body">
 
     <div class="flow-step on" data-flow-id="cli" data-step="1">
       <div class="fg c2"><div><div class="fl">Nome / Razao social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
@@ -740,11 +770,15 @@
       </div>
     </div>
 
-    <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="cli-flow-prev" data-flow="cli" data-flow-nav="-1">< Voltar</button>
-      <button class="btn btn-sm" type="button" id="cli-flow-next" data-flow="cli" data-flow-nav="1">Proximo ></button>
+        <div class="flow-nav">
+          <button class="btn btn-sm" type="button" id="cli-flow-prev" data-flow="cli" data-flow-nav="-1">< Voltar</button>
+          <button class="btn btn-sm" type="button" id="cli-flow-next" data-flow="cli" data-flow-nav="1">Proximo ></button>
+        </div>
+      </div>
+      <div class="modal-shell-foot">
+        <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">Salvar</button></div>
+      </div>
     </div>
-    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">Salvar</button></div>
   </div>
 </div>
 
@@ -811,30 +845,35 @@
     <div class="mt" id="campanha-modal-titulo">Nova campanha</div>
 
     <div class="fg c2">
-      <div><div class="fl">Nome *</div><input class="inp" id="camp-nome" placeholder="Ex: Aniversariantes do mes"></div>
+      <div><div class="fl">Nome *</div><input class="inp" id="camp-nome" placeholder="Ex: Aniversariantes do mes" data-input="renderCampanhaPreview()"></div>
       <div><div class="fl">Tipo</div><select class="inp sel" id="camp-tipo"><option value="aniversario">Aniversario</option></select></div>
     </div>
 
     <div class="fg c3">
       <div>
         <div class="fl">Canal</div>
-        <select class="inp sel" id="camp-canal">
+        <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
           <option value="whatsapp_manual">WhatsApp manual</option>
           <option value="email">E-mail</option>
           <option value="sms">SMS</option>
         </select>
       </div>
-      <div><div class="fl">Dias de antecedencia</div><input class="inp" id="camp-dias" type="number" min="0" step="1"></div>
+      <div><div class="fl">Dias de antecedencia</div><input class="inp" id="camp-dias" type="number" min="0" step="1" data-input="renderCampanhaPreview()"></div>
       <div><div class="fl">Ativa</div><label style="display:flex;align-items:center;gap:8px;height:36px;padding:0 2px"><input id="camp-ativo" type="checkbox" checked> <span style="font-size:13px;color:var(--tx2)">Campanha habilitada</span></label></div>
     </div>
 
     <div class="fg c2">
-      <div><div class="fl">Cupom</div><input class="inp" id="camp-cupom" placeholder="NIVER10"></div>
-      <div><div class="fl">Desconto (%)</div><input class="inp" id="camp-desconto" type="number" min="0" step="0.1"></div>
+      <div><div class="fl">Cupom</div><input class="inp" id="camp-cupom" placeholder="NIVER10" data-input="renderCampanhaPreview()"></div>
+      <div><div class="fl">Desconto (%)</div><input class="inp" id="camp-desconto" type="number" min="0" step="0.1" data-input="renderCampanhaPreview()"></div>
     </div>
 
-    <div class="fg"><div><div class="fl">Assunto (opcional)</div><input class="inp" id="camp-assunto" placeholder="Feliz aniversario!"></div></div>
-    <div class="fg"><div><div class="fl">Mensagem *</div><textarea class="inp" id="camp-mensagem" rows="6" placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"></textarea></div></div>
+    <div class="fg"><div><div class="fl">Assunto (opcional)</div><input class="inp" id="camp-assunto" placeholder="Feliz aniversario!" data-input="renderCampanhaPreview()"></div></div>
+    <div class="fg"><div><div class="fl">Mensagem *</div><textarea class="inp" id="camp-mensagem" rows="6" placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}" data-input="renderCampanhaPreview()"></textarea></div></div>
+    <div class="panel camp-preview-panel">
+      <div class="pt">Preview vivo da mensagem</div>
+      <div class="camp-preview-hint">Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.</div>
+      <div class="camp-preview" id="camp-preview"></div>
+    </div>
 
     <div class="div"></div>
     <div class="modal-actions">
