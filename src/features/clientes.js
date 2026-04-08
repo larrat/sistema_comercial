@@ -59,7 +59,7 @@ const ST_B = {
 const ST_PED = {
   orcamento:'<span class="bdg bk">Orcamento</span>',
   confirmado:'<span class="bdg bb">Confirmado</span>',
-  em_separacao:'<span class="bdg ba">Em separacao</span>',
+  em_separacao:'<span class="bdg ba">Em separação</span>',
   entregue:'<span class="bdg bg">Entregue</span>',
   cancelado:'<span class="bdg br">Cancelado</span>'
 };

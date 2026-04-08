@@ -316,7 +316,7 @@ export function renderEstHist(){
   if(!el) return;
 
   if(!movs.length){
-    estDom.html('history', 'est-hist', `<div class="empty"><div class="ico">MV</div><p>Nenhuma movimentacao.</p></div>`, 'estoque:hist-vazio');
+    estDom.html('history', 'est-hist', `<div class="empty"><div class="ico">MV</div><p>Nenhuma movimentação.</p></div>`, 'estoque:hist-vazio');
     return;
   }
 
@@ -353,7 +353,7 @@ export function renderEstHist(){
             <div>Obs: <b class="table-cell-muted">${m.obs || '-'}</b></div>
           </div>
           <div class="mobile-card-actions">
-            <button class="btn btn-sm" title="Excluir movimentacao" data-click="excluirMov('${m.id}')">Excluir</button>
+            <button class="btn btn-sm" title="Excluir movimentação" data-click="excluirMov('${m.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -397,7 +397,7 @@ export function renderEstHist(){
                 <td class="table-cell-strong" style="color:${cor}">${qShow} ${p ? p.un : ''}</td>
                 <td class="table-cell-muted">${m.custo > 0 ? fmt(m.custo) : '-'}</td>
                 <td class="table-cell-caption table-cell-muted">${m.obs || '-'}</td>
-                <td><button class="btn btn-sm" title="Excluir movimentacao" data-click="excluirMov('${m.id}')">Excluir</button></td>
+                <td><button class="btn btn-sm" title="Excluir movimentação" data-click="excluirMov('${m.id}')">Excluir</button></td>
               </tr>
             `;
           }).join('')}
@@ -408,7 +408,7 @@ export function renderEstHist(){
 }
 
 export async function excluirMov(id){
-  if(!confirm('Excluir movimentacao?')) return;
+  if(!confirm('Excluir movimentação?')) return;
 
   try{
     await SB.deleteMov(id);
@@ -718,6 +718,6 @@ export async function salvarMov(){
   renderEstAlerts();
   renderEstHist();
 
-  toast('Movimentacao registrada!');
+  toast('Movimentação registrada!');
 }
 

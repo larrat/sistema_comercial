@@ -468,14 +468,14 @@ export function renderMetasNegocio(){
   el.innerHTML = `
     <div class="dash-goals-grid">
       <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Tempo de acoes criticas</div><span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div><div style="font-size:11px;color:var(--tx3)">Atual ${formatMs(s.currentAvg)} · Meta 20%</div></div>
-      <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Retrabalho por erro visual</div><span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div><div style="font-size:11px;color:var(--tx3)">Validacao ${s.m.errors.validation} · Operacao ${s.m.errors.operation}</div></div>
+      <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Retrabalho por erro visual</div><span class="bdg ${retrabalhoMeta >= 100 ? 'bg' : 'ba'}">${s.erroRate.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${retrabalhoMeta}%;background:var(--a)"></div></div><div style="font-size:11px;color:var(--tx3)">Validação ${s.m.errors.validation} · Operação ${s.m.errors.operation}</div></div>
       <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Uso de acoes estrategicas</div><span class="bdg ${s.strategicProgress >= 100 ? 'bg' : 'bb'}">${s.strategicTotal}</span></div><div class="sbar"><div class="sbar-f" style="width:${s.strategicProgress}%;background:var(--g)"></div></div><div style="font-size:11px;color:var(--tx3)">Camp ${s.m.strategic.campanhas} · Noti ${s.m.strategic.notificacoes} · Opp ${s.m.strategic.oportunidades}</div></div>
       <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Consistencia entre modulos</div><span class="bdg ${s.consistencyProgress >= 100 ? 'bg' : 'ba'}">${s.consistencyDone}/4</span></div><div class="sbar"><div class="sbar-f" style="width:${s.consistencyProgress}%;background:var(--acc)"></div></div><div style="font-size:11px;color:var(--tx3)">Dashboard · Clientes · Campanhas · Pedidos</div></div>
     </div>
     <div class="dash-goals-foot">
       <span class="bdg ${mobileMeta >= 70 ? 'bg' : 'ba'}">Mobile ${s.mobileCompletionRate.toFixed(1)}%</span>
       <span class="bdg ${clickMeta >= 80 ? 'bg' : 'ba'}">Cliques ${s.avgClicksPrimary.toFixed(1)}</span>
-      <span class="bdg ${notiMeta >= 70 ? 'bg' : 'ba'}">Notificacoes ${s.notiResolutionRate.toFixed(1)}%</span>
+      <span class="bdg ${notiMeta >= 70 ? 'bg' : 'ba'}">Notificações ${s.notiResolutionRate.toFixed(1)}%</span>
       <span class="bdg bk">${clickResumo}</span>
       <span class="bdg bk">Exec ${s.notiExec} · Res ${s.notiResolved} · Reab ${s.notiReopened}</span>
     </div>

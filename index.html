@@ -82,14 +82,14 @@
         <div class="nl">Principal</div>
         <button class="ni on" data-p="dashboard" data-label="Dashboard" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
         <button class="ni" data-p="gerencial" data-label="Gerencial" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
-        <button class="ni" data-p="relatorios" data-label="Relatorios" data-click="ir('relatorios')"><span class="ico">RL</span>Relatorios</button>
+        <button class="ni" data-p="relatorios" data-label="Relatorios" data-click="ir('relatorios')"><span class="ico">RL</span>Relatórios</button>
       </section>
       <section class="sb-group" data-group="Operacao">
-        <div class="nl">Operacao</div>
+        <div class="nl">Operação</div>
         <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')"><span class="ico">PR</span>Produtos</button>
         <button class="ni" data-p="clientes" data-label="Clientes" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
         <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
-        <button class="ni" data-p="cotacao" data-label="Cotacao" data-click="ir('cotacao')"><span class="ico">CT</span>Cotacao</button>
+        <button class="ni" data-p="cotacao" data-label="Cotacao" data-click="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
         <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb is-hidden" id="est-badge">!</span></button>
         <button class="ni" data-p="campanhas" data-label="Campanhas" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
         <button class="ni" data-p="notificacoes" data-label="Alertas" data-click="ir('notificacoes')"><span class="ico">NT</span>Alertas <span class="nb is-hidden" id="noti-badge">!</span></button>
@@ -117,7 +117,7 @@
       <div>
         <div class="app-topbar-kicker" id="app-kicker">Workspace</div>
         <div class="app-topbar-title" id="app-title">Dashboard</div>
-        <div class="app-topbar-sub" id="app-sub">Visao geral e oportunidades</div>
+        <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
       </div>
       <div class="app-topbar-actions">
         <button class="btn btn-sm" id="app-act-secondary" type="button">Acao 2</button>
@@ -149,7 +149,7 @@
 
       <section class="dash-section dash-section--operacao">
         <div class="dash-section-head">
-          <h3>Operacao rapida</h3>
+          <h3>Operação rápida</h3>
           <p>Acoes que precisam de decisao agora</p>
         </div>
         <div id="dash-alerts"></div>
@@ -337,7 +337,7 @@
       <div class="toolbar">
         <div class="toolbar-main">
           <input class="inp input-w-sm" id="ped-busca" placeholder="Cliente ou numero..." data-input="renderPedidos()">
-          <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
+          <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
         </div>
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
@@ -351,7 +351,7 @@
       <div class="tabs">
         <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
         <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
-        <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotacao</button>
+        <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
       </div>
       <div class="tc on" id="cot-tc-importar">
         <div class="card">
@@ -362,7 +362,7 @@
           </div>
         <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div class="upload-drop-icon">ARQ</div><strong class="upload-drop-title">Clique ou arraste o arquivo</strong><p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p></div>
         </div>
-        <div class="card"><div class="ct">Historico de importacoes</div><div id="cot-logs"></div></div>
+        <div class="card"><div class="ct">Histórico de importações</div><div id="cot-logs"></div></div>
       </div>
       <div class="tc" id="cot-tc-fornecedores">
       <div class="fb form-gap-bottom"><span></span><button class="btn btn-p" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
@@ -376,7 +376,7 @@
             <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
           </div>
         </div>
-        <div id="cot-lock-alert" class="alert al-a is-hidden">Cotacao travada | valores protegidos</div>
+        <div id="cot-lock-alert" class="alert al-a is-hidden">Cotação travada | valores protegidos</div>
         <div class="card"><div id="cot-tabela"></div></div>
       </div>
     </div>
@@ -607,7 +607,7 @@
   <nav class="mob-nav">
     <div class="mob-items">
       <button class="mob-btn on" id="mob-dashboard" data-click="ir('dashboard')"><span class="mico">DS</span>Início</button>
-      <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')"><span class="mico">GR</span>Gestao</button>
+      <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')"><span class="mico">GR</span>Gestão</button>
       <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
       <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')"><span class="mico">CP</span>Camp.</button>
       <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')"><span class="mico">NT</span>Alertas</button>
@@ -818,7 +818,7 @@
         <div class="fg c3">
           <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente"><datalist id="cli-dl"></datalist></div>
           <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
-          <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orcamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separacao</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+          <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
         </div>
         <div class="fg c3">
           <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">A vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartao</option><option value="cheque">Cheque</option></select></div>
@@ -869,7 +869,7 @@
       <div class="modal-shell-body">
         <div class="fg c2">
           <div><div class="fl">Nome *</div><input class="inp" id="camp-nome" placeholder="Ex: Aniversariantes do mes" data-input="renderCampanhaPreview()"></div>
-          <div><div class="fl">Tipo</div><select class="inp sel" id="camp-tipo"><option value="aniversario">Aniversario</option></select></div>
+          <div><div class="fl">Tipo</div><select class="inp sel" id="camp-tipo"><option value="aniversario">Aniversário</option></select></div>
         </div>
 
         <div class="fg c3">
@@ -951,7 +951,7 @@
     </div>
     <div class="fg">
       <div>
-        <div class="fl">Observacao</div>
+        <div class="fl">Observação</div>
         <textarea class="inp" id="rel-val-obs" rows="3" placeholder="Ex: oportunidade convertida em venda apos o jogo"></textarea>
       </div>
     </div>
@@ -986,7 +986,7 @@
   </div>
 </div>
 
-<!-- Sincronizacao de jogos -->
+<!-- Sincronização de jogos -->
 <div class="modal-wrap" id="modal-jogo-sync">
   <div class="modal-bg" data-click="fecharModal('modal-jogo-sync')"></div>
   <div class="modal-box">
@@ -1020,7 +1020,7 @@
   </div>
 </div>
 
-<!-- Fornecedor cotacao -->
+<!-- Fornecedor cotação -->
 <div class="modal-wrap" id="modal-forn">
   <div class="modal-bg" data-click="fecharModal('modal-forn')"></div>
   <div class="modal-box">
@@ -1040,11 +1040,11 @@
   </div>
 </div>
 
-<!-- Movimentacao estoque -->
+<!-- Movimentação estoque -->
 <div class="modal-wrap" id="modal-mov">
   <div class="modal-bg" data-click="fecharModal('modal-mov')"></div>
   <div class="modal-box">
-    <div class="mt">Nova movimentacao</div>
+    <div class="mt">Nova movimentação</div>
     <div class="tc-grid">
       <div class="tc-card sel" id="tc-entrada" data-click="setTipo('entrada')"><div class="ti">EN</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
       <div class="tc-card" id="tc-saida" data-click="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saida</div><div class="ts">Venda / consumo</div></div>
@@ -1063,7 +1063,7 @@
     <div id="mov-ajuste-row" class="fg is-hidden"><div><div class="fl">Saldo real (contagem fisica)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
     <div id="mov-transf-row" class="fg is-hidden"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">- selecione -</option></select></div></div>
     <div id="mov-preview" class="panel is-hidden"><div class="pt">Previa</div><div class="panel-inline-metrics"><span>Novo saldo: <b id="mp-saldo">-</b></span><span>Custo medio: <b id="mp-cm">-</b></span><span id="mp-val-wrap">Total: <b id="mp-val">-</b></span></div></div>
-    <div class="fg"><div><div class="fl">Observacao</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referencia..."></div></div>
+    <div class="fg"><div><div class="fl">Observação</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referência..."></div></div>
     <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" data-click="salvarMov()">Confirmar</button></div>
   </div>
 </div>

@@ -35,7 +35,7 @@ export function renderCotLogs(){
   const logs = /** @type {CotacaoLog[]} */ (CCFG().logs || []);
 
   if(!logs.length){
-    el.innerHTML = '<div class="empty empty-inline"><p>Nenhuma importacao ainda.</p></div>';
+    el.innerHTML = '<div class="empty empty-inline"><p>Nenhuma importação ainda.</p></div>';
     return;
   }
 
@@ -178,7 +178,7 @@ export function cotLock(){
   if(alert) alert.style.display = cot.locked ? 'flex' : 'none';
 
   renderCotTabela();
-  toast(cot.locked ? 'Cotacao travada!' : 'Cotacao destravada.');
+  toast(cot.locked ? 'Cotação travada!' : 'Cotação destravada.');
 }
 
 export function renderCotTabela(){
@@ -193,7 +193,7 @@ export function renderCotTabela(){
   if(!el || !mc) return;
 
   if(!prods.length || !forns.length){
-    el.innerHTML = `<div class="empty"><div class="ico">COT</div><p>Adicione produtos e fornecedores para iniciar a cotacao.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">COT</div><p>Adicione produtos e fornecedores para iniciar a cotação.</p></div>`;
     mc.innerHTML = '';
     return;
   }

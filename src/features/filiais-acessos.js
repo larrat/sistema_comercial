@@ -408,7 +408,7 @@ export function renderAcessosPerfis(){
         <thead>
           <tr>
             <th>User ID</th>
-            <th>Usuario</th>
+            <th>Usuário</th>
             <th>Papel</th>
             <th>Atualizado</th>
             <th class="table-align-right">Ação</th>
@@ -460,7 +460,7 @@ export function renderAcessosVinculos(){
         <thead>
           <tr>
             <th>User ID</th>
-            <th>Usuario</th>
+            <th>Usuário</th>
             <th>Papel</th>
             <th>Filial</th>
             <th class="table-align-right">Ação</th>
@@ -830,7 +830,7 @@ export async function convidarUsuarioAcesso(){
     'ac-invite-email-help',
     inviteData.user_created
       ? 'Convite enviado e acesso configurado com sucesso.'
-      : 'Usuario existente reaproveitado e acesso configurado com sucesso.',
+      : 'Usuário existente reaproveitado e acesso configurado com sucesso.',
     'success'
   );
 
@@ -843,7 +843,7 @@ export async function convidarUsuarioAcesso(){
   if(vinculoUserEl) vinculoUserEl.value = email;
   if(vinculoFilialEl && filialId) vinculoFilialEl.value = filialId;
 
-  toast(inviteData.user_created ? 'Convite enviado e acesso configurado.' : 'Usuario existente configurado com sucesso.');
+  toast(inviteData.user_created ? 'Convite enviado e acesso configurado.' : 'Usuário existente configurado com sucesso.');
   await renderAcessosAdmin();
 }
 

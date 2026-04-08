@@ -79,17 +79,17 @@ function getQuickCommands(){
     { cmd: '/ produtos', label: 'Abrir Produtos', run: () => deps.ir?.('produtos') },
     { cmd: '/ clientes', label: 'Abrir Clientes', run: () => deps.ir?.('clientes') },
     { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => deps.ir?.('pedidos') },
-    { cmd: '/ cotacao', label: 'Abrir Cotacao', run: () => deps.ir?.('cotacao') },
+    { cmd: '/ cotacao', label: 'Abrir Cotação', run: () => deps.ir?.('cotacao') },
     { cmd: '/ estoque', label: 'Abrir Estoque', run: () => deps.ir?.('estoque') },
     { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => deps.ir?.('campanhas') },
     { cmd: '/ acessos', label: 'Abrir Acessos', run: () => deps.ir?.('acessos') },
-    { cmd: '/ notificacoes', label: 'Abrir Notificacoes', run: () => deps.ir?.('notificacoes') },
+    { cmd: '/ notificacoes', label: 'Abrir Notificações', run: () => deps.ir?.('notificacoes') },
     { cmd: '/ filiais', label: 'Abrir Filiais', run: () => deps.ir?.('filiais') },
     { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { deps.limparFormPedTracked?.(); deps.abrirModal?.('modal-pedido'); } },
     { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { deps.limparFormCliTracked?.(); deps.abrirModal?.('modal-cliente'); } },
     { cmd: '/ novo produto', label: 'Novo Produto', run: () => { deps.limparFormProdTracked?.(); deps.abrirModal?.('modal-produto'); } },
     { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => deps.abrirNovaCampanhaTracked?.() },
-    { cmd: '/ nova mov', label: 'Nova Movimentacao', run: () => { deps.resetMov?.(); deps.abrirModal?.('modal-mov'); } },
+    { cmd: '/ nova mov', label: 'Nova Movimentação', run: () => { deps.resetMov?.(); deps.abrirModal?.('modal-mov'); } },
     { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => deps.abrirSyncJogos?.() },
     { cmd: '/ auditoria visual', label: 'Auditoria Visual', run: () => executarAuditoriaVisual() },
     { cmd: '/ auditoria aceite', label: 'Auditoria de Aceite', run: () => executarAuditoriaAceite() }
@@ -295,7 +295,7 @@ function renderFlowSummary(flow){
       <div class="fg2 form-gap-bottom-xs gap-6">${checkHtml}</div>
       <div class="fg c2"><div><div class="fl">Cliente</div><div><b>${nome || '—'}</b></div></div><div><div class="fl">Apelido</div><div>${flowVal('c-apelido')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Documento / Tipo</div><div>${flowVal('c-doc')} • ${flowVal('c-tipo')}</div></div><div><div class="fl">Status</div><div>${flowVal('c-status')}</div></div></div>
-      <div class="fg c2"><div><div class="fl">Contato</div><div>${flowVal('c-tel')} • ${flowVal('c-whatsapp')} • ${flowVal('c-email')}</div></div><div><div class="fl">Aniversario</div><div>${flowVal('c-aniv')}</div></div></div>
+      <div class="fg c2"><div><div class="fl">Contato</div><div>${flowVal('c-tel')} • ${flowVal('c-whatsapp')} • ${flowVal('c-email')}</div></div><div><div class="fl">Aniversário</div><div>${flowVal('c-aniv')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Comercial</div><div>${flowVal('c-seg')} • ${flowVal('c-tab')} • ${flowVal('c-prazo')}</div></div><div><div class="fl">Time(s)</div><div>${flowVal('c-time')}</div></div></div>
       <div class="fg c2"><div><div class="fl">Cidade / Estado</div><div>${flowVal('c-cidade')} • ${flowVal('c-estado')}</div></div><div><div class="fl">Opt-ins</div><div>${optins || 'Nenhum'}</div></div></div>
       <div class="panel form-gap-top-xs"><div class="pt">Impacto comercial</div><div>Canal(is) disponivel(is): <b>${canais}</b></div><div class="form-gap-top-xxs">Pronto para campanhas: <b>${(optinMkt && contatoCount > 0) ? 'Sim' : 'Parcial'}</b></div></div>

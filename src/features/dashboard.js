@@ -493,7 +493,7 @@ export function renderDash(){
   const clientesSemAniversario = Math.max(0, clientesFilial.length - clientesComAniversario.length);
 
   if(clientesFilial.length && clientesSemAniversario > 0){
-    ah += `<div class="alert al-a"><b>Aniversario pendente:</b> ${clientesSemAniversario} cliente(s) sem data de aniversario cadastrada.</div>`;
+    ah += `<div class="alert al-a"><b>Aniversário pendente:</b> ${clientesSemAniversario} cliente(s) sem data de aniversário cadastrada.</div>`;
   }
 
   if(anivProximos.length){
@@ -505,7 +505,7 @@ export function renderDash(){
       if(typeof dias === 'number' && dias > 1) return `${nome} em ${dias} dias`;
       return nome;
     }).join(', ');
-    ah += `<div class="alert al-g"><b>Aniversarios proximos:</b> ${resumoAniversarios}${anivProximos.length > 3 ? '...' : ''}</div>`;
+    ah += `<div class="alert al-g"><b>Aniversários próximos:</b> ${resumoAniversarios}${anivProximos.length > 3 ? '...' : ''}</div>`;
   }
 
   /** @type {OportunidadeJogo[]} */
@@ -587,7 +587,7 @@ export function renderDash(){
   const stLbl = {
     orcamento:'Orcamento',
     confirmado:'Confirmado',
-    em_separacao:'Em separacao',
+    em_separacao:'Em separação',
     entregue:'Entregue',
     cancelado:'Cancelado'
   };
@@ -1007,7 +1007,7 @@ export function renderDashJogos(fsel = 'todas'){
     console.error('Erro ao limpar jogos expirados da agenda', e);
   });
   ensureJogosAutoSync(filialId).catch(e => {
-    console.error('Erro na sincronizacao automatica de jogos', e);
+    console.error('Erro na sincronização automática de jogos', e);
   });
 
   const agoraMs = Date.now();

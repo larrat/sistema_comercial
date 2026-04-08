@@ -144,7 +144,7 @@ function buildCampanhaNotifications(){
     prioridade: 'atencao',
     origem: 'campanhas',
     titulo: `Fila de campanhas com ${pendentes.length} envio(s) pendente(s)`,
-    descricao: 'Existe fila manual ou pendente aguardando acao.',
+    descricao: 'Existe fila manual ou pendente aguardando ação.',
     meta: 'Campanhas',
     acaoLabel: 'Abrir campanhas',
     acao: () => irSafe('campanhas')
@@ -295,7 +295,7 @@ export function resolverNotificacao(id){
   }
   renderNotificacoes();
   updateNotiBadge();
-  toast('Notificacao movida para historico.');
+  toast('Notificação movida para histórico.');
 }
 
 /**
@@ -388,7 +388,7 @@ export function renderNotificacoes(){
 
   notiCache = ativos;
   if(!ativos.length){
-    lista.innerHTML = `<div class="empty"><div class="ico">Inbox</div><p>Nenhuma notificacao ativa para o filtro selecionado.</p></div>`;
+    lista.innerHTML = `<div class="empty"><div class="ico">Inbox</div><p>Nenhuma notificação ativa para o filtro selecionado.</p></div>`;
   }else{
     lista.innerHTML = ativos.map(n => `
       <div class="noti-item ${n.prioridade}">
@@ -409,7 +409,7 @@ export function renderNotificacoes(){
   }
 
   if(!hist.length){
-    histEl.innerHTML = `<div class="empty"><div class="ico">Historico</div><p>Sem historico ainda.</p></div>`;
+    histEl.innerHTML = `<div class="empty"><div class="ico">Hist?rico</div><p>Sem hist?rico ainda.</p></div>`;
     return;
   }
 

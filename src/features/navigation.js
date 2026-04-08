@@ -130,7 +130,7 @@ const PAGE_META = {
   dashboard: {
     kicker: 'Resumo',
     title: 'Dashboard',
-    sub: 'Visao geral da filial',
+    sub: 'Visão geral da filial',
     primary: { label: 'Novo pedido', run: () => { deps.limparFormPedTracked(); deps.abrirModal('modal-pedido'); } },
     secondary: { label: 'Novo cliente', run: () => { deps.limparFormCliTracked(); deps.abrirModal('modal-cliente'); } },
     tertiary: { label: 'Novo produto', run: () => { deps.limparFormProdTracked(); deps.abrirModal('modal-produto'); } }
@@ -145,9 +145,9 @@ const PAGE_META = {
   },
   relatorios: {
     kicker: 'Analitico',
-    title: 'Relatorios',
-    sub: 'Oportunidades por jogos e conversao comercial',
-    primary: { label: 'Atualizar relatorio', run: () => deps.renderRelatorios() },
+    title: 'Relatórios',
+    sub: 'Oportunidades por jogos e conversão comercial',
+    primary: { label: 'Atualizar relatório', run: () => deps.renderRelatorios() },
     secondary: { label: 'Ir dashboard', run: () => ir('dashboard') },
     tertiary: { label: 'Ir pedidos', run: () => ir('pedidos') }
   },
@@ -177,17 +177,17 @@ const PAGE_META = {
   },
   cotacao: {
     kicker: 'Compras',
-    title: 'Cotacao',
+    title: 'Cotação',
     sub: 'Fornecedores e precos',
     primary: { label: 'Novo fornecedor', run: () => deps.abrirModal('modal-forn') },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('cotacao'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Travar/Destravar', run: () => deps.cotLock() }
   },
   estoque: {
-    kicker: 'Operacao',
+    kicker: 'Operação',
     title: 'Estoque',
-    sub: 'Saldo e movimentacoes',
-    primary: { label: 'Nova movimentacao', run: () => { deps.resetMov(); deps.abrirModal('modal-mov'); } },
+    sub: 'Saldo e movimentações',
+    primary: { label: 'Nova movimentação', run: () => { deps.resetMov(); deps.abrirModal('modal-mov'); } },
     secondary: { label: 'Exportar CSV', run: () => deps.exportCSV('estoque'), roles: deps.roleManagerPlus },
     tertiary: { label: 'Ir produtos', run: () => ir('produtos') }
   },
@@ -210,15 +210,15 @@ const PAGE_META = {
   acessos: {
     kicker: 'Sistema',
     title: 'Acessos',
-    sub: 'Perfis e permissoes',
+    sub: 'Perfis e permissões',
     primary: { label: 'Atualizar', run: () => deps.renderAcessosAdmin(), roles: deps.roleAdminOnly },
     secondary: { label: 'Ir filiais', run: () => ir('filiais'), roles: deps.roleAdminOnly },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   notificacoes: {
     kicker: 'Alertas',
-    title: 'Notificacoes',
-    sub: 'Criticos, atencao e oportunidade',
+    title: 'Notificações',
+    sub: 'Críticos, atenção e oportunidade',
     primary: { label: 'Resolver todas', run: () => deps.resolverTodasNotificacoesTracked() },
     secondary: { label: 'Atualizar', run: () => deps.renderNotificacoes() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
@@ -325,7 +325,7 @@ export function syncSidebarContext(meta){
   const sub = document.getElementById('sb-context-sub');
   if(kicker) kicker.textContent = meta?.kicker || 'Resumo';
   if(title) title.textContent = meta?.title || 'Dashboard';
-  if(sub) sub.textContent = meta?.sub || 'Visao geral';
+  if(sub) sub.textContent = meta?.sub || 'Visão geral';
 }
 
 export function filterSidebarNav(raw = ''){
@@ -568,7 +568,7 @@ export function ir(page){
   document.body.dataset.navState = 'navigating';
   let nextPage = page;
   if(!deps.canAccessPage(nextPage)){
-    toast('Voce nao tem permissao para acessar esta area.');
+    toast('Você não tem permissão para acessar esta área.');
     nextPage = deps.getFirstAllowedPage('dashboard');
   }
   fecharSb();

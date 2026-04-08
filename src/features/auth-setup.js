@@ -144,9 +144,9 @@ export function ensureCurrentPageAccess(){
 
 /**
  * @param {string[]} [allowedRoles=[]]
- * @param {string} [denyMessage='Voce nao tem permissao para esta acao.']
+ * @param {string} [denyMessage='Você não tem permissão para esta ação.']
  */
-export function requireRole(allowedRoles = [], denyMessage = 'Voce nao tem permissao para esta acao.'){
+export function requireRole(allowedRoles = [], denyMessage = 'Você não tem permissão para esta ação.'){
   if(hasRole(allowedRoles)) return true;
   toast(denyMessage);
   return false;
@@ -189,7 +189,7 @@ function setRoleUiLock(el, locked){
     if(el.dataset.rolePrevTitle != null){
       el.title = el.dataset.rolePrevTitle;
       delete el.dataset.rolePrevTitle;
-    }else if(el.title === 'Sem permissao para esta acao.'){
+    }else if(el.title === 'Sem permissão para esta ação.'){
       el.removeAttribute('title');
     }
     return;
@@ -203,7 +203,7 @@ function setRoleUiLock(el, locked){
   if(el.dataset.rolePrevTitle == null){
     el.dataset.rolePrevTitle = el.title || '';
   }
-  el.title = 'Sem permissao para esta acao.';
+  el.title = 'Sem permissão para esta ação.';
   if('disabled' in el){
     el.disabled = true;
   }else{
