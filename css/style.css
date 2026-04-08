@@ -3260,3 +3260,207 @@ textarea.inp:focus{
     min-height:42px;
   }
 }
+
+/* =========================================================
+   PAGE HARMONIZATION - COTACAO / PEDIDOS / CAMPANHAS
+   ========================================================= */
+#pg-cotacao .tabs,
+#pg-campanhas .toolbar,
+#pg-pedidos .toolbar{
+  margin-bottom:14px;
+}
+
+#pg-cotacao .card,
+#pg-pedidos .card,
+#pg-campanhas .card{
+  border-color:var(--shell-border);
+  box-shadow:var(--shadow-sm);
+}
+
+#pg-cotacao .ct,
+#pg-campanhas .ct{
+  margin-bottom:12px;
+}
+
+#cot-tc-importar .card:first-child{
+  background:linear-gradient(180deg,#FCFEFF 0%,#F7FAFF 100%);
+}
+
+#cot-tc-importar .upz{
+  min-height:180px;
+  border:1px dashed rgba(31,72,143,.22);
+  border-radius:var(--radius-lg);
+  background:linear-gradient(180deg,#FBFDFF 0%,#F3F8FF 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+#cot-tc-importar .upz strong{
+  color:var(--text-strong);
+  letter-spacing:.01em;
+}
+
+#cot-logs .empty-inline{
+  justify-content:flex-start;
+  min-height:auto;
+  padding:8px 0;
+  background:transparent;
+  border:none;
+}
+
+#cot-logs .cot-log-row:last-child{
+  border-bottom:none!important;
+  padding-bottom:0!important;
+}
+
+#cot-logs .cot-log-meta{
+  gap:6px;
+}
+
+#pg-cotacao #cot-tc-cotacao > .fb{
+  align-items:flex-start;
+  gap:12px;
+}
+
+#pg-cotacao #cot-met .met{
+  min-width:150px;
+}
+
+#pg-cotacao #cot-lock-alert{
+  margin-bottom:12px;
+}
+
+#pg-cotacao .cot-table td{
+  vertical-align:middle;
+}
+
+#pg-cotacao .cot-table .inp{
+  min-height:36px;
+  padding:7px 8px;
+  border-radius:var(--radius-sm);
+}
+
+#pg-pedidos #ped-lista .tw,
+#pg-pedidos .ped-items-wrap{
+  overflow-x:auto;
+}
+
+#pg-pedidos #ped-met .met{
+  min-width:145px;
+}
+
+#pg-pedidos .mobile-card{
+  border-color:rgba(15,23,42,.08);
+}
+
+#pg-pedidos .mobile-card-head{
+  margin-bottom:10px;
+}
+
+#pg-pedidos .mobile-card-meta{
+  padding:10px 12px;
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:var(--radius-md);
+  background:#F8FBFF;
+}
+
+#pg-pedidos .mobile-card-actions{
+  margin-top:12px;
+}
+
+#ped-total{
+  margin-top:12px;
+  border-style:solid;
+  background:linear-gradient(180deg,#FFFFFF 0%,#F8FBFF 100%);
+}
+
+#ped-total .fb{
+  align-items:center;
+}
+
+#ped-det-box .ped-detail-grid{
+  gap:10px!important;
+}
+
+#ped-det-box .ped-detail-grid > div{
+  padding:10px 12px;
+  border:1px solid rgba(15,23,42,.06);
+  border-radius:var(--radius-md);
+  background:#FBFDFF;
+}
+
+#ped-det-box .ped-detail-actions{
+  padding-top:4px;
+}
+
+#pg-campanhas #camp-diag .alert{
+  background:linear-gradient(180deg,#FFFDF4 0%,#FFF8E4 100%);
+  border-color:rgba(196,142,0,.24);
+  color:#7A5A00;
+}
+
+#pg-campanhas .camp-quick{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px 12px;
+  margin-bottom:12px;
+  border:1px solid rgba(31,72,143,.12);
+  border-radius:var(--radius-md);
+  background:linear-gradient(180deg,#FCFEFF 0%,#F6FAFF 100%);
+}
+
+#pg-campanhas .camp-actions{
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+#pg-campanhas .camp-actions .btn,
+#pg-campanhas .mobile-card-actions .btn{
+  min-height:34px;
+}
+
+#pg-campanhas #camp-lista .mobile-card,
+#pg-campanhas #camp-wa-fila .mobile-card,
+#pg-campanhas #camp-envios-lista .mobile-card{
+  border-color:rgba(15,23,42,.08);
+}
+
+#pg-campanhas #camp-lista .mobile-card-tags{
+  margin-top:10px;
+}
+
+#pg-campanhas #camp-wa-fila .tbl td,
+#pg-campanhas #camp-envios-lista .tbl td,
+#pg-campanhas #camp-lista .tbl td{
+  vertical-align:middle;
+}
+
+#pg-campanhas #camp-wa-fila .btn.btn-p,
+#pg-campanhas #camp-lista .btn.btn-p{
+  box-shadow:0 8px 18px rgba(31,72,143,.16);
+}
+
+@media(max-width:760px){
+  #pg-cotacao #cot-tc-cotacao > .fb{
+    flex-direction:column;
+  }
+
+  #pg-pedidos #ped-met .met,
+  #pg-cotacao #cot-met .met,
+  #pg-campanhas #camp-met .met{
+    min-width:unset;
+  }
+
+  #pg-campanhas .camp-actions{
+    width:100%;
+  }
+
+  #pg-campanhas .camp-actions .btn{
+    width:100%;
+    justify-content:center;
+  }
+
+  #ped-det-box .ped-detail-grid{
+    grid-template-columns:1fr!important;
+  }
+}

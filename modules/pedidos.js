@@ -12,9 +12,9 @@ export function initPedidosModule(callbacks = {}){
 }
 
 const ST_PED = {
-  orcamento:'<span class="bdg bk">Orçamento</span>',
+  orcamento:'<span class="bdg bk">Orcamento</span>',
   confirmado:'<span class="bdg bb">Confirmado</span>',
-  em_separacao:'<span class="bdg ba">Em separação</span>',
+  em_separacao:'<span class="bdg ba">Em separacao</span>',
   entregue:'<span class="bdg bg">Entregue</span>',
   cancelado:'<span class="bdg br">Cancelado</span>'
 };
@@ -55,15 +55,15 @@ export function renderPedidos(){
     );
 
   if(!f.length){
-    el.innerHTML = `<div class="empty"><div class="ico">🛒</div><p>${PD().length ? 'Nenhum encontrado.' : 'Nenhum pedido ainda.'}</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">PED</div><p>${PD().length ? 'Nenhum pedido encontrado.' : 'Nenhum pedido cadastrado ainda.'}</p></div>`;
     return;
   }
 
   const pgtoLbl = {
-    a_vista:'À vista',
+    a_vista:'A vista',
     pix:'PIX',
     boleto:'Boleto',
-    cartao:'Cartão',
+    cartao:'Cartao',
     cheque:'Cheque'
   };
 
@@ -73,20 +73,20 @@ export function renderPedidos(){
       <div class="card mobile-card">
         <div class="mobile-card-head">
           <div style="min-width:0">
-            <div class="mobile-card-title">#${p.num} • ${p.cli}</div>
-            <div class="mobile-card-sub">${p.data || 'Sem data'} • ${(p.itens || []).length} item(ns)</div>
+            <div class="mobile-card-title">#${p.num} | ${p.cli}</div>
+            <div class="mobile-card-sub">${p.data || 'Sem data'} | ${(p.itens || []).length} item(ns)</div>
           </div>
           <div>${ST_PED[p.status] || ''}</div>
         </div>
 
         <div class="mobile-card-tags">
           ${p.tipo === 'atacado' ? '<span class="bdg ba">Atacado</span>' : '<span class="bdg bb">Varejo</span>'}
-          <span class="bdg bk">${pgtoLbl[p.pgto] || p.pgto || '—'}</span>
+          <span class="bdg bk">${pgtoLbl[p.pgto] || p.pgto || '-'}</span>
         </div>
 
         <div class="mobile-card-meta">
           <div>Total: <b style="color:var(--tx)">${fmt(p.total || 0)}</b></div>
-          <div>Prazo: <b style="color:var(--tx)">${p.prazo || '—'}</b></div>
+          <div>Prazo: <b style="color:var(--tx)">${p.prazo || '-'}</b></div>
         </div>
 
         <div class="mobile-card-actions">
@@ -104,7 +104,7 @@ export function renderPedidos(){
       <table class="tbl">
         <thead>
           <tr>
-            <th>Nº</th>
+            <th>No.</th>
             <th>Cliente</th>
             <th>Data</th>
             <th>Tipo</th>
@@ -120,11 +120,11 @@ export function renderPedidos(){
             <tr>
               <td style="font-weight:600;color:var(--tx2)">#${p.num}</td>
               <td style="font-weight:600">${p.cli}</td>
-              <td style="color:var(--tx2)">${p.data || '—'}</td>
+              <td style="color:var(--tx2)">${p.data || '-'}</td>
               <td>${p.tipo === 'atacado' ? '<span class="bdg ba">Atacado</span>' : '<span class="bdg bb">Varejo</span>'}</td>
               <td style="color:var(--tx2)">${(p.itens || []).length}</td>
               <td style="font-weight:600">${fmt(p.total || 0)}</td>
-              <td style="font-size:12px;color:var(--tx2)">${pgtoLbl[p.pgto] || p.pgto || '—'}</td>
+              <td style="font-size:12px;color:var(--tx2)">${pgtoLbl[p.pgto] || p.pgto || '-'}</td>
               <td>${ST_PED[p.status] || ''}</td>
               <td>
                 <div class="fg2">
@@ -264,13 +264,13 @@ export function renderItens(){
   const tot = State.pedItens.reduce((a, i) => a + (i.qty * i.preco), 0);
 
   el.innerHTML = `
-    <table class="tbl" style="margin-bottom:8px">
+    <div class="tw ped-items-wrap"><table class="tbl" style="margin-bottom:8px">
       <thead>
         <tr>
           <th>Produto</th>
           <th>Origem</th>
           <th>Qtd</th>
-          <th>Preço</th>
+          <th>Preco</th>
           <th>Subtotal</th>
           <th></th>
         </tr>
@@ -287,7 +287,7 @@ export function renderItens(){
           </tr>
         `).join('')}
       </tbody>
-    </table>
+    </table></div>
   `;
 
   const totalVal = document.getElementById('ped-total-val');
@@ -305,7 +305,7 @@ export async function salvarPedido(){
 
   if(!State.pedItens || !State.pedItens.length){
     notify(
-      'Atenção: pedido sem itens. Impacto: o total fica zerado e o pedido não pode ser salvo. Ação: adicione ao menos 1 item.',
+      'Atencao: pedido sem itens. Impacto: o total fica zerado e o pedido nao pode ser salvo. Acao: adicione ao menos 1 item.',
       SEVERITY.WARNING
     );
     return;
@@ -339,7 +339,7 @@ export async function salvarPedido(){
     await SB.upsertPedido(pedSB);
   }catch(e){
     notify(
-      `Erro: falha ao salvar pedido (${String(e?.message || 'erro desconhecido')}). Impacto: pedido não foi persistido. Ação: tente novamente.`,
+      `Erro: falha ao salvar pedido (${String(e?.message || 'erro desconhecido')}). Impacto: pedido nao foi persistido. Acao: tente novamente.`,
       SEVERITY.ERROR
     );
     return;
@@ -382,10 +382,10 @@ export function verPed(id){
   const lucro = (p.itens || []).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
 
   const pgtoLbl = {
-    a_vista:'À vista',
+    a_vista:'A vista',
     pix:'PIX',
     boleto:'Boleto',
-    cartao:'Cartão',
+    cartao:'Cartao',
     cheque:'Cheque'
   };
 
@@ -406,10 +406,10 @@ export function verPed(id){
       ${ST_PED[p.status] || ''}
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:13px">
+    <div class="ped-detail-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:13px">
       ${[
         ['Cliente', p.cli],
-        ['Data', p.data || '—'],
+        ['Data', p.data || '-'],
         ['Tipo', p.tipo === 'atacado' ? 'Atacado' : 'Varejo'],
         ['Pagamento', pgtoLbl[p.pgto] || p.pgto],
         ['Prazo', prazoLbl[p.prazo] || p.prazo],
@@ -424,7 +424,7 @@ export function verPed(id){
 
     ${p.obs ? `
       <div class="panel" style="margin-bottom:12px">
-        <div class="pt">Observações</div>
+        <div class="pt">Observacoes</div>
         <p style="font-size:13px">${p.obs}</p>
       </div>
     ` : ''}
@@ -437,7 +437,7 @@ export function verPed(id){
             <th>Orig.</th>
             <th>Qtd</th>
             <th>Custo</th>
-            <th>Preço</th>
+            <th>Preco</th>
             <th>Subtotal</th>
             <th>Lucro</th>
           </tr>
@@ -465,7 +465,7 @@ export function verPed(id){
       </table>
     </div>
 
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+    <div class="ped-detail-actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
       <button class="btn" data-click="fecharModal('modal-ped-det')">Fechar</button>
       <button class="btn btn-p" data-click="fecharModal('modal-ped-det');editarPed('${p.id}')">Editar</button>
     </div>

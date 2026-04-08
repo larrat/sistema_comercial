@@ -18,7 +18,7 @@ export function renderFornSel(){
 
   const cur = s.value;
   s.innerHTML =
-    '<option value="">— selecione —</option>' +
+    '<option value="">- selecione -</option>' +
     (FORNS() || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
 
   s.value = cur;
@@ -31,21 +31,21 @@ export function renderCotLogs(){
   const logs = CCFG().logs || [];
 
   if(!logs.length){
-    el.innerHTML = '<div style="font-size:13px;color:var(--tx3)">Nenhuma importação ainda.</div>';
+    el.innerHTML = '<div class="empty empty-inline"><p>Nenhuma importacao ainda.</p></div>';
     return;
   }
 
   el.innerHTML = logs.map(l => `
-    <div class="fb" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap">
+    <div class="fb cot-log-row" style="padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;gap:8px;flex-wrap:wrap">
       <div>
         <span style="font-weight:600">${l.arquivo}</span>
         <span class="bdg bb" style="margin-left:6px">${l.forn}</span>
-        ${l.mes ? `<span class="bdg bk" style="margin-left:6px" title="Mês de Referência">📅 ${l.mes.split('-').reverse().join('/')}</span>` : ''}
+        ${l.mes ? `<span class="bdg bk" style="margin-left:6px" title="Mes de referencia">MES ${l.mes.split('-').reverse().join('/')}</span>` : ''}
       </div>
-      <div class="fg2">
+      <div class="fg2 cot-log-meta">
         <span style="color:var(--tx3);font-size:12px">${l.data}</span>
         <span class="bdg bg">${l.novos || 0} novos</span>
-        ${l.atu ? `<span class="bdg ba">${l.atu} atualiz.</span>` : ''}
+        ${l.atu ? `<span class="bdg ba">${l.atu} atualizados</span>` : ''}
         ${l.falhas ? `<span class="bdg br">${l.falhas} falha(s)</span>` : ''}
       </div>
     </div>
@@ -59,7 +59,7 @@ export function renderCotForns(){
   const cfors = FORNS();
 
   if(!cfors.length){
-    el.innerHTML = `<div class="empty"><div class="ico">🏭</div><p>Nenhum fornecedor.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">FORN</div><p>Nenhum fornecedor cadastrado.</p></div>`;
     return;
   }
 
@@ -85,8 +85,8 @@ export function renderCotForns(){
             return `
               <tr>
                 <td style="font-weight:600">${f.nome}</td>
-                <td style="color:var(--tx2)">${f.contato || '—'}</td>
-                <td>${f.prazo || '—'}</td>
+                <td style="color:var(--tx2)">${f.contato || '-'}</td>
+                <td>${f.prazo || '-'}</td>
                 <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
                 <td><button class="ib" title="Excluir fornecedor" data-click="remForn('${f.id}')">DEL</button></td>
               </tr>
@@ -174,7 +174,7 @@ export function cotLock(){
   if(alert) alert.style.display = cot.locked ? 'flex' : 'none';
 
   renderCotTabela();
-  toast(cot.locked ? 'Cotação travada!' : 'Destravada.');
+  toast(cot.locked ? 'Cotacao travada!' : 'Cotacao destravada.');
 }
 
 export function renderCotTabela(){
@@ -189,7 +189,7 @@ export function renderCotTabela(){
   if(!el || !mc) return;
 
   if(!prods.length || !forns.length){
-    el.innerHTML = `<div class="empty"><div class="ico">📊</div><p>Adicione produtos e fornecedores.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">COT</div><p>Adicione produtos e fornecedores para iniciar a cotacao.</p></div>`;
     mc.innerHTML = '';
     return;
   }
@@ -199,8 +199,8 @@ export function renderCotTabela(){
   forns.forEach(f => fTot[f.id] = 0);
 
   let html = `
-    <div class="tw">
-      <table class="tbl">
+    <div class="tw cot-table-wrap">
+      <table class="tbl cot-table">
         <thead>
           <tr>
             <th>Produto</th>
@@ -241,7 +241,7 @@ export function renderCotTabela(){
       html += `<td style="text-align:right;${bg}">`;
 
       if(cot.locked){
-        html += val !== null && val > 0 ? fmt(val) : '—';
+        html += val !== null && val > 0 ? fmt(val) : '-';
       } else {
         html += `<input class="inp" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" data-change="updPreco('${p.id}','${f.id}',this.value)">`;
       }
@@ -249,7 +249,7 @@ export function renderCotTabela(){
       html += `</td>`;
     });
 
-    html += `<td style="text-align:center">${minP !== null ? `<span class="bdg bg">${fmt(minP)}</span>` : '—'}</td></tr>`;
+    html += `<td style="text-align:center">${minP !== null ? `<span class="bdg bg">${fmt(minP)}</span>` : '-'}</td></tr>`;
   });
 
   const allTot = Object.values(fTot).filter(v => v > 0);
@@ -285,7 +285,7 @@ export function renderCotTabela(){
     <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
     <div class="met"><div class="ml">Fornecedores</div><div class="mv">${forns.length}</div></div>
     <div class="met"><div class="ml">Preenchimento</div><div class="mv">${pct2}%</div></div>
-    <div class="met"><div class="ml">Melhor fornecedor</div><div class="mv" style="font-size:14px">${bestForn ? bestForn.nome : '—'}</div></div>
+    <div class="met"><div class="ml">Melhor fornecedor</div><div class="mv" style="font-size:14px">${bestForn ? bestForn.nome : '-'}</div></div>
   `;
 }
 
@@ -306,4 +306,4 @@ export {
   cotFile,
   confirmarMapa,
   renderMapaBody
-};  
+};
