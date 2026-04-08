@@ -6,6 +6,13 @@ import { MSG, SEVERITY } from '../core/messages.js';
 let calcSaldosMultiSafe = () => ({});
 
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const JOGOS_API_URL_KEY = 'jogos_api_url';
+const JOGOS_API_FILTRO_KEY = 'jogos_api_filtro';
+const JOGOS_AUTO_SYNC_AT_KEY = 'jogos_auto_sync_at';
+const JOGOS_AUTO_SYNC_TTL_MS = 30 * 60 * 1000;
+const JOGOS_EXPIRY_GRACE_MS = 3 * 60 * 60 * 1000;
+
+const jogosSyncPromises = new Map();
 
 function getFilialCalendarioId(){
   const filiais = D.filiais || [];
@@ -17,6 +24,69 @@ function getJogosCache(fid){
   if(!D.jogos) D.jogos = {};
   if(!D.jogos[fid]) D.jogos[fid] = [];
   return D.jogos[fid];
+}
+
+function getJogoDateMs(jogo){
+  const ts = new Date(jogo?.data_hora || 0).getTime();
+  return Number.isNaN(ts) ? null : ts;
+}
+
+function isJogoExpirado(jogo, nowMs = Date.now()){
+  const ts = getJogoDateMs(jogo);
+  if(ts == null) return false;
+  const status = String(jogo?.status || '').toLowerCase();
+  if(status === 'cancelado' || status === 'realizado') return true;
+  return (ts + JOGOS_EXPIRY_GRACE_MS) < nowMs;
+}
+
+function sortJogosAgenda(lista = []){
+  return [...lista].sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
+}
+
+async function purgeExpiredJogos(fid, { persist = true, silent = true } = {}){
+  const cache = getJogosCache(fid);
+  const expirados = cache.filter(j => isJogoExpirado(j));
+  if(!expirados.length) return 0;
+
+  D.jogos[fid] = cache.filter(j => !isJogoExpirado(j));
+
+  if(persist){
+    await Promise.all(expirados.map(async jogo => {
+      try{
+        await SB.deleteJogoAgenda(jogo.id);
+      }catch(e){
+        console.error('Erro ao limpar jogo expirado', jogo, e);
+      }
+    }));
+  }
+
+  if(!silent){
+    notify(`Agenda atualizada: ${expirados.length} jogo(s) passado(s) removido(s).`, SEVERITY.INFO);
+  }
+
+  return expirados.length;
+}
+
+function getJogosAutoSyncAtMap(){
+  try{
+    return JSON.parse(localStorage.getItem(JOGOS_AUTO_SYNC_AT_KEY) || '{}') || {};
+  }catch{
+    return {};
+  }
+}
+
+function setJogosAutoSyncAt(fid, timestamp = Date.now()){
+  const map = getJogosAutoSyncAtMap();
+  map[fid] = timestamp;
+  localStorage.setItem(JOGOS_AUTO_SYNC_AT_KEY, JSON.stringify(map));
+}
+
+function shouldAutoSyncJogos(fid){
+  const apiUrl = localStorage.getItem(JOGOS_API_URL_KEY) || '';
+  if(!apiUrl) return false;
+  const map = getJogosAutoSyncAtMap();
+  const lastAt = Number(map[fid] || 0);
+  return !lastAt || (Date.now() - lastAt) >= JOGOS_AUTO_SYNC_TTL_MS;
 }
 
 function fmtDataHora(v){
@@ -682,10 +752,10 @@ export function abrirSyncJogos(){
   const urlInp = document.getElementById('jogo-api-url');
   const filtroInp = document.getElementById('jogo-api-time');
   if(urlInp){
-    urlInp.value = localStorage.getItem('jogos_api_url') || '';
+    urlInp.value = localStorage.getItem(JOGOS_API_URL_KEY) || '';
   }
   if(filtroInp){
-    filtroInp.value = localStorage.getItem('jogos_api_filtro') || '';
+    filtroInp.value = localStorage.getItem(JOGOS_API_FILTRO_KEY) || '';
   }
   abrirModal('modal-jogo-sync');
 }
@@ -697,94 +767,129 @@ export function usarExemploSyncJogos(apiUrl, filtro = ''){
   if(filtroInp) filtroInp.value = filtro || '';
 }
 
-export async function sincronizarJogosDashboard(){
+export async function sincronizarJogosDashboard(options = {}){
+  const { apiUrl: forcedApiUrl = '', filtroTime: forcedFiltroTime = '', silent = false, auto = false } = options;
   const filialId = getFilialCalendarioId();
   if(!filialId){
-    notify(MSG.jogos.missingFilial, SEVERITY.ERROR);
+    if(!silent) notify(MSG.jogos.missingFilial, SEVERITY.ERROR);
     return;
   }
 
-  const apiUrl = document.getElementById('jogo-api-url')?.value.trim() || '';
-  const filtroTime = (document.getElementById('jogo-api-time')?.value || '').trim().toLowerCase();
+  if(jogosSyncPromises.has(filialId)){
+    return jogosSyncPromises.get(filialId);
+  }
+
+  const apiUrl = String(
+    forcedApiUrl ||
+    document.getElementById('jogo-api-url')?.value.trim() ||
+    localStorage.getItem(JOGOS_API_URL_KEY) ||
+    ''
+  ).trim();
+  const filtroTime = String(
+    forcedFiltroTime ||
+    document.getElementById('jogo-api-time')?.value ||
+    localStorage.getItem(JOGOS_API_FILTRO_KEY) ||
+    ''
+  ).trim().toLowerCase();
 
   if(!apiUrl){
-    notify(MSG.jogos.missingApiUrl, SEVERITY.WARNING);
-    focusField('jogo-api-url', { markError: true });
+    if(!silent){
+      notify(MSG.jogos.missingApiUrl, SEVERITY.WARNING);
+      focusField('jogo-api-url', { markError: true });
+    }
     return;
   }
 
-  localStorage.setItem('jogos_api_url', apiUrl);
-  localStorage.setItem('jogos_api_filtro', filtroTime);
+  localStorage.setItem(JOGOS_API_URL_KEY, apiUrl);
+  localStorage.setItem(JOGOS_API_FILTRO_KEY, filtroTime);
 
-  let payload;
-  try{
-    payload = await SB.fetchJsonWithRetry(apiUrl);
-  }catch(e){
-    notify(MSG.jogos.fetchFailed(e?.message), SEVERITY.ERROR);
-    return;
-  }
+  const syncPromise = (async () => {
+    let payload;
+    try{
+      payload = await SB.fetchJsonWithRetry(apiUrl);
+    }catch(e){
+      if(!silent) notify(MSG.jogos.fetchFailed(e?.message), SEVERITY.ERROR);
+      return;
+    }
 
-  const lista = extrairListaJogos(payload);
-  if(!lista.length){
-    notify(MSG.jogos.emptyPayload, SEVERITY.WARNING);
-    return;
-  }
+    const lista = extrairListaJogos(payload);
+    if(!lista.length){
+      if(!silent) notify(MSG.jogos.emptyPayload, SEVERITY.WARNING);
+      return;
+    }
 
-  const normalizados = lista
-    .map(normalizeJogoExterno)
-    .filter(Boolean)
-    .filter(j => {
-      if(!filtroTime) return true;
-      return [j.titulo, j.mandante, j.visitante, j.campeonato]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-        .includes(filtroTime);
+    const normalizados = lista
+      .map(normalizeJogoExterno)
+      .filter(Boolean)
+      .filter(j => {
+        if(!filtroTime) return true;
+        return [j.titulo, j.mandante, j.visitante, j.campeonato]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(filtroTime);
+      });
+
+    if(!normalizados.length){
+      if(!silent) notify(MSG.jogos.noEligible, SEVERITY.INFO);
+      return;
+    }
+
+    let criados = 0;
+    let erros = 0;
+    const cache = getJogosCache(filialId);
+    const byId = {};
+    cache.forEach(j => {
+      if(!isJogoExpirado(j)) byId[j.id] = j;
     });
 
-  if(!normalizados.length){
-    notify(MSG.jogos.noEligible, SEVERITY.INFO);
-    return;
-  }
+    for(const j of normalizados){
+      const id = j.extId ? `ext-${j.extId}` : stableJogoId(j);
+      const item = {
+        id,
+        filial_id: filialId,
+        titulo: j.titulo,
+        campeonato: j.campeonato,
+        data_hora: j.data_hora,
+        mandante: j.mandante,
+        visitante: j.visitante,
+        local: j.local,
+        status: j.status
+      };
 
-  let criados = 0;
-  let erros = 0;
-  const cache = getJogosCache(filialId);
-  const byId = {};
-  cache.forEach(j => { byId[j.id] = j; });
-
-  for(const j of normalizados){
-    const id = j.extId ? `ext-${j.extId}` : stableJogoId(j);
-    const item = {
-      id,
-      filial_id: filialId,
-      titulo: j.titulo,
-      campeonato: j.campeonato,
-      data_hora: j.data_hora,
-      mandante: j.mandante,
-      visitante: j.visitante,
-      local: j.local,
-      status: j.status
-    };
-
-    try{
-      await SB.upsertJogoAgenda(item);
-      byId[id] = item;
-      criados++;
-    }catch(e){
-      erros++;
-      byId[id] = item;
-      console.error('Falha ao upsert jogo externo', item, e);
+      try{
+        await SB.upsertJogoAgenda(item);
+        byId[id] = item;
+        criados++;
+      }catch(e){
+        erros++;
+        byId[id] = item;
+        console.error('Falha ao upsert jogo externo', item, e);
+      }
     }
+
+    D.jogos[filialId] = sortJogosAgenda(Object.values(byId));
+    await purgeExpiredJogos(filialId, { persist: true, silent: true });
+    setJogosAutoSyncAt(filialId);
+
+    if(!auto) fecharModal('modal-jogo-sync');
+    renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
+    if(!silent){
+      notify(MSG.jogos.syncResult({ processados: normalizados.length, falhas: erros }), erros > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS);
+    }
+  })();
+
+  jogosSyncPromises.set(filialId, syncPromise);
+  try{
+    await syncPromise;
+  }finally{
+    jogosSyncPromises.delete(filialId);
   }
+}
 
-  D.jogos[filialId] = Object.values(byId).sort(
-    (a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0)
-  );
-
-  fecharModal('modal-jogo-sync');
-  renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
-  notify(MSG.jogos.syncResult({ processados: normalizados.length, falhas: erros }), erros > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS);
+async function ensureJogosAutoSync(fid){
+  if(!fid || !shouldAutoSyncJogos(fid)) return;
+  await sincronizarJogosDashboard({ silent: true, auto: true });
 }
 
 export async function salvarJogoDashboard(){
@@ -830,7 +935,7 @@ export async function salvarJogoDashboard(){
 
   const jogos = getJogosCache(filialId);
   jogos.unshift(item);
-  jogos.sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
+  D.jogos[filialId] = sortJogosAgenda(jogos);
 
   fecharModal('modal-jogo');
   renderDashJogos(document.getElementById('dash-fil')?.value || 'todas');
@@ -872,13 +977,19 @@ export function renderDashJogos(fsel = 'todas'){
     return;
   }
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
+  purgeExpiredJogos(filialId, { persist: true, silent: true }).catch(e => {
+    console.error('Erro ao limpar jogos expirados da agenda', e);
+  });
+  ensureJogosAutoSync(filialId).catch(e => {
+    console.error('Erro na sincronizacao automatica de jogos', e);
+  });
+
+  const agoraMs = Date.now();
 
   const jogos = getJogosCache(filialId)
     .filter(j => {
-      const d = new Date(j.data_hora || 0);
-      return !isNaN(d.getTime()) && d >= hoje;
+      const ts = getJogoDateMs(j);
+      return ts != null && !isJogoExpirado(j, agoraMs);
     })
     .sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0))
     .slice(0, 8);

@@ -9,7 +9,6 @@ import {
   norm,
   fmt,
   fmtN,
-  fmtQ,
   mk2mg,
   prV
 } from '../core/utils.js';
@@ -123,6 +122,18 @@ import {
   marcarEnvioEnviado,
   marcarEnvioFalhou
 } from '../modules/campanhas.js';
+
+import {
+  initNotificacoesModule,
+  getNotificacoesResumo,
+  renderNotificacoes,
+  updateNotiBadge,
+  setFiltroNotificacoes,
+  executarNotificacao,
+  resolverNotificacao,
+  reabrirNotificacao,
+  resolverTodasNotificacoes
+} from '../modules/notificacoes.js';
 
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
@@ -323,6 +334,7 @@ function applyRoleUiGuards(root = document){
     .forEach(el => setRoleUiLock(el, !allowManagerActions));
   root.querySelectorAll('[data-p="filiais"],#pg-filiais,#mob-filiais,[data-p="acessos"],#pg-acessos,#mob-acessos')
     .forEach(el => setRoleUiLock(el, !allowAdminActions));
+  filterSidebarNav(document.getElementById('sb-search')?.value || '');
 }
 
 function scheduleRoleUiGuards(){
@@ -1061,17 +1073,6 @@ function mapInsightToBadgeClass(kind){
   return 'bb';
 }
 
-function getNotificacoesResumo(){
-  const all = buildNotificacoes();
-  return all.reduce((acc, n) => {
-    const p = String(n.prioridade || '').toLowerCase();
-    if(p === 'critico') acc.critico += 1;
-    else if(p === 'atencao') acc.atencao += 1;
-    else if(p === 'oportunidade') acc.oportunidade += 1;
-    return acc;
-  }, { critico: 0, atencao: 0, oportunidade: 0, total: all.length });
-}
-
 function buildGerencialModel(summary){
   const insights = [];
   const noti = getNotificacoesResumo();
@@ -1501,6 +1502,56 @@ function syncTopbar(page){
   bindTopbarAction('app-act-secondary', meta.secondary);
   bindTopbarAction('app-act-tertiary', meta.tertiary);
   renderQuickLinks(meta);
+  syncSidebarContext(meta);
+}
+
+function syncSidebarContext(meta){
+  const kicker = document.getElementById('sb-context-kicker');
+  const title = document.getElementById('sb-context-title');
+  const sub = document.getElementById('sb-context-sub');
+  if(kicker) kicker.textContent = meta?.kicker || 'Workspace';
+  if(title) title.textContent = meta?.title || 'Dashboard';
+  if(sub) sub.textContent = meta?.sub || 'Visão geral da operação atual';
+}
+
+function filterSidebarNav(raw = ''){
+  const query = norm(raw || '');
+  const items = Array.from(document.querySelectorAll('.sb-nav .ni'));
+  const groups = Array.from(document.querySelectorAll('.sb-nav .sb-group'));
+  let visibleItems = 0;
+
+  items.forEach(item => {
+    const haystack = norm(item.dataset.label || item.textContent || '');
+    const match = !query || haystack.includes(query);
+    item.hidden = !match;
+    if(match && item.style.display !== 'none') visibleItems += 1;
+  });
+
+  groups.forEach(group => {
+    const hasVisibleItems = Array.from(group.querySelectorAll('.ni'))
+      .some(item => !item.hidden && item.style.display !== 'none');
+    group.hidden = !hasVisibleItems;
+  });
+
+  const empty = document.getElementById('sb-empty');
+  if(empty) empty.style.display = visibleItems ? 'none' : 'block';
+}
+
+function initSidebarEnhancements(){
+  const input = document.getElementById('sb-search');
+  if(input && !input.dataset.bound){
+    input.dataset.bound = '1';
+    input.addEventListener('input', e => filterSidebarNav(e.target.value));
+    input.addEventListener('keydown', e => {
+      if(e.key === 'Escape'){
+        input.value = '';
+        filterSidebarNav('');
+        input.blur();
+      }
+    });
+  }
+  filterSidebarNav(input?.value || '');
+  syncSidebarContext(getContextualPageMeta(pageAtual()));
 }
 
 function renderQuickLinks(meta){
@@ -2094,300 +2145,10 @@ function voltarSetup() {
   renderSetup();
 }
 
-const NOTI_HISTORY_KEY = 'sc_noti_hist_v1';
-let notiFiltroPrioridade = 'todas';
-let notiCache = [];
-
-function getNotiHistoryMap(){
-  try{
-    return JSON.parse(localStorage.getItem(NOTI_HISTORY_KEY) || '{}') || {};
-  }catch{
-    return {};
-  }
-}
-
-function getNotiHistory(){
-  const map = getNotiHistoryMap();
-  return map[State.FIL] || [];
-}
-
-function setNotiHistory(list){
-  const map = getNotiHistoryMap();
-  map[State.FIL] = list;
-  localStorage.setItem(NOTI_HISTORY_KEY, JSON.stringify(map));
-}
-
-function getProxAniversario(iso){
-  if(!iso) return null;
-  const parts = String(iso).split('-');
-  if(parts.length !== 3) return null;
-  const [y, m, d] = parts.map(Number);
-  if(!m || !d) return null;
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const prox = new Date(now.getFullYear(), m - 1, d);
-  prox.setHours(0, 0, 0, 0);
-  if(prox < now) prox.setFullYear(now.getFullYear() + 1);
-  return prox;
-}
-
-function daysDiff(base, target){
-  const ms = target.getTime() - base.getTime();
-  return Math.ceil(ms / (1000 * 60 * 60 * 24));
-}
-
-function buildNotificacoes(){
-  const notifs = [];
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const saldos = calcSaldos();
-
-  P().forEach(p => {
-    const s = saldos[p.id] || { saldo: 0 };
-    const saldo = Number(s.saldo || 0);
-    const min = Number(p.emin || 0);
-    if(saldo <= 0){
-      const id = `estoque-zero-${p.id}-${saldo}`;
-      notifs.push({
-        id,
-        prioridade: 'critico',
-        titulo: `Estoque zerado: ${p.nome}`,
-        descricao: `Saldo atual: ${fmtQ(saldo)} ${p.un || ''}.`,
-        meta: 'Estoque',
-        acaoLabel: 'Abrir estoque',
-        acao: () => ir('estoque')
-      });
-      return;
-    }
-    if(min > 0 && saldo < min){
-      const id = `estoque-baixo-${p.id}-${saldo}-${min}`;
-      notifs.push({
-        id,
-        prioridade: 'atencao',
-        titulo: `Estoque baixo: ${p.nome}`,
-        descricao: `Saldo ${fmtQ(saldo)} ${p.un || ''} abaixo do mínimo (${fmtQ(min)}).`,
-        meta: 'Estoque',
-        acaoLabel: 'Abrir estoque',
-        acao: () => ir('estoque')
-      });
-    }
-  });
-
-  const envios = (D.campanhaEnvios?.[State.FIL] || []);
-  const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual');
-  if(pendentes.length){
-    const id = `campanhas-pendentes-${pendentes.length}`;
-    notifs.push({
-      id,
-      prioridade: 'atencao',
-      titulo: `Fila de campanhas com ${pendentes.length} envio(s) pendente(s)`,
-      descricao: 'Existe fila manual/pendente aguardando ação.',
-      meta: 'Campanhas',
-      acaoLabel: 'Abrir campanhas',
-      acao: () => ir('campanhas')
-    });
-  }
-
-  C().forEach(c => {
-    const prox = getProxAniversario(c.data_aniversario);
-    if(!prox) return;
-    const diff = daysDiff(now, prox);
-    if(diff < 0 || diff > 7) return;
-    const canais = [c.whatsapp, c.tel, c.email].filter(Boolean);
-    if(!c.optin_marketing || !canais.length) return;
-    const id = `aniversario-${c.id}-${prox.toISOString().slice(0,10)}`;
-    notifs.push({
-      id,
-      prioridade: 'oportunidade',
-      titulo: `${c.nome} faz aniversário em ${diff} dia(s)`,
-      descricao: `Cliente apto para campanha. Canais: ${canais.length}.`,
-      meta: 'Clientes / Campanhas',
-      acaoLabel: 'Abrir campanhas',
-      acao: () => ir('campanhas')
-    });
-  });
-
-  const jogos = (D.jogos?.[State.FIL] || [])
-    .filter(j => !!j.data_hora)
-    .map(j => ({ ...j, dt: new Date(j.data_hora) }))
-    .filter(j => !Number.isNaN(j.dt.getTime()))
-    .sort((a, b) => a.dt - b.dt)
-    .slice(0, 6);
-  jogos.forEach(j => {
-    const d = new Date(j.dt);
-    d.setHours(0, 0, 0, 0);
-    const diff = daysDiff(now, d);
-    if(diff < 0 || diff > 7) return;
-    const id = `jogo-${j.id || j.titulo}-${j.dt.toISOString()}`;
-    notifs.push({
-      id,
-      prioridade: 'oportunidade',
-      titulo: `Jogo próximo: ${j.titulo || `${j.mandante || ''} x ${j.visitante || ''}`}`,
-      descricao: `Em ${diff} dia(s). Bom momento para campanha por time.`,
-      meta: 'Agenda / Oportunidades',
-      acaoLabel: 'Abrir dashboard',
-      acao: () => ir('dashboard')
-    });
-  });
-
-  return notifs;
-}
-
-function updateNotiBadge(){
-  const badge = document.getElementById('noti-badge');
-  if(!badge) return;
-  const histIds = new Set(getNotiHistory().map(x => x.id));
-  const total = buildNotificacoes().filter(n => !histIds.has(n.id)).length;
-  if(total > 0){
-    badge.style.display = 'inline-flex';
-    badge.textContent = total > 99 ? '99+' : String(total);
-  }else{
-    badge.style.display = 'none';
-  }
-}
-
-function setFiltroNotificacoes(filtro){
-  notiFiltroPrioridade = filtro || 'todas';
-  renderNotificacoes();
-}
-
-function executarNotificacao(id){
-  const n = notiCache.find(x => x.id === id);
-  if(!n) return;
-  registerNotificationKpi('executadas', 1);
-  if(n.prioridade === 'oportunidade') logStrategicAction('oportunidades');
-  if(typeof n.acao === 'function') n.acao();
-  renderMetasNegocio();
-}
-
-function resolverNotificacao(id){
-  const n = notiCache.find(x => x.id === id);
-  if(!n) return;
-  const hist = getNotiHistory();
-  if(!hist.find(x => x.id === id)){
-    hist.unshift({
-      id: n.id,
-      prioridade: n.prioridade,
-      titulo: n.titulo,
-      meta: n.meta,
-      resolvido_em: new Date().toISOString()
-    });
-    registerNotificationKpi('resolvidas', 1);
-    setNotiHistory(hist.slice(0, 200));
-  }
-  renderNotificacoes();
-  updateNotiBadge();
-  toast('Notificação movida para histórico.');
-}
-
-function reabrirNotificacao(id){
-  const hist = getNotiHistory().filter(x => x.id !== id);
-  setNotiHistory(hist);
-  registerNotificationKpi('reabertas', 1);
-  renderNotificacoes();
-  updateNotiBadge();
-  renderMetasNegocio();
-}
-
-function resolverTodasNotificacoes(){
-  const ativos = notiCache;
-  if(!ativos.length){
-    toast('Inbox já está vazia.');
-    return;
-  }
-  const hist = getNotiHistory();
-  const ids = new Set(hist.map(x => x.id));
-  let resolvidasNow = 0;
-  ativos.forEach(n => {
-    if(ids.has(n.id)) return;
-    hist.unshift({
-      id: n.id,
-      prioridade: n.prioridade,
-      titulo: n.titulo,
-      meta: n.meta,
-      resolvido_em: new Date().toISOString()
-    });
-    resolvidasNow += 1;
-  });
-  setNotiHistory(hist.slice(0, 200));
-  if(resolvidasNow > 0) registerNotificationKpi('resolvidas', resolvidasNow);
-  renderNotificacoes();
-  updateNotiBadge();
-  toast('Todas notificações ativas foram resolvidas.');
-}
-
 function resolverTodasNotificacoesTracked(){
   logStrategicAction('notificacoes');
   resolverTodasNotificacoes();
   renderMetasNegocio();
-}
-
-function renderNotificacoes(){
-  const met = document.getElementById('noti-met');
-  const lista = document.getElementById('noti-lista');
-  const histEl = document.getElementById('noti-historico');
-  const fil = document.getElementById('noti-fil-prioridade');
-  if(!met || !lista || !histEl) return;
-  if(fil) fil.value = notiFiltroPrioridade;
-
-  const all = buildNotificacoes();
-  const hist = getNotiHistory();
-  const histIds = new Set(hist.map(x => x.id));
-  let ativos = all.filter(n => !histIds.has(n.id));
-  if(notiFiltroPrioridade !== 'todas'){
-    ativos = ativos.filter(n => n.prioridade === notiFiltroPrioridade);
-  }
-
-  const crit = all.filter(n => n.prioridade === 'critico').length;
-  const ate = all.filter(n => n.prioridade === 'atencao').length;
-  const op = all.filter(n => n.prioridade === 'oportunidade').length;
-  met.innerHTML = `
-    <div class="met"><div class="ml">Crítico</div><div class="mv" style="color:var(--color-critical-600)">${crit}</div></div>
-    <div class="met"><div class="ml">Atenção</div><div class="mv" style="color:var(--color-warning-600)">${ate}</div></div>
-    <div class="met"><div class="ml">Oportunidade</div><div class="mv" style="color:var(--color-opportunity-600)">${op}</div></div>
-    <div class="met"><div class="ml">Resolvidas</div><div class="mv">${hist.length}</div></div>
-  `;
-
-  notiCache = ativos;
-  if(!ativos.length){
-    lista.innerHTML = `<div class="empty"><div class="ico">📥</div><p>Nenhuma notificação ativa para o filtro selecionado.</p></div>`;
-  }else{
-    lista.innerHTML = ativos.map(n => `
-      <div class="noti-item ${n.prioridade}">
-        <div class="noti-head">
-          <div>
-            <div class="noti-title">${n.titulo}</div>
-            <div class="noti-desc">${n.descricao}</div>
-            <div class="noti-meta">${n.meta} • ${n.prioridade}</div>
-          </div>
-          <span class="bdg ${n.prioridade === 'critico' ? 'br' : n.prioridade === 'atencao' ? 'ba' : 'bb'}">${n.prioridade}</span>
-        </div>
-        <div class="noti-actions">
-          <button class="btn btn-sm" onclick="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
-          <button class="btn btn-sm" onclick="resolverNotificacao('${n.id}')">Resolver</button>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  if(!hist.length){
-    histEl.innerHTML = `<div class="empty"><div class="ico">🗂️</div><p>Sem histórico ainda.</p></div>`;
-  }else{
-    histEl.innerHTML = hist.slice(0, 30).map(h => `
-      <div class="noti-item">
-        <div class="noti-head">
-          <div>
-            <div class="noti-title">${h.titulo}</div>
-            <div class="noti-meta">${h.meta || 'Sistema'} • resolvida em ${new Date(h.resolvido_em).toLocaleString('pt-BR')}</div>
-          </div>
-          <span class="bdg bk">${h.prioridade || 'resolvida'}</span>
-        </div>
-        <div class="noti-actions">
-          <button class="btn btn-sm" onclick="reabrirNotificacao('${h.id}')">Reabrir</button>
-        </div>
-      </div>
-    `).join('');
-  }
 }
 
 function ir(p) {
@@ -2422,6 +2183,7 @@ function ir(p) {
   updateNotiBadge();
   syncTopbar(p);
   scheduleRoleUiGuards();
+  filterSidebarNav(document.getElementById('sb-search')?.value || '');
   window.scrollTo(0, 0);
 }
 
@@ -2446,6 +2208,7 @@ function abrirSb() {
   document.getElementById('sb-overlay')?.classList.add('on');
   const close = document.getElementById('sb-close');
   if (close) close.style.display = 'flex';
+  document.getElementById('sb-search')?.focus();
 }
 
 function fecharSb() {
@@ -3124,10 +2887,19 @@ initDashboardModule({
   calcSaldosMulti
 });
 
+initNotificacoesModule({
+  calcSaldos,
+  ir,
+  renderMetasNegocio,
+  registerNotificationKpi,
+  logStrategicAction
+});
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initGoalTracking();
     initQuickCommand();
+    initSidebarEnhancements();
     initFlowWizards();
     startRoleUiObserver();
     scheduleRoleUiGuards();
@@ -3136,6 +2908,7 @@ if (document.readyState === 'loading') {
 } else {
   initGoalTracking();
   initQuickCommand();
+  initSidebarEnhancements();
   initFlowWizards();
   startRoleUiObserver();
   scheduleRoleUiGuards();

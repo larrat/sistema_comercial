@@ -73,23 +73,43 @@
         <span class="sb-pname" id="sb-fname">—</span>
         <span style="font-size:11px;color:var(--tx3);margin-left:2px">Trocar</span>
       </div>
+      <div class="sb-search">
+        <input class="inp sb-search-input" id="sb-search" type="search" placeholder="Buscar área..." aria-label="Buscar no menu lateral">
+      </div>
+      <div class="sb-context" id="sb-context">
+        <div class="sb-context-kicker" id="sb-context-kicker">Workspace</div>
+        <div class="sb-context-title" id="sb-context-title">Dashboard</div>
+        <div class="sb-context-sub" id="sb-context-sub">Visão geral e oportunidades da filial</div>
+      </div>
     </div>
     <nav class="sb-nav">
-      <div class="nl">Visão geral</div>
-      <button class="ni on" data-p="dashboard" onclick="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
-      <button class="ni" data-p="gerencial" onclick="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
-      <div class="nl">Cadastros</div>
-      <button class="ni" data-p="produtos" onclick="ir('produtos')"><span class="ico">PR</span>Produtos</button>
-      <button class="ni" data-p="clientes" onclick="ir('clientes')"><span class="ico">CL</span>Clientes</button>
-      <div class="nl">Operações</div>
-      <button class="ni" data-p="pedidos" onclick="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
-      <button class="ni" data-p="cotacao" onclick="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
-      <button class="ni" data-p="estoque" onclick="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
-      <button class="ni" data-p="campanhas" onclick="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
-      <button class="ni" data-p="notificacoes" onclick="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
-      <div class="nl">Sistema</div>
-      <button class="ni" data-p="filiais" onclick="ir('filiais')"><span class="ico">FL</span>Filiais</button>
-      <button class="ni" data-p="acessos" onclick="ir('acessos')"><span class="ico">AC</span>Acessos</button>
+      <section class="sb-group" data-group="Visão geral">
+        <div class="nl">Visão geral</div>
+        <button class="ni on" data-p="dashboard" data-label="Dashboard Workspace visão geral oportunidades" onclick="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
+        <button class="ni" data-p="gerencial" data-label="Gerencial gestão metas desempenho" onclick="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
+      </section>
+      <section class="sb-group" data-group="Cadastros">
+        <div class="nl">Cadastros</div>
+        <button class="ni" data-p="produtos" data-label="Produtos catálogo cadastro precificação" onclick="ir('produtos')"><span class="ico">PR</span>Produtos</button>
+        <button class="ni" data-p="clientes" data-label="Clientes relacionamento segmentação cadastro" onclick="ir('clientes')"><span class="ico">CL</span>Clientes</button>
+      </section>
+      <section class="sb-group" data-group="Operações">
+        <div class="nl">Operações</div>
+        <button class="ni" data-p="pedidos" data-label="Pedidos orçamentos vendas operações" onclick="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
+        <button class="ni" data-p="cotacao" data-label="Cotação fornecedores comparação preço" onclick="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
+        <button class="ni" data-p="estoque" data-label="Estoque posição alertas movimentações" onclick="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb" id="est-badge" style="display:none">!</span></button>
+        <button class="ni" data-p="campanhas" data-label="Campanhas ações comerciais envios" onclick="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
+        <button class="ni" data-p="notificacoes" data-label="Notificações alertas oportunidades inbox" onclick="ir('notificacoes')"><span class="ico">NT</span>Notificações <span class="nb" id="noti-badge" style="display:none">!</span></button>
+      </section>
+      <section class="sb-group" data-group="Sistema">
+        <div class="nl">Sistema</div>
+        <button class="ni" data-p="filiais" data-label="Filiais sistema unidades contexto" onclick="ir('filiais')"><span class="ico">FL</span>Filiais</button>
+        <button class="ni" data-p="acessos" data-label="Acessos sistema usuários perfis permissões" onclick="ir('acessos')"><span class="ico">AC</span>Acessos</button>
+      </section>
+      <div class="sb-empty" id="sb-empty" style="display:none">
+        <div class="sb-empty-title">Nenhuma área encontrada</div>
+        <div class="sb-empty-sub">Tente buscar por nome ou objetivo da tela.</div>
+      </div>
     </nav>
     <div class="sb-foot">
       <div class="bdg bk" id="sb-role" style="width:100%;justify-content:center;margin-bottom:8px">Operador</div>
