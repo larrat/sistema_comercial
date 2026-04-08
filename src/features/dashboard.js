@@ -486,8 +486,8 @@ export function renderDash(){
   const clientesComAniversario = clientesFilial.filter(c => !!String(c.data_aniversario || '').trim());
   const clientesSemAniversario = Math.max(0, clientesFilial.length - clientesComAniversario.length);
 
-  if(clientesFilial.length){
-    ah += `<div class="alert al-b"><b>Aniversario cadastrado:</b> ${clientesComAniversario.length} de ${clientesFilial.length} cliente(s) com data de aniversario preenchida.${clientesSemAniversario ? ` Faltam ${clientesSemAniversario} cadastro(s).` : ''}</div>`;
+  if(clientesFilial.length && clientesSemAniversario > 0){
+    ah += `<div class="alert al-a"><b>Aniversario pendente:</b> ${clientesSemAniversario} cliente(s) sem data de aniversario cadastrada.</div>`;
   }
 
   if(anivProximos.length){
