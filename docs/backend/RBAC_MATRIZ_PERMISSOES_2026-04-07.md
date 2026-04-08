@@ -35,6 +35,7 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 | Campanhas | Sim | Sim | Não |
 | Filiais | Sim | Não | Não |
 | Acessos (RBAC) | Sim | Não | Não |
+| Auditoria de Acessos (RBAC) | Sim | Não | Não |
 
 ## Ações críticas (controle de execução)
 
@@ -44,6 +45,7 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 | Criar/editar/remover filial | Sim | Não | Não |
 | Criar/editar/remover perfil de acesso | Sim | Não | Não |
 | Vincular/desvincular usuário em filial | Sim | Não | Não |
+| Ler trilha de auditoria de acessos | Sim | Não | Não |
 | Remover produto | Sim | Sim | Não |
 | Remover cliente | Sim | Sim | Não |
 | Remover pedido | Sim | Sim | Não |

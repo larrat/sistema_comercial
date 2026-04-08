@@ -17,6 +17,8 @@ Data: 2026-04-07
 - [x] Separação v2 no frontend: `admin` diferente de `gerente` (filiais admin-only).
 - [x] Script de endurecimento v2 no banco criado (`04_rbac_v2_admin_only.sql`).
 - [x] Tela Admin de Acessos no app (gestão de `user_perfis` e `user_filiais`).
+- [x] Filtros básicos + paginação na tela de Acessos.
+- [x] Auditoria administrativa de RBAC no app (log de alteração de perfil/vínculo).
 
 ## Em execução no ambiente
 
@@ -26,7 +28,7 @@ Data: 2026-04-07
 
 ## Próximos passos recomendados
 
-- [ ] Adicionar filtros avançados e paginação na tela de Acessos.
+- [ ] Aplicar SQL de auditoria (`05_rbac_auditoria_acessos.sql`) no ambiente.
 - [ ] Mover regras críticas de campanha/envio para backend (Edge Functions/BFF).
 - [ ] Adicionar auditoria de segurança por release (checklist obrigatório).
 - [ ] Adicionar testes automatizados para permissões críticas.

@@ -205,11 +205,15 @@ function resetRuntimeData(){
   D.notas = {};
   D.userPerfis = [];
   D.userFiliais = [];
+  D.acessosAudit = [];
 
   State.FIL = null;
   State.selFil = null;
   State.user = null;
   State.userRole = 'operador';
+  State.acPagePerfis = 1;
+  State.acPageVinculos = 1;
+  State.acPageAuditoria = 1;
   State.editIds = {};
   State.pedItens = [];
 }
@@ -2613,17 +2617,52 @@ function renderAcessosMet(){
   `;
 }
 
+function paginateItems(items = [], page = 1, perPage = 10){
+  const safePage = Math.max(1, Number(page || 1));
+  const safePerPage = Math.max(1, Number(perPage || 10));
+  const total = items.length;
+  const pages = Math.max(1, Math.ceil(total / safePerPage));
+  const clamped = Math.min(safePage, pages);
+  const start = (clamped - 1) * safePerPage;
+  return {
+    page: clamped,
+    pages,
+    total,
+    perPage: safePerPage,
+    slice: items.slice(start, start + safePerPage)
+  };
+}
+
+function renderPager(elId, page, pages, onPrev, onNext){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  if(pages <= 1){
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = `
+    <button class="btn btn-sm" ${page <= 1 ? 'disabled' : ''} onclick="${onPrev}">Anterior</button>
+    <span class="bdg bk">Página ${page} de ${pages}</span>
+    <button class="btn btn-sm" ${page >= pages ? 'disabled' : ''} onclick="${onNext}">Próxima</button>
+  `;
+}
+
 function renderAcessosPerfis(){
   const el = document.getElementById('ac-perfis-lista');
   if(!el) return;
   const q = norm(document.getElementById('ac-busca')?.value || '');
+  const papel = (document.getElementById('ac-fil-papel')?.value || 'todos').trim();
   let items = D.userPerfis || [];
   if(q) items = items.filter(x => norm(x.user_id).includes(q));
+  if(papel !== 'todos') items = items.filter(x => String(x.papel) === papel);
 
   if(!items.length){
     el.innerHTML = `<div class="empty"><div class="ico">🔐</div><p>Nenhum perfil encontrado.</p></div>`;
+    renderPager('ac-perfis-pager', 1, 1, '', '');
     return;
   }
+  const p = paginateItems(items, State.acPagePerfis, 8);
+  State.acPagePerfis = p.page;
 
   el.innerHTML = `
     <div class="tw">
@@ -2637,13 +2676,13 @@ function renderAcessosPerfis(){
           </tr>
         </thead>
         <tbody>
-          ${items.map(p => `
+          ${p.slice.map(pf => `
             <tr>
-              <td><code>${p.user_id}</code></td>
-              <td><span class="bdg ${p.papel === 'admin' ? 'br' : p.papel === 'gerente' ? 'ba' : 'bk'}">${p.papel}</span></td>
-              <td>${p.atualizado_em ? new Date(p.atualizado_em).toLocaleString('pt-BR') : '—'}</td>
+              <td><code>${pf.user_id}</code></td>
+              <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${pf.papel}</span></td>
+              <td>${pf.atualizado_em ? new Date(pf.atualizado_em).toLocaleString('pt-BR') : '—'}</td>
               <td style="text-align:right">
-                <button class="btn btn-sm" onclick="preencherPerfilAcesso('${p.user_id}','${p.papel}')">Editar</button>
+                <button class="btn btn-sm" onclick="preencherPerfilAcesso('${pf.user_id}','${pf.papel}')">Editar</button>
               </td>
             </tr>
           `).join('')}
@@ -2651,6 +2690,13 @@ function renderAcessosPerfis(){
       </table>
     </div>
   `;
+  renderPager(
+    'ac-perfis-pager',
+    p.page,
+    p.pages,
+    'changeAcessosPage(\'perfis\',-1)',
+    'changeAcessosPage(\'perfis\',1)'
+  );
 }
 
 function renderAcessosVinculos(){
@@ -2658,12 +2704,17 @@ function renderAcessosVinculos(){
   if(!el) return;
   const perfMap = new Map((D.userPerfis || []).map(p => [p.user_id, p.papel]));
   const filMap = new Map((D.filiais || []).map(f => [f.id, f.nome]));
-  const items = D.userFiliais || [];
+  const filtroFilial = (document.getElementById('ac-fil-filial')?.value || 'todas').trim();
+  let items = D.userFiliais || [];
+  if(filtroFilial !== 'todas') items = items.filter(v => String(v.filial_id) === filtroFilial);
 
   if(!items.length){
     el.innerHTML = `<div class="empty"><div class="ico">🏷️</div><p>Nenhum vínculo cadastrado.</p></div>`;
+    renderPager('ac-vinculos-pager', 1, 1, '', '');
     return;
   }
+  const p = paginateItems(items, State.acPageVinculos, 8);
+  State.acPageVinculos = p.page;
 
   el.innerHTML = `
     <div class="tw">
@@ -2677,7 +2728,7 @@ function renderAcessosVinculos(){
           </tr>
         </thead>
         <tbody>
-          ${items.map(v => `
+          ${p.slice.map(v => `
             <tr>
               <td><code>${v.user_id}</code></td>
               <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
@@ -2691,6 +2742,106 @@ function renderAcessosVinculos(){
       </table>
     </div>
   `;
+  renderPager(
+    'ac-vinculos-pager',
+    p.page,
+    p.pages,
+    'changeAcessosPage(\'vinculos\',-1)',
+    'changeAcessosPage(\'vinculos\',1)'
+  );
+}
+
+function renderAcessosAuditoria(){
+  const el = document.getElementById('ac-auditoria-lista');
+  if(!el) return;
+  const items = D.acessosAudit || [];
+  if(!items.length){
+    el.innerHTML = `<div class="empty"><div class="ico">🧾</div><p>Nenhum evento de auditoria disponível.</p></div>`;
+    renderPager('ac-auditoria-pager', 1, 1, '', '');
+    return;
+  }
+  const p = paginateItems(items, State.acPageAuditoria, 10);
+  State.acPageAuditoria = p.page;
+  const filMap = new Map((D.filiais || []).map(f => [f.id, f.nome]));
+
+  el.innerHTML = `
+    <div class="tw">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Quando</th>
+            <th>Ação</th>
+            <th>Recurso</th>
+            <th>Ator</th>
+            <th>Alvo</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${p.slice.map(a => `
+            <tr>
+              <td>${a.criado_em ? new Date(a.criado_em).toLocaleString('pt-BR') : '—'}</td>
+              <td><span class="bdg ba">${a.acao || 'acao'}</span></td>
+              <td>${a.recurso || '—'}</td>
+              <td><code>${a.ator_user_id || '—'}</code></td>
+              <td>
+                <div><code>${a.alvo_user_id || '—'}</code></div>
+                <div style="font-size:11px;color:var(--tx3)">${a.alvo_filial_id ? (filMap.get(a.alvo_filial_id) || a.alvo_filial_id) : '—'}</div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  renderPager(
+    'ac-auditoria-pager',
+    p.page,
+    p.pages,
+    'changeAcessosPage(\'auditoria\',-1)',
+    'changeAcessosPage(\'auditoria\',1)'
+  );
+}
+
+function changeAcessosPage(tipo, delta){
+  if(tipo === 'perfis'){
+    State.acPagePerfis = Math.max(1, Number(State.acPagePerfis || 1) + Number(delta || 0));
+    renderAcessosPerfis();
+    return;
+  }
+  if(tipo === 'vinculos'){
+    State.acPageVinculos = Math.max(1, Number(State.acPageVinculos || 1) + Number(delta || 0));
+    renderAcessosVinculos();
+    return;
+  }
+  State.acPageAuditoria = Math.max(1, Number(State.acPageAuditoria || 1) + Number(delta || 0));
+  renderAcessosAuditoria();
+}
+
+function preencherFiltroFiliaisAcesso(){
+  const el = document.getElementById('ac-fil-filial');
+  if(!el) return;
+  const current = el.value || 'todas';
+  const opts = D.filiais || [];
+  el.innerHTML = `
+    <option value="todas">Todas filiais</option>
+    ${opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
+  `;
+  if(current && (current === 'todas' || opts.some(f => f.id === current))) el.value = current;
+}
+
+async function registrarAuditoriaAcesso(acao, recurso, alvoUserId = null, alvoFilialId = null, detalhes = {}){
+  try{
+    await SB.logAcessoAdmin({
+      ator_user_id: State.user?.id || null,
+      acao,
+      recurso,
+      alvo_user_id: alvoUserId || null,
+      alvo_filial_id: alvoFilialId || null,
+      detalhes: detalhes || {}
+    });
+  }catch(e){
+    console.error('Falha ao registrar auditoria de acesso:', e?.message || e);
+  }
 }
 
 function preencherPerfilAcesso(userId, papel){
@@ -2713,25 +2864,34 @@ async function renderAcessosAdmin(){
   const vinculosEl = document.getElementById('ac-vinculos-lista');
   if(perfisEl) perfisEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
   if(vinculosEl) vinculosEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
+  const audEl = document.getElementById('ac-auditoria-lista');
+  if(audEl) audEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
 
   try{
-    const [perfis, vinculos, filiais] = await Promise.all([
+    const [perfis, vinculos, filiais, auditoria] = await Promise.all([
       SB.getUserPerfis(),
       SB.getUserFiliais(),
-      SB.getFiliais()
+      SB.getFiliais(),
+      SB.getAcessosAudit()
     ]);
     D.userPerfis = perfis || [];
     D.userFiliais = vinculos || [];
     D.filiais = filiais || D.filiais || [];
+    D.acessosAudit = auditoria || [];
   }catch(e){
     toast('Erro ao carregar acessos: ' + (e?.message || e));
     return;
   }
 
+  State.acPagePerfis = 1;
+  State.acPageVinculos = 1;
+  State.acPageAuditoria = 1;
   preencherSelectFiliaisAcesso();
+  preencherFiltroFiliaisAcesso();
   renderAcessosMet();
   renderAcessosPerfis();
   renderAcessosVinculos();
+  renderAcessosAuditoria();
   scheduleRoleUiGuards();
 }
 
@@ -2749,6 +2909,7 @@ async function salvarPerfilAcesso(){
   }
   try{
     await SB.upsertUserPerfil({ user_id: userId, papel });
+    await registrarAuditoriaAcesso('perfil_upsert', 'user_perfis', userId, null, { papel });
     toast('Perfil salvo com sucesso.');
     await renderAcessosAdmin();
   }catch(e){
@@ -2770,6 +2931,7 @@ async function removerPerfilAcesso(){
   if(!confirm('Remover perfil deste usuário?')) return;
   try{
     await SB.deleteUserPerfil(userId);
+    await registrarAuditoriaAcesso('perfil_delete', 'user_perfis', userId, null, {});
     toast('Perfil removido com sucesso.');
     await renderAcessosAdmin();
   }catch(e){
@@ -2791,6 +2953,7 @@ async function vincularUsuarioFilial(){
   }
   try{
     await SB.upsertUserFilial({ user_id: userId, filial_id: filialId });
+    await registrarAuditoriaAcesso('vinculo_upsert', 'user_filiais', userId, filialId, {});
     toast('Vínculo salvo com sucesso.');
     await renderAcessosAdmin();
   }catch(e){
@@ -2813,6 +2976,7 @@ async function desvincularUsuarioFilial(){
   if(!confirm('Desvincular usuário desta filial?')) return;
   try{
     await SB.deleteUserFilial(userId, filialId);
+    await registrarAuditoriaAcesso('vinculo_delete', 'user_filiais', userId, filialId, {});
     toast('Vínculo removido com sucesso.');
     await renderAcessosAdmin();
   }catch(e){
@@ -3084,6 +3248,9 @@ window.renderFilMet = renderFilMet;
 window.renderFilLista = renderFilLista;
 window.renderAcessosAdmin = renderAcessosAdmin;
 window.renderAcessosPerfis = renderAcessosPerfis;
+window.renderAcessosVinculos = renderAcessosVinculos;
+window.renderAcessosAuditoria = renderAcessosAuditoria;
+window.changeAcessosPage = changeAcessosPage;
 window.preencherPerfilAcesso = preencherPerfilAcesso;
 window.preencherVinculoAcesso = preencherVinculoAcesso;
 window.salvarPerfilAcesso = salvarPerfilAcesso;

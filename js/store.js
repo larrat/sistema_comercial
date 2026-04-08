@@ -14,7 +14,8 @@ export const D = {
   movs: {},
   jogos: {},
   userPerfis: [],
-  userFiliais: []
+  userFiliais: [],
+  acessosAudit: []
 };
 
 // ═══════════════════════════
@@ -25,6 +26,9 @@ export const State = {
   selFil: null,      // Filial selecionada na tela de Setup
   user: null,        // Sessão autenticada (Supabase user)
   userRole: 'operador', // Papel atual do usuário (admin/gerente/operador)
+  acPagePerfis: 1,      // Paginação da tabela de perfis (Acessos)
+  acPageVinculos: 1,    // Paginação da tabela de vínculos (Acessos)
+  acPageAuditoria: 1,   // Paginação da tabela de auditoria (Acessos)
   dashP: 'mes',      // Período selecionado no dashboard
   movTipo: 'entrada',// Tipo de movimentação selecionada no estoque
   editIds: {},       // Guarda IDs em edição (produto, cliente, etc)

@@ -287,6 +287,10 @@ export const SB = {
     sbReq('user_filiais', 'POST', payload, '?on_conflict=user_id,filial_id'),
   deleteUserFilial: (userId, filialId) =>
     sbReq(`user_filiais?user_id=eq.${userId}&filial_id=eq.${filialId}`, 'DELETE'),
+  getAcessosAudit: () =>
+    sbReq('acessos_auditoria', 'GET', null, '?select=id,ator_user_id,acao,recurso,alvo_user_id,alvo_filial_id,detalhes,criado_em&order=criado_em.desc'),
+  logAcessoAdmin: payload =>
+    sbReq('acessos_auditoria', 'POST', payload),
   fetchJsonWithRetry: async (url, opts = {}) => {
     const res = await resilientFetch(url, {
       method: opts.method || 'GET',

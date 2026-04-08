@@ -454,14 +454,35 @@
           <div class="ct ct-inline">Perfis cadastrados</div>
           <div class="toolbar-main">
             <input class="inp" id="ac-busca" placeholder="Buscar por user_id..." style="max-width:240px" oninput="renderAcessosPerfis()">
+            <select class="inp sel" id="ac-fil-papel" style="max-width:180px" onchange="renderAcessosPerfis()">
+              <option value="todos">Todos papéis</option>
+              <option value="admin">Admin</option>
+              <option value="gerente">Gerente</option>
+              <option value="operador">Operador</option>
+            </select>
           </div>
         </div>
         <div id="ac-perfis-lista"></div>
+        <div class="toolbar-actions" id="ac-perfis-pager"></div>
       </div>
 
       <div class="card">
-        <div class="ct">Vínculos usuário x filial</div>
+        <div class="toolbar">
+          <div class="ct ct-inline">Vínculos usuário x filial</div>
+          <div class="toolbar-main">
+            <select class="inp sel" id="ac-fil-filial" style="max-width:260px" onchange="renderAcessosVinculos()">
+              <option value="todas">Todas filiais</option>
+            </select>
+          </div>
+        </div>
         <div id="ac-vinculos-lista"></div>
+        <div class="toolbar-actions" id="ac-vinculos-pager"></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Auditoria administrativa (RBAC)</div>
+        <div id="ac-auditoria-lista"></div>
+        <div class="toolbar-actions" id="ac-auditoria-pager"></div>
       </div>
     </div>
 
