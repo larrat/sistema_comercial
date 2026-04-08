@@ -196,7 +196,7 @@ export function renderEstPosicao(){
     return;
   }
 
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if(isMobile){
     estDom.html('position', 'est-posicao', filtered.map(p => {
       const s = saldos[p.id] || { saldo: 0, cm: 0 };
@@ -314,7 +314,7 @@ export function renderEstHist(){
     transf:{ ico:'TR', lbl:'Transferencia' }
   };
 
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if(isMobile){
     estDom.html('history', 'est-hist', movs.map(m => {
       const prodId = m.prodId || m.prod_id;

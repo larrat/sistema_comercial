@@ -76,7 +76,7 @@ export function renderProdutos(){
     return;
   }
 
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if(isMobile){
     prodDom.html('list', 'prod-lista', filtrados.map(p => {
       const pv = prV(p.custo, p.mkv);

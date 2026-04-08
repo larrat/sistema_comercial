@@ -3519,6 +3519,39 @@ textarea.inp:focus{
     max-width:none!important;
     min-width:0;
   }
+
+  #pg-produtos #prod-met,
+  #pg-estoque #est-met,
+  #pg-dashboard .mg{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  #pg-produtos .toolbar,
+  #pg-estoque .toolbar{
+    align-items:stretch;
+  }
+
+  #pg-produtos .toolbar-main,
+  #pg-produtos .toolbar-actions,
+  #pg-estoque .toolbar-main,
+  #pg-estoque .toolbar-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  #pg-produtos .toolbar-main .inp,
+  #pg-produtos .toolbar-main .sel,
+  #pg-estoque .toolbar-main .inp,
+  #pg-estoque .toolbar-main .sel{
+    flex:1 1 220px;
+    max-width:none!important;
+    min-width:0;
+  }
+
+  #pg-dashboard .dash-grid-main,
+  #pg-dashboard .dash-grid-cards{
+    grid-template-columns:1fr;
+  }
 }
 
 #pg-pedidos .mobile-card{
@@ -3609,7 +3642,14 @@ textarea.inp:focus{
   border-color:rgba(15,23,42,.08);
 }
 
+#pg-produtos .mobile-card,
+#pg-estoque .mobile-card{
+  border-color:rgba(15,23,42,.08);
+}
+
 #pg-clientes .mobile-card-meta,
+#pg-produtos .mobile-card-meta,
+#pg-estoque .mobile-card-meta,
 #pg-campanhas #camp-lista .mobile-card-meta,
 #pg-campanhas #camp-wa-fila .mobile-card-meta,
 #pg-campanhas #camp-envios-lista .mobile-card-meta{
@@ -3620,6 +3660,8 @@ textarea.inp:focus{
 }
 
 #pg-clientes .mobile-card-actions,
+#pg-produtos .mobile-card-actions,
+#pg-estoque .mobile-card-actions,
 #pg-campanhas .mobile-card-actions{
   margin-top:12px;
 }
@@ -3665,8 +3707,167 @@ textarea.inp:focus{
 }
 
 @media(max-width:1280px){
+  #pg-produtos .tw,
+  #pg-estoque .tw,
   #pg-clientes .tw,
   #pg-campanhas .tw{
     display:none;
+  }
+}
+
+/* =========================================================
+   DASHBOARD UX REFINEMENT - DECISAO E LEITURA
+   ========================================================= */
+#pg-dashboard .ph{
+  margin-bottom:16px;
+}
+
+#pg-dashboard .ph .fg2{
+  gap:8px;
+}
+
+#pg-dashboard .dash-section{
+  padding:0;
+}
+
+#pg-dashboard .dash-section + .dash-section{
+  margin-top:6px;
+}
+
+#pg-dashboard .dash-section-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+#pg-dashboard .dash-section-head h3{
+  font-size:18px;
+  letter-spacing:-.02em;
+  color:var(--shell-title);
+}
+
+#pg-dashboard .dash-section-head p{
+  font-size:12px;
+  color:var(--shell-muted);
+}
+
+#pg-dashboard #dash-alerts{
+  gap:10px;
+}
+
+#pg-dashboard #dash-alerts .alert{
+  padding:12px 14px;
+  border-width:1px;
+  border-radius:16px;
+  box-shadow:none;
+}
+
+#pg-dashboard .dash-card{
+  padding:16px 18px;
+}
+
+#pg-dashboard .dash-card .ct{
+  margin-bottom:12px;
+}
+
+#pg-dashboard #dash-oportunidades > .rrow:first-child,
+#pg-dashboard #dash-jogos > .rrow:first-child{
+  margin-bottom:10px;
+  padding-bottom:10px;
+}
+
+#pg-dashboard #dash-oportunidades .rrow,
+#pg-dashboard #dash-jogos .rrow,
+#pg-dashboard #dash-status .rrow,
+#pg-dashboard #dash-tp .rrow,
+#pg-dashboard #dash-ea .rrow,
+#pg-dashboard #dash-forn .rrow{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:10px 0;
+}
+
+#pg-dashboard #dash-oportunidades .dash-op-item,
+#pg-dashboard #dash-jogos .rrow{
+  border-bottom:1px solid #EAF0F6;
+}
+
+#pg-dashboard #dash-oportunidades .dash-op-item:last-child,
+#pg-dashboard #dash-jogos .rrow:last-child{
+  border-bottom:none;
+}
+
+#pg-dashboard .dash-op-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+#pg-dashboard .dash-op-actions .btn{
+  min-height:36px;
+  padding:7px 12px;
+}
+
+#pg-dashboard #dash-chart,
+#pg-dashboard #dash-margem .tw{
+  max-width:100%;
+}
+
+#pg-dashboard #dash-margem .tw{
+  overflow-x:auto;
+}
+
+#pg-dashboard .dash-chart-legend{
+  padding-top:6px;
+  border-top:1px solid #EAF0F6;
+}
+
+@media(max-width:1280px){
+  #pg-dashboard .ph.fb{
+    align-items:stretch;
+  }
+
+  #pg-dashboard .ph .fg2{
+    width:100%;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+  }
+
+  #pg-dashboard #dash-fil{
+    min-width:180px;
+    max-width:none!important;
+  }
+
+  #pg-dashboard #dash-pseg{
+    flex:1 1 100%;
+    overflow-x:auto;
+  }
+
+  #pg-dashboard .dash-grid-cards--operacao,
+  #pg-dashboard .dash-grid-cards--analise{
+    grid-template-columns:1fr;
+  }
+
+  #pg-dashboard .dash-card--oportunidades,
+  #pg-dashboard .dash-card--jogos,
+  #pg-dashboard .dash-card--estoque{
+    grid-column:auto;
+  }
+
+  #pg-dashboard .dash-card{
+    padding:14px 16px;
+  }
+
+  #pg-dashboard .dash-op-actions{
+    flex-direction:column;
+  }
+
+  #pg-dashboard .dash-op-actions .btn{
+    width:100%;
+    justify-content:center;
   }
 }
