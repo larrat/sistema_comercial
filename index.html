@@ -128,8 +128,7 @@
 
     <!-- ── DASHBOARD ── -->
     <div class="pg on" id="pg-dashboard">
-      <div class="ph fb">
-        <div><h2>Dashboard</h2><p id="dash-desc">Este mes</p></div>
+      <div class="page-controls-bar">
         <div class="fg2">
           <select class="inp sel select-w-sm input-compact" id="dash-fil" data-change="renderDash()"></select>
           <div class="pseg" id="dash-pseg">
@@ -212,8 +211,7 @@
 
     <!-- ── GERENCIAL ── -->
     <div class="pg" id="pg-gerencial">
-      <div class="ph fb">
-        <div><h2>Gerencial</h2><p>Acompanhamento continuo de metas e produtividade</p></div>
+      <div class="page-controls-bar">
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
           <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
@@ -242,12 +240,6 @@
     </div>
 
     <div class="pg" id="pg-relatorios">
-      <div class="ph fb">
-        <div><h2>Relatorios</h2><p>Oportunidades por jogos, validacoes e conversao comercial</p></div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="renderRelatorios()">Atualizar</button>
-        </div>
-      </div>
       <div class="tabs rel-tabs">
         <button class="tb on" data-tab-group="relatorios" data-tab="oportunidades">Oportunidades por jogos</button>
         <button class="tb" data-tab-group="relatorios" data-tab="performance">Performance comercial</button>
@@ -303,10 +295,6 @@
 
     <!-- ── PRODUTOS ── -->
     <div class="pg" id="pg-produtos">
-      <div class="ph fb">
-        <div><h2>Produtos</h2><p>Cadastro unico - precificacao, estoque e pedidos</p></div>
-        <button class="btn btn-p" data-click="abrirModal('modal-produto');limparFormProd()">+ Novo produto</button>
-      </div>
       <div class="mg" id="prod-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
@@ -322,10 +310,6 @@
 
     <!-- ── CLIENTES ── -->
     <div class="pg" id="pg-clientes">
-      <div class="ph fb">
-        <div><h2>Clientes</h2><p id="cli-sub">Carteira da filial</p></div>
-        <button class="btn btn-p" data-click="abrirModal('modal-cliente');limparFormCli()">+ Novo cliente</button>
-      </div>
       <div class="mg" id="cli-met"></div>
       <div class="tabs">
         <button class="tb on" data-click="switchTab('cli','lista')">Lista</button>
@@ -349,10 +333,6 @@
 
     <!-- ── PEDIDOS ── -->
     <div class="pg" id="pg-pedidos">
-      <div class="ph fb">
-        <div><h2>Pedidos</h2><p id="ped-sub">Operacao comercial da filial ativa</p></div>
-        <button class="btn btn-p" data-click="abrirModal('modal-pedido');limparFormPed()">+ Novo pedido</button>
-      </div>
       <div class="mg" id="ped-met"></div>
       <div class="toolbar">
         <div class="toolbar-main">
@@ -368,7 +348,6 @@
 
     <!-- COTACAO -->
     <div class="pg" id="pg-cotacao">
-      <div class="ph"><h2>Cotacao</h2><p id="cot-sub">Mapa de precos e fornecedores da filial ativa</p></div>
       <div class="tabs">
         <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
         <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
@@ -404,13 +383,6 @@
 
     <!-- ── ESTOQUE ── -->
     <div class="pg" id="pg-estoque">
-      <div class="ph fb">
-        <div><h2>Estoque</h2><p id="est-sub">Movimentações da filial</p></div>
-        <div class="fg2">
-          <button class="btn btn-sm" data-click="exportCSV('estoque')">Exportar CSV</button>
-          <button class="btn btn-p" data-click="abrirModal('modal-mov');resetMov()">+ Movimentacao</button>
-        </div>
-      </div>
       <div id="est-alerts"></div>
       <div class="tabs">
         <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">Posicao</button>
@@ -439,13 +411,6 @@
 
     <!-- ── CAMPANHAS ── -->
     <div class="pg" id="pg-campanhas">
-      <div class="ph fb">
-        <div><h2>Campanhas</h2><p id="camp-sub">Aniversário, fila e histórico de envios</p></div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="exportCSV('campanhas')">Exportar CSV</button>
-          <button class="btn btn-p" data-click="abrirNovaCampanha()">+ Nova campanha</button>
-        </div>
-      </div>
 
       <div class="mg" id="camp-met"></div>
       <div id="camp-diag"></div>
@@ -499,22 +464,12 @@
 
     <!-- ── FILIAIS ── -->
     <div class="pg" id="pg-filiais">
-      <div class="ph fb">
-        <div><h2>Filiais</h2><p>Gerencie todas as filiais</p></div>
-        <button class="btn btn-p" data-click="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
-      </div>
       <div class="mg" id="fil-met"></div>
       <div id="fil-lista"></div>
     </div>
 
     <!-- ── ACESSOS (ADMIN) ── -->
     <div class="pg" id="pg-acessos">
-      <div class="ph fb">
-        <div><h2>Acessos</h2><p>Gestao de perfil e vinculo por filial (admin)</p></div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="renderAcessosAdmin()">Atualizar</button>
-        </div>
-      </div>
       <div class="mg" id="ac-met"></div>
 
       <div class="card">
@@ -625,13 +580,6 @@
 
     <!-- ── NOTIFICAÇÕES ── -->
     <div class="pg" id="pg-notificacoes">
-      <div class="ph fb">
-        <div><h2>Notificacoes</h2><p>Inbox de alertas com prioridade e acao direta</p></div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="renderNotificacoes()">Atualizar</button>
-          <button class="btn btn-p" data-click="resolverTodasNotificacoes()">Resolver todas</button>
-        </div>
-      </div>
       <div class="toolbar">
         <div class="toolbar-main">
         <select class="inp sel select-w-md" id="noti-fil-prioridade" data-change="setFiltroNotificacoes(this.value)">

@@ -198,6 +198,13 @@ body{
   gap:8px;
   flex-wrap:wrap;
 }
+.page-controls-bar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  margin-bottom:20px;
+}
 .ph{margin-bottom:20px}
 .ph h2{
   font-family:'Space Grotesk',sans-serif;
