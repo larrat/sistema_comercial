@@ -226,6 +226,12 @@ import {
   mostrarTela
 } from '../modules/runtime-loading.js';
 
+import {
+  registerApplicationModules,
+  startApplicationRuntime,
+  bindWindowApi
+} from '../modules/boot-runtime.js';
+
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 
 const AppContext = createAppContext({
@@ -439,349 +445,235 @@ const removerCampanhaGuard = buildRoleGuard(removerCampanha, ROLE_MANAGER_PLUS, 
 const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 
-AppModules.register({
-  name: 'cotacao',
-  init(){
-    initCotacaoModule({
-      renderCotLogs,
-      renderProdMet,
-      renderProdutos
-    });
+registerApplicationModules({
+  registry: AppModules,
+  modules: {
+    initCotacaoModule,
+    initProdutosModule,
+    initPedidosModule,
+    initDashboardModule,
+    initTelemetriaModule,
+    initRuntimeLoadingModule,
+    initUxWorkflowsModule,
+    initAuthSetupModule,
+    initNavigationModule,
+    initFiliaisAcessosModule,
+    initNotificacoesModule
+  },
+  deps: {
+    renderCotLogs,
+    renderProdMet,
+    renderProdutos,
+    calcSaldos,
+    refreshProdSel,
+    refreshCliDL,
+    calcSaldosMulti,
+    pageAtual,
+    getNotificacoesResumo,
+    ir,
+    abrirNovaCampanhaTracked,
+    limparFormPedTracked,
+    abrirModal,
+    fmt,
+    limparFormCliTracked,
+    limparFormProdTracked,
+    resetMov,
+    abrirSyncJogos,
+    filterSidebarNav,
+    resetRuntimeData,
+    showLoading,
+    mostrarTela,
+    buildSkeletonLines,
+    carregarDadosFilial,
+    renderFornSel,
+    refreshMovSel,
+    refreshDestSel,
+    renderDashFilSel,
+    renderDash,
+    atualizarBadgeEst,
+    updateNotiBadge,
+    cores: CORES,
+    hasRole,
+    canAccessPage,
+    getFirstAllowedPage,
+    scheduleRoleUiGuards,
+    startPrimaryActionTracking,
+    completePrimaryActionTracking,
+    markConsistencyPage,
+    renderMetasNegocio,
+    renderCliMet,
+    renderClientes,
+    renderPedMet,
+    renderPedidos,
+    renderCotForns,
+    renderCotTabela,
+    renderEstAlerts,
+    renderEstPosicao,
+    renderEstHist,
+    renderCampanhasMet,
+    renderCampanhas,
+    renderFilaWhatsApp,
+    renderCampanhaEnvios,
+    renderFilMet,
+    renderFilLista,
+    renderAcessosAdmin,
+    renderNotificacoes,
+    gerarFilaCampanhaTracked,
+    exportCSV,
+    cotLock,
+    voltarSetup,
+    limparFormFilial,
+    resolverTodasNotificacoesTracked,
+    refreshCampanhasTela,
+    roleManagerPlus: ROLE_MANAGER_PLUS,
+    roleAdminOnly: ROLE_ADMIN_ONLY,
+    requireRole,
+    renderSetup,
+    entrar,
+    appRoles: APP_ROLES,
+    registerNotificationKpi,
+    logStrategicAction
   }
 });
 
-AppModules.register({
-  name: 'produtos',
-  init(){
-    initProdutosModule({
-      calcSaldos
-    });
+startApplicationRuntime({
+  appContext: AppContext,
+  registry: AppModules,
+  deps: {
+    initGoalTracking,
+    initQuickCommand,
+    initSidebarEnhancements,
+    initFlowWizards,
+    startRoleUiObserver,
+    scheduleRoleUiGuards,
+    renderSetup
   }
 });
 
-AppModules.register({
-  name: 'pedidos',
-  init(){
-    initPedidosModule({
-      refreshProdSel,
-      refreshCliDL
-    });
-  }
+bindWindowApi({
+  abrirModal,
+  fecharModal,
+  criarPrimeiraFilial,
+  entrar,
+  voltarSetup,
+  authEntrar,
+  sairConta,
+  selFilial,
+  fecharSb,
+  abrirSb,
+  ir,
+  switchTab,
+  exportarTudo,
+  exportCSV,
+  setFlowStep,
+  renderNotificacoes,
+  renderMetasNegocio,
+  resetUxKpis,
+  executarAcaoGerencial,
+  setFiltroNotificacoes,
+  executarNotificacao,
+  resolverNotificacao,
+  reabrirNotificacao,
+  resolverTodasNotificacoes: resolverTodasNotificacoesTracked,
+  renderDashFilSel,
+  renderDash,
+  setP,
+  renderDashJogos,
+  abrirNovoJogo,
+  limparFormJogo,
+  salvarJogoDashboard: salvarJogoDashboardGuard,
+  removerJogoDashboard: removerJogoDashboardGuard,
+  abrirSyncJogos,
+  sincronizarJogosDashboard: sincronizarJogosDashboardGuard,
+  usarExemploSyncJogos,
+  renderProdutos,
+  renderProdMet,
+  limparFormProd: limparFormProdTracked,
+  salvarProduto: salvarProdutoTracked,
+  editarProd,
+  removerProd: removerProdGuard,
+  calcProdPreview,
+  syncV,
+  syncA,
+  refreshProdSel,
+  renderClientes,
+  renderCliMet,
+  limparFormCli: limparFormCliTracked,
+  salvarCliente: salvarClienteTracked,
+  editarCli,
+  removerCli: removerCliGuard,
+  renderCliSegs,
+  abrirCliDet,
+  addNota,
+  refreshCliDL,
+  renderPedidos,
+  renderPedMet,
+  limparFormPed: limparFormPedTracked,
+  salvarPedido: salvarPedidoTracked,
+  editarPed,
+  removerPed: removerPedGuard,
+  verPed,
+  addItem,
+  remItem,
+  renderItens,
+  renderCotForns,
+  renderCotTabela,
+  cotFile,
+  cotLock,
+  salvarForn,
+  remForn: remFornGuard,
+  confirmarMapa,
+  renderMapaBody,
+  renderFornSel,
+  renderCotLogs,
+  updPreco,
+  renderEstPosicao,
+  renderEstHist,
+  renderEstAlerts,
+  atualizarBadgeEst,
+  resetMov,
+  abrirMovProd,
+  setTipo,
+  movLoadProd,
+  movCalc,
+  movCalcAjuste,
+  salvarMov,
+  excluirMov: excluirMovGuard,
+  refreshMovSel,
+  refreshDestSel,
+  salvarFilial,
+  limparFormFilial,
+  editarFilial,
+  removerFilial,
+  trocarFilial,
+  renderFilMet,
+  renderFilLista,
+  renderAcessosAdmin,
+  renderAcessosPerfis,
+  renderAcessosVinculos,
+  renderAcessosAuditoria,
+  changeAcessosPage,
+  preencherPerfilAcesso,
+  preencherVinculoAcesso,
+  salvarPerfilAcesso,
+  removerPerfilAcesso,
+  vincularUsuarioFilial,
+  desvincularUsuarioFilial,
+  carregarCampanhas,
+  carregarCampanhaEnvios,
+  refreshCampanhasTela,
+  limparFormCampanha,
+  abrirNovaCampanha: abrirNovaCampanhaTracked,
+  adotarCampanhasParaFilialAtiva,
+  editarCampanha,
+  salvarCampanha: salvarCampanhaTracked,
+  removerCampanha: removerCampanhaGuard,
+  renderCampanhasMet,
+  renderCampanhas,
+  gerarFilaCampanha: gerarFilaCampanhaTracked,
+  renderFilaWhatsApp,
+  renderCampanhaEnvios,
+  abrirWhatsAppEnvio,
+  marcarEnvioEnviado: marcarEnvioEnviadoGuard,
+  marcarEnvioFalhou: marcarEnvioFalhouGuard
 });
-
-AppModules.register({
-  name: 'dashboard',
-  init(){
-    initDashboardModule({
-      calcSaldosMulti
-    });
-  }
-});
-
-AppModules.register({
-  name: 'telemetria',
-  init(){
-    initTelemetriaModule({
-      pageAtual,
-      getNotificacoesResumo,
-      ir,
-      abrirNovaCampanhaTracked,
-      limparFormPedTracked,
-      abrirModal,
-      fmt,
-      onMetricsReset: () => renderMetasNegocio()
-    });
-  }
-});
-
-AppModules.register({
-  name: 'runtime-loading',
-  init(){
-    initRuntimeLoadingModule();
-  }
-});
-
-AppModules.register({
-  name: 'ux-workflows',
-  init(){
-    initUxWorkflowsModule({
-      ir,
-      limparFormPedTracked,
-      limparFormCliTracked,
-      limparFormProdTracked,
-      abrirNovaCampanhaTracked,
-      abrirModal,
-      resetMov,
-      abrirSyncJogos
-    });
-  }
-});
-
-AppModules.register({
-  name: 'auth-setup',
-  init(){
-    initAuthSetupModule({
-      pageAtual,
-      ir,
-      filterSidebarNav,
-      resetRuntimeData,
-      showLoading,
-      mostrarTela,
-      buildSkeletonLines,
-      carregarDadosFilial,
-      refreshProdSel,
-      refreshCliDL,
-      renderFornSel,
-      refreshMovSel,
-      refreshDestSel,
-      renderDashFilSel,
-      renderDash,
-      atualizarBadgeEst,
-      updateNotiBadge,
-      cores: CORES
-    });
-  }
-});
-
-AppModules.register({
-  name: 'navigation',
-  init(){
-    initNavigationModule({
-      hasRole,
-      canAccessPage,
-      getFirstAllowedPage,
-      scheduleRoleUiGuards,
-      startPrimaryActionTracking,
-      completePrimaryActionTracking,
-      markConsistencyPage,
-      updateNotiBadge,
-      renderDash,
-      renderMetasNegocio,
-      renderProdMet,
-      renderProdutos,
-      renderCliMet,
-      renderClientes,
-      renderPedMet,
-      renderPedidos,
-      renderFornSel,
-      renderCotForns,
-      renderCotLogs,
-      renderCotTabela,
-      renderEstAlerts,
-      renderEstPosicao,
-      renderEstHist,
-      renderCampanhasMet,
-      renderCampanhas,
-      renderFilaWhatsApp,
-      renderCampanhaEnvios,
-      renderFilMet,
-      renderFilLista,
-      renderAcessosAdmin,
-      renderNotificacoes,
-      limparFormPedTracked,
-      limparFormCliTracked,
-      limparFormProdTracked,
-      abrirNovaCampanhaTracked,
-      gerarFilaCampanhaTracked,
-      abrirModal,
-      exportCSV,
-      resetMov,
-      cotLock,
-      voltarSetup,
-      limparFormFilial,
-      resolverTodasNotificacoesTracked,
-      refreshCampanhasTela,
-      roleManagerPlus: ROLE_MANAGER_PLUS,
-      roleAdminOnly: ROLE_ADMIN_ONLY
-    });
-  }
-});
-
-AppModules.register({
-  name: 'filiais-acessos',
-  init(){
-    initFiliaisAcessosModule({
-      requireRole,
-      renderSetup,
-      entrar,
-      renderDashFilSel,
-      scheduleRoleUiGuards,
-      roleAdminOnly: ROLE_ADMIN_ONLY,
-      appRoles: APP_ROLES,
-      cores: CORES
-    });
-  }
-});
-
-AppModules.register({
-  name: 'notificacoes',
-  init(){
-    initNotificacoesModule({
-      calcSaldos,
-      ir,
-      renderMetasNegocio,
-      registerNotificationKpi,
-      logStrategicAction
-    });
-  }
-});
-
-async function bootstrapApplication(){
-  await AppModules.initAll(AppContext);
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    bootstrapApplication().catch(e => console.error('Falha no bootstrap da aplicacao:', e));
-    initGoalTracking();
-    initQuickCommand();
-    initSidebarEnhancements();
-    initFlowWizards();
-    startRoleUiObserver();
-    scheduleRoleUiGuards();
-    renderSetup();
-  });
-} else {
-  bootstrapApplication().catch(e => console.error('Falha no bootstrap da aplicacao:', e));
-  initGoalTracking();
-  initQuickCommand();
-  initSidebarEnhancements();
-  initFlowWizards();
-  startRoleUiObserver();
-  scheduleRoleUiGuards();
-  renderSetup();
-}
-
-window.abrirModal = abrirModal;
-window.fecharModal = fecharModal;
-window.criarPrimeiraFilial = criarPrimeiraFilial;
-window.entrar = entrar;
-window.voltarSetup = voltarSetup;
-window.authEntrar = authEntrar;
-window.sairConta = sairConta;
-window.selFilial = selFilial;
-window.fecharSb = fecharSb;
-window.abrirSb = abrirSb;
-window.ir = ir;
-window.switchTab = switchTab;
-window.exportarTudo = exportarTudo;
-window.exportCSV = exportCSV;
-window.setFlowStep = setFlowStep;
-window.renderNotificacoes = renderNotificacoes;
-window.renderMetasNegocio = renderMetasNegocio;
-window.resetUxKpis = resetUxKpis;
-window.executarAcaoGerencial = executarAcaoGerencial;
-window.setFiltroNotificacoes = setFiltroNotificacoes;
-window.executarNotificacao = executarNotificacao;
-window.resolverNotificacao = resolverNotificacao;
-window.reabrirNotificacao = reabrirNotificacao;
-window.resolverTodasNotificacoes = resolverTodasNotificacoesTracked;
-
-window.renderDashFilSel = renderDashFilSel;
-window.renderDash = renderDash;
-window.setP = setP;
-window.renderDashJogos = renderDashJogos;
-window.abrirNovoJogo = abrirNovoJogo;
-window.limparFormJogo = limparFormJogo;
-window.salvarJogoDashboard = salvarJogoDashboardGuard;
-window.removerJogoDashboard = removerJogoDashboardGuard;
-window.abrirSyncJogos = abrirSyncJogos;
-window.sincronizarJogosDashboard = sincronizarJogosDashboardGuard;
-window.usarExemploSyncJogos = usarExemploSyncJogos;
-
-window.renderProdutos = renderProdutos;
-window.renderProdMet = renderProdMet;
-window.limparFormProd = limparFormProdTracked;
-window.salvarProduto = salvarProdutoTracked;
-window.editarProd = editarProd;
-window.removerProd = removerProdGuard;
-window.calcProdPreview = calcProdPreview;
-window.syncV = syncV;
-window.syncA = syncA;
-window.refreshProdSel = refreshProdSel;
-
-window.renderClientes = renderClientes;
-window.renderCliMet = renderCliMet;
-window.limparFormCli = limparFormCliTracked;
-window.salvarCliente = salvarClienteTracked;
-window.editarCli = editarCli;
-window.removerCli = removerCliGuard;
-window.renderCliSegs = renderCliSegs;
-window.abrirCliDet = abrirCliDet;
-window.addNota = addNota;
-window.refreshCliDL = refreshCliDL;
-
-window.renderPedidos = renderPedidos;
-window.renderPedMet = renderPedMet;
-window.limparFormPed = limparFormPedTracked;
-window.salvarPedido = salvarPedidoTracked;
-window.editarPed = editarPed;
-window.removerPed = removerPedGuard;
-window.verPed = verPed;
-window.addItem = addItem;
-window.remItem = remItem;
-window.renderItens = renderItens;
-
-window.renderCotForns = renderCotForns;
-window.renderCotTabela = renderCotTabela;
-window.cotFile = cotFile;
-window.cotLock = cotLock;
-window.salvarForn = salvarForn;
-window.remForn = remFornGuard;
-window.confirmarMapa = confirmarMapa;
-window.renderMapaBody = renderMapaBody;
-window.renderFornSel = renderFornSel;
-window.renderCotLogs = renderCotLogs;
-window.updPreco = updPreco;
-
-window.renderEstPosicao = renderEstPosicao;
-window.renderEstHist = renderEstHist;
-window.renderEstAlerts = renderEstAlerts;
-window.atualizarBadgeEst = atualizarBadgeEst;
-window.resetMov = resetMov;
-window.abrirMovProd = abrirMovProd;
-window.setTipo = setTipo;
-window.movLoadProd = movLoadProd;
-window.movCalc = movCalc;
-window.movCalcAjuste = movCalcAjuste;
-window.salvarMov = salvarMov;
-window.excluirMov = excluirMovGuard;
-window.refreshMovSel = refreshMovSel;
-window.refreshDestSel = refreshDestSel;
-
-window.salvarFilial = salvarFilial;
-window.limparFormFilial = limparFormFilial;
-window.editarFilial = editarFilial;
-window.removerFilial = removerFilial;
-window.trocarFilial = trocarFilial;
-window.renderFilMet = renderFilMet;
-window.renderFilLista = renderFilLista;
-window.renderAcessosAdmin = renderAcessosAdmin;
-window.renderAcessosPerfis = renderAcessosPerfis;
-window.renderAcessosVinculos = renderAcessosVinculos;
-window.renderAcessosAuditoria = renderAcessosAuditoria;
-window.changeAcessosPage = changeAcessosPage;
-window.preencherPerfilAcesso = preencherPerfilAcesso;
-window.preencherVinculoAcesso = preencherVinculoAcesso;
-window.salvarPerfilAcesso = salvarPerfilAcesso;
-window.removerPerfilAcesso = removerPerfilAcesso;
-window.vincularUsuarioFilial = vincularUsuarioFilial;
-window.desvincularUsuarioFilial = desvincularUsuarioFilial;
-
-window.carregarCampanhas = carregarCampanhas;
-window.carregarCampanhaEnvios = carregarCampanhaEnvios;
-window.refreshCampanhasTela = refreshCampanhasTela;
-window.limparFormCampanha = limparFormCampanha;
-window.abrirNovaCampanha = abrirNovaCampanhaTracked;
-window.adotarCampanhasParaFilialAtiva = adotarCampanhasParaFilialAtiva;
-window.editarCampanha = editarCampanha;
-window.salvarCampanha = salvarCampanhaTracked;
-window.removerCampanha = removerCampanhaGuard;
-window.renderCampanhasMet = renderCampanhasMet;
-window.renderCampanhas = renderCampanhas;
-window.gerarFilaCampanha = gerarFilaCampanhaTracked;
-window.renderFilaWhatsApp = renderFilaWhatsApp;
-window.renderCampanhaEnvios = renderCampanhaEnvios;
-window.abrirWhatsAppEnvio = abrirWhatsAppEnvio;
-window.marcarEnvioEnviado = marcarEnvioEnviadoGuard;
-window.marcarEnvioFalhou = marcarEnvioFalhouGuard;
