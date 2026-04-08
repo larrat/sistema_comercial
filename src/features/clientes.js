@@ -1,7 +1,7 @@
 import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, toast, notify, focusField } from '../shared/utils.js';
+import { abrirModal, fecharModal, toast, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
 let setFlowStepSafe = () => {};
