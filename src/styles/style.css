@@ -3353,7 +3353,7 @@ textarea.inp:focus{
   min-width:145px;
 }
 
-@media(max-width:1180px){
+@media(min-width:761px) and (max-width:1180px){
   .sb{
     width:84px;
     overflow:visible;
@@ -3682,6 +3682,64 @@ textarea.inp:focus{
 }
 
 @media(max-width:760px){
+  .sb{
+    width:236px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    border-right:none;
+  }
+
+  .sb-head,
+  .sb-foot{
+    padding-left:14px;
+    padding-right:14px;
+  }
+
+  .sb-brand{
+    font-size:17px;
+    white-space:normal;
+    overflow:visible;
+  }
+
+  .sb-brand::before{
+    margin-right:10px;
+  }
+
+  .sb-pill{
+    justify-content:flex-start;
+    width:auto;
+    padding:7px 10px;
+  }
+
+  .sb-pill .sb-pname,
+  .sb-pill span{
+    display:inline;
+  }
+
+  .sb-search{
+    display:block;
+  }
+
+  .nl{
+    display:block;
+  }
+
+  .ni{
+    justify-content:flex-start;
+    padding:10px 11px;
+    font-size:13px;
+  }
+
+  .ni::after{
+    display:none!important;
+  }
+
+  .sb-empty,
+  .sb-foot .btn,
+  .sb-foot .bdg{
+    display:flex!important;
+  }
+
   #pg-cotacao #cot-tc-cotacao > .fb{
     flex-direction:column;
   }
