@@ -594,13 +594,14 @@
       <div class="fg c3">
         <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m2</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
         <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aco, eletrico"></div>
-        <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" data-input="calcProdPreview()"></div>
+        <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" data-input="syncProdFromCost()"></div>
       </div>
     </div>
 
     <div class="flow-step" data-flow-id="prod" data-step="2">
       <div class="modal-split">
         <div class="panel"><div class="pt">Varejo</div>
+          <div class="fg"><div><div class="fl">Preco direto (R$)</div><input class="inp" id="p-pvv" type="number" step="0.01" min="0" data-input="syncV('pv')"></div></div>
           <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" data-input="syncV('mk')"></div></div>
           <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" data-input="syncV('mg')"></div></div>
           <div class="fg c2">
@@ -612,7 +613,7 @@
           <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" data-input="syncA('mk')"></div></div>
           <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" data-input="syncA('mg')"></div></div>
           <div class="fg c2">
-            <div><div class="fl">Preco fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0"></div>
+            <div><div class="fl">Preco fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0" data-input="syncA('pv')"></div>
             <div><div class="fl">Desc. max. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
           </div>
         </div>

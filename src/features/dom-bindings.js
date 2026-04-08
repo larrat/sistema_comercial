@@ -111,7 +111,8 @@ function getHandlerRegistry(){
       limparFormPed: deps.limparFormPedTracked,
       calcProdPreview: deps.calcProdPreview,
       syncV: deps.syncV,
-      syncA: deps.syncA
+      syncA: deps.syncA,
+      syncProdFromCost: deps.syncProdFromCost
     },
     dashboard: {
       renderDash: deps.renderDash,
@@ -279,6 +280,7 @@ function callFieldHandler(name, el, event){
     calcProdPreview: () => deps.calcProdPreview(),
     syncV: () => deps.syncV(el.dataset.arg),
     syncA: () => deps.syncA(el.dataset.arg),
+    syncProdFromCost: () => deps.syncProdFromCost(),
     setFiltroNotificacoes: () => deps.setFiltroNotificacoes(el.value)
   };
   const handler = fieldHandlers[name];

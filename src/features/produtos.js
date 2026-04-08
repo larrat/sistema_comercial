@@ -24,9 +24,23 @@ const prodDom = createScreenDom('produtos', [
   'pi-prod'
 ]);
 const PROD_FORM_IDS = [
-  'p-nome','p-sku','p-cat','p-mkv','p-mgv','p-qtmin','p-dv',
+  'p-nome','p-sku','p-cat','p-pvv','p-mkv','p-mgv','p-qtmin','p-dv',
   'p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'
 ];
+
+function priceToMarkup(custo, preco){
+  const c = Number(custo || 0);
+  const p = Number(preco || 0);
+  if(c <= 0 || p <= 0) return 0;
+  return ((p / c) - 1) * 100;
+}
+
+function priceToMargin(custo, preco){
+  const c = Number(custo || 0);
+  const p = Number(preco || 0);
+  if(c <= 0 || p <= 0) return 0;
+  return ((p - c) / p) * 100;
+}
 
 export function initProdutosModule(callbacks = {}){
   calcSaldosSafe = callbacks.calcSaldos || (() => ({}));
@@ -204,6 +218,7 @@ export function editarProd(id){
   prodDom.value('p-un', p.un || 'un');
   prodDom.value('p-cat', p.cat || '');
   prodDom.value('p-custo', p.custo ?? '');
+  prodDom.value('p-pvv', p.mkv > 0 ? prV(Number(p.custo || 0), Number(p.mkv || 0)).toFixed(2) : '');
   prodDom.value('p-mkv', Number(p.mkv || 0).toFixed(1));
   prodDom.value('p-mgv', mk2mg(Number(p.mkv || 0)).toFixed(1));
   prodDom.value('p-qtmin', p.qtmin || '');
@@ -259,33 +274,58 @@ export function editarProd(id){
 }
 
 export function syncV(t){
+  const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
+  const pv = parseFloat(prodDom.get('p-pvv')?.value) || 0;
   const mk = parseFloat(prodDom.get('p-mkv')?.value) || 0;
   const mg = parseFloat(prodDom.get('p-mgv')?.value) || 0;
 
   if(t === 'mk' && mk > 0){
     prodDom.value('p-mgv', mk2mg(mk).toFixed(1));
+    if(c > 0) prodDom.value('p-pvv', prV(c, mk).toFixed(2));
   } else if(t === 'mg' && mg > 0){
-    prodDom.value('p-mkv', mg2mk(mg).toFixed(1));
+    const mkCalc = mg2mk(mg);
+    prodDom.value('p-mkv', mkCalc.toFixed(1));
+    if(c > 0) prodDom.value('p-pvv', prV(c, mkCalc).toFixed(2));
+  } else if(t === 'pv' && c > 0 && pv > 0){
+    const mkCalc = priceToMarkup(c, pv);
+    prodDom.value('p-mkv', mkCalc.toFixed(1));
+    prodDom.value('p-mgv', priceToMargin(c, pv).toFixed(1));
   }
 
   calcProdPreview();
 }
 
 export function syncA(t){
+  const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
+  const pa = parseFloat(prodDom.get('p-pfa')?.value) || 0;
   const mk = parseFloat(prodDom.get('p-mka')?.value) || 0;
   const mg = parseFloat(prodDom.get('p-mga')?.value) || 0;
 
   if(t === 'mk' && mk > 0){
     prodDom.value('p-mga', mk2mg(mk).toFixed(1));
+    if(c > 0) prodDom.value('p-pfa', prV(c, mk).toFixed(2));
   } else if(t === 'mg' && mg > 0){
-    prodDom.value('p-mka', mg2mk(mg).toFixed(1));
+    const mkCalc = mg2mk(mg);
+    prodDom.value('p-mka', mkCalc.toFixed(1));
+    if(c > 0) prodDom.value('p-pfa', prV(c, mkCalc).toFixed(2));
+  } else if(t === 'pv' && c > 0 && pa > 0){
+    const mkCalc = priceToMarkup(c, pa);
+    prodDom.value('p-mka', mkCalc.toFixed(1));
+    prodDom.value('p-mga', priceToMargin(c, pa).toFixed(1));
   }
 
   calcProdPreview();
 }
 
+export function syncProdFromCost(){
+  syncV('pv');
+  syncA('pv');
+  calcProdPreview();
+}
+
 export function calcProdPreview(){
   const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
+  const pvv = parseFloat(prodDom.get('p-pvv')?.value) || 0;
   const mkv = parseFloat(prodDom.get('p-mkv')?.value) || 0;
   const mka = parseFloat(prodDom.get('p-mka')?.value) || 0;
   const pfa = parseFloat(prodDom.get('p-pfa')?.value) || 0;
@@ -295,12 +335,12 @@ export function calcProdPreview(){
 
   if(!prev) return;
 
-  if(c > 0 && mkv > 0){
-    const pv = prV(c, mkv);
-    const pa = pfa > 0 ? pfa : (mka > 0 ? prV(c, mka) : 0);
+  const pv = pvv > 0 ? pvv : (c > 0 && mkv > 0 ? prV(c, mkv) : 0);
+  const pa = pfa > 0 ? pfa : (c > 0 && mka > 0 ? prV(c, mka) : 0);
 
-    prodDom.text('preview', 'ppv-v', fmt(pv), 'produtos:preview');
-    prodDom.text('preview', 'ppv-vmin', dv > 0 ? fmt(pv * (1 - dv / 100)) : '-', 'produtos:preview');
+  if(c > 0 && (pv > 0 || pa > 0)){
+    prodDom.text('preview', 'ppv-v', pv > 0 ? fmt(pv) : '-', 'produtos:preview');
+    prodDom.text('preview', 'ppv-vmin', (pv > 0 && dv > 0) ? fmt(pv * (1 - dv / 100)) : '-', 'produtos:preview');
     prodDom.text('preview', 'ppv-a', pa > 0 ? fmt(pa) : '-', 'produtos:preview');
     prodDom.text('preview', 'ppv-amin', (pa > 0 && da > 0) ? fmt(pa * (1 - da / 100)) : '-', 'produtos:preview');
     prodDom.display('preview', 'prod-preview', 'block', 'produtos:preview');
@@ -312,6 +352,8 @@ export function calcProdPreview(){
 export async function salvarProduto(){
   const nome = prodDom.get('p-nome')?.value.trim() || '';
   const custo = parseFloat(prodDom.get('p-custo')?.value) || 0;
+  const precoVarejo = parseFloat(prodDom.get('p-pvv')?.value) || 0;
+  const markupVarejo = precoVarejo > 0 ? priceToMarkup(custo, precoVarejo) : (parseFloat(prodDom.get('p-mkv')?.value) || 0);
 
   if(!nome || custo <= 0){
     notify(
@@ -333,7 +375,7 @@ export async function salvarProduto(){
     un: prodDom.get('p-un')?.value || 'un',
     cat: prodDom.get('p-cat')?.value.trim() || '',
     custo,
-    mkv: parseFloat(prodDom.get('p-mkv')?.value) || 0,
+    mkv: markupVarejo,
     mka: parseFloat(prodDom.get('p-mka')?.value) || 0,
     pfa: parseFloat(prodDom.get('p-pfa')?.value) || 0,
     dv: parseFloat(prodDom.get('p-dv')?.value) || 0,

@@ -175,12 +175,13 @@ function validateFlowStep(flow, step){
       }
     }
     if(step === 2){
+      const pvv = parseFloat(document.getElementById('p-pvv')?.value || 0) || 0;
       const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
       const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
       const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
-      if(mkv <= 0 && pfa <= 0 && mka <= 0){
-        toast('Produto: defina markup varejo ou preco/markup de atacado.');
-        focusField('p-mkv');
+      if(pvv <= 0 && mkv <= 0 && pfa <= 0 && mka <= 0){
+        toast('Produto: defina preco ou markup de varejo, ou preco/markup de atacado.');
+        focusField('p-pvv');
         return false;
       }
     }
@@ -216,6 +217,7 @@ function renderFlowSummary(flow){
     const el = document.getElementById('prod-flow-resumo');
     if(!el) return;
     const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
+    const pvv = parseFloat(document.getElementById('p-pvv')?.value || 0) || 0;
     const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
     const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
     const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
@@ -223,7 +225,7 @@ function renderFlowSummary(flow){
     const nome = flowVal('p-nome', '');
     const sku = flowVal('p-sku', '—');
     const cat = flowVal('p-cat', '—');
-    const pv = custo > 0 && mkv > 0 ? prV(custo, mkv) : 0;
+    const pv = pvv > 0 ? pvv : (custo > 0 && mkv > 0 ? prV(custo, mkv) : 0);
     const pa = pfa > 0 ? pfa : (custo > 0 && mka > 0 ? prV(custo, mka) : 0);
     const margemV = pv > 0 ? ((pv - custo) / pv) * 100 : 0;
     const margemA = pa > 0 ? ((pa - custo) / pa) * 100 : 0;
@@ -236,7 +238,7 @@ function renderFlowSummary(flow){
       { ok: !!nome, label: 'Nome do produto' },
       { ok: !!un, label: 'Unidade' },
       { ok: custo > 0, label: 'Custo valido' },
-      { ok: mkv > 0 || mka > 0 || pfa > 0, label: 'Regra de preco definida' }
+      { ok: pvv > 0 || mkv > 0 || mka > 0 || pfa > 0, label: 'Regra de preco definida' }
     ];
     const checkHtml = checks.map(c => `<span class="bdg ${c.ok ? 'bg' : 'br'}">${c.ok ? 'OK' : 'Pendente'} • ${c.label}</span>`).join('');
     const incHtml = inconsistencias.length
@@ -329,7 +331,7 @@ export function setFlowStep(flow, rawStep){
 export function initFlowWizards(){
   ['prod', 'cli'].forEach(flow => setFlowStep(flow, 1));
   [
-    'p-nome','p-sku','p-un','p-cat','p-custo','p-mkv','p-mka','p-pfa','p-esal','p-emin',
+    'p-nome','p-sku','p-un','p-cat','p-custo','p-pvv','p-mkv','p-mka','p-pfa','p-esal','p-emin',
     'c-nome','c-apelido','c-doc','c-tipo','c-status','c-tel','c-whatsapp','c-email','c-aniv',
     'c-seg','c-tab','c-prazo','c-time','c-cidade','c-estado','c-optin-marketing','c-optin-email','c-optin-sms'
   ].forEach(id => {
