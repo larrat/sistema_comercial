@@ -12,8 +12,19 @@ export function addDays(baseDate: Date | string, days: number) {
   return d;
 }
 
+export function parseDateOnly(value: Date | string) {
+  if (value instanceof Date) return new Date(value);
+  const raw = String(value || '').trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const [, y, m, d] = match;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  return new Date(raw);
+}
+
 export function nextBirthdayDate(birthDate: string, baseDate = new Date()) {
-  const b = new Date(birthDate);
+  const b = parseDateOnly(birthDate);
   if (Number.isNaN(b.getTime())) return null;
 
   const start = new Date(baseDate);

@@ -12,15 +12,26 @@ export function addDays(baseDate, days) {
   return d;
 }
 
+export function parseDateOnly(value) {
+  if(value instanceof Date) return new Date(value);
+  const raw = String(value || '').trim();
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(match){
+    const [, y, m, d] = match;
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  return new Date(raw);
+}
+
 export function mmdd(date) {
-  const d = new Date(date);
+  const d = parseDateOnly(date);
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${m}-${day}`;
 }
 
 export function nextBirthdayDate(birthDate, baseDate = new Date()) {
-  const b = new Date(birthDate);
+  const b = parseDateOnly(birthDate);
   if (isNaN(b.getTime())) return null;
 
   const start = new Date(baseDate);

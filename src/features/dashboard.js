@@ -327,6 +327,15 @@ function getProxAnivDate(dataAniversario, baseDate){
   return aniv;
 }
 
+function getDiasAteData(targetDate, baseDate){
+  if(!(targetDate instanceof Date) || isNaN(targetDate.getTime())) return null;
+  const base = new Date(baseDate);
+  base.setHours(0, 0, 0, 0);
+  const alvo = new Date(targetDate);
+  alvo.setHours(0, 0, 0, 0);
+  return Math.round((alvo.getTime() - base.getTime()) / 86400000);
+}
+
 export function initDashboardModule(callbacks = {}){
   calcSaldosMultiSafe = callbacks.calcSaldosMulti || (() => ({}));
 }
@@ -488,7 +497,15 @@ export function renderDash(){
   }
 
   if(anivProximos.length){
-    ah += `<div class="alert al-g"><b>Aniversarios proximos:</b> ${anivProximos.length} cliente(s) nos proximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? '...' : ''}</div>`;
+    const resumoAniversarios = anivProximos.slice(0, 3).map(c => {
+      const dias = getDiasAteData(c._anivData, hoje);
+      const nome = c.apelido || c.nome;
+      if(dias === 0) return `${nome} hoje`;
+      if(dias === 1) return `${nome} amanha`;
+      if(typeof dias === 'number' && dias > 1) return `${nome} em ${dias} dias`;
+      return nome;
+    }).join(', ');
+    ah += `<div class="alert al-g"><b>Aniversarios proximos:</b> ${resumoAniversarios}${anivProximos.length > 3 ? '...' : ''}</div>`;
   }
 
   /** @type {OportunidadeJogo[]} */
