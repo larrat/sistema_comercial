@@ -401,24 +401,21 @@ export async function renderAcessosAdmin(){
   const audEl = document.getElementById('ac-auditoria-lista');
   if(audEl) audEl.innerHTML = '<div class="sk-card"><span class="sk-line"></span><span class="sk-line"></span></div>';
 
-  const [perfisResult, vinculosResult, filiaisResult, auditoriaResult] = await Promise.all([
-    SB.toResult(() => SB.getUserPerfis()),
-    SB.toResult(() => SB.getUserFiliais()),
-    SB.toResult(() => SB.getFiliais()),
-    SB.toResult(() => SB.getAcessosAudit())
-  ]);
+  const readResult = await SB.toResult(() => SB.getAcessosAdminReadEdge({
+    auditoria_limit: 100
+  }));
 
-  const firstError = [perfisResult, vinculosResult, filiaisResult, auditoriaResult].find(r => !r.ok);
-  if(firstError){
-    toast('Erro ao carregar acessos: ' + (firstError.error?.message || 'falha inesperada'));
-    console.error('Falha em renderAcessosAdmin', firstError.error);
+  if(!readResult.ok){
+    toast('Erro ao carregar acessos: ' + (readResult.error?.message || 'falha inesperada'));
+    console.error('Falha em renderAcessosAdmin', readResult.error);
     return;
   }
 
-  D.userPerfis = perfisResult.data || [];
-  D.userFiliais = vinculosResult.data || [];
-  D.filiais = filiaisResult.data || D.filiais || [];
-  D.acessosAudit = auditoriaResult.data || [];
+  const data = readResult.data || {};
+  D.userPerfis = data.perfis || [];
+  D.userFiliais = data.vinculos || [];
+  D.filiais = data.filiais || D.filiais || [];
+  D.acessosAudit = data.auditoria || [];
 
   State.acPagePerfis = 1;
   State.acPageVinculos = 1;

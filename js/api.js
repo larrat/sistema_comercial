@@ -328,7 +328,7 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
   return data;
 }
 
-async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST' } = {}) {
+async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST', query = null } = {}) {
   ensureSupabaseConfig();
   const session = await getActiveAuthSession();
   if (!session?.access_token) {
@@ -343,15 +343,23 @@ async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST' 
   }
 
   let res;
+  const queryString = query && typeof query === 'object'
+    ? `?${new URLSearchParams(
+      Object.entries(query)
+        .filter(([, value]) => value !== undefined && value !== null && value !== '')
+        .map(([key, value]) => [key, String(value)])
+    ).toString()}`
+    : '';
+  const url = `${SB_URL}/functions/v1/${functionName}${queryString}`;
   try {
-    res = await resilientFetch(`${SB_URL}/functions/v1/${functionName}`, {
+    res = await resilientFetch(url, {
       method,
       headers: {
         apikey: SB_KEY,
         Authorization: 'Bearer ' + session.access_token,
         'Content-Type': 'application/json'
       },
-      body: payload ? JSON.stringify(payload) : undefined
+      body: method === 'GET' || !payload ? undefined : JSON.stringify(payload)
     });
   } catch (err) {
     throw normalizeSbError(err, {
@@ -493,6 +501,11 @@ export const SB = {
     sbReq('acessos_auditoria', 'POST', payload),
   acessosAdminEdge: payload =>
     invokeEdgeFunction('acessos-admin', payload),
+  getAcessosAdminReadEdge: ({ auditoria_limit = 100 } = {}) =>
+    invokeEdgeFunction('acessos-admin-read', null, {
+      method: 'GET',
+      query: { auditoria_limit }
+    }),
   upsertUserPerfilEdge: ({ user_id, papel, detalhes = {} }) =>
     invokeEdgeFunction('acessos-admin', {
       action: 'perfil_upsert',

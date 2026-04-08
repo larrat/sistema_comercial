@@ -47,6 +47,8 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - [ ] executar smoke test de `campanhas-gerar-fila` conforme `docs/backend/SMOKE_TEST_EDGE_FUNCTION_CAMPANHAS.md`
 - [ ] validar contrato da Edge Function `acessos-admin`
 - [ ] executar smoke test de `acessos-admin` conforme `docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN.md`
+- [ ] validar contrato da Edge Function `acessos-admin-read`
+- [ ] executar smoke test de `acessos-admin-read` conforme `docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN_READ.md`
 - [ ] registrar decisao sobre migracao de leitura administrativa sensivel para backend na frente de acessos
 
 ## Arquivos foco da fase
@@ -65,8 +67,16 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - `docs/backend/SMOKE_TEST_EDGE_FUNCTION_CAMPANHAS.md`
 - `docs/backend/EDGE_FUNCTION_ACESSOS_ADMIN_V1.md`
 - `docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN.md`
+- `docs/backend/EDGE_FUNCTION_ACESSOS_ADMIN_READ_V1.md`
+- `docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN_READ.md`
 - `scripts/smoke/campanhas-gerar-fila.ps1`
 - `scripts/smoke/acessos-admin.ps1`
+- `scripts/smoke/acessos-admin-read.ps1`
+
+## Evidencias e bloqueios desta execucao
+- 2026-04-08: tentativa de publicar `acessos-admin` e `acessos-admin-read` bloqueada neste host por ausencia de `supabase` CLI
+- 2026-04-08: tentativa de preparar execucao real dos smokes bloqueada neste host por ausencia de `node`, `npm`, `npx` e credenciais/JWT de ambiente
+- 2026-04-08: smoke da leitura administrativa criado no repositório e pronto para execucao no ambiente vinculado
 
 ## Criterio de saida da Fase 1
 - nenhum ambiente produtivo depende de defaults sensiveis embutidos
