@@ -3,6 +3,7 @@ import { norm, toast } from '../shared/utils.js';
 import { markInvalidation, markRender } from '../shared/render-metrics.js';
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
+const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
 
 let deps = {
   hasRole: () => true,
@@ -326,6 +327,127 @@ export function initSidebarEnhancements(){
   const current = pageAtual();
   setActivePageVisibility(current);
   syncSidebarContext(getContextualPageMeta(current));
+  initMobileMenuFab();
+}
+
+function initMobileMenuFab(){
+  const fab = document.getElementById('mob-menu-fab');
+  if(!fab || fab.dataset.bound) return;
+  fab.dataset.bound = '1';
+
+  const defaultOffset = { right: 16, bottom: 96 };
+  let pointerId = null;
+  let dragging = false;
+  let moved = false;
+  let startX = 0;
+  let startY = 0;
+  let originLeft = 0;
+  let originTop = 0;
+
+  function isMobileViewport(){
+    return window.matchMedia('(max-width: 760px)').matches;
+  }
+
+  function clampPosition(left, top){
+    const width = fab.offsetWidth || 58;
+    const height = fab.offsetHeight || 58;
+    const maxLeft = Math.max(8, window.innerWidth - width - 8);
+    const maxTop = Math.max(8, window.innerHeight - height - 8);
+    return {
+      left: Math.min(Math.max(8, left), maxLeft),
+      top: Math.min(Math.max(8, top), maxTop)
+    };
+  }
+
+  function applyPosition(left, top, persist = true){
+    const next = clampPosition(left, top);
+    fab.style.left = `${next.left}px`;
+    fab.style.top = `${next.top}px`;
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    if(persist){
+      localStorage.setItem(MOBILE_MENU_FAB_POS_KEY, JSON.stringify(next));
+    }
+  }
+
+  function applyStoredPosition(){
+    if(!isMobileViewport()){
+      fab.style.left = '';
+      fab.style.top = '';
+      fab.style.right = '';
+      fab.style.bottom = '';
+      return;
+    }
+    try{
+      const raw = localStorage.getItem(MOBILE_MENU_FAB_POS_KEY);
+      if(raw){
+        const parsed = JSON.parse(raw);
+        if(Number.isFinite(parsed?.left) && Number.isFinite(parsed?.top)){
+          applyPosition(parsed.left, parsed.top, false);
+          return;
+        }
+      }
+    }catch{
+      // ignore invalid persisted position
+    }
+    fab.style.left = '';
+    fab.style.top = '';
+    fab.style.right = `${defaultOffset.right}px`;
+    fab.style.bottom = `${defaultOffset.bottom}px`;
+  }
+
+  fab.addEventListener('click', (event) => {
+    if(moved){
+      event.preventDefault();
+      event.stopPropagation();
+      moved = false;
+      return;
+    }
+    abrirSb();
+  });
+
+  fab.addEventListener('pointerdown', (event) => {
+    if(!isMobileViewport()) return;
+    pointerId = event.pointerId;
+    dragging = true;
+    moved = false;
+    startX = event.clientX;
+    startY = event.clientY;
+    const rect = fab.getBoundingClientRect();
+    originLeft = rect.left;
+    originTop = rect.top;
+    fab.setPointerCapture(pointerId);
+    fab.classList.add('is-dragging');
+  });
+
+  fab.addEventListener('pointermove', (event) => {
+    if(!dragging || event.pointerId !== pointerId) return;
+    const deltaX = event.clientX - startX;
+    const deltaY = event.clientY - startY;
+    if(!moved && (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6)){
+      moved = true;
+    }
+    if(!moved) return;
+    applyPosition(originLeft + deltaX, originTop + deltaY);
+  });
+
+  function stopDragging(event){
+    if(!dragging || event.pointerId !== pointerId) return;
+    dragging = false;
+    if(fab.hasPointerCapture(pointerId)){
+      fab.releasePointerCapture(pointerId);
+    }
+    fab.classList.remove('is-dragging');
+    pointerId = null;
+    window.setTimeout(() => {
+      moved = false;
+    }, 0);
+  }
+
+  fab.addEventListener('pointerup', stopDragging);
+  fab.addEventListener('pointercancel', stopDragging);
+  window.addEventListener('resize', applyStoredPosition);
+  applyStoredPosition();
 }
 
 export function renderQuickLinks(meta){
