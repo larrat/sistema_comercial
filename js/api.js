@@ -328,6 +328,70 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
   return data;
 }
 
+async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST' } = {}) {
+  ensureSupabaseConfig();
+  const session = await getActiveAuthSession();
+  if (!session?.access_token) {
+    throw createSbError({
+      message: 'Sessao autenticada obrigatoria para invocar Edge Function.',
+      code: 'SB_EDGE_AUTH_REQUIRED',
+      source: 'edge',
+      operation: method,
+      resource: functionName,
+      retryable: false
+    });
+  }
+
+  let res;
+  try {
+    res = await resilientFetch(`${SB_URL}/functions/v1/${functionName}`, {
+      method,
+      headers: {
+        apikey: SB_KEY,
+        Authorization: 'Bearer ' + session.access_token,
+        'Content-Type': 'application/json'
+      },
+      body: payload ? JSON.stringify(payload) : undefined
+    });
+  } catch (err) {
+    throw normalizeSbError(err, {
+      code: 'SB_EDGE_FETCH_FAILED',
+      source: 'edge',
+      operation: method,
+      resource: functionName
+    });
+  }
+
+  const data = await readResponseData(res);
+  if (!res.ok) {
+    throw createSbError({
+      message: `Falha ao invocar Edge Function ${functionName} (${res.status}).`,
+      status: res.status,
+      code: 'SB_EDGE_HTTP_ERROR',
+      source: 'edge',
+      operation: method,
+      resource: functionName,
+      details: data,
+      retryable: shouldRetry(res.status)
+    });
+  }
+
+  if (data?.ok === false) {
+    throw createSbError({
+      message: data?.error?.message || `Edge Function ${functionName} retornou erro de dominio.`,
+      status: res.status,
+      code: data?.error?.code || 'SB_EDGE_DOMAIN_ERROR',
+      source: 'edge',
+      operation: method,
+      resource: functionName,
+      details: data?.error?.details || data,
+      retryable: false
+    });
+  }
+
+  return data?.data ?? data;
+}
+
 export const SB = {
   contractVersion: 'v1',
   normalizeError: normalizeSbError,
@@ -461,6 +525,7 @@ export const SB = {
     }
     return data;
   },
+  invokeEdgeFunction,
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
   upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: id => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
@@ -607,5 +672,7 @@ export const SB = {
     );
     return !!(r && r.length);
   },
+  gerarFilaCampanhaEdge: (campanha_id, dry_run = false) =>
+    invokeEdgeFunction('campanhas-gerar-fila', { campanha_id, dry_run }),
 
 };

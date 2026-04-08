@@ -1,6 +1,5 @@
 import { SB } from '../js/api.js';
 import { D, State, C } from '../js/store.js';
-import { filtrarClientesElegiveisCampanhaAniversario, montarMensagemCampanha } from '../core/campanhas-domain.js';
 import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
 
@@ -43,10 +42,6 @@ function buildWhatsAppUrl(numero, mensagem) {
   return `https://wa.me/${num}?text=${txt}`;
 }
 
-function hojeISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function formatarDataBR(iso) {
   if (!iso) return '';
   const [y, m, d] = String(iso).split('-');
@@ -68,20 +63,6 @@ function badgeSaudeCampanha(campanha, envios){
   if(fila > 0) return `<span class="bdg ba">Fila ${fila}</span>`;
   if(Number(campanha?.desconto || 0) <= 0 && !String(campanha?.cupom || '').trim()) return '<span class="bdg bk">Sem oferta</span>';
   return '<span class="bdg bg">Pronta</span>';
-}
-
-function getProxAnivDate(dataAniversario, baseDate){
-  if(!dataAniversario) return null;
-  const [, m, d] = String(dataAniversario).split('-').map(Number);
-  if(!m || !d) return null;
-  const y = baseDate.getFullYear();
-  let aniv = new Date(y, m - 1, d);
-  aniv.setHours(0, 0, 0, 0);
-  if(aniv < baseDate){
-    aniv = new Date(y + 1, m - 1, d);
-    aniv.setHours(0, 0, 0, 0);
-  }
-  return aniv;
 }
 
 function setBotaoGerarFilaLoading(campanhaId, loading){
@@ -504,118 +485,33 @@ export async function gerarFilaCampanha(campanhaId) {
     notify(MSG.campanhas.inactive, SEVERITY.WARNING);
     return;
   }
-
-  const clientesBaseResult = await SB.toResult(() => SB.getClientes(State.FIL));
-  if (!clientesBaseResult.ok) {
+  const queueResult = await SB.toResult(() => SB.gerarFilaCampanhaEdge(campanhaId, false));
+  if (!queueResult.ok) {
     setBotaoGerarFilaLoading(campanhaId, false);
-    notify(MSG.campanhas.queueFetchFailed(clientesBaseResult.error?.message), SEVERITY.ERROR);
-    return;
-  }
-  let clientes = filtrarClientesElegiveisCampanhaAniversario(clientesBaseResult.data || [], campanha, new Date());
-
-  if (!clientes.length) {
-    const todosResult = await SB.toResult(() => SB.getClientes(State.FIL));
-    if(todosResult.ok){
-      const todos = todosResult.data;
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const limite = new Date(hoje);
-      limite.setDate(limite.getDate() + Number(campanha?.dias_antecedencia || 0));
-      limite.setHours(23, 59, 59, 999);
-
-      const comAniv = (todos || []).filter(c => !!c.data_aniversario);
-      const naJanela = comAniv.filter(c => {
-        const prox = getProxAnivDate(c.data_aniversario, hoje);
-        return !!prox && prox >= hoje && prox <= limite;
-      });
-      const canalOk = naJanela.filter(c => {
-        if (campanha.canal === 'email') return !!c.optin_email && !!c.email;
-        if (campanha.canal === 'sms') return !!c.optin_sms && !!c.tel;
-        if (campanha.canal === 'whatsapp_manual') return !!c.optin_marketing && !!(c.whatsapp || c.tel);
-        return !!c.optin_marketing;
-      });
-
-      notify(
-        MSG.campanhas.noEligible(
-          `Resumo atual: total ${todos?.length || 0}, com aniversário ${comAniv.length}, na janela ${naJanela.length}, aptos ao canal ${canalOk.length}`
-        ),
-        SEVERITY.INFO
-      );
-    }else{
-      notify(MSG.campanhas.noEligible(), SEVERITY.INFO);
-    }
-    setBotaoGerarFilaLoading(campanhaId, false);
+    notify(MSG.campanhas.queueFetchFailed(queueResult.error?.message), SEVERITY.ERROR);
     return;
   }
 
-  let criados = 0;
-  let ignorados = 0;
-  let falhas = 0;
-  const dataRef = hojeISO();
-
-  for (const cliente of clientes) {
-    const destino =
-      campanha.canal === 'email' ? (cliente.email || null) :
-      campanha.canal === 'sms' ? (cliente.tel || null) :
-      (cliente.whatsapp || cliente.tel || null);
-
-    if (!destino) {
-      ignorados++;
-      continue;
-    }
-
-    const existeResult = await SB.toResult(() => SB.existeCampanhaEnvioNoDia({
-        campanha_id: campanha.id,
-        cliente_id: cliente.id,
-        canal: campanha.canal,
-        data_ref: dataRef
-      }));
-    if(!existeResult.ok){
-      console.error('Erro ao verificar duplicidade de envio', { cliente, campanha }, existeResult.error);
-      falhas++;
-      continue;
-    }
-    const existe = !!existeResult.data;
-
-    if (existe) {
-      ignorados++;
-      continue;
-    }
-
-    const mensagem = montarMensagemCampanha({
-      mensagem: campanha.mensagem,
-      cliente,
-      campanha
-    });
-
-    const envio = {
-      id: uid(),
-      filial_id: State.FIL,
-      campanha_id: campanha.id,
-      cliente_id: cliente.id,
-      canal: campanha.canal,
-      destino,
-      mensagem,
-      status: campanha.canal === 'whatsapp_manual' ? 'manual' : 'pendente',
-      data_ref: dataRef
-    };
-
-    const envioResult = await SB.toResult(() => SB.insertCampanhaEnvio(envio));
-    if (envioResult.ok) {
-      getEnviosCache().unshift(envio);
-      criados++;
-    } else {
-      console.error('Erro ao criar envio', envio, envioResult.error);
-      falhas++;
-      ignorados++;
-    }
-  }
-
+  const resumo = queueResult.data || {};
+  await carregarCampanhaEnvios();
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
   setBotaoGerarFilaLoading(campanhaId, false);
-  notify(MSG.campanhas.queueResult({ criados, ignorados, falhas }), falhas > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS);
+
+  if (!Number(resumo.total_elegiveis || 0) && !Number(resumo.criados || 0)) {
+    notify(MSG.campanhas.noEligible(), SEVERITY.INFO);
+    return;
+  }
+
+  notify(
+    MSG.campanhas.queueResult({
+      criados: Number(resumo.criados || 0),
+      ignorados: Number(resumo.ignorados || 0),
+      falhas: Number(resumo.falhas || 0)
+    }),
+    Number(resumo.falhas || 0) > 0 ? SEVERITY.WARNING : SEVERITY.SUCCESS
+  );
 }
 
 export function renderFilaWhatsApp() {
