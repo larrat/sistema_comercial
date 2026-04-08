@@ -110,6 +110,7 @@ export type PedidoItem = {
 export type Pedido = {
   id: Id;
   filial_id?: Id | null;
+  cliente_id?: Id | null;
   num: number;
   cli: string;
   data?: string;

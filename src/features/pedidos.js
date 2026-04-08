@@ -1,7 +1,7 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, P, PD } from '../app/store.js';
+import { D, State, P, PD, C } from '../app/store.js';
 import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
@@ -43,6 +43,41 @@ const ST_PED = {
   cancelado:'<span class="bdg br">Cancelado</span>'
 };
 
+/**
+ * @param {Pedido | null | undefined} pedido
+ */
+function getPedidoCliente(pedido){
+  if(pedido?.cliente_id){
+    const byId = C().find(cliente => cliente.id === pedido.cliente_id);
+    if(byId) return byId;
+  }
+
+  const nome = String(pedido?.cli || '').trim().toLowerCase();
+  if(!nome) return null;
+  return C().find(cliente => String(cliente?.nome || '').trim().toLowerCase() === nome) || null;
+}
+
+/**
+ * @param {Pedido | null | undefined} pedido
+ */
+function getPedidoClienteLabel(pedido){
+  return String(getPedidoCliente(pedido)?.nome || pedido?.cli || '-').trim() || '-';
+}
+
+/**
+ * @param {string} raw
+ */
+function findClienteByPedidoInput(raw){
+  const termo = String(raw || '').trim();
+  if(!termo) return null;
+
+  const lower = termo.toLowerCase();
+  return C().find(cliente =>
+    cliente.id === termo ||
+    String(cliente?.nome || '').trim().toLowerCase() === lower
+  ) || null;
+}
+
 export function renderPedMet(){
   const peds = PD();
   const fat = peds.filter(p => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
@@ -74,7 +109,7 @@ export function renderPedidos(){
   const f = [...PD()]
     .sort((a, b) => (b.num || 0) - (a.num || 0))
     .filter(p =>
-      (!q || String(p.cli || '').toLowerCase().includes(q) || String(p.num || '').includes(q)) &&
+      (!q || getPedidoClienteLabel(p).toLowerCase().includes(q) || String(p.num || '').includes(q)) &&
       (!st || p.status === st)
     );
 
@@ -97,7 +132,7 @@ export function renderPedidos(){
       <div class="card mobile-card">
         <div class="mobile-card-head">
           <div class="mobile-card-grow">
-            <div class="mobile-card-title">#${p.num} | ${p.cli}</div>
+            <div class="mobile-card-title">#${p.num} | ${getPedidoClienteLabel(p)}</div>
             <div class="mobile-card-sub">${p.data || 'Sem data'} | ${(p.itens || []).length} item(ns)</div>
           </div>
           <div>${ST_PED[p.status] || ''}</div>
@@ -143,7 +178,7 @@ export function renderPedidos(){
           ${f.map(p => `
             <tr>
               <td class="table-cell-strong table-cell-muted">#${p.num}</td>
-              <td class="table-cell-strong">${p.cli}</td>
+              <td class="table-cell-strong">${getPedidoClienteLabel(p)}</td>
               <td class="table-cell-muted">${p.data || '-'}</td>
               <td>${p.tipo === 'atacado' ? '<span class="bdg ba">Atacado</span>' : '<span class="bdg bb">Varejo</span>'}</td>
               <td class="table-cell-muted">${(p.itens || []).length}</td>
@@ -217,7 +252,7 @@ export function editarPed(id){
   const titulo = document.getElementById('ped-modal-titulo');
   if(titulo) titulo.textContent = 'Editar pedido #' + p.num;
 
-  document.getElementById('pd-cli').value = p.cli || '';
+  document.getElementById('pd-cli').value = getPedidoClienteLabel(p);
   document.getElementById('pd-data').value = p.data || '';
   document.getElementById('pd-status').value = p.status || 'orcamento';
   document.getElementById('pd-pgto').value = p.pgto || 'a_vista';
@@ -377,9 +412,16 @@ export function renderItens(){
 }
 
 export async function salvarPedido(){
-  const cli = document.getElementById('pd-cli')?.value.trim();
-  if(!cli){
+  const cliRef = document.getElementById('pd-cli')?.value.trim();
+  if(!cliRef){
     notify(MSG.forms.required('Cliente'), SEVERITY.WARNING);
+    focusField('pd-cli', { markError: true });
+    return;
+  }
+
+  const cliente = findClienteByPedidoInput(cliRef);
+  if(!cliente){
+    notify('Cliente invalido. Escolha um cliente cadastrado na lista para vincular o pedido corretamente.', SEVERITY.WARNING);
     focusField('pd-cli', { markError: true });
     return;
   }
@@ -402,10 +444,11 @@ export async function salvarPedido(){
     ...(atual || {}),
     id: State.editIds.ped || uid(),
     filial_id: State.FIL,
+    cliente_id: cliente.id,
     num: State.editIds.ped
       ? (atual?.num || nextNum)
       : nextNum,
-    cli,
+    cli: cliente.nome,
     data: document.getElementById('pd-data')?.value || '',
     status: document.getElementById('pd-status')?.value || 'orcamento',
     pgto: document.getElementById('pd-pgto')?.value || 'a_vista',
@@ -500,7 +543,7 @@ export function verPed(id){
 
       <div class="ped-detail-grid">
       ${[
-        ['Cliente', p.cli],
+        ['Cliente', getPedidoClienteLabel(p)],
         ['Data', p.data || '-'],
         ['Tipo', p.tipo === 'atacado' ? 'Atacado' : 'Varejo'],
         ['Pagamento', pgtoLbl[p.pgto] || p.pgto],

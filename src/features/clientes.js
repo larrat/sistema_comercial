@@ -421,9 +421,15 @@ function renderNotasHtml(notas){
  * @returns {Pedido[]}
  */
 function getPedidosCliente(cliente){
-  const nome = String(cliente.nome || '').trim().toLowerCase();
   return (D.pedidos?.[State.FIL] || [])
-    .filter(pedido => String(pedido?.cli || '').trim().toLowerCase() === nome)
+    .filter(pedido => {
+      const clienteId = String(cliente.id || '').trim();
+      const pedidoClienteId = String(pedido?.cliente_id || '').trim();
+      if (clienteId && pedidoClienteId) return pedidoClienteId === clienteId;
+
+      const nome = String(cliente.nome || '').trim().toLowerCase();
+      return String(pedido?.cli || '').trim().toLowerCase() === nome;
+    })
     .map(pedido => ({
       ...pedido,
       itens: Array.isArray(pedido.itens)
