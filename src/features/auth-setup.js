@@ -15,6 +15,7 @@ export const ROLE_ADMIN_ONLY = ['admin'];
 export const ROLE_PAGE_ACCESS = {
   dashboard: APP_ROLES,
   gerencial: APP_ROLES,
+  relatorios: APP_ROLES,
   produtos: APP_ROLES,
   clientes: APP_ROLES,
   pedidos: APP_ROLES,
@@ -109,7 +110,7 @@ export function canAccessPage(page){
 
 export function getFirstAllowedPage(preferred = 'dashboard'){
   if(canAccessPage(preferred)) return preferred;
-  const order = ['dashboard', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'notificacoes'];
+  const order = ['dashboard', 'relatorios', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'notificacoes'];
   return order.find(canAccessPage) || 'dashboard';
 }
 

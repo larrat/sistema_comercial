@@ -124,6 +124,11 @@ function getHandlerRegistry(){
       usarExemploSyncJogos: deps.usarExemploSyncJogos,
       sincronizarJogosDashboard: deps.sincronizarJogosDashboardGuard
     },
+    relatorios: {
+      renderRelatorios: deps.renderRelatorios,
+      abrirValidacaoOportunidade: deps.abrirValidacaoOportunidade,
+      salvarValidacaoOportunidade: deps.salvarValidacaoOportunidade
+    },
     produtos: {
       renderProdutos: deps.renderProdutos,
       salvarProduto: deps.salvarProdutoTracked,

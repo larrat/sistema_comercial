@@ -82,6 +82,7 @@
         <div class="nl">Principal</div>
         <button class="ni on" data-p="dashboard" data-label="Dashboard" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
         <button class="ni" data-p="gerencial" data-label="Gerencial" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
+        <button class="ni" data-p="relatorios" data-label="Relatorios" data-click="ir('relatorios')"><span class="ico">RL</span>Relatorios</button>
       </section>
       <section class="sb-group" data-group="Operacao">
         <div class="nl">Operacao</div>
@@ -237,6 +238,34 @@
       <div class="card dash-card">
         <div class="ct">Recomendacoes acionaveis</div>
         <div id="ger-recomendacoes"></div>
+      </div>
+    </div>
+
+    <div class="pg" id="pg-relatorios">
+      <div class="ph fb">
+        <div><h2>Relatorios</h2><p>Oportunidades por jogos, validacoes e conversao comercial</p></div>
+        <div class="toolbar-actions">
+          <button class="btn btn-sm" data-click="renderRelatorios()">Atualizar</button>
+        </div>
+      </div>
+      <div class="mg" id="rel-met"></div>
+      <div class="toolbar">
+        <div class="toolbar-main">
+          <select class="inp sel" id="rel-ano" style="max-width:150px" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
+          <select class="inp sel" id="rel-mes" style="max-width:170px" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Resumo por mes</div>
+        <div id="rel-resumo"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Oportunidades abertas</div>
+        <div id="rel-oportunidades"></div>
+      </div>
+      <div class="card">
+        <div class="ct">Validacoes realizadas</div>
+        <div id="rel-validacoes"></div>
       </div>
     </div>
 
@@ -819,6 +848,36 @@
 <div class="modal-wrap" id="modal-campanha-det">
   <div class="modal-bg" data-click="fecharModal('modal-campanha-det')"></div>
   <div class="modal-box" id="campanha-det-box"></div>
+</div>
+
+<div class="modal-wrap" id="modal-rel-validacao">
+  <div class="modal-bg" data-click="fecharModal('modal-rel-validacao')"></div>
+  <div class="modal-box">
+    <div class="mt">Validar oportunidade</div>
+    <input type="hidden" id="rel-val-id">
+    <div class="fg">
+      <div>
+        <div class="fl">Contexto da oportunidade</div>
+        <div class="panel rel-val-context" id="rel-val-context"></div>
+      </div>
+    </div>
+    <div class="fg">
+      <div>
+        <div class="fl">Pedido vinculado (opcional)</div>
+        <select class="inp sel" id="rel-val-pedido"><option value="">Sem vincular pedido</option></select>
+      </div>
+    </div>
+    <div class="fg">
+      <div>
+        <div class="fl">Observacao</div>
+        <textarea class="inp" id="rel-val-obs" rows="3" placeholder="Ex: oportunidade convertida em venda apos o jogo"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" data-click="fecharModal('modal-rel-validacao')">Cancelar</button>
+      <button class="btn btn-p" data-click="salvarValidacaoOportunidade()">Validar venda</button>
+    </div>
+  </div>
 </div>
 
 <!-- Jogo Dashboard -->

@@ -6483,3 +6483,84 @@ textarea.inp:focus{
     min-width:700px;
   }
 }
+
+#pg-relatorios .card > #rel-resumo,
+#pg-relatorios .card > #rel-oportunidades,
+#pg-relatorios .card > #rel-validacoes{
+  min-width:0;
+}
+
+#pg-relatorios .tw{
+  border-radius:18px;
+}
+
+#pg-relatorios .tbl td,
+#pg-relatorios .tbl th{
+  vertical-align:middle;
+}
+
+.rel-op-row{
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid #E8EEF5;
+}
+
+.rel-op-row:last-child{
+  border-bottom:none;
+}
+
+.rel-op-dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:var(--acc);
+  flex-shrink:0;
+  box-shadow:0 0 0 4px rgba(59,104,255,.08);
+}
+
+.rel-op-dot--success{
+  background:var(--g);
+  box-shadow:0 0 0 4px rgba(21,96,56,.08);
+}
+
+.rel-op-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--tx);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.rel-op-sub{
+  margin-top:3px;
+  font-size:11px;
+  color:var(--tx3);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.rel-val-context{
+  padding:14px 16px;
+  border:1px solid #E4EBF4;
+  border-radius:16px;
+  background:linear-gradient(180deg,#FBFDFF 0%,#F6FAFF 100%);
+}
+
+@media(max-width:760px){
+  .rel-op-row{
+    align-items:flex-start;
+  }
+
+  .rel-op-row .btn{
+    width:100%;
+    justify-content:center;
+  }
+
+  .rel-op-sub,
+  .rel-op-title{
+    white-space:normal;
+  }
+}

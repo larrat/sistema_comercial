@@ -108,6 +108,12 @@ import {
 } from '../features/dashboard.js';
 
 import {
+  renderRelatorios,
+  abrirValidacaoOportunidade,
+  salvarValidacaoOportunidade
+} from '../features/relatorios.js';
+
+import {
   carregarCampanhas,
   carregarCampanhaEnvios,
   refreshCampanhasTela,
@@ -514,6 +520,7 @@ registerApplicationModules({
     completePrimaryActionTracking,
     markConsistencyPage,
     renderMetasNegocio,
+    renderRelatorios,
     renderCliMet,
     renderClientes,
     renderPedMet,
@@ -573,6 +580,7 @@ startApplicationRuntime({
       abrirSyncJogos,
       abrirNovoJogo,
       renderMetasNegocio,
+      renderRelatorios,
       resetUxKpis,
       limparFormProdTracked,
       renderProdutos,
@@ -654,6 +662,8 @@ startApplicationRuntime({
       salvarJogoDashboardGuard,
       usarExemploSyncJogos,
       sincronizarJogosDashboardGuard,
+      abrirValidacaoOportunidade,
+      salvarValidacaoOportunidade,
       salvarForn,
       remFornGuard,
       confirmarMapa,

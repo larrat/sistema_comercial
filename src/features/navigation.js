@@ -17,6 +17,7 @@ let deps = {
   updateNotiBadge: () => {},
   renderDash: () => {},
   renderMetasNegocio: () => {},
+  renderRelatorios: () => {},
   renderProdMet: () => {},
   renderProdutos: () => {},
   renderCliMet: () => {},
@@ -71,6 +72,7 @@ function getPageRenderers(){
   return {
     dashboard: [deps.renderDash],
     gerencial: [deps.renderMetasNegocio],
+    relatorios: [deps.renderRelatorios],
     produtos: [deps.renderProdMet, deps.renderProdutos],
     clientes: [deps.renderCliMet, deps.renderClientes],
     pedidos: [deps.renderPedMet, deps.renderPedidos],
@@ -123,6 +125,14 @@ const PAGE_META = {
     primary: { label: 'Atualizar KPIs', run: () => deps.renderMetasNegocio() },
     secondary: { label: 'Auditoria visual', run: () => deps.executarAuditoriaVisual() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
+  },
+  relatorios: {
+    kicker: 'Analitico',
+    title: 'Relatorios',
+    sub: 'Oportunidades por jogos e conversao comercial',
+    primary: { label: 'Atualizar relatorio', run: () => deps.renderRelatorios() },
+    secondary: { label: 'Ir dashboard', run: () => ir('dashboard') },
+    tertiary: { label: 'Ir pedidos', run: () => ir('pedidos') }
   },
   produtos: {
     kicker: 'Cadastros',

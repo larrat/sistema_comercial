@@ -5,6 +5,7 @@ import { D, State, P } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
+import { getOportunidadesJogosDaFilial, syncHistoricoOportunidadesJogos } from './oportunidades-jogos.js';
 
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
 /** @typedef {import('../types/domain').DashboardModuleCallbacks} DashboardModuleCallbacks */
@@ -472,33 +473,8 @@ export function renderDash(){
     ah += `<div class="alert al-g"><b>Aniversarios proximos:</b> ${anivProximos.length} cliente(s) nos proximos 7 dias. ${anivProximos.slice(0,3).map(c => c.apelido || c.nome).join(', ')}${anivProximos.length > 3 ? '...' : ''}</div>`;
   }
 
-  const filialJogosId = getFilialCalendarioId();
-  const jogosAgenda = filialJogosId ? getJogosCache(filialJogosId) : [];
-  const jogosSemana = jogosAgenda
-    .filter(j => {
-      const d = new Date(j.data_hora || 0);
-      return !isNaN(d.getTime()) && d >= hoje && d <= limite && jogoEhDaSerie(j, serieSel);
-    })
-    .sort((a, b) => new Date(a.data_hora || 0).getTime() - new Date(b.data_hora || 0).getTime());
-
-  const clientesBase = filIds.flatMap(fid => (D.clientes?.[fid] || []));
-  const oportunidades = /** @type {Array<{ cliente: string; time: string; jogo: any; data: Date }>} */ (clientesBase
-    .flatMap(c => {
-      const times = parseTimes(c.time);
-      if(!times.length) return [];
-      return times.map(time => {
-        const jogo = jogosSemana.find(j => jogoTemTime(j, time));
-        if(!jogo) return null;
-        return {
-          cliente: c.nome,
-          time,
-          jogo,
-          data: new Date(jogo.data_hora || 0)
-        };
-      });
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.data.getTime() - b.data.getTime()));
+  const oportunidades = getOportunidadesJogosDaFilial(fsel, { serie: serieSel });
+  syncHistoricoOportunidadesJogos(fsel, oportunidades);
 
   const oportunidadesHoje = oportunidades.filter(o => {
     const d = new Date(o.data);
@@ -725,7 +701,10 @@ export function renderDash(){
               <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.cliente} - ${o.time}</div>
               <div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} - ${fmtDataHora(o.jogo.data_hora)}</div>
             </div>
-            <button class="btn btn-sm" data-click="ir('campanhas')">Acionar</button>
+            <div class="fg2">
+              <button class="btn btn-sm" data-click="ir('campanhas')">Acionar</button>
+              <button class="btn btn-sm" data-click="abrirValidacaoOportunidade('${o.id}')">Validar</button>
+            </div>
           </div>
         `).join('')
       : `<div class="empty" style="padding:12px"><p>Sem oportunidades por jogos na semana</p></div>`}

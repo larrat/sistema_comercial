@@ -128,6 +128,7 @@ export function registerApplicationModules({ registry, modules, deps }){
         updateNotiBadge: deps.updateNotiBadge,
         renderDash: deps.renderDash,
         renderMetasNegocio: deps.renderMetasNegocio,
+        renderRelatorios: deps.renderRelatorios,
         renderProdMet: deps.renderProdMet,
         renderProdutos: deps.renderProdutos,
         renderCliMet: deps.renderCliMet,
