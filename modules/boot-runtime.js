@@ -204,8 +204,14 @@ export function startApplicationRuntime({ appContext, registry, deps }){
     await registry.initAll(appContext);
   }
 
-  const start = () => {
-    bootstrapApplication().catch(e => console.error('Falha no bootstrap da aplicacao:', e));
+  const start = async () => {
+    try{
+      await bootstrapApplication();
+    }catch(e){
+      console.error('Falha no bootstrap da aplicacao:', e);
+      return;
+    }
+
     deps.initDomBindings();
     deps.initGoalTracking();
     deps.initQuickCommand();

@@ -128,7 +128,25 @@ export async function carregarDadosFilial(filId){
 }
 
 export function mostrarTela(id){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-  document.getElementById(id)?.classList.add('on');
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('on');
+    if(s.id === 'screen-setup'){
+      s.style.display = 'none';
+    }else if(s.id === 'screen-app'){
+      s.style.display = 'none';
+    }else{
+      s.style.display = '';
+    }
+  });
+
+  const target = document.getElementById(id);
+  if(target){
+    target.classList.add('on');
+    if(id === 'screen-setup' || id === 'screen-app'){
+      target.style.display = 'flex';
+    }else{
+      target.style.display = 'block';
+    }
+  }
   window.scrollTo(0, 0);
 }
