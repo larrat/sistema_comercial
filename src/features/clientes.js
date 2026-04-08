@@ -316,9 +316,9 @@ function renderClienteMobile(cliente){
   return `
     <div class="card mobile-card">
       <div class="mobile-card-head">
-        <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <div class="mobile-card-hero">
           <div class="av" style="background:${cor.bg};color:${cor.c}">${esc(ini(cliente.nome))}</div>
-          <div style="min-width:0">
+          <div class="mobile-card-grow">
             <div class="mobile-card-title">${esc(cliente.nome)}</div>
             ${cliente.apelido ? `<div class="mobile-card-sub">${esc(cliente.apelido)}</div>` : ''}
           </div>
@@ -326,14 +326,14 @@ function renderClienteMobile(cliente){
         <div>${ST_B[cliente.status] || ''}</div>
       </div>
 
-      <div class="mobile-card-meta" style="margin-bottom:8px">
+      <div class="mobile-card-meta mobile-card-meta-gap">
         <div>${esc(contato.principal)}</div>
         ${contato.secundario ? `<div>${esc(contato.secundario)}</div>` : ''}
         ${cliente.email && !contato.principal.includes(cliente.email) ? `<div>${esc(cliente.email)}</div>` : ''}
         <div>${tabela} - ${esc(prazo)}</div>
       </div>
 
-      <div class="mobile-card-tags" style="gap:4px">
+      <div class="mobile-card-tags mobile-card-tags-tight">
         ${renderTagsCliente(cliente, contato, times)}
       </div>
 
@@ -355,17 +355,17 @@ function renderClienteDesktop(cliente){
     <tr>
       <td><div class="av" style="background:${cor.bg};color:${cor.c}">${esc(ini(cliente.nome))}</div></td>
       <td>
-        <div style="font-weight:600">${esc(cliente.nome)}</div>
-        ${cliente.apelido ? `<div style="font-size:11px;color:var(--tx3)">${esc(cliente.apelido)}</div>` : ''}
+        <div class="table-cell-strong">${esc(cliente.nome)}</div>
+        ${cliente.apelido ? `<div class="table-cell-caption table-cell-muted">${esc(cliente.apelido)}</div>` : ''}
       </td>
       <td>
         <div>${esc(contato.principal)}</div>
-        ${contato.secundario ? `<div style="font-size:11px;color:var(--tx3)">${esc(contato.secundario)}</div>` : ''}
-        ${cliente.email && !contato.principal.includes(cliente.email) ? `<div style="font-size:11px;color:var(--tx3)">${esc(cliente.email)}</div>` : ''}
+        ${contato.secundario ? `<div class="table-cell-caption table-cell-muted">${esc(contato.secundario)}</div>` : ''}
+        ${cliente.email && !contato.principal.includes(cliente.email) ? `<div class="table-cell-caption table-cell-muted">${esc(cliente.email)}</div>` : ''}
       </td>
       <td>
-        <div class="fg2" style="gap:4px">
-          ${getBadgeAniversario(cliente) || '<span style="color:var(--tx3)">-</span>'}
+        <div class="fg2 gap-4">
+          ${getBadgeAniversario(cliente) || '<span class="table-cell-muted">-</span>'}
           ${contato.badge}
           ${cliente.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
           ${cliente.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
@@ -373,14 +373,14 @@ function renderClienteDesktop(cliente){
         </div>
       </td>
       <td>
-        <div class="fg2" style="gap:4px">
+        <div class="fg2 gap-4">
           ${cliente.seg ? `<span class="bdg bk">${esc(cliente.seg)}</span>` : ''}
           ${times.map(time => `<span class="bdg bb">${esc(time)}</span>`).join('')}
           ${!cliente.seg && !times.length ? '-' : ''}
         </div>
       </td>
       <td>${TAB_LABELS[cliente.tab] || '-'}</td>
-      <td style="color:var(--tx2)">${esc(PRAZO_LABELS[cliente.prazo] || '-')}</td>
+      <td class="table-cell-muted">${esc(PRAZO_LABELS[cliente.prazo] || '-')}</td>
       <td>${ST_B[cliente.status] || ''}</td>
       <td>
         <div class="fg2">
@@ -395,7 +395,7 @@ function renderClienteDesktop(cliente){
 
 function renderNotasHtml(notas){
   if(!notas.length){
-    return '<div style="font-size:13px;color:var(--tx3)">Nenhuma nota.</div>';
+    return '<div class="empty-inline table-cell-muted">Nenhuma nota.</div>';
   }
 
   return notas.map(nota => `
@@ -502,8 +502,8 @@ export function renderCliSegs(){
 
     return `
       <div class="card">
-        <div class="fb" style="margin-bottom:10px">
-          <div style="font-weight:600">${esc(seg)}</div>
+        <div class="fb form-gap-bottom-xs">
+          <div class="table-cell-strong">${esc(seg)}</div>
           <span class="bdg bb">${clientes.length}</span>
         </div>
         <div class="fg2">
@@ -511,15 +511,14 @@ export function renderCliSegs(){
             const cor = avc(cliente.nome);
             return `
               <button
-                class="btn"
+                class="btn btn-inline-card"
                 type="button"
                 data-click="abrirCliDet('${cliente.id}')"
-                style="display:flex;align-items:center;gap:8px;padding:7px 10px"
               >
-                <div class="av" style="width:26px;height:26px;font-size:11px;background:${cor.bg};color:${cor.c}">
+                <div class="av av-sm" style="background:${cor.bg};color:${cor.c}">
                   ${esc(ini(cliente.nome))}
                 </div>
-                <span style="font-size:13px;font-weight:500">${esc(cliente.apelido || cliente.nome)}</span>
+                <span class="btn-inline-card__label">${esc(cliente.apelido || cliente.nome)}</span>
               </button>
             `;
           }).join('')}
@@ -572,7 +571,7 @@ export async function abrirCliDet(id){
       <div class="cli-detail-grid">
         <div class="cli-detail-panel">
           <div class="cli-detail-label">Contato</div>
-        ${contato.length ? contato.map(item => `<div style="margin-bottom:3px">${esc(item)}</div>`).join('') : '-'}
+        ${contato.length ? contato.map(item => `<div class="detail-line">${esc(item)}</div>`).join('') : '-'}
         </div>
 
         <div class="cli-detail-panel">
@@ -587,13 +586,13 @@ export async function abrirCliDet(id){
     ${cliente.obs ? `
         <div class="panel cli-detail-section">
         <div class="pt">Observacoes</div>
-          <p style="font-size:13px">${esc(cliente.obs)}</p>
+          <p class="detail-copy">${esc(cliente.obs)}</p>
       </div>
     ` : ''}
 
-      <div class="cli-detail-label" style="margin-bottom:8px">Notas / historico</div>
-      <div class="fg2 cli-detail-notes-input" style="margin-bottom:8px">
-      <input class="inp" id="nota-inp-${id}" placeholder="Adicionar nota..." style="flex:1">
+      <div class="cli-detail-label form-gap-bottom-xs">Notas / historico</div>
+      <div class="fg2 cli-detail-notes-input form-gap-bottom-xs">
+      <input class="inp input-flex" id="nota-inp-${id}" placeholder="Adicionar nota...">
       <button class="btn btn-sm" data-click="addNota('${id}')">+</button>
     </div>
 

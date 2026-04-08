@@ -7159,3 +7159,146 @@ textarea.inp:focus{
     text-align:left;
   }
 }
+
+.btn-block-center{
+  width:100%;
+  justify-content:center;
+}
+
+.mt-4{margin-top:4px}
+.mt-8{margin-top:8px}
+.mb-8{margin-bottom:8px}
+.form-gap-bottom{margin-bottom:12px}
+.form-gap-bottom-xs{margin-bottom:10px}
+
+.toolbar-inline-end{
+  display:flex;
+  align-items:flex-end;
+}
+
+.subtle-inline-copy{
+  font-size:11px;
+  color:var(--tx3);
+  margin-left:2px;
+}
+
+.input-color{
+  height:38px;
+  padding:4px 6px;
+}
+
+.metric-grid-fill{
+  margin:0;
+  flex:1;
+}
+
+.no-shrink{flex-shrink:0}
+.items-end{align-items:flex-end}
+.select-w-xl{max-width:260px}
+
+.upload-drop-icon{
+  font-size:22px;
+  margin-bottom:6px;
+}
+
+.upload-drop-title{
+  font-size:13px;
+}
+
+.upload-drop-copy{
+  margin-top:4px;
+  font-size:12px;
+  color:var(--tx3);
+}
+
+.mobile-card-hero{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.mobile-card-meta-gap{margin-bottom:8px}
+
+.btn-inline-card{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+}
+
+.btn-inline-card__label{
+  font-size:13px;
+  font-weight:500;
+}
+
+.av-sm{
+  width:26px;
+  height:26px;
+  font-size:11px;
+}
+
+.detail-line{margin-bottom:3px}
+.input-flex{flex:1}
+.kpi-value-sm{font-size:15px}
+.tone-warning{color:var(--a)}
+.tone-danger{color:var(--r)}
+
+.mono-token{
+  width:26px;
+  height:26px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--bd);
+  border-radius:8px;
+  background:var(--surf2);
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  font-weight:700;
+}
+
+.mono-token-sm{
+  width:26px;
+  height:26px;
+}
+
+.filial-card--active{
+  border-color:var(--acc);
+}
+
+.filial-card__main{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex:1;
+}
+
+.filial-card__dot{
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+.filial-card__title{
+  font-size:15px;
+  font-weight:600;
+}
+
+.filial-card__badge{
+  font-size:10px;
+  vertical-align:middle;
+}
+
+.filial-card__sub{
+  font-size:12px;
+  color:var(--tx3);
+}
+
+.filial-card__stats{
+  display:flex;
+  gap:6px;
+  margin-top:6px;
+  flex-wrap:wrap;
+}

@@ -183,9 +183,9 @@ export function renderEstPosicao(){
 
   estDom.html('metrics', 'est-met', `
     <div class="met"><div class="ml">Produtos</div><div class="mv">${P().length}</div></div>
-    <div class="met"><div class="ml">Valor em estoque</div><div class="mv" style="font-size:15px">${fmt(tv)}</div></div>
-    <div class="met"><div class="ml">Em alerta</div><div class="mv" style="color:var(--a)">${atv}</div></div>
-    <div class="met"><div class="ml">Zerados</div><div class="mv" style="color:var(--r)">${zt}</div></div>
+    <div class="met"><div class="ml">Valor em estoque</div><div class="mv kpi-value-sm">${fmt(tv)}</div></div>
+    <div class="met"><div class="ml">Em alerta</div><div class="mv tone-warning">${atv}</div></div>
+    <div class="met"><div class="ml">Zerados</div><div class="mv tone-danger">${zt}</div></div>
   `, 'estoque:metrics');
 
   const filtered = P().filter(p => {
@@ -222,16 +222,16 @@ export function renderEstPosicao(){
       return `
         <div class="card mobile-card">
           <div class="mobile-card-head">
-            <div style="min-width:0">
+            <div class="mobile-card-grow">
               <div class="mobile-card-title">${p.nome}</div>
               <div class="mobile-card-sub">${p.sku || 'Sem SKU'} - ${p.un}</div>
             </div>
             <span class="bdg ${stC}">${stL}</span>
           </div>
           <div class="mobile-card-meta">
-            <div>Saldo: <b style="color:var(--tx)">${fmtQ(s.saldo)} ${p.un}</b>${min > 0 ? ` - min. ${fmtQ(min)}` : ''}</div>
-            <div>Custo medio: <b style="color:var(--tx)">${fmt(s.cm)}</b></div>
-            <div>Valor em estoque: <b style="color:var(--tx)">${fmt(valor)}</b></div>
+            <div>Saldo: <b class="meta-emphasis">${fmtQ(s.saldo)} ${p.un}</b>${min > 0 ? ` - min. ${fmtQ(min)}` : ''}</div>
+            <div>Custo medio: <b class="meta-emphasis">${fmt(s.cm)}</b></div>
+            <div>Valor em estoque: <b class="meta-emphasis">${fmt(valor)}</b></div>
           </div>
           <div class="mobile-card-actions">
             <button class="btn btn-p btn-sm" title="Movimentar produto" data-click="abrirMovProd('${p.id}')">Movimentar</button>
@@ -277,15 +277,15 @@ export function renderEstPosicao(){
 
             return `
               <tr>
-                <td style="font-weight:600">${p.nome}</td>
-                <td style="color:var(--tx3);font-size:12px">${p.sku || '-'}</td>
+                <td class="table-cell-strong">${p.nome}</td>
+                <td class="table-cell-caption table-cell-muted">${p.sku || '-'}</td>
                 <td>
-                  <div style="font-weight:600">${fmtQ(s.saldo)} ${p.un}</div>
+                  <div class="table-cell-strong">${fmtQ(s.saldo)} ${p.un}</div>
                   ${min > 0 ? `<div class="sbar"><div class="sbar-f" style="width:${pctBar}%;background:${s.saldo <= 0 ? 'var(--r)' : s.saldo < min ? 'var(--a)' : 'var(--g)'}"></div></div>` : ''}
                 </td>
                 <td>${fmt(s.cm)}</td>
-                <td style="font-weight:600">${fmt(s.saldo * s.cm)}</td>
-                <td style="color:var(--tx2)">${min > 0 ? fmtQ(min) + ' ' + p.un : '-'}</td>
+                <td class="table-cell-strong">${fmt(s.saldo * s.cm)}</td>
+                <td class="table-cell-muted">${min > 0 ? fmtQ(min) + ' ' + p.un : '-'}</td>
                 <td><span class="bdg ${stC}">${stL}</span></td>
                 <td><button class="btn btn-sm" title="Movimentar produto" data-click="abrirMovProd('${p.id}')">Movimentar</button></td>
               </tr>
@@ -341,7 +341,7 @@ export function renderEstHist(){
       return `
         <div class="card mobile-card">
           <div class="mobile-card-head">
-            <div style="min-width:0">
+            <div class="mobile-card-grow">
               <div class="mobile-card-title">${p ? p.nome : '-'}</div>
               <div class="mobile-card-sub">${m.data || '-'} - ${ti.lbl}</div>
             </div>
@@ -349,8 +349,8 @@ export function renderEstHist(){
           </div>
           <div class="mobile-card-meta">
             <div>Quantidade: <b style="color:${cor}">${qShow} ${p ? p.un : ''}</b></div>
-            <div>Custo: <b style="color:var(--tx)">${m.custo > 0 ? fmt(m.custo) : '-'}</b></div>
-            <div>Obs: <b style="color:var(--tx2)">${m.obs || '-'}</b></div>
+            <div>Custo: <b class="meta-emphasis">${m.custo > 0 ? fmt(m.custo) : '-'}</b></div>
+            <div>Obs: <b class="table-cell-muted">${m.obs || '-'}</b></div>
           </div>
           <div class="mobile-card-actions">
             <button class="btn btn-sm" title="Excluir movimentacao" data-click="excluirMov('${m.id}')">Excluir</button>
@@ -390,13 +390,13 @@ export function renderEstHist(){
 
             return `
               <tr>
-                <td><div style="width:26px;height:26px;border-radius:8px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;border:1px solid var(--bd)">${ti.ico}</div></td>
-                <td style="font-weight:600">${p ? p.nome : '-'}</td>
-                <td style="color:var(--tx2);font-size:12px">${m.data || '-'}</td>
+                <td><div class="mono-token mono-token-sm">${ti.ico}</div></td>
+                <td class="table-cell-strong">${p ? p.nome : '-'}</td>
+                <td class="table-cell-caption table-cell-muted">${m.data || '-'}</td>
                 <td><span class="bdg bk">${ti.lbl}</span></td>
-                <td style="font-weight:600;color:${cor}">${qShow} ${p ? p.un : ''}</td>
-                <td style="color:var(--tx2)">${m.custo > 0 ? fmt(m.custo) : '-'}</td>
-                <td style="font-size:12px;color:var(--tx2)">${m.obs || '-'}</td>
+                <td class="table-cell-strong" style="color:${cor}">${qShow} ${p ? p.un : ''}</td>
+                <td class="table-cell-muted">${m.custo > 0 ? fmt(m.custo) : '-'}</td>
+                <td class="table-cell-caption table-cell-muted">${m.obs || '-'}</td>
                 <td><button class="btn btn-sm" title="Excluir movimentacao" data-click="excluirMov('${m.id}')">Excluir</button></td>
               </tr>
             `;

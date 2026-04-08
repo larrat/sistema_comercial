@@ -76,7 +76,8 @@ function cacheAccessUser(user){
   if(!user?.user_id) return;
   if(!Array.isArray(D.accessUsers)) D.accessUsers = [];
   const email = normalizeEmail(user.email || '');
-  const next = { ...user, email };
+  const nome = String(user.nome || '').trim();
+  const next = { ...user, email, nome };
   const idx = D.accessUsers.findIndex(
     item => item.user_id === next.user_id || (!!email && normalizeEmail(item.email || '') === email)
   );
@@ -96,6 +97,17 @@ function findAccessUserByRef(ref){
   const email = normalizeEmail(raw);
   if(!isEmail(email)) return null;
   return D.accessUsers.find(item => normalizeEmail(item.email || '') === email) || null;
+}
+
+/**
+ * @param {AccessAdminUser | null | undefined} user
+ */
+function getAccessUserLabel(user){
+  if(!user) return '-';
+  const nome = String(user.nome || '').trim();
+  const email = normalizeEmail(user.email || '');
+  if(nome && email) return `${nome} <${email}>`;
+  return nome || email || '-';
 }
 
 /**
@@ -298,15 +310,15 @@ export function renderFilLista(){
     const ativa = f.id === State.FIL;
 
     return `
-      <div class="card fb" style="${ativa ? 'border-color:var(--acc)' : ''}">
-        <div style="display:flex;align-items:center;gap:12px;flex:1">
-          <div style="width:14px;height:14px;border-radius:50%;background:${f.cor};flex-shrink:0"></div>
+      <div class="card fb filial-card${ativa ? ' filial-card--active' : ''}">
+        <div class="filial-card__main">
+          <div class="filial-card__dot" style="background:${f.cor}"></div>
           <div>
-            <div style="font-weight:600;font-size:15px">
-              ${f.nome}${ativa ? ` <span class="bdg bb" style="font-size:10px;vertical-align:middle">Ativa</span>` : ''}
+            <div class="filial-card__title">
+              ${f.nome}${ativa ? ` <span class="bdg bb filial-card__badge">Ativa</span>` : ''}
             </div>
-            <div style="font-size:12px;color:var(--tx3)">${f.cidade || ''}${f.estado ? ' - ' + f.estado : ''}</div>
-            <div style="display:flex;gap:6px;margin-top:6px">
+            <div class="filial-card__sub">${f.cidade || ''}${f.estado ? ' - ' + f.estado : ''}</div>
+            <div class="filial-card__stats">
               <span class="bdg bk">${prods} produto(s)</span>
               <span class="bdg bk">${clis} cliente(s)</span>
               <span class="bdg bk">${peds} pedido(s)</span>
@@ -360,7 +372,12 @@ export function renderAcessosPerfis(){
   const papel = (document.getElementById('ac-fil-papel')?.value || 'todos').trim();
   const userMap = new Map((D.accessUsers || []).map(user => [user.user_id, user]));
   let items = D.userPerfis || [];
-  if(q) items = items.filter(x => String(x.user_id || '').toLowerCase().includes(q) || normalizeEmail(userMap.get(x.user_id)?.email || '').includes(q));
+  if(q) items = items.filter(x => {
+    const user = userMap.get(x.user_id);
+    return String(x.user_id || '').toLowerCase().includes(q)
+      || normalizeEmail(user?.email || '').includes(q)
+      || String(user?.nome || '').trim().toLowerCase().includes(q);
+  });
   if(papel !== 'todos') items = items.filter(x => String(x.papel) === papel);
 
   if(!items.length){
@@ -377,20 +394,23 @@ export function renderAcessosPerfis(){
         <thead>
           <tr>
             <th>User ID</th>
-            <th>E-mail</th>
+            <th>Usuario</th>
             <th>Papel</th>
             <th>Atualizado</th>
-            <th style="text-align:right">Ação</th>
+            <th class="table-align-right">Ação</th>
           </tr>
         </thead>
         <tbody>
           ${p.slice.map(pf => `
             <tr>
               <td><code>${pf.user_id}</code></td>
-              <td style="color:var(--tx2)">${userMap.get(pf.user_id)?.email || '-'}</td>
+              <td>
+                <div class="table-cell-strong">${String(userMap.get(pf.user_id)?.nome || '').trim() || '-'}</div>
+                <div class="table-cell-caption table-cell-muted">${userMap.get(pf.user_id)?.email || '-'}</div>
+              </td>
               <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${pf.papel}</span></td>
               <td>${pf.atualizado_em ? new Date(pf.atualizado_em).toLocaleString('pt-BR') : '-'}</td>
-              <td style="text-align:right">
+              <td class="table-align-right">
                 <button class="btn btn-sm" data-click="preencherPerfilAcesso('${pf.user_id}','${pf.papel}')">Editar</button>
               </td>
             </tr>
@@ -426,20 +446,23 @@ export function renderAcessosVinculos(){
         <thead>
           <tr>
             <th>User ID</th>
-            <th>E-mail</th>
+            <th>Usuario</th>
             <th>Papel</th>
             <th>Filial</th>
-            <th style="text-align:right">Ação</th>
+            <th class="table-align-right">Ação</th>
           </tr>
         </thead>
         <tbody>
           ${p.slice.map(v => `
             <tr>
               <td><code>${v.user_id}</code></td>
-              <td style="color:var(--tx2)">${userMap.get(v.user_id)?.email || '-'}</td>
+              <td>
+                <div class="table-cell-strong">${String(userMap.get(v.user_id)?.nome || '').trim() || '-'}</div>
+                <div class="table-cell-caption table-cell-muted">${userMap.get(v.user_id)?.email || '-'}</div>
+              </td>
               <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
               <td>${filMap.get(v.filial_id) || v.filial_id}</td>
-              <td style="text-align:right">
+              <td class="table-align-right">
                 <button class="btn btn-sm" data-click="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
               </td>
             </tr>
@@ -485,7 +508,7 @@ export function renderAcessosAuditoria(){
               <td><code>${a.ator_user_id || '-'}</code></td>
               <td>
                 <div><code>${a.alvo_user_id || '-'}</code></div>
-                <div style="font-size:11px;color:var(--tx3)">${a.alvo_filial_id ? (filMap.get(a.alvo_filial_id) || a.alvo_filial_id) : '-'}</div>
+                <div class="table-cell-caption table-cell-muted">${a.alvo_filial_id ? (filMap.get(a.alvo_filial_id) || a.alvo_filial_id) : '-'}</div>
               </td>
             </tr>
           `).join('')}
@@ -705,4 +728,3 @@ export async function trocarFilial(id){
   await renderSetupSafe();
   toast('Filial alterada!');
 }
-

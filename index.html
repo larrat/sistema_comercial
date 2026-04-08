@@ -27,7 +27,7 @@
       <div class="fg">
         <div><div class="fl">Senha</div><input class="inp" id="auth-password" type="password" placeholder="********"></div>
       </div>
-      <button class="btn btn-p" id="auth-login-btn" style="width:100%;justify-content:center;margin-top:4px" data-action="authEntrar">Entrar com conta</button>
+        <button class="btn btn-p btn-block-center mt-4" id="auth-login-btn" data-action="authEntrar">Entrar com conta</button>
     </div>
 
     <!-- Lista de filiais -->
@@ -43,9 +43,9 @@
         <div><div class="fl">Estado</div><input class="inp" id="sf-estado" placeholder="CE"></div>
       </div>
       <div class="fg">
-        <div><div class="fl">Cor identificadora</div><input class="inp" id="sf-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
+          <div><div class="fl">Cor identificadora</div><input class="inp input-color" id="sf-cor" type="color" value="#163F80"></div>
       </div>
-      <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:4px" data-click="criarPrimeiraFilial()">Criar filial e entrar ></button>
+        <button class="btn btn-p btn-block-center mt-4" data-click="criarPrimeiraFilial()">Criar filial e entrar ></button>
     </div>
 
     <!-- Ações -->
@@ -66,12 +66,12 @@
     <div class="sb-head">
       <div class="fb">
         <div class="sb-brand">Sistema Comercial</div>
-        <button class="ib" id="sb-close" data-click="fecharSb()" style="display:none">Fechar</button>
+      <button class="ib" id="sb-close" data-click="fecharSb()" style="display:none">Fechar</button>
       </div>
       <div class="sb-pill" data-click="voltarSetup()">
         <div class="sb-pdot" id="sb-dot"></div>
         <span class="sb-pname" id="sb-fname">-</span>
-        <span style="font-size:11px;color:var(--tx3);margin-left:2px">Trocar</span>
+          <span class="subtle-inline-copy">Trocar</span>
       </div>
       <div class="sb-search">
         <input class="inp sb-search-input" id="sb-search" type="search" placeholder="Buscar tela..." aria-label="Buscar no menu lateral">
@@ -105,9 +105,9 @@
       </div>
     </nav>
     <div class="sb-foot">
-      <div class="bdg bk" id="sb-role" style="width:100%;justify-content:center;margin-bottom:8px">Operador</div>
-      <button class="btn btn-gh btn-sm" style="width:100%;justify-content:center" data-click="exportarTudo()">Exportar CSVs</button>
-      <button class="btn btn-sm" style="width:100%;justify-content:center;margin-top:8px" data-click="sairConta()">Sair</button>
+        <div class="bdg bk btn-block-center mb-8" id="sb-role">Operador</div>
+        <button class="btn btn-gh btn-sm btn-block-center" data-click="exportarTudo()">Exportar CSVs</button>
+        <button class="btn btn-sm btn-block-center mt-8" data-click="sairConta()">Sair</button>
     </div>
   </aside>
 
@@ -377,22 +377,22 @@
       <div class="tc on" id="cot-tc-importar">
         <div class="card">
           <div class="ct">Importar planilha de fornecedor</div>
-          <div class="fg c2" style="margin-bottom:12px">
+      <div class="fg c2 form-gap-bottom">
             <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">- selecione -</option></select></div>
-            <div style="display:flex;align-items:flex-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
+        <div class="toolbar-inline-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
           </div>
-          <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div style="font-size:22px;margin-bottom:6px">ARQ</div><strong style="font-size:13px">Clique ou arraste o arquivo</strong><p style="font-size:12px;color:var(--tx3);margin-top:4px">.xlsx .xls .csv - qualquer layout</p></div>
+        <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div class="upload-drop-icon">ARQ</div><strong class="upload-drop-title">Clique ou arraste o arquivo</strong><p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p></div>
         </div>
         <div class="card"><div class="ct">Historico de importacoes</div><div id="cot-logs"></div></div>
       </div>
       <div class="tc" id="cot-tc-fornecedores">
-        <div class="fb" style="margin-bottom:12px"><span></span><button class="btn btn-p" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
+      <div class="fb form-gap-bottom"><span></span><button class="btn btn-p" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
         <div class="card"><div id="cot-forns-lista"></div></div>
       </div>
       <div class="tc" id="cot-tc-cotacao">
-        <div class="fb" style="margin-bottom:12px">
-          <div class="mg" id="cot-met" style="margin:0;flex:1"></div>
-          <div class="fg2" style="flex-shrink:0">
+      <div class="fb form-gap-bottom">
+        <div class="mg metric-grid-fill" id="cot-met"></div>
+        <div class="fg2 no-shrink">
             <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
             <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
           </div>
@@ -420,8 +420,8 @@
         <div class="mg" id="est-met"></div>
         <div class="toolbar">
           <div class="toolbar-main">
-            <input class="inp" id="est-busca" placeholder="Buscar..." style="max-width:180px" data-input="renderEstPosicao()">
-            <select class="inp sel" id="est-fil" style="max-width:140px" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
+        <input class="inp input-w-sm" id="est-busca" placeholder="Buscar..." data-input="renderEstPosicao()">
+        <select class="inp sel select-w-sm" id="est-fil" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
           </div>
         </div>
         <div class="card"><div id="est-posicao"></div></div>
@@ -429,8 +429,8 @@
       <div class="tc" id="est-tc-historico">
         <div class="toolbar">
           <div class="toolbar-main">
-            <input class="inp" id="est-hist-busca" placeholder="Buscar..." style="max-width:180px" data-input="renderEstHist()">
-            <select class="inp sel" id="est-hist-tipo" style="max-width:140px" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
+        <input class="inp input-w-sm" id="est-hist-busca" placeholder="Buscar..." data-input="renderEstHist()">
+        <select class="inp sel select-w-sm" id="est-hist-tipo" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
           </div>
         </div>
         <div class="card"><div id="est-hist"></div></div>
@@ -533,7 +533,7 @@
               <option value="admin">Admin</option>
             </select>
           </div>
-          <div class="modal-actions-inline" style="align-items:flex-end">
+              <div class="modal-actions-inline items-end">
             <button class="btn btn-p" data-click="salvarPerfilAcesso()">Salvar perfil</button>
             <button class="btn btn-sm" data-click="removerPerfilAcesso()">Remover perfil</button>
           </div>
@@ -549,7 +549,7 @@
             <div class="field-help" id="ac-v-user-id-help">Digite o e-mail do usuário para vincular sem precisar copiar UUID.</div>
           </div>
           <div><div class="fl">Filial</div><select class="inp sel" id="ac-v-filial"></select></div>
-          <div class="modal-actions-inline" style="align-items:flex-end">
+              <div class="modal-actions-inline items-end">
             <button class="btn btn-p" data-click="vincularUsuarioFilial()">Vincular</button>
             <button class="btn btn-sm" data-click="desvincularUsuarioFilial()">Desvincular</button>
           </div>
@@ -560,8 +560,8 @@
         <div class="toolbar">
           <div class="ct ct-inline">Perfis cadastrados</div>
           <div class="toolbar-main">
-            <input class="inp" id="ac-busca" placeholder="Buscar por e-mail ou user_id..." style="max-width:240px" data-input="renderAcessosPerfis()">
-            <select class="inp sel" id="ac-fil-papel" style="max-width:180px" data-change="renderAcessosPerfis()">
+        <input class="inp input-w-lg" id="ac-busca" placeholder="Buscar por e-mail ou user_id..." data-input="renderAcessosPerfis()">
+        <select class="inp sel select-w-md" id="ac-fil-papel" data-change="renderAcessosPerfis()">
               <option value="todos">Todos papéis</option>
               <option value="admin">Admin</option>
               <option value="gerente">Gerente</option>
@@ -577,7 +577,7 @@
         <div class="toolbar">
           <div class="ct ct-inline">Vínculos usuário x filial</div>
           <div class="toolbar-main">
-            <select class="inp sel" id="ac-fil-filial" style="max-width:260px" data-change="renderAcessosVinculos()">
+        <select class="inp sel select-w-xl" id="ac-fil-filial" data-change="renderAcessosVinculos()">
               <option value="todas">Todas filiais</option>
             </select>
           </div>
@@ -604,7 +604,7 @@
       </div>
       <div class="toolbar">
         <div class="toolbar-main">
-          <select class="inp sel" id="noti-fil-prioridade" style="max-width:180px" data-change="setFiltroNotificacoes(this.value)">
+        <select class="inp sel select-w-md" id="noti-fil-prioridade" data-change="setFiltroNotificacoes(this.value)">
             <option value="todas">Todas prioridades</option>
             <option value="critico">Crítico</option>
             <option value="atencao">Atencao</option>
@@ -658,7 +658,7 @@
     </div>
     <div class="fg c2">
       <div><div class="fl">Estado</div><input class="inp" id="fil-estado" placeholder="CE"></div>
-      <div><div class="fl">Cor</div><input class="inp" id="fil-cor" type="color" value="#163F80" style="height:38px;padding:4px 6px"></div>
+          <div><div class="fl">Cor</div><input class="inp input-color" id="fil-cor" type="color" value="#163F80"></div>
     </div>
     <div class="fg"><div><div class="fl">Endereco (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, numero, bairro"></div></div>
     <div class="div"></div>

@@ -1048,11 +1048,8 @@ export async function marcarEnvioFalhou(envioId) {
 
   const idx = getEnviosCache().findIndex(e => e.id === envioId);
   if (idx >= 0) getEnviosCache()[idx] = payload;
-
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
   notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
 }
-
-
