@@ -187,6 +187,7 @@ export function limparFormPed(){
   const prodEl = document.getElementById('pi-prod');
   const qtyEl = document.getElementById('pi-qty');
   const precoEl = document.getElementById('pi-preco');
+  const custoEl = document.getElementById('pi-custo');
 
   if(statusEl) statusEl.value = 'orcamento';
   if(pgtoEl) pgtoEl.value = 'a_vista';
@@ -195,6 +196,7 @@ export function limparFormPed(){
   if(prodEl) prodEl.value = '';
   if(qtyEl) qtyEl.value = '1';
   if(precoEl) precoEl.value = '';
+  if(custoEl) custoEl.value = '';
 
   refreshProdSelSafe();
   refreshCliDLSafe();
@@ -229,10 +231,40 @@ export function editarPed(id){
   abrirModal('modal-pedido');
 }
 
+export function preencherValoresItemPedido(){
+  const prodEl = document.getElementById('pi-prod');
+  const tipoEl = document.getElementById('pd-tipo');
+  const precoEl = document.getElementById('pi-preco');
+  const custoEl = document.getElementById('pi-custo');
+  if(!(prodEl instanceof HTMLSelectElement)) return;
+  if(!(precoEl instanceof HTMLInputElement)) return;
+  if(!(custoEl instanceof HTMLInputElement)) return;
+
+  const pid = prodEl.value;
+  if(!pid){
+    precoEl.value = '';
+    custoEl.value = '';
+    return;
+  }
+
+  const prod = P().find(p => p.id === pid);
+  if(!prod) return;
+
+  const tipo = tipoEl instanceof HTMLSelectElement ? tipoEl.value : 'varejo';
+  const precoSugerido = tipo === 'atacado' && (prod.mka > 0 || prod.pfa > 0)
+    ? (prod.pfa > 0 ? prod.pfa : prV(prod.custo, prod.mka))
+    : prV(prod.custo, prod.mkv);
+  const precoBase = (!isNaN(precoSugerido) && precoSugerido > 0) ? precoSugerido : prod.custo;
+
+  if(!custoEl.value) custoEl.value = String(prod.custo || '');
+  if(!precoEl.value) precoEl.value = String(precoBase || '');
+}
+
 export function addItem(){
   const pid = document.getElementById('pi-prod')?.value;
   const qty = parseFloat(document.getElementById('pi-qty')?.value) || 1;
   const pm = parseFloat(document.getElementById('pi-preco')?.value) || 0;
+  const cm = parseFloat(document.getElementById('pi-custo')?.value) || 0;
   const orig = document.getElementById('pi-orig')?.value || 'estoque';
 
   if(!pid){
@@ -248,7 +280,9 @@ export function addItem(){
     ? (prod.pfa > 0 ? prod.pfa : prV(prod.custo, prod.mka))
     : prV(prod.custo, prod.mkv);
 
-  const pf = pm > 0 ? pm : ((isNaN(pa) || pa <= 0) ? prod.custo : pa);
+  const precoBase = (isNaN(pa) || pa <= 0) ? prod.custo : pa;
+  const pf = pm > 0 ? pm : precoBase;
+  const custoAplicado = cm > 0 ? cm : (prod.custo || 0);
 
   if(!State.pedItens) State.pedItens = [];
   State.pedItens.push({
@@ -257,17 +291,21 @@ export function addItem(){
     un: prod.un,
     qty,
     preco: pf,
-    custo: prod.custo,
+    custo: custoAplicado,
+    custo_base: prod.custo,
+    preco_base: precoBase,
     orig
   });
 
   const prodEl = document.getElementById('pi-prod');
   const qtyEl = document.getElementById('pi-qty');
   const precoEl = document.getElementById('pi-preco');
+  const custoEl = document.getElementById('pi-custo');
 
   if(prodEl) prodEl.value = '';
   if(qtyEl) qtyEl.value = '1';
   if(precoEl) precoEl.value = '';
+  if(custoEl) custoEl.value = '';
 
   renderItens();
 }
@@ -293,6 +331,7 @@ export function renderItens(){
   }
 
   const tot = State.pedItens.reduce((a, i) => a + (i.qty * i.preco), 0);
+  const lucroTotal = State.pedItens.reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
 
   el.innerHTML = `
     <div class="tw ped-items-wrap"><table class="tbl" style="margin-bottom:8px">
@@ -301,28 +340,39 @@ export function renderItens(){
           <th>Produto</th>
           <th>Origem</th>
           <th>Qtd</th>
+          <th>Custo</th>
           <th>Preco</th>
           <th>Subtotal</th>
+          <th>Lucro</th>
+          <th>Margem</th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        ${State.pedItens.map((it, i) => `
-          <tr>
-            <td style="font-weight:600">${it.nome}</td>
-            <td><span class="bdg ${it.orig === 'estoque' ? 'bg' : 'bb'}">${it.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}</span></td>
-            <td>${it.qty} ${it.un}</td>
-            <td>${fmt(it.preco)}</td>
-            <td style="font-weight:600">${fmt(it.qty * it.preco)}</td>
-            <td><button class="ib" title="Excluir item" data-click="remItem(${i})">DEL</button></td>
-          </tr>
-        `).join('')}
+        ${State.pedItens.map((it, i) => {
+          const subtotal = it.qty * it.preco;
+          const lucro = (it.preco - it.custo) * it.qty;
+          const margem = it.preco > 0 ? (((it.preco - it.custo) / it.preco) * 100) : 0;
+          return `
+            <tr>
+              <td style="font-weight:600">${it.nome}</td>
+              <td><span class="bdg ${it.orig === 'estoque' ? 'bg' : 'bb'}">${it.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}</span></td>
+              <td>${it.qty} ${it.un}</td>
+              <td style="color:var(--tx2)">${fmt(it.custo)}</td>
+              <td>${fmt(it.preco)}</td>
+              <td style="font-weight:600">${fmt(subtotal)}</td>
+              <td style="color:${lucro >= 0 ? 'var(--g)' : 'var(--r)'};font-weight:600">${fmt(lucro)}</td>
+              <td style="font-weight:600">${margem.toFixed(1)}%</td>
+              <td><button class="ib" title="Excluir item" data-click="remItem(${i})">DEL</button></td>
+            </tr>
+          `;
+        }).join('')}
       </tbody>
     </table></div>
   `;
 
   const totalVal = document.getElementById('ped-total-val');
-  if(totalVal) totalVal.textContent = fmt(tot);
+  if(totalVal) totalVal.textContent = `${fmt(tot)} | Lucro ${fmt(lucroTotal)}`;
   tb.style.display = 'block';
 }
 
@@ -480,26 +530,33 @@ export function verPed(id){
             <th>Preco</th>
             <th>Subtotal</th>
             <th>Lucro</th>
+            <th>Margem</th>
           </tr>
         </thead>
         <tbody>
-          ${itens.map(i => `
-            <tr>
-              <td style="font-weight:600">${i.nome}</td>
-              <td><span class="bdg ${i.orig === 'estoque' ? 'bg' : 'bb'}" style="font-size:10px">${i.orig === 'estoque' ? 'Est.' : 'Forn.'}</span></td>
-              <td>${i.qty} ${i.un}</td>
-              <td style="color:var(--tx2)">${fmt(i.custo)}</td>
-              <td>${fmt(i.preco)}</td>
-              <td style="font-weight:600">${fmt(i.qty * i.preco)}</td>
-              <td style="color:var(--g)">${fmt((i.preco - i.custo) * i.qty)}</td>
-            </tr>
-          `).join('')}
+          ${itens.map(i => {
+            const lucroItem = (i.preco - i.custo) * i.qty;
+            const margemItem = i.preco > 0 ? (((i.preco - i.custo) / i.preco) * 100) : 0;
+            return `
+              <tr>
+                <td style="font-weight:600">${i.nome}</td>
+                <td><span class="bdg ${i.orig === 'estoque' ? 'bg' : 'bb'}" style="font-size:10px">${i.orig === 'estoque' ? 'Est.' : 'Forn.'}</span></td>
+                <td>${i.qty} ${i.un}</td>
+                <td style="color:var(--tx2)">${fmt(i.custo)}</td>
+                <td>${fmt(i.preco)}</td>
+                <td style="font-weight:600">${fmt(i.qty * i.preco)}</td>
+                <td style="color:var(--g)">${fmt(lucroItem)}</td>
+                <td>${margemItem.toFixed(1)}%</td>
+              </tr>
+            `;
+          }).join('')}
         </tbody>
         <tfoot>
           <tr>
             <td colspan="5" style="font-weight:600;padding-top:8px">Total</td>
             <td style="font-weight:600">${fmt(p.total || 0)}</td>
             <td style="font-weight:600;color:var(--g)">${fmt(lucro)}</td>
+            <td>-</td>
           </tr>
         </tfoot>
       </table>

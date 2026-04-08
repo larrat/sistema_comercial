@@ -150,6 +150,7 @@ function getHandlerRegistry(){
       renderPedidos: deps.renderPedidos,
       salvarPedido: deps.salvarPedidoTracked,
       addItem: deps.addItem,
+      preencherValoresItemPedido: deps.preencherValoresItemPedido,
       editarPed: deps.editarPed,
       removerPed: deps.removerPedGuard,
       verPed: deps.verPed,
