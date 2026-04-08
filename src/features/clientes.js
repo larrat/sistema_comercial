@@ -399,7 +399,7 @@ export function renderClientes(){
     return;
   }
 
-  if(window.matchMedia('(max-width: 760px)').matches){
+  if(window.matchMedia('(max-width: 1280px)').matches){
     cliDom.html(
       'list',
       'cli-lista',

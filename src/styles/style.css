@@ -3355,22 +3355,121 @@ textarea.inp:focus{
 
 @media(max-width:1180px){
   .sb{
-    width:216px;
+    width:84px;
+    overflow:visible;
   }
 
   .main{
     width:100%;
-    margin-left:216px;
+    margin-left:84px;
+  }
+
+  .sb-head,
+  .sb-foot{
+    padding-left:8px;
+    padding-right:8px;
+  }
+
+  .sb-brand{
+    font-size:0;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+
+  .sb-brand::before{
+    margin-right:0;
+  }
+
+  .sb-pill{
+    justify-content:center;
+    width:100%;
+    padding:9px 0;
+  }
+
+  .sb-pill .sb-pname,
+  .sb-pill span:not(.sb-pname){
+    display:none;
+  }
+
+  .sb-search{
+    display:none;
+  }
+
+  .sb-group{
+    padding:4px;
+    border-radius:14px;
+  }
+
+  .nl{
+    display:none;
+  }
+
+  .ni{
+    position:relative;
+    justify-content:center;
+    padding:10px 0;
+    font-size:0;
+  }
+
+  .ni .ico{
+    margin:0;
+  }
+
+  .ni .nb{
+    position:absolute;
+    right:8px;
+    top:8px;
+  }
+
+  .ni::after{
+    content:attr(data-label);
+    position:absolute;
+    left:calc(100% + 10px);
+    top:50%;
+    transform:translateY(-50%);
+    padding:8px 10px;
+    border:1px solid var(--shell-border);
+    border-radius:12px;
+    background:#FFF;
+    color:var(--shell-title);
+    font-size:12px;
+    font-weight:600;
+    line-height:1.2;
+    white-space:nowrap;
+    box-shadow:var(--shell-shadow-soft);
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .ni:hover::after{
+    opacity:1;
+  }
+
+  .sb-empty,
+  .sb-foot .btn,
+  .sb-foot .bdg{
+    display:none!important;
   }
 
   .app-topbar{
     align-items:flex-start;
     flex-direction:column;
+    padding:14px 16px;
   }
 
   .app-topbar-actions{
     width:100%;
     justify-content:flex-start;
+    gap:8px;
+  }
+
+  .app-topbar-actions #app-act-tertiary{
+    display:none!important;
+  }
+
+  .app-topbar-actions .btn{
+    min-height:38px;
+    padding:8px 12px;
   }
 
   #pg-pedidos #ped-met{
@@ -3565,7 +3664,7 @@ textarea.inp:focus{
   }
 }
 
-@media(max-width:1080px){
+@media(max-width:1280px){
   #pg-clientes .tw,
   #pg-campanhas .tw{
     display:none;

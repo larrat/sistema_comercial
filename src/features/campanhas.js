@@ -382,7 +382,7 @@ export function renderCampanhas() {
     return;
   }
 
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if(isMobile){
     el.innerHTML = `
       <div class="camp-quick">
@@ -529,7 +529,7 @@ export function renderFilaWhatsApp() {
 
   const pendentes = envios.filter(e => e.status === 'manual' || e.status === 'pendente').length;
   const falhas = envios.filter(e => e.status === 'falhou').length;
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
 
   if(isMobile){
     el.innerHTML = `
@@ -620,7 +620,7 @@ export function renderCampanhaEnvios() {
     return;
   }
 
-  const isMobile = window.matchMedia('(max-width: 760px)').matches;
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if(isMobile){
     el.innerHTML = envios.map(e => {
       const cliente = (C() || []).find(c => c.id === e.cliente_id);
