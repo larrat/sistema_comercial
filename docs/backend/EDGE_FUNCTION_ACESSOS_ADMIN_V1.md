@@ -124,8 +124,13 @@ Codigos previstos:
 - se a auditoria falhar apos a escrita, a resposta volta erro `AUDIT_INSERT_FAILED`, mas a operacao principal pode ja ter sido aplicada
 - a mitigacao operacional neste v1 e: investigar a auditoria antes de repetir a requisicao
 
+## Integracao atual
+
+- [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js) ja usa a function nas 4 operacoes administrativas de escrita
+- a camada [api.js](/e:/Programas/sistema_comercial/js/api.js) expoe helpers `*Edge` para o fluxo de acessos
+
 ## Proximo passo recomendado
 
-1. adaptar [filiais-acessos.js](/e:/Programas/sistema_comercial/modules/filiais-acessos.js) para chamar a function
-2. criar smoke test do contrato da function
+1. executar o smoke test descrito em [SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN.md](/e:/Programas/sistema_comercial/docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN.md)
+2. decidir se a leitura administrativa (`user_perfis`, `user_filiais`, `acessos_auditoria`) tambem deve migrar para backend
 3. evoluir para v2 com RPC transacional se a trilha de auditoria precisar ser atomica

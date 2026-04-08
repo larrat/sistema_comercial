@@ -41,6 +41,14 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - [ ] diff validado dos arquivos alterados
 - [ ] criterio de rollback definido para a fase
 
+### 5. Contratos minimos e funcoes criticas
+- [ ] validar contrato minimo `SB.*` documentado em `docs/backend/CONTRATO_MINIMO_SB_V1.md`
+- [ ] validar contrato da Edge Function `campanhas-gerar-fila`
+- [ ] executar smoke test de `campanhas-gerar-fila` conforme `docs/backend/SMOKE_TEST_EDGE_FUNCTION_CAMPANHAS.md`
+- [ ] validar contrato da Edge Function `acessos-admin`
+- [ ] executar smoke test de `acessos-admin` conforme `docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN.md`
+- [ ] registrar decisao sobre migracao de leitura administrativa sensivel para backend na frente de acessos
+
 ## Arquivos foco da fase
 - `js/api.js`
 - `sql/01b_rls_anon_dev.sql`
@@ -52,6 +60,13 @@ Objetivo: conter risco imediato de ambiente, RLS e drift de schema sem abrir reg
 - `docs/governanca/ROADMAP_EXECUCAO_TECNICA_2026-04-08.md`
 - `docs/governanca/GOVERNANCA_SQL_RLS.md`
 - `docs/governanca/VALIDACAO_RLS_RBAC_FASE_1.md`
+- `docs/backend/CONTRATO_MINIMO_SB_V1.md`
+- `docs/backend/EDGE_FUNCTION_CAMPANHAS_GERAR_FILA_V1.md`
+- `docs/backend/SMOKE_TEST_EDGE_FUNCTION_CAMPANHAS.md`
+- `docs/backend/EDGE_FUNCTION_ACESSOS_ADMIN_V1.md`
+- `docs/backend/SMOKE_TEST_EDGE_FUNCTION_ACESSOS_ADMIN.md`
+- `scripts/smoke/campanhas-gerar-fila.ps1`
+- `scripts/smoke/acessos-admin.ps1`
 
 ## Criterio de saida da Fase 1
 - nenhum ambiente produtivo depende de defaults sensiveis embutidos

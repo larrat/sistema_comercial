@@ -491,6 +491,35 @@ export const SB = {
     sbReq('acessos_auditoria', 'GET', null, '?select=id,ator_user_id,acao,recurso,alvo_user_id,alvo_filial_id,detalhes,criado_em&order=criado_em.desc'),
   logAcessoAdmin: payload =>
     sbReq('acessos_auditoria', 'POST', payload),
+  acessosAdminEdge: payload =>
+    invokeEdgeFunction('acessos-admin', payload),
+  upsertUserPerfilEdge: ({ user_id, papel, detalhes = {} }) =>
+    invokeEdgeFunction('acessos-admin', {
+      action: 'perfil_upsert',
+      alvo_user_id: user_id,
+      papel,
+      detalhes
+    }),
+  deleteUserPerfilEdge: (userId, detalhes = {}) =>
+    invokeEdgeFunction('acessos-admin', {
+      action: 'perfil_delete',
+      alvo_user_id: userId,
+      detalhes
+    }),
+  upsertUserFilialEdge: ({ user_id, filial_id, detalhes = {} }) =>
+    invokeEdgeFunction('acessos-admin', {
+      action: 'vinculo_upsert',
+      alvo_user_id: user_id,
+      alvo_filial_id: filial_id,
+      detalhes
+    }),
+  deleteUserFilialEdge: (userId, filialId, detalhes = {}) =>
+    invokeEdgeFunction('acessos-admin', {
+      action: 'vinculo_delete',
+      alvo_user_id: userId,
+      alvo_filial_id: filialId,
+      detalhes
+    }),
   fetchJsonWithRetry: async (url, opts = {}) => {
     let res;
     try {
