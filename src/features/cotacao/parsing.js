@@ -1,3 +1,5 @@
+// @ts-check
+
 export function normalizarNumeroBR(v){
   let s = String(v ?? '').trim();
   if(!s) return 0;

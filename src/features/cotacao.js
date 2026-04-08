@@ -1,3 +1,7 @@
+// @ts-check
+
+/** @typedef {import('../types/domain').CotacaoLog} CotacaoLog */
+
 import { SB } from '../app/api.js';
 import { D, State, P, FORNS, CPRECOS, CCFG } from '../app/store.js';
 import { uid, fmt, toast } from '../shared/utils.js';
@@ -28,7 +32,7 @@ export function renderCotLogs(){
   const el = document.getElementById('cot-logs');
   if(!el) return;
 
-  const logs = CCFG().logs || [];
+  const logs = /** @type {CotacaoLog[]} */ (CCFG().logs || []);
 
   if(!logs.length){
     el.innerHTML = '<div class="empty empty-inline"><p>Nenhuma importacao ainda.</p></div>';
@@ -216,7 +220,7 @@ export function renderCotTabela(){
     const prices = forns.map(f => {
       const k = p.id + '_' + f.id;
       const v = precos[k];
-      return (v !== undefined && v > 0) ? parseFloat(v) : null;
+      return (v !== undefined && v > 0) ? Number(v) : null;
     });
 
     const valid = prices.filter(x => x !== null);
@@ -227,7 +231,7 @@ export function renderCotTabela(){
 
     forns.forEach((f) => {
       const k = p.id + '_' + f.id;
-      const val = precos[k] !== undefined ? parseFloat(precos[k]) : null;
+      const val = precos[k] !== undefined ? Number(precos[k]) : null;
 
       if(val !== null && val > 0){
         fTot[f.id] += val;
@@ -261,7 +265,7 @@ export function renderCotTabela(){
         ${forns.map(f => {
           const t = fTot[f.id];
           const isBest = t > 0 && t === bestTot && allTot.length > 1;
-          return `<td class="table-align-right table-cell-strong"${isBest ? ' style="background:var(--gbg)"' : ''}>${fmt(t)}</td>`;
+          return `<td class="table-align-right table-cell-strong"${isBest ? ' style="background:var(--gbg)"' : ''}>${fmt(String(t))}</td>`;
         }).join('')}
         <td></td>
       </tr>
@@ -274,6 +278,7 @@ export function renderCotTabela(){
     ? Math.round(filled / (prods.length * forns.length) * 100)
     : 0;
 
+  /** @type {import('../types/domain').Fornecedor | null} */
   let bestForn = null;
   if(bestTot !== null){
     Object.entries(fTot).forEach(([fid, t]) => {

@@ -1,3 +1,5 @@
+// @ts-check
+
 import { detectarCabecalho } from './parsing.js';
 
 export function findHeaderIndexByExactName(headers, target){
@@ -61,7 +63,7 @@ export function applySavedLayoutToSheet(sheet, layout){
 }
 
 export function getSelectedHeaderName(selectId){
-  const el = document.getElementById(selectId);
+  const el = /** @type {HTMLSelectElement | null} */ (document.getElementById(selectId));
   if(!el) return null;
 
   const txt = el.options?.[el.selectedIndex]?.text || '';

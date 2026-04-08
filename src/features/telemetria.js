@@ -1,3 +1,7 @@
+// @ts-check
+
+/** @typedef {import('../types/domain').TelemetriaModuleDeps} TelemetriaModuleDeps */
+
 import { D, State } from '../app/store.js';
 import { uid, norm, toast } from '../shared/utils.js';
 
@@ -13,6 +17,7 @@ const JOURNEY_MODAL_MAP = {
 };
 const primaryActionTracker = { page: 'dashboard', clicks: 0, active: false };
 
+/** @type {TelemetriaModuleDeps} */
 let deps = {
   pageAtual: () => 'dashboard',
   getNotificacoesResumo: () => ({ critico: 0, oportunidade: 0 }),
@@ -484,16 +489,17 @@ export function initGoalTracking(){
   getGoalMetrics();
   document.addEventListener('click', trackPrimaryActionClick, true);
   window.addEventListener('sc:toast', e => {
-    classifyToastError(e?.detail?.message || '', e?.detail?.severity || '');
+    const detail = /** @type {CustomEvent<{ message?: string; severity?: string }>} */ (e).detail || {};
+    classifyToastError(detail.message || '', detail.severity || '');
     renderMetasNegocio();
   });
   window.addEventListener('sc:modal-open', e => {
-    const id = e?.detail?.id;
+    const id = /** @type {CustomEvent<{ id?: string }>} */ (e).detail?.id;
     const journey = JOURNEY_MODAL_MAP[id];
     if(journey) pushUxEvent('modal_open', { modal_id: id, journey });
   });
   window.addEventListener('sc:modal-close', e => {
-    const id = e?.detail?.id;
+    const id = /** @type {CustomEvent<{ id?: string }>} */ (e).detail?.id;
     const journey = JOURNEY_MODAL_MAP[id];
     if(!journey) return;
     pushUxEvent('modal_close', { modal_id: id, journey });

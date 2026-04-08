@@ -1,3 +1,5 @@
+// @ts-check
+
 import { normalizarNumeroBR, detectarCabecalho } from './parsing.js';
 
 export function setImportProgress(percent = 0, text = ''){

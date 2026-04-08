@@ -1,3 +1,8 @@
+// @ts-check
+
+/** @typedef {import('../../types/domain').CotacaoMapaContext} CotacaoMapaContext */
+/** @typedef {import('../../types/domain').CotacaoLog} CotacaoLog */
+
 import { SB } from '../../app/api.js';
 import { D, State, P, FORNS, CPRECOS, CCFG } from '../../app/store.js';
 import { uid, norm, toast, abrirModal, fecharModal, chunkArray } from '../../shared/utils.js';
@@ -6,10 +11,10 @@ import { applySavedLayoutToSheet, getSelectedHeaderName } from './layout.js';
 import { setImportProgress, resetImportProgress, renderImportResumo, validarPreImportacao, pareceAbaDeCombo } from './progress.js';
 
 export function getMapaSheetAtual(){
-  const ctx = State._mapaCtx || {};
+  const ctx = /** @type {CotacaoMapaContext | null} */ (State._mapaCtx);
   const sel = document.getElementById('map-sheet');
-  const idx = sel ? parseInt(sel.value || '0', 10) : (ctx.sheetIdx || 0);
-  return (ctx.sheets || [])[idx] || null;
+  const idx = sel ? parseInt(sel.value || '0', 10) : (ctx?.sheetIdx || 0);
+  return (ctx?.sheets || [])[idx] || null;
 }
 
 async function upsertProdutosEmLote(items, chunkSize = 150){
@@ -37,7 +42,7 @@ async function upsertCotHistoricoEmLote(items, chunkSize = 250){
 }
 
 export function renderMapaBody(){
-  const ctx = State._mapaCtx;
+  const ctx = /** @type {CotacaoMapaContext | null} */ (State._mapaCtx);
 
   if(!ctx || !ctx.sheets || !ctx.sheets.length){
     document.getElementById('mapa-body').innerHTML = '<p>Nenhuma aba encontrada.</p>';
@@ -180,7 +185,7 @@ export function renderMapaBody(){
 
   const sel = document.getElementById('map-sheet');
   if(sel){
-    State._mapaCtx.sheetIdx = parseInt(sel.value || '0', 10);
+    if(State._mapaCtx) State._mapaCtx.sheetIdx = parseInt(sel.value || '0', 10);
   }
 
   resetImportProgress();
@@ -231,8 +236,9 @@ export async function abrirMapaModal(ctx){
 }
 
 export function cotFile(e){
-  const file = e.target.files[0];
-  e.target.value = '';
+  const input = /** @type {HTMLInputElement | null} */ (e.target instanceof HTMLInputElement ? e.target : null);
+  const file = input?.files?.[0];
+  if(input) input.value = '';
   if(!file) return;
 
   const fid = document.getElementById('cot-forn-sel').value;
@@ -242,12 +248,21 @@ export function cotFile(e){
   }
 
   const forn = (FORNS() || []).find(f => f.id === fid);
+  if(!forn){
+    toast('Fornecedor selecionado invalido.');
+    return;
+  }
   const reader = new FileReader();
 
   reader.onload = ev => {
     try{
       if(file.name.toLowerCase().endsWith('.csv')){
-        const text = new TextDecoder().decode(ev.target.result);
+        const result = ev.target?.result;
+        if(!(result instanceof ArrayBuffer)){
+          toast('Erro ao ler o arquivo CSV.');
+          return;
+        }
+        const text = new TextDecoder().decode(result);
         const rows = text
           .split('\n')
           .map(r => r.split(/[;,\t]/).map(c => c.trim().replace(/^"|"$/g,'')))
@@ -271,7 +286,12 @@ export function cotFile(e){
         return;
       }
 
-      const wb = XLSX.read(ev.target.result, { type: 'array' });
+      const result = ev.target?.result;
+      if(!(result instanceof ArrayBuffer)){
+        toast('Erro ao ler o arquivo.');
+        return;
+      }
+      const wb = XLSX.read(result, { type: 'array' });
 
       const sheets = wb.SheetNames.map(name => {
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], {
@@ -319,7 +339,8 @@ export function setImportacaoCallbacks(callbacks = {}){
 }
 
 export async function confirmarMapa(){
-  const ctx = State._mapaCtx;
+  const ctx = /** @type {CotacaoMapaContext | null} */ (State._mapaCtx);
+  if(!ctx) return;
   const sheetSel = document.getElementById('map-sheet');
   if(sheetSel) ctx.sheetIdx = parseInt(sheetSel.value || '0', 10);
 
@@ -605,7 +626,7 @@ export async function confirmarMapa(){
     return;
   }
 
-  const logs = CCFG().logs || [];
+  const logs = /** @type {CotacaoLog[]} */ (CCFG().logs || []);
   logs.unshift({
     arquivo: ctx.filename,
     aba: sheet?.name || '',

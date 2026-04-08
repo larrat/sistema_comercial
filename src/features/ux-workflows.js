@@ -1,5 +1,10 @@
+// @ts-check
+
+/** @typedef {import('../types/domain').UxWorkflowsModuleDeps} UxWorkflowsModuleDeps */
+
 import { toast, norm, fmt, prV } from '../shared/utils.js';
 
+/** @type {UxWorkflowsModuleDeps} */
 let deps = {
   ir: () => {},
   limparFormPedTracked: () => {},
@@ -69,23 +74,23 @@ export function executarAuditoriaAceite(){
 
 function getQuickCommands(){
   return [
-    { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => deps.ir('dashboard') },
-    { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => deps.ir('gerencial') },
-    { cmd: '/ produtos', label: 'Abrir Produtos', run: () => deps.ir('produtos') },
-    { cmd: '/ clientes', label: 'Abrir Clientes', run: () => deps.ir('clientes') },
-    { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => deps.ir('pedidos') },
-    { cmd: '/ cotacao', label: 'Abrir Cotacao', run: () => deps.ir('cotacao') },
-    { cmd: '/ estoque', label: 'Abrir Estoque', run: () => deps.ir('estoque') },
-    { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => deps.ir('campanhas') },
-    { cmd: '/ acessos', label: 'Abrir Acessos', run: () => deps.ir('acessos') },
-    { cmd: '/ notificacoes', label: 'Abrir Notificacoes', run: () => deps.ir('notificacoes') },
-    { cmd: '/ filiais', label: 'Abrir Filiais', run: () => deps.ir('filiais') },
-    { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { deps.limparFormPedTracked(); deps.abrirModal('modal-pedido'); } },
-    { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { deps.limparFormCliTracked(); deps.abrirModal('modal-cliente'); } },
-    { cmd: '/ novo produto', label: 'Novo Produto', run: () => { deps.limparFormProdTracked(); deps.abrirModal('modal-produto'); } },
-    { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => deps.abrirNovaCampanhaTracked() },
-    { cmd: '/ nova mov', label: 'Nova Movimentacao', run: () => { deps.resetMov(); deps.abrirModal('modal-mov'); } },
-    { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => deps.abrirSyncJogos() },
+    { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => deps.ir?.('dashboard') },
+    { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ produtos', label: 'Abrir Produtos', run: () => deps.ir?.('produtos') },
+    { cmd: '/ clientes', label: 'Abrir Clientes', run: () => deps.ir?.('clientes') },
+    { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => deps.ir?.('pedidos') },
+    { cmd: '/ cotacao', label: 'Abrir Cotacao', run: () => deps.ir?.('cotacao') },
+    { cmd: '/ estoque', label: 'Abrir Estoque', run: () => deps.ir?.('estoque') },
+    { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => deps.ir?.('campanhas') },
+    { cmd: '/ acessos', label: 'Abrir Acessos', run: () => deps.ir?.('acessos') },
+    { cmd: '/ notificacoes', label: 'Abrir Notificacoes', run: () => deps.ir?.('notificacoes') },
+    { cmd: '/ filiais', label: 'Abrir Filiais', run: () => deps.ir?.('filiais') },
+    { cmd: '/ novo pedido', label: 'Novo Pedido', run: () => { deps.limparFormPedTracked?.(); deps.abrirModal?.('modal-pedido'); } },
+    { cmd: '/ novo cliente', label: 'Novo Cliente', run: () => { deps.limparFormCliTracked?.(); deps.abrirModal?.('modal-cliente'); } },
+    { cmd: '/ novo produto', label: 'Novo Produto', run: () => { deps.limparFormProdTracked?.(); deps.abrirModal?.('modal-produto'); } },
+    { cmd: '/ nova campanha', label: 'Nova Campanha', run: () => deps.abrirNovaCampanhaTracked?.() },
+    { cmd: '/ nova mov', label: 'Nova Movimentacao', run: () => { deps.resetMov?.(); deps.abrirModal?.('modal-mov'); } },
+    { cmd: '/ sync jogos', label: 'Sincronizar Jogos', run: () => deps.abrirSyncJogos?.() },
     { cmd: '/ auditoria visual', label: 'Auditoria Visual', run: () => executarAuditoriaVisual() },
     { cmd: '/ auditoria aceite', label: 'Auditoria de Aceite', run: () => executarAuditoriaAceite() }
   ];
@@ -111,7 +116,7 @@ export function initQuickCommand(){
     document.body.dataset.boundQuickGlobal = '1';
     document.addEventListener('keydown', e => {
       if(e.key !== '/') return;
-      const target = e.target;
+      const target = /** @type {HTMLElement | null} */ (e.target instanceof HTMLElement ? e.target : null);
       const editing = target && (
         target.tagName === 'INPUT' ||
         target.tagName === 'TEXTAREA' ||
@@ -148,7 +153,7 @@ function flowVal(id, fallback = '—'){
   if(!el) return fallback;
   const raw = ('value' in el ? el.value : el.textContent) ?? '';
   const v = String(raw).trim();
-  return v || fallback;
+  return v || String(fallback);
 }
 
 function focusField(id){
@@ -162,7 +167,7 @@ function validateFlowStep(flow, step){
   if(flow === 'prod'){
     if(step === 1){
       const nome = flowVal('p-nome', '');
-      const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
+      const custo = parseFloat(String(document.getElementById('p-custo')?.value || 0)) || 0;
       if(!nome){
         toast('Produto: informe o nome para continuar.');
         focusField('p-nome');
@@ -175,10 +180,10 @@ function validateFlowStep(flow, step){
       }
     }
     if(step === 2){
-      const pvv = parseFloat(document.getElementById('p-pvv')?.value || 0) || 0;
-      const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
-      const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
-      const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
+      const pvv = parseFloat(String(document.getElementById('p-pvv')?.value || 0)) || 0;
+      const mkv = parseFloat(String(document.getElementById('p-mkv')?.value || 0)) || 0;
+      const pfa = parseFloat(String(document.getElementById('p-pfa')?.value || 0)) || 0;
+      const mka = parseFloat(String(document.getElementById('p-mka')?.value || 0)) || 0;
       if(pvv <= 0 && mkv <= 0 && pfa <= 0 && mka <= 0){
         toast('Produto: defina preco ou markup de varejo, ou preco/markup de atacado.');
         focusField('p-pvv');
@@ -216,11 +221,11 @@ function renderFlowSummary(flow){
   if(flow === 'prod'){
     const el = document.getElementById('prod-flow-resumo');
     if(!el) return;
-    const custo = parseFloat(document.getElementById('p-custo')?.value || 0) || 0;
-    const pvv = parseFloat(document.getElementById('p-pvv')?.value || 0) || 0;
-    const mkv = parseFloat(document.getElementById('p-mkv')?.value || 0) || 0;
-    const mka = parseFloat(document.getElementById('p-mka')?.value || 0) || 0;
-    const pfa = parseFloat(document.getElementById('p-pfa')?.value || 0) || 0;
+    const custo = parseFloat(String(document.getElementById('p-custo')?.value || 0)) || 0;
+    const pvv = parseFloat(String(document.getElementById('p-pvv')?.value || 0)) || 0;
+    const mkv = parseFloat(String(document.getElementById('p-mkv')?.value || 0)) || 0;
+    const mka = parseFloat(String(document.getElementById('p-mka')?.value || 0)) || 0;
+    const pfa = parseFloat(String(document.getElementById('p-pfa')?.value || 0)) || 0;
     const un = flowVal('p-un', '');
     const nome = flowVal('p-nome', '');
     const sku = flowVal('p-sku', '—');
@@ -233,7 +238,7 @@ function renderFlowSummary(flow){
     if(pv > 0 && pv <= custo) inconsistencias.push('Preco varejo esta menor/igual ao custo.');
     if(pa > 0 && pa <= custo) inconsistencias.push('Preco atacado esta menor/igual ao custo.');
     if(pa > 0 && pv > 0 && pa > pv) inconsistencias.push('Preco atacado esta acima do varejo.');
-    if((parseFloat(document.getElementById('p-emin')?.value || 0) || 0) < 0) inconsistencias.push('Estoque minimo negativo.');
+    if((parseFloat(String(document.getElementById('p-emin')?.value || 0)) || 0) < 0) inconsistencias.push('Estoque minimo negativo.');
     const checks = [
       { ok: !!nome, label: 'Nome do produto' },
       { ok: !!un, label: 'Unidade' },
@@ -314,10 +319,12 @@ export function setFlowStep(flow, rawStep){
   }
   flowSteps[flow] = step;
   document.querySelectorAll(`.flow-step[data-flow-id="${flow}"]`).forEach(el => {
-    el.classList.toggle('on', Number(el.dataset.step) === step);
+    const node = /** @type {HTMLElement} */ (el);
+    node.classList.toggle('on', Number(node.dataset.step) === step);
   });
   document.querySelectorAll(`.flow-chip[data-flow-chip="${flow}"]`).forEach(el => {
-    el.classList.toggle('on', Number(el.dataset.step) === step);
+    const node = /** @type {HTMLElement} */ (el);
+    node.classList.toggle('on', Number(node.dataset.step) === step);
   });
   const prev = document.getElementById(`${flow}-flow-prev`);
   const next = document.getElementById(`${flow}-flow-next`);

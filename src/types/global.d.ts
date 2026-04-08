@@ -4,6 +4,33 @@ declare global {
   interface HTMLElement {
     value?: string;
     checked?: boolean;
+    disabled?: boolean;
+    dataset: DOMStringMap;
+    type?: string;
+    selectedIndex?: number;
+    options?: HTMLOptionsCollection;
+    select?: () => void;
+  }
+
+  interface CustomEvent<T = unknown> extends Event {
+    readonly detail: T;
+  }
+
+  type XlsxWorkbook = {
+    SheetNames: string[];
+    Sheets: Record<string, unknown>;
+  };
+
+  interface Window {
+    XLSX?: {
+      read: (data: ArrayBuffer, options?: Record<string, unknown>) => XlsxWorkbook;
+      utils: {
+        sheet_to_json: (
+          sheet: unknown,
+          options?: Record<string, unknown>
+        ) => Array<Array<string | number | null | undefined>>;
+      };
+    };
   }
 
   interface Window {
@@ -18,4 +45,6 @@ declare global {
     __SC_E2E_UI_CORE__?: boolean;
     __SC_DEBUG__?: Record<string, unknown>;
   }
+
+  const XLSX: NonNullable<Window['XLSX']>;
 }

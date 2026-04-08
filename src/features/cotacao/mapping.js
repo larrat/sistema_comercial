@@ -1,3 +1,5 @@
+// @ts-check
+
 export function findHeader(headers, keywords = []){
   return Math.max(
     -1,
