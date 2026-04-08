@@ -90,11 +90,11 @@ Deno.serve(async (req) => {
   const [perfisResult, vinculosResult, filiaisResult, auditoriaResult] = await Promise.all([
     supabase
       .from('user_perfis')
-      .select('user_id,papel,criado_em,atualizado_em')
+      .select('user_id,papel,user_nome,user_email,criado_em,atualizado_em')
       .order('atualizado_em', { ascending: false }),
     supabase
       .from('user_filiais')
-      .select('user_id,filial_id,criado_em')
+      .select('user_id,filial_id,user_nome,user_email,criado_em')
       .order('criado_em', { ascending: false }),
     supabase
       .from('filiais')

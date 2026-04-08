@@ -637,11 +637,13 @@ export const SB = {
     const r = /** @type {AccessAdminUser[] | null} */ (await sbRpc('admin_lookup_user_by_email', { p_email: email }));
     return r && r[0] ? r[0] : null;
   },
-  upsertUserPerfilEdge: ({ user_id, papel, detalhes = {} }) =>
+  upsertUserPerfilEdge: ({ user_id, papel, user_nome = null, user_email = null, detalhes = {} }) =>
     invokeEdgeFunction('acessos-admin', {
       action: 'perfil_upsert',
       alvo_user_id: user_id,
       papel,
+      alvo_user_nome: user_nome,
+      alvo_user_email: user_email,
       detalhes
     }),
   deleteUserPerfilEdge: (userId, detalhes = {}) =>
@@ -650,11 +652,13 @@ export const SB = {
       alvo_user_id: userId,
       detalhes
     }),
-  upsertUserFilialEdge: ({ user_id, filial_id, detalhes = {} }) =>
+  upsertUserFilialEdge: ({ user_id, filial_id, user_nome = null, user_email = null, detalhes = {} }) =>
     invokeEdgeFunction('acessos-admin', {
       action: 'vinculo_upsert',
       alvo_user_id: user_id,
       alvo_filial_id: filial_id,
+      alvo_user_nome: user_nome,
+      alvo_user_email: user_email,
       detalhes
     }),
   deleteUserFilialEdge: (userId, filialId, detalhes = {}) =>

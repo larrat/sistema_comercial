@@ -11,6 +11,8 @@ type RequestBody = {
   action?: string;
   alvo_user_id?: string;
   alvo_filial_id?: string | null;
+  alvo_user_nome?: string | null;
+  alvo_user_email?: string | null;
   papel?: string | null;
   detalhes?: Record<string, unknown> | null;
 };
@@ -37,6 +39,10 @@ function isAction(value: string): value is AccessAction {
 function normalizeDetalhes(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   return value as Record<string, unknown>;
+}
+
+function normalizeEmail(value: unknown) {
+  return String(value || '').trim().toLowerCase();
 }
 
 Deno.serve(async (req) => {
@@ -84,6 +90,8 @@ Deno.serve(async (req) => {
   const action = String(body?.action || '').trim();
   const alvoUserId = String(body?.alvo_user_id || '').trim();
   const alvoFilialId = String(body?.alvo_filial_id || '').trim();
+  const alvoUserNome = String(body?.alvo_user_nome || '').trim() || null;
+  const alvoUserEmail = normalizeEmail(body?.alvo_user_email || '') || null;
   const papel = String(body?.papel || '').trim();
   const detalhes = normalizeDetalhes(body?.detalhes);
 
@@ -174,8 +182,8 @@ Deno.serve(async (req) => {
   if (action === 'perfil_upsert') {
     const result = await supabase
       .from('user_perfis')
-      .upsert({ user_id: alvoUserId, papel }, { onConflict: 'user_id' })
-      .select('user_id,papel,criado_em,atualizado_em')
+      .upsert({ user_id: alvoUserId, papel, user_nome: alvoUserNome, user_email: alvoUserEmail }, { onConflict: 'user_id' })
+      .select('user_id,papel,user_nome,user_email,criado_em,atualizado_em')
       .limit(1);
     operationError = result.error;
     operationData = result.data?.[0] || null;
@@ -193,8 +201,8 @@ Deno.serve(async (req) => {
   if (action === 'vinculo_upsert') {
     const result = await supabase
       .from('user_filiais')
-      .upsert({ user_id: alvoUserId, filial_id: alvoFilialId }, { onConflict: 'user_id,filial_id' })
-      .select('user_id,filial_id,criado_em')
+      .upsert({ user_id: alvoUserId, filial_id: alvoFilialId, user_nome: alvoUserNome, user_email: alvoUserEmail }, { onConflict: 'user_id,filial_id' })
+      .select('user_id,filial_id,user_nome,user_email,criado_em')
       .limit(1);
     operationError = result.error;
     operationData = result.data?.[0] || null;
@@ -231,6 +239,8 @@ Deno.serve(async (req) => {
     detalhes: {
       ...detalhes,
       papel: papel || null,
+      user_nome: alvoUserNome,
+      user_email: alvoUserEmail,
       via: 'edge_function_acessos_admin_v1'
     }
   };

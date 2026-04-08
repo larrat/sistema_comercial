@@ -222,6 +222,8 @@ export type JogoAgenda = {
 export type UserPerfil = {
   user_id: Id;
   papel: string;
+  user_nome?: string | null;
+  user_email?: string | null;
   criado_em?: string;
   atualizado_em?: string;
 };
@@ -236,6 +238,8 @@ export type AccessAdminUser = {
 export type UserFilial = {
   user_id: Id;
   filial_id: Id;
+  user_nome?: string | null;
+  user_email?: string | null;
   criado_em?: string;
 };
 
