@@ -136,7 +136,8 @@ const ROLE_LABEL = {
   gerente: 'Gerente',
   admin: 'Admin'
 };
-const ROLE_GERENTE_PLUS = ['admin', 'gerente'];
+const ROLE_MANAGER_PLUS = ['admin', 'gerente'];
+const ROLE_ADMIN_ONLY = ['admin'];
 const ROLE_PAGE_ACCESS = {
   dashboard: APP_ROLES,
   gerencial: APP_ROLES,
@@ -146,16 +147,12 @@ const ROLE_PAGE_ACCESS = {
   cotacao: APP_ROLES,
   estoque: APP_ROLES,
   notificacoes: APP_ROLES,
-  campanhas: ROLE_GERENTE_PLUS,
-  filiais: ROLE_GERENTE_PLUS
+  campanhas: ROLE_MANAGER_PLUS,
+  filiais: ROLE_ADMIN_ONLY
 };
-const ROLE_UI_RESTRICTED_SELECTORS = [
+const ROLE_UI_MANAGER_SELECTORS = [
   '[onclick*="exportarTudo("]',
   '[onclick*="exportCSV("]',
-  '[onclick*="criarPrimeiraFilial("]',
-  '[onclick*="salvarFilial("]',
-  '[onclick*="removerFilial("]',
-  '[onclick*="editarFilial("]',
   '[onclick*="removerProd("]',
   '[onclick*="removerCli("]',
   '[onclick*="removerPed("]',
@@ -171,6 +168,12 @@ const ROLE_UI_RESTRICTED_SELECTORS = [
   '[onclick*="sincronizarJogosDashboard("]',
   '[onclick*="salvarJogoDashboard("]',
   '[onclick*="removerJogoDashboard("]'
+];
+const ROLE_UI_ADMIN_SELECTORS = [
+  '[onclick*="criarPrimeiraFilial("]',
+  '[onclick*="salvarFilial("]',
+  '[onclick*="removerFilial("]',
+  '[onclick*="editarFilial("]'
 ];
 let roleUiGuardTimer = null;
 let roleUiObserver = null;
@@ -297,13 +300,18 @@ function setRoleUiLock(el, locked){
 }
 
 function applyRoleUiGuards(root = document){
-  const allowManagerActions = hasRole(ROLE_GERENTE_PLUS);
-  const selector = ROLE_UI_RESTRICTED_SELECTORS.join(',');
-  root.querySelectorAll(selector).forEach(el => setRoleUiLock(el, !allowManagerActions));
+  const allowManagerActions = hasRole(ROLE_MANAGER_PLUS);
+  const allowAdminActions = hasRole(ROLE_ADMIN_ONLY);
 
-  const lockPages = !allowManagerActions;
-  root.querySelectorAll('[data-p="campanhas"],[data-p="filiais"],#pg-campanhas,#pg-filiais,#mob-campanhas,#mob-filiais')
-    .forEach(el => setRoleUiLock(el, lockPages));
+  root.querySelectorAll(ROLE_UI_MANAGER_SELECTORS.join(','))
+    .forEach(el => setRoleUiLock(el, !allowManagerActions));
+  root.querySelectorAll(ROLE_UI_ADMIN_SELECTORS.join(','))
+    .forEach(el => setRoleUiLock(el, !allowAdminActions));
+
+  root.querySelectorAll('[data-p="campanhas"],#pg-campanhas,#mob-campanhas')
+    .forEach(el => setRoleUiLock(el, !allowManagerActions));
+  root.querySelectorAll('[data-p="filiais"],#pg-filiais,#mob-filiais')
+    .forEach(el => setRoleUiLock(el, !allowAdminActions));
 }
 
 function scheduleRoleUiGuards(){
@@ -1268,7 +1276,7 @@ function limparFormPedTracked(){
   return limparFormPed();
 }
 function abrirNovaCampanhaTracked(){
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode criar campanha.')) return;
+  if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode criar campanha.')) return;
   startCriticalTask('campanha');
   logStrategicAction('campanhas');
   return abrirNovaCampanha();
@@ -1295,7 +1303,7 @@ async function salvarPedidoTracked(){
   renderMetasNegocio();
 }
 async function salvarCampanhaTracked(){
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode salvar campanha.')) return;
+  if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode salvar campanha.')) return;
   if(State.editIds?.campanha) registerJourneyRework('campanha');
   await salvarCampanha();
   const open = document.getElementById('modal-campanha')?.classList.contains('on');
@@ -1306,7 +1314,7 @@ async function salvarCampanhaTracked(){
   renderMetasNegocio();
 }
 async function gerarFilaCampanhaTracked(id){
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode gerar fila de campanha.')) return;
+  if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode gerar fila de campanha.')) return;
   logStrategicAction('campanhas');
   await gerarFilaCampanha(id);
   renderMetasNegocio();
@@ -1334,7 +1342,7 @@ const PAGE_META = {
     title: 'Produtos',
     sub: 'Catálogo comercial e precificação',
     primary: { label: 'Novo produto', run: () => { limparFormProdTracked(); abrirModal('modal-produto'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos'), roles: ROLE_GERENTE_PLUS },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('produtos'), roles: ROLE_MANAGER_PLUS },
     tertiary: { label: 'Ir clientes', run: () => ir('clientes') }
   },
   clientes: {
@@ -1342,7 +1350,7 @@ const PAGE_META = {
     title: 'Clientes',
     sub: 'Relacionamento e segmentação',
     primary: { label: 'Novo cliente', run: () => { limparFormCliTracked(); abrirModal('modal-cliente'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes'), roles: ROLE_GERENTE_PLUS },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('clientes'), roles: ROLE_MANAGER_PLUS },
     tertiary: { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') }
   },
   pedidos: {
@@ -1350,7 +1358,7 @@ const PAGE_META = {
     title: 'Pedidos',
     sub: 'Orçamentos, vendas e acompanhamento',
     primary: { label: 'Novo pedido', run: () => { limparFormPedTracked(); abrirModal('modal-pedido'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos'), roles: ROLE_GERENTE_PLUS },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('pedidos'), roles: ROLE_MANAGER_PLUS },
     tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
   },
   cotacao: {
@@ -1358,7 +1366,7 @@ const PAGE_META = {
     title: 'Cotação',
     sub: 'Fornecedores e comparação de preço',
     primary: { label: 'Novo fornecedor', run: () => abrirModal('modal-forn') },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('cotacao'), roles: ROLE_GERENTE_PLUS },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('cotacao'), roles: ROLE_MANAGER_PLUS },
     tertiary: { label: 'Travar/Destravar', run: () => cotLock() }
   },
   estoque: {
@@ -1366,22 +1374,22 @@ const PAGE_META = {
     title: 'Estoque',
     sub: 'Posição, alertas e movimentações',
     primary: { label: 'Nova movimentação', run: () => { resetMov(); abrirModal('modal-mov'); } },
-    secondary: { label: 'Exportar CSV', run: () => exportCSV('estoque'), roles: ROLE_GERENTE_PLUS },
+    secondary: { label: 'Exportar CSV', run: () => exportCSV('estoque'), roles: ROLE_MANAGER_PLUS },
     tertiary: { label: 'Ir produtos', run: () => ir('produtos') }
   },
   campanhas: {
     kicker: 'Operações',
     title: 'Campanhas',
     sub: 'Ações comerciais e fila de envios',
-    primary: { label: 'Nova campanha', run: () => abrirNovaCampanhaTracked(), roles: ROLE_GERENTE_PLUS },
+    primary: { label: 'Nova campanha', run: () => abrirNovaCampanhaTracked(), roles: ROLE_MANAGER_PLUS },
     secondary: { label: 'Atualizar tela', run: () => refreshCampanhasTela() },
-    tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_GERENTE_PLUS }
+    tertiary: { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_MANAGER_PLUS }
   },
   filiais: {
     kicker: 'Sistema',
     title: 'Filiais',
     sub: 'Gestão de unidades e troca de contexto',
-    primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); }, roles: ROLE_GERENTE_PLUS },
+    primary: { label: 'Nova filial', run: () => { limparFormFilial(); abrirModal('modal-filial'); }, roles: ROLE_ADMIN_ONLY },
     secondary: { label: 'Voltar setup', run: () => voltarSetup() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
@@ -1434,8 +1442,8 @@ function getContextualPageMeta(page){
       : { label: 'Atualizar tela', run: () => refreshCampanhasTela() };
 
     meta.tertiary = primeiraAtiva
-      ? { label: 'Rodar 1ª ativa', run: () => gerarFilaCampanhaTracked(primeiraAtiva.id), roles: ROLE_GERENTE_PLUS }
-      : { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_GERENTE_PLUS };
+      ? { label: 'Rodar 1ª ativa', run: () => gerarFilaCampanhaTracked(primeiraAtiva.id), roles: ROLE_MANAGER_PLUS }
+      : { label: 'Exportar CSV', run: () => exportCSV('campanhas'), roles: ROLE_MANAGER_PLUS };
   }
 
   return meta;
@@ -1986,7 +1994,7 @@ function selFilial(id) {
 }
 
 async function criarPrimeiraFilial() {
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode criar filial.')) return;
+  if (!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode criar filial.')) return;
   const nome = document.getElementById('sf-nome')?.value.trim();
   if (!nome) {
     toast('Informe o nome da filial.');
@@ -2451,7 +2459,7 @@ function editarFilial(id) {
 }
 
 async function salvarFilial() {
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode salvar filial.')) return;
+  if (!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode salvar filial.')) return;
   const nome = document.getElementById('fil-nome')?.value.trim();
   if (!nome) {
     toast('Informe o nome.');
@@ -2484,7 +2492,7 @@ async function salvarFilial() {
 }
 
 async function removerFilial(id) {
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode remover filial.')) return;
+  if (!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode remover filial.')) return;
   if (!confirm('Remover filial e dados?')) return;
 
   try {
@@ -2562,7 +2570,7 @@ async function trocarFilial(id) {
 }
 
 function exportCSV(tipo) {
-  if (!requireRole(['admin', 'gerente'], 'Somente gerente/admin pode exportar CSV.')) return;
+  if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode exportar CSV.')) return;
   const saldos = calcSaldos();
   let rows = [];
   let name = '';
@@ -2663,17 +2671,17 @@ function resetUxKpis(){
   toast('KPIs de UX resetados com sucesso.');
 }
 
-const removerProdGuard = buildRoleGuard(removerProd, ['admin', 'gerente'], 'Somente gerente/admin pode remover produto.');
-const removerCliGuard = buildRoleGuard(removerCli, ['admin', 'gerente'], 'Somente gerente/admin pode remover cliente.');
-const removerPedGuard = buildRoleGuard(removerPed, ['admin', 'gerente'], 'Somente gerente/admin pode remover pedido.');
-const remFornGuard = buildRoleGuard(remForn, ['admin', 'gerente'], 'Somente gerente/admin pode remover fornecedor.');
-const excluirMovGuard = buildRoleGuard(excluirMov, ['admin', 'gerente'], 'Somente gerente/admin pode excluir movimentação.');
-const removerJogoDashboardGuard = buildRoleGuard(removerJogoDashboard, ['admin', 'gerente'], 'Somente gerente/admin pode remover jogo.');
-const salvarJogoDashboardGuard = buildRoleGuard(salvarJogoDashboard, ['admin', 'gerente'], 'Somente gerente/admin pode salvar jogo.');
-const sincronizarJogosDashboardGuard = buildRoleGuard(sincronizarJogosDashboard, ['admin', 'gerente'], 'Somente gerente/admin pode sincronizar jogos.');
-const removerCampanhaGuard = buildRoleGuard(removerCampanha, ['admin', 'gerente'], 'Somente gerente/admin pode remover campanha.');
-const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ['admin', 'gerente'], 'Somente gerente/admin pode alterar envio.');
-const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ['admin', 'gerente'], 'Somente gerente/admin pode alterar envio.');
+const removerProdGuard = buildRoleGuard(removerProd, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover produto.');
+const removerCliGuard = buildRoleGuard(removerCli, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover cliente.');
+const removerPedGuard = buildRoleGuard(removerPed, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover pedido.');
+const remFornGuard = buildRoleGuard(remForn, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover fornecedor.');
+const excluirMovGuard = buildRoleGuard(excluirMov, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode excluir movimentação.');
+const removerJogoDashboardGuard = buildRoleGuard(removerJogoDashboard, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover jogo.');
+const salvarJogoDashboardGuard = buildRoleGuard(salvarJogoDashboard, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode salvar jogo.');
+const sincronizarJogosDashboardGuard = buildRoleGuard(sincronizarJogosDashboard, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode sincronizar jogos.');
+const removerCampanhaGuard = buildRoleGuard(removerCampanha, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover campanha.');
+const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
+const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 
 initCotacaoModule({
   renderCotLogs,

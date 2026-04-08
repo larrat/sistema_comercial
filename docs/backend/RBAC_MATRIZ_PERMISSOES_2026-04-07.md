@@ -1,7 +1,7 @@
-# Matriz de Permissões RBAC (v1)
+# Matriz de Permissões RBAC (v2)
 
 Data: 2026-04-07  
-Status: Ativo no frontend + base SQL (`sql/03_rbac_v1.sql`)
+Status: Ativo no frontend + scripts SQL de base e endurecimento (`03`, `03b`, `04`)
 
 ## Objetivo
 
@@ -15,7 +15,8 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 
 ## Regra geral da versão atual
 
-- `admin` e `gerente` possuem o mesmo nível de acesso na v1.
+- `admin` possui permissões administrativas.
+- `gerente` possui permissões operacionais avançadas.
 - `operador` possui acesso operacional restrito.
 - A tela exibe o cargo atual na sidebar (`Operador`, `Gerente` ou `Admin`).
 
@@ -32,14 +33,14 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 | Estoque | Sim | Sim | Sim |
 | Notificações | Sim | Sim | Sim |
 | Campanhas | Sim | Sim | Não |
-| Filiais | Sim | Sim | Não |
+| Filiais | Sim | Não | Não |
 
 ## Ações críticas (controle de execução)
 
 | Ação | Admin | Gerente | Operador |
 |---|---|---|---|
 | Exportar CSV (módulo e “Exportar CSVs”) | Sim | Sim | Não |
-| Criar/editar/remover filial | Sim | Sim | Não |
+| Criar/editar/remover filial | Sim | Não | Não |
 | Remover produto | Sim | Sim | Não |
 | Remover cliente | Sim | Sim | Não |
 | Remover pedido | Sim | Sim | Não |
@@ -63,8 +64,9 @@ Definir de forma objetiva o que cada cargo pode **enxergar** e **executar** no s
 - Papel no estado global: `js/store.js`
 - Tabela de perfis: `sql/03_rbac_v1.sql` (`public.user_perfis`)
 - Seed e auditoria operacional: `sql/03b_rbac_seed_e_auditoria.sql`
+- Endurecimento admin-only (v2): `sql/04_rbac_v2_admin_only.sql`
 
 ## Observações de governança
 
-- A v1 não diferencia permissões entre `admin` e `gerente`.
-- Evolução recomendada (v2): separar claramente permissões administrativas (ex.: gestão de filiais e políticas) para `admin` apenas.
+- Na v2, gestão de filiais passa a ser responsabilidade exclusiva de `admin`.
+- Recomenda-se manter revisão periódica dos papéis e vínculos (`user_perfis` e `user_filiais`).
