@@ -58,7 +58,8 @@ export const ROLE_UI_ADMIN_SELECTORS = [
   '[data-click*="salvarPerfilAcesso("]',
   '[data-click*="removerPerfilAcesso("]',
   '[data-click*="vincularUsuarioFilial("]',
-  '[data-click*="desvincularUsuarioFilial("]'
+  '[data-click*="desvincularUsuarioFilial("]',
+  '[data-click*="convidarUsuarioAcesso("]'
 ];
 
 let roleUiGuardTimer = null;

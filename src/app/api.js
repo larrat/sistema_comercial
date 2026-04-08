@@ -15,6 +15,7 @@
 /** @typedef {import('../types/domain').AccessAdminUser} AccessAdminUser */
 /** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
 /** @typedef {import('../types/domain').AccessAdminOperationData} AccessAdminOperationData */
+/** @typedef {import('../types/domain').AccessAdminInviteData} AccessAdminInviteData */
 /** @typedef {import('../types/domain').CampanhaFilaResult} CampanhaFilaResult */
 
 const LEGACY_DEFAULT_SB_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
@@ -619,6 +620,9 @@ export const SB = {
   /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminOperationData>} */
   acessosAdminEdge: payload =>
     invokeEdgeFunction('acessos-admin', payload),
+  /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminInviteData>} */
+  convidarUsuarioAcessoEdge: payload =>
+    invokeEdgeFunction('acessos-admin-convite', payload),
   /** @param {{ auditoria_limit?: number }} [params] @returns {Promise<AccessAdminReadData>} */
   getAcessosAdminReadEdge: ({ auditoria_limit = 100 } = {}) =>
     invokeEdgeFunction('acessos-admin-read', null, {

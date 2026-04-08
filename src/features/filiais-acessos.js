@@ -7,6 +7,7 @@ import { uid, toast, abrirModal, fecharModal, markFieldState, focusField } from 
 /** @typedef {import('../types/domain').FiliaisAcessosModuleDeps} FiliaisAcessosModuleDeps */
 /** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
 /** @typedef {import('../types/domain').AccessAdminUser} AccessAdminUser */
+/** @typedef {import('../types/domain').AccessAdminInviteData} AccessAdminInviteData */
 
 /** @type {(allowedRoles?: string[], denyMessage?: string) => boolean} */
 let requireRoleSafe = () => true;
@@ -336,14 +337,27 @@ export function renderFilLista(){
 }
 
 function preencherSelectFiliaisAcesso(){
-  const el = document.getElementById('ac-v-filial');
-  if(!el) return;
-  const current = el.value || '';
   const opts = D.filiais || [];
-  el.innerHTML = opts.length
-    ? opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')
-    : '<option value="">Sem filiais</option>';
-  if(current && opts.some(f => f.id === current)) el.value = current;
+
+  const vinculoEl = document.getElementById('ac-v-filial');
+  if(vinculoEl){
+    const current = vinculoEl.value || '';
+    vinculoEl.innerHTML = opts.length
+      ? opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')
+      : '<option value="">Sem filiais</option>';
+    if(current && opts.some(f => f.id === current)) vinculoEl.value = current;
+  }
+
+  const inviteEl = document.getElementById('ac-invite-filial');
+  if(inviteEl){
+    const current = inviteEl.value || '';
+    inviteEl.innerHTML = `
+      <option value="">Sem vincular agora</option>
+      ${opts.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
+    `;
+    if(current && (current === '' || opts.some(f => f.id === current))) inviteEl.value = current;
+    else if(State.FIL && opts.some(f => f.id === State.FIL)) inviteEl.value = State.FIL;
+  }
 }
 
 export function renderAcessosMet(){
@@ -622,6 +636,23 @@ export async function resolverVinculoAcessoRef(){
   await resolveAccessUserRef(ref, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help', silent: true });
 }
 
+export async function resolverConviteAcessoEmail(){
+  const ref = (document.getElementById('ac-invite-email')?.value || '').trim();
+  const resolved = await resolveAccessUserRef(ref, {
+    inputId: 'ac-invite-email',
+    hintId: 'ac-invite-email-help',
+    silent: true
+  });
+  const resolvedNome = resolved && typeof resolved === 'object' && 'nome' in resolved
+    ? String(resolved.nome || '').trim()
+    : '';
+  if(!resolved?.user_id) return;
+  const nomeEl = document.getElementById('ac-invite-nome');
+  if(nomeEl && !String(nomeEl.value || '').trim() && resolvedNome){
+    nomeEl.value = resolvedNome;
+  }
+}
+
 export async function salvarPerfilAcesso(){
   if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode alterar perfil de acesso.')) return;
   const userRef = (document.getElementById('ac-user-id')?.value || '').trim();
@@ -719,6 +750,69 @@ export async function desvincularUsuarioFilial(){
     return;
   }
   toast('Vinculo removido com sucesso.');
+  await renderAcessosAdmin();
+}
+
+export async function convidarUsuarioAcesso(){
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode convidar usuario.')) return;
+  const email = normalizeEmail(document.getElementById('ac-invite-email')?.value || '');
+  const nome = String(document.getElementById('ac-invite-nome')?.value || '').trim();
+  const papel = String(document.getElementById('ac-invite-papel')?.value || 'operador').trim();
+  const filialId = String(document.getElementById('ac-invite-filial')?.value || '').trim();
+
+  if(!isEmail(email)){
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', 'Informe um e-mail valido para o convite.', 'error');
+    focusField('ac-invite-email', { markError: true });
+    toast('Informe um e-mail valido.');
+    return;
+  }
+  if(!appRolesSafe.includes(papel)){
+    toast('Papel invalido.');
+    return;
+  }
+
+  const inviteResult = await SB.toResult(() => SB.convidarUsuarioAcessoEdge({
+    email,
+    nome: nome || null,
+    papel,
+    filial_id: filialId || null,
+    detalhes: {
+      origem: 'ui_acessos_convite_v2'
+    }
+  }));
+
+  if(!inviteResult.ok){
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', inviteResult.error.message || 'Falha ao convidar usuario.', 'error');
+    toast('Erro ao convidar usuario: ' + inviteResult.error.message);
+    return;
+  }
+
+  /** @type {AccessAdminInviteData} */
+  const inviteData = inviteResult.data;
+  cacheAccessUser({
+    user_id: inviteData.alvo_user_id,
+    email: inviteData.email,
+    nome: inviteData.nome || nome || null
+  });
+  setAccessFieldHelp(
+    'ac-invite-email',
+    'ac-invite-email-help',
+    inviteData.user_created
+      ? 'Convite enviado e acesso configurado com sucesso.'
+      : 'Usuario existente reaproveitado e acesso configurado com sucesso.',
+    'success'
+  );
+
+  const perfilUserEl = document.getElementById('ac-user-id');
+  const perfilPapelEl = document.getElementById('ac-papel');
+  const vinculoUserEl = document.getElementById('ac-v-user-id');
+  const vinculoFilialEl = document.getElementById('ac-v-filial');
+  if(perfilUserEl) perfilUserEl.value = email;
+  if(perfilPapelEl) perfilPapelEl.value = papel;
+  if(vinculoUserEl) vinculoUserEl.value = email;
+  if(vinculoFilialEl && filialId) vinculoFilialEl.value = filialId;
+
+  toast(inviteData.user_created ? 'Convite enviado e acesso configurado.' : 'Usuario existente configurado com sucesso.');
   await renderAcessosAdmin();
 }
 

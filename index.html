@@ -518,6 +518,36 @@
       <div class="mg" id="ac-met"></div>
 
       <div class="card">
+        <div class="ct">Convidar usuario por e-mail</div>
+        <div class="fg c4">
+          <div>
+            <div class="fl">E-mail *</div>
+            <input class="inp" id="ac-invite-email" placeholder="usuario@empresa.com" data-change="resolverConviteAcessoEmail()">
+            <div class="field-help" id="ac-invite-email-help">Se o usuario ja existir, vamos reaproveitar a conta e configurar o acesso.</div>
+          </div>
+          <div>
+            <div class="fl">Nome</div>
+            <input class="inp" id="ac-invite-nome" placeholder="Nome do usuario">
+          </div>
+          <div>
+            <div class="fl">Papel inicial</div>
+            <select class="inp sel" id="ac-invite-papel">
+              <option value="operador">Operador</option>
+              <option value="gerente">Gerente</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div>
+            <div class="fl">Filial inicial</div>
+            <select class="inp sel" id="ac-invite-filial"></select>
+          </div>
+        </div>
+        <div class="modal-actions-inline form-gap-top">
+          <button class="btn btn-p" data-click="convidarUsuarioAcesso()">Convidar e configurar acesso</button>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="ct">Perfil do usuário</div>
         <div class="fg c3">
           <div>

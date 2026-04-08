@@ -214,6 +214,19 @@ export type AccessAdminOperationData = {
   result: unknown;
 };
 
+export type AccessAdminInviteData = {
+  ator_user_id: Id;
+  alvo_user_id: Id;
+  email: string;
+  nome?: string | null;
+  papel: string;
+  filial_id?: Id | null;
+  user_created: boolean;
+  convite_enviado: boolean;
+  perfil_salvo: boolean;
+  vinculo_salvo: boolean;
+};
+
 export type CampanhaFilaResult = {
   campanha_id: Id;
   filial_id?: Id | null;
@@ -544,6 +557,8 @@ export type DomBindingsDeps = {
   preencherVinculoAcesso?: (userId?: Id | null, filialId?: Id | null) => void;
   resolverPerfilAcessoRef?: () => void | Promise<void>;
   resolverVinculoAcessoRef?: () => void | Promise<void>;
+  resolverConviteAcessoEmail?: () => void | Promise<void>;
+  convidarUsuarioAcesso?: () => void | Promise<void>;
   renderNotificacoes?: () => void;
   executarNotificacao?: (id?: Id | null) => void;
   resolverNotificacao?: (id?: Id | null) => void;
