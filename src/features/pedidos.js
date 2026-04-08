@@ -396,12 +396,14 @@ export async function salvarPedido(){
   const peds = PD();
   const allNums = peds.map(p => p.num).filter(n => typeof n === 'number' && !isNaN(n));
   const nextNum = allNums.length ? Math.max(...allNums) + 1 : 1;
+  const atual = State.editIds.ped ? (peds.find(p => p.id === State.editIds.ped) || null) : null;
 
   const ped = {
+    ...(atual || {}),
     id: State.editIds.ped || uid(),
     filial_id: State.FIL,
     num: State.editIds.ped
-      ? ((peds.find(p => p.id === State.editIds.ped) || {}).num || nextNum)
+      ? (atual?.num || nextNum)
       : nextNum,
     cli,
     data: document.getElementById('pd-data')?.value || '',

@@ -5907,6 +5907,58 @@ textarea.inp:focus{
   gap:8px;
 }
 
+.cli-detail-tabs{
+  margin-bottom:0;
+}
+
+.cli-sales-list{
+  display:grid;
+  gap:10px;
+}
+
+.cli-sale-card{
+  padding:14px 15px;
+  border:1px solid #E4EBF4;
+  border-radius:18px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F6FAFE 100%);
+  box-shadow:0 8px 18px rgba(15,23,42,.04);
+}
+
+.cli-sale-card__head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.cli-sale-card__title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--tx);
+}
+
+.cli-sale-card__sub{
+  margin-top:3px;
+  font-size:12px;
+  color:var(--tx2);
+}
+
+.cli-sale-card__meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  margin-top:10px;
+  font-size:12px;
+  color:var(--tx2);
+}
+
+.cli-sale-card__actions{
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  margin-top:12px;
+}
+
 .cli-detail-notes .nota{
   border:1px solid #E5ECF5;
   border-radius:14px;
@@ -5960,6 +6012,12 @@ textarea.inp:focus{
 
   .cli-detail-actions,
   .ped-detail-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .cli-sale-card__head,
+  .cli-sale-card__actions{
     display:grid;
     grid-template-columns:1fr;
   }

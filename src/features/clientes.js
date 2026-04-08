@@ -3,10 +3,12 @@
 import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, fecharModal, toast, notify, focusField } from '../shared/utils.js';
+import { abrirModal, fecharModal, toast, notify, focusField, fmt } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
+import { renderPedMet, renderPedidos } from './pedidos.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
+/** @typedef {import('../types/domain').Pedido} Pedido */
 /** @typedef {import('../types/domain').ClientesModuleCallbacks} ClientesModuleCallbacks */
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
 
@@ -52,6 +54,14 @@ const ST_B = {
   ativo: '<span class="bdg bg">Ativo</span>',
   inativo: '<span class="bdg bk">Inativo</span>',
   prospecto: '<span class="bdg bb">Prospecto</span>'
+};
+
+const ST_PED = {
+  orcamento:'<span class="bdg bk">Orcamento</span>',
+  confirmado:'<span class="bdg bb">Confirmado</span>',
+  em_separacao:'<span class="bdg ba">Em separacao</span>',
+  entregue:'<span class="bdg bg">Entregue</span>',
+  cancelado:'<span class="bdg br">Cancelado</span>'
 };
 
 const TAB_LABELS = {
@@ -406,6 +416,105 @@ function renderNotasHtml(notas){
   `).join('');
 }
 
+/**
+ * @param {Cliente} cliente
+ * @returns {Pedido[]}
+ */
+function getPedidosCliente(cliente){
+  const nome = String(cliente.nome || '').trim().toLowerCase();
+  return (D.pedidos?.[State.FIL] || [])
+    .filter(pedido => String(pedido?.cli || '').trim().toLowerCase() === nome)
+    .map(pedido => ({
+      ...pedido,
+      itens: Array.isArray(pedido.itens)
+        ? pedido.itens
+        : (() => {
+            try{
+              const parsed = JSON.parse(String(pedido.itens || '[]'));
+              return Array.isArray(parsed) ? parsed : [];
+            }catch{
+              return [];
+            }
+          })()
+    }))
+    .sort((a, b) => (b.num || 0) - (a.num || 0));
+}
+
+/**
+ * @param {Pedido} pedido
+ */
+function isPedidoFechavel(pedido){
+  return pedido.status === 'entregue' && !pedido.venda_fechada;
+}
+
+/**
+ * @param {Pedido[]} pedidos
+ */
+function renderClientePedidosVazios(pedidos){
+  if(pedidos.length) return '';
+  return '<div class="empty-inline table-cell-muted">Nenhuma venda neste grupo.</div>';
+}
+
+/**
+ * @param {Pedido[]} pedidos
+ * @param {string} clienteId
+ * @param {'abertas'|'fechadas'} tipo
+ */
+function renderClientePedidosLista(pedidos, clienteId, tipo){
+  if(!pedidos.length) return renderClientePedidosVazios(pedidos);
+
+  return pedidos.map(pedido => {
+    const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+    const itensTxt = itens.length ? `${itens.length} item(ns)` : 'Sem itens';
+    const fechadoEm = pedido.venda_fechada_em
+      ? new Date(pedido.venda_fechada_em).toLocaleString('pt-BR')
+      : '';
+
+    return `
+      <div class="cli-sale-card">
+        <div class="cli-sale-card__head">
+          <div>
+            <div class="cli-sale-card__title">Pedido #${pedido.num}</div>
+            <div class="cli-sale-card__sub">${esc(pedido.data || '-')} | ${itensTxt}</div>
+          </div>
+          <div class="fg2">
+            ${ST_PED[pedido.status] || ''}
+            ${pedido.venda_fechada ? '<span class="bdg bb">Fechada</span>' : ''}
+          </div>
+        </div>
+        <div class="cli-sale-card__meta">
+          <span>Total: <b>${fmt(pedido.total || 0)}</b></span>
+          <span>Pagamento: <b>${esc(String(pedido.pgto || '-'))}</b></span>
+          <span>Prazo: <b>${esc(String(pedido.prazo || '-'))}</b></span>
+          ${fechadoEm ? `<span>Fechada em: <b>${esc(fechadoEm)}</b></span>` : ''}
+        </div>
+        <div class="cli-sale-card__actions">
+          <button class="btn btn-sm" data-click="verPed('${pedido.id}')">Ver pedido</button>
+          ${tipo === 'abertas' && isPedidoFechavel(pedido)
+            ? `<button class="btn btn-p btn-sm" data-click="fecharVendaCliente('${pedido.id}','${clienteId}')">Fechar venda</button>`
+            : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * @param {string} clienteId
+ * @param {'resumo'|'abertas'|'fechadas'} tab
+ */
+export function switchCliDetTab(clienteId, tab){
+  const box = cliDom.get('cli-det-box');
+  if(!box) return;
+
+  box.querySelectorAll(`[data-cli-tab="${clienteId}"]`).forEach(el => {
+    el.classList.toggle('on', el instanceof HTMLElement && el.dataset.tab === tab);
+  });
+  box.querySelectorAll(`[data-cli-panel="${clienteId}"]`).forEach(el => {
+    el.classList.toggle('on', el instanceof HTMLElement && el.dataset.panel === tab);
+  });
+}
+
 function getDetailElements(id){
   return {
     input: document.getElementById(`nota-inp-${id}`),
@@ -542,6 +651,9 @@ export async function abrirCliDet(id){
   }
 
   syncNotasCache(id, notas);
+  const pedidos = getPedidosCliente(cliente);
+  const vendasFechadas = pedidos.filter(pedido => !!pedido.venda_fechada);
+  const vendasAbertas = pedidos.filter(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado');
 
   const times = parseTimes(cliente.time);
   const contato = [
@@ -583,12 +695,19 @@ export async function abrirCliDet(id){
         </div>
       </div>
 
-    ${cliente.obs ? `
+      <div class="tabs cli-detail-tabs">
+        <button class="tb on" type="button" data-cli-tab="${id}" data-tab="resumo" data-click="switchCliDetTab('${id}','resumo')">Resumo</button>
+        <button class="tb" type="button" data-cli-tab="${id}" data-tab="abertas" data-click="switchCliDetTab('${id}','abertas')">Vendas abertas <span class="bdg bk">${vendasAbertas.length}</span></button>
+        <button class="tb" type="button" data-cli-tab="${id}" data-tab="fechadas" data-click="switchCliDetTab('${id}','fechadas')">Vendas fechadas <span class="bdg bb">${vendasFechadas.length}</span></button>
+      </div>
+
+      <div class="tc on" data-cli-panel="${id}" data-panel="resumo">
+      ${cliente.obs ? `
         <div class="panel cli-detail-section">
         <div class="pt">Observacoes</div>
           <p class="detail-copy">${esc(cliente.obs)}</p>
       </div>
-    ` : ''}
+      ` : ''}
 
       <div class="cli-detail-label form-gap-bottom-xs">Notas / historico</div>
       <div class="fg2 cli-detail-notes-input form-gap-bottom-xs">
@@ -597,6 +716,21 @@ export async function abrirCliDet(id){
     </div>
 
       <div class="cli-detail-notes" id="notas-${id}">${renderNotasHtml(D.notas?.[id] || [])}</div>
+      </div>
+
+      <div class="tc" data-cli-panel="${id}" data-panel="abertas">
+        <div class="cli-detail-label form-gap-bottom-xs">Pedidos em andamento ou entregues aguardando fechamento</div>
+        <div class="cli-sales-list">
+          ${renderClientePedidosLista(vendasAbertas, id, 'abertas')}
+        </div>
+      </div>
+
+      <div class="tc" data-cli-panel="${id}" data-panel="fechadas">
+        <div class="cli-detail-label form-gap-bottom-xs">Vendas fechadas deste cliente</div>
+        <div class="cli-sales-list">
+          ${renderClientePedidosLista(vendasFechadas, id, 'fechadas')}
+        </div>
+      </div>
 
       <div class="cli-detail-actions">
       <button class="btn" data-click="fecharModal('modal-cli-det')">Fechar</button>
@@ -606,6 +740,49 @@ export async function abrirCliDet(id){
   `, 'clientes:detalhe');
 
   abrirModal('modal-cli-det');
+}
+
+/**
+ * @param {string} pedidoId
+ * @param {string} clienteId
+ */
+export async function fecharVendaCliente(pedidoId, clienteId){
+  const cliente = C().find(item => item.id === clienteId);
+  const pedido = (D.pedidos?.[State.FIL] || []).find(item => item.id === pedidoId);
+  if(!cliente || !pedido) return;
+  if(!isPedidoFechavel(pedido)){
+    toast('Somente pedidos entregues e ainda abertos podem ser fechados.');
+    return;
+  }
+  if(!confirm(`Fechar a venda do pedido #${pedido.num}?`)) return;
+
+  const atualizado = {
+    ...pedido,
+    venda_fechada: true,
+    venda_fechada_em: new Date().toISOString(),
+    venda_fechada_por: String(State.user?.email || State.user?.id || '').trim() || null
+  };
+
+  try{
+    await SB.upsertPedido({
+      ...atualizado,
+      itens: JSON.stringify(Array.isArray(atualizado.itens) ? atualizado.itens : [])
+    });
+  }catch(error){
+    notify(
+      `Erro ao fechar venda: ${String(error?.message || 'erro desconhecido')}.`,
+      SEVERITY.ERROR
+    );
+    return;
+  }
+
+  if(!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
+  D.pedidos[State.FIL] = D.pedidos[State.FIL].map(item => item.id === pedidoId ? atualizado : item);
+  renderPedMet();
+  renderPedidos();
+  toast(`Venda do pedido #${pedido.num} fechada com sucesso.`);
+  await abrirCliDet(clienteId);
+  switchCliDetTab(clienteId, 'fechadas');
 }
 
 export async function addNota(id){

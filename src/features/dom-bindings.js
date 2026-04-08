@@ -153,6 +153,8 @@ function getHandlerRegistry(){
       editarCli: deps.editarCli,
       removerCli: deps.removerCliGuard,
       abrirCliDet: deps.abrirCliDet,
+      switchCliDetTab: deps.switchCliDetTab,
+      fecharVendaCliente: deps.fecharVendaCliente,
       addNota: deps.addNota
     },
     pedidos: {

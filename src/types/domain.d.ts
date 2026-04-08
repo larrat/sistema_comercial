@@ -120,6 +120,9 @@ export type Pedido = {
   obs?: string;
   itens: PedidoItem[] | string;
   total: number;
+  venda_fechada?: boolean;
+  venda_fechada_em?: string | null;
+  venda_fechada_por?: string | null;
 };
 
 export type Campanha = {
@@ -580,6 +583,8 @@ export type DomBindingsDeps = {
   editarCli?: (id?: Id | null) => void;
   removerCliGuard?: (id?: Id | null) => void | Promise<void>;
   abrirCliDet?: (id?: Id | null) => void;
+  switchCliDetTab?: (clienteId?: Id | null, tab?: string) => void;
+  fecharVendaCliente?: (pedidoId?: Id | null, clienteId?: Id | null) => void | Promise<void>;
   addNota?: (id?: Id | null) => void | Promise<void>;
   salvarClienteTracked?: () => void | Promise<void>;
   addItem?: () => void;
