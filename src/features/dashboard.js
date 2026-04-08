@@ -547,12 +547,12 @@ export function renderDash(){
         return `
           <div class="bc-col">
             <div class="bc-val">${fmtK(g.fat)}</div>
-            <div style="display:flex;align-items:flex-end;gap:2px;flex:1;width:100%">
-              <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end">
-                <div class="bc-bar" style="height:${hF}%;background:#163F80;opacity:.82"></div>
+            <div class="dash-chart-bars">
+              <div class="dash-chart-bar-col">
+                <div class="bc-bar dash-chart-bar dash-chart-bar--fat" style="height:${hF}%"></div>
               </div>
-              <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end">
-                <div class="bc-bar" style="height:${hL}%;background:#156038;opacity:.82"></div>
+              <div class="dash-chart-bar-col">
+                <div class="bc-bar dash-chart-bar dash-chart-bar--lucro" style="height:${hL}%"></div>
               </div>
             </div>
             <div class="bc-lbl">${lbl}</div>
@@ -588,8 +588,8 @@ export function renderDash(){
   dashDom.html('status', 'dash-status', Object.entries(stMap).map(([k, v]) => `
       <div class="rrow">
         <span class="bdg ${stCls[k]}">${stLbl[k]}</span>
-        <div class="rbar"><div class="rbar-f" style="width:${Math.round((v / tot) * 100)}%;background:var(--bd2)"></div></div>
-        <span style="font-size:13px;font-weight:600;min-width:20px;text-align:right">${v}</span>
+        <div class="rbar"><div class="rbar-f dash-status-bar" style="width:${Math.round((v / tot) * 100)}%"></div></div>
+        <span class="dash-status-count">${v}</span>
       </div>
     `).join(''), 'dashboard:status');
 
@@ -608,12 +608,12 @@ export function renderDash(){
       ? tp.map(([n, d], i) => `
           <div class="rrow">
             <span class="rnum">${i + 1}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:${i === 0 ? 600 : 400}">${n}</span>
-            <div class="rbar"><div class="rbar-f" style="width:${Math.round((d.fat / mxP) * 100)}%;background:#163F80"></div></div>
+            <span class="dash-top-label${i === 0 ? ' dash-top-label--lead' : ''}">${n}</span>
+            <div class="rbar"><div class="rbar-f dash-top-bar dash-top-bar--fat" style="width:${Math.round((d.fat / mxP) * 100)}%"></div></div>
             <span class="rval">${fmtK(d.fat)}</span>
           </div>
         `).join('')
-      : `<div class="empty" style="padding:12px"><p>Sem vendas</p></div>`, 'dashboard:top-produtos');
+      : `<div class="empty dash-empty-compact"><p>Sem vendas</p></div>`, 'dashboard:top-produtos');
 
   const alertProds = allProds.filter(p => {
     const s = saldos[p._fid + '_' + p.id];
@@ -625,13 +625,13 @@ export function renderDash(){
           const s = saldos[p._fid + '_' + p.id];
           return `
             <div class="rrow">
-              <span style="width:8px;height:8px;border-radius:50%;background:${s.saldo <= 0 ? 'var(--r)' : 'var(--a)'};flex-shrink:0;display:inline-block"></span>
-              <span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.nome}</span>
-              <span class="bdg ${s.saldo <= 0 ? 'br' : 'ba'}" style="font-size:10px">${s.saldo <= 0 ? 'Zerado' : s.saldo}</span>
+              <span class="dash-dot ${s.saldo <= 0 ? 'dash-dot--critical' : 'dash-dot--warning'}"></span>
+              <span class="dash-top-label">${p.nome}</span>
+              <span class="bdg ${s.saldo <= 0 ? 'br' : 'ba'} dash-badge-xs">${s.saldo <= 0 ? 'Zerado' : s.saldo}</span>
             </div>
           `;
         }).join('')
-      : `<div class="empty" style="padding:12px"><p>Sem alertas</p></div>`, 'dashboard:estoque-alerta');
+      : `<div class="empty dash-empty-compact"><p>Sem alertas</p></div>`, 'dashboard:estoque-alerta');
 
   const fu = {};
   filIds.forEach(fid => {
@@ -650,12 +650,12 @@ export function renderDash(){
       ? tf.map(([n, c], i) => `
           <div class="rrow">
             <span class="rnum">${i + 1}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span>
-            <div class="rbar"><div class="rbar-f" style="width:${Math.round((c / mxF2) * 100)}%;background:#156038"></div></div>
-            <span class="rval" style="color:var(--tx2)">${c}x</span>
+            <span class="dash-top-label">${n}</span>
+            <div class="rbar"><div class="rbar-f dash-top-bar dash-top-bar--forn" style="width:${Math.round((c / mxF2) * 100)}%"></div></div>
+            <span class="rval dash-rval-muted">${c}x</span>
           </div>
         `).join('')
-      : `<div class="empty" style="padding:12px"><p>Nenhuma importacao</p></div>`, 'dashboard:fornecedores');
+      : `<div class="empty dash-empty-compact"><p>Nenhuma importacao</p></div>`, 'dashboard:fornecedores');
 
   const mp = {};
   entregues.forEach(p => {
@@ -676,10 +676,10 @@ export function renderDash(){
             <thead>
               <tr>
                 <th>Produto</th>
-                <th style="text-align:right">Qtd</th>
-                <th style="text-align:right">Faturamento</th>
-                <th style="text-align:right">Lucro</th>
-                <th style="text-align:right">Margem</th>
+                <th class="table-align-right">Qtd</th>
+                <th class="table-align-right">Faturamento</th>
+                <th class="table-align-right">Lucro</th>
+                <th class="table-align-right">Margem</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -688,11 +688,11 @@ export function renderDash(){
                 const mgv = d.fat > 0 ? (d.lucro / d.fat) * 100 : 0;
                 return `
                   <tr>
-                    <td style="font-weight:600">${n}</td>
-                    <td style="text-align:right;color:var(--tx2)">${d.qty.toFixed(1)}</td>
-                    <td style="text-align:right">${fmt(d.fat)}</td>
-                    <td style="text-align:right;color:var(--g)">${fmt(d.lucro)}</td>
-                    <td style="text-align:right;font-weight:600">${pct(mgv)}</td>
+                    <td class="table-cell-strong">${n}</td>
+                    <td class="table-align-right table-cell-muted">${d.qty.toFixed(1)}</td>
+                    <td class="table-align-right">${fmt(d.fat)}</td>
+                    <td class="table-align-right table-cell-success">${fmt(d.lucro)}</td>
+                    <td class="table-align-right table-cell-strong">${pct(mgv)}</td>
                     <td><span class="bdg ${mgv >= 20 ? 'bg' : mgv >= 10 ? 'ba' : 'br'}">${mgv >= 20 ? 'Boa' : mgv >= 10 ? 'Regular' : 'Baixa'}</span></td>
                   </tr>
                 `;
@@ -701,11 +701,11 @@ export function renderDash(){
           </table>
         </div>
       `
-      : `<div class="empty" style="padding:12px"><p>Sem vendas no periodo</p></div>`, 'dashboard:margem');
+      : `<div class="empty dash-empty-compact"><p>Sem vendas no periodo</p></div>`, 'dashboard:margem');
 
   const serieLabel = serieSel === 'todas' ? 'Todas as series' : `Serie ${serieSel.toUpperCase()}`;
   dashDom.html('opportunities', 'dash-oportunidades', `
-      <div class="rrow" style="margin-bottom:8px">
+      <div class="rrow dash-row-gap">
         <span class="bdg bk">${serieLabel}</span>
         <span class="bdg ${oportunidadesHoje.length ? 'bg' : 'bk'}">Hoje: ${oportunidadesHoje.length}</span>
         <span class="bdg ${oportunidades.length ? 'ba' : 'bk'}">Semana: ${oportunidades.length}</span>
@@ -717,10 +717,10 @@ export function renderDash(){
       ${oportunidades.length
       ? oportunidades.slice(0, 5).map(o => `
           <div class="rrow dash-op-item">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--g);flex-shrink:0;display:inline-block"></span>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.cliente} - ${o.time}</div>
-              <div style="font-size:11px;color:var(--tx3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} - ${fmtDataHora(o.jogo.data_hora)}</div>
+            <span class="dash-dot dash-dot--success"></span>
+            <div class="dash-row-main">
+              <div class="dash-row-title">${o.cliente} - ${o.time}</div>
+              <div class="dash-row-sub">${o.jogo.titulo || `${o.jogo.mandante || ''} x ${o.jogo.visitante || ''}`} - ${fmtDataHora(o.jogo.data_hora)}</div>
             </div>
             <div class="fg2">
               <button class="btn btn-sm" data-click="ir('campanhas')">Acionar</button>
@@ -728,7 +728,7 @@ export function renderDash(){
             </div>
           </div>
         `).join('')
-      : `<div class="empty" style="padding:12px"><p>Sem oportunidades por jogos na semana</p></div>`}
+      : `<div class="empty dash-empty-compact"><p>Sem oportunidades por jogos na semana</p></div>`}
     `, 'dashboard:oportunidades');
 }
 
@@ -976,13 +976,13 @@ export function renderDashJogos(fsel = 'todas'){
 
   const filialId = getFilialCalendarioId();
   if(!filialId){
-    dashDom.html('games', 'dash-jogos', `<div class="empty" style="padding:12px"><p>Sem filial para agenda.</p></div>`, 'dashboard:jogos-sem-filial');
+    dashDom.html('games', 'dash-jogos', `<div class="empty dash-empty-compact"><p>Sem filial para agenda.</p></div>`, 'dashboard:jogos-sem-filial');
     return;
   }
 
   if(fsel !== 'todas' && fsel !== filialId){
     const nome = (D.filiais || []).find(f => f.id === filialId)?.nome || 'Filial 1';
-    dashDom.html('games', 'dash-jogos', `<div class="empty" style="padding:12px"><p>Agenda disponivel em ${nome}.</p></div>`, 'dashboard:jogos-outra-filial');
+    dashDom.html('games', 'dash-jogos', `<div class="empty dash-empty-compact"><p>Agenda disponivel em ${nome}.</p></div>`, 'dashboard:jogos-outra-filial');
     return;
   }
 
@@ -1004,16 +1004,16 @@ export function renderDashJogos(fsel = 'todas'){
     .slice(0, 8);
 
   if(!jogos.length){
-    dashDom.html('games', 'dash-jogos', `<div class="empty" style="padding:12px"><p>Sem jogos cadastrados.</p></div>`, 'dashboard:jogos-vazio');
+    dashDom.html('games', 'dash-jogos', `<div class="empty dash-empty-compact"><p>Sem jogos cadastrados.</p></div>`, 'dashboard:jogos-vazio');
     return;
   }
 
   dashDom.html('games', 'dash-jogos', jogos.map(j => `
     <div class="rrow">
-      <span style="width:8px;height:8px;border-radius:50%;background:var(--b);flex-shrink:0;display:inline-block"></span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${j.titulo}</div>
-        <div style="font-size:11px;color:var(--tx3)">${fmtDataHora(j.data_hora)}${j.campeonato ? ' - ' + j.campeonato : ''}</div>
+      <span class="dash-dot dash-dot--info"></span>
+      <div class="dash-row-main">
+        <div class="dash-row-title">${j.titulo}</div>
+        <div class="dash-row-sub">${fmtDataHora(j.data_hora)}${j.campeonato ? ' - ' + j.campeonato : ''}</div>
       </div>
       <button class="btn btn-sm" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">Excluir</button>
     </div>

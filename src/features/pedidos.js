@@ -56,9 +56,9 @@ export function renderPedMet(){
 
   el.innerHTML = `
     <div class="met"><div class="ml">Total</div><div class="mv">${peds.length}</div></div>
-    <div class="met"><div class="ml">Faturamento</div><div class="mv" style="font-size:16px">${fmt(fat)}</div></div>
-    <div class="met"><div class="ml">Lucro</div><div class="mv" style="font-size:16px;color:var(--g)">${fmt(lucro)}</div></div>
-    <div class="met"><div class="ml">Em aberto</div><div class="mv" style="color:var(--a)">${ab}</div></div>
+    <div class="met"><div class="ml">Faturamento</div><div class="mv kpi-value-sm">${fmt(fat)}</div></div>
+    <div class="met"><div class="ml">Lucro</div><div class="mv kpi-value-sm tone-success">${fmt(lucro)}</div></div>
+    <div class="met"><div class="ml">Em aberto</div><div class="mv tone-warning">${ab}</div></div>
   `;
 }
 
@@ -96,7 +96,7 @@ export function renderPedidos(){
     el.innerHTML = f.map(p => `
       <div class="card mobile-card">
         <div class="mobile-card-head">
-          <div style="min-width:0">
+          <div class="mobile-card-grow">
             <div class="mobile-card-title">#${p.num} | ${p.cli}</div>
             <div class="mobile-card-sub">${p.data || 'Sem data'} | ${(p.itens || []).length} item(ns)</div>
           </div>
@@ -109,8 +109,8 @@ export function renderPedidos(){
         </div>
 
         <div class="mobile-card-meta">
-          <div>Total: <b style="color:var(--tx)">${fmt(p.total || 0)}</b></div>
-          <div>Prazo: <b style="color:var(--tx)">${p.prazo || '-'}</b></div>
+          <div>Total: <b class="meta-emphasis">${fmt(p.total || 0)}</b></div>
+          <div>Prazo: <b class="meta-emphasis">${p.prazo || '-'}</b></div>
         </div>
 
         <div class="mobile-card-actions">
@@ -142,13 +142,13 @@ export function renderPedidos(){
         <tbody>
           ${f.map(p => `
             <tr>
-              <td style="font-weight:600;color:var(--tx2)">#${p.num}</td>
-              <td style="font-weight:600">${p.cli}</td>
-              <td style="color:var(--tx2)">${p.data || '-'}</td>
+              <td class="table-cell-strong table-cell-muted">#${p.num}</td>
+              <td class="table-cell-strong">${p.cli}</td>
+              <td class="table-cell-muted">${p.data || '-'}</td>
               <td>${p.tipo === 'atacado' ? '<span class="bdg ba">Atacado</span>' : '<span class="bdg bb">Varejo</span>'}</td>
-              <td style="color:var(--tx2)">${(p.itens || []).length}</td>
-              <td style="font-weight:600">${fmt(p.total || 0)}</td>
-              <td style="font-size:12px;color:var(--tx2)">${pgtoLbl[p.pgto] || p.pgto || '-'}</td>
+              <td class="table-cell-muted">${(p.itens || []).length}</td>
+              <td class="table-cell-strong">${fmt(p.total || 0)}</td>
+              <td class="table-cell-caption table-cell-muted">${pgtoLbl[p.pgto] || p.pgto || '-'}</td>
               <td>${ST_PED[p.status] || ''}</td>
               <td>
                 <div class="fg2 orders-row-actions">
@@ -325,7 +325,7 @@ export function renderItens(){
   if(!el || !tb) return;
 
   if(!State.pedItens || !State.pedItens.length){
-    el.innerHTML = '<div style="font-size:13px;color:var(--tx3);padding:8px 0">Nenhum item.</div>';
+    el.innerHTML = '<div class="empty-inline">Nenhum item.</div>';
     tb.style.display = 'none';
     return;
   }
@@ -334,7 +334,7 @@ export function renderItens(){
   const lucroTotal = State.pedItens.reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
 
   el.innerHTML = `
-    <div class="tw ped-items-wrap"><table class="tbl" style="margin-bottom:8px">
+    <div class="tw ped-items-wrap"><table class="tbl ped-items-table">
       <thead>
         <tr>
           <th>Produto</th>
@@ -355,14 +355,14 @@ export function renderItens(){
           const margem = it.preco > 0 ? (((it.preco - it.custo) / it.preco) * 100) : 0;
           return `
             <tr>
-              <td style="font-weight:600">${it.nome}</td>
+              <td class="table-cell-strong">${it.nome}</td>
               <td><span class="bdg ${it.orig === 'estoque' ? 'bg' : 'bb'}">${it.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}</span></td>
               <td>${it.qty} ${it.un}</td>
-              <td style="color:var(--tx2)">${fmt(it.custo)}</td>
+              <td class="table-cell-muted">${fmt(it.custo)}</td>
               <td>${fmt(it.preco)}</td>
-              <td style="font-weight:600">${fmt(subtotal)}</td>
-              <td style="color:${lucro >= 0 ? 'var(--g)' : 'var(--r)'};font-weight:600">${fmt(lucro)}</td>
-              <td style="font-weight:600">${margem.toFixed(1)}%</td>
+              <td class="table-cell-strong">${fmt(subtotal)}</td>
+              <td class="table-cell-strong ${lucro >= 0 ? 'table-cell-success' : 'table-cell-danger'}">${fmt(lucro)}</td>
+              <td class="table-cell-strong">${margem.toFixed(1)}%</td>
               <td><button class="btn btn-sm" title="Excluir item" data-click="remItem(${i})">Excluir</button></td>
             </tr>
           `;
@@ -492,7 +492,7 @@ export function verPed(id){
   box.innerHTML = `
     <div class="ped-detail">
       <div class="ped-detail-head fb">
-        <div class="mt ped-detail-title" style="margin:0">Pedido #${p.num}</div>
+        <div class="mt ped-detail-title modal-title-reset">Pedido #${p.num}</div>
       ${ST_PED[p.status] || ''}
     </div>
 
@@ -503,7 +503,7 @@ export function verPed(id){
         ['Tipo', p.tipo === 'atacado' ? 'Atacado' : 'Varejo'],
         ['Pagamento', pgtoLbl[p.pgto] || p.pgto],
         ['Prazo', prazoLbl[p.prazo] || p.prazo],
-        ['Lucro estimado', `<span style="color:var(--g);font-weight:600">${fmt(lucro)}</span>`]
+        ['Lucro estimado', `<span class="table-cell-success table-cell-strong">${fmt(lucro)}</span>`]
       ].map(([l, v]) => `
         <div class="ped-detail-kpi">
           <div class="ped-detail-label">${l}</div>
@@ -515,7 +515,7 @@ export function verPed(id){
     ${p.obs ? `
         <div class="panel ped-detail-section">
         <div class="pt">Observacoes</div>
-        <p style="font-size:13px">${p.obs}</p>
+        <p class="detail-copy">${p.obs}</p>
       </div>
     ` : ''}
 
@@ -539,13 +539,13 @@ export function verPed(id){
             const margemItem = i.preco > 0 ? (((i.preco - i.custo) / i.preco) * 100) : 0;
             return `
               <tr>
-                <td style="font-weight:600">${i.nome}</td>
-                <td><span class="bdg ${i.orig === 'estoque' ? 'bg' : 'bb'}" style="font-size:10px">${i.orig === 'estoque' ? 'Est.' : 'Forn.'}</span></td>
+                <td class="table-cell-strong">${i.nome}</td>
+                <td><span class="bdg ${i.orig === 'estoque' ? 'bg' : 'bb'} dash-badge-xs">${i.orig === 'estoque' ? 'Est.' : 'Forn.'}</span></td>
                 <td>${i.qty} ${i.un}</td>
-                <td style="color:var(--tx2)">${fmt(i.custo)}</td>
+                <td class="table-cell-muted">${fmt(i.custo)}</td>
                 <td>${fmt(i.preco)}</td>
-                <td style="font-weight:600">${fmt(i.qty * i.preco)}</td>
-                <td style="color:var(--g)">${fmt(lucroItem)}</td>
+                <td class="table-cell-strong">${fmt(i.qty * i.preco)}</td>
+                <td class="table-cell-success">${fmt(lucroItem)}</td>
                 <td>${margemItem.toFixed(1)}%</td>
               </tr>
             `;
@@ -553,9 +553,9 @@ export function verPed(id){
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="5" style="font-weight:600;padding-top:8px">Total</td>
-            <td style="font-weight:600">${fmt(p.total || 0)}</td>
-            <td style="font-weight:600;color:var(--g)">${fmt(lucro)}</td>
+            <td colspan="5" class="table-cell-strong ped-detail-total-label">Total</td>
+            <td class="table-cell-strong">${fmt(p.total || 0)}</td>
+            <td class="table-cell-strong table-cell-success">${fmt(lucro)}</td>
             <td>-</td>
           </tr>
         </tfoot>
