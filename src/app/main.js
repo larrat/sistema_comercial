@@ -148,10 +148,14 @@ import {
   abrirPreviewWhatsAppEnvio,
   abrirWhatsAppPreviewAtual,
   abrirWhatsAppEnvio,
+  copiarNumeroPreviewAtual,
+  copiarMensagemPreviewAtual,
   abrirWhatsAppLote,
+  proximoEnvioLoteWhatsApp,
   marcarEnvioEnviado,
   marcarEnvioFalhou,
   marcarSelecionadosEnviados,
+  desfazerStatusEnvio,
   marcarSelecionadosFalhou
 } from '../features/campanhas.js';
 
@@ -496,6 +500,7 @@ const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ROLE_MANAGER_
 const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
 const marcarSelecionadosEnviadosGuard = buildRoleGuard(marcarSelecionadosEnviados, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
 const marcarSelecionadosFalhouGuard = buildRoleGuard(marcarSelecionadosFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
+const desfazerStatusEnvioGuard = buildRoleGuard(desfazerStatusEnvio, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
 
 registerApplicationModules({
   registry: AppModules,
@@ -704,11 +709,15 @@ startApplicationRuntime({
       abrirPreviewWhatsAppEnvio,
       abrirWhatsAppPreviewAtual,
       abrirWhatsAppEnvio,
+      copiarNumeroPreviewAtual,
+      copiarMensagemPreviewAtual,
       abrirWhatsAppLote,
+      proximoEnvioLoteWhatsApp,
       marcarEnvioEnviadoGuard,
       marcarEnvioFalhouGuard,
       marcarSelecionadosEnviadosGuard,
       marcarSelecionadosFalhouGuard,
+      desfazerStatusEnvio: desfazerStatusEnvioGuard,
       salvarJogoDashboardGuard,
       usarExemploSyncJogos,
       sincronizarJogosDashboardGuard,

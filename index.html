@@ -972,8 +972,12 @@
   <div class="modal-bg" data-click="fecharModal('modal-campanha-wa-preview')"></div>
   <div class="modal-box">
     <div class="mt">Preview WhatsApp</div>
+    <div class="camp-preview-lote-info" id="camp-wa-preview-lote-info" hidden></div>
     <div id="camp-wa-preview-box"></div>
     <div class="modal-actions">
+      <button class="btn btn-sm" data-click="copiarNumeroPreviewAtual()">Copiar numero</button>
+      <button class="btn btn-sm" data-click="copiarMensagemPreviewAtual()">Copiar mensagem</button>
+      <button class="btn btn-sm" id="camp-wa-preview-next" data-click="proximoEnvioLoteWhatsApp()" hidden>Proximo do lote</button>
       <button class="btn" data-click="fecharModal('modal-campanha-wa-preview')">Cancelar</button>
       <button class="btn btn-p" data-click="abrirWhatsAppPreviewAtual()">Abrir WhatsApp</button>
     </div>

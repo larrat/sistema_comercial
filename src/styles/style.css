@@ -6260,6 +6260,17 @@ textarea.inp:focus{
   color:var(--tx);
 }
 
+.camp-preview-lote-info{
+  margin:-2px 0 12px;
+  padding:10px 12px;
+  border:1px solid rgba(31,72,143,.16);
+  border-radius:14px;
+  background:linear-gradient(180deg,#FCFEFF 0%,#F4F9FF 100%);
+  font-size:12px;
+  font-weight:700;
+  color:var(--tx2);
+}
+
 .camp-select-chip{
   display:inline-flex;
   align-items:center;
@@ -6509,6 +6520,11 @@ textarea.inp:focus{
   justify-content:flex-end;
   gap:8px;
   flex-wrap:wrap;
+}
+
+.camp-history-row-fresh td,
+.camp-history-item-fresh{
+  background:linear-gradient(180deg,#F8FCFF 0%,#EEF6FF 100%);
 }
 
 #pg-campanhas #camp-wa-fila .tbl td:last-child .fg2{

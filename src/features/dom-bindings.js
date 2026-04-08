@@ -236,11 +236,15 @@ function getHandlerRegistry(){
       abrirPreviewWhatsAppEnvio: deps.abrirPreviewWhatsAppEnvio,
       abrirWhatsAppPreviewAtual: deps.abrirWhatsAppPreviewAtual,
       abrirWhatsAppEnvio: deps.abrirWhatsAppEnvio,
+      copiarNumeroPreviewAtual: deps.copiarNumeroPreviewAtual,
+      copiarMensagemPreviewAtual: deps.copiarMensagemPreviewAtual,
       abrirWhatsAppLote: deps.abrirWhatsAppLote,
+      proximoEnvioLoteWhatsApp: deps.proximoEnvioLoteWhatsApp,
       marcarEnvioEnviado: deps.marcarEnvioEnviadoGuard,
       marcarEnvioFalhou: deps.marcarEnvioFalhouGuard,
       marcarSelecionadosEnviados: deps.marcarSelecionadosEnviadosGuard,
-      marcarSelecionadosFalhou: deps.marcarSelecionadosFalhouGuard
+      marcarSelecionadosFalhou: deps.marcarSelecionadosFalhouGuard,
+      desfazerStatusEnvio: deps.desfazerStatusEnvio
     },
     notificacoes: {
       renderNotificacoes: deps.renderNotificacoes,

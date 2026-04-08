@@ -32,7 +32,10 @@ let campDiag = {
 
 const campUiState = {
   waSelecionados: new Set(),
-  waPreviewAtualId: null
+  waPreviewAtualId: null,
+  waLoteIds: [],
+  waLoteIndex: -1,
+  statusFeedback: null
 };
 
 /** @returns {Campanha[]} */
@@ -87,7 +90,7 @@ function labelStatusEnvio(status){
   if(key === 'pendente') return 'Pendente';
   if(key === 'enviado') return 'Enviado';
   if(key === 'falhou') return 'Falhou';
-  return key || 'â€”';
+  return key || '—';
 }
 
 export async function desfazerStatusEnvio(envioId) {
@@ -152,11 +155,57 @@ async function persistirStatusEnvio(payload) {
 
   const idx = getEnviosCache().findIndex(e => e.id === payload.id);
   if (idx >= 0) getEnviosCache()[idx] = payload;
+  campUiState.statusFeedback = {
+    envioId: payload.id,
+    status: payload.status,
+    at: Date.now()
+  };
 
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
   return true;
+}
+
+function isStatusFeedbackAtivo(envioId) {
+  const feedback = campUiState.statusFeedback;
+  if (!feedback || feedback.envioId !== envioId) return false;
+  return Date.now() - Number(feedback.at || 0) < 180000;
+}
+
+function syncLoteGuiadoAtual() {
+  if (!campUiState.waLoteIds.length) return;
+  campUiState.waLoteIds = campUiState.waLoteIds.filter(id => !!getEnvioById(id));
+  if (!campUiState.waLoteIds.length) {
+    campUiState.waLoteIndex = -1;
+    campUiState.waPreviewAtualId = null;
+    return;
+  }
+  if (campUiState.waLoteIndex < 0) campUiState.waLoteIndex = 0;
+  if (campUiState.waLoteIndex >= campUiState.waLoteIds.length) campUiState.waLoteIndex = campUiState.waLoteIds.length - 1;
+  campUiState.waPreviewAtualId = campUiState.waLoteIds[campUiState.waLoteIndex] || null;
+}
+
+function limparLoteGuiado() {
+  campUiState.waLoteIds = [];
+  campUiState.waLoteIndex = -1;
+}
+
+async function copyToClipboard(text, successMessage) {
+  const value = String(text || '');
+  if (!value.trim()) {
+    notify('Nenhum conteudo disponivel para copiar.', SEVERITY.INFO);
+    return false;
+  }
+
+  try {
+    await navigator.clipboard.writeText(value);
+    notify(successMessage, SEVERITY.SUCCESS);
+    return true;
+  } catch {
+    notify('Falha ao copiar para a area de transferencia.', SEVERITY.ERROR);
+    return false;
+  }
 }
 
 export async function marcarSelecionadosEnviados() {
@@ -211,7 +260,7 @@ export async function marcarSelecionadosFalhou() {
 
   campUiState.waSelecionados.clear();
   renderCampanhaEnvios();
-  notify('AtenÃ§Ã£o: envios selecionados marcados como falhos.', SEVERITY.WARNING);
+  notify('Atencao: envios selecionados marcados como falhos.', SEVERITY.WARNING);
 }
 
 function badgeSaudeCampanha(campanha, envios){
@@ -373,16 +422,16 @@ function renderCampDiag() {
   const el = document.getElementById('camp-diag');
   if (!el) return;
 
-  const base = `Filial ativa: ${campDiag.filialId || '—'} • campanhas exibidas: ${campDiag.carregadasFilial}`;
-  const banco = campDiag.totalBanco == null ? '' : ` • total no banco: ${campDiag.totalBanco}`;
-  const outras = campDiag.outrasFiliais == null ? '' : ` • outras filiais: ${campDiag.outrasFiliais}`;
-  const origem = campDiag.origem ? ` • origem: ${campDiag.origem}` : '';
+  const base = `Filial ativa: ${campDiag.filialId || '—'} - campanhas exibidas: ${campDiag.carregadasFilial}`;
+  const banco = campDiag.totalBanco == null ? '' : ` - total no banco: ${campDiag.totalBanco}`;
+  const outras = campDiag.outrasFiliais == null ? '' : ` - outras filiais: ${campDiag.outrasFiliais}`;
+  const origem = campDiag.origem ? ` - origem: ${campDiag.origem}` : '';
   const podeImportar = (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
   const acao = podeImportar
     ? ` <button class="btn btn-sm camp-diag-action" data-click="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
     : '';
 
-  el.innerHTML = `<div class="alert al-a camp-diag-alert">ℹ ${base}${banco}${outras}${origem}${acao}</div>`;
+  el.innerHTML = `<div class="alert al-a camp-diag-alert">Info: ${base}${banco}${outras}${origem}${acao}</div>`;
 }
 
 export async function carregarCampanhas() {
@@ -464,7 +513,7 @@ export async function refreshCampanhasTela() {
 export async function adotarCampanhasParaFilialAtiva() {
   const candidatas = campDiag.candidatasOutrasFiliais || [];
   if (!candidatas.length) {
-    toast('Nenhuma campanha disponível para importar.');
+    toast('Nenhuma campanha disponivel para importar.');
     return;
   }
 
@@ -479,7 +528,7 @@ export async function adotarCampanhasParaFilialAtiva() {
   });
 
   if (!paraImportar.length) {
-    toast('As campanhas candidatas já existem na filial ativa.');
+    toast('As campanhas candidatas ja existem na filial ativa.');
     return;
   }
 
@@ -505,7 +554,7 @@ export async function adotarCampanhasParaFilialAtiva() {
 
   renderCampanhasMet();
   renderCampanhas();
-  toast(`Importação concluída: ${importadas} campanha(s), ${falhasPersistencia} falha(s) de persistência.`);
+  toast(`Importacao concluida: ${importadas} campanha(s), ${falhasPersistencia} falha(s) de persistencia.`);
 }
 
 export function limparFormCampanha() {
@@ -520,7 +569,7 @@ export function limparFormCampanha() {
   setInputValue('camp-canal', 'whatsapp_manual');
   setInputValue('camp-dias', 0);
   setInputValue('camp-assunto', '');
-  setInputValue('camp-mensagem', 'Olá, {{nome}}! 🎉\n\nPreparamos uma condição especial para você:\n{{desconto}} de desconto com o cupom {{cupom}}.\n\nVálido até {{validade}}.');
+  setInputValue('camp-mensagem', 'Ola, {{nome}}!\n\nPreparamos uma condicao especial para voce:\n{{desconto}} de desconto com o cupom {{cupom}}.\n\nValido ate {{validade}}.');
   setInputValue('camp-cupom', '');
   setInputValue('camp-desconto', 0);
 
@@ -576,7 +625,7 @@ export function renderCampanhaPreview() {
     <div class="camp-preview-head">
       <div>
         <div class="camp-preview-title">${nome || 'Campanha sem nome'}</div>
-        <div class="camp-preview-sub">${cliente?.nome || 'Cliente exemplo da filial ativa'}${assunto ? ` • ${assunto}` : ''}</div>
+        <div class="camp-preview-sub">${cliente?.nome || 'Cliente exemplo da filial ativa'}${assunto ? ` - ${assunto}` : ''}</div>
       </div>
       <div class="camp-preview-tags">
         ${desconto ? `<span class="bdg bb">${formatarValorPct(desconto)}</span>` : ''}
@@ -648,7 +697,7 @@ export async function removerCampanha(id) {
   const deleteResult = await SB.toResult(() => SB.deleteCampanha(id));
   if (!deleteResult.ok) {
     console.error('Erro ao remover campanha no banco', deleteResult.error);
-    notify('Erro: não foi possível remover no banco. Ação: tente novamente.', SEVERITY.ERROR);
+    notify('Erro: nao foi possivel remover no banco. Acao: tente novamente.', SEVERITY.ERROR);
     return;
   }
 
@@ -695,7 +744,7 @@ export function renderCampanhas() {
         <span class="bdg br">Falhas: ${falhas}</span>
         <span class="bdg bg">Enviadas: ${enviadas}</span>
       </div>
-      <div class="empty"><div class="ico">🎂</div><p>Nenhuma campanha cadastrada.</p></div>
+      <div class="empty"><div class="ico">CP</div><p>Nenhuma campanha cadastrada.</p></div>
     `;
     return;
   }
@@ -723,7 +772,7 @@ export function renderCampanhas() {
         </div>
 
         <div class="mobile-card-meta">
-          <div>Antecedência: <b class="meta-emphasis">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
+          <div>Antecedencia: <b class="meta-emphasis">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
           <div>Desconto: <b class="meta-emphasis">${Number(c.desconto || 0)}%</b></div>
           <div>Cupom: <b class="meta-emphasis">${c.cupom || '—'}</b></div>
         </div>
@@ -753,7 +802,7 @@ export function renderCampanhas() {
             <th>Nome</th>
             <th>Tipo</th>
             <th>Canal</th>
-            <th>Antecedência</th>
+            <th>Antecedencia</th>
             <th>Desconto</th>
             <th>Cupom</th>
             <th>Status</th>
@@ -810,7 +859,7 @@ export function abrirCampanhaDet(campanhaId) {
       <div class="camp-detail-head fb">
         <div>
           <div class="camp-detail-title">${campanha.nome}</div>
-          <div class="camp-detail-sub">${campanha.tipo || 'aniversario'} • ${labelCanal(campanha.canal)} • ${campanha.ativo ? 'Campanha ativa' : 'Campanha inativa'}</div>
+          <div class="camp-detail-sub">${campanha.tipo || 'aniversario'} - ${labelCanal(campanha.canal)} - ${campanha.ativo ? 'Campanha ativa' : 'Campanha inativa'}</div>
         </div>
         <div class="camp-detail-status">
           ${campanha.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
@@ -831,7 +880,7 @@ export function abrirCampanhaDet(campanhaId) {
         <div class="camp-detail-kpi">
           <div class="camp-detail-label">Fila</div>
           <div class="camp-detail-value">${fila.length}</div>
-          <div class="camp-detail-meta">${enviados.length} enviado(s) • ${falhas.length} falha(s)</div>
+          <div class="camp-detail-meta">${enviados.length} enviado(s) - ${falhas.length} falha(s)</div>
         </div>
       </div>
 
@@ -850,7 +899,7 @@ export function abrirCampanhaDet(campanhaId) {
                 <div class="camp-detail-row">
                   <div class="camp-detail-row-main">
                     <div class="camp-detail-row-title">${cliente?.nome || envio.cliente_id}</div>
-                    <div class="camp-detail-row-sub">${envio.destino || '—'} • ${formatarDataBR(envio.data_ref)}${envio.criado_em ? ` • ${new Date(envio.criado_em).toLocaleString('pt-BR')}` : ''}</div>
+                    <div class="camp-detail-row-sub">${envio.destino || '—'} - ${formatarDataBR(envio.data_ref)}${envio.criado_em ? ` - ${new Date(envio.criado_em).toLocaleString('pt-BR')}` : ''}</div>
                   </div>
                   <span class="bdg ${envio.status === 'enviado' ? 'bg' : envio.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(envio.status)}</span>
                 </div>
@@ -946,7 +995,7 @@ export function renderFilaWhatsApp() {
   limparSelecaoFilaInexistente(envios);
 
   if (!envios.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">💬</div><p>Nenhum WhatsApp pendente.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">WA</div><p>Nenhum WhatsApp pendente.</p></div>`;
     return;
   }
 
@@ -970,7 +1019,7 @@ export function renderFilaWhatsApp() {
             <div class="mobile-card-head">
               <div class="mobile-card-grow">
                 <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
-                <div class="mobile-card-sub">${campanha?.nome || '—'} • ${formatarDataBR(e.data_ref)}</div>
+                <div class="mobile-card-sub">${campanha?.nome || '—'} - ${formatarDataBR(e.data_ref)}</div>
               </div>
               <label class="camp-select-chip"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"><span>Selecionar</span></label>
             </div>
@@ -1046,7 +1095,7 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
         <div class="camp-history-head">
           <div>
             <div class="camp-history-title">${grupo.campanha?.nome || 'Campanha sem identificacao'}</div>
-            <div class="camp-history-sub">${grupo.campanha ? `${labelCanal(grupo.campanha.canal)} • ${grupo.envios.length} envio(s)` : `${grupo.envios.length} envio(s)`}</div>
+            <div class="camp-history-sub">${grupo.campanha ? `${labelCanal(grupo.campanha.canal)} - ${grupo.envios.length} envio(s)` : `${grupo.envios.length} envio(s)`}</div>
           </div>
           <div class="camp-history-meta">
             ${renderResumoEnviosCampanha(grupo.envios)}
@@ -1055,17 +1104,18 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
         ${grupo.envios.map(e => {
           const cliente = (C() || []).find(c => c.id === e.cliente_id);
           return `
-            <div class="card mobile-card">
+            <div class="card mobile-card ${isStatusFeedbackAtivo(e.id) ? 'camp-history-item-fresh' : ''}">
               <div class="mobile-card-head">
                 <div class="mobile-card-grow">
                   <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
-                  <div class="mobile-card-sub">${labelCanal(e.canal)} • ${formatarDataBR(e.data_ref)}</div>
+                  <div class="mobile-card-sub">${labelCanal(e.canal)} - ${formatarDataBR(e.data_ref)}</div>
                 </div>
                 <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span>
               </div>
               <div class="mobile-card-meta">
                 <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
                 <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
+                ${isStatusFeedbackAtivo(e.id) ? `<div><span class="bdg bb">Atualizado agora</span></div>` : ''}
               </div>
               ${(e.status === 'enviado' || e.status === 'falhou') ? `
                 <div class="mobile-card-actions">
@@ -1084,7 +1134,7 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
       <div class="camp-history-head">
         <div>
           <div class="camp-history-title">${grupo.campanha?.nome || 'Campanha sem identificacao'}</div>
-          <div class="camp-history-sub">${grupo.campanha ? `${labelCanal(grupo.campanha.canal)} • ${grupo.envios.length} envio(s)` : `${grupo.envios.length} envio(s)`}</div>
+          <div class="camp-history-sub">${grupo.campanha ? `${labelCanal(grupo.campanha.canal)} - ${grupo.envios.length} envio(s)` : `${grupo.envios.length} envio(s)`}</div>
         </div>
         <div class="camp-history-meta">
           ${renderResumoEnviosCampanha(grupo.envios)}
@@ -1107,7 +1157,7 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
             ${grupo.envios.map(e => {
               const cliente = (C() || []).find(c => c.id === e.cliente_id);
               return `
-                <tr>
+                <tr class="${isStatusFeedbackAtivo(e.id) ? 'camp-history-row-fresh' : ''}">
                   <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
                   <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
                   <td>${e.destino || '—'}</td>
@@ -1125,107 +1175,35 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
   `).join('');
 }
 
-export function renderCampanhaEnvios() {
-  const envios = getEnviosHistoricoFiltrados();
-  const el = document.getElementById('camp-envios-lista');
-  if (!el) return;
-
-  if (!envios.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">📨</div><p>Nenhum envio registrado.</p></div>`;
-    return;
-  }
-
-  const grupos = agruparHistoricoEnviosPorCampanha(envios);
-  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
-  el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
-  return;
-  if(isMobile){
-    el.innerHTML = envios.map(e => {
-      const cliente = (C() || []).find(c => c.id === e.cliente_id);
-      return `
-        <div class="card mobile-card">
-          <div class="mobile-card-head">
-            <div class="mobile-card-grow">
-              <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
-              <div class="mobile-card-sub">${labelCanal(e.canal)} • ${formatarDataBR(e.data_ref)}</div>
-            </div>
-            <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span>
-          </div>
-          <div class="mobile-card-meta">
-            <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
-            <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
-          </div>
-        </div>
-      `;
-    }).join('');
-    return;
-  }
-
-  el.innerHTML = `
-    <div class="tw">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Canal</th>
-            <th>Destino</th>
-            <th>Status</th>
-            <th>Data ref</th>
-            <th>Criado em</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${envios.map(e => {
-            const cliente = (C() || []).find(c => c.id === e.cliente_id);
-            return `
-              <tr>
-                <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
-                <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
-                <td>${e.destino || '—'}</td>
-                <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
-                <td>${formatarDataBR(e.data_ref)}</td>
-                <td>${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-export function abrirPreviewWhatsAppEnvio(envioId) {
-  const envio = getEnvioById(String(envioId || '').trim());
+function renderPreviewWhatsAppAtual() {
+  const envio = getEnvioById(campUiState.waPreviewAtualId);
   const box = document.getElementById('camp-wa-preview-box');
-  if (!envio || !box) {
-    notify('Erro: envio nao encontrado para pre-visualizacao.', SEVERITY.ERROR);
-    return;
-  }
-
-  if (!envio.destino) {
-    notify(MSG.campanhas.missingDestino, SEVERITY.WARNING);
-    return;
-  }
-
-  campUiState.waPreviewAtualId = envio.id;
+  const btnNext = document.getElementById('camp-wa-preview-next');
+  const loteInfo = document.getElementById('camp-wa-preview-lote-info');
+  if (!envio || !box) return false;
 
   const cliente = (C() || []).find(c => c.id === envio.cliente_id);
   const campanha = getCampanhasCache().find(c => c.id === envio.campanha_id);
+  const emLote = campUiState.waLoteIds.length > 1;
+  const lotePos = emLote ? `${campUiState.waLoteIndex + 1} de ${campUiState.waLoteIds.length}` : '';
 
   box.innerHTML = `
     <div class="camp-wa-preview">
       <div class="camp-wa-preview-head">
         <div>
           <div class="camp-preview-title">${cliente?.nome || envio.cliente_id || 'Cliente'}</div>
-          <div class="camp-preview-sub">${campanha?.nome || 'Campanha manual'} • ${labelStatusEnvio(envio.status)}</div>
+          <div class="camp-preview-sub">${campanha?.nome || 'Campanha manual'} - ${labelStatusEnvio(envio.status)}</div>
         </div>
-        <span class="bdg bb">${labelCanal(envio.canal)}</span>
+        <div class="camp-preview-tags">
+          ${emLote ? `<span class="bdg ba">Lote ${lotePos}</span>` : ''}
+          <span class="bdg bb">${labelCanal(envio.canal)}</span>
+        </div>
       </div>
 
       <div class="camp-wa-preview-grid">
         <div class="camp-wa-preview-field">
           <div class="camp-detail-label">Numero</div>
-          <div class="camp-wa-preview-value">${envio.destino}</div>
+          <div class="camp-wa-preview-value">${envio.destino || '—'}</div>
         </div>
         <div class="camp-wa-preview-field">
           <div class="camp-detail-label">Data de referencia</div>
@@ -1240,6 +1218,44 @@ export function abrirPreviewWhatsAppEnvio(envioId) {
     </div>
   `;
 
+  if (btnNext) btnNext.hidden = !emLote;
+  if (loteInfo) {
+    loteInfo.hidden = !emLote;
+    loteInfo.textContent = emLote ? `Lote guiado: item ${lotePos}` : '';
+  }
+  return true;
+}
+
+export function renderCampanhaEnvios() {
+  const envios = getEnviosHistoricoFiltrados();
+  const el = document.getElementById('camp-envios-lista');
+  if (!el) return;
+
+  if (!envios.length) {
+    el.innerHTML = `<div class="empty"><div class="ico">VR</div><p>Nenhum envio registrado.</p></div>`;
+    return;
+  }
+
+  const grupos = agruparHistoricoEnviosPorCampanha(envios);
+  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
+  el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
+}
+
+export function abrirPreviewWhatsAppEnvio(envioId) {
+  const envio = getEnvioById(String(envioId || '').trim());
+  if (!envio) {
+    notify('Erro: envio nao encontrado para pre-visualizacao.', SEVERITY.ERROR);
+    return;
+  }
+
+  if (!envio.destino) {
+    notify(MSG.campanhas.missingDestino, SEVERITY.WARNING);
+    return;
+  }
+
+  limparLoteGuiado();
+  campUiState.waPreviewAtualId = envio.id;
+  renderPreviewWhatsAppAtual();
   abrirModal('modal-campanha-wa-preview');
 }
 
@@ -1255,7 +1271,7 @@ export function abrirWhatsAppPreviewAtual() {
 export async function abrirWhatsAppEnvio(envioId) {
   const envio = getEnviosCache().find(e => e.id === envioId);
   if (!envio) {
-    notify('Erro: envio não encontrado. Impacto: não foi possível abrir a conversa. Ação: atualize a fila e tente novamente.', SEVERITY.ERROR);
+    notify('Erro: envio nao encontrado. Impacto: nao foi possivel abrir a conversa. Acao: atualize a fila e tente novamente.', SEVERITY.ERROR);
     return;
   }
 
@@ -1266,6 +1282,24 @@ export async function abrirWhatsAppEnvio(envioId) {
 
   const url = buildWhatsAppUrl(envio.destino, envio.mensagem);
   window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+export async function copiarNumeroPreviewAtual() {
+  const envio = getEnvioById(campUiState.waPreviewAtualId);
+  if (!envio) {
+    notify('Erro: preview expirou ou o envio nao esta mais disponivel.', SEVERITY.ERROR);
+    return;
+  }
+  await copyToClipboard(envio.destino, 'Numero copiado com sucesso.');
+}
+
+export async function copiarMensagemPreviewAtual() {
+  const envio = getEnvioById(campUiState.waPreviewAtualId);
+  if (!envio) {
+    notify('Erro: preview expirou ou o envio nao esta mais disponivel.', SEVERITY.ERROR);
+    return;
+  }
+  await copyToClipboard(envio.mensagem, 'Mensagem copiada com sucesso.');
 }
 
 export function toggleEnvioFilaSelecionado(envioId) {
@@ -1287,16 +1321,49 @@ export function toggleSelecionarTodosFilaWhatsApp() {
 export function abrirWhatsAppLote() {
   const selecionados = getFilaWhatsAppSelecionados();
   if (!selecionados.length) {
-    notify('Selecione pelo menos um envio da fila para abrir em lote.', SEVERITY.INFO);
+    notify('Selecione pelo menos um envio da fila para iniciar o lote guiado.', SEVERITY.INFO);
     return;
   }
 
-  selecionados.forEach(envio => {
-    if (!envio.destino) return;
-    window.open(buildWhatsAppUrl(envio.destino, envio.mensagem), '_blank', 'noopener,noreferrer');
-  });
+  campUiState.waLoteIds = selecionados
+    .filter(envio => !!String(envio.destino || '').trim())
+    .map(envio => envio.id);
+  campUiState.waLoteIndex = 0;
+  syncLoteGuiadoAtual();
 
-  notify(`Sucesso: ${selecionados.length} conversa(s) abertas em lote.`, SEVERITY.SUCCESS);
+  if (!campUiState.waPreviewAtualId) {
+    notify('Nenhum envio selecionado possui numero valido para abrir o lote.', SEVERITY.WARNING);
+    limparLoteGuiado();
+    return;
+  }
+
+  renderPreviewWhatsAppAtual();
+  abrirModal('modal-campanha-wa-preview');
+  notify(`Lote guiado iniciado com ${campUiState.waLoteIds.length} envio(s).`, SEVERITY.SUCCESS);
+}
+
+export function proximoEnvioLoteWhatsApp() {
+  if (!campUiState.waLoteIds.length) {
+    notify('Nenhum lote guiado ativo neste momento.', SEVERITY.INFO);
+    return;
+  }
+
+  if (campUiState.waLoteIndex >= campUiState.waLoteIds.length - 1) {
+    limparLoteGuiado();
+    const loteInfo = document.getElementById('camp-wa-preview-lote-info');
+    if (loteInfo) {
+      loteInfo.hidden = true;
+      loteInfo.textContent = '';
+    }
+    const btnNext = document.getElementById('camp-wa-preview-next');
+    if (btnNext) btnNext.hidden = true;
+    notify('Lote guiado concluido.', SEVERITY.SUCCESS);
+    return;
+  }
+
+  campUiState.waLoteIndex += 1;
+  syncLoteGuiadoAtual();
+  renderPreviewWhatsAppAtual();
 }
 
 export async function marcarEnvioEnviado(envioId) {
@@ -1336,5 +1403,5 @@ export async function marcarEnvioFalhou(envioId) {
 
   const ok = await persistirStatusEnvio(payload);
   if (!ok) return;
-  notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
+  notify('Atencao: envio marcado como falho. Impacto: cliente nao recebeu a mensagem. Acao: revise o motivo e tente novo envio.', SEVERITY.WARNING);
 }
