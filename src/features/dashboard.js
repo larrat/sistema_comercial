@@ -1005,7 +1005,7 @@ export function renderDashJogos(fsel = 'todas'){
         <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${j.titulo}</div>
         <div style="font-size:11px;color:var(--tx3)">${fmtDataHora(j.data_hora)}${j.campeonato ? ' - ' + j.campeonato : ''}</div>
       </div>
-      <button class="ib" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">DEL</button>
+      <button class="btn btn-sm" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">Excluir</button>
     </div>
   `).join(''), 'dashboard:jogos-lista');
 }

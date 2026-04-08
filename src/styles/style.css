@@ -5225,11 +5225,11 @@ textarea.inp:focus{
   padding-inline:12px;
 }
 
-#pg-dashboard #dash-jogos .ib{
-  min-width:42px;
-  height:32px;
-  border-radius:12px;
-  padding-inline:10px;
+#pg-dashboard #dash-jogos .btn.btn-sm{
+  min-width:84px;
+  min-height:34px;
+  padding-inline:12px;
+  justify-content:center;
   box-shadow:none;
 }
 
@@ -5312,7 +5312,7 @@ textarea.inp:focus{
   }
 
   #pg-dashboard #dash-oportunidades .dash-op-item .btn,
-  #pg-dashboard #dash-jogos .ib{
+  #pg-dashboard #dash-jogos .btn{
     min-width:0;
   }
 
@@ -5782,12 +5782,20 @@ textarea.inp:focus{
   gap:8px;
 }
 
-#pg-pedidos .orders-row-actions .ib{
-  min-width:40px;
+#pg-pedidos .orders-row-actions .btn{
+  min-width:84px;
   min-height:34px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  box-shadow:none;
+}
+
+#modal-pedido #ped-itens .btn{
+  min-width:84px;
+  min-height:34px;
+  justify-content:center;
+  box-shadow:none;
 }
 
 #modal-cli-det .modal-box,

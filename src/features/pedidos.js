@@ -114,9 +114,9 @@ export function renderPedidos(){
         </div>
 
         <div class="mobile-card-actions">
-          <button class="ib" title="Ver pedido" data-click="verPed('${p.id}')">VER</button>
-          <button class="ib" title="Editar pedido" data-click="editarPed('${p.id}')">EDT</button>
-          <button class="ib" title="Excluir pedido" data-click="removerPed('${p.id}')">DEL</button>
+          <button class="btn btn-sm" title="Ver pedido" data-click="verPed('${p.id}')">Ver</button>
+          <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
+          <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
         </div>
       </div>
     `).join('');
@@ -152,9 +152,9 @@ export function renderPedidos(){
               <td>${ST_PED[p.status] || ''}</td>
               <td>
                 <div class="fg2 orders-row-actions">
-                  <button class="ib" title="Ver pedido" data-click="verPed('${p.id}')">VER</button>
-                  <button class="ib" title="Editar pedido" data-click="editarPed('${p.id}')">EDT</button>
-                  <button class="ib" title="Excluir pedido" data-click="removerPed('${p.id}')">DEL</button>
+                  <button class="btn btn-sm" title="Ver pedido" data-click="verPed('${p.id}')">Ver</button>
+                  <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
+                  <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
                 </div>
               </td>
             </tr>
@@ -363,7 +363,7 @@ export function renderItens(){
               <td style="font-weight:600">${fmt(subtotal)}</td>
               <td style="color:${lucro >= 0 ? 'var(--g)' : 'var(--r)'};font-weight:600">${fmt(lucro)}</td>
               <td style="font-weight:600">${margem.toFixed(1)}%</td>
-              <td><button class="ib" title="Excluir item" data-click="remItem(${i})">DEL</button></td>
+              <td><button class="btn btn-sm" title="Excluir item" data-click="remItem(${i})">Excluir</button></td>
             </tr>
           `;
         }).join('')}
