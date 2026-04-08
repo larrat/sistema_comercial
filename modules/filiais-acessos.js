@@ -50,9 +50,9 @@ function renderPager(elId, page, pages, onPrev, onNext){
     return;
   }
   el.innerHTML = `
-    <button class="btn btn-sm" ${page <= 1 ? 'disabled' : ''} onclick="${onPrev}">Anterior</button>
+    <button class="btn btn-sm" ${page <= 1 ? 'disabled' : ''} data-click="${onPrev}">Anterior</button>
     <span class="bdg bk">Página ${page} de ${pages}</span>
-    <button class="btn btn-sm" ${page >= pages ? 'disabled' : ''} onclick="${onNext}">Próxima</button>
+    <button class="btn btn-sm" ${page >= pages ? 'disabled' : ''} data-click="${onNext}">Próxima</button>
   `;
 }
 
@@ -175,9 +175,9 @@ export function renderFilLista(){
           </div>
         </div>
         <div class="fg2">
-          ${!ativa ? `<button class="btn btn-sm" onclick="trocarFilial('${f.id}')">Selecionar</button>` : ''}
-          <button class="ib" onclick="editarFilial('${f.id}')">✏</button>
-          <button class="ib" onclick="removerFilial('${f.id}')">✕</button>
+          ${!ativa ? `<button class="btn btn-sm" data-click="trocarFilial('${f.id}')">Selecionar</button>` : ''}
+          <button class="ib" data-click="editarFilial('${f.id}')">✏</button>
+          <button class="ib" data-click="removerFilial('${f.id}')">✕</button>
         </div>
       </div>
     `;
@@ -249,7 +249,7 @@ export function renderAcessosPerfis(){
               <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${pf.papel}</span></td>
               <td>${pf.atualizado_em ? new Date(pf.atualizado_em).toLocaleString('pt-BR') : '-'}</td>
               <td style="text-align:right">
-                <button class="btn btn-sm" onclick="preencherPerfilAcesso('${pf.user_id}','${pf.papel}')">Editar</button>
+                <button class="btn btn-sm" data-click="preencherPerfilAcesso('${pf.user_id}','${pf.papel}')">Editar</button>
               </td>
             </tr>
           `).join('')}
@@ -295,7 +295,7 @@ export function renderAcessosVinculos(){
               <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
               <td>${filMap.get(v.filial_id) || v.filial_id}</td>
               <td style="text-align:right">
-                <button class="btn btn-sm" onclick="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
+                <button class="btn btn-sm" data-click="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
               </td>
             </tr>
           `).join('')}

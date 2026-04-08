@@ -46,6 +46,7 @@ let deps = {
   limparFormFilial: () => {},
   resolverTodasNotificacoesTracked: () => {},
   refreshCampanhasTela: () => {},
+  executarAuditoriaVisual: () => {},
   roleManagerPlus: ['admin', 'gerente'],
   roleAdminOnly: ['admin']
 };
@@ -73,7 +74,7 @@ const PAGE_META = {
     title: 'Gerencial',
     sub: 'Metas de negocio e desempenho continuo',
     primary: { label: 'Atualizar KPIs', run: () => deps.renderMetasNegocio() },
-    secondary: { label: 'Auditoria visual', run: () => window.executarAuditoriaVisual?.() },
+    secondary: { label: 'Auditoria visual', run: () => deps.executarAuditoriaVisual() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   produtos: {

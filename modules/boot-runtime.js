@@ -14,7 +14,18 @@ export function registerApplicationModules({ registry, modules, deps }){
     name: 'produtos',
     init(){
       modules.initProdutosModule({
-        calcSaldos: deps.calcSaldos
+        calcSaldos: deps.calcSaldos,
+        setFlowStep: deps.setFlowStep,
+        refreshMovSel: deps.refreshMovSel
+      });
+    }
+  });
+
+  registry.register({
+    name: 'clientes',
+    init(){
+      modules.initClientesModule({
+        setFlowStep: deps.setFlowStep
       });
     }
   });
@@ -151,6 +162,7 @@ export function registerApplicationModules({ registry, modules, deps }){
         limparFormFilial: deps.limparFormFilial,
         resolverTodasNotificacoesTracked: deps.resolverTodasNotificacoesTracked,
         refreshCampanhasTela: deps.refreshCampanhasTela,
+        executarAuditoriaVisual: deps.executarAuditoriaVisual,
         roleManagerPlus: deps.roleManagerPlus,
         roleAdminOnly: deps.roleAdminOnly
       });

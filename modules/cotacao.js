@@ -88,7 +88,7 @@ export function renderCotForns(){
                 <td style="color:var(--tx2)">${f.contato || '—'}</td>
                 <td>${f.prazo || '—'}</td>
                 <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
-                <td><button class="ib" title="Excluir fornecedor" onclick="remForn('${f.id}')">DEL</button></td>
+                <td><button class="ib" title="Excluir fornecedor" data-click="remForn('${f.id}')">DEL</button></td>
               </tr>
             `;
           }).join('')}
@@ -243,7 +243,7 @@ export function renderCotTabela(){
       if(cot.locked){
         html += val !== null && val > 0 ? fmt(val) : '—';
       } else {
-        html += `<input class="inp" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" onchange="updPreco('${p.id}','${f.id}',this.value)">`;
+        html += `<input class="inp" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" style="width:100%;text-align:right;font-size:12px;padding:5px 6px" data-change="updPreco('${p.id}','${f.id}',this.value)">`;
       }
 
       html += `</td>`;

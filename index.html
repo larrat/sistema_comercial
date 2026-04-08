@@ -645,8 +645,8 @@
     </div>
 
     <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="prod-flow-prev" data-click="setFlowStep('prod', (window.__flowSteps?.prod || 1) - 1)">← Voltar</button>
-      <button class="btn btn-sm" type="button" id="prod-flow-next" data-click="setFlowStep('prod', (window.__flowSteps?.prod || 1) + 1)">Próximo →</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-prev" data-flow="prod" data-flow-nav="-1">← Voltar</button>
+      <button class="btn btn-sm" type="button" id="prod-flow-next" data-flow="prod" data-flow-nav="1">Próximo →</button>
     </div>
     <div class="modal-actions">
       <button class="btn" data-click="fecharModal('modal-produto')">Cancelar</button>
@@ -706,8 +706,8 @@
     </div>
 
     <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="cli-flow-prev" data-click="setFlowStep('cli', (window.__flowSteps?.cli || 1) - 1)">← Voltar</button>
-      <button class="btn btn-sm" type="button" id="cli-flow-next" data-click="setFlowStep('cli', (window.__flowSteps?.cli || 1) + 1)">Próximo →</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-prev" data-flow="cli" data-flow-nav="-1">← Voltar</button>
+      <button class="btn btn-sm" type="button" id="cli-flow-next" data-flow="cli" data-flow-nav="1">Próximo →</button>
     </div>
     <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">Salvar</button></div>
   </div>

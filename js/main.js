@@ -45,6 +45,7 @@ import {
 } from '../modules/produtos.js';
 
 import {
+  initClientesModule,
   renderCliMet,
   renderClientes,
   renderCliSegs,
@@ -454,6 +455,7 @@ registerApplicationModules({
   modules: {
     initCotacaoModule,
     initProdutosModule,
+    initClientesModule,
     initPedidosModule,
     initDashboardModule,
     initTelemetriaModule,
@@ -469,6 +471,8 @@ registerApplicationModules({
     renderProdMet,
     renderProdutos,
     calcSaldos,
+    setFlowStep,
+    refreshMovSel,
     refreshProdSel,
     refreshCliDL,
     calcSaldosMulti,
@@ -529,6 +533,7 @@ registerApplicationModules({
     limparFormFilial,
     resolverTodasNotificacoesTracked,
     refreshCampanhasTela,
+    executarAuditoriaVisual,
     roleManagerPlus: ROLE_MANAGER_PLUS,
     roleAdminOnly: ROLE_ADMIN_ONLY,
     requireRole,
@@ -614,7 +619,8 @@ startApplicationRuntime({
       movCalc,
       movCalcAjuste,
       salvarMov,
-      setFiltroNotificacoes
+      setFiltroNotificacoes,
+      executarAcaoGerencial
     }),
     initGoalTracking,
     initQuickCommand,
@@ -631,7 +637,6 @@ bindWindowApi({
   selFilial,
   ir,
   switchTab,
-  setFlowStep,
   renderNotificacoes,
   executarAcaoGerencial,
   executarNotificacao,
@@ -665,7 +670,6 @@ bindWindowApi({
   updPreco,
   abrirMovProd,
   excluirMov: excluirMovGuard,
-  refreshMovSel,
   editarFilial,
   removerFilial,
   trocarFilial,
@@ -686,6 +690,5 @@ bindWindowApi({
   renderCampanhaEnvios,
   abrirWhatsAppEnvio,
   marcarEnvioEnviado: marcarEnvioEnviadoGuard,
-  marcarEnvioFalhou: marcarEnvioFalhouGuard,
-  executarAuditoriaVisual
+  marcarEnvioFalhou: marcarEnvioFalhouGuard
 });

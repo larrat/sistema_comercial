@@ -12,12 +12,14 @@ let deps = {
 };
 
 const FLOW_MAX = { prod: 4, cli: 4 };
+const flowSteps = { prod: 1, cli: 1 };
 
 export function initUxWorkflowsModule(nextDeps = {}){
   deps = { ...deps, ...nextDeps };
-  if(!window.__flowSteps){
-    window.__flowSteps = { prod: 1, cli: 1 };
-  }
+}
+
+export function getFlowStep(flow){
+  return flowSteps[flow] || 1;
 }
 
 export function executarAuditoriaVisual(){
@@ -298,7 +300,7 @@ function renderFlowSummary(flow){
 export function setFlowStep(flow, rawStep){
   const max = FLOW_MAX[flow];
   if(!max) return;
-  const current = window.__flowSteps[flow] || 1;
+  const current = getFlowStep(flow);
   let step = Math.max(1, Math.min(max, Number(rawStep) || 1));
   if(step > current){
     for(let s = current; s < step; s += 1){
@@ -308,7 +310,7 @@ export function setFlowStep(flow, rawStep){
       }
     }
   }
-  window.__flowSteps[flow] = step;
+  flowSteps[flow] = step;
   document.querySelectorAll(`.flow-step[data-flow-id="${flow}"]`).forEach(el => {
     el.classList.toggle('on', Number(el.dataset.step) === step);
   });
@@ -337,8 +339,8 @@ export function initFlowWizards(){
     if(el.dataset.boundFlow) return;
     el.dataset.boundFlow = '1';
     el.addEventListener(evt, () => {
-      if(window.__flowSteps.prod === FLOW_MAX.prod) renderFlowSummary('prod');
-      if(window.__flowSteps.cli === FLOW_MAX.cli) renderFlowSummary('cli');
+      if(getFlowStep('prod') === FLOW_MAX.prod) renderFlowSummary('prod');
+      if(getFlowStep('cli') === FLOW_MAX.cli) renderFlowSummary('cli');
     });
   });
 }

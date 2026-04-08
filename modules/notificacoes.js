@@ -334,8 +334,8 @@ export function renderNotificacoes(){
           <span class="bdg ${badgeClassForPriority(n.prioridade)}">${n.prioridade}</span>
         </div>
         <div class="noti-actions">
-          <button class="btn btn-sm" onclick="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
-          <button class="btn btn-sm" onclick="resolverNotificacao('${n.id}')">Resolver</button>
+          <button class="btn btn-sm" data-click="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
+          <button class="btn btn-sm" data-click="resolverNotificacao('${n.id}')">Resolver</button>
         </div>
       </div>
     `).join('');
@@ -356,7 +356,7 @@ export function renderNotificacoes(){
         <span class="bdg bk">${h.prioridade || 'resolvida'}</span>
       </div>
       <div class="noti-actions">
-        <button class="btn btn-sm" onclick="reabrirNotificacao('${h.id}')">Reabrir</button>
+        <button class="btn btn-sm" data-click="reabrirNotificacao('${h.id}')">Reabrir</button>
       </div>
     </div>
   `).join('');

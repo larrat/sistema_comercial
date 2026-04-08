@@ -135,10 +135,17 @@ function callByName(name, args = []){
     movCalc: deps.movCalc,
     movCalcAjuste: deps.movCalcAjuste,
     salvarMov: deps.salvarMov,
-    setFiltroNotificacoes: deps.setFiltroNotificacoes
+    setFiltroNotificacoes: deps.setFiltroNotificacoes,
+    executarAcaoGerencial: deps.executarAcaoGerencial
   };
   const handler = handlers[name];
-  if(typeof handler === 'function') handler(...args);
+  if(typeof handler === 'function'){
+    handler(...args);
+    return;
+  }
+  if(typeof window[name] === 'function'){
+    window[name](...args);
+  }
 }
 
 function runExpression(expression, el, event){

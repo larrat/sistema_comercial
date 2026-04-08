@@ -90,9 +90,9 @@ export function renderPedidos(){
         </div>
 
         <div class="mobile-card-actions">
-          <button class="ib" title="Ver pedido" onclick="verPed('${p.id}')">VER</button>
-          <button class="ib" title="Editar pedido" onclick="editarPed('${p.id}')">EDT</button>
-          <button class="ib" title="Excluir pedido" onclick="removerPed('${p.id}')">DEL</button>
+          <button class="ib" title="Ver pedido" data-click="verPed('${p.id}')">VER</button>
+          <button class="ib" title="Editar pedido" data-click="editarPed('${p.id}')">EDT</button>
+          <button class="ib" title="Excluir pedido" data-click="removerPed('${p.id}')">DEL</button>
         </div>
       </div>
     `).join('');
@@ -128,9 +128,9 @@ export function renderPedidos(){
               <td>${ST_PED[p.status] || ''}</td>
               <td>
                 <div class="fg2">
-                  <button class="ib" title="Ver pedido" onclick="verPed('${p.id}')">VER</button>
-                  <button class="ib" title="Editar pedido" onclick="editarPed('${p.id}')">EDT</button>
-                  <button class="ib" title="Excluir pedido" onclick="removerPed('${p.id}')">DEL</button>
+                  <button class="ib" title="Ver pedido" data-click="verPed('${p.id}')">VER</button>
+                  <button class="ib" title="Editar pedido" data-click="editarPed('${p.id}')">EDT</button>
+                  <button class="ib" title="Excluir pedido" data-click="removerPed('${p.id}')">DEL</button>
                 </div>
               </td>
             </tr>
@@ -283,7 +283,7 @@ export function renderItens(){
             <td>${it.qty} ${it.un}</td>
             <td>${fmt(it.preco)}</td>
             <td style="font-weight:600">${fmt(it.qty * it.preco)}</td>
-            <td><button class="ib" title="Excluir item" onclick="remItem(${i})">DEL</button></td>
+            <td><button class="ib" title="Excluir item" data-click="remItem(${i})">DEL</button></td>
           </tr>
         `).join('')}
       </tbody>
@@ -466,8 +466,8 @@ export function verPed(id){
     </div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn" onclick="fecharModal('modal-ped-det')">Fechar</button>
-      <button class="btn btn-p" onclick="fecharModal('modal-ped-det');editarPed('${p.id}')">Editar</button>
+      <button class="btn" data-click="fecharModal('modal-ped-det')">Fechar</button>
+      <button class="btn btn-p" data-click="fecharModal('modal-ped-det');editarPed('${p.id}')">Editar</button>
     </div>
   `;
 

@@ -4,9 +4,13 @@ import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, noti
 import { SEVERITY } from '../core/messages.js';
 
 let calcSaldosSafe = () => ({});
+let setFlowStepSafe = () => {};
+let refreshMovSelSafe = () => {};
 
 export function initProdutosModule(callbacks = {}){
   calcSaldosSafe = callbacks.calcSaldos || (() => ({}));
+  setFlowStepSafe = callbacks.setFlowStep || (() => {});
+  refreshMovSelSafe = callbacks.refreshMovSel || (() => {});
 }
 
 export function renderProdMet(){
@@ -168,7 +172,7 @@ export function limparFormProd(){
   const histEl = document.getElementById('p-hist-cot');
   if(histEl) histEl.style.display = 'none';
 
-  if(window.setFlowStep) window.setFlowStep('prod', 1);
+  setFlowStepSafe('prod', 1);
 }
 
 export function editarProd(id){
@@ -232,7 +236,7 @@ export function editarProd(id){
   }
 
   calcProdPreview();
-  if(window.setFlowStep) window.setFlowStep('prod', 1);
+  setFlowStepSafe('prod', 1);
   abrirModal('modal-produto');
 }
 
@@ -346,7 +350,7 @@ export async function salvarProduto(){
   renderProdutos();
   refreshProdSel();
 
-  if(window.refreshMovSel) window.refreshMovSel();
+  refreshMovSelSafe();
 
   const pv = p.custo > 0 && p.mkv > 0 ? prV(p.custo, p.mkv) : 0;
   const pa = p.pfa > 0 ? p.pfa : (p.custo > 0 && p.mka > 0 ? prV(p.custo, p.mka) : 0);
@@ -377,7 +381,7 @@ export async function removerProd(id){
   renderProdutos();
   refreshProdSel();
 
-  if(window.refreshMovSel) window.refreshMovSel();
+  refreshMovSelSafe();
 
   toast('Removido.');
 }

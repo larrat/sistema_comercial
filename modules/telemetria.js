@@ -442,9 +442,9 @@ function renderGerencialLayer(summary){
   if(!model.insights.length){
     insightEl.innerHTML = `<div class="empty" style="padding:12px"><p>Sem insights disponiveis com os dados atuais.</p></div>`;
   }else{
-    insightEl.innerHTML = `<div class="ger-insights-grid">${model.insights.map(item => `<article class="ger-insight-card ger-insight-${item.kind}"><div class="ger-insight-head"><span class="bdg ${mapInsightToBadgeClass(item.kind)}">${item.kind}</span><span class="bdg bk">${item.metric}</span></div><h4>${item.title}</h4><p>${item.description}</p><button class="btn btn-sm" onclick="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
+    insightEl.innerHTML = `<div class="ger-insights-grid">${model.insights.map(item => `<article class="ger-insight-card ger-insight-${item.kind}"><div class="ger-insight-head"><span class="bdg ${mapInsightToBadgeClass(item.kind)}">${item.kind}</span><span class="bdg bk">${item.metric}</span></div><h4>${item.title}</h4><p>${item.description}</p><button class="btn btn-sm" data-click="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
   }
-  recEl.innerHTML = `<div class="ger-reco-list">${model.recommendations.map((item, i) => `<article class="ger-reco-item"><div class="ger-reco-meta"><span class="bdg bk">#${i + 1}</span><span class="bdg ${mapInsightToBadgeClass(item.severity)}">${item.severity}</span></div><h4>${item.title}</h4><p>${item.recommendation}</p><button class="btn btn-sm" onclick="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
+  recEl.innerHTML = `<div class="ger-reco-list">${model.recommendations.map((item, i) => `<article class="ger-reco-item"><div class="ger-reco-meta"><span class="bdg bk">#${i + 1}</span><span class="bdg ${mapInsightToBadgeClass(item.severity)}">${item.severity}</span></div><h4>${item.title}</h4><p>${item.recommendation}</p><button class="btn btn-sm" data-click="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
 }
 
 export function renderMetasNegocio(){

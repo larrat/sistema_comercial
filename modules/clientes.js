@@ -3,6 +3,12 @@ import { D, State, C } from '../js/store.js';
 import { abrirModal, fecharModal, toast, notify, focusField } from '../core/utils.js';
 import { MSG, SEVERITY } from '../core/messages.js';
 
+let setFlowStepSafe = () => {};
+
+export function initClientesModule(callbacks = {}){
+  setFlowStepSafe = callbacks.setFlowStep || (() => {});
+}
+
 const AVC = [
   { bg:'#E6EEF9', c:'#0F2F5E' },
   { bg:'#E6F4EC', c:'#0D3D22' },
@@ -47,10 +53,10 @@ function getDiasParaAniversario(iso){
 function getBadgeAniversario(c){
   if(!c?.data_aniversario) return '';
   const dias = getDiasParaAniversario(c.data_aniversario);
-  if(dias == null) return `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>`;
-  if(dias === 0) return '<span class="bdg br">🎂 Hoje</span>';
-  if(dias <= 7) return `<span class="bdg ba">🎂 ${dias}d</span>`;
-  return `<span class="bdg bb">🎂 ${fmtAniv(c.data_aniversario)}</span>`;
+  if(dias == null) return `<span class="bdg bb">ðŸŽ‚ ${fmtAniv(c.data_aniversario)}</span>`;
+  if(dias === 0) return '<span class="bdg br">ðŸŽ‚ Hoje</span>';
+  if(dias <= 7) return `<span class="bdg ba">ðŸŽ‚ ${dias}d</span>`;
+  return `<span class="bdg bb">ðŸŽ‚ ${fmtAniv(c.data_aniversario)}</span>`;
 }
 
 function getContatoInfo(c){
@@ -168,18 +174,18 @@ export function renderClientes(){
   );
 
   if(!f.length){
-    el.innerHTML = `<div class="empty"><div class="ico">👥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">ðŸ‘¥</div><p>${C().length ? 'Nenhum encontrado.' : 'Clique em "+ Novo cliente".'}</p></div>`;
     return;
   }
 
   const tabLbl = {
-    padrao:'Padrão',
+    padrao:'PadrÃ£o',
     especial:'<span class="bdg ba">Especial</span>',
     vip:'<span class="bdg br">VIP</span>'
   };
 
   const prazoLbl = {
-    a_vista:'À vista',
+    a_vista:'Ã€ vista',
     '7d':'7d',
     '15d':'15d',
     '30d':'30d',
@@ -210,7 +216,7 @@ export function renderClientes(){
             <div>${contato.principal}</div>
             ${contato.secundario ? `<div>${contato.secundario}</div>` : ''}
             ${c.email && contato.principal !== c.email ? `<div>${c.email}</div>` : ''}
-            <div>${tabLbl[c.tab] || '—'} • ${prazoLbl[c.prazo] || '—'}</div>
+            <div>${tabLbl[c.tab] || 'â€”'} â€¢ ${prazoLbl[c.prazo] || 'â€”'}</div>
           </div>
 
           <div class="mobile-card-tags" style="gap:4px">
@@ -220,13 +226,13 @@ export function renderClientes(){
             ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
             ${c.optin_sms ? '<span class="bdg bk">SMS</span>' : ''}
             ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
-            ${times.map(t => `<span class="bdg bb">⚽ ${t}</span>`).join('')}
+            ${times.map(t => `<span class="bdg bb">âš½ ${t}</span>`).join('')}
           </div>
 
           <div class="mobile-card-actions">
-            <button class="btn btn-sm" title="Ver cliente" onclick="abrirCliDet('${c.id}')">Detalhes</button>
-            <button class="btn btn-p btn-sm" title="Editar cliente" onclick="editarCli('${c.id}')">Editar</button>
-            <button class="btn btn-sm" title="Excluir cliente" onclick="removerCli('${c.id}')">Excluir</button>
+            <button class="btn btn-sm" title="Ver cliente" data-click="abrirCliDet('${c.id}')">Detalhes</button>
+            <button class="btn btn-p btn-sm" title="Editar cliente" data-click="editarCli('${c.id}')">Editar</button>
+            <button class="btn btn-sm" title="Excluir cliente" data-click="removerCli('${c.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -269,7 +275,7 @@ export function renderClientes(){
                 </td>
                 <td>
                   <div class="fg2" style="gap:4px">
-                    ${getBadgeAniversario(c) || '<span style="color:var(--tx3)">—</span>'}
+                    ${getBadgeAniversario(c) || '<span style="color:var(--tx3)">â€”</span>'}
                     ${contato.badge}
                     ${c.optin_marketing ? '<span class="bdg bg">MKT</span>' : ''}
                     ${c.optin_email ? '<span class="bdg bk">E-mail</span>' : ''}
@@ -279,18 +285,18 @@ export function renderClientes(){
                 <td>
                   <div class="fg2" style="gap:4px">
                     ${c.seg ? `<span class="bdg bk">${c.seg}</span>` : ''}
-                    ${times.map(t => `<span class="bdg bb">⚽ ${t}</span>`).join('')}
-                    ${!c.seg && !times.length ? '—' : ''}
+                    ${times.map(t => `<span class="bdg bb">âš½ ${t}</span>`).join('')}
+                    ${!c.seg && !times.length ? 'â€”' : ''}
                   </div>
                 </td>
-                <td>${tabLbl[c.tab] || '—'}</td>
-                <td style="color:var(--tx2)">${prazoLbl[c.prazo] || '—'}</td>
+                <td>${tabLbl[c.tab] || 'â€”'}</td>
+                <td style="color:var(--tx2)">${prazoLbl[c.prazo] || 'â€”'}</td>
                 <td>${ST_B[c.status] || ''}</td>
                 <td>
                   <div class="fg2">
-                    <button class="btn btn-sm" title="Ver cliente" onclick="abrirCliDet('${c.id}')">Detalhes</button>
-                    <button class="btn btn-p btn-sm" title="Editar cliente" onclick="editarCli('${c.id}')">Editar</button>
-                    <button class="btn btn-sm" title="Excluir cliente" onclick="removerCli('${c.id}')">Excluir</button>
+                    <button class="btn btn-sm" title="Ver cliente" data-click="abrirCliDet('${c.id}')">Detalhes</button>
+                    <button class="btn btn-p btn-sm" title="Editar cliente" data-click="editarCli('${c.id}')">Editar</button>
+                    <button class="btn btn-sm" title="Excluir cliente" data-click="removerCli('${c.id}')">Excluir</button>
                   </div>
                 </td>
               </tr>
@@ -319,7 +325,7 @@ export function renderCliSegs(){
         <div class="fg2">
           ${cls.map(c => `
             <div
-              onclick="abrirCliDet('${c.id}')"
+              data-click="abrirCliDet('${c.id}')"
               style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--bd);border-radius:var(--rad);cursor:pointer;transition:all .12s"
               onmouseover="this.style.background='var(--surf2)'"
               onmouseout="this.style.background=''"
@@ -350,7 +356,7 @@ export async function abrirCliDet(id){
   }
 
   const prazoLbl = {
-    a_vista:'À vista',
+    a_vista:'Ã€ vista',
     '7d':'7 dias',
     '15d':'15 dias',
     '30d':'30 dias',
@@ -382,15 +388,15 @@ export async function abrirCliDet(id){
           c.tel,
           c.whatsapp && `WhatsApp: ${c.whatsapp}`,
           c.email,
-          c.data_aniversario && `Aniversário: ${c.data_aniversario}`,
+          c.data_aniversario && `AniversÃ¡rio: ${c.data_aniversario}`,
           c.cidade && `${c.cidade}${c.estado ? ' - ' + c.estado : ''}`
-        ].filter(Boolean).map(x => `<div style="margin-bottom:3px">${x}</div>`).join('') || '—'}
+        ].filter(Boolean).map(x => `<div style="margin-bottom:3px">${x}</div>`).join('') || 'â€”'}
       </div>
 
       <div>
         <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:6px">Comercial</div>
-        <div>Tabela: ${({ padrao:'Padrão', especial:'Especial', vip:'VIP' }[c.tab] || '—')}</div>
-        <div>Prazo: ${prazoLbl[c.prazo] || '—'}</div>
+        <div>Tabela: ${({ padrao:'PadrÃ£o', especial:'Especial', vip:'VIP' }[c.tab] || 'â€”')}</div>
+        <div>Prazo: ${prazoLbl[c.prazo] || 'â€”'}</div>
         ${parseTimes(c.time).length ? `<div>Time(s): ${parseTimes(c.time).join(', ')}</div>` : ''}
         ${c.seg ? `<div>Segmento: ${c.seg}</div>` : ''}
       </div>
@@ -398,15 +404,15 @@ export async function abrirCliDet(id){
 
     ${c.obs ? `
       <div class="panel" style="margin-bottom:12px">
-        <div class="pt">Observações</div>
+        <div class="pt">ObservaÃ§Ãµes</div>
         <p style="font-size:13px">${c.obs}</p>
       </div>
     ` : ''}
 
-    <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / histórico</div>
+    <div style="font-size:11px;font-weight:600;color:var(--tx3);text-transform:uppercase;margin-bottom:8px">Notas / histÃ³rico</div>
     <div class="fg2" style="margin-bottom:8px">
       <input class="inp" id="nota-inp-${id}" placeholder="Adicionar nota..." style="flex:1">
-      <button class="btn btn-sm" onclick="addNota('${id}')">+</button>
+      <button class="btn btn-sm" data-click="addNota('${id}')">+</button>
     </div>
 
     <div id="notas-${id}">
@@ -422,8 +428,8 @@ export async function abrirCliDet(id){
     </div>
 
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn" onclick="fecharModal('modal-cli-det')">Fechar</button>
-      <button class="btn btn-p" onclick="fecharModal('modal-cli-det');editarCli('${id}')">Editar</button>
+      <button class="btn" data-click="fecharModal('modal-cli-det')">Fechar</button>
+      <button class="btn btn-p" data-click="fecharModal('modal-cli-det');editarCli('${id}')">Editar</button>
     </div>
   `;
 
@@ -501,7 +507,7 @@ export function limparFormCli(){
   if(optinEmail) optinEmail.checked = false;
   if(optinSms) optinSms.checked = false;
 
-  if(window.setFlowStep) window.setFlowStep('cli', 1);
+  setFlowStepSafe('cli', 1);
 }
 
 export function editarCli(id){
@@ -536,7 +542,7 @@ export function editarCli(id){
   document.getElementById('c-optin-email').checked = !!c.optin_email;
   document.getElementById('c-optin-sms').checked = !!c.optin_sms;
 
-  if(window.setFlowStep) window.setFlowStep('cli', 1);
+  setFlowStepSafe('cli', 1);
 
   abrirModal('modal-cliente');
 }
@@ -578,7 +584,7 @@ export async function salvarCliente(){
     await SB.upsertCliente(c);
   }catch(e){
     notify(
-      `Erro: falha ao salvar cliente (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro não foi concluído. Ação: revise os dados e tente novamente.`,
+      `Erro: falha ao salvar cliente (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro nÃ£o foi concluÃ­do. AÃ§Ã£o: revise os dados e tente novamente.`,
       SEVERITY.ERROR
     );
     return;
@@ -600,8 +606,8 @@ export async function salvarCliente(){
   const prontoCamp = c.optin_marketing && canais.length > 0;
   notify(
     State.editIds.cli
-      ? `Cliente atualizado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
-      : `Cliente cadastrado: ${c.nome} • Canais: ${canais.join(', ') || 'nenhum'} • Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`,
+      ? `Cliente atualizado: ${c.nome} â€¢ Canais: ${canais.join(', ') || 'nenhum'} â€¢ Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`
+      : `Cliente cadastrado: ${c.nome} â€¢ Canais: ${canais.join(', ') || 'nenhum'} â€¢ Campanhas: ${prontoCamp ? 'pronto' : 'parcial'}`,
     SEVERITY.SUCCESS
   );
 }

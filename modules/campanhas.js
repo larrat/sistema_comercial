@@ -108,7 +108,7 @@ function renderCampDiag() {
   const origem = campDiag.origem ? ` • origem: ${campDiag.origem}` : '';
   const podeImportar = (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
   const acao = podeImportar
-    ? ` <button class="btn btn-sm" style="margin-left:8px" onclick="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
+    ? ` <button class="btn btn-sm" style="margin-left:8px" data-click="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
     : '';
 
   el.innerHTML = `<div class="alert al-a" style="margin-bottom:10px">ℹ ${base}${banco}${outras}${origem}${acao}</div>`;
@@ -430,9 +430,9 @@ export function renderCampanhas() {
         </div>
 
         <div class="mobile-card-actions">
-          <button class="btn btn-sm" title="Editar campanha" onclick="editarCampanha('${c.id}')">Editar</button>
-          <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">Gerar fila</button>
-          <button class="btn btn-sm" title="Remover campanha" onclick="removerCampanha('${c.id}')">Excluir</button>
+          <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
+          <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
+          <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
         </div>
       </div>
     `).join('')}
@@ -477,9 +477,9 @@ export function renderCampanhas() {
               </td>
               <td>
                 <div class="fg2 camp-actions">
-                  <button class="btn btn-sm" title="Editar campanha" onclick="editarCampanha('${c.id}')">Editar</button>
-                  <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" onclick="gerarFilaCampanha('${c.id}')">Gerar fila</button>
-                  <button class="btn btn-sm" title="Remover campanha" onclick="removerCampanha('${c.id}')">Excluir</button>
+                  <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
+                  <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
+                  <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
                 </div>
               </td>
             </tr>
@@ -659,9 +659,9 @@ export function renderFilaWhatsApp() {
               <div>Canal: <b style="color:var(--tx2)">${labelCanal(e.canal)}</b></div>
             </div>
             <div class="mobile-card-actions">
-              <button class="btn btn-p btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
-              <button class="btn btn-sm" title="Marcar como enviado" onclick="marcarEnvioEnviado('${e.id}')">Enviado</button>
-              <button class="btn btn-sm" title="Marcar como falhou" onclick="marcarEnvioFalhou('${e.id}')">Falhou</button>
+              <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
+              <button class="btn btn-sm" title="Marcar como enviado" data-click="marcarEnvioEnviado('${e.id}')">Enviado</button>
+              <button class="btn btn-sm" title="Marcar como falhou" data-click="marcarEnvioFalhou('${e.id}')">Falhou</button>
             </div>
           </div>
         `;
@@ -701,9 +701,9 @@ export function renderFilaWhatsApp() {
                 <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${e.status}</span></td>
                 <td>
                   <div class="fg2">
-                    <button class="btn btn-p btn-sm" onclick="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
-                    <button class="ib" title="Marcar como enviado" onclick="marcarEnvioEnviado('${e.id}')">OK</button>
-                    <button class="ib" title="Marcar como falhou" onclick="marcarEnvioFalhou('${e.id}')">FAL</button>
+                    <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
+                    <button class="ib" title="Marcar como enviado" data-click="marcarEnvioEnviado('${e.id}')">OK</button>
+                    <button class="ib" title="Marcar como falhou" data-click="marcarEnvioFalhou('${e.id}')">FAL</button>
                   </div>
                 </td>
               </tr>

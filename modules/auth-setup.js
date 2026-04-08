@@ -298,7 +298,7 @@ export function renderSetupGrid(){
   sub.textContent = 'Selecione a filial para continuar';
 
   grid.innerHTML = D.filiais.map(f => `
-    <div class="fil-opt ${State.selFil === f.id ? 'sel' : ''}" onclick="selFilial('${f.id}')">
+    <div class="fil-opt ${State.selFil === f.id ? 'sel' : ''}" data-click="selFilial('${f.id}')">
       <div class="fil-dot" style="background:${f.cor}"></div>
       <div>
         <div class="fil-name">${f.nome}</div>
