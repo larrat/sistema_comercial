@@ -287,7 +287,7 @@ export function renderEstPosicao(){
                 <td style="font-weight:600">${fmt(s.saldo * s.cm)}</td>
                 <td style="color:var(--tx2)">${min > 0 ? fmtQ(min) + ' ' + p.un : '-'}</td>
                 <td><span class="bdg ${stC}">${stL}</span></td>
-                <td><button class="ib" title="Movimentar produto" data-click="abrirMovProd('${p.id}')">MOV</button></td>
+                <td><button class="btn btn-sm" title="Movimentar produto" data-click="abrirMovProd('${p.id}')">Movimentar</button></td>
               </tr>
             `;
           }).join('')}
@@ -397,7 +397,7 @@ export function renderEstHist(){
                 <td style="font-weight:600;color:${cor}">${qShow} ${p ? p.un : ''}</td>
                 <td style="color:var(--tx2)">${m.custo > 0 ? fmt(m.custo) : '-'}</td>
                 <td style="font-size:12px;color:var(--tx2)">${m.obs || '-'}</td>
-                <td><button class="ib" title="Excluir movimentacao" data-click="excluirMov('${m.id}')">DEL</button></td>
+                <td><button class="btn btn-sm" title="Excluir movimentacao" data-click="excluirMov('${m.id}')">Excluir</button></td>
               </tr>
             `;
           }).join('')}

@@ -139,10 +139,10 @@ export function renderProdutos(){
           </div>
 
           <div class="mobile-card-actions">
-            <button class="ib" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">DET</button>
-            <button class="ib" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">MOV</button>
-            <button class="ib" title="Editar produto" data-click="editarProd('${p.id}')">EDT</button>
-            <button class="ib" title="Excluir produto" data-click="removerProd('${p.id}')">DEL</button>
+            <button class="btn btn-sm" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">Detalhes</button>
+            <button class="btn btn-sm" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">Movimentar</button>
+            <button class="btn btn-sm" title="Editar produto" data-click="editarProd('${p.id}')">Editar</button>
+            <button class="btn btn-sm" title="Excluir produto" data-click="removerProd('${p.id}')">Excluir</button>
           </div>
         </div>
       `;
@@ -188,10 +188,10 @@ export function renderProdutos(){
                 <td style="color:var(--tx2)">${p.emin > 0 ? fmtQ(p.emin) : '-'}</td>
                 <td>
                   <div class="fg2">
-                    <button class="ib" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">DET</button>
-                    <button class="ib" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">MOV</button>
-                    <button class="ib" title="Editar produto" data-click="editarProd('${p.id}')">EDT</button>
-                    <button class="ib" title="Excluir produto" data-click="removerProd('${p.id}')">DEL</button>
+                    <button class="btn btn-sm" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">Detalhes</button>
+                    <button class="btn btn-sm" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">Movimentar</button>
+                    <button class="btn btn-sm" title="Editar produto" data-click="editarProd('${p.id}')">Editar</button>
+                    <button class="btn btn-sm" title="Excluir produto" data-click="removerProd('${p.id}')">Excluir</button>
                   </div>
                 </td>
               </tr>

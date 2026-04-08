@@ -204,8 +204,8 @@ export function renderFilLista(){
         </div>
         <div class="fg2">
           ${!ativa ? `<button class="btn btn-sm" data-click="trocarFilial('${f.id}')">Selecionar</button>` : ''}
-          <button class="ib" data-click="editarFilial('${f.id}')">✏</button>
-          <button class="ib" data-click="removerFilial('${f.id}')">✕</button>
+          <button class="btn btn-sm" data-click="editarFilial('${f.id}')">Editar</button>
+          <button class="btn btn-sm" data-click="removerFilial('${f.id}')">Excluir</button>
         </div>
       </div>
     `;

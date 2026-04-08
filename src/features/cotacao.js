@@ -88,7 +88,7 @@ export function renderCotForns(){
                 <td style="color:var(--tx2)">${f.contato || '-'}</td>
                 <td>${f.prazo || '-'}</td>
                 <td><span class="bdg ${cotados > 0 ? 'bg' : 'bk'}">${cotados}/${P().length}</span></td>
-                <td><button class="ib" title="Excluir fornecedor" data-click="remForn('${f.id}')">DEL</button></td>
+                <td><button class="btn btn-sm" title="Excluir fornecedor" data-click="remForn('${f.id}')">Excluir</button></td>
               </tr>
             `;
           }).join('')}

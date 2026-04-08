@@ -877,8 +877,8 @@ export function renderFilaWhatsApp() {
                 <td>
                   <div class="fg2">
                     <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
-                    <button class="ib" title="Marcar como enviado" data-click="marcarEnvioEnviado('${e.id}')">OK</button>
-                    <button class="ib" title="Marcar como falhou" data-click="marcarEnvioFalhou('${e.id}')">FAL</button>
+                    <button class="btn btn-sm" title="Marcar como enviado" data-click="marcarEnvioEnviado('${e.id}')">Enviado</button>
+                    <button class="btn btn-sm" title="Marcar como falhou" data-click="marcarEnvioFalhou('${e.id}')">Falhou</button>
                   </div>
                 </td>
               </tr>

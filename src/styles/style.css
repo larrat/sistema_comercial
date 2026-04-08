@@ -6027,20 +6027,22 @@ textarea.inp:focus{
   margin-top:12px;
 }
 
-#pg-produtos .mobile-card-actions .ib,
-#pg-campanhas .mobile-card-actions .btn,
-#pg-campanhas .mobile-card-actions .ib{
+#pg-produtos .mobile-card-actions .btn,
+#pg-campanhas .mobile-card-actions .btn{
   min-height:36px;
   justify-content:center;
 }
 
-#pg-produtos .tbl .ib,
-#pg-campanhas .tbl .ib{
-  min-width:40px;
+#pg-produtos .tbl .btn,
+#pg-campanhas .tbl .btn,
+#pg-estoque .tbl .btn,
+#pg-cotacao .tbl .btn{
+  min-width:84px;
   min-height:34px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  box-shadow:none;
 }
 
 #pg-campanhas .camp-quick{
@@ -6424,9 +6426,8 @@ textarea.inp:focus{
     width:100%;
   }
 
-  #pg-produtos .mobile-card-actions .ib,
-  #pg-campanhas .mobile-card-actions .btn,
-  #pg-campanhas .mobile-card-actions .ib{
+  #pg-produtos .mobile-card-actions .btn,
+  #pg-campanhas .mobile-card-actions .btn{
     width:100%;
   }
 
