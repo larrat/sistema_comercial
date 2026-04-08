@@ -142,6 +142,7 @@ export type ScreenDom = {
   get(id: string): (HTMLElement & {
     value?: string;
     checked?: boolean;
+    disabled?: boolean;
   }) | null;
   html(scope: string, id: string, html: string, signature?: string): void;
   text(scope: string, id: string, text: string, signature?: string): void;
@@ -167,5 +168,5 @@ export type PedidosModuleCallbacks = {
 };
 
 export type DashboardModuleCallbacks = {
-  calcSaldosMulti?: (...args: any[]) => Record<string, unknown>;
+  calcSaldosMulti?: (...args: any[]) => Record<string, { saldo: number; cm?: number }>;
 };

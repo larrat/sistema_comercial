@@ -1,10 +1,17 @@
+// @ts-check
+
 import { SB } from '../app/api.js';
 import { D, State, P } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
+/** @typedef {import('../types/domain').ScreenDom} ScreenDom */
+/** @typedef {import('../types/domain').DashboardModuleCallbacks} DashboardModuleCallbacks */
+
+/** @type {NonNullable<DashboardModuleCallbacks['calcSaldosMulti']>} */
 let calcSaldosMultiSafe = () => ({});
+/** @type {ScreenDom} */
 const dashDom = createScreenDom('dashboard', [
   'dash-fil',
   'dash-opp-camp',
@@ -37,6 +44,7 @@ const JOGOS_AUTO_SYNC_AT_KEY = 'jogos_auto_sync_at';
 const JOGOS_AUTO_SYNC_TTL_MS = 30 * 60 * 1000;
 const JOGOS_EXPIRY_GRACE_MS = 3 * 60 * 60 * 1000;
 
+/** @type {Map<string, Promise<unknown>>} */
 const jogosSyncPromises = new Map();
 
 function getFilialCalendarioId(){
@@ -65,7 +73,7 @@ function isJogoExpirado(jogo, nowMs = Date.now()){
 }
 
 function sortJogosAgenda(lista = []){
-  return [...lista].sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
+  return [...lista].sort((a, b) => new Date(a.data_hora || 0).getTime() - new Date(b.data_hora || 0).getTime());
 }
 
 async function purgeExpiredJogos(fid, { persist = true, silent = true } = {}){
@@ -420,6 +428,7 @@ export function renderDash(){
     </div>
   `, 'dashboard:metrics');
 
+  /** @type {Record<string, { saldo: number; cm?: number }>} */
   const saldos = calcSaldosMultiSafe(filIds);
   const allProds = filIds.flatMap(fid =>
     (D.produtos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
@@ -470,10 +479,10 @@ export function renderDash(){
       const d = new Date(j.data_hora || 0);
       return !isNaN(d.getTime()) && d >= hoje && d <= limite && jogoEhDaSerie(j, serieSel);
     })
-    .sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0));
+    .sort((a, b) => new Date(a.data_hora || 0).getTime() - new Date(b.data_hora || 0).getTime());
 
   const clientesBase = filIds.flatMap(fid => (D.clientes?.[fid] || []));
-  const oportunidades = clientesBase
+  const oportunidades = /** @type {Array<{ cliente: string; time: string; jogo: any; data: Date }>} */ (clientesBase
     .flatMap(c => {
       const times = parseTimes(c.time);
       if(!times.length) return [];
@@ -489,7 +498,7 @@ export function renderDash(){
       });
     })
     .filter(Boolean)
-    .sort((a, b) => a.data - b.data);
+    .sort((a, b) => a.data.getTime() - b.data.getTime()));
 
   const oportunidadesHoje = oportunidades.filter(o => {
     const d = new Date(o.data);
@@ -991,7 +1000,7 @@ export function renderDashJogos(fsel = 'todas'){
       const ts = getJogoDateMs(j);
       return ts != null && !isJogoExpirado(j, agoraMs);
     })
-    .sort((a, b) => new Date(a.data_hora || 0) - new Date(b.data_hora || 0))
+    .sort((a, b) => new Date(a.data_hora || 0).getTime() - new Date(b.data_hora || 0).getTime())
     .slice(0, 8);
 
   if(!jogos.length){
