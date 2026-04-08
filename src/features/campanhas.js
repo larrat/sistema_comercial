@@ -246,10 +246,10 @@ function renderCampDiag() {
   const origem = campDiag.origem ? ` • origem: ${campDiag.origem}` : '';
   const podeImportar = (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
   const acao = podeImportar
-    ? ` <button class="btn btn-sm" style="margin-left:8px" data-click="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
+    ? ` <button class="btn btn-sm camp-diag-action" data-click="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
     : '';
 
-  el.innerHTML = `<div class="alert al-a" style="margin-bottom:10px">ℹ ${base}${banco}${outras}${origem}${acao}</div>`;
+  el.innerHTML = `<div class="alert al-a camp-diag-alert">ℹ ${base}${banco}${outras}${origem}${acao}</div>`;
 }
 
 export async function carregarCampanhas() {
@@ -578,9 +578,9 @@ export function renderCampanhas() {
       ${campanhas.map(c => `
       <div class="card mobile-card">
         <div class="mobile-card-head">
-          <div style="min-width:0">
+          <div class="mobile-card-grow">
             <div class="mobile-card-title">${c.nome}</div>
-            <div class="mobile-card-tags" style="margin-top:4px;margin-bottom:0;gap:4px">
+            <div class="mobile-card-tags mobile-card-tags-tight">
               <span class="bdg bk">${c.tipo || 'aniversario'}</span>
               <span class="bdg bb">${labelCanal(c.canal)}</span>
               ${badgeSaudeCampanha(c, envios)}
@@ -590,9 +590,9 @@ export function renderCampanhas() {
         </div>
 
         <div class="mobile-card-meta">
-          <div>Antecedência: <b style="color:var(--tx)">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
-          <div>Desconto: <b style="color:var(--tx)">${Number(c.desconto || 0)}%</b></div>
-          <div>Cupom: <b style="color:var(--tx)">${c.cupom || '—'}</b></div>
+          <div>Antecedência: <b class="meta-emphasis">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
+          <div>Desconto: <b class="meta-emphasis">${Number(c.desconto || 0)}%</b></div>
+          <div>Cupom: <b class="meta-emphasis">${c.cupom || '—'}</b></div>
         </div>
 
         <div class="mobile-card-actions">
@@ -630,14 +630,14 @@ export function renderCampanhas() {
         <tbody>
           ${campanhas.map(c => `
             <tr>
-              <td style="font-weight:600">${c.nome}</td>
+              <td class="table-cell-strong">${c.nome}</td>
               <td><span class="bdg bk">${c.tipo || 'aniversario'}</span></td>
               <td><span class="bdg bb">${labelCanal(c.canal)}</span></td>
               <td>${Number(c.dias_antecedencia || 0)} dia(s)</td>
               <td>${Number(c.desconto || 0)}%</td>
               <td>${c.cupom || '—'}</td>
               <td>
-                <div class="fg2" style="gap:4px">
+                <div class="fg2 gap-4">
                   ${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
                   ${badgeSaudeCampanha(c, envios)}
                 </div>
@@ -819,16 +819,16 @@ export function renderFilaWhatsApp() {
         return `
           <div class="card mobile-card">
             <div class="mobile-card-head">
-              <div style="min-width:0">
+              <div class="mobile-card-grow">
                 <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
                 <div class="mobile-card-sub">${campanha?.nome || '—'} • ${formatarDataBR(e.data_ref)}</div>
               </div>
               <label class="camp-select-chip"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"><span>Selecionar</span></label>
             </div>
             <div class="mobile-card-meta">
-              <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
-              <div>Canal: <b style="color:var(--tx2)">${labelCanal(e.canal)}</b></div>
-              <div>Status: <b style="color:var(--tx2)">${labelStatusEnvio(e.status)}</b></div>
+              <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
+              <div>Canal: <b class="table-cell-muted">${labelCanal(e.canal)}</b></div>
+              <div>Status: <b class="table-cell-muted">${labelStatusEnvio(e.status)}</b></div>
             </div>
             <div class="mobile-card-actions">
               <button class="btn btn-p btn-sm" data-click="abrirWhatsAppEnvio('${e.id}')">Abrir WhatsApp</button>
@@ -852,7 +852,7 @@ export function renderFilaWhatsApp() {
       <table class="tbl">
         <thead>
           <tr>
-            <th style="width:48px;text-align:center">Sel</th>
+            <th class="table-select-col table-align-center">Sel</th>
             <th>Cliente</th>
             <th>Destino</th>
             <th>Campanha</th>
@@ -868,8 +868,8 @@ export function renderFilaWhatsApp() {
 
             return `
               <tr>
-                <td style="text-align:center"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"></td>
-                <td style="font-weight:600">${cliente?.nome || e.cliente_id}</td>
+                <td class="table-align-center"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"></td>
+                <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
                 <td>${e.destino || '—'}</td>
                 <td>${campanha?.nome || '—'}</td>
                 <td>${formatarDataBR(e.data_ref)}</td>
@@ -907,15 +907,15 @@ export function renderCampanhaEnvios() {
       return `
         <div class="card mobile-card">
           <div class="mobile-card-head">
-            <div style="min-width:0">
+            <div class="mobile-card-grow">
               <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
               <div class="mobile-card-sub">${labelCanal(e.canal)} • ${formatarDataBR(e.data_ref)}</div>
             </div>
             <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span>
           </div>
           <div class="mobile-card-meta">
-            <div>Destino: <b style="color:var(--tx)">${e.destino || '—'}</b></div>
-            <div>Criado em: <b style="color:var(--tx2)">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
+            <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
+            <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
           </div>
         </div>
       `;
@@ -941,7 +941,7 @@ export function renderCampanhaEnvios() {
             const cliente = (C() || []).find(c => c.id === e.cliente_id);
             return `
               <tr>
-                <td style="font-weight:600">${cliente?.nome || e.cliente_id}</td>
+                <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
                 <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
                 <td>${e.destino || '—'}</td>
                 <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
@@ -1054,4 +1054,5 @@ export async function marcarEnvioFalhou(envioId) {
   renderCampanhaEnvios();
   notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
 }
+
 
