@@ -199,6 +199,24 @@ function parseTimes(value){
   return out;
 }
 
+function normalizePhone(value){
+  return String(value || '').replace(/\D+/g, '');
+}
+
+function findClienteDuplicadoPorTelefone({ tel = '', whatsapp = '', editId = null } = {}){
+  const numerosInformados = [normalizePhone(tel), normalizePhone(whatsapp)].filter(Boolean);
+  if(!numerosInformados.length) return null;
+
+  return C().find(cliente => {
+    if(!cliente || cliente.id === editId) return false;
+    const numerosCliente = [
+      normalizePhone(cliente.tel),
+      normalizePhone(cliente.whatsapp)
+    ].filter(Boolean);
+    return numerosInformados.some(numero => numerosCliente.includes(numero));
+  }) || null;
+}
+
 function getFilteredClientes(){
   const q = normTxt(cliDom.get('cli-busca')?.value || '');
   const seg = cliDom.get('cli-fil-seg')?.value || '';
@@ -655,6 +673,24 @@ export async function salvarCliente(){
     estado: cliDom.get('c-estado')?.value.trim() || '',
     obs: cliDom.get('c-obs')?.value.trim() || ''
   };
+
+  const clienteDuplicado = findClienteDuplicadoPorTelefone({
+    tel: cliente.tel,
+    whatsapp: cliente.whatsapp,
+    editId
+  });
+
+  if(clienteDuplicado){
+    const numeroDuplicado = cliente.tel && normalizePhone(cliente.tel) === normalizePhone(clienteDuplicado.tel || clienteDuplicado.whatsapp)
+      ? cliente.tel
+      : (cliente.whatsapp || cliente.tel || clienteDuplicado.whatsapp || clienteDuplicado.tel || '');
+    notify(
+      `Atenção: telefone/WhatsApp já cadastrado para ${clienteDuplicado.nome}. Impacto: o cliente não foi salvo. Ação: revise o número ${numeroDuplicado || 'informado'} ou edite o cadastro existente.`,
+      SEVERITY.WARNING
+    );
+    focusField(cliente.whatsapp ? 'c-whatsapp' : 'c-tel', { markError: true });
+    return;
+  }
 
   try{
     await SB.upsertCliente(cliente);
