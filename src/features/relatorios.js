@@ -163,11 +163,11 @@ function renderResumoPeriodo(hist = []){
       const taxa = dados.total > 0 ? (dados.validadas / dados.total) * 100 : 0;
       return `
         <tr>
-          <td style="font-weight:600">${fmtPeriodo(mesRef)}</td>
-          <td style="text-align:center">${dados.total}</td>
-          <td style="text-align:center;color:var(--g);font-weight:600">${dados.validadas}</td>
-          <td style="text-align:center">${pendentes}</td>
-          <td style="text-align:right;font-weight:600">${pct(taxa)}</td>
+          <td class="table-cell-strong">${fmtPeriodo(mesRef)}</td>
+          <td class="table-align-center">${dados.total}</td>
+          <td class="table-align-center table-cell-success table-cell-strong">${dados.validadas}</td>
+          <td class="table-align-center">${pendentes}</td>
+          <td class="table-align-right table-cell-strong">${pct(taxa)}</td>
         </tr>
       `;
     });
@@ -182,10 +182,10 @@ function renderResumoPeriodo(hist = []){
             <thead>
               <tr>
                 <th>Periodo</th>
-                <th style="text-align:center">Oportunidades</th>
-                <th style="text-align:center">Validadas</th>
-                <th style="text-align:center">Pendentes</th>
-                <th style="text-align:right">Conversao</th>
+                <th class="table-align-center">Oportunidades</th>
+                <th class="table-align-center">Validadas</th>
+                <th class="table-align-center">Pendentes</th>
+                <th class="table-align-right">Conversao</th>
               </tr>
             </thead>
             <tbody>${rows.join('')}</tbody>
@@ -217,7 +217,7 @@ function renderPendentes(oportunidadesAtuais = [], hist = []){
       ? pendentes.map(item => `
           <div class="rrow rel-op-row">
             <span class="rel-op-dot"></span>
-            <div style="flex:1;min-width:0">
+            <div class="rel-grow">
               <div class="rel-op-title">${item.cliente} • ${item.time}</div>
               <div class="rel-op-sub">${item.jogo_titulo || item.jogo?.titulo || '-'} • ${fmtDataHora(item.jogo_data_hora || item.jogo?.data_hora)}</div>
             </div>
@@ -248,7 +248,7 @@ function renderValidacoes(hist = []){
       ? validacoes.map(item => `
           <div class="rrow rel-op-row">
             <span class="rel-op-dot rel-op-dot--success"></span>
-            <div style="flex:1;min-width:0">
+            <div class="rel-grow">
               <div class="rel-op-title">${item.cliente} • ${item.time}</div>
               <div class="rel-op-sub">
                 ${fmtPeriodo(item.mes_ref)} • ${item.pedido_num ? `Pedido #${item.pedido_num}` : 'Venda validada'}
@@ -287,7 +287,7 @@ function renderPerformanceComercial(){
     .map(([status, qtd]) => `
       <div class="rrow rel-kpi-row">
         <div class="rel-kpi-label">${String(status).replace(/_/g, ' ')}</div>
-        <div class="rel-kpi-bar"><span style="width:${Math.max(8, (qtd / totalPedidos) * 100)}%"></span></div>
+        <div class="rel-kpi-bar"><span style="--rel-bar-pct:${Math.max(8, (qtd / totalPedidos) * 100)}%"></span></div>
         <div class="rel-kpi-value">${qtd}</div>
       </div>
     `).join('');
@@ -313,7 +313,7 @@ function renderPerformanceComercial(){
     .map(([nome, dados]) => `
       <div class="rrow rel-op-row">
         <span class="rel-op-dot rel-op-dot--success"></span>
-        <div style="flex:1;min-width:0">
+        <div class="rel-grow">
           <div class="rel-op-title">${nome}</div>
           <div class="rel-op-sub">${dados.pedidos} pedido(s) • ${fmt(dados.total)}</div>
         </div>
@@ -352,7 +352,7 @@ function renderBaseClientes(){
     .map(([status, qtd]) => `
       <div class="rrow rel-kpi-row">
         <div class="rel-kpi-label">${String(status).replace(/_/g, ' ')}</div>
-        <div class="rel-kpi-bar"><span style="width:${Math.max(8, (qtd / Math.max(1, clientes.length)) * 100)}%"></span></div>
+        <div class="rel-kpi-bar"><span style="--rel-bar-pct:${Math.max(8, (qtd / Math.max(1, clientes.length)) * 100)}%"></span></div>
         <div class="rel-kpi-value">${qtd}</div>
       </div>
     `).join('');
@@ -378,7 +378,7 @@ function renderBaseClientes(){
     .map(([seg, dados]) => `
       <div class="rrow rel-op-row">
         <span class="rel-op-dot"></span>
-        <div style="flex:1;min-width:0">
+        <div class="rel-grow">
           <div class="rel-op-title">${seg}</div>
           <div class="rel-op-sub">${dados.total} cliente(s) • ${dados.marketing} com opt-in marketing</div>
         </div>
