@@ -15,21 +15,24 @@ export function getMapaSheetAtual(){
 async function upsertProdutosEmLote(items, chunkSize = 150){
   const lotes = chunkArray(items, chunkSize);
   for(const lote of lotes){
-    await SB.upsertProdutosLote(lote);
+    const result = await SB.toResult(() => SB.upsertProdutosLote(lote));
+    if(!result.ok) throw result.error;
   }
 }
 
 async function upsertCotPrecosEmLote(items, chunkSize = 250){
   const lotes = chunkArray(items, chunkSize);
   for(const lote of lotes){
-    await SB.upsertCotPrecosLote(lote);
+    const result = await SB.toResult(() => SB.upsertCotPrecosLote(lote));
+    if(!result.ok) throw result.error;
   }
 }
 
 async function upsertCotHistoricoEmLote(items, chunkSize = 250){
   const lotes = chunkArray(items, chunkSize);
   for(const lote of lotes){
-    await SB.upsertCotHistoricoLote(lote);
+    const result = await SB.toResult(() => SB.upsertCotHistoricoLote(lote));
+    if(!result.ok) throw result.error;
   }
 }
 
@@ -198,10 +201,11 @@ export function renderMapaBody(){
 export async function abrirMapaModal(ctx){
   let layoutSalvo = null;
 
-  try{
-    layoutSalvo = await SB.getCotLayout(State.FIL, ctx.forn.id);
-  }catch(e){
-    console.error('Erro ao buscar layout salvo', e);
+  const layoutResult = await SB.toResult(() => SB.getCotLayout(State.FIL, ctx.forn.id));
+  if(layoutResult.ok){
+    layoutSalvo = layoutResult.data;
+  }else{
+    console.error('Erro ao buscar layout salvo', layoutResult.error);
   }
 
   let sheetIdx = typeof ctx.sheetIdx === 'number' ? ctx.sheetIdx : 0;
@@ -570,7 +574,7 @@ export async function confirmarMapa(){
     await upsertCotHistoricoEmLote(cotHistoricoParaSalvar, 250);
 
     setImportProgress(96, 'Salvando layout...');
-    await SB.upsertCotLayout({
+    const layoutResult = await SB.toResult(() => SB.upsertCotLayout({
       filial_id: State.FIL,
       fornecedor_id: forn.id,
       nome_layout: forn.nome + ' - layout padrão',
@@ -582,11 +586,13 @@ export async function confirmarMapa(){
       col_desconto: getSelectedHeaderName('map-desc'),
       col_preco_liq: getSelectedHeaderName('map-preco'),
       ativo: true
-    });
+    }));
+    if(!layoutResult.ok) throw layoutResult.error;
 
     setImportProgress(100, 'Finalizando...');
   }catch(e){
-    console.error('Erro no upsert em lote', e);
+    const err = SB.normalizeError(e);
+    console.error('Erro no upsert em lote', err);
     falhas++;
     renderImportResumo({
       novos,
@@ -595,7 +601,7 @@ export async function confirmarMapa(){
       falhas,
       ignoradosExemplos
     });
-    toast('Erro ao salvar importação em lote: ' + e.message);
+    toast('Erro ao salvar importação em lote: ' + err.message);
     return;
   }
 
@@ -612,14 +618,13 @@ export async function confirmarMapa(){
   });
   CCFG().logs = logs;
 
-  try{
-    await SB.upsertCotConfig({
+  const configResult = await SB.toResult(() => SB.upsertCotConfig({
       filial_id: State.FIL,
       locked: CCFG().locked,
       logs
-    });
-  }catch(e){
-    console.error('Erro ao salvar log de cotação', e);
+    }));
+  if(!configResult.ok){
+    console.error('Erro ao salvar log de cotação', configResult.error);
   }
 
   renderImportResumo({
