@@ -7,6 +7,7 @@ begin;
 create or replace function public.admin_access_users_index()
 returns table (
   user_id uuid,
+  nome text,
   email text,
   created_at timestamptz
 )
@@ -22,6 +23,12 @@ begin
   return query
   select
     u.id as user_id,
+    coalesce(
+      nullif(trim(u.raw_user_meta_data ->> 'full_name'), ''),
+      nullif(trim(u.raw_user_meta_data ->> 'name'), ''),
+      nullif(trim(u.raw_user_meta_data ->> 'nome'), ''),
+      split_part(coalesce(u.email, ''), '@', 1)
+    )::text as nome,
     u.email::text as email,
     u.created_at
   from auth.users u
@@ -32,6 +39,7 @@ $$;
 create or replace function public.admin_lookup_user_by_email(p_email text)
 returns table (
   user_id uuid,
+  nome text,
   email text,
   created_at timestamptz
 )
@@ -47,6 +55,12 @@ begin
   return query
   select
     u.id as user_id,
+    coalesce(
+      nullif(trim(u.raw_user_meta_data ->> 'full_name'), ''),
+      nullif(trim(u.raw_user_meta_data ->> 'name'), ''),
+      nullif(trim(u.raw_user_meta_data ->> 'nome'), ''),
+      split_part(coalesce(u.email, ''), '@', 1)
+    )::text as nome,
     u.email::text as email,
     u.created_at
   from auth.users u
