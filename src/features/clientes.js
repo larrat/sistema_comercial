@@ -338,15 +338,21 @@ function findClienteDuplicadoIdentidade({ doc = '', email = '', tel = '', whatsa
  * @param {unknown} err
  */
 function extractClienteConstraintName(err){
-  const details = err && typeof err === 'object' && 'details' in err
-    ? /** @type {{ details?: { response?: { message?: unknown; details?: unknown; code?: unknown } } | unknown }} */ (err).details
+  /** @type {{ message?: unknown; details?: unknown } | null} */
+  const errObj = err && typeof err === 'object'
+    ? /** @type {{ message?: unknown; details?: unknown }} */ (err)
+    : null;
+
+  /** @type {{ response?: { message?: unknown; details?: unknown; code?: unknown } } | null} */
+  const detailsObj = errObj?.details && typeof errObj.details === 'object'
+    ? /** @type {{ response?: { message?: unknown; details?: unknown; code?: unknown } }} */ (errObj.details)
     : null;
 
   const text = [
-    err && typeof err === 'object' && 'message' in err ? /** @type {{ message?: unknown }} */ (err).message : '',
-    details && typeof details === 'object' && 'response' in details ? details.response?.message : '',
-    details && typeof details === 'object' && 'response' in details ? details.response?.details : '',
-    details && typeof details === 'object' && 'response' in details ? details.response?.code : ''
+    errObj?.message,
+    detailsObj?.response?.message,
+    detailsObj?.response?.details,
+    detailsObj?.response?.code
   ].map(value => String(value || '')).join(' | ');
 
   const match = text.match(/ux_clientes_[A-Za-z0-9_]+/);
@@ -632,10 +638,14 @@ export function switchCliDetTab(clienteId, tab){
   });
 }
 
+/**
+ * @param {string} id
+ * @returns {{ input: HTMLInputElement | null; list: HTMLElement | null }}
+ */
 function getDetailElements(id){
   return {
-    input: document.getElementById(`nota-inp-${id}`),
-    list: document.getElementById(`notas-${id}`)
+    input: /** @type {HTMLInputElement | null} */ (document.getElementById(`nota-inp-${id}`)),
+    list: /** @type {HTMLElement | null} */ (document.getElementById(`notas-${id}`))
   };
 }
 
@@ -690,6 +700,7 @@ export function renderClientes(){
       'cli-lista',
       filtrados.map(renderClienteMobile).join(''),
       'clientes:lista-mobile'
+    );
     return;
   }
 
@@ -885,7 +896,8 @@ export async function fecharVendaCliente(pedidoId, clienteId){
       itens: JSON.stringify(Array.isArray(atualizado.itens) ? atualizado.itens : [])
     });
   }catch(error){
-      `Erro ao fechar venda: ${String(error?.message || 'erro desconhecido')}.`,
+    notify(
+      `Erro ao fechar venda: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
     return;
@@ -914,7 +926,7 @@ export async function addNota(id){
   try{
     await SB.insertNota(nota);
   }catch(error){
-    toast(`Erro: ${error.message}`);
+    toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
     return;
   }
 
@@ -1034,7 +1046,7 @@ export async function salvarCliente(){
       return;
     }
     notify(
-      `Erro ao salvar cliente: ${String(error?.message || 'erro desconhecido')}.`,
+      `Erro ao salvar cliente: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
     return;
@@ -1075,7 +1087,7 @@ export async function removerCli(id){
   try{
     await SB.deleteCliente(id);
   }catch(error){
-    toast(`Erro: ${error.message}`);
+    toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
     return;
   }
 
@@ -1097,4 +1109,3 @@ export function refreshCliDL(){
     'clientes:datalist'
   );
 }
-
