@@ -682,7 +682,7 @@ export async function salvarPerfilAcesso(){
   const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-user-id', hintId: 'ac-user-id-help' });
   const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um e-mail existente ou user_id valido.');
+    toast('Informe um e-mail existente ou `user_id` válido.');
     return;
   }
   if(!appRolesSafe.includes(papel)){
@@ -710,14 +710,14 @@ export async function removerPerfilAcesso(){
   const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-user-id', hintId: 'ac-user-id-help' });
   const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um e-mail existente ou user_id valido.');
+    toast('Informe um e-mail existente ou `user_id` válido.');
     return;
   }
   if(userId === State.user?.id){
-    toast('Nao e permitido remover o proprio perfil.');
+    toast('Não é permitido remover o próprio perfil.');
     return;
   }
-  if(!confirm('Remover perfil deste usuario?')) return;
+  if(!confirm('Remover perfil deste usuário?')) return;
   const deleteResult = await SB.toResult(() => SB.deleteUserPerfilEdge(userId, {
     origem: 'ui_acessos',
     email: resolvedUser?.email || null
@@ -731,13 +731,13 @@ export async function removerPerfilAcesso(){
 }
 
 export async function vincularUsuarioFilial(){
-  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode vincular usuario a filial.')) return;
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode vincular usuário à filial.')) return;
   const userRef = (document.getElementById('ac-v-user-id')?.value || '').trim();
   const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
   const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help' });
   const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um e-mail existente ou user_id valido.');
+    toast('Informe um e-mail existente ou `user_id` válido.');
     return;
   }
   if(!filialId){
@@ -752,7 +752,7 @@ export async function vincularUsuarioFilial(){
     detalhes: { origem: 'ui_acessos', email: resolvedUser?.email || null }
   }));
   if(!saveResult.ok){
-    toast('Erro ao vincular usuario: ' + saveResult.error.message);
+    toast('Erro ao vincular usuário: ' + saveResult.error.message);
     return;
   }
   toast('Vinculo salvo com sucesso.');
@@ -760,23 +760,23 @@ export async function vincularUsuarioFilial(){
 }
 
 export async function desvincularUsuarioFilial(){
-  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode desvincular usuario de filial.')) return;
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode desvincular usuário de filial.')) return;
   const userRef = (document.getElementById('ac-v-user-id')?.value || '').trim();
   const filialId = (document.getElementById('ac-v-filial')?.value || '').trim();
   const resolvedUser = await resolveAccessUserRef(userRef, { inputId: 'ac-v-user-id', hintId: 'ac-v-user-id-help' });
   const userId = String(resolvedUser?.user_id || '').trim();
   if(!isUuid(userId)){
-    toast('Informe um e-mail existente ou user_id valido.');
+    toast('Informe um e-mail existente ou `user_id` válido.');
     return;
   }
   if(!filialId){
     toast('Selecione a filial.');
     return;
   }
-  if(!confirm('Desvincular usuario desta filial?')) return;
+  if(!confirm('Desvincular usuário desta filial?')) return;
   const deleteResult = await SB.toResult(() => SB.deleteUserFilialEdge(userId, filialId, { origem: 'ui_acessos', email: resolvedUser?.email || null }));
   if(!deleteResult.ok){
-    toast('Erro ao desvincular usuario: ' + deleteResult.error.message);
+    toast('Erro ao desvincular usuário: ' + deleteResult.error.message);
     return;
   }
   toast('Vinculo removido com sucesso.');
@@ -784,20 +784,20 @@ export async function desvincularUsuarioFilial(){
 }
 
 export async function convidarUsuarioAcesso(){
-  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode convidar usuario.')) return;
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode convidar usuário.')) return;
   const email = normalizeEmail(document.getElementById('ac-invite-email')?.value || '');
   const nome = String(document.getElementById('ac-invite-nome')?.value || '').trim();
   const papel = String(document.getElementById('ac-invite-papel')?.value || 'operador').trim();
   const filialId = String(document.getElementById('ac-invite-filial')?.value || '').trim();
 
   if(!isEmail(email)){
-    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', 'Informe um e-mail valido para o convite.', 'error');
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', 'Informe um e-mail válido para o convite.', 'error');
     focusField('ac-invite-email', { markError: true });
-    toast('Informe um e-mail valido.');
+    toast('Informe um e-mail válido.');
     return;
   }
   if(!appRolesSafe.includes(papel)){
-    toast('Papel invalido.');
+    toast('Papel inválido.');
     return;
   }
 
@@ -813,8 +813,8 @@ export async function convidarUsuarioAcesso(){
   }));
 
   if(!inviteResult.ok){
-    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', inviteResult.error.message || 'Falha ao convidar usuario.', 'error');
-    toast('Erro ao convidar usuario: ' + inviteResult.error.message);
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', inviteResult.error.message || 'Falha ao convidar usuário.', 'error');
+    toast('Erro ao convidar usuário: ' + inviteResult.error.message);
     return;
   }
 
@@ -862,13 +862,13 @@ export async function reenviarConviteUsuarioAcesso(){
   const filialId = String(document.getElementById('ac-invite-filial')?.value || '').trim();
 
   if(!isEmail(email)){
-    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', 'Informe um e-mail valido para reenviar o convite.', 'error');
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', 'Informe um e-mail válido para reenviar o convite.', 'error');
     focusField('ac-invite-email', { markError: true });
-    toast('Informe um e-mail valido.');
+    toast('Informe um e-mail válido.');
     return;
   }
   if(!appRolesSafe.includes(papel)){
-    toast('Papel invalido.');
+    toast('Papel inválido.');
     return;
   }
   if(!confirm(`Reenviar o convite de acesso para ${email}?`)) return;
@@ -900,7 +900,7 @@ export async function reenviarConviteUsuarioAcesso(){
   setAccessFieldHelp(
     'ac-invite-email',
     'ac-invite-email-help',
-    'Convite reenviado com sucesso. Oriente o usuario a verificar o e-mail.',
+    'Convite reenviado com sucesso. Oriente o usuário a verificar o e-mail.',
     'success'
   );
   toast('Convite reenviado com sucesso.');

@@ -82,14 +82,14 @@
         <div class="nl">Principal</div>
         <button class="ni on" data-p="dashboard" data-label="Dashboard" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
         <button class="ni" data-p="gerencial" data-label="Gerencial" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
-        <button class="ni" data-p="relatorios" data-label="Relatorios" data-click="ir('relatorios')"><span class="ico">RL</span>Relatórios</button>
+        <button class="ni" data-p="relatorios" data-label="Relatórios" data-click="ir('relatorios')"><span class="ico">RL</span>Relatórios</button>
       </section>
-      <section class="sb-group" data-group="Operacao">
+      <section class="sb-group" data-group="Operação">
         <div class="nl">Operação</div>
         <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')"><span class="ico">PR</span>Produtos</button>
         <button class="ni" data-p="clientes" data-label="Clientes" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
         <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
-        <button class="ni" data-p="cotacao" data-label="Cotacao" data-click="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
+        <button class="ni" data-p="cotacao" data-label="Cotação" data-click="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
         <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb is-hidden" id="est-badge">!</span></button>
         <button class="ni" data-p="campanhas" data-label="Campanhas" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
         <button class="ni" data-p="notificacoes" data-label="Alertas" data-click="ir('notificacoes')"><span class="ico">NT</span>Alertas <span class="nb is-hidden" id="noti-badge">!</span></button>
@@ -120,9 +120,9 @@
         <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
       </div>
       <div class="app-topbar-actions">
-        <button class="btn btn-sm" id="app-act-secondary" type="button">Acao 2</button>
-        <button class="btn btn-sm" id="app-act-tertiary" type="button">Acao 3</button>
-        <button class="btn btn-p" id="app-act-primary" type="button">Acao principal</button>
+        <button class="btn btn-sm" id="app-act-secondary" type="button">Ação 2</button>
+        <button class="btn btn-sm" id="app-act-tertiary" type="button">Ação 3</button>
+        <button class="btn btn-p" id="app-act-primary" type="button">Ação principal</button>
       </div>
     </div>
 
@@ -150,7 +150,7 @@
       <section class="dash-section dash-section--operacao">
         <div class="dash-section-head">
           <h3>Operação rápida</h3>
-          <p>Acoes que precisam de decisao agora</p>
+          <p>Ações que precisam de decisão agora</p>
         </div>
         <div id="dash-alerts"></div>
         <div class="dash-grid-cards dash-grid-cards--operacao">
@@ -159,9 +159,9 @@
               <div class="ct ct-inline">Oportunidades por time</div>
               <select class="inp sel select-w-xs input-compact" id="dash-opp-camp" data-change="renderDash()">
                 <option value="todas">Todas</option>
-                <option value="a">Serie A</option>
-                <option value="b">Serie B</option>
-                <option value="c">Serie C</option>
+                <option value="a">Série A</option>
+                <option value="b">Série B</option>
+                <option value="c">Série C</option>
               </select>
             </div>
             <div id="dash-oportunidades"></div>
@@ -182,7 +182,7 @@
 
       <section class="dash-section dash-section--analise">
         <div class="dash-section-head">
-          <h3>Analise do negocio</h3>
+          <h3>Análise do negócio</h3>
           <p>Leitura de desempenho e tendencia comercial</p>
         </div>
         <div class="mg" id="dash-met"></div>
@@ -473,16 +473,16 @@
       <div class="mg" id="ac-met"></div>
 
       <div class="card">
-        <div class="ct">Convidar usuario por e-mail</div>
+        <div class="ct">Convidar usuário por e-mail</div>
         <div class="fg c4">
           <div>
             <div class="fl">E-mail *</div>
             <input class="inp" id="ac-invite-email" placeholder="usuario@empresa.com" data-change="resolverConviteAcessoEmail()">
-            <div class="field-help" id="ac-invite-email-help">Se o usuario ja existir, vamos reaproveitar a conta e configurar o acesso.</div>
+            <div class="field-help" id="ac-invite-email-help">Se o usuário já existir, vamos reaproveitar a conta e configurar o acesso.</div>
           </div>
           <div>
             <div class="fl">Nome</div>
-            <input class="inp" id="ac-invite-nome" placeholder="Nome do usuario">
+            <input class="inp" id="ac-invite-nome" placeholder="Nome do usuário">
           </div>
           <div>
             <div class="fl">Papel inicial</div>
@@ -586,7 +586,7 @@
         <select class="inp sel select-w-md" id="noti-fil-prioridade" data-change="setFiltroNotificacoes(this.value)">
             <option value="todas">Todas prioridades</option>
             <option value="critico">Crítico</option>
-            <option value="atencao">Atencao</option>
+            <option value="atencao">Atenção</option>
             <option value="oportunidade">Oportunidade</option>
           </select>
         </div>
@@ -999,9 +999,9 @@
       </div>
     </div>
     <div class="fg2 form-gap-bottom">
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Serie A</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Serie B</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Serie C</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Série A</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Série B</button>
+      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Série C</button>
       <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')">Por time</button>
     </div>
     <div class="fg">
