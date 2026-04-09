@@ -12,6 +12,35 @@ let pendingRenderFrame = 0;
 /** @type {Set<string>} */
 let pendingRenderNames = new Set();
 
+/** @type {Map<HTMLElement, ReturnType<typeof setTimeout>>} */
+const inputDebounceTimers = new Map();
+const INPUT_DEBOUNCE_MS = 180;
+
+/**
+ * Checks if an expression is a simple render-function call (renderXxx()).
+ * These benefit from debouncing during typing; field calculations (movCalc etc.) should stay immediate.
+ * @param {string} expr
+ */
+function isRenderExpression(expr){
+  const fn = String(expr || '').trim().match(/^([A-Za-z_]\w*)\s*\(/);
+  return fn ? /^render[A-Z]/.test(fn[1]) : false;
+}
+
+/**
+ * @param {HTMLElement} target
+ * @param {string} expr
+ * @param {Event} event
+ */
+function scheduleInputRender(target, expr, event){
+  const existing = inputDebounceTimers.get(target);
+  if(existing !== undefined) clearTimeout(existing);
+  const tid = setTimeout(() => {
+    inputDebounceTimers.delete(target);
+    runExpression(expr, target, event);
+  }, INPUT_DEBOUNCE_MS);
+  inputDebounceTimers.set(target, tid);
+}
+
 /** @type {Record<string, RenderTargetMeta>} */
 const RENDER_TARGETS = {
   renderDash: { page: 'dashboard', area: 'page' },
@@ -462,7 +491,12 @@ function onFieldEvent(event){
   }
 
   if(event.type === 'input' && target.dataset.input){
-    runExpression(target.dataset.input, target, event);
+    const expr = target.dataset.input;
+    if(isRenderExpression(expr)){
+      scheduleInputRender(target, expr, event);
+    }else{
+      runExpression(expr, target, event);
+    }
   }
 
   if(event.type === 'change' && target.dataset.change){

@@ -41,19 +41,28 @@ const estDom = createScreenDom('estoque', [
   'mp-val-wrap'
 ]);
 
+// ── Memo cache para calcSaldos (referência de array) ──────────────────────────
+/** @type {unknown[] | null} */ let _sProdsRef = null;
+/** @type {unknown[] | null} */ let _sMovsRef = null;
+/** @type {Record<string, { saldo: number; cm: number }> | null} */ let _sResult = null;
+
 /** @returns {Record<string, { saldo: number; cm: number }>} */
 export function calcSaldos(){
+  const prods = P();
+  const movs = MOVS() || [];
+  if(_sResult && _sProdsRef === prods && _sMovsRef === movs) return _sResult;
+
   /** @type {Record<string, { saldo: number; cm: number }>} */
   const map = {};
 
-  P().forEach(p => {
+  prods.forEach(p => {
     map[p.id] = {
       saldo: p.esal || 0,
       cm: p.ecm || p.custo || 0
     };
   });
 
-  [...(MOVS() || [])]
+  [...movs]
     .sort((a, b) => (a.ts || 0) - (b.ts || 0))
     .forEach(m => {
       const prodId = m.prodId || m.prod_id;
@@ -74,28 +83,45 @@ export function calcSaldos(){
       }
     });
 
+  _sProdsRef = prods;
+  _sMovsRef = movs;
+  _sResult = map;
   return map;
 }
+
+// ── Memo cache para calcSaldosMulti (referências por filial) ──────────────────
+/** @type {unknown[][] | null} */ let _mProdsRefs = null;
+/** @type {unknown[][] | null} */ let _mMovsRefs = null;
+/** @type {Record<string, { saldo: number; cm: number }> | null} */ let _mResult = null;
 
 /**
  * @param {string[]} filIds
  * @returns {Record<string, { saldo: number; cm: number }>}
  */
 export function calcSaldosMulti(filIds){
+  const prodsRefs = filIds.map(fid => D.produtos[fid] || []);
+  const movsRefs  = filIds.map(fid => D.movs[fid]     || []);
+
+  if(
+    _mResult &&
+    _mProdsRefs && _mMovsRefs &&
+    prodsRefs.length === _mProdsRefs.length &&
+    prodsRefs.every((r, i) => r === _mProdsRefs[i]) &&
+    movsRefs.every((r, i) => r === _mMovsRefs[i])
+  ) return _mResult;
+
   /** @type {Record<string, { saldo: number; cm: number }>} */
   const map = {};
 
-  filIds.forEach(fid => {
-    const prods = D.produtos[fid] || [];
-    prods.forEach(p => {
+  filIds.forEach((fid, idx) => {
+    prodsRefs[idx].forEach(p => {
       map[fid + '_' + p.id] = {
         saldo: p.esal || 0,
         cm: p.ecm || p.custo || 0
       };
     });
 
-    const movs = D.movs[fid] || [];
-    [...movs]
+    [...movsRefs[idx]]
       .sort((a, b) => (a.ts || 0) - (b.ts || 0))
       .forEach(m => {
         const pid = m.prodId || m.prod_id;
@@ -118,6 +144,9 @@ export function calcSaldosMulti(filIds){
       });
   });
 
+  _mProdsRefs = prodsRefs;
+  _mMovsRefs = movsRefs;
+  _mResult = map;
   return map;
 }
 

@@ -207,12 +207,20 @@ body{
 .ph p{font-size:13px;color:var(--tx2);margin-top:4px;max-width:70ch}
 
 /* ── PAGES ── */
-.pg{display:none}
-.pg.on{display:block;animation:pageIn .2s ease-out}
+.pg{
+  display:none;
+  contain:layout style;   /* isola reflow/estilo da página — não vaza pro layout pai */
+}
+.pg.on{
+  display:block;
+  animation:pageIn .2s ease-out;
+  will-change:opacity,transform; /* cria compositor layer antes da animação */
+}
 @keyframes pageIn{
   from{opacity:0;transform:translateY(4px)}
   to{opacity:1;transform:translateY(0)}
 }
+.pg.on.anim-done{will-change:auto} /* remove hint após animação para liberar layer */
 
 /* ── CARDS ── */
 .card{

@@ -135,11 +135,11 @@ function buildCampanhasContextPanel(campanhas, envios){
     cards.push(`
       <article class="context-card context-card--danger">
         <div class="context-card__head">
-          <span class="bdg br">Revisao</span>
+          <span class="bdg br">Revisão</span>
           <span class="context-card__kicker">Fila</span>
         </div>
         <div class="context-card__title">Falhas pedem tratamento manual</div>
-        <div class="context-card__copy">${resumo.falhas} envio(s) com falha no historico e precisando de revisao.</div>
+        <div class="context-card__copy">${resumo.falhas} envio${resumo.falhas !== 1 ? 's' : ''} com falha no histórico precisando de revisão.</div>
         <div class="context-card__actions">
           ${primeiraFalha ? `<button class="btn btn-sm" data-click="abrirPreviewWhatsAppEnvio('${primeiraFalha.id}')">Abrir falha</button>` : ''}
         </div>
@@ -151,11 +151,11 @@ function buildCampanhasContextPanel(campanhas, envios){
     cards.push(`
       <article class="context-card context-card--success">
         <div class="context-card__head">
-          <span class="bdg bg">Proxima acao</span>
-          <span class="context-card__kicker">Operacao</span>
+          <span class="bdg bg">Próxima ação</span>
+          <span class="context-card__kicker">Operação</span>
         </div>
-        <div class="context-card__title">Fila pronta para execucao</div>
-        <div class="context-card__copy">${resumo.pendentes} envio(s) aguardando abertura no WhatsApp manual.</div>
+        <div class="context-card__title">Fila pronta para execução</div>
+        <div class="context-card__copy">${resumo.pendentes} envio${resumo.pendentes !== 1 ? 's' : ''} aguardando abertura no WhatsApp manual.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
           ${primeiraPendente ? `<button class="btn btn-p btn-sm" data-click="abrirPreviewWhatsAppEnvio('${primeiraPendente.id}')">Primeiro envio</button>` : ''}
@@ -168,11 +168,11 @@ function buildCampanhasContextPanel(campanhas, envios){
     cards.push(`
       <article class="context-card context-card--info">
         <div class="context-card__head">
-          <span class="bdg bb">Sugestao</span>
+          <span class="bdg bb">Sugestão</span>
           <span class="context-card__kicker">Campanha</span>
         </div>
         <div class="context-card__title">Campanha ativa sem rodada recente</div>
-        <div class="context-card__copy">${primeiraAtivaSemFila.nome} esta ativa, mas ainda nao gerou fila nesta filial.</div>
+        <div class="context-card__copy">${primeiraAtivaSemFila.nome} está ativa, mas ainda não gerou fila nesta filial.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="gerarFilaCampanha('${primeiraAtivaSemFila.id}')">Gerar fila</button>
         </div>
@@ -186,7 +186,7 @@ function buildCampanhasContextPanel(campanhas, envios){
           <span class="context-card__kicker">Campanha</span>
         </div>
         <div class="context-card__title">Nenhuma campanha ativa</div>
-        <div class="context-card__copy">Sem campanha ativa, a base perde timing de relacionamento e recuperacao.</div>
+        <div class="context-card__copy">Sem campanha ativa, a base perde timing de relacionamento e recuperação.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="abrirNovaCampanha()">Nova campanha</button>
         </div>
@@ -202,7 +202,7 @@ function buildCampanhasContextPanel(campanhas, envios){
           <span class="context-card__kicker">Filial</span>
         </div>
         <div class="context-card__title">Campanhas prontas para importar</div>
-        <div class="context-card__copy">${campDiag.candidatasOutrasFiliais.length} campanha(s) existem em outras filiais e podem acelerar a operacao local.</div>
+        <div class="context-card__copy">${campDiag.candidatasOutrasFiliais.length} campanha${campDiag.candidatasOutrasFiliais.length !== 1 ? 's' : ''} de outras filiais prontas para acelerar a operação local.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="adotarCampanhasParaFilialAtiva()">Importar agora</button>
         </div>
@@ -321,7 +321,7 @@ export async function marcarSelecionadosEnviados() {
     return;
   }
 
-  if (!confirm(`Confirmar ${selecionados.length} envio(s) como enviado(s)?`)) return;
+  if (!confirm(`Confirmar ${selecionados.length} envio${selecionados.length !== 1 ? 's' : ''} como enviado${selecionados.length !== 1 ? 's' : ''}?`)) return;
 
   for (const envio of selecionados) {
     const payload = {
@@ -347,7 +347,7 @@ export async function marcarSelecionadosFalhou() {
     return;
   }
 
-  if (!confirm(`Confirmar ${selecionados.length} envio(s) como falho(s)?`)) return;
+  if (!confirm(`Confirmar ${selecionados.length} envio${selecionados.length !== 1 ? 's' : ''} como falho${selecionados.length !== 1 ? 's' : ''}?`)) return;
 
   const motivo = prompt('Informe o motivo da falha para os envios selecionados:', '') || null;
 
@@ -529,7 +529,8 @@ function renderCampDiag() {
   if (!el) return;
 
   const base = `Filial ativa: ${campDiag.filialId || '&mdash;'}`;
-  const exibidas = `${campDiag.carregadasFilial} campanha(s) exibida(s)`;
+  const _ne = campDiag.carregadasFilial;
+  const exibidas = `${_ne} campanha${_ne !== 1 ? 's' : ''} exibida${_ne !== 1 ? 's' : ''}`;
   const banco = campDiag.totalBanco == null ? '' : `${campDiag.totalBanco} no banco`;
   const outras = campDiag.outrasFiliais == null ? '' : `${campDiag.outrasFiliais} em outras filiais`;
   const origem = campDiag.origem ? `Origem: ${campDiag.origem}` : '';
@@ -674,7 +675,7 @@ export async function adotarCampanhasParaFilialAtiva() {
 
   renderCampanhasMet();
   renderCampanhas();
-  toast(`Importacao concluida: ${importadas} campanha(s), ${falhasPersistencia} falha(s) de persistencia.`);
+  toast(`Importação concluída: ${importadas} campanha${importadas !== 1 ? 's' : ''}, ${falhasPersistencia} falha${falhasPersistencia !== 1 ? 's' : ''}.`);
 }
 
 export function limparFormCampanha() {

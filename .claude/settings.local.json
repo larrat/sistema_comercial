@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(awk -F: 'NR==1')"
+      "Bash(awk -F: 'NR==1')",
+      "Bash(wc -l e:/Programas/sistema_comercial/sql/*.sql)",
+      "Bash(wc -l e:/Programas/sistema_comercial/supabase/functions/_shared/*.ts e:/Programas/sistema_comercial/supabase/functions/*/index.ts)"
     ]
   }
 }

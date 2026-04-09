@@ -146,29 +146,31 @@ function buildDashboardContextualPanel({
   const cards = [];
 
   if(crit.length){
+    const n = crit.length;
     cards.push(`
       <article class="context-card context-card--danger">
         <div class="context-card__head">
           <span class="bdg br">Prioridade</span>
           <span class="context-card__kicker">Estoque</span>
         </div>
-        <div class="context-card__title">Reposicao imediata</div>
-        <div class="context-card__copy">${crit.length} produto(s) estao zerados e precisam de reposicao agora.</div>
-        <div class="context-card__meta">${crit.slice(0, 3).map(p => p.nome).join(', ')}${crit.length > 3 ? '...' : ''}</div>
+        <div class="context-card__title">Reposição imediata</div>
+        <div class="context-card__copy">${n} produto${n !== 1 ? 's' : ''} zerado${n !== 1 ? 's' : ''} — reposição necessária agora.</div>
+        <div class="context-card__meta">${crit.slice(0, 3).map(p => p.nome).join(', ')}${n > 3 ? '...' : ''}</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="ir('estoque')">Abrir estoque</button>
         </div>
       </article>
     `);
   }else if(baixo.length){
+    const n = baixo.length;
     cards.push(`
       <article class="context-card context-card--warning">
         <div class="context-card__head">
-          <span class="bdg ba">Atencao</span>
+          <span class="bdg ba">Atenção</span>
           <span class="context-card__kicker">Estoque</span>
         </div>
-        <div class="context-card__title">Itens proximos do minimo</div>
-        <div class="context-card__copy">${baixo.length} item(ns) estao abaixo do nivel ideal e merecem revisao.</div>
+        <div class="context-card__title">Itens próximos do mínimo</div>
+        <div class="context-card__copy">${n} item${n !== 1 ? 'ns' : ''} abaixo do nível ideal — revisão recomendada.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="ir('estoque')">Revisar estoque</button>
         </div>
@@ -177,14 +179,16 @@ function buildDashboardContextualPanel({
   }
 
   if(oportunidades.length){
+    const n = oportunidades.length;
+    const nh = oportunidadesHoje.length;
     cards.push(`
       <article class="context-card context-card--success">
         <div class="context-card__head">
-          <span class="bdg bg">Acao sugerida</span>
+          <span class="bdg bg">Ação sugerida</span>
           <span class="context-card__kicker">Campanhas</span>
         </div>
-        <div class="context-card__title">Clientes prontos para ativacao</div>
-        <div class="context-card__copy">${oportunidades.length} oportunidade(s) por jogos na semana, sendo ${oportunidadesHoje.length} para hoje.</div>
+        <div class="context-card__title">Clientes prontos para ativação</div>
+        <div class="context-card__copy">${n} oportunidade${n !== 1 ? 's' : ''} por jogos na semana, sendo ${nh} para hoje.</div>
         <div class="context-card__meta">${oportunidades.slice(0, 2).map(o => `${o.cliente} (${o.time})`).join(', ')}</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="ir('campanhas')">Abrir campanhas</button>
@@ -195,14 +199,16 @@ function buildDashboardContextualPanel({
   }
 
   if(anivProximos.length || clientesSemAniversario > 0){
+    const na = anivProximos.length;
+    const ns = clientesSemAniversario;
     cards.push(`
       <article class="context-card context-card--info">
         <div class="context-card__head">
           <span class="bdg bb">Relacionamento</span>
           <span class="context-card__kicker">Clientes</span>
         </div>
-        <div class="context-card__title">Base pronta para calendario comercial</div>
-        <div class="context-card__copy">${anivProximos.length} aniversario(s) nos proximos 7 dias e ${clientesSemAniversario} cadastro(s) sem data.</div>
+        <div class="context-card__title">Base pronta para calendário comercial</div>
+        <div class="context-card__copy">${na} aniversário${na !== 1 ? 's' : ''} nos próximos 7 dias e ${ns} cadastro${ns !== 1 ? 's' : ''} sem data.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="ir('clientes')">Revisar clientes</button>
         </div>
@@ -218,7 +224,7 @@ function buildDashboardContextualPanel({
           <span class="context-card__kicker">Pedidos</span>
         </div>
         <div class="context-card__title">Converter pedidos antes de perder margem</div>
-        <div class="context-card__copy">${abertos} pedido(s) em aberto com margem de ${pct(mg)} no periodo.</div>
+        <div class="context-card__copy">${abertos} pedido${abertos !== 1 ? 's' : ''} em aberto com margem de ${pct(mg)} no período.</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="ir('pedidos')">Abrir pedidos</button>
         </div>
@@ -232,7 +238,7 @@ function buildDashboardContextualPanel({
     <div class="context-panel context-panel--dashboard">
       <div class="context-panel__head">
         <div class="context-panel__title">Contexto sugerido</div>
-        <div class="context-panel__sub">Prioridades e proximas acoes com base no momento atual da filial</div>
+        <div class="context-panel__sub">Prioridades e próximas ações com base no momento atual da filial</div>
       </div>
       <div class="context-panel__grid">
         ${cards.slice(0, 3).join('')}
@@ -587,14 +593,14 @@ export function renderDash(){
     ah += `
       <div class="alert al-r dash-alert-card">
         <div class="dash-alert-card__title"><b>Estoque crítico</b></div>
-        <div class="dash-alert-card__copy">${crit.length} produto(s) zerado(s). ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? '...' : ''}</div>
+        <div class="dash-alert-card__copy">${crit.length} produto${crit.length !== 1 ? 's' : ''} zerado${crit.length !== 1 ? 's' : ''}. ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? '...' : ''}</div>
       </div>`;
   }
   if(baixo.length){
     ah += `
       <div class="alert al-a dash-alert-card">
         <div class="dash-alert-card__title"><b>Estoque em atenção</b></div>
-        <div class="dash-alert-card__copy">${baixo.length} item(ns) abaixo do mínimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '...' : ''}</div>
+        <div class="dash-alert-card__copy">${baixo.length} item${baixo.length !== 1 ? 'ns' : ''} abaixo do mínimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '...' : ''}</div>
       </div>`;
   }
 
@@ -619,7 +625,7 @@ export function renderDash(){
   const clientesSemAniversario = Math.max(0, clientesFilial.length - clientesComAniversario.length);
 
   if(clientesFilial.length && clientesSemAniversario > 0){
-    ah += `<div class="alert al-a"><b>Aniversário pendente:</b> ${clientesSemAniversario} cliente(s) sem data de aniversário cadastrada.</div>`;
+    ah += `<div class="alert al-a"><b>Aniversário pendente:</b> ${clientesSemAniversario} cliente${clientesSemAniversario !== 1 ? 's' : ''} sem data de aniversário cadastrada.</div>`;
   }
 
   if(anivProximos.length){
@@ -648,7 +654,7 @@ export function renderDash(){
 
   if(oportunidades.length){
     const serieTxt = serieSel === 'todas' ? 'todas as séries' : `Série ${serieSel.toUpperCase()}`;
-    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegível(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '...' : ''}</div>`;
+    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente${oportunidades.length !== 1 ? 's' : ''} elegível${oportunidades.length !== 1 ? 'is' : ''} na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '...' : ''}</div>`;
   }
 
   const contextHtml = buildDashboardContextualPanel({

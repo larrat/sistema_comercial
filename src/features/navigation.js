@@ -599,13 +599,29 @@ export function renderQuickLinks(meta){
   });
 }
 
+/** @type {string} */
+let _activePage = '';
+
 function setActivePageVisibility(nextPage){
-  document.querySelectorAll('.pg').forEach(page => {
-    if(!(page instanceof HTMLElement)) return;
-    const isActive = page.id === `pg-${nextPage}`;
-    page.classList.toggle('on', isActive);
-    page.style.display = isActive ? 'block' : 'none';
-  });
+  if(_activePage === nextPage) return;
+
+  const prevEl = _activePage ? document.getElementById(`pg-${_activePage}`) : null;
+  const nextEl = document.getElementById(`pg-${nextPage}`);
+
+  if(prevEl instanceof HTMLElement){
+    prevEl.classList.remove('on', 'anim-done');
+    prevEl.style.display = 'none';
+  }
+  if(nextEl instanceof HTMLElement){
+    nextEl.classList.remove('anim-done');
+    nextEl.classList.add('on');
+    nextEl.style.display = 'block';
+    nextEl.addEventListener('animationend', () => {
+      nextEl.classList.add('anim-done');
+    }, { once: true });
+  }
+
+  _activePage = nextPage;
   document.body.dataset.currentPage = nextPage;
 }
 
