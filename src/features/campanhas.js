@@ -81,7 +81,7 @@ function labelCanal(v){
   if(key === 'whatsapp_manual') return 'WhatsApp manual';
   if(key === 'email') return 'E-mail';
   if(key === 'sms') return 'SMS';
-  return key || '—';
+  return key || '&mdash;';
 }
 
 function labelStatusEnvio(status){
@@ -90,7 +90,7 @@ function labelStatusEnvio(status){
   if(key === 'pendente') return 'Pendente';
   if(key === 'enviado') return 'Enviado';
   if(key === 'falhou') return 'Falhou';
-  return key || '—';
+  return key || '&mdash;';
 }
 
 export async function desfazerStatusEnvio(envioId) {
@@ -422,16 +422,30 @@ function renderCampDiag() {
   const el = document.getElementById('camp-diag');
   if (!el) return;
 
-  const base = `Filial ativa: ${campDiag.filialId || '—'} - campanhas exibidas: ${campDiag.carregadasFilial}`;
-  const banco = campDiag.totalBanco == null ? '' : ` - total no banco: ${campDiag.totalBanco}`;
-  const outras = campDiag.outrasFiliais == null ? '' : ` - outras filiais: ${campDiag.outrasFiliais}`;
-  const origem = campDiag.origem ? ` - origem: ${campDiag.origem}` : '';
+  const base = `Filial ativa: ${campDiag.filialId || '&mdash;'}`;
+  const exibidas = `${campDiag.carregadasFilial} campanha(s) exibida(s)`;
+  const banco = campDiag.totalBanco == null ? '' : `${campDiag.totalBanco} no banco`;
+  const outras = campDiag.outrasFiliais == null ? '' : `${campDiag.outrasFiliais} em outras filiais`;
+  const origem = campDiag.origem ? `Origem: ${campDiag.origem}` : '';
   const podeImportar = (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
   const acao = podeImportar
     ? ` <button class="btn btn-sm camp-diag-action" data-click="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
     : '';
 
-  el.innerHTML = `<div class="alert al-a camp-diag-alert">Info: ${base}${banco}${outras}${origem}${acao}</div>`;
+  el.innerHTML = `
+    <div class="alert al-a camp-diag-alert camp-diag-panel">
+      <div class="camp-diag-panel__main">
+        <div class="camp-diag-panel__title">Diagn&oacute;stico da base de campanhas</div>
+        <div class="camp-diag-panel__copy">${base}</div>
+      </div>
+      <div class="camp-diag-panel__meta">
+        <span class="bdg bk">${exibidas}</span>
+        ${banco ? `<span class="bdg bb">${banco}</span>` : ''}
+        ${outras ? `<span class="bdg ba">${outras}</span>` : ''}
+        ${origem ? `<span class="bdg bk">${origem}</span>` : ''}
+      </div>
+      ${acao ? `<div class="camp-diag-panel__actions">${acao}</div>` : ''}
+    </div>`;
 }
 
 export async function carregarCampanhas() {
@@ -714,15 +728,30 @@ export function renderCampanhasMet() {
   const ativas = campanhas.filter(c => c.ativo).length;
   const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual').length;
   const enviados = envios.filter(e => e.status === 'enviado').length;
+  const falhas = envios.filter(e => e.status === 'falhou').length;
 
   const el = document.getElementById('camp-met');
   if (!el) return;
 
   el.innerHTML = `
-    <div class="met"><div class="ml">Campanhas</div><div class="mv">${campanhas.length}</div></div>
-    <div class="met"><div class="ml">Ativas</div><div class="mv">${ativas}</div></div>
-    <div class="met"><div class="ml">Fila</div><div class="mv">${pendentes}</div></div>
-    <div class="met"><div class="ml">Enviados</div><div class="mv">${enviados}</div></div>
+    <div class="met metric-card camp-metric-card">
+      <div class="metric-card__eyebrow">Base</div>
+      <div class="ml">Campanhas</div>
+      <div class="mv">${campanhas.length}</div>
+      <div class="ms metric-card__foot">${ativas} ativa(s) no momento</div>
+    </div>
+    <div class="met metric-card camp-metric-card">
+      <div class="metric-card__eyebrow">Opera&ccedil;&atilde;o</div>
+      <div class="ml">Fila</div>
+      <div class="mv">${pendentes}</div>
+      <div class="ms metric-card__foot">${falhas} falha(s) aguardando revis&atilde;o</div>
+    </div>
+    <div class="met metric-card camp-metric-card">
+      <div class="metric-card__eyebrow">Resultado</div>
+      <div class="ml">Enviados</div>
+      <div class="mv">${enviados}</div>
+      <div class="ms metric-card__foot">${envios.length} envio(s) no hist&oacute;rico</div>
+    </div>
   `;
 }
 
@@ -739,7 +768,7 @@ export function renderCampanhas() {
 
   if (!campanhas.length) {
     el.innerHTML = `
-      <div class="camp-quick">
+      <div class="camp-quick camp-summary-strip">
         <span class="bdg bb">Fila: ${pendentes}</span>
         <span class="bdg br">Falhas: ${falhas}</span>
         <span class="bdg bg">Enviadas: ${enviadas}</span>
@@ -752,7 +781,7 @@ export function renderCampanhas() {
   const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if(isMobile){
     el.innerHTML = `
-      <div class="camp-quick">
+      <div class="camp-quick camp-summary-strip">
         <span class="bdg bb">Fila: ${pendentes}</span>
         <span class="bdg br">Falhas: ${falhas}</span>
         <span class="bdg bg">Enviadas: ${enviadas}</span>
@@ -774,7 +803,7 @@ export function renderCampanhas() {
         <div class="mobile-card-meta">
           <div>Antecedencia: <b class="meta-emphasis">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
           <div>Desconto: <b class="meta-emphasis">${Number(c.desconto || 0)}%</b></div>
-          <div>Cupom: <b class="meta-emphasis">${c.cupom || '—'}</b></div>
+          <div>Cupom: <b class="meta-emphasis">${c.cupom || '&mdash;'}</b></div>
         </div>
 
         <div class="mobile-card-actions">
@@ -790,7 +819,7 @@ export function renderCampanhas() {
   }
 
   el.innerHTML = `
-    <div class="camp-quick">
+    <div class="camp-quick camp-summary-strip">
       <span class="bdg bb">Fila: ${pendentes}</span>
       <span class="bdg br">Falhas: ${falhas}</span>
       <span class="bdg bg">Enviadas: ${enviadas}</span>
@@ -817,7 +846,7 @@ export function renderCampanhas() {
               <td><span class="bdg bb">${labelCanal(c.canal)}</span></td>
               <td>${Number(c.dias_antecedencia || 0)} dia(s)</td>
               <td>${Number(c.desconto || 0)}%</td>
-              <td>${c.cupom || '—'}</td>
+              <td>${c.cupom || '&mdash;'}</td>
               <td>
                 <div class="fg2 gap-4">
                   ${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
@@ -899,7 +928,7 @@ export function abrirCampanhaDet(campanhaId) {
                 <div class="camp-detail-row">
                   <div class="camp-detail-row-main">
                     <div class="camp-detail-row-title">${cliente?.nome || envio.cliente_id}</div>
-                    <div class="camp-detail-row-sub">${envio.destino || '—'} - ${formatarDataBR(envio.data_ref)}${envio.criado_em ? ` - ${new Date(envio.criado_em).toLocaleString('pt-BR')}` : ''}</div>
+                    <div class="camp-detail-row-sub">${envio.destino || '&mdash;'} - ${formatarDataBR(envio.data_ref)}${envio.criado_em ? ` - ${new Date(envio.criado_em).toLocaleString('pt-BR')}` : ''}</div>
                   </div>
                   <span class="bdg ${envio.status === 'enviado' ? 'bg' : envio.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(envio.status)}</span>
                 </div>
@@ -1006,7 +1035,7 @@ export function renderFilaWhatsApp() {
 
   if(isMobile){
     el.innerHTML = `
-      <div class="camp-quick">
+      <div class="camp-quick camp-summary-strip">
         <span class="bdg bb">Pendentes: ${pendentes}</span>
         <span class="bdg br">Falhas: ${falhas}</span>
         <span class="bdg bk">Selecionados: ${selecionados}</span>
@@ -1019,12 +1048,12 @@ export function renderFilaWhatsApp() {
             <div class="mobile-card-head">
               <div class="mobile-card-grow">
                 <div class="mobile-card-title">${cliente?.nome || e.cliente_id}</div>
-                <div class="mobile-card-sub">${campanha?.nome || '—'} - ${formatarDataBR(e.data_ref)}</div>
+                <div class="mobile-card-sub">${campanha?.nome || '&mdash;'} - ${formatarDataBR(e.data_ref)}</div>
               </div>
               <label class="camp-select-chip"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"><span>Selecionar</span></label>
             </div>
             <div class="mobile-card-meta">
-              <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
+              <div>Destino: <b class="meta-emphasis">${e.destino || '&mdash;'}</b></div>
               <div>Canal: <b class="table-cell-muted">${labelCanal(e.canal)}</b></div>
               <div>Status: <b class="table-cell-muted">${labelStatusEnvio(e.status)}</b></div>
             </div>
@@ -1041,7 +1070,7 @@ export function renderFilaWhatsApp() {
   }
 
   el.innerHTML = `
-    <div class="camp-quick">
+    <div class="camp-quick camp-summary-strip">
       <span class="bdg bb">Pendentes: ${pendentes}</span>
       <span class="bdg br">Falhas: ${falhas}</span>
       <span class="bdg bk">Selecionados: ${selecionados}</span>
@@ -1068,8 +1097,8 @@ export function renderFilaWhatsApp() {
               <tr>
                 <td class="table-align-center"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"></td>
                 <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
-                <td>${e.destino || '—'}</td>
-                <td>${campanha?.nome || '—'}</td>
+                <td>${e.destino || '&mdash;'}</td>
+                <td>${campanha?.nome || '&mdash;'}</td>
                 <td>${formatarDataBR(e.data_ref)}</td>
                 <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
                 <td>
@@ -1113,8 +1142,8 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
                 <span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span>
               </div>
               <div class="mobile-card-meta">
-                <div>Destino: <b class="meta-emphasis">${e.destino || '—'}</b></div>
-                <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</b></div>
+                <div>Destino: <b class="meta-emphasis">${e.destino || '&mdash;'}</b></div>
+                <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '&mdash;'}</b></div>
                 ${isStatusFeedbackAtivo(e.id) ? `<div><span class="bdg bb">Atualizado agora</span></div>` : ''}
               </div>
               ${(e.status === 'enviado' || e.status === 'falhou') ? `
@@ -1160,11 +1189,11 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
                 <tr class="${isStatusFeedbackAtivo(e.id) ? 'camp-history-row-fresh' : ''}">
                   <td class="table-cell-strong">${cliente?.nome || e.cliente_id}</td>
                   <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
-                  <td>${e.destino || '—'}</td>
+                  <td>${e.destino || '&mdash;'}</td>
                   <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
                   <td>${formatarDataBR(e.data_ref)}</td>
-                  <td>${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '—'}</td>
-                  <td>${(e.status === 'enviado' || e.status === 'falhou') ? `<button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer</button>` : '—'}</td>
+                  <td>${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '&mdash;'}</td>
+                  <td>${(e.status === 'enviado' || e.status === 'falhou') ? `<button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer</button>` : '&mdash;'}</td>
                 </tr>
               `;
             }).join('')}
@@ -1203,11 +1232,11 @@ function renderPreviewWhatsAppAtual() {
       <div class="camp-wa-preview-grid">
         <div class="camp-wa-preview-field">
           <div class="camp-detail-label">Numero</div>
-          <div class="camp-wa-preview-value">${envio.destino || '—'}</div>
+          <div class="camp-wa-preview-value">${envio.destino || '&mdash;'}</div>
         </div>
         <div class="camp-wa-preview-field">
           <div class="camp-detail-label">Data de referencia</div>
-          <div class="camp-wa-preview-value">${formatarDataBR(envio.data_ref) || '—'}</div>
+          <div class="camp-wa-preview-value">${formatarDataBR(envio.data_ref) || '&mdash;'}</div>
         </div>
       </div>
 

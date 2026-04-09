@@ -3695,6 +3695,96 @@ textarea.inp:focus{
   color:#7A5A00;
 }
 
+#pg-campanhas.camp-bento-page{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:var(--space-5);
+  align-items:start;
+}
+
+#pg-campanhas.camp-bento-page > #camp-met,
+#pg-campanhas.camp-bento-page > #camp-diag{
+  grid-column:1 / -1;
+}
+
+#pg-campanhas .camp-bento-band--metrics{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--space-4);
+  padding:var(--space-5);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.14), transparent 28%),
+    linear-gradient(180deg,var(--shell-topbar-top),var(--shell-card-bottom)),
+    var(--surf);
+  box-shadow:var(--shadow-sm);
+}
+
+#pg-campanhas .camp-bento-card{
+  min-width:0;
+}
+
+#pg-campanhas .camp-bento-card--catalog,
+#pg-campanhas .camp-bento-card--history{
+  grid-column:span 7;
+}
+
+#pg-campanhas .camp-bento-card--queue{
+  grid-column:span 5;
+}
+
+#pg-campanhas .camp-metric-card{
+  min-height:132px;
+  align-items:flex-start;
+  text-align:left;
+  gap:var(--space-2);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-lg);
+  background:linear-gradient(180deg,var(--shell-highlight-strong),var(--shell-card-bottom));
+  box-shadow:none;
+}
+
+#pg-campanhas .camp-summary-strip{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+}
+
+.camp-diag-panel{
+  display:grid;
+  gap:12px;
+}
+
+.camp-diag-panel__main{
+  display:grid;
+  gap:4px;
+}
+
+.camp-diag-panel__title{
+  font-size:14px;
+  font-weight:700;
+  color:inherit;
+}
+
+.camp-diag-panel__copy{
+  color:inherit;
+  line-height:1.45;
+}
+
+.camp-diag-panel__meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+
+.camp-diag-panel__actions{
+  display:flex;
+  justify-content:flex-start;
+}
+
 #pg-campanhas .camp-quick{
   display:flex;
   flex-wrap:wrap;
@@ -3772,7 +3862,29 @@ textarea.inp:focus{
   box-shadow:0 8px 18px rgba(31,72,143,.16);
 }
 
+@media(max-width:1180px){
+  #pg-campanhas .camp-bento-card--catalog,
+  #pg-campanhas .camp-bento-card--queue,
+  #pg-campanhas .camp-bento-card--history{
+    grid-column:1 / -1;
+  }
+}
+
 @media(max-width:760px){
+  #pg-campanhas .camp-bento-band--metrics{
+    grid-template-columns:1fr;
+    padding:var(--space-4);
+  }
+
+  #pg-campanhas .camp-metric-card{
+    align-items:center;
+    text-align:center;
+  }
+
+  #pg-campanhas .camp-summary-strip{
+    align-items:flex-start;
+  }
+
   .sb{
     width:236px;
     overflow-y:auto;
