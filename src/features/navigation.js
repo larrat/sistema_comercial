@@ -11,6 +11,51 @@ import { markInvalidation, markRender } from '../shared/render-metrics.js';
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
 const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
 const MOBILE_MENU_FAB_IDLE_MS = 1600;
+const THEME_KEY = 'sc_theme_v1';
+
+/** @type {'auto'|'light'|'dark'} */
+const THEME_CYCLE = /** @type {const} */ (['auto', 'light', 'dark']);
+
+const THEME_LABELS = { auto: 'Auto', light: 'Claro', dark: 'Escuro' };
+
+/**
+ * Lê o tema salvo no localStorage.
+ * @returns {'auto'|'light'|'dark'}
+ */
+function getStoredTheme(){
+  const raw = localStorage.getItem(THEME_KEY);
+  if(raw === 'light' || raw === 'dark') return raw;
+  return 'auto';
+}
+
+/**
+ * Aplica o tema no HTML e atualiza o botão.
+ * @param {'auto'|'light'|'dark'} theme
+ */
+function applyTheme(theme){
+  const html = document.documentElement;
+  if(theme === 'auto'){
+    html.removeAttribute('data-theme');
+  } else {
+    html.setAttribute('data-theme', theme);
+  }
+  localStorage.setItem(THEME_KEY, theme);
+  const btn = document.getElementById('sb-theme-toggle');
+  if(btn) btn.textContent = THEME_LABELS[theme] || 'Auto';
+}
+
+export function initTheme(){
+  applyTheme(getStoredTheme());
+  const btn = document.getElementById('sb-theme-toggle');
+  if(!btn || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  btn.addEventListener('click', () => {
+    const current = getStoredTheme();
+    const idx = THEME_CYCLE.indexOf(current);
+    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+    applyTheme(next);
+  });
+}
 
 /** @type {Required<NavigationModuleDeps>} */
 let deps = {

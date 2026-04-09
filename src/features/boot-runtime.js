@@ -118,6 +118,7 @@
  *   registry: ModuleRegistryLike
  *   deps: {
  *     initDomBindings: () => void
+ *     initTheme: () => void
  *     initGlobalMicroInteractions: () => void
  *     initGoalTracking: () => void
  *     initQuickCommand: () => void
@@ -352,6 +353,7 @@ export function startApplicationRuntime({ appContext, registry, deps }){
     }
 
     deps.initDomBindings();
+    deps.initTheme();
     deps.initGlobalMicroInteractions();
     deps.initGoalTracking();
     deps.initQuickCommand();

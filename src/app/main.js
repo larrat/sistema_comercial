@@ -240,6 +240,7 @@ import {
 
 import {
   initNavigationModule,
+  initTheme,
   pageAtual,
   filterSidebarNav,
   initSidebarEnhancements,
@@ -740,6 +741,7 @@ startApplicationRuntime({
       setFiltroNotificacoes,
       executarAcaoGerencial
     }),
+    initTheme,
     initGlobalMicroInteractions,
     initGoalTracking,
     initQuickCommand,
