@@ -9288,3 +9288,33 @@ html[data-theme="dark"] .qcmd-box{
   border-color:var(--shell-border-subtle);
   box-shadow:0 8px 40px rgba(0,0,0,.5);
 }
+
+/* =========================================================
+   PERFORMANCE SHELL
+   ========================================================= */
+
+.pg > .card,
+.pg > .card-shell,
+.pg > .bento-band,
+.pg > .context-panel,
+.tw,
+#prod-lista,
+#cli-lista,
+#ped-lista,
+#est-posicao,
+#est-hist,
+#camp-lista,
+#camp-wa-fila,
+#camp-envios-lista,
+#noti-lista{
+  content-visibility:auto;
+  contain-intrinsic-size:auto 320px;
+}
+
+.dash-bento-grid,
+.camp-bento-grid,
+.rel-bento-grid,
+.cot-bento-grid,
+.ger-bento-grid{
+  contain:layout style;
+}

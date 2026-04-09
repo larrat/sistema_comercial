@@ -44,13 +44,21 @@ const estDom = createScreenDom('estoque', [
 // ── Memo cache para calcSaldos (referência de array) ──────────────────────────
 /** @type {unknown[] | null} */ let _sProdsRef = null;
 /** @type {unknown[] | null} */ let _sMovsRef = null;
+let _sProdsLen = -1;
+let _sMovsLen = -1;
 /** @type {Record<string, { saldo: number; cm: number }> | null} */ let _sResult = null;
 
 /** @returns {Record<string, { saldo: number; cm: number }>} */
 export function calcSaldos(){
   const prods = P();
   const movs = MOVS() || [];
-  if(_sResult && _sProdsRef === prods && _sMovsRef === movs) return _sResult;
+  if(
+    _sResult &&
+    _sProdsRef === prods &&
+    _sMovsRef === movs &&
+    _sProdsLen === prods.length &&
+    _sMovsLen === movs.length
+  ) return _sResult;
 
   /** @type {Record<string, { saldo: number; cm: number }>} */
   const map = {};
@@ -85,6 +93,8 @@ export function calcSaldos(){
 
   _sProdsRef = prods;
   _sMovsRef = movs;
+  _sProdsLen = prods.length;
+  _sMovsLen = movs.length;
   _sResult = map;
   return map;
 }
@@ -92,6 +102,8 @@ export function calcSaldos(){
 // ── Memo cache para calcSaldosMulti (referências por filial) ──────────────────
 /** @type {unknown[][] | null} */ let _mProdsRefs = null;
 /** @type {unknown[][] | null} */ let _mMovsRefs = null;
+/** @type {number[] | null} */ let _mProdsLens = null;
+/** @type {number[] | null} */ let _mMovsLens = null;
 /** @type {Record<string, { saldo: number; cm: number }> | null} */ let _mResult = null;
 
 /**
@@ -101,13 +113,18 @@ export function calcSaldos(){
 export function calcSaldosMulti(filIds){
   const prodsRefs = filIds.map(fid => D.produtos[fid] || []);
   const movsRefs  = filIds.map(fid => D.movs[fid]     || []);
+  const prodsLens = prodsRefs.map(items => items.length);
+  const movsLens = movsRefs.map(items => items.length);
 
   if(
     _mResult &&
     _mProdsRefs && _mMovsRefs &&
+    _mProdsLens && _mMovsLens &&
     prodsRefs.length === _mProdsRefs.length &&
     prodsRefs.every((r, i) => r === _mProdsRefs[i]) &&
-    movsRefs.every((r, i) => r === _mMovsRefs[i])
+    movsRefs.every((r, i) => r === _mMovsRefs[i]) &&
+    prodsLens.every((len, i) => len === _mProdsLens[i]) &&
+    movsLens.every((len, i) => len === _mMovsLens[i])
   ) return _mResult;
 
   /** @type {Record<string, { saldo: number; cm: number }>} */
@@ -146,6 +163,8 @@ export function calcSaldosMulti(filIds){
 
   _mProdsRefs = prodsRefs;
   _mMovsRefs = movsRefs;
+  _mProdsLens = prodsLens;
+  _mMovsLens = movsLens;
   _mResult = map;
   return map;
 }
