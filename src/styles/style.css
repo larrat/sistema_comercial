@@ -9059,3 +9059,140 @@ input[type="search"]:focus-visible{
   }
 }
 
+/* =========================================================
+   BENTO SHELL — PEDIDOS / PRODUTOS / ESTOQUE
+   ========================================================= */
+
+/* ── Layout base das páginas bento ── */
+.ped-bento-page,
+.prod-bento-page,
+.est-bento-page,
+.rel-bento-page,
+.cot-bento-page,
+.ger-bento-page{
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-5);
+}
+
+/* ── tab containers bento (flex column com gap, igual à página) ── */
+.rel-bento-tab,
+.cot-bento-tab{
+  display:flex;
+  flex-direction:column;
+  gap:var(--space-5);
+}
+
+/* ── grids de 2 colunas para cards de análise ── */
+.rel-bento-grid,
+.cot-bento-grid,
+.ger-bento-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:var(--space-5);
+  align-items:start;
+}
+
+/* card full-width dentro de grid bento */
+.ger-bento-card--full{
+  grid-column:1 / -1;
+}
+
+@media(max-width:900px){
+  .rel-bento-grid,
+  .cot-bento-grid,
+  .ger-bento-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* ── Metrics band compartilhada ── */
+.bento-band{
+  padding:var(--space-5);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.1), transparent 32%),
+    linear-gradient(180deg,var(--shell-topbar-top),var(--shell-card-bottom)),
+    var(--surf);
+  box-shadow:var(--shadow-sm);
+}
+
+/* override do gap do .mg quando dentro do bento-band */
+.bento-band.mg{
+  gap:var(--space-4);
+}
+
+/* met cards dentro da band */
+.bento-band .met{
+  min-height:108px;
+  align-items:flex-start;
+  text-align:left;
+  gap:var(--space-2);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-lg);
+  background:linear-gradient(180deg,var(--shell-highlight-strong),var(--shell-card-bottom));
+  box-shadow:none;
+}
+
+/* ── toolbar-shell--section: toolbar integrada ao card-shell ── */
+.card-shell > .toolbar-shell--section{
+  margin:0;
+  border-bottom:1px solid var(--bd);
+  padding-bottom:var(--space-4);
+}
+
+/* ── Responsive: mobile stack ── */
+@media(max-width:760px){
+  .bento-band.mg{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .bento-band .met{
+    min-height:80px;
+  }
+}
+
+/* ── Dark mode overrides para bento-band ── */
+@media(prefers-color-scheme:dark){
+  html:not([data-theme="light"]) .bento-band{
+    background:
+      radial-gradient(circle at top right, rgba(126,162,255,.18), transparent 30%),
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+      linear-gradient(180deg,var(--shell-topbar-top),var(--shell-card-bottom)),
+      var(--surf);
+    border-color:var(--shell-border-subtle);
+  }
+
+  html:not([data-theme="light"]) .bento-band .met{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+      linear-gradient(180deg,var(--shell-highlight-strong),var(--shell-card-bottom));
+    border-color:rgba(149,178,255,.18);
+  }
+
+  html:not([data-theme="light"]) .card-shell > .toolbar-shell--section{
+    border-bottom-color:var(--shell-border-subtle);
+  }
+}
+
+html[data-theme="dark"] .bento-band{
+  background:
+    radial-gradient(circle at top right, rgba(126,162,255,.18), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+    linear-gradient(180deg,var(--shell-topbar-top),var(--shell-card-bottom)),
+    var(--surf);
+  border-color:var(--shell-border-subtle);
+}
+
+html[data-theme="dark"] .bento-band .met{
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+    linear-gradient(180deg,var(--shell-highlight-strong),var(--shell-card-bottom));
+  border-color:rgba(149,178,255,.18);
+}
+
+html[data-theme="dark"] .card-shell > .toolbar-shell--section{
+  border-bottom-color:var(--shell-border-subtle);
+}
+

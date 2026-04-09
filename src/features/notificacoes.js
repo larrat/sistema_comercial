@@ -420,6 +420,77 @@ function renderNotiMetric(label, value, style = ''){
   return `<div class="met"><div class="ml">${label}</div><div class="mv"${style ? ` style="${style}"` : ''}>${value}</div></div>`;
 }
 
+/**
+ * @param {NotificationItem[]} ativos
+ * @param {{ critico: number, atencao: number, oportunidade: number, total: number }} resumo
+ */
+function renderNotiContextCard(ativos, resumo){
+  const el = document.getElementById('noti-context');
+  if(!el) return;
+
+  if(!ativos.length){
+    el.innerHTML = `
+      <article class="context-card context-card--success">
+        <div class="context-card__head">
+          <span class="bdg bb">IA</span>
+          <span class="context-card__kicker">Notificações</span>
+        </div>
+        <div class="context-card__title">Inbox zerada — tudo em ordem</div>
+        <div class="context-card__copy">Nenhuma notificação ativa no momento. Continue monitorando para antecipar problemas antes que afetem operações.</div>
+      </article>`;
+    return;
+  }
+
+  if(resumo.critico > 0){
+    const origens = [...new Set(ativos.filter(n => n.prioridade === 'critico').map(n => n.origem))].join(', ');
+    el.innerHTML = `
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Crítico</span>
+          <span class="context-card__kicker">Notificações</span>
+        </div>
+        <div class="context-card__title">${resumo.critico} alerta${resumo.critico > 1 ? 's' : ''} crítico${resumo.critico > 1 ? 's' : ''} exigem ação imediata</div>
+        <div class="context-card__copy">Situações críticas identificadas em: ${origens}. Resolva primeiro para evitar impacto direto na operação.</div>
+        <div class="context-card__meta">${resumo.total} notificações ativas no total</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="setFiltroNotificacoes('critico')">Ver críticos</button>
+        </div>
+      </article>`;
+    return;
+  }
+
+  if(resumo.atencao > 0){
+    const origens = [...new Set(ativos.filter(n => n.prioridade === 'atencao').map(n => n.origem))].join(', ');
+    el.innerHTML = `
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Atenção</span>
+          <span class="context-card__kicker">Notificações</span>
+        </div>
+        <div class="context-card__title">${resumo.atencao} item${resumo.atencao > 1 ? 'ns' : ''} pedindo atenção</div>
+        <div class="context-card__copy">Pontos de atenção em: ${origens}. Endereçar agora evita escalada para crítico.</div>
+        <div class="context-card__meta">${resumo.total} notificações ativas no total</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="setFiltroNotificacoes('atencao')">Ver atenções</button>
+        </div>
+      </article>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <article class="context-card context-card--success">
+      <div class="context-card__head">
+        <span class="bdg bb">Oportunidade</span>
+        <span class="context-card__kicker">Notificações</span>
+      </div>
+      <div class="context-card__title">${resumo.oportunidade} oportunidade${resumo.oportunidade > 1 ? 's' : ''} para aproveitar</div>
+      <div class="context-card__copy">Nenhum alerta crítico ou de atenção. Confira as oportunidades mapeadas para ação proativa.</div>
+      <div class="context-card__actions">
+        <button class="btn btn-sm" data-click="setFiltroNotificacoes('oportunidade')">Ver oportunidades</button>
+      </div>
+    </article>`;
+}
+
 export function renderNotificacoes(){
   const met = document.getElementById('noti-met');
   const lista = document.getElementById('noti-lista');
@@ -436,6 +507,8 @@ export function renderNotificacoes(){
     ? ativosAll
     : ativosAll.filter(n => n.prioridade === notiFiltroPrioridade);
   const resumo = getNotificacoesResumo();
+
+  renderNotiContextCard(ativosAll, resumo);
 
   met.innerHTML = [
     renderNotiMetric('Ativas', ativosAll.length),

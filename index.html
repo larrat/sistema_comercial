@@ -211,102 +211,113 @@
     </div>
 
     <!-- ── GERENCIAL ── -->
-    <div class="pg" id="pg-gerencial">
+    <div class="pg ger-bento-page" id="pg-gerencial">
       <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
           <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
         </div>
       </div>
-      <div class="card dash-card dash-card--metas">
-        <div class="ct">Metas de negocio (continuo)</div>
+      <div class="card card-shell ger-bento-card--full">
+        <div class="ct">Metas de negócio</div>
         <div id="dash-metas-negocio"></div>
       </div>
-      <div class="card dash-card">
-        <div class="ct">KPIs por jornada (UX)</div>
-        <div id="dash-kpi-jornadas"></div>
-      </div>
-      <div class="card dash-card">
-        <div class="ct">Telemetria de eventos (produto/UX)</div>
-        <div id="dash-kpi-eventos"></div>
-      </div>
-      <div class="card dash-card">
-        <div class="ct">Cards de insight (risco e oportunidade)</div>
-        <div id="ger-insights"></div>
-      </div>
-      <div class="card dash-card">
-        <div class="ct">Recomendacoes acionaveis</div>
-        <div id="ger-recomendacoes"></div>
+      <div class="ger-bento-grid">
+        <div class="card card-shell">
+          <div class="ct">KPIs por jornada (UX)</div>
+          <div id="dash-kpi-jornadas"></div>
+        </div>
+        <div class="card card-shell">
+          <div class="ct">Telemetria de eventos</div>
+          <div id="dash-kpi-eventos"></div>
+        </div>
+        <div class="card card-shell">
+          <div class="ct">Insights de risco e oportunidade</div>
+          <div id="ger-insights"></div>
+        </div>
+        <div class="card card-shell">
+          <div class="ct">Recomendações acionáveis</div>
+          <div id="ger-recomendacoes"></div>
+        </div>
       </div>
     </div>
 
-    <div class="pg" id="pg-relatorios">
+    <div class="pg rel-bento-page" id="pg-relatorios">
       <div class="tabs rel-tabs">
         <button class="tb on" data-tab-group="relatorios" data-tab="oportunidades">Oportunidades por jogos</button>
         <button class="tb" data-tab-group="relatorios" data-tab="performance">Performance comercial</button>
         <button class="tb" data-tab-group="relatorios" data-tab="clientes">Base de clientes</button>
       </div>
 
-      <div class="tc on" id="relatorios-tc-oportunidades">
-        <div class="mg" id="rel-met"></div>
-        <div class="toolbar toolbar-shell">
-          <div class="toolbar-main">
-            <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
-            <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
+      <div class="tc on rel-bento-tab" id="relatorios-tc-oportunidades">
+        <div class="mg bento-band" id="rel-met"></div>
+        <div id="rel-context"></div>
+        <div class="card card-shell">
+          <div class="toolbar toolbar-shell toolbar-shell--section">
+            <div class="ct ct-inline">Resumo por mês</div>
+            <div class="toolbar-main">
+              <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
+              <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
+            </div>
           </div>
-        </div>
-        <div class="card">
-          <div class="ct">Resumo por mes</div>
           <div id="rel-resumo"></div>
         </div>
-        <div class="card">
-          <div class="ct">Oportunidades abertas</div>
-          <div id="rel-oportunidades"></div>
-        </div>
-        <div class="card">
-          <div class="ct">Validacoes realizadas</div>
-          <div id="rel-validacoes"></div>
-        </div>
-      </div>
-
-      <div class="tc" id="relatorios-tc-performance">
-        <div class="mg" id="rel-perf-met"></div>
-        <div class="card">
-          <div class="ct">Status dos pedidos</div>
-          <div id="rel-perf-status"></div>
-        </div>
-        <div class="card">
-          <div class="ct">Top clientes por faturamento</div>
-          <div id="rel-perf-clientes"></div>
+        <div class="rel-bento-grid">
+          <div class="card card-shell">
+            <div class="ct">Oportunidades abertas</div>
+            <div id="rel-oportunidades"></div>
+          </div>
+          <div class="card card-shell">
+            <div class="ct">Validações realizadas</div>
+            <div id="rel-validacoes"></div>
+          </div>
         </div>
       </div>
 
-      <div class="tc" id="relatorios-tc-clientes">
-        <div class="mg" id="rel-cli-met"></div>
-        <div class="card">
-          <div class="ct">Status da base</div>
-          <div id="rel-cli-status"></div>
+      <div class="tc rel-bento-tab" id="relatorios-tc-performance">
+        <div class="mg bento-band" id="rel-perf-met"></div>
+        <div class="rel-bento-grid">
+          <div class="card card-shell">
+            <div class="ct">Status dos pedidos</div>
+            <div id="rel-perf-status"></div>
+          </div>
+          <div class="card card-shell">
+            <div class="ct">Top clientes por faturamento</div>
+            <div id="rel-perf-clientes"></div>
+          </div>
         </div>
-        <div class="card">
-          <div class="ct">Segmentos e opt-ins</div>
-          <div id="rel-cli-segmentos"></div>
+      </div>
+
+      <div class="tc rel-bento-tab" id="relatorios-tc-clientes">
+        <div class="mg bento-band" id="rel-cli-met"></div>
+        <div class="rel-bento-grid">
+          <div class="card card-shell">
+            <div class="ct">Status da base</div>
+            <div id="rel-cli-status"></div>
+          </div>
+          <div class="card card-shell">
+            <div class="ct">Segmentos e opt-ins</div>
+            <div id="rel-cli-segmentos"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ── PRODUTOS ── -->
-    <div class="pg" id="pg-produtos">
-      <div class="mg" id="prod-met"></div>
-      <div class="toolbar toolbar-shell">
-        <div class="toolbar-main">
-          <input class="inp input-w-md" id="prod-busca" placeholder="Buscar produto..." data-input="renderProdutos()">
-          <select class="inp sel select-w-md" id="prod-cat-fil" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
+    <div class="pg prod-bento-page" id="pg-produtos">
+      <div class="mg bento-band" id="prod-met"></div>
+      <div class="card card-shell">
+        <div class="toolbar toolbar-shell toolbar-shell--section">
+          <div class="toolbar-main">
+            <input class="inp input-w-md" id="prod-busca" placeholder="Buscar produto..." data-input="renderProdutos()">
+            <select class="inp sel select-w-md" id="prod-cat-fil" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
+          </div>
         </div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
-        </div>
+        <div id="prod-lista"></div>
       </div>
-      <div class="card"><div id="prod-lista"></div></div>
     </div>
 
     <!-- ── CLIENTES ── -->
@@ -333,80 +344,101 @@
     </div>
 
     <!-- ── PEDIDOS ── -->
-    <div class="pg" id="pg-pedidos">
-      <div class="mg" id="ped-met"></div>
-      <div class="toolbar toolbar-shell">
-        <div class="toolbar-main">
-          <input class="inp input-w-sm" id="ped-busca" placeholder="Cliente ou numero..." data-input="renderPedidos()">
-          <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
+    <div class="pg ped-bento-page" id="pg-pedidos">
+      <div class="mg bento-band" id="ped-met"></div>
+      <div class="card card-shell">
+        <div class="toolbar toolbar-shell toolbar-shell--section">
+          <div class="toolbar-main">
+            <input class="inp input-w-sm" id="ped-busca" placeholder="Cliente ou numero..." data-input="renderPedidos()">
+            <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
+          </div>
         </div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
-        </div>
+        <div id="ped-lista"></div>
       </div>
-      <div class="card"><div id="ped-lista"></div></div>
     </div>
 
     <!-- COTACAO -->
-    <div class="pg" id="pg-cotacao">
+    <div class="pg cot-bento-page" id="pg-cotacao">
       <div class="tabs">
         <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
         <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
         <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
       </div>
-      <div class="tc on" id="cot-tc-importar">
-        <div class="card">
-          <div class="ct">Importar planilha de fornecedor</div>
-      <div class="fg c2 form-gap-bottom">
-            <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">- selecione -</option></select></div>
-        <div class="toolbar-inline-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
+      <div class="tc on cot-bento-tab" id="cot-tc-importar">
+        <div class="cot-bento-grid">
+          <div class="card card-shell">
+            <div class="ct">Importar planilha de fornecedor</div>
+            <div class="fg c2 form-gap-bottom">
+              <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">- selecione -</option></select></div>
+              <div class="toolbar-inline-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
+            </div>
+            <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div class="upload-drop-icon">ARQ</div><strong class="upload-drop-title">Clique ou arraste o arquivo</strong><p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p></div>
           </div>
-        <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div class="upload-drop-icon">ARQ</div><strong class="upload-drop-title">Clique ou arraste o arquivo</strong><p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p></div>
-        </div>
-        <div class="card"><div class="ct">Histórico de importações</div><div id="cot-logs"></div></div>
-      </div>
-      <div class="tc" id="cot-tc-fornecedores">
-      <div class="fb form-gap-bottom"><span></span><button class="btn btn-p" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
-        <div class="card"><div id="cot-forns-lista"></div></div>
-      </div>
-      <div class="tc" id="cot-tc-cotacao">
-      <div class="fb form-gap-bottom">
-        <div class="mg metric-grid-fill" id="cot-met"></div>
-        <div class="fg2 no-shrink">
-            <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
-            <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
+          <div class="card card-shell">
+            <div class="ct">Histórico de importações</div>
+            <div id="cot-logs"></div>
           </div>
         </div>
-        <div id="cot-lock-alert" class="alert al-a is-hidden">Cotação travada | valores protegidos</div>
-        <div class="card"><div id="cot-tabela"></div></div>
+      </div>
+      <div class="tc cot-bento-tab" id="cot-tc-fornecedores">
+        <div class="card card-shell">
+          <div class="toolbar toolbar-shell toolbar-shell--section">
+            <div class="ct ct-inline">Fornecedores</div>
+            <div class="toolbar-actions">
+              <button class="btn btn-p btn-sm" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button>
+            </div>
+          </div>
+          <div id="cot-forns-lista"></div>
+        </div>
+      </div>
+      <div class="tc cot-bento-tab" id="cot-tc-cotacao">
+        <div class="mg bento-band" id="cot-met"></div>
+        <div class="card card-shell">
+          <div class="toolbar toolbar-shell toolbar-shell--section">
+            <div class="ct ct-inline">Tabela de cotação</div>
+            <div class="toolbar-actions">
+              <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
+              <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
+            </div>
+          </div>
+          <div id="cot-lock-alert" class="alert al-a is-hidden">Cotação travada | valores protegidos</div>
+          <div id="cot-tabela"></div>
+        </div>
       </div>
     </div>
 
     <!-- ── ESTOQUE ── -->
-    <div class="pg" id="pg-estoque">
+    <div class="pg est-bento-page" id="pg-estoque">
       <div id="est-alerts"></div>
       <div class="tabs">
         <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">Posicao</button>
         <button class="tb" data-click="switchTab('est','historico');renderEstHist()">Histórico</button>
       </div>
       <div class="tc on" id="est-tc-posicao">
-        <div class="mg" id="est-met"></div>
-        <div class="toolbar toolbar-shell">
-          <div class="toolbar-main">
-        <input class="inp input-w-sm" id="est-busca" placeholder="Buscar..." data-input="renderEstPosicao()">
-        <select class="inp sel select-w-sm" id="est-fil" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
+        <div class="mg bento-band" id="est-met"></div>
+        <div class="card card-shell">
+          <div class="toolbar toolbar-shell toolbar-shell--section">
+            <div class="toolbar-main">
+              <input class="inp input-w-sm" id="est-busca" placeholder="Buscar..." data-input="renderEstPosicao()">
+              <select class="inp sel select-w-sm" id="est-fil" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
+            </div>
           </div>
+          <div id="est-posicao"></div>
         </div>
-        <div class="card"><div id="est-posicao"></div></div>
       </div>
       <div class="tc" id="est-tc-historico">
-        <div class="toolbar toolbar-shell">
-          <div class="toolbar-main">
-        <input class="inp input-w-sm" id="est-hist-busca" placeholder="Buscar..." data-input="renderEstHist()">
-        <select class="inp sel select-w-sm" id="est-hist-tipo" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
+        <div class="card card-shell">
+          <div class="toolbar toolbar-shell toolbar-shell--section">
+            <div class="toolbar-main">
+              <input class="inp input-w-sm" id="est-hist-busca" placeholder="Buscar..." data-input="renderEstHist()">
+              <select class="inp sel select-w-sm" id="est-hist-tipo" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
+            </div>
           </div>
+          <div id="est-hist"></div>
         </div>
-        <div class="card"><div id="est-hist"></div></div>
       </div>
     </div>
 
@@ -582,6 +614,7 @@
 
     <!-- ── NOTIFICAÇÕES ── -->
     <div class="pg" id="pg-notificacoes">
+      <div id="noti-context"></div>
       <div class="toolbar toolbar-shell">
         <div class="toolbar-main">
         <select class="inp sel select-w-md" id="noti-fil-prioridade" data-change="setFiltroNotificacoes(this.value)">

@@ -19,6 +19,7 @@ const relDom = createScreenDom('relatorios', [
   'rel-ano',
   'rel-mes',
   'rel-met',
+  'rel-context',
   'rel-resumo',
   'rel-oportunidades',
   'rel-validacoes',
@@ -393,6 +394,104 @@ function renderBaseClientes(){
   );
 }
 
+/**
+ * @param {import('../types/domain').OportunidadeJogo[]} oportunidadesAtuais
+ * @param {number} pendentes
+ * @param {number} total
+ * @param {number} taxa
+ */
+function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa){
+  const el = relDom.get('rel-context');
+  if(!el) return;
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const amanha = new Date(hoje);
+  amanha.setDate(amanha.getDate() + 1);
+  const seteDias = new Date(hoje);
+  seteDias.setDate(seteDias.getDate() + 7);
+
+  const jogosHoje = oportunidadesAtuais.filter(j => {
+    if(!j.data_jogo) return false;
+    const d = new Date(j.data_jogo);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime() === hoje.getTime();
+  });
+
+  const jogosSemana = oportunidadesAtuais.filter(j => {
+    if(!j.data_jogo) return false;
+    const d = new Date(j.data_jogo);
+    d.setHours(0, 0, 0, 0);
+    return d >= amanha && d <= seteDias;
+  });
+
+  if(jogosHoje.length){
+    el.innerHTML = `
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Hoje</span>
+          <span class="context-card__kicker">Oportunidades</span>
+        </div>
+        <div class="context-card__title">${jogosHoje.length} jogo${jogosHoje.length > 1 ? 's' : ''} hoje — valide antes do apito</div>
+        <div class="context-card__copy">Há oportunidades com jogo hoje que ainda podem ser validadas. Ação antes do início aumenta a taxa de conversão.</div>
+        <div class="context-card__meta">${pendentes} pendente${pendentes !== 1 ? 's' : ''} no total — conversão atual ${pct(taxa)}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('relatorios')">Ver oportunidades</button>
+        </div>
+      </article>`;
+    return;
+  }
+
+  if(jogosSemana.length){
+    el.innerHTML = `
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Esta semana</span>
+          <span class="context-card__kicker">Oportunidades</span>
+        </div>
+        <div class="context-card__title">${jogosSemana.length} jogo${jogosSemana.length > 1 ? 's' : ''} nos próximos 7 dias</div>
+        <div class="context-card__copy">Janela de validação aberta. Prepare os pedidos agora para não perder o prazo dos jogos desta semana.</div>
+        <div class="context-card__meta">${pendentes} pendente${pendentes !== 1 ? 's' : ''} — conversão atual ${pct(taxa)}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('relatorios')">Ver oportunidades</button>
+        </div>
+      </article>`;
+    return;
+  }
+
+  if(taxa >= 70 && total > 0){
+    el.innerHTML = `
+      <article class="context-card context-card--success">
+        <div class="context-card__head">
+          <span class="bdg bb">Performance</span>
+          <span class="context-card__kicker">Oportunidades</span>
+        </div>
+        <div class="context-card__title">Taxa de conversão acima de 70%</div>
+        <div class="context-card__copy">Excelente aproveitamento das oportunidades. ${validadas(total, taxa)} de ${total} validadas — continue o ritmo.</div>
+        <div class="context-card__meta">Nenhum jogo pendente nos próximos 7 dias</div>
+      </article>`;
+    return;
+  }
+
+  if(!total){
+    el.innerHTML = `
+      <article class="context-card context-card--info">
+        <div class="context-card__head">
+          <span class="bdg">Info</span>
+          <span class="context-card__kicker">Oportunidades</span>
+        </div>
+        <div class="context-card__title">Nenhuma oportunidade registrada</div>
+        <div class="context-card__copy">Sincronize os jogos para começar a rastrear e validar oportunidades comerciais por evento.</div>
+      </article>`;
+    return;
+  }
+
+  el.innerHTML = '';
+}
+
+/** @param {number} total @param {number} taxa */
+function validadas(total, taxa){ return Math.round(total * taxa / 100); }
+
 export function renderRelatorios(){
   const fid = State.FIL;
   if(!fid){
@@ -427,6 +526,7 @@ export function renderRelatorios(){
     <div class="met"><div class="ml">Conversao</div><div class="mv">${pct(taxa)}</div></div>
   `, 'relatorios:metricas');
 
+  renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa);
   renderResumoPeriodo(hist);
   renderPendentes(oportunidadesAtuais, histCompleto);
   renderValidacoes(hist);
