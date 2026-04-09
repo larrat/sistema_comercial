@@ -2,6 +2,7 @@
 
 import { D, State, P, C } from '../app/store.js';
 import { fmtQ, toast } from '../shared/utils.js';
+import { measureRender } from '../shared/render-metrics.js';
 
 /** @typedef {import('../types/domain').NotificationItem} NotificationItem */
 /** @typedef {import('../types/domain').NotificacoesModuleDeps} NotificacoesModuleDeps */
@@ -25,6 +26,40 @@ let logStrategicActionSafe = () => {};
 let notiFiltroPrioridade = 'todas';
 /** @type {NotificationItem[]} */
 let notiCache = [];
+let notiBuildCache = null;
+
+function getNotiBuildRefs(){
+  const filialId = State.FIL || '';
+  const produtos = P();
+  const clientes = C();
+  const envios = D.campanhaEnvios?.[filialId] || [];
+  const jogos = D.jogos?.[filialId] || [];
+  return {
+    filialId,
+    produtosRef: produtos,
+    produtosLen: produtos.length,
+    clientesRef: clientes,
+    clientesLen: clientes.length,
+    enviosRef: envios,
+    enviosLen: envios.length,
+    jogosRef: jogos,
+    jogosLen: jogos.length
+  };
+}
+
+/**
+ * @param {NotificationItem[]} list
+ */
+function summarizeNotificacoes(list){
+  return list.reduce((acc, n) => {
+    const p = String(n.prioridade || '').toLowerCase();
+    if(p === 'critico') acc.critico += 1;
+    else if(p === 'atencao') acc.atencao += 1;
+    else if(p === 'oportunidade') acc.oportunidade += 1;
+    acc.total += 1;
+    return acc;
+  }, { critico: 0, atencao: 0, oportunidade: 0, total: 0 });
+}
 
 /**
  * @param {NotificacoesModuleDeps} [deps]
@@ -260,6 +295,20 @@ function buildJogosNotifications(now){
  * @returns {NotificationItem[]}
  */
 export function buildNotificacoes(){
+  const refs = getNotiBuildRefs();
+  if(
+    notiBuildCache &&
+    notiBuildCache.filialId === refs.filialId &&
+    notiBuildCache.produtosRef === refs.produtosRef &&
+    notiBuildCache.produtosLen === refs.produtosLen &&
+    notiBuildCache.clientesRef === refs.clientesRef &&
+    notiBuildCache.clientesLen === refs.clientesLen &&
+    notiBuildCache.enviosRef === refs.enviosRef &&
+    notiBuildCache.enviosLen === refs.enviosLen &&
+    notiBuildCache.jogosRef === refs.jogosRef &&
+    notiBuildCache.jogosLen === refs.jogosLen
+  ) return notiBuildCache.result;
+
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   const saldos = calcSaldosSafe();
@@ -283,21 +332,20 @@ export function buildNotificacoes(){
       const key = String(n.origem || 'sistema');
       porOrigem[key] = (porOrigem[key] || 0) + 1;
       return porOrigem[key] <= NOTI_MAX_ITEMS_PER_ORIGEM;
-    });
+    })
+    .slice(0, NOTI_MAX_TOTAL_ITEMS);
 
-  return limited.slice(0, NOTI_MAX_TOTAL_ITEMS);
+  notiBuildCache = {
+    ...refs,
+    result: limited
+  };
+
+  return limited;
 }
 
 export function getNotificacoesResumo(){
   const all = buildNotificacoes();
-  return all.reduce((acc, n) => {
-    const p = String(n.prioridade || '').toLowerCase();
-    if(p === 'critico') acc.critico += 1;
-    else if(p === 'atencao') acc.atencao += 1;
-    else if(p === 'oportunidade') acc.oportunidade += 1;
-    acc.total += 1;
-    return acc;
-  }, { critico: 0, atencao: 0, oportunidade: 0, total: 0 });
+  return summarizeNotificacoes(all);
 }
 
 export function updateNotiBadge(){
@@ -492,6 +540,7 @@ function renderNotiContextCard(ativos, resumo){
 }
 
 export function renderNotificacoes(){
+  return measureRender('notificacoes', 'page', () => {
   const met = document.getElementById('noti-met');
   const lista = document.getElementById('noti-lista');
   const histEl = document.getElementById('noti-historico');
@@ -506,7 +555,7 @@ export function renderNotificacoes(){
   const ativos = notiFiltroPrioridade === 'todas'
     ? ativosAll
     : ativosAll.filter(n => n.prioridade === notiFiltroPrioridade);
-  const resumo = getNotificacoesResumo();
+  const resumo = summarizeNotificacoes(all);
 
   renderNotiContextCard(ativosAll, resumo);
 
@@ -559,4 +608,5 @@ export function renderNotificacoes(){
       </div>
     </div>
   `).join('');
+  });
 }

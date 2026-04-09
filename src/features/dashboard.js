@@ -4,6 +4,7 @@ import { SB } from '../app/api.js';
 import { D, State, P } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from '../shared/utils.js';
+import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { getOportunidadesJogosDaFilial, syncHistoricoOportunidadesJogos } from './oportunidades-jogos.js';
 
@@ -14,6 +15,7 @@ import { getOportunidadesJogosDaFilial, syncHistoricoOportunidadesJogos } from '
 
 /** @type {NonNullable<DashboardModuleCallbacks['calcSaldosMulti']>} */
 let calcSaldosMultiSafe = () => ({});
+let dashDerivedCache = null;
 /** @type {ScreenDom} */
 const dashDom = createScreenDom('dashboard', [
   'dash-fil',
@@ -480,6 +482,171 @@ function inR(ds, range){
   return d >= from && d <= to;
 }
 
+/**
+ * @param {{ fsel: string, serieSel: string, range: Date[], filIds: string[], saldos: Record<string, { saldo: number, cm?: number }> }} params
+ */
+function getDashboardDerivedData({ fsel, serieSel, range, filIds, saldos }){
+  const pedidosRefs = filIds.map(fid => D.pedidos?.[fid] || []);
+  const produtosRefs = filIds.map(fid => D.produtos?.[fid] || []);
+  const clientesRefs = filIds.map(fid => D.clientes?.[fid] || []);
+  const cotRefs = filIds.map(fid => D.cotConfig?.[fid]?.logs || []);
+  const jogosRef = D.jogos?.[fsel] || [];
+
+  if(
+    dashDerivedCache &&
+    dashDerivedCache.fsel === fsel &&
+    dashDerivedCache.serieSel === serieSel &&
+    dashDerivedCache.periodo === State.dashP &&
+    dashDerivedCache.saldosRef === saldos &&
+    pedidosRefs.length === dashDerivedCache.pedidosRefs.length &&
+    pedidosRefs.every((ref, idx) => ref === dashDerivedCache.pedidosRefs[idx] && ref.length === dashDerivedCache.pedidosLens[idx]) &&
+    produtosRefs.every((ref, idx) => ref === dashDerivedCache.produtosRefs[idx] && ref.length === dashDerivedCache.produtosLens[idx]) &&
+    clientesRefs.every((ref, idx) => ref === dashDerivedCache.clientesRefs[idx] && ref.length === dashDerivedCache.clientesLens[idx]) &&
+    cotRefs.every((ref, idx) => ref === dashDerivedCache.cotRefs[idx] && ref.length === dashDerivedCache.cotLens[idx]) &&
+    jogosRef === dashDerivedCache.jogosRef &&
+    jogosRef.length === dashDerivedCache.jogosLen
+  ){
+    return dashDerivedCache.result;
+  }
+
+  const allPeds = filIds.flatMap(fid =>
+    (D.pedidos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
+  );
+  const entregues = allPeds.filter(p => p.status === 'entregue' && inR(p.data, range));
+  const fat = entregues.reduce((a, p) => a + (p.total || 0), 0);
+  const lucro = entregues.reduce(
+    (a, p) => a + asPedidoItens(p.itens).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0),
+    0
+  );
+  const mg = fat > 0 ? (lucro / fat) * 100 : 0;
+  const tk = entregues.length ? fat / entregues.length : 0;
+  const abertos = allPeds.filter(p => ['orcamento','confirmado','em_separacao'].includes(p.status)).length;
+
+  const allProds = filIds.flatMap(fid =>
+    (D.produtos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
+  );
+  const crit = allProds.filter(p => {
+    const s = saldos[p._fid + '_' + p.id];
+    return s && s.saldo <= 0;
+  });
+  const baixo = allProds.filter(p => {
+    const s = saldos[p._fid + '_' + p.id];
+    return s && p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
+  });
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const limite = new Date(hoje);
+  limite.setDate(limite.getDate() + 7);
+
+  const clientesFilial = filIds.flatMap(fid => (D.clientes?.[fid] || []));
+  const anivProximos = clientesFilial
+    .map(c => {
+      const data = getProxAnivDate(c.data_aniversario, hoje);
+      if(!data) return null;
+      return { ...c, _anivData: data };
+    })
+    .filter(Boolean)
+    .filter(c => c._anivData <= limite)
+    .sort((a, b) => a._anivData.getTime() - b._anivData.getTime());
+  const clientesComAniversario = clientesFilial.filter(c => !!String(c.data_aniversario || '').trim());
+  const clientesSemAniversario = Math.max(0, clientesFilial.length - clientesComAniversario.length);
+
+  /** @type {OportunidadeJogo[]} */
+  const oportunidades = getOportunidadesJogosDaFilial(fsel, { serie: serieSel });
+  const oportunidadesHoje = oportunidades.filter(o => {
+    const d = new Date(o.data);
+    if(isNaN(d.getTime())) return false;
+    const fimHoje = new Date(hoje);
+    fimHoje.setDate(fimHoje.getDate() + 1);
+    return d >= hoje && d < fimHoje;
+  });
+
+  const grupos = {};
+  entregues.forEach(p => {
+    const d = new Date(p.data + 'T00:00:00');
+    const k =
+      State.dashP === 'ano'
+        ? MES[d.getMonth()] + '/' + String(d.getFullYear()).slice(2)
+        : p.data;
+    if(!grupos[k]) grupos[k] = { fat: 0, lucro: 0 };
+    grupos[k].fat += p.total || 0;
+    grupos[k].lucro += asPedidoItens(p.itens).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
+  });
+  const gkeys = Object.keys(grupos).sort().slice(-10);
+
+  const stMap = { orcamento:0, confirmado:0, em_separacao:0, entregue:0, cancelado:0 };
+  allPeds.forEach(p => {
+    if(p.status in stMap) stMap[p.status]++;
+  });
+
+  const pq = {};
+  entregues.forEach(p => {
+    asPedidoItens(p.itens).forEach(i => {
+      if(!pq[i.nome]) pq[i.nome] = { fat: 0 };
+      pq[i.nome].fat += i.qty * i.preco;
+    });
+  });
+  const tp = Object.entries(pq).sort((a, b) => b[1].fat - a[1].fat).slice(0, 5);
+  const mxP = tp.length ? tp[0][1].fat : 1;
+
+  const alertProds = allProds.filter(p => {
+    const s = saldos[p._fid + '_' + p.id];
+    return s && p.emin > 0 && s.saldo < p.emin;
+  }).slice(0, 5);
+
+  const fu = {};
+  filIds.forEach(fid => {
+    (D.cotConfig?.[fid]?.logs || []).forEach(l => {
+      const fornecedor = String(l.forn || '').trim();
+      if(!fornecedor) return;
+      if(!fu[fornecedor]) fu[fornecedor] = 0;
+      fu[fornecedor]++;
+    });
+  });
+  const tf = Object.entries(fu).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const mxF2 = tf.length ? tf[0][1] : 1;
+
+  const mp = {};
+  entregues.forEach(p => {
+    asPedidoItens(p.itens).forEach(i => {
+      if(!mp[i.nome]) mp[i.nome] = { fat: 0, lucro: 0, qty: 0 };
+      mp[i.nome].fat += i.qty * i.preco;
+      mp[i.nome].lucro += (i.preco - i.custo) * i.qty;
+      mp[i.nome].qty += i.qty;
+    });
+  });
+  const tmg = Object.entries(mp).sort((a, b) => b[1].fat - a[1].fat).slice(0, 8);
+
+  const result = {
+    allPeds, entregues, fat, lucro, mg, tk, abertos,
+    allProds, crit, baixo,
+    hoje, anivProximos, clientesFilial, clientesSemAniversario,
+    oportunidades, oportunidadesHoje,
+    grupos, gkeys, stMap, tp, mxP, alertProds, tf, mxF2, tmg
+  };
+
+  dashDerivedCache = {
+    fsel,
+    serieSel,
+    periodo: State.dashP,
+    saldosRef: saldos,
+    pedidosRefs,
+    pedidosLens: pedidosRefs.map(items => items.length),
+    produtosRefs,
+    produtosLens: produtosRefs.map(items => items.length),
+    clientesRefs,
+    clientesLens: clientesRefs.map(items => items.length),
+    cotRefs,
+    cotLens: cotRefs.map(items => items.length),
+    jogosRef,
+    jogosLen: jogosRef.length,
+    result
+  };
+
+  return result;
+}
+
 export function setP(p, btn){
   State.dashP = p;
 
@@ -505,9 +672,10 @@ export function renderDashFilSel(){
 }
 
 export function renderDash(){
-  const fsel = State.FIL || dashDom.get('dash-fil')?.value || '';
-  const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';
-  const range = getRange();
+  return measureRender('dashboard', 'page', () => {
+    const fsel = State.FIL || dashDom.get('dash-fil')?.value || '';
+    const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';
+    const range = getRange();
 
   const pLabels = {
     semana:'Esta semana',
@@ -516,28 +684,42 @@ export function renderDash(){
     tudo:'Todos os períodos'
   };
 
-  const fLabel = (D.filiais || []).find(f => f.id === fsel)?.nome || 'Filial ativa';
+    const fLabel = (D.filiais || []).find(f => f.id === fsel)?.nome || 'Filial ativa';
 
-  dashDom.text('header', 'dash-desc', `${fLabel} - ${pLabels[State.dashP]}`, 'dashboard:descricao');
+    dashDom.text('header', 'dash-desc', `${fLabel} - ${pLabels[State.dashP]}`, 'dashboard:descricao');
 
-  renderDashJogos(fsel);
+    renderDashJogos(fsel);
 
-  const filIds = fsel ? [fsel] : [];
-
-  const allPeds = filIds.flatMap(fid =>
-    (D.pedidos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
-  );
-
-  const entregues = allPeds.filter(p => p.status === 'entregue' && inR(p.data, range));
-
-  const fat = entregues.reduce((a, p) => a + (p.total || 0), 0);
-  const lucro = entregues.reduce(
-    (a, p) => a + asPedidoItens(p.itens).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0),
-    0
-  );
-  const mg = fat > 0 ? (lucro / fat) * 100 : 0;
-  const tk = entregues.length ? fat / entregues.length : 0;
-  const abertos = allPeds.filter(p => ['orcamento','confirmado','em_separacao'].includes(p.status)).length;
+    const filIds = fsel ? [fsel] : [];
+    /** @type {Record<string, { saldo: number; cm?: number }>} */
+    const saldos = calcSaldosMultiSafe(filIds);
+    const {
+      allPeds,
+      entregues,
+      fat,
+      lucro,
+      mg,
+      tk,
+      abertos,
+      allProds,
+      crit,
+      baixo,
+      hoje,
+      anivProximos,
+      clientesFilial,
+      clientesSemAniversario,
+      oportunidades,
+      oportunidadesHoje,
+      grupos,
+      gkeys,
+      stMap,
+      tp,
+      mxP,
+      alertProds,
+      tf,
+      mxF2,
+      tmg
+    } = getDashboardDerivedData({ fsel, serieSel, range, filIds, saldos });
 
   dashDom.html('metrics', 'dash-met', `
     <div class="met metric-card">
@@ -572,22 +754,6 @@ export function renderDash(){
     </div>
   `, 'dashboard:metrics');
 
-  /** @type {Record<string, { saldo: number; cm?: number }>} */
-  const saldos = calcSaldosMultiSafe(filIds);
-  const allProds = filIds.flatMap(fid =>
-    (D.produtos?.[fid] || []).map(p => ({ ...p, _fid: fid }))
-  );
-
-  const crit = allProds.filter(p => {
-    const s = saldos[p._fid + '_' + p.id];
-    return s && s.saldo <= 0;
-  });
-
-  const baixo = allProds.filter(p => {
-    const s = saldos[p._fid + '_' + p.id];
-    return s && p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
-  });
-
   let ah = '';
   if(crit.length){
     ah += `
@@ -603,26 +769,6 @@ export function renderDash(){
         <div class="dash-alert-card__copy">${baixo.length} item${baixo.length !== 1 ? 'ns' : ''} abaixo do mínimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '...' : ''}</div>
       </div>`;
   }
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const limite = new Date(hoje);
-  limite.setDate(limite.getDate() + 7);
-
-  const anivProximos = filIds
-    .flatMap(fid => (D.clientes?.[fid] || []))
-    .map(c => {
-      const data = getProxAnivDate(c.data_aniversario, hoje);
-      if(!data) return null;
-      return { ...c, _anivData: data };
-    })
-    .filter(Boolean)
-    .filter(c => c._anivData <= limite)
-    .sort((a, b) => a._anivData.getTime() - b._anivData.getTime());
-
-  const clientesFilial = filIds.flatMap(fid => (D.clientes?.[fid] || []));
-  const clientesComAniversario = clientesFilial.filter(c => !!String(c.data_aniversario || '').trim());
-  const clientesSemAniversario = Math.max(0, clientesFilial.length - clientesComAniversario.length);
 
   if(clientesFilial.length && clientesSemAniversario > 0){
     ah += `<div class="alert al-a"><b>Aniversário pendente:</b> ${clientesSemAniversario} cliente${clientesSemAniversario !== 1 ? 's' : ''} sem data de aniversário cadastrada.</div>`;
@@ -640,17 +786,7 @@ export function renderDash(){
     ah += `<div class="alert al-g"><b>Aniversários próximos:</b> ${resumoAniversarios}${anivProximos.length > 3 ? '...' : ''}</div>`;
   }
 
-  /** @type {OportunidadeJogo[]} */
-  const oportunidades = getOportunidadesJogosDaFilial(fsel, { serie: serieSel });
   syncHistoricoOportunidadesJogos(fsel, oportunidades);
-
-  const oportunidadesHoje = oportunidades.filter(o => {
-    const d = new Date(o.data);
-    if(isNaN(d.getTime())) return false;
-    const fimHoje = new Date(hoje);
-    fimHoje.setDate(fimHoje.getDate() + 1);
-    return d >= hoje && d < fimHoje;
-  });
 
   if(oportunidades.length){
     const serieTxt = serieSel === 'todas' ? 'todas as séries' : `Série ${serieSel.toUpperCase()}`;
@@ -672,21 +808,6 @@ export function renderDash(){
 
   const chartEl = dashDom.get('dash-chart');
   const emEl = dashDom.get('dash-chart-empty');
-
-  const grupos = {};
-  entregues.forEach(p => {
-    const d = new Date(p.data + 'T00:00:00');
-    const k =
-      State.dashP === 'ano'
-        ? MES[d.getMonth()] + '/' + String(d.getFullYear()).slice(2)
-        : p.data;
-
-    if(!grupos[k]) grupos[k] = { fat: 0, lucro: 0 };
-    grupos[k].fat += p.total || 0;
-    grupos[k].lucro += asPedidoItens(p.itens).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
-  });
-
-  const gkeys = Object.keys(grupos).sort().slice(-10);
 
   if(chartEl && emEl){
     if(!gkeys.length){
@@ -722,11 +843,6 @@ export function renderDash(){
     }
   }
 
-  const stMap = { orcamento:0, confirmado:0, em_separacao:0, entregue:0, cancelado:0 };
-  allPeds.forEach(p => {
-    if(p.status in stMap) stMap[p.status]++;
-  });
-
   const stLbl = {
     orcamento:'Orçamento',
     confirmado:'Confirmado',
@@ -754,17 +870,6 @@ export function renderDash(){
       </div>
     `).join(''), 'dashboard:status');
 
-  const pq = {};
-  entregues.forEach(p => {
-    asPedidoItens(p.itens).forEach(i => {
-      if(!pq[i.nome]) pq[i.nome] = { fat: 0 };
-      pq[i.nome].fat += i.qty * i.preco;
-    });
-  });
-
-  const tp = Object.entries(pq).sort((a, b) => b[1].fat - a[1].fat).slice(0, 5);
-  const mxP = tp.length ? tp[0][1].fat : 1;
-
   dashDom.html('top-products', 'dash-tp', tp.length
       ? tp.map(([n, d], i) => `
           <div class="rrow dash-rank-row">
@@ -779,11 +884,6 @@ export function renderDash(){
         `).join('')
       : `<div class="empty dash-empty-compact"><p>Sem vendas</p></div>`, 'dashboard:top-produtos');
 
-  const alertProds = allProds.filter(p => {
-    const s = saldos[p._fid + '_' + p.id];
-    return s && p.emin > 0 && s.saldo < p.emin;
-  }).slice(0, 5);
-
   dashDom.html('stock-alerts', 'dash-ea', alertProds.length
       ? alertProds.map(p => {
           const s = saldos[p._fid + '_' + p.id];
@@ -796,19 +896,6 @@ export function renderDash(){
           `;
         }).join('')
       : `<div class="empty dash-empty-compact"><p>Sem alertas</p></div>`, 'dashboard:estoque-alerta');
-
-  const fu = {};
-  filIds.forEach(fid => {
-    (D.cotConfig?.[fid]?.logs || []).forEach(l => {
-      const fornecedor = String(l.forn || '').trim();
-      if(!fornecedor) return;
-      if(!fu[fornecedor]) fu[fornecedor] = 0;
-      fu[fornecedor]++;
-    });
-  });
-
-  const tf = Object.entries(fu).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const mxF2 = tf.length ? tf[0][1] : 1;
 
   dashDom.html('suppliers', 'dash-forn', tf.length
       ? tf.map(([n, c], i) => `
@@ -823,18 +910,6 @@ export function renderDash(){
           </div>
         `).join('')
       : `<div class="empty dash-empty-compact"><p>Nenhuma importação</p></div>`, 'dashboard:fornecedores');
-
-  const mp = {};
-  entregues.forEach(p => {
-    asPedidoItens(p.itens).forEach(i => {
-      if(!mp[i.nome]) mp[i.nome] = { fat: 0, lucro: 0, qty: 0 };
-      mp[i.nome].fat += i.qty * i.preco;
-      mp[i.nome].lucro += (i.preco - i.custo) * i.qty;
-      mp[i.nome].qty += i.qty;
-    });
-  });
-
-  const tmg = Object.entries(mp).sort((a, b) => b[1].fat - a[1].fat).slice(0, 8);
 
   dashDom.html('margin', 'dash-margem', tmg.length
       ? `
@@ -897,6 +972,7 @@ export function renderDash(){
         `).join('')
       : `<div class="empty dash-empty-compact"><p>Sem oportunidades por jogos na semana</p></div>`}
     `, 'dashboard:oportunidades');
+  });
 }
 
 export function limparFormJogo(){

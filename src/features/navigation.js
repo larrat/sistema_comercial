@@ -403,9 +403,18 @@ export function initSidebarEnhancements(){
   const input = /** @type {HTMLInputElement | null} */ (document.getElementById('sb-search'));
   if(input && !input.dataset.bound){
     input.dataset.bound = '1';
-    input.addEventListener('input', e => filterSidebarNav((/** @type {HTMLInputElement} */ (e.target)).value));
+    /** @type {ReturnType<typeof setTimeout> | null} */
+    let sidebarFilterTimer = null;
+    input.addEventListener('input', e => {
+      const value = (/** @type {HTMLInputElement} */ (e.target)).value;
+      if(sidebarFilterTimer) clearTimeout(sidebarFilterTimer);
+      sidebarFilterTimer = setTimeout(() => {
+        filterSidebarNav(value);
+      }, 120);
+    });
     input.addEventListener('keydown', e => {
       if(e.key === 'Escape'){
+        if(sidebarFilterTimer) clearTimeout(sidebarFilterTimer);
         input.value = '';
         filterSidebarNav('');
         input.blur();
@@ -682,4 +691,3 @@ export function fecharSb(){
   const close = document.getElementById('sb-close');
   if(close instanceof HTMLElement) close.hidden = true;
 }
-

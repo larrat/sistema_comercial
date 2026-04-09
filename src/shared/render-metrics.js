@@ -4,6 +4,7 @@
  * @typedef {{
  *   page: string;
  *   renders: Record<string, number>;
+ *   durations: Record<string, { count: number, total: number, max: number, last: number }>;
  *   invalidations: Record<string, number>;
  *   lastRenderAt: number;
  *   lastInvalidationAt: number;
@@ -19,6 +20,7 @@ function ensurePage(page){
     pageMetrics.set(page, {
       page,
       renders: {},
+      durations: {},
       invalidations: {},
       lastRenderAt: 0,
       lastInvalidationAt: 0
@@ -33,6 +35,12 @@ function ensurePage(page){
  */
 function bumpCounter(target, key){
   target[key] = (target[key] || 0) + 1;
+}
+
+function nowMs(){
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
 }
 
 /**
@@ -57,6 +65,37 @@ export function markRender(page, area = 'page'){
 }
 
 /**
+ * @param {string} page
+ * @param {string} [area='page']
+ * @param {number} durationMs
+ */
+export function markRenderDuration(page, area = 'page', durationMs = 0){
+  const entry = ensurePage(page);
+  const current = entry.durations[area] || { count: 0, total: 0, max: 0, last: 0 };
+  const safeDuration = Number.isFinite(durationMs) ? Math.max(0, durationMs) : 0;
+  current.count += 1;
+  current.total += safeDuration;
+  current.max = Math.max(current.max, safeDuration);
+  current.last = safeDuration;
+  entry.durations[area] = current;
+}
+
+/**
+ * @template T
+ * @param {string} page
+ * @param {string} [area='page']
+ * @param {() => T} fn
+ * @returns {T}
+ */
+export function measureRender(page, area = 'page', fn){
+  const startedAt = nowMs();
+  const result = fn();
+  markRender(page, area);
+  markRenderDuration(page, area, nowMs() - startedAt);
+  return result;
+}
+
+/**
  * @param {string} [page]
  * @returns {RenderMetricsEntry | RenderMetricsEntry[] | null}
  */
@@ -65,6 +104,7 @@ export function getRenderMetrics(page){
   return Array.from(pageMetrics.values()).map(entry => ({
     ...entry,
     renders: { ...entry.renders },
+    durations: Object.fromEntries(Object.entries(entry.durations).map(([key, value]) => [key, { ...value }])),
     invalidations: { ...entry.invalidations }
   }));
 }
