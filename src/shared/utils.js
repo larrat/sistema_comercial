@@ -104,6 +104,9 @@ export function notify(message, severity = SEVERITY.INFO, timeoutMs = 3600){
   el.textContent = msg;
   el.title = msg;
   el.setAttribute('data-severity', sev);
+  el.setAttribute('role', sev === SEVERITY.ERROR ? 'alert' : 'status');
+  el.setAttribute('aria-live', sev === SEVERITY.ERROR ? 'assertive' : 'polite');
+  el.setAttribute('aria-atomic', 'true');
   el.classList.add('on');
 
   try{
@@ -115,6 +118,77 @@ export function notify(message, severity = SEVERITY.INFO, timeoutMs = 3600){
     el.classList.remove('on');
     el.classList.remove('toast-error', 'toast-success', 'toast-warning', 'toast-info');
   }, timeoutMs);
+}
+
+export function initGlobalMicroInteractions(){
+  if(document.body.dataset.microUiReady === 'true') return;
+  document.body.dataset.microUiReady = 'true';
+
+  /** @param {EventTarget | null} target */
+  const getInteractive = (target) => {
+    if(!(target instanceof Element)) return null;
+    return /** @type {HTMLElement | null} */ (target.closest('.btn, .ib, .tb, .ni, .qk, .mob-btn, .flow-chip'));
+  };
+
+  /** @param {EventTarget | null} target */
+  const markPress = (target) => {
+    const el = getInteractive(target);
+    if(!el || el.matches(':disabled,[aria-disabled="true"]')) return;
+    el.classList.add('is-pressing');
+  };
+
+  const clearPress = () => {
+    document.querySelectorAll('.is-pressing').forEach((node) => {
+      if(node instanceof HTMLElement) node.classList.remove('is-pressing');
+    });
+  };
+
+  document.addEventListener('pointerdown', (event) => {
+    markPress(event.target);
+  }, true);
+
+  document.addEventListener('pointerup', clearPress, true);
+  document.addEventListener('pointercancel', clearPress, true);
+  document.addEventListener('dragstart', clearPress, true);
+  window.addEventListener('blur', clearPress);
+
+  document.addEventListener('click', (event) => {
+    const el = getInteractive(event.target);
+    if(!el || el.matches(':disabled,[aria-disabled="true"]')) return;
+    el.classList.remove('is-pop');
+    void el.offsetWidth;
+    el.classList.add('is-pop');
+    window.setTimeout(() => el.classList.remove('is-pop'), 220);
+  }, true);
+
+  document.addEventListener('focusin', (event) => {
+    if(!(event.target instanceof HTMLElement)) return;
+    const shell = event.target.closest('.card, .toolbar-shell, .modal-box, .page-controls-bar');
+    if(shell instanceof HTMLElement) shell.classList.add('is-focus-within');
+  });
+
+  document.addEventListener('focusout', (event) => {
+    if(!(event.target instanceof HTMLElement)) return;
+    const shell = event.target.closest('.card, .toolbar-shell, .modal-box, .page-controls-bar');
+    if(!(shell instanceof HTMLElement)) return;
+    window.setTimeout(() => {
+      if(!shell.contains(document.activeElement)) shell.classList.remove('is-focus-within');
+    }, 0);
+  });
+
+  window.addEventListener('sc:toast', (event) => {
+    const detail = event instanceof CustomEvent ? event.detail : null;
+    document.body.dataset.lastToastSeverity = String(detail?.severity || SEVERITY.INFO);
+  });
+
+  window.addEventListener('sc:modal-open', () => {
+    document.body.dataset.modalState = 'open';
+  });
+
+  window.addEventListener('sc:modal-close', () => {
+    const hasOpenModal = document.querySelector('.modal-wrap.on');
+    document.body.dataset.modalState = hasOpenModal ? 'open' : 'closed';
+  });
 }
 
 /**

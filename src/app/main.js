@@ -18,6 +18,7 @@ import {
   toast,
   abrirModal,
   fecharModal,
+  initGlobalMicroInteractions,
   fmt,
   fmtN,
   mk2mg,
@@ -739,6 +740,7 @@ startApplicationRuntime({
       setFiltroNotificacoes,
       executarAcaoGerencial
     }),
+    initGlobalMicroInteractions,
     initGoalTracking,
     initQuickCommand,
     initSidebarEnhancements,
