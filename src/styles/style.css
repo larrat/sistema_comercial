@@ -8758,3 +8758,260 @@ input[type="search"]:focus-visible{
     animation:none!important;
   }
 }
+
+/* =========================================================
+   DARK MODE REAL - SHELL, DASHBOARD E CAMPANHAS
+   ========================================================= */
+
+@media (prefers-color-scheme: dark){
+  html{
+    background:
+      radial-gradient(circle at top right, rgba(126,162,255,.16), transparent 30%),
+      radial-gradient(circle at top left, rgba(53,89,148,.2), transparent 24%),
+      linear-gradient(180deg, rgba(255,255,255,.02), transparent 28%),
+      var(--bg);
+  }
+
+  body{
+    color:var(--tx);
+  }
+
+  .sb{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+      linear-gradient(180deg,var(--shell-panel-top),var(--shell-panel-bottom)),
+      var(--surf);
+    box-shadow:var(--shadow-lg);
+  }
+
+  .sb-head,
+  .sb-foot{
+    border-color:var(--shell-border-subtle);
+  }
+
+  .sb-pill,
+  .sb-context,
+  .sb-group{
+    background:rgba(255,255,255,.03);
+    border-color:var(--shell-border-subtle);
+  }
+
+  .sb-search-input,
+  .sb-context-sub,
+  .sb-empty-sub{
+    color:var(--tx2);
+  }
+
+  .ni:hover{
+    background:rgba(126,162,255,.1);
+    color:var(--tx);
+  }
+
+  .ni.on{
+    background:linear-gradient(180deg, rgba(126,162,255,.22), rgba(126,162,255,.14));
+    color:var(--tx);
+    box-shadow:inset 4px 0 0 rgba(149,178,255,.85);
+  }
+
+  .ni .ico,
+  .mono-token{
+    background:rgba(255,255,255,.04);
+    border-color:var(--shell-border-subtle);
+    color:var(--tx2);
+  }
+
+  .app-topbar,
+  .card,
+  .modal-box,
+  .toolbar-shell,
+  .page-controls-bar.toolbar-shell{
+    border-color:var(--shell-border-subtle);
+  }
+
+  .app-topbar{
+    background:
+      radial-gradient(circle at top right, rgba(126,162,255,.12), transparent 32%),
+      linear-gradient(180deg,var(--shell-topbar-top),var(--shell-topbar-bottom)),
+      var(--surf);
+    box-shadow:var(--shadow-lg);
+  }
+
+  .card,
+  .modal-box{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.015)),
+      linear-gradient(180deg,var(--shell-card-top),var(--shell-card-bottom)),
+      var(--surf);
+  }
+
+  .toolbar-shell{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+      var(--surface-toolbar-shell);
+  }
+
+  .toolbar-shell--page{
+    background:
+      radial-gradient(circle at top right, rgba(126,162,255,.12), transparent 40%),
+      var(--surface-toolbar-page);
+  }
+
+  .btn{
+    background:rgba(255,255,255,.04);
+    border-color:var(--shell-border-subtle);
+    color:var(--tx);
+  }
+
+  .btn:hover{
+    background:rgba(126,162,255,.12);
+    border-color:rgba(149,178,255,.5);
+  }
+
+  .btn-p{
+    background:linear-gradient(180deg, #7ea2ff, #5d82eb);
+    color:#07111f;
+    box-shadow:0 14px 28px rgba(34,78,170,.35);
+  }
+
+  .btn-p:hover{
+    background:linear-gradient(180deg, #95b2ff, #6b8ef0);
+    color:#07111f;
+  }
+
+  .btn-gh{
+    background:rgba(240,188,88,.12);
+    color:#ffd99b;
+    border-color:rgba(240,188,88,.26);
+  }
+
+  .btn-r{
+    background:rgba(242,139,139,.12);
+    color:#ffc2c2;
+    border-color:rgba(242,139,139,.26);
+  }
+
+  .inp,
+  .sel,
+  .tb,
+  textarea.inp,
+  input[type="search"]{
+    background:rgba(11,18,29,.56);
+    border-color:var(--shell-border-subtle);
+    color:var(--tx);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  .inp::placeholder,
+  textarea.inp::placeholder,
+  input[type="search"]::placeholder{
+    color:var(--tx3);
+  }
+
+  .tb.on,
+  .pseg button.on{
+    background:rgba(126,162,255,.16);
+    color:var(--tx);
+  }
+
+  .tbl th{
+    background:rgba(255,255,255,.05);
+    color:var(--tx2);
+    border-bottom-color:var(--shell-border-subtle);
+  }
+
+  .tbl td{
+    border-bottom-color:rgba(255,255,255,.08);
+  }
+
+  .tbl tr:hover td{
+    background:rgba(126,162,255,.07);
+  }
+
+  .runtime-loading{
+    background:rgba(7,12,20,.36);
+  }
+
+  #toast.toast-info{
+    background:#1a2942;
+    color:#ecf4ff;
+    border-color:#4a6fa8;
+  }
+
+  #toast.toast-success{
+    background:#173425;
+    color:#eafff1;
+    border-color:#3f8f66;
+  }
+
+  #toast.toast-warning{
+    background:#3a2d15;
+    color:#fff4db;
+    border-color:#be9140;
+  }
+
+  #toast.toast-error{
+    background:#432020;
+    color:#ffeaea;
+    border-color:#d07171;
+  }
+
+  #pg-dashboard .dash-bento-band--metrics,
+  #pg-campanhas .camp-bento-band--metrics{
+    background:
+      radial-gradient(circle at top right, rgba(126,162,255,.18), transparent 30%),
+      linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)),
+      linear-gradient(180deg,var(--shell-topbar-top),var(--shell-card-bottom)),
+      var(--surf);
+    border-color:var(--shell-border-subtle);
+  }
+
+  #pg-dashboard .dash-bento-band--metrics .met,
+  #pg-campanhas .camp-metric-card{
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+      linear-gradient(180deg,var(--shell-highlight-strong),var(--shell-card-bottom));
+    border-color:rgba(149,178,255,.18);
+  }
+
+  #pg-dashboard .dash-section-head p,
+  #pg-dashboard .metric-card__foot,
+  #pg-dashboard .dash-status-share,
+  #pg-campanhas .camp-diag-panel__copy{
+    color:var(--tx2);
+  }
+
+  #pg-dashboard #dash-alerts .alert,
+  #pg-campanhas #camp-diag .alert{
+    border-color:rgba(149,178,255,.18);
+    box-shadow:var(--shadow-xs);
+  }
+
+  #pg-dashboard .dash-chart-legend span,
+  #pg-dashboard .dash-rank-meta,
+  #pg-campanhas .mobile-card-meta,
+  #pg-campanhas .mobile-card-sub{
+    color:var(--tx2);
+  }
+
+  #pg-dashboard #dash-margem .tw,
+  #pg-campanhas .tw{
+    background:rgba(9,15,24,.28);
+    border-color:rgba(255,255,255,.06);
+  }
+
+  #pg-campanhas .camp-summary-strip{
+    background:rgba(255,255,255,.02);
+  }
+
+  #pg-campanhas .mobile-card,
+  #pg-campanhas #camp-lista .mobile-card,
+  #pg-campanhas #camp-wa-fila .mobile-card,
+  #pg-campanhas #camp-envios-lista .mobile-card{
+    background:rgba(255,255,255,.03);
+    border-color:rgba(255,255,255,.08);
+  }
+
+  #pg-campanhas #camp-wa-fila input[type="checkbox"]{
+    accent-color:var(--color-accent);
+  }
+}
