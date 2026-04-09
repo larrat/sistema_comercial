@@ -9196,3 +9196,87 @@ html[data-theme="dark"] .card-shell > .toolbar-shell--section{
   border-bottom-color:var(--shell-border-subtle);
 }
 
+/* ── Quick Command Palette ── */
+.qcmd-overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:96px;
+  background:rgba(0,0,0,.35);
+  opacity:0;
+  pointer-events:none;
+  z-index:900;
+  transition:opacity var(--motion-fast) var(--ease-standard);
+}
+
+.qcmd-overlay:focus-within{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.qcmd-box{
+  display:flex;
+  align-items:center;
+  gap:var(--space-3);
+  width:min(560px,90vw);
+  padding:var(--space-3) var(--space-4);
+  background:var(--surf);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-lg,0 8px 32px rgba(0,0,0,.22));
+  animation:qcmd-drop var(--motion-base) var(--ease-emphasis) both;
+}
+
+.qcmd-overlay:not(:focus-within) .qcmd-box{
+  animation:none;
+}
+
+@keyframes qcmd-drop{
+  from{ transform:translateY(-8px); opacity:0; }
+  to{   transform:translateY(0);    opacity:1; }
+}
+
+.qcmd-prefix{
+  font-size:var(--text-lg);
+  font-weight:600;
+  color:var(--color-primary-500,#4f6ef7);
+  user-select:none;
+  flex-shrink:0;
+}
+
+.qcmd-input{
+  flex:1;
+  border:none;
+  outline:none;
+  background:transparent;
+  font-size:var(--text-md);
+  color:var(--tx);
+  caret-color:var(--color-primary-500,#4f6ef7);
+  padding:var(--space-2) 0;
+}
+
+.qcmd-input::placeholder{
+  color:var(--tx-muted,var(--txm));
+  font-size:var(--text-sm);
+}
+
+/* dark mode */
+@media(prefers-color-scheme:dark){
+  html:not([data-theme="light"]) .qcmd-overlay{
+    background:rgba(0,0,0,.55);
+  }
+  html:not([data-theme="light"]) .qcmd-box{
+    background:var(--surf);
+    border-color:var(--shell-border-subtle);
+    box-shadow:0 8px 40px rgba(0,0,0,.5);
+  }
+}
+
+html[data-theme="dark"] .qcmd-overlay{ background:rgba(0,0,0,.55); }
+html[data-theme="dark"] .qcmd-box{
+  background:var(--surf);
+  border-color:var(--shell-border-subtle);
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+}

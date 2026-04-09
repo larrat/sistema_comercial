@@ -106,9 +106,10 @@ export function initQuickCommand(){
   if(!input.dataset.boundQuick){
     input.dataset.boundQuick = '1';
     input.addEventListener('keydown', e => {
+      if(e.key === 'Escape'){ input.blur(); input.value = ''; return; }
       if(e.key !== 'Enter') return;
       const ok = executeQuickCommand(input.value);
-      if(ok) input.value = '';
+      if(ok){ input.value = ''; input.blur(); }
     });
   }
 
