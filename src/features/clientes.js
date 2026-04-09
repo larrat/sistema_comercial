@@ -4,6 +4,7 @@ import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt } from '../shared/utils.js';
+import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
 
@@ -14,6 +15,8 @@ import { renderPedMet, renderPedidos } from './pedidos.js';
 
 /** @type {NonNullable<ClientesModuleCallbacks['setFlowStep']>} */
 let setFlowStepSafe = () => {};
+let clientesFilterCache = null;
+let clientesSegCache = null;
 
 /** @type {ScreenDom} */
 const cliDom = createScreenDom('clientes', [
@@ -515,8 +518,20 @@ function getFilteredClientes(){
   const q = normTxt(cliDom.get('cli-busca')?.value || '');
   const seg = cliDom.get('cli-fil-seg')?.value || '';
   const status = cliDom.get('cli-fil-st')?.value || '';
+  const clientes = C();
 
-  return C().filter(cliente => {
+  if(
+    clientesFilterCache &&
+    clientesFilterCache.ref === clientes &&
+    clientesFilterCache.len === clientes.length &&
+    clientesFilterCache.q === q &&
+    clientesFilterCache.seg === seg &&
+    clientesFilterCache.status === status
+  ){
+    return clientesFilterCache.result;
+  }
+
+  const result = clientes.filter(cliente => {
     const termos = [
       cliente.nome,
       cliente.apelido,
@@ -532,6 +547,39 @@ function getFilteredClientes(){
       && (!seg || cliente.seg === seg)
       && (!status || cliente.status === status);
   });
+
+  clientesFilterCache = {
+    ref: clientes,
+    len: clientes.length,
+    q,
+    seg,
+    status,
+    result
+  };
+
+  return result;
+}
+
+function getClienteSegmentos(){
+  const clientes = C();
+  if(
+    clientesSegCache &&
+    clientesSegCache.ref === clientes &&
+    clientesSegCache.len === clientes.length
+  ){
+    return clientesSegCache.result;
+  }
+
+  const result = [...new Set(clientes.map(cliente => cliente.seg || 'Sem segmento'))]
+    .sort((a, b) => a.localeCompare(b));
+
+  clientesSegCache = {
+    ref: clientes,
+    len: clientes.length,
+    result
+  };
+
+  return result;
 }
 
 function renderEstadoVazio(){
@@ -787,107 +835,112 @@ function renderNotasCliente(id){
 }
 
 export function renderCliMet(){
-  const clientes = C();
-  const ativos = clientes.filter(cliente => cliente.status === 'ativo').length;
-  const prospectos = clientes.filter(cliente => cliente.status === 'prospecto').length;
-  const segmentos = [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))].length;
-  const currentSeg = cliDom.get('cli-fil-seg')?.value || '';
+  return measureRender('clientes', 'metrics', () => {
+    const clientes = C();
+    const ativos = clientes.filter(cliente => cliente.status === 'ativo').length;
+    const prospectos = clientes.filter(cliente => cliente.status === 'prospecto').length;
+    const segmentos = [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))].length;
+    const currentSeg = cliDom.get('cli-fil-seg')?.value || '';
 
-  cliDom.html('metrics', 'cli-met', `
-    <div class="met"><div class="ml">Total</div><div class="mv">${clientes.length}</div></div>
-    <div class="met"><div class="ml">Ativos</div><div class="mv">${ativos}</div></div>
-    <div class="met"><div class="ml">Prospectos</div><div class="mv">${prospectos}</div></div>
-    <div class="met"><div class="ml">Segmentos</div><div class="mv">${segmentos}</div></div>
-  `, 'clientes:metrics');
+    cliDom.html('metrics', 'cli-met', `
+      <div class="met"><div class="ml">Total</div><div class="mv">${clientes.length}</div></div>
+      <div class="met"><div class="ml">Ativos</div><div class="mv">${ativos}</div></div>
+      <div class="met"><div class="ml">Prospectos</div><div class="mv">${prospectos}</div></div>
+      <div class="met"><div class="ml">Segmentos</div><div class="mv">${segmentos}</div></div>
+    `, 'clientes:metrics');
 
-  cliDom.select(
-    'filters',
-    'cli-fil-seg',
-    '<option value="">Todos os segmentos</option>' +
-      [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b))
-        .map(seg => `<option value="${esc(seg)}">${esc(seg)}</option>`)
-        .join(''),
-    currentSeg,
-    'clientes:segmentos'
-  );
+    cliDom.select(
+      'filters',
+      'cli-fil-seg',
+      '<option value="">Todos os segmentos</option>' +
+        [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b))
+          .map(seg => `<option value="${esc(seg)}">${esc(seg)}</option>`)
+          .join(''),
+      currentSeg,
+      'clientes:segmentos'
+    );
+  });
 }
 
 export function renderClientes(){
-  const filtrados = getFilteredClientes();
-  if(!filtrados.length){
-    renderEstadoVazio();
-    return;
-  }
+  return measureRender('clientes', 'list', () => {
+    const filtrados = getFilteredClientes();
+    if(!filtrados.length){
+      renderEstadoVazio();
+      return;
+    }
 
-  if(window.matchMedia('(max-width: 1280px)').matches){
-    cliDom.html(
-      'list',
-      'cli-lista',
-      filtrados.map(renderClienteMobile).join(''),
-      'clientes:lista-mobile'
-    );
-    return;
-  }
+    if(window.matchMedia('(max-width: 1280px)').matches){
+      cliDom.html(
+        'list',
+        'cli-lista',
+        filtrados.map(renderClienteMobile).join(''),
+        'clientes:lista-mobile'
+      );
+      return;
+    }
 
-  cliDom.html('list', 'cli-lista', `
-    <div class="tw">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Nome</th>
-            <th>Contato</th>
-            <th>Marketing</th>
-            <th>Segmento</th>
-            <th>Tabela</th>
-            <th>Prazo</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>${filtrados.map(renderClienteDesktop).join('')}</tbody>
-      </table>
-    </div>
-  `, 'clientes:lista-desktop');
+    cliDom.html('list', 'cli-lista', `
+      <div class="tw">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Nome</th>
+              <th>Contato</th>
+              <th>Marketing</th>
+              <th>Segmento</th>
+              <th>Tabela</th>
+              <th>Prazo</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${filtrados.map(renderClienteDesktop).join('')}</tbody>
+        </table>
+      </div>
+    `, 'clientes:lista-desktop');
+  });
 }
 
 export function renderCliSegs(){
-  const el = cliDom.get('cli-segs-lista');
-  if(!el) return;
+  return measureRender('clientes', 'segments', () => {
+    const el = cliDom.get('cli-segs-lista');
+    if(!el) return;
 
-  const segmentos = [...new Set(C().map(cliente => cliente.seg || 'Sem segmento'))]
-    .sort((a, b) => a.localeCompare(b));
+    const segmentos = getClienteSegmentos();
 
-  cliDom.html('segments', 'cli-segs-lista', segmentos.map(seg => {
-    const clientes = C().filter(cliente => (cliente.seg || 'Sem segmento') === seg);
+    cliDom.html('segments', 'cli-segs-lista', segmentos.map(seg => {
+      const clientes = C().filter(cliente => (cliente.seg || 'Sem segmento') === seg);
 
-    return `
-      <div class="card">
-        <div class="fb form-gap-bottom-xs">
-          <div class="table-cell-strong">${esc(seg)}</div>
-          <span class="bdg bb">${clientes.length}</span>
+      return `
+        <div class="card">
+          <div class="fb form-gap-bottom-xs">
+            <div class="table-cell-strong">${esc(seg)}</div>
+            <span class="bdg bb">${clientes.length}</span>
+          </div>
+          <div class="fg2">
+            ${clientes.map(cliente => {
+              const cor = avc(cliente.nome);
+              return `
+                <button
+                  class="btn btn-inline-card"
+                  type="button"
+                  data-click="abrirCliDet('${cliente.id}')"
+                >
+                  <div class="av av-sm" style="background:${cor.bg};color:${cor.c}">
+                    ${esc(ini(cliente.nome))}
+                  </div>
+                  <span class="btn-inline-card__label">${esc(cliente.apelido || cliente.nome)}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
         </div>
-        <div class="fg2">
-          ${clientes.map(cliente => {
-            const cor = avc(cliente.nome);
-            return `
-              <button
-                class="btn btn-inline-card"
-                type="button"
-                data-click="abrirCliDet('${cliente.id}')"
-              >
-                <div class="av av-sm" style="background:${cor.bg};color:${cor.c}">
-                  ${esc(ini(cliente.nome))}
-                </div>
-                <span class="btn-inline-card__label">${esc(cliente.apelido || cliente.nome)}</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  }).join(''), 'clientes:segmentos-lista');
+      `;
+    }).join(''), 'clientes:segmentos-lista');
+  });
 }
 
 export async function abrirCliDet(id){

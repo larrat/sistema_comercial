@@ -292,7 +292,24 @@ const AppContext = createAppContext({
 const AppModules = createModuleRegistry();
 window.__SC_DEBUG__ = Object.freeze({
   getRenderMetrics,
-  resetRenderMetrics
+  resetRenderMetrics,
+  logRenderMetrics(page){
+    const metrics = page ? getRenderMetrics(page) : getRenderMetrics();
+    const rows = Array.isArray(metrics) ? metrics : (metrics ? [metrics] : []);
+    const flat = rows.flatMap(entry =>
+      Object.entries(entry.durations || {}).map(([area, stats]) => ({
+        page: entry.page,
+        area,
+        count: stats.count,
+        lastMs: Number(stats.last || 0).toFixed(1),
+        avgMs: Number(stats.count ? stats.total / stats.count : 0).toFixed(1),
+        maxMs: Number(stats.max || 0).toFixed(1)
+      }))
+    );
+    flat.sort((a, b) => Number(b.maxMs) - Number(a.maxMs));
+    console.table(flat);
+    return flat;
+  }
 });
 
 /**
@@ -752,4 +769,3 @@ startApplicationRuntime({
     renderSetup
   }
 });
-

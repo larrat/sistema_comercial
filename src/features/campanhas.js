@@ -3,6 +3,7 @@
 import { SB } from '../app/api.js';
 import { D, State, C } from '../app/store.js';
 import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../shared/utils.js';
+import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 
 /** @typedef {import('../types/domain').Campanha} Campanha */
@@ -37,6 +38,8 @@ const campUiState = {
   waLoteIndex: -1,
   statusFeedback: null
 };
+let campanhasStatsCache = null;
+let campanhasHistoricoCache = null;
 
 /** @returns {Campanha[]} */
 function getCampanhasCache() {
@@ -117,6 +120,33 @@ function contarResumoEnvios(envios) {
     enviados: envios.filter(e => e.status === 'enviado').length,
     falhas: envios.filter(e => e.status === 'falhou').length
   };
+}
+
+function getCampanhasStats(campanhas = getCampanhasCache(), envios = getEnviosCache()){
+  if(
+    campanhasStatsCache &&
+    campanhasStatsCache.campanhasRef === campanhas &&
+    campanhasStatsCache.campanhasLen === campanhas.length &&
+    campanhasStatsCache.enviosRef === envios &&
+    campanhasStatsCache.enviosLen === envios.length
+  ){
+    return campanhasStatsCache.result;
+  }
+
+  const result = {
+    ativas: campanhas.filter(c => c.ativo).length,
+    resumo: contarResumoEnvios(envios)
+  };
+
+  campanhasStatsCache = {
+    campanhasRef: campanhas,
+    campanhasLen: campanhas.length,
+    enviosRef: envios,
+    enviosLen: envios.length,
+    result
+  };
+
+  return result;
 }
 
 function buildCampanhasContextPanel(campanhas, envios){
@@ -435,14 +465,29 @@ function getEnviosHistoricoFiltrados() {
   const busca = String(getInputValue('camp-envios-busca') || '').trim().toLowerCase();
   const status = String(getInputValue('camp-envios-fil-status') || '').trim();
   const canal = String(getInputValue('camp-envios-fil-canal') || '').trim();
+  const envios = getEnviosCache();
+  const clientes = C() || [];
 
-  return getEnviosCache()
+  if(
+    campanhasHistoricoCache &&
+    campanhasHistoricoCache.enviosRef === envios &&
+    campanhasHistoricoCache.enviosLen === envios.length &&
+    campanhasHistoricoCache.clientesRef === clientes &&
+    campanhasHistoricoCache.clientesLen === clientes.length &&
+    campanhasHistoricoCache.busca === busca &&
+    campanhasHistoricoCache.status === status &&
+    campanhasHistoricoCache.canal === canal
+  ){
+    return campanhasHistoricoCache.result;
+  }
+
+  const result = envios
     .slice()
     .filter(e => !status || String(e.status || '') === status)
     .filter(e => !canal || String(e.canal || '') === canal)
     .filter(e => {
       if (!busca) return true;
-      const cliente = (C() || []).find(c => c.id === e.cliente_id);
+      const cliente = clientes.find(c => c.id === e.cliente_id);
       const haystack = [
         cliente?.nome,
         e.destino,
@@ -452,6 +497,19 @@ function getEnviosHistoricoFiltrados() {
       return haystack.includes(busca);
     })
     .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
+
+  campanhasHistoricoCache = {
+    enviosRef: envios,
+    enviosLen: envios.length,
+    clientesRef: clientes,
+    clientesLen: clientes.length,
+    busca,
+    status,
+    canal,
+    result
+  };
+
+  return result;
 }
 
 function getFilaWhatsApp() {
@@ -829,155 +887,154 @@ export async function removerCampanha(id) {
 }
 
 export function renderCampanhasMet() {
-  const campanhas = getCampanhasCache();
-  const envios = getEnviosCache();
+  return measureRender('campanhas', 'metrics', () => {
+    const campanhas = getCampanhasCache();
+    const envios = getEnviosCache();
+    const { ativas, resumo } = getCampanhasStats(campanhas, envios);
+    const el = document.getElementById('camp-met');
+    if (!el) return;
 
-  const ativas = campanhas.filter(c => c.ativo).length;
-  const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual').length;
-  const enviados = envios.filter(e => e.status === 'enviado').length;
-  const falhas = envios.filter(e => e.status === 'falhou').length;
-
-  const el = document.getElementById('camp-met');
-  if (!el) return;
-
-  el.innerHTML = `
-    <div class="met metric-card camp-metric-card">
-      <div class="metric-card__eyebrow">Base</div>
-      <div class="ml">Campanhas</div>
-      <div class="mv">${campanhas.length}</div>
-      <div class="ms metric-card__foot">${ativas} ativa(s) no momento</div>
-    </div>
-    <div class="met metric-card camp-metric-card">
-      <div class="metric-card__eyebrow">Opera&ccedil;&atilde;o</div>
-      <div class="ml">Fila</div>
-      <div class="mv">${pendentes}</div>
-      <div class="ms metric-card__foot">${falhas} falha(s) aguardando revis&atilde;o</div>
-    </div>
-    <div class="met metric-card camp-metric-card">
-      <div class="metric-card__eyebrow">Resultado</div>
-      <div class="ml">Enviados</div>
-      <div class="mv">${enviados}</div>
-      <div class="ms metric-card__foot">${envios.length} envio(s) no hist&oacute;rico</div>
-    </div>
-  `;
+    el.innerHTML = `
+      <div class="met metric-card camp-metric-card">
+        <div class="metric-card__eyebrow">Base</div>
+        <div class="ml">Campanhas</div>
+        <div class="mv">${campanhas.length}</div>
+        <div class="ms metric-card__foot">${ativas} ativa(s) no momento</div>
+      </div>
+      <div class="met metric-card camp-metric-card">
+        <div class="metric-card__eyebrow">Opera&ccedil;&atilde;o</div>
+        <div class="ml">Fila</div>
+        <div class="mv">${resumo.pendentes}</div>
+        <div class="ms metric-card__foot">${resumo.falhas} falha(s) aguardando revis&atilde;o</div>
+      </div>
+      <div class="met metric-card camp-metric-card">
+        <div class="metric-card__eyebrow">Resultado</div>
+        <div class="ml">Enviados</div>
+        <div class="mv">${resumo.enviados}</div>
+        <div class="ms metric-card__foot">${envios.length} envio(s) no hist&oacute;rico</div>
+      </div>
+    `;
+  });
 }
 
 export function renderCampanhas() {
-  const campanhas = getCampanhasCache();
-  const envios = getEnviosCache();
-  const el = document.getElementById('camp-lista');
-  if (!el) return;
-  renderCampDiag();
-  const contextHtml = buildCampanhasContextPanel(campanhas, envios);
+  return measureRender('campanhas', 'list', () => {
+    const campanhas = getCampanhasCache();
+    const envios = getEnviosCache();
+    const el = document.getElementById('camp-lista');
+    if (!el) return;
+    renderCampDiag();
+    const contextHtml = buildCampanhasContextPanel(campanhas, envios);
+    const { resumo } = getCampanhasStats(campanhas, envios);
+    const pendentes = resumo.pendentes;
+    const falhas = resumo.falhas;
+    const enviadas = resumo.enviados;
 
-  const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual').length;
-  const falhas = envios.filter(e => e.status === 'falhou').length;
-  const enviadas = envios.filter(e => e.status === 'enviado').length;
+    if (!campanhas.length) {
+      el.innerHTML = `
+        ${contextHtml}
+        <div class="camp-quick camp-summary-strip">
+          <span class="bdg bb">Fila: ${pendentes}</span>
+          <span class="bdg br">Falhas: ${falhas}</span>
+          <span class="bdg bg">Enviadas: ${enviadas}</span>
+        </div>
+        <div class="empty"><div class="ico">CP</div><p>Nenhuma campanha cadastrada.</p></div>
+      `;
+      return;
+    }
 
-  if (!campanhas.length) {
-    el.innerHTML = `
-      ${contextHtml}
-      <div class="camp-quick camp-summary-strip">
-        <span class="bdg bb">Fila: ${pendentes}</span>
-        <span class="bdg br">Falhas: ${falhas}</span>
-        <span class="bdg bg">Enviadas: ${enviadas}</span>
-      </div>
-      <div class="empty"><div class="ico">CP</div><p>Nenhuma campanha cadastrada.</p></div>
-    `;
-    return;
-  }
-
-  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
-  if(isMobile){
-    el.innerHTML = `
-      ${contextHtml}
-      <div class="camp-quick camp-summary-strip">
-        <span class="bdg bb">Fila: ${pendentes}</span>
-        <span class="bdg br">Falhas: ${falhas}</span>
-        <span class="bdg bg">Enviadas: ${enviadas}</span>
-      </div>
-      ${campanhas.map(c => `
-      <div class="mobile-card">
-        <div class="mobile-card-head">
-          <div class="mobile-card-grow">
-            <div class="mobile-card-title">${c.nome}</div>
-            <div class="mobile-card-tags mobile-card-tags-tight">
-              <span class="bdg bk">${c.tipo || 'aniversario'}</span>
-              <span class="bdg bb">${labelCanal(c.canal)}</span>
-              ${badgeSaudeCampanha(c, envios)}
+    const isMobile = window.matchMedia('(max-width: 1280px)').matches;
+    if(isMobile){
+      el.innerHTML = `
+        ${contextHtml}
+        <div class="camp-quick camp-summary-strip">
+          <span class="bdg bb">Fila: ${pendentes}</span>
+          <span class="bdg br">Falhas: ${falhas}</span>
+          <span class="bdg bg">Enviadas: ${enviadas}</span>
+        </div>
+        ${campanhas.map(c => `
+        <div class="mobile-card">
+          <div class="mobile-card-head">
+            <div class="mobile-card-grow">
+              <div class="mobile-card-title">${c.nome}</div>
+              <div class="mobile-card-tags mobile-card-tags-tight">
+                <span class="bdg bk">${c.tipo || 'aniversario'}</span>
+                <span class="bdg bb">${labelCanal(c.canal)}</span>
+                ${badgeSaudeCampanha(c, envios)}
+              </div>
             </div>
+            <div>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</div>
           </div>
-          <div>${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}</div>
-        </div>
 
-        <div class="mobile-card-meta">
-          <div>Antecedencia: <b class="meta-emphasis">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
-          <div>Desconto: <b class="meta-emphasis">${Number(c.desconto || 0)}%</b></div>
-          <div>Cupom: <b class="meta-emphasis">${c.cupom || '&mdash;'}</b></div>
-        </div>
+          <div class="mobile-card-meta">
+            <div>Antecedencia: <b class="meta-emphasis">${Number(c.dias_antecedencia || 0)} dia(s)</b></div>
+            <div>Desconto: <b class="meta-emphasis">${Number(c.desconto || 0)}%</b></div>
+            <div>Cupom: <b class="meta-emphasis">${c.cupom || '&mdash;'}</b></div>
+          </div>
 
-        <div class="mobile-card-actions">
-          <button class="btn btn-sm" title="Detalhes da campanha" data-click="abrirCampanhaDet('${c.id}')">Detalhes</button>
-          <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
-          <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
-          <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
+          <div class="mobile-card-actions">
+            <button class="btn btn-sm" title="Detalhes da campanha" data-click="abrirCampanhaDet('${c.id}')">Detalhes</button>
+            <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
+            <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
+            <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
+          </div>
         </div>
+      `).join('')}
+      `;
+      return;
+    }
+
+    el.innerHTML = `
+      ${contextHtml}
+      <div class="camp-quick camp-summary-strip">
+        <span class="bdg bb">Fila: ${pendentes}</span>
+        <span class="bdg br">Falhas: ${falhas}</span>
+        <span class="bdg bg">Enviadas: ${enviadas}</span>
       </div>
-    `).join('')}
-    `;
-    return;
-  }
-
-  el.innerHTML = `
-    ${contextHtml}
-    <div class="camp-quick camp-summary-strip">
-      <span class="bdg bb">Fila: ${pendentes}</span>
-      <span class="bdg br">Falhas: ${falhas}</span>
-      <span class="bdg bg">Enviadas: ${enviadas}</span>
-    </div>
-    <div class="tw">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Tipo</th>
-            <th>Canal</th>
-            <th>Antecedencia</th>
-            <th>Desconto</th>
-            <th>Cupom</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          ${campanhas.map(c => `
+      <div class="tw">
+        <table class="tbl">
+          <thead>
             <tr>
-              <td class="table-cell-strong">${c.nome}</td>
-              <td><span class="bdg bk">${c.tipo || 'aniversario'}</span></td>
-              <td><span class="bdg bb">${labelCanal(c.canal)}</span></td>
-              <td>${Number(c.dias_antecedencia || 0)} dia(s)</td>
-              <td>${Number(c.desconto || 0)}%</td>
-              <td>${c.cupom || '&mdash;'}</td>
-              <td>
-                <div class="fg2 gap-4">
-                  ${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
-                  ${badgeSaudeCampanha(c, envios)}
-                </div>
-              </td>
-              <td>
-                <div class="fg2 camp-actions">
-                  <button class="btn btn-sm" title="Detalhes da campanha" data-click="abrirCampanhaDet('${c.id}')">Detalhes</button>
-                  <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
-                  <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
-                  <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
-                </div>
-              </td>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Canal</th>
+              <th>Antecedencia</th>
+              <th>Desconto</th>
+              <th>Cupom</th>
+              <th>Status</th>
+              <th></th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </div>
-  `;
+          </thead>
+          <tbody>
+            ${campanhas.map(c => `
+              <tr>
+                <td class="table-cell-strong">${c.nome}</td>
+                <td><span class="bdg bk">${c.tipo || 'aniversario'}</span></td>
+                <td><span class="bdg bb">${labelCanal(c.canal)}</span></td>
+                <td>${Number(c.dias_antecedencia || 0)} dia(s)</td>
+                <td>${Number(c.desconto || 0)}%</td>
+                <td>${c.cupom || '&mdash;'}</td>
+                <td>
+                  <div class="fg2 gap-4">
+                    ${c.ativo ? '<span class="bdg bg">Ativa</span>' : '<span class="bdg br">Inativa</span>'}
+                    ${badgeSaudeCampanha(c, envios)}
+                  </div>
+                </td>
+                <td>
+                  <div class="fg2 camp-actions">
+                    <button class="btn btn-sm" title="Detalhes da campanha" data-click="abrirCampanhaDet('${c.id}')">Detalhes</button>
+                    <button class="btn btn-sm" title="Editar campanha" data-click="editarCampanha('${c.id}')">Editar</button>
+                    <button class="btn btn-p btn-sm" id="camp-run-${escAttr(c.id)}" title="Gerar fila de envio" data-click="gerarFilaCampanha('${c.id}')">Gerar fila</button>
+                    <button class="btn btn-sm" title="Remover campanha" data-click="removerCampanha('${c.id}')">Excluir</button>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  });
 }
 
 export function abrirCampanhaDet(campanhaId) {
@@ -1367,18 +1424,20 @@ function renderPreviewWhatsAppAtual() {
 }
 
 export function renderCampanhaEnvios() {
-  const envios = getEnviosHistoricoFiltrados();
-  const el = document.getElementById('camp-envios-lista');
-  if (!el) return;
+  return measureRender('campanhas', 'history', () => {
+    const envios = getEnviosHistoricoFiltrados();
+    const el = document.getElementById('camp-envios-lista');
+    if (!el) return;
 
-  if (!envios.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">VR</div><p>Nenhum envio registrado.</p></div>`;
-    return;
-  }
+    if (!envios.length) {
+      el.innerHTML = `<div class="empty"><div class="ico">VR</div><p>Nenhum envio registrado.</p></div>`;
+      return;
+    }
 
-  const grupos = agruparHistoricoEnviosPorCampanha(envios);
-  const isMobile = window.matchMedia('(max-width: 1280px)').matches;
-  el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
+    const grupos = agruparHistoricoEnviosPorCampanha(envios);
+    const isMobile = window.matchMedia('(max-width: 1280px)').matches;
+    el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
+  });
 }
 
 export function abrirPreviewWhatsAppEnvio(envioId) {
