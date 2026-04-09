@@ -8,6 +8,8 @@ import { fmtQ, toast } from '../shared/utils.js';
 
 const NOTI_HISTORY_KEY = 'sc_noti_hist_v1';
 const NOTI_PRIORITY_ORDER = { critico: 0, atencao: 1, oportunidade: 2 };
+const NOTI_MAX_ITEMS_PER_ORIGEM = 2;
+const NOTI_MAX_TOTAL_ITEMS = 12;
 
 /** @type {NonNullable<NotificacoesModuleDeps['calcSaldos']>} */
 let calcSaldosSafe = () => ({});
@@ -138,17 +140,46 @@ function buildEstoqueNotifications(now, saldos){
 function buildCampanhaNotifications(){
   const envios = D.campanhaEnvios?.[State.FIL] || [];
   const pendentes = envios.filter(e => e.status === 'pendente' || e.status === 'manual');
-  if(!pendentes.length) return [];
-  return [{
-    id: `campanhas-pendentes-${pendentes.length}`,
-    prioridade: 'atencao',
+  const falhas = envios.filter(e => e.status === 'falhou');
+  const nowMs = Date.now();
+  const oldestPending = pendentes
+    .map(e => new Date(e.criado_em || e.data_ref || 0))
+    .filter(d => !Number.isNaN(d.getTime()))
+    .sort((a, b) => a.getTime() - b.getTime())[0] || null;
+  const pendenteDias = oldestPending ? Math.floor((nowMs - oldestPending.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+  /** @type {NotificationItem[]} */
+  const cards = [];
+
+  if(falhas.length){
+    cards.push({
+      id: `campanhas-falhas-${falhas.length}`,
+      prioridade: falhas.length >= 5 ? 'critico' : 'atencao',
+      origem: 'campanhas',
+      titulo: `Falha em ${falhas.length} envio(s) de campanha`,
+      descricao: 'Falhas exigem revisão manual para evitar perda de contato com clientes.',
+      meta: 'Campanhas',
+      acaoLabel: 'Revisar fila',
+      acao: () => irSafe('campanhas')
+    });
+  }
+
+  if(!pendentes.length) return cards;
+
+  cards.push({
+    id: `campanhas-pendentes-${pendentes.length}-${pendenteDias}`,
+    prioridade: pendenteDias >= 2 || pendentes.length >= 10 ? 'atencao' : 'oportunidade',
     origem: 'campanhas',
-    titulo: `Fila de campanhas com ${pendentes.length} envio(s) pendente(s)`,
-    descricao: 'Existe fila manual ou pendente aguardando ação.',
+    titulo: `Fila com ${pendentes.length} envio(s) aguardando ação`,
+    descricao: pendenteDias >= 1
+      ? `Há pendências paradas há ${pendenteDias} dia(s).`
+      : 'Existe fila manual ou pendente aguardando envio.',
     meta: 'Campanhas',
     acaoLabel: 'Abrir campanhas',
     acao: () => irSafe('campanhas')
-  }];
+  });
+
+  return cards;
 }
 
 /**
@@ -156,6 +187,7 @@ function buildCampanhaNotifications(){
  * @returns {NotificationItem[]}
  */
 function buildAniversarioNotifications(now){
+  const mensagens = { 0: 'hoje', 1: 'amanhã', 7: 'em 1 semana' };
   return C().flatMap(c => {
     const prox = getProxAniversario(c.data_aniversario);
     if(!prox) return [];
@@ -163,11 +195,12 @@ function buildAniversarioNotifications(now){
     if(diff < 0 || diff > 7) return [];
     const canais = [c.whatsapp, c.tel, c.email].filter(Boolean);
     if(!c.optin_marketing || !canais.length) return [];
+    const quando = mensagens[diff] || `em ${diff} dia(s)`;
     return [{
       id: `aniversario-${c.id}-${prox.toISOString().slice(0,10)}`,
-      prioridade: 'oportunidade',
+      prioridade: diff <= 2 ? 'atencao' : 'oportunidade',
       origem: 'clientes',
-      titulo: `${c.nome} faz aniversario em ${diff} dia(s)`,
+      titulo: `${c.nome} faz aniversário ${quando}`,
       descricao: `Cliente apto para campanha. Canais disponiveis: ${canais.length}.`,
       meta: 'Clientes / Campanhas',
       acaoLabel: 'Abrir campanhas',
@@ -181,6 +214,19 @@ function buildAniversarioNotifications(now){
  * @returns {NotificationItem[]}
  */
 function buildJogosNotifications(now){
+  /** @type {Record<string, number>} */
+  const torcidaPorTime = {};
+  C().forEach(c => {
+    if(!c.optin_marketing) return;
+    String(c.time || '')
+      .split(/[,;\n]+/)
+      .map(x => String(x || '').trim().toLowerCase())
+      .filter(Boolean)
+      .forEach(time => {
+        torcidaPorTime[time] = (torcidaPorTime[time] || 0) + 1;
+      });
+  });
+
   const jogos = (D.jogos?.[State.FIL] || [])
     .filter(j => !!j.data_hora)
     .map(j => ({ ...j, dt: new Date(j.data_hora) }))
@@ -193,12 +239,16 @@ function buildJogosNotifications(now){
     d.setHours(0, 0, 0, 0);
     const diff = daysDiff(now, d);
     if(diff < 0 || diff > 7) return [];
+    const mandante = String(j.mandante || '').trim().toLowerCase();
+    const visitante = String(j.visitante || '').trim().toLowerCase();
+    const publico = (torcidaPorTime[mandante] || 0) + (torcidaPorTime[visitante] || 0);
+    if(publico < 2) return [];
     return [{
       id: `jogo-${j.id || j.titulo}-${j.dt.toISOString()}`,
-      prioridade: 'oportunidade',
+      prioridade: diff <= 1 ? 'atencao' : 'oportunidade',
       origem: 'agenda',
       titulo: `Jogo proximo: ${j.titulo || `${j.mandante || ''} x ${j.visitante || ''}`}`,
-      descricao: `Em ${diff} dia(s). Bom momento para campanha por time.`,
+      descricao: `Em ${diff} dia(s). Base potencial: ${publico} cliente(s) com afinidade pelos times.`,
       meta: 'Agenda / Oportunidades',
       acaoLabel: 'Abrir dashboard',
       acao: () => irSafe('dashboard')
@@ -226,7 +276,16 @@ export function buildNotificacoes(){
     if(!deduped.has(n.id)) deduped.set(n.id, n);
   });
 
-  return Array.from(deduped.values()).sort(compareNotifications);
+  const porOrigem = {};
+  const limited = Array.from(deduped.values())
+    .sort(compareNotifications)
+    .filter(n => {
+      const key = String(n.origem || 'sistema');
+      porOrigem[key] = (porOrigem[key] || 0) + 1;
+      return porOrigem[key] <= NOTI_MAX_ITEMS_PER_ORIGEM;
+    });
+
+  return limited.slice(0, NOTI_MAX_TOTAL_ITEMS);
 }
 
 export function getNotificacoesResumo(){
@@ -428,5 +487,3 @@ export function renderNotificacoes(){
     </div>
   `).join('');
 }
-
-
