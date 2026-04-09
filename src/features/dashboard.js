@@ -132,6 +132,115 @@ function shouldAutoSyncJogos(fid){
   return !lastAt || (Date.now() - lastAt) >= JOGOS_AUTO_SYNC_TTL_MS;
 }
 
+function buildDashboardContextualPanel({
+  crit = [],
+  baixo = [],
+  anivProximos = [],
+  clientesSemAniversario = 0,
+  oportunidades = [],
+  oportunidadesHoje = [],
+  abertos = 0,
+  mg = 0
+} = {}){
+  /** @type {string[]} */
+  const cards = [];
+
+  if(crit.length){
+    cards.push(`
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Prioridade</span>
+          <span class="context-card__kicker">Estoque</span>
+        </div>
+        <div class="context-card__title">Reposicao imediata</div>
+        <div class="context-card__copy">${crit.length} produto(s) estao zerados e precisam de reposicao agora.</div>
+        <div class="context-card__meta">${crit.slice(0, 3).map(p => p.nome).join(', ')}${crit.length > 3 ? '...' : ''}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('estoque')">Abrir estoque</button>
+        </div>
+      </article>
+    `);
+  }else if(baixo.length){
+    cards.push(`
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Atencao</span>
+          <span class="context-card__kicker">Estoque</span>
+        </div>
+        <div class="context-card__title">Itens proximos do minimo</div>
+        <div class="context-card__copy">${baixo.length} item(ns) estao abaixo do nivel ideal e merecem revisao.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('estoque')">Revisar estoque</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(oportunidades.length){
+    cards.push(`
+      <article class="context-card context-card--success">
+        <div class="context-card__head">
+          <span class="bdg bg">Acao sugerida</span>
+          <span class="context-card__kicker">Campanhas</span>
+        </div>
+        <div class="context-card__title">Clientes prontos para ativacao</div>
+        <div class="context-card__copy">${oportunidades.length} oportunidade(s) por jogos na semana, sendo ${oportunidadesHoje.length} para hoje.</div>
+        <div class="context-card__meta">${oportunidades.slice(0, 2).map(o => `${o.cliente} (${o.time})`).join(', ')}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('campanhas')">Abrir campanhas</button>
+          <button class="btn btn-p btn-sm" data-click="abrirNovaCampanha()">Nova campanha</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(anivProximos.length || clientesSemAniversario > 0){
+    cards.push(`
+      <article class="context-card context-card--info">
+        <div class="context-card__head">
+          <span class="bdg bb">Relacionamento</span>
+          <span class="context-card__kicker">Clientes</span>
+        </div>
+        <div class="context-card__title">Base pronta para calendario comercial</div>
+        <div class="context-card__copy">${anivProximos.length} aniversario(s) nos proximos 7 dias e ${clientesSemAniversario} cadastro(s) sem data.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('clientes')">Revisar clientes</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(abertos > 0 && mg < 10){
+    cards.push(`
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Pipeline</span>
+          <span class="context-card__kicker">Pedidos</span>
+        </div>
+        <div class="context-card__title">Converter pedidos antes de perder margem</div>
+        <div class="context-card__copy">${abertos} pedido(s) em aberto com margem de ${pct(mg)} no periodo.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('pedidos')">Abrir pedidos</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(!cards.length) return '';
+
+  return `
+    <div class="context-panel context-panel--dashboard">
+      <div class="context-panel__head">
+        <div class="context-panel__title">Contexto sugerido</div>
+        <div class="context-panel__sub">Prioridades e proximas acoes com base no momento atual da filial</div>
+      </div>
+      <div class="context-panel__grid">
+        ${cards.slice(0, 3).join('')}
+      </div>
+    </div>
+  `;
+}
+
 function fmtDataHora(v){
   if(!v) return '-';
   const d = new Date(v);
@@ -542,7 +651,18 @@ export function renderDash(){
     ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegível(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '...' : ''}</div>`;
   }
 
-  dashDom.html('alerts', 'dash-alerts', ah, 'dashboard:alerts');
+  const contextHtml = buildDashboardContextualPanel({
+    crit,
+    baixo,
+    anivProximos,
+    clientesSemAniversario,
+    oportunidades,
+    oportunidadesHoje,
+    abertos,
+    mg
+  });
+
+  dashDom.html('alerts', 'dash-alerts', `${contextHtml}${ah}`, 'dashboard:alerts');
 
   const chartEl = dashDom.get('dash-chart');
   const emEl = dashDom.get('dash-chart-empty');

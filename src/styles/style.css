@@ -8544,6 +8544,146 @@ body{
 }
 
 /* =========================================================
+   CONTEXTO AI-NATIVE - DASHBOARD / CAMPANHAS / CLIENTES
+   ========================================================= */
+
+.context-panel{
+  display:grid;
+  gap:var(--space-4);
+  padding:var(--space-5);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-xl);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.12), transparent 30%),
+    linear-gradient(180deg,var(--shell-topbar-top),var(--shell-card-bottom)),
+    var(--surf);
+  box-shadow:var(--shadow-xs);
+}
+
+.context-panel__head{
+  display:grid;
+  gap:var(--space-1);
+}
+
+.context-panel__title{
+  font-size:var(--fs-16);
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:var(--tx);
+}
+
+.context-panel__sub{
+  font-size:var(--fs-14);
+  color:var(--tx2);
+  line-height:1.45;
+}
+
+.context-panel__grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:var(--space-4);
+}
+
+.context-card{
+  display:grid;
+  gap:var(--space-3);
+  min-width:0;
+  padding:var(--space-4);
+  border:1px solid var(--bd);
+  border-radius:var(--radius-lg);
+  background:
+    linear-gradient(180deg,var(--shell-highlight-strong),var(--shell-card-bottom)),
+    var(--surf2);
+  box-shadow:var(--shadow-xs);
+}
+
+.context-card__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--space-3);
+  flex-wrap:wrap;
+}
+
+.context-card__kicker{
+  font-size:var(--fs-12);
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--tx3);
+}
+
+.context-card__title{
+  font-size:var(--fs-16);
+  font-weight:800;
+  line-height:1.2;
+  color:var(--tx);
+}
+
+.context-card__copy{
+  font-size:var(--fs-14);
+  color:var(--tx2);
+  line-height:1.5;
+}
+
+.context-card__meta{
+  font-size:var(--fs-12);
+  color:var(--tx3);
+  line-height:1.4;
+}
+
+.context-card__actions{
+  display:flex;
+  gap:var(--space-2);
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.context-card--danger{
+  border-color:color-mix(in srgb, var(--r) 26%, var(--bd));
+}
+
+.context-card--warning{
+  border-color:color-mix(in srgb, var(--w) 30%, var(--bd));
+}
+
+.context-card--success{
+  border-color:color-mix(in srgb, var(--ok) 28%, var(--bd));
+}
+
+.context-card--info{
+  border-color:color-mix(in srgb, var(--acc) 26%, var(--bd));
+}
+
+#pg-dashboard .context-panel--dashboard{
+  margin-bottom:var(--space-3);
+}
+
+#pg-campanhas .context-panel--campanhas{
+  margin-bottom:var(--space-4);
+}
+
+.cli-detail .context-panel--cliente{
+  margin-top:var(--space-4);
+}
+
+@media (max-width: 980px){
+  .context-panel__grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width: 760px){
+  .context-panel{
+    padding:var(--space-4);
+  }
+
+  .context-card{
+    padding:var(--space-3);
+  }
+}
+
+/* =========================================================
    MICROINTERACOES GLOBAIS - ESTADOS E FEEDBACK
    ========================================================= */
 
