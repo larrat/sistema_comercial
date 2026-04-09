@@ -5,8 +5,12 @@ const SB_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
 const SB_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const APP_INVITE_REDIRECT_TO = Deno.env.get('APP_INVITE_REDIRECT_TO') || '';
 const APP_ROLES = ['admin', 'gerente', 'operador'] as const;
+const INVITE_ACTIONS = ['invite_and_assign', 'resend_invite'] as const;
+
+type InviteAction = typeof INVITE_ACTIONS[number];
 
 type RequestBody = {
+  action?: string | null;
   email?: string;
   nome?: string | null;
   papel?: string | null;
@@ -48,6 +52,11 @@ function normalizeRedirectUrl(value: unknown) {
   } catch {
     return '';
   }
+}
+
+function normalizeInviteAction(value: unknown): InviteAction {
+  const raw = String(value || '').trim().toLowerCase();
+  return raw === 'resend_invite' ? 'resend_invite' : 'invite_and_assign';
 }
 
 async function lookupUserByEmail(
@@ -120,6 +129,7 @@ Deno.serve(async req => {
   }
 
   const body = await req.json().catch(() => null) as RequestBody | null;
+  const action = normalizeInviteAction(body?.action);
   const email = normalizeEmail(body?.email);
   const nome = String(body?.nome || '').trim();
   const papel = String(body?.papel || '').trim();
@@ -199,32 +209,51 @@ Deno.serve(async req => {
   let invited = false;
   let created = false;
   let invitedUserId = String(lookupBefore.data?.user_id || '').trim();
+  const invitePayload = {
+    data: nome ? { full_name: nome, name: nome, nome } : {},
+    redirectTo: redirectTo || undefined
+  };
+  const shouldSendInvite = action === 'resend_invite' || !invitedUserId;
 
-  if (!invitedUserId) {
-    const invitePayload = {
-      data: nome ? { full_name: nome, name: nome, nome } : {},
-      redirectTo: redirectTo || undefined
-    };
-
+  if (shouldSendInvite) {
     const { data: inviteData, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
       email,
       invitePayload
     );
 
     if (inviteError) {
+      const inviteMessage = String(inviteError.message || '').toLowerCase();
+      const alreadyAccepted =
+        inviteMessage.includes('already been registered') ||
+        inviteMessage.includes('already registered') ||
+        inviteMessage.includes('already exists');
+
+      if (alreadyAccepted) {
+        return json({
+          ok: false,
+          error: {
+            code: 'INVITE_ALREADY_ACCEPTED',
+            message: 'Esse e-mail ja possui uma conta ativa. O convite nao pode ser reenviado; oriente o usuario a entrar normalmente ou redefinir a senha.',
+            details: inviteError.message
+          }
+        }, 409);
+      }
+
       return json({
         ok: false,
         error: {
           code: 'INVITE_FAILED',
-          message: 'Falha ao enviar convite por e-mail.',
+          message: action === 'resend_invite'
+            ? 'Falha ao reenviar convite por e-mail.'
+            : 'Falha ao enviar convite por e-mail.',
           details: inviteError.message
         }
       }, 500);
     }
 
     invited = true;
-    created = true;
-    invitedUserId = String(inviteData?.user?.id || '').trim();
+    created = !invitedUserId;
+    invitedUserId = String(inviteData?.user?.id || invitedUserId || '').trim();
   }
 
   const lookupAfter = invitedUserId
@@ -307,9 +336,10 @@ Deno.serve(async req => {
         email,
         nome: nome || null,
         papel,
+        action,
         convite_enviado: invited,
         user_created: created,
-        via: 'edge_function_acessos_admin_convite_v2'
+        via: 'edge_function_acessos_admin_convite_v3'
       }
     },
     {
@@ -322,7 +352,8 @@ Deno.serve(async req => {
         email,
         nome: nome || null,
         papel,
-        via: 'edge_function_acessos_admin_convite_v2'
+        action,
+        via: 'edge_function_acessos_admin_convite_v3'
       }
     },
     ...(filialId ? [{
@@ -335,7 +366,8 @@ Deno.serve(async req => {
         email,
         nome: nome || null,
         papel,
-        via: 'edge_function_acessos_admin_convite_v2'
+        action,
+        via: 'edge_function_acessos_admin_convite_v3'
       }
     }] : [])
   ];
@@ -361,6 +393,7 @@ Deno.serve(async req => {
       ator_user_id: userData.user.id,
       alvo_user_id: alvoUserId,
       email,
+      action,
       nome: nome || lookupBefore.data?.nome || null,
       papel,
       filial_id: filialId || null,

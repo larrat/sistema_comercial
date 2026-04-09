@@ -214,7 +214,8 @@ function getHandlerRegistry(){
       resolverPerfilAcessoRef: deps.resolverPerfilAcessoRef,
       resolverVinculoAcessoRef: deps.resolverVinculoAcessoRef,
       resolverConviteAcessoEmail: deps.resolverConviteAcessoEmail,
-      convidarUsuarioAcesso: deps.convidarUsuarioAcesso
+      convidarUsuarioAcesso: deps.convidarUsuarioAcesso,
+      reenviarConviteUsuarioAcesso: deps.reenviarConviteUsuarioAcesso
     },
     campanhas: {
       abrirNovaCampanha: deps.abrirNovaCampanhaTracked,
@@ -370,6 +371,7 @@ function runAction(action, el){
     desvincularUsuarioFilial: () => deps.desvincularUsuarioFilial(),
     resolverConviteAcessoEmail: () => deps.resolverConviteAcessoEmail(),
     convidarUsuarioAcesso: () => deps.convidarUsuarioAcesso(),
+    reenviarConviteUsuarioAcesso: () => deps.reenviarConviteUsuarioAcesso(),
     resolverTodasNotificacoes: () => deps.resolverTodasNotificacoesTracked(),
     salvarFilial: () => deps.salvarFilial(),
     salvarProduto: () => deps.salvarProdutoTracked(),

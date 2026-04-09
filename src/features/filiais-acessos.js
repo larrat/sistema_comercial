@@ -853,3 +853,56 @@ export async function trocarFilial(id){
   await renderSetupSafe();
   toast('Filial alterada!');
 }
+
+export async function reenviarConviteUsuarioAcesso(){
+  if(!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode reenviar convite.')) return;
+  const email = normalizeEmail(document.getElementById('ac-invite-email')?.value || '');
+  const nome = String(document.getElementById('ac-invite-nome')?.value || '').trim();
+  const papel = String(document.getElementById('ac-invite-papel')?.value || 'operador').trim();
+  const filialId = String(document.getElementById('ac-invite-filial')?.value || '').trim();
+
+  if(!isEmail(email)){
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', 'Informe um e-mail valido para reenviar o convite.', 'error');
+    focusField('ac-invite-email', { markError: true });
+    toast('Informe um e-mail valido.');
+    return;
+  }
+  if(!appRolesSafe.includes(papel)){
+    toast('Papel invalido.');
+    return;
+  }
+  if(!confirm(`Reenviar o convite de acesso para ${email}?`)) return;
+
+  const resendResult = await SB.toResult(() => SB.reenviarConviteUsuarioAcessoEdge({
+    email,
+    nome: nome || null,
+    papel,
+    filial_id: filialId || null,
+    redirect_to: window.location.origin,
+    detalhes: {
+      origem: 'ui_acessos_reenvio_convite_v1'
+    }
+  }));
+
+  if(!resendResult.ok){
+    setAccessFieldHelp('ac-invite-email', 'ac-invite-email-help', resendResult.error.message || 'Falha ao reenviar convite.', 'error');
+    toast('Erro ao reenviar convite: ' + resendResult.error.message);
+    return;
+  }
+
+  /** @type {AccessAdminInviteData} */
+  const resendData = resendResult.data;
+  cacheAccessUser({
+    user_id: resendData.alvo_user_id,
+    email: resendData.email,
+    nome: resendData.nome || nome || null
+  });
+  setAccessFieldHelp(
+    'ac-invite-email',
+    'ac-invite-email-help',
+    'Convite reenviado com sucesso. Oriente o usuario a verificar o e-mail.',
+    'success'
+  );
+  toast('Convite reenviado com sucesso.');
+  await renderAcessosAdmin();
+}
