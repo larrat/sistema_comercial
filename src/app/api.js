@@ -625,6 +625,9 @@ export const SB = {
   /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminInviteData>} */
   convidarUsuarioAcessoEdge: payload =>
     invokeEdgeFunction('acessos-admin-convite', payload),
+  /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminInviteData>} */
+  reenviarConviteUsuarioAcessoEdge: payload =>
+    invokeEdgeFunction('acessos-admin-convite', { ...payload, action: 'resend_invite' }),
   /** @param {{ auditoria_limit?: number }} [params] @returns {Promise<AccessAdminReadData>} */
   getAcessosAdminReadEdge: ({ auditoria_limit = 100 } = {}) =>
     invokeEdgeFunction('acessos-admin-read', null, {

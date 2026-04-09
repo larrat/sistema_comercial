@@ -305,6 +305,7 @@ export type AccessAdminInviteData = {
   ator_user_id: Id;
   alvo_user_id: Id;
   email: string;
+  action?: string;
   nome?: string | null;
   papel: string;
   filial_id?: Id | null;
@@ -668,6 +669,7 @@ export type DomBindingsDeps = {
   resolverVinculoAcessoRef?: () => void | Promise<void>;
   resolverConviteAcessoEmail?: () => void | Promise<void>;
   convidarUsuarioAcesso?: () => void | Promise<void>;
+  reenviarConviteUsuarioAcesso?: () => void | Promise<void>;
   renderNotificacoes?: () => void;
   executarNotificacao?: (id?: Id | null) => void;
   resolverNotificacao?: (id?: Id | null) => void;
