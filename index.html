@@ -127,8 +127,8 @@
     </div>
 
     <!-- ── DASHBOARD ── -->
-    <div class="pg on" id="pg-dashboard">
-      <div class="page-controls-bar">
+    <div class="pg on dash-bento-page" id="pg-dashboard">
+      <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
         <div class="fg2">
           <select class="inp sel select-w-sm input-compact" id="dash-fil" data-change="renderDash()"></select>
           <div class="pseg" id="dash-pseg">
@@ -147,14 +147,14 @@
         <button class="btn btn-p btn-sm" type="button" data-click="limparFormPed();abrirModal('modal-pedido')">Novo pedido</button>
       </div>
 
-      <section class="dash-section dash-section--operacao">
+      <section class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
         <div class="dash-section-head">
           <h3>Operação rápida</h3>
           <p>Ações que precisam de decisão agora</p>
         </div>
         <div id="dash-alerts"></div>
         <div class="dash-grid-cards dash-grid-cards--operacao">
-          <div class="card dash-card dash-card--oportunidades">
+          <div class="card card-shell dash-card dash-card--oportunidades dash-bento-card">
             <div class="fb mb-10">
               <div class="ct ct-inline">Oportunidades por time</div>
               <select class="inp sel select-w-xs input-compact" id="dash-opp-camp" data-change="renderDash()">
@@ -166,7 +166,7 @@
             </div>
             <div id="dash-oportunidades"></div>
           </div>
-          <div class="card dash-card dash-card--jogos">
+          <div class="card card-shell dash-card dash-card--jogos dash-bento-card">
             <div class="fb mb-10">
               <div class="ct ct-inline">Proximos jogos</div>
               <div class="fg2">
@@ -176,18 +176,18 @@
             </div>
             <div id="dash-jogos"></div>
           </div>
-          <div class="card dash-card dash-card--estoque"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
+          <div class="card card-shell dash-card dash-card--estoque dash-bento-card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
         </div>
       </section>
 
-      <section class="dash-section dash-section--analise">
+      <section class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis">
         <div class="dash-section-head">
           <h3>Análise do negócio</h3>
           <p>Leitura de desempenho e tendencia comercial</p>
         </div>
-        <div class="mg" id="dash-met"></div>
-        <div class="dash-grid-main">
-          <div class="card"><div class="ct">Faturamento e lucro</div>
+        <div class="mg dash-bento-band dash-bento-band--metrics" id="dash-met"></div>
+        <div class="dash-grid-main dash-bento-grid dash-bento-grid--primary">
+          <div class="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart"><div class="ct">Faturamento e lucro</div>
             <div class="barchart" id="dash-chart"></div>
             <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden"><p>Sem pedidos entregues no periodo</p></div>
             <div class="dash-chart-legend">
@@ -195,13 +195,13 @@
               <span><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span>
             </div>
           </div>
-          <div class="card"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
+          <div class="card card-shell dash-card dash-bento-card dash-bento-card--status"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
         </div>
         <div class="dash-grid-cards dash-grid-cards--analise">
-          <div class="card dash-card dash-card--top"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
-          <div class="card dash-card dash-card--forn"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
+          <div class="card card-shell dash-card dash-card--top dash-bento-card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
+          <div class="card card-shell dash-card dash-card--forn dash-bento-card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
         </div>
-        <div class="card">
+        <div class="card card-shell dash-bento-card dash-bento-card--margin">
           <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
           <div id="dash-margem"></div>
         </div>
@@ -211,7 +211,7 @@
 
     <!-- ── GERENCIAL ── -->
     <div class="pg" id="pg-gerencial">
-      <div class="page-controls-bar">
+      <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
         <div class="toolbar-actions">
           <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
           <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
@@ -248,7 +248,7 @@
 
       <div class="tc on" id="relatorios-tc-oportunidades">
         <div class="mg" id="rel-met"></div>
-        <div class="toolbar">
+        <div class="toolbar toolbar-shell">
           <div class="toolbar-main">
             <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
             <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
@@ -296,7 +296,7 @@
     <!-- ── PRODUTOS ── -->
     <div class="pg" id="pg-produtos">
       <div class="mg" id="prod-met"></div>
-      <div class="toolbar">
+      <div class="toolbar toolbar-shell">
         <div class="toolbar-main">
           <input class="inp input-w-md" id="prod-busca" placeholder="Buscar produto..." data-input="renderProdutos()">
           <select class="inp sel select-w-md" id="prod-cat-fil" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
@@ -316,7 +316,7 @@
         <button class="tb" data-click="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
       </div>
       <div class="tc on" id="cli-tc-lista">
-        <div class="toolbar">
+        <div class="toolbar toolbar-shell">
           <div class="toolbar-main">
             <input class="inp input-w-sm" id="cli-busca" placeholder="Buscar..." data-input="renderClientes()">
             <select class="inp sel select-w-sm" id="cli-fil-seg" data-change="renderClientes()"><option value="">Todos os segmentos</option></select>
@@ -334,7 +334,7 @@
     <!-- ── PEDIDOS ── -->
     <div class="pg" id="pg-pedidos">
       <div class="mg" id="ped-met"></div>
-      <div class="toolbar">
+      <div class="toolbar toolbar-shell">
         <div class="toolbar-main">
           <input class="inp input-w-sm" id="ped-busca" placeholder="Cliente ou numero..." data-input="renderPedidos()">
           <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
@@ -390,7 +390,7 @@
       </div>
       <div class="tc on" id="est-tc-posicao">
         <div class="mg" id="est-met"></div>
-        <div class="toolbar">
+        <div class="toolbar toolbar-shell">
           <div class="toolbar-main">
         <input class="inp input-w-sm" id="est-busca" placeholder="Buscar..." data-input="renderEstPosicao()">
         <select class="inp sel select-w-sm" id="est-fil" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
@@ -399,7 +399,7 @@
         <div class="card"><div id="est-posicao"></div></div>
       </div>
       <div class="tc" id="est-tc-historico">
-        <div class="toolbar">
+        <div class="toolbar toolbar-shell">
           <div class="toolbar-main">
         <input class="inp input-w-sm" id="est-hist-busca" placeholder="Buscar..." data-input="renderEstHist()">
         <select class="inp sel select-w-sm" id="est-hist-tipo" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
@@ -415,8 +415,8 @@
       <div class="mg" id="camp-met"></div>
       <div id="camp-diag"></div>
 
-      <div class="card">
-        <div class="toolbar">
+      <div class="card card-shell">
+        <div class="toolbar toolbar-shell toolbar-shell--section">
           <div class="ct ct-inline">Campanhas cadastradas</div>
           <div class="toolbar-actions">
             <button class="btn btn-sm" data-click="refreshCampanhasTela()">Atualizar</button>
@@ -425,9 +425,9 @@
         <div id="camp-lista"></div>
       </div>
 
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Fila de WhatsApp manual</div>
-        <div class="toolbar toolbar-gap-sm">
+        <div class="toolbar toolbar-shell toolbar-gap-sm">
           <div class="toolbar-actions">
             <button class="btn btn-sm" data-click="toggleSelecionarTodosFilaWhatsApp()">Selecionar todos</button>
             <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
@@ -438,9 +438,9 @@
         <div id="camp-wa-fila"></div>
       </div>
 
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Histórico de envios</div>
-        <div class="toolbar toolbar-gap-sm">
+        <div class="toolbar toolbar-shell toolbar-gap-sm">
           <div class="toolbar-main">
             <input class="inp input-w-lg" id="camp-envios-busca" placeholder="Buscar cliente ou destino..." data-input="renderCampanhaEnvios()">
             <select class="inp sel select-w-md" id="camp-envios-fil-status" data-change="renderCampanhaEnvios()">
@@ -472,7 +472,7 @@
     <div class="pg" id="pg-acessos">
       <div class="mg" id="ac-met"></div>
 
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Convidar usuário por e-mail</div>
         <div class="fg c4">
           <div>
@@ -503,7 +503,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Perfil do usuário</div>
         <div class="fg c3">
           <div>
@@ -526,7 +526,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Vínculo usuário x filial</div>
         <div class="fg c3">
           <div>
@@ -542,8 +542,8 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="toolbar">
+      <div class="card card-shell">
+        <div class="toolbar toolbar-shell toolbar-shell--section">
           <div class="ct ct-inline">Perfis cadastrados</div>
           <div class="toolbar-main">
         <input class="inp input-w-lg" id="ac-busca" placeholder="Buscar por e-mail ou user_id..." data-input="renderAcessosPerfis()">
@@ -559,8 +559,8 @@
         <div class="toolbar-actions" id="ac-perfis-pager"></div>
       </div>
 
-      <div class="card">
-        <div class="toolbar">
+      <div class="card card-shell">
+        <div class="toolbar toolbar-shell toolbar-shell--section">
           <div class="ct ct-inline">Vínculos usuário x filial</div>
           <div class="toolbar-main">
         <select class="inp sel select-w-xl" id="ac-fil-filial" data-change="renderAcessosVinculos()">
@@ -572,7 +572,7 @@
         <div class="toolbar-actions" id="ac-vinculos-pager"></div>
       </div>
 
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Auditoria administrativa (RBAC)</div>
         <div id="ac-auditoria-lista"></div>
         <div class="toolbar-actions" id="ac-auditoria-pager"></div>
@@ -581,7 +581,7 @@
 
     <!-- ── NOTIFICAÇÕES ── -->
     <div class="pg" id="pg-notificacoes">
-      <div class="toolbar">
+      <div class="toolbar toolbar-shell">
         <div class="toolbar-main">
         <select class="inp sel select-w-md" id="noti-fil-prioridade" data-change="setFiltroNotificacoes(this.value)">
             <option value="todas">Todas prioridades</option>
@@ -592,11 +592,11 @@
         </div>
       </div>
       <div class="mg" id="noti-met"></div>
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Inbox ativa</div>
         <div id="noti-lista"></div>
       </div>
-      <div class="card">
+      <div class="card card-shell">
         <div class="ct">Histórico resolvido</div>
         <div id="noti-historico"></div>
       </div>

@@ -398,7 +398,7 @@ export function renderDash(){
     semana:'Esta semana',
     mes:'Este mes',
     ano:'Este ano',
-    tudo:'Todos os periodos'
+    tudo:'Todos os períodos'
   };
 
   const fLabel = (D.filiais || []).find(f => f.id === fsel)?.nome || 'Filial ativa';
@@ -425,26 +425,35 @@ export function renderDash(){
   const abertos = allPeds.filter(p => ['orcamento','confirmado','em_separacao'].includes(p.status)).length;
 
   dashDom.html('metrics', 'dash-met', `
-    <div class="met">
+    <div class="met metric-card">
+      <div class="metric-card__eyebrow">Receita</div>
       <div class="ml">Faturamento</div>
       <div class="mv kpi-value-sm">${fmt(fat)}</div>
-      <div class="ms">${entregues.length} entregue(s)</div>
+      <div class="ms metric-card__foot">${entregues.length} entregue(s)</div>
     </div>
-    <div class="met">
+    <div class="met metric-card">
+      <div class="metric-card__eyebrow">Resultado</div>
       <div class="ml">Lucro bruto</div>
       <div class="mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}">${fmt(lucro)}</div>
+      <div class="ms metric-card__foot">${lucro >= 0 ? 'Operação saudável' : 'Abaixo do esperado'}</div>
     </div>
-    <div class="met">
+    <div class="met metric-card">
+      <div class="metric-card__eyebrow">Eficiência</div>
       <div class="ml">Margem</div>
       <div class="mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}">${pct(mg)}</div>
+      <div class="ms metric-card__foot">${mg >= 15 ? 'Boa zona de margem' : mg >= 8 ? 'Atenção' : 'Revisar mix e preço'}</div>
     </div>
-    <div class="met">
-      <div class="ml">Ticket medio</div>
+    <div class="met metric-card">
+      <div class="metric-card__eyebrow">Conversão</div>
+      <div class="ml">Ticket médio</div>
       <div class="mv kpi-value-sm">${fmt(tk)}</div>
+      <div class="ms metric-card__foot">Base ${allPeds.length} pedido(s)</div>
     </div>
-    <div class="met">
+    <div class="met metric-card">
+      <div class="metric-card__eyebrow">Pipeline</div>
       <div class="ml">Em aberto</div>
       <div class="mv tone-warning">${abertos}</div>
+      <div class="ms metric-card__foot">Orçamentos e confirmados</div>
     </div>
   `, 'dashboard:metrics');
 
@@ -466,10 +475,18 @@ export function renderDash(){
 
   let ah = '';
   if(crit.length){
-    ah += `<div class="alert al-r"><b>Estoque critico:</b> ${crit.length} produto(s) zerado(s). ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? '...' : ''}</div>`;
+    ah += `
+      <div class="alert al-r dash-alert-card">
+        <div class="dash-alert-card__title"><b>Estoque crítico</b></div>
+        <div class="dash-alert-card__copy">${crit.length} produto(s) zerado(s). ${crit.slice(0,3).map(p => p.nome).join(', ')}${crit.length > 3 ? '...' : ''}</div>
+      </div>`;
   }
   if(baixo.length){
-    ah += `<div class="alert al-a"><b>Estoque em atencao:</b> ${baixo.length} item(ns) abaixo do minimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '...' : ''}</div>`;
+    ah += `
+      <div class="alert al-a dash-alert-card">
+        <div class="dash-alert-card__title"><b>Estoque em atenção</b></div>
+        <div class="dash-alert-card__copy">${baixo.length} item(ns) abaixo do mínimo. ${baixo.slice(0,3).map(p => p.nome).join(', ')}${baixo.length > 3 ? '...' : ''}</div>
+      </div>`;
   }
 
   const hoje = new Date();
@@ -501,7 +518,7 @@ export function renderDash(){
       const dias = getDiasAteData(c._anivData, hoje);
       const nome = c.apelido || c.nome;
       if(dias === 0) return `${nome} hoje`;
-      if(dias === 1) return `${nome} amanha`;
+      if(dias === 1) return `${nome} amanhã`;
       if(typeof dias === 'number' && dias > 1) return `${nome} em ${dias} dias`;
       return nome;
     }).join(', ');
@@ -521,8 +538,8 @@ export function renderDash(){
   });
 
   if(oportunidades.length){
-    const serieTxt = serieSel === 'todas' ? 'todas as series' : `Serie ${serieSel.toUpperCase()}`;
-    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegivel(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '...' : ''}</div>`;
+    const serieTxt = serieSel === 'todas' ? 'todas as séries' : `Série ${serieSel.toUpperCase()}`;
+    ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente(s) elegível(is) na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '...' : ''}</div>`;
   }
 
   dashDom.html('alerts', 'dash-alerts', ah, 'dashboard:alerts');
@@ -585,7 +602,7 @@ export function renderDash(){
   });
 
   const stLbl = {
-    orcamento:'Orcamento',
+    orcamento:'Orçamento',
     confirmado:'Confirmado',
     em_separacao:'Em separação',
     entregue:'Entregue',
@@ -603,10 +620,11 @@ export function renderDash(){
   const tot = allPeds.length || 1;
 
   dashDom.html('status', 'dash-status', Object.entries(stMap).map(([k, v]) => `
-      <div class="rrow">
+      <div class="rrow dash-status-row">
         <span class="bdg ${stCls[k]}">${stLbl[k]}</span>
         <div class="rbar"><div class="rbar-f dash-status-bar" style="width:${Math.round((v / tot) * 100)}%"></div></div>
         <span class="dash-status-count">${v}</span>
+        <span class="dash-status-share">${Math.round((v / tot) * 100)}%</span>
       </div>
     `).join(''), 'dashboard:status');
 
@@ -623,9 +641,12 @@ export function renderDash(){
 
   dashDom.html('top-products', 'dash-tp', tp.length
       ? tp.map(([n, d], i) => `
-          <div class="rrow">
+          <div class="rrow dash-rank-row">
             <span class="rnum">${i + 1}</span>
-            <span class="dash-top-label${i === 0 ? ' dash-top-label--lead' : ''}">${n}</span>
+            <div class="dash-rank-main">
+              <span class="dash-top-label${i === 0 ? ' dash-top-label--lead' : ''}">${n}</span>
+              <span class="dash-rank-meta">Faturamento no período</span>
+            </div>
             <div class="rbar"><div class="rbar-f dash-top-bar dash-top-bar--fat" style="width:${Math.round((d.fat / mxP) * 100)}%"></div></div>
             <span class="rval">${fmtK(d.fat)}</span>
           </div>
@@ -665,14 +686,17 @@ export function renderDash(){
 
   dashDom.html('suppliers', 'dash-forn', tf.length
       ? tf.map(([n, c], i) => `
-          <div class="rrow">
+          <div class="rrow dash-rank-row">
             <span class="rnum">${i + 1}</span>
-            <span class="dash-top-label">${n}</span>
+            <div class="dash-rank-main">
+              <span class="dash-top-label${i === 0 ? ' dash-top-label--lead' : ''}">${n}</span>
+              <span class="dash-rank-meta">Importações recentes</span>
+            </div>
             <div class="rbar"><div class="rbar-f dash-top-bar dash-top-bar--forn" style="width:${Math.round((c / mxF2) * 100)}%"></div></div>
             <span class="rval dash-rval-muted">${c}x</span>
           </div>
         `).join('')
-      : `<div class="empty dash-empty-compact"><p>Nenhuma importacao</p></div>`, 'dashboard:fornecedores');
+      : `<div class="empty dash-empty-compact"><p>Nenhuma importação</p></div>`, 'dashboard:fornecedores');
 
   const mp = {};
   entregues.forEach(p => {
@@ -718,11 +742,11 @@ export function renderDash(){
           </table>
         </div>
       `
-      : `<div class="empty dash-empty-compact"><p>Sem vendas no periodo</p></div>`, 'dashboard:margem');
+      : `<div class="empty dash-empty-compact"><p>Sem vendas no período</p></div>`, 'dashboard:margem');
 
-  const serieLabel = serieSel === 'todas' ? 'Todas as series' : `Serie ${serieSel.toUpperCase()}`;
+  const serieLabel = serieSel === 'todas' ? 'Todas as séries' : `Série ${serieSel.toUpperCase()}`;
   dashDom.html('opportunities', 'dash-oportunidades', `
-      <div class="rrow dash-row-gap">
+      <div class="rrow dash-row-gap dash-summary-strip">
         <span class="bdg bk">${serieLabel}</span>
         <span class="bdg ${oportunidadesHoje.length ? 'bg' : 'bk'}">Hoje: ${oportunidadesHoje.length}</span>
         <span class="bdg ${oportunidades.length ? 'ba' : 'bk'}">Semana: ${oportunidades.length}</span>
@@ -1026,14 +1050,15 @@ export function renderDashJogos(fsel = 'todas'){
   }
 
   dashDom.html('games', 'dash-jogos', jogos.map(j => `
-    <div class="rrow">
+    <div class="rrow dash-game-row">
       <span class="dash-dot dash-dot--info"></span>
       <div class="dash-row-main">
         <div class="dash-row-title">${j.titulo}</div>
         <div class="dash-row-sub">${fmtDataHora(j.data_hora)}${j.campeonato ? ' - ' + j.campeonato : ''}</div>
       </div>
-      <button class="btn btn-sm" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">Excluir</button>
+      <div class="dash-game-actions">
+        <button class="btn btn-sm" title="Excluir jogo" data-click="removerJogoDashboard('${j.id}')">Excluir</button>
+      </div>
     </div>
   `).join(''), 'dashboard:jogos-lista');
 }
-
