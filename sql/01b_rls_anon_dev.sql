@@ -82,4 +82,10 @@ create policy app_all_campanhas on public.campanhas for all to anon using (true)
 drop policy if exists app_all_campanha_envios on public.campanha_envios;
 create policy app_all_campanha_envios on public.campanha_envios for all to anon using (true) with check (true);
 
+drop policy if exists app_all_cliente_fidelidade_saldos on public.cliente_fidelidade_saldos;
+create policy app_all_cliente_fidelidade_saldos on public.cliente_fidelidade_saldos for all to anon using (true) with check (true);
+
+drop policy if exists app_all_cliente_fidelidade_lancamentos on public.cliente_fidelidade_lancamentos;
+create policy app_all_cliente_fidelidade_lancamentos on public.cliente_fidelidade_lancamentos for all to anon using (true) with check (true);
+
 commit;

@@ -177,6 +177,34 @@ export type Pedido = {
   venda_fechada_por?: string | null;
 };
 
+export type ClienteFidelidadeSaldo = {
+  cliente_id: Id;
+  filial_id?: Id | null;
+  saldo_pontos?: number;
+  total_acumulado?: number;
+  total_resgatado?: number;
+  bloqueado?: boolean;
+  motivo_bloqueio?: string | null;
+  criado_em?: string;
+  atualizado_em?: string;
+};
+
+export type ClienteFidelidadeLancamento = {
+  id: Id;
+  cliente_id: Id;
+  filial_id?: Id | null;
+  pedido_id?: Id | null;
+  tipo?: string;
+  status?: string;
+  pontos?: number;
+  origem?: string | null;
+  observacao?: string | null;
+  metadata?: Record<string, unknown> | null;
+  criado_por?: string | null;
+  criado_em?: string;
+  atualizado_em?: string;
+};
+
 export type Campanha = {
   id: Id;
   filial_id?: Id | null;

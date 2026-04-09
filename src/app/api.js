@@ -7,6 +7,8 @@
 /** @typedef {import('../types/domain').Produto} Produto */
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
+/** @typedef {import('../types/domain').ClienteFidelidadeSaldo} ClienteFidelidadeSaldo */
+/** @typedef {import('../types/domain').ClienteFidelidadeLancamento} ClienteFidelidadeLancamento */
 /** @typedef {import('../types/domain').Fornecedor} Fornecedor */
 /** @typedef {import('../types/domain').JogoAgenda} JogoAgenda */
 /** @typedef {import('../types/domain').Campanha} Campanha */
@@ -769,6 +771,33 @@ export const SB = {
 
   getNotas: cid => sbReq('notas', 'GET', null, `?cliente_id=eq.${cid}&order=criado_em.desc`),
   insertNota: n => sbReq('notas', 'POST', n, ''),
+
+  // =====================================================
+  // FIDELIDADE
+  // =====================================================
+  /** @param {string} clienteId @returns {Promise<ClienteFidelidadeSaldo | null>} */
+  getClienteFidelidadeSaldo: async clienteId => {
+    const r = /** @type {ClienteFidelidadeSaldo[] | null} */ (await sbReq(
+      'cliente_fidelidade_saldos',
+      'GET',
+      null,
+      `?cliente_id=eq.${clienteId}&limit=1`
+    ));
+    return r && r[0] ? r[0] : null;
+  },
+
+  /** @param {string} clienteId @returns {Promise<ClienteFidelidadeLancamento[]>} */
+  getClienteFidelidadeLancamentos: clienteId =>
+    sbReq(
+      'cliente_fidelidade_lancamentos',
+      'GET',
+      null,
+      `?cliente_id=eq.${clienteId}&order=criado_em.desc`
+    ),
+
+  /** @param {ClienteFidelidadeLancamento} lancamento @returns {Promise<ClienteFidelidadeLancamento[]>} */
+  insertClienteFidelidadeLancamento: lancamento =>
+    sbReq('cliente_fidelidade_lancamentos', 'POST', lancamento, ''),
 
   // =====================================================
   // AGENDA DE JOGOS

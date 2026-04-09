@@ -193,6 +193,20 @@ for all to authenticated
 using (public.can_access_filial(filial_id))
 with check (public.can_access_filial(filial_id));
 
+-- cliente_fidelidade_saldos
+drop policy if exists p_cliente_fidelidade_saldos_all on public.cliente_fidelidade_saldos;
+create policy p_cliente_fidelidade_saldos_all on public.cliente_fidelidade_saldos
+for all to authenticated
+using (public.can_access_filial(filial_id))
+with check (public.can_access_filial(filial_id));
+
+-- cliente_fidelidade_lancamentos
+drop policy if exists p_cliente_fidelidade_lancamentos_all on public.cliente_fidelidade_lancamentos;
+create policy p_cliente_fidelidade_lancamentos_all on public.cliente_fidelidade_lancamentos
+for all to authenticated
+using (public.can_access_filial(filial_id))
+with check (public.can_access_filial(filial_id));
+
 -- notas: depende de cliente_id -> clientes.filial_id
 drop policy if exists p_notas_all on public.notas;
 create policy p_notas_all on public.notas
