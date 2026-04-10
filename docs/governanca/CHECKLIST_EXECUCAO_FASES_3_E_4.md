@@ -24,8 +24,8 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Guia de contribuicao inicial criado
 - [x] ESLint configurado
 - [x] Prettier configurado
-- [ ] Husky configurado
-- [ ] lint-staged configurado
+- [x] Husky configurado
+- [x] lint-staged configurado
 - [x] Workflow de CI criado
 - [ ] Gates de merge definidos
 - [ ] Coverage threshold definido
@@ -44,8 +44,8 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 
 - [x] Adicionar ESLint
 - [x] Adicionar Prettier
-- [ ] Adicionar Husky
-- [ ] Adicionar lint-staged
+- [x] Adicionar Husky
+- [x] Adicionar lint-staged
 
 ### Prioridade 3
 
