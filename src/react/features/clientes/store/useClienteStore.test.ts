@@ -72,6 +72,36 @@ describe('useClienteStore', () => {
     expect(result.current.clientes).toHaveLength(3);
     expect(result.current.status).toBe('ready');
   });
+
+  it('upsertCliente adiciona novo cliente mantendo ordenacao por nome', () => {
+    const { result } = renderHook(() => useClienteStore((s) => s));
+    act(() => result.current.setClientes([CLIENTES[1], CLIENTES[2]]));
+    act(() =>
+      result.current.upsertCliente({ id: '4', nome: 'Ana Paula', status: 'ativo', seg: 'Varejo' })
+    );
+    expect(result.current.clientes.map((item) => item.nome)).toEqual([
+      'Ana Paula',
+      'Maria Souza',
+      'Pedro Lima'
+    ]);
+  });
+
+  it('upsertCliente atualiza cliente existente sem duplicar registro', () => {
+    const { result } = renderHook(() => useClienteStore((s) => s));
+    act(() => result.current.setClientes(CLIENTES));
+    act(() =>
+      result.current.upsertCliente({
+        id: '2',
+        nome: 'Maria Souza',
+        status: 'ativo',
+        seg: 'Atacado',
+        email: 'nova@a.com'
+      })
+    );
+    expect(result.current.clientes).toHaveLength(3);
+    expect(result.current.clientes.find((item) => item.id === '2')?.email).toBe('nova@a.com');
+    expect(result.current.error).toBeNull();
+  });
 });
 
 describe('selectFilteredClientes', () => {

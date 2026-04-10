@@ -22,6 +22,7 @@ export type ClienteStoreActions = {
   setStatus: (status: ClienteStoreState['status'], error?: string) => void;
   setFiltro: (patch: Partial<ClienteFiltro>) => void;
   clearFiltro: () => void;
+  upsertCliente: (cliente: Cliente) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -51,5 +52,16 @@ export const useClienteStore = create<ClienteStoreState & ClienteStoreActions>((
   setClientes: (clientes) => set({ clientes, status: 'ready', error: null }),
   setStatus: (status, error) => set({ status, error: error ?? null }),
   setFiltro: (patch) => set((s) => ({ filtro: { ...s.filtro, ...patch } })),
-  clearFiltro: () => set({ filtro: { ...FILTRO_VAZIO } })
+  clearFiltro: () => set({ filtro: { ...FILTRO_VAZIO } }),
+  upsertCliente: (cliente) =>
+    set((state) => {
+      const exists = state.clientes.some((item) => item.id === cliente.id);
+      return {
+        clientes: exists
+          ? state.clientes.map((item) => (item.id === cliente.id ? cliente : item))
+          : [...state.clientes, cliente].sort((a, b) => a.nome.localeCompare(b.nome)),
+        status: 'ready',
+        error: null
+      };
+    })
 }));

@@ -1,19 +1,13 @@
 import { useEffect } from 'react';
-import { ClienteListView } from './features/clientes/components/ClienteListView';
-import { useClienteData } from './features/clientes/hooks/useClienteData';
+
 import { useAuthStore } from './app/useAuthStore';
 import { useFilialStore } from './app/useFilialStore';
+import { ClientesPilotPage } from './features/clientes/components/ClientesPilotPage';
+import { useClienteData } from './features/clientes/hooks/useClienteData';
 
 function ClientesPage() {
   useClienteData();
-
-  return (
-    <ClienteListView
-      onNovoCliente={() => alert('Novo cliente — a implementar')}
-      onDetalhe={(id) => alert(`Detalhes: ${id}`)}
-      onEditar={(id) => alert(`Editar: ${id} — recarregue após salvar`)}
-    />
-  );
+  return <ClientesPilotPage />;
 }
 
 export function App() {
@@ -21,7 +15,6 @@ export function App() {
   const hydrateFilial = useFilialStore((s) => s.hydrate);
   const authStatus = useAuthStore((s) => s.status);
 
-  // Hidrata auth e filial na montagem — lê do localStorage do legado
   useEffect(() => {
     hydrateFilial();
     hydrateAuth();
@@ -50,7 +43,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 max-w-4xl mx-auto">
       <ClientesPage />
     </div>
   );

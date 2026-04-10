@@ -80,4 +80,5 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Migracao do piloto iniciada com regra de identidade extraida para TypeScript testavel
 - [x] Stores e hook React do piloto `clientes` cobertos por testes
 - [x] Adapter React de leitura/escrita de `clientes` extraido e testado
+- [x] Primeira UI real de escrita do piloto `clientes` plugada e testada
 - [ ] Falta aplicar branch protection no GitHub
