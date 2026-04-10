@@ -3530,7 +3530,7 @@ textarea.inp:focus{
   color:#7A5A00;
 }
 
-#pg-campanhas.camp-bento-page{
+#pg-campanhas.camp-bento-page.on{
   display:grid;
   grid-template-columns:repeat(12,minmax(0,1fr));
   gap:var(--space-5);
@@ -8524,7 +8524,7 @@ body{
 }
 
 /* Phase 2: dashboard bento grid */
-#pg-dashboard.dash-bento-page{
+#pg-dashboard.dash-bento-page.on{
   display:grid;
   grid-template-columns:repeat(12,minmax(0,1fr));
   gap:var(--space-5);
