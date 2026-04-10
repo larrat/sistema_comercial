@@ -52,15 +52,44 @@ export function C() {
   return D.clientes[filialId] || (D.clientes[filialId] = []);
 }
 
+// ── Memoização de PD() ────────────────────────────────────────────────────────
+// JSON.parse de itens era executado em CADA chamada a PD(), inclusive em loops
+// de render (dashboard, notificações, pedidos). Em 500 pedidos = 500 parses/render.
+// Agora: compara a referência do array raw — só re-parseia quando os dados mudam.
+/** @type {unknown[] | null} */
+let _pdRawRef = null;
+/** @type {Pedido[]} */
+let _pdParsed = [];
+
 export function PD() {
   const filialId = getFilialKey();
   const raw = D.pedidos[filialId] || (D.pedidos[filialId] = []);
-  return raw.map((pedido) => ({
+
+  if(raw === _pdRawRef) return _pdParsed;
+
+  _pdRawRef = raw;
+  _pdParsed = raw.map((pedido) => ({
     ...pedido,
     itens: typeof pedido.itens === 'string'
-      ? /** @type {Pedido['itens']} */ (JSON.parse(pedido.itens || '[]'))
+      ? /** @type {Pedido['itens']} */ (safeJsonParse(pedido.itens || '[]'))
       : (pedido.itens || [])
   }));
+
+  return _pdParsed;
+}
+
+/**
+ * Invalida o cache de PD() — chamar após mutações em D.pedidos[filialId].
+ * Necessário porque os features podem trocar o array por um novo (slice/filter/map).
+ */
+export function invalidatePdCache(){
+  _pdRawRef = null;
+}
+
+/** @param {string} raw @returns {unknown} */
+function safeJsonParse(raw){
+  try{ return JSON.parse(raw); }
+  catch{ return []; }
 }
 
 export function RCAS() {

@@ -283,6 +283,9 @@ import {
   initDomBindings
 } from '../features/dom-bindings.js';
 
+import { configureErrorHandler } from '../core/errors/error-handler.js';
+import { notify } from '../shared/utils.js';
+
 const CORES = ['#163F80', '#156038', '#7A4E00', '#9B2D24', '#5B3F99', '#1A6B7A'];
 
 const AppContext = createAppContext({
@@ -529,6 +532,9 @@ const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PL
 const marcarSelecionadosEnviadosGuard = buildRoleGuard(marcarSelecionadosEnviados, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
 const marcarSelecionadosFalhouGuard = buildRoleGuard(marcarSelecionadosFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
 const desfazerStatusEnvioGuard = buildRoleGuard(desfazerStatusEnvio, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
+
+// ── Centralised error handling ────────────────────────────────────────────────
+configureErrorHandler({ notify });
 
 registerApplicationModules({
   registry: AppModules,
