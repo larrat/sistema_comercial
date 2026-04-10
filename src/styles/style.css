@@ -9564,3 +9564,192 @@ html[data-theme="dark"] .qcmd-box{
   0%,100%{ box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 40%,transparent); }
   50%{ box-shadow:0 0 0 5px color-mix(in srgb,var(--acc) 0%,transparent); }
 }
+
+/* =========================================================
+   CENTRALIZACAO DO APP + HARMONIA VISUAL DOS CARDS
+   ========================================================= */
+
+:root{
+  --app-content-max: 1480px;
+  --shell-radius-xl-harmony: 28px;
+  --shell-radius-lg-harmony: 22px;
+  --shell-border-harmony: color-mix(in srgb, var(--bd) 86%, rgba(255,255,255,.58));
+  --shell-shadow-harmony: 0 18px 42px rgba(15,34,66,.08);
+  --shell-shadow-harmony-hover: 0 24px 56px rgba(15,34,66,.12);
+}
+
+.main{
+  display:grid;
+  grid-template-columns:minmax(0, var(--app-content-max));
+  justify-content:center;
+  padding-inline:clamp(20px, 2.5vw, 40px);
+}
+
+.main > .app-topbar,
+.main > .pg{
+  width:min(100%, var(--app-content-max));
+  margin-inline:auto;
+}
+
+.app-topbar,
+.toolbar-shell,
+.page-controls-bar.toolbar-shell,
+.card,
+.context-panel,
+#pg-dashboard .dash-bento-band--metrics,
+#pg-dashboard .dash-bento-panel{
+  border-radius:var(--shell-radius-xl-harmony);
+}
+
+.app-topbar,
+.toolbar-shell,
+.page-controls-bar.toolbar-shell,
+.card,
+.context-panel,
+#pg-dashboard .dash-bento-band--metrics,
+#pg-dashboard .dash-bento-panel{
+  border-color:var(--shell-border-harmony);
+  box-shadow:var(--shell-shadow-harmony);
+}
+
+.app-topbar{
+  min-height:108px;
+  padding:clamp(18px, 1.9vw, 26px);
+  align-items:center;
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.1), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.94), rgba(247,250,255,.98)),
+    var(--surf);
+}
+
+.page-controls-bar.toolbar-shell{
+  padding:clamp(16px, 1.7vw, 22px) clamp(18px, 2vw, 24px);
+}
+
+.card{
+  padding:clamp(18px, 1.7vw, 24px);
+  border-radius:var(--shell-radius-lg-harmony);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.08), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.93), rgba(248,251,255,.98)),
+    var(--surf);
+}
+
+.card:hover,
+.toolbar-shell:hover{
+  box-shadow:var(--shell-shadow-harmony-hover);
+}
+
+.context-panel{
+  padding:clamp(18px, 1.7vw, 24px);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.1), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.93), rgba(248,251,255,.98)),
+    var(--surf);
+}
+
+.context-panel__section,
+.context-card{
+  border-radius:var(--shell-radius-lg-harmony);
+}
+
+.context-panel__section{
+  padding:clamp(16px, 1.5vw, 22px);
+  border-color:color-mix(in srgb, var(--bd) 82%, rgba(255,255,255,.76));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.8), rgba(248,251,255,.95)),
+    var(--surf2);
+}
+
+.context-card{
+  border-color:color-mix(in srgb, var(--bd) 80%, rgba(255,255,255,.82));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.9), rgba(248,251,255,.98)),
+    var(--surf2);
+  box-shadow:0 10px 24px rgba(15,34,66,.06);
+}
+
+#pg-dashboard .dash-bento-panel{
+  padding:clamp(20px, 1.9vw, 26px);
+  border:1px solid var(--shell-border-harmony);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.07), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.93), rgba(248,251,255,.98)),
+    var(--surf);
+}
+
+#pg-dashboard .dash-section-head{
+  gap:6px;
+  align-items:flex-start;
+  text-align:left;
+}
+
+#pg-dashboard .dash-section-head h3{
+  font-size:clamp(1.35rem, 1.08rem + .6vw, 1.82rem);
+  line-height:1.08;
+  letter-spacing:-.03em;
+  color:var(--tx);
+}
+
+#pg-dashboard .dash-section-head p{
+  font-size:var(--fs-14);
+  color:var(--tx2);
+}
+
+#pg-dashboard .dash-bento-band--metrics{
+  padding:clamp(18px, 1.7vw, 24px);
+  background:
+    radial-gradient(circle at top right, rgba(86,126,255,.12), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.94), rgba(248,251,255,.98)),
+    var(--surf);
+}
+
+#pg-dashboard .dash-bento-band--metrics .met{
+  border-radius:var(--shell-radius-lg-harmony);
+  border-color:color-mix(in srgb, var(--bd) 82%, rgba(255,255,255,.75));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,251,255,.98)),
+    var(--surf2);
+  box-shadow:0 8px 18px rgba(15,34,66,.05);
+}
+
+#pg-dashboard .dash-bento-card,
+#pg-dashboard .dash-grid-cards--operacao .dash-card{
+  border-radius:var(--shell-radius-lg-harmony);
+  border-color:color-mix(in srgb, var(--bd) 82%, rgba(255,255,255,.75));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,251,255,.98)),
+    var(--surf2);
+  box-shadow:0 10px 24px rgba(15,34,66,.06);
+}
+
+#pg-dashboard .dash-card .ct,
+#pg-dashboard .dash-bento-card .ct{
+  font-size:var(--fs-13);
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--tx3);
+}
+
+@media (max-width: 760px){
+  .main{
+    grid-template-columns:minmax(0, 1fr);
+    padding-inline:12px;
+  }
+
+  .main > .app-topbar,
+  .main > .pg{
+    width:100%;
+  }
+
+  .app-topbar,
+  .toolbar-shell,
+  .page-controls-bar.toolbar-shell,
+  .card,
+  .context-panel,
+  #pg-dashboard .dash-bento-band--metrics,
+  #pg-dashboard .dash-bento-panel{
+    border-radius:22px;
+  }
+}
