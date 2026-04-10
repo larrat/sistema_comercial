@@ -983,7 +983,7 @@ export function renderDash(){
     mg
   });
 
-  dashDom.html('alerts', 'dash-alerts', `${contextHtml}${ah}`, 'dashboard:alerts');
+  dashDom.html('alerts', 'dash-alerts', contextHtml, 'dashboard:alerts');
 
   const chartEl = dashDom.get('dash-chart');
   const emEl = dashDom.get('dash-chart-empty');
