@@ -12,34 +12,36 @@ import {
   setImportacaoCallbacks
 } from './cotacao/importacao.js';
 
-export function initCotacaoModule(callbacks = {}){
+export function initCotacaoModule(callbacks = {}) {
   setImportacaoCallbacks(callbacks);
 }
 
-export function renderFornSel(){
+export function renderFornSel() {
   const s = document.getElementById('cot-forn-sel');
-  if(!s) return;
+  if (!s) return;
 
   const cur = s.value;
   s.innerHTML =
     '<option value="">- selecione -</option>' +
-    (FORNS() || []).map(f => `<option value="${f.id}">${f.nome}</option>`).join('');
+    (FORNS() || []).map((f) => `<option value="${f.id}">${f.nome}</option>`).join('');
 
   s.value = cur;
 }
 
-export function renderCotLogs(){
+export function renderCotLogs() {
   const el = document.getElementById('cot-logs');
-  if(!el) return;
+  if (!el) return;
 
   const logs = /** @type {CotacaoLog[]} */ (CCFG().logs || []);
 
-  if(!logs.length){
+  if (!logs.length) {
     el.innerHTML = '<div class="empty empty-inline"><p>Nenhuma importação ainda.</p></div>';
     return;
   }
 
-  el.innerHTML = logs.map(l => `
+  el.innerHTML = logs
+    .map(
+      (l) => `
     <div class="fb cot-log-row cot-log-row-shell">
       <div>
         <span class="table-cell-strong">${l.arquivo}</span>
@@ -53,16 +55,18 @@ export function renderCotLogs(){
         ${l.falhas ? `<span class="bdg br">${l.falhas} falha(s)</span>` : ''}
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
-export function renderCotForns(){
+export function renderCotForns() {
   const el = document.getElementById('cot-forns-lista');
-  if(!el) return;
+  if (!el) return;
 
   const cfors = FORNS();
 
-  if(!cfors.length){
+  if (!cfors.length) {
     el.innerHTML = `<div class="empty"><div class="ico">FORN</div><p>Nenhum fornecedor cadastrado.</p></div>`;
     return;
   }
@@ -80,13 +84,14 @@ export function renderCotForns(){
           </tr>
         </thead>
         <tbody>
-          ${cfors.map(f => {
-            const cotados = P().filter(p => {
-              const k = p.id + '_' + f.id;
-              return CPRECOS()[k] > 0;
-            }).length;
+          ${cfors
+            .map((f) => {
+              const cotados = P().filter((p) => {
+                const k = p.id + '_' + f.id;
+                return CPRECOS()[k] > 0;
+              }).length;
 
-            return `
+              return `
               <tr>
                 <td class="table-cell-strong">${f.nome}</td>
                 <td class="table-cell-muted">${f.contato || '-'}</td>
@@ -95,20 +100,21 @@ export function renderCotForns(){
                 <td><button class="btn btn-sm" title="Excluir fornecedor" data-click="remForn('${f.id}')">Excluir</button></td>
               </tr>
             `;
-          }).join('')}
+            })
+            .join('')}
         </tbody>
       </table>
     </div>
   `;
 }
 
-export async function salvarForn(){
+export async function salvarForn() {
   const nomeEl = document.getElementById('fn-nome');
   const contatoEl = document.getElementById('fn-contato');
   const prazoEl = document.getElementById('fn-prazo');
 
   const nome = (nomeEl?.value || '').trim();
-  if(!nome){
+  if (!nome) {
     toast('Informe o nome.');
     return;
   }
@@ -121,43 +127,43 @@ export async function salvarForn(){
     prazo: prazoEl?.value || ''
   };
 
-  try{
+  try {
     await SB.upsertFornecedor(forn);
-  }catch(e){
+  } catch (e) {
     toast('Erro ao salvar: ' + e.message);
     return;
   }
 
-  if(!D.fornecedores[State.FIL]) D.fornecedores[State.FIL] = [];
+  if (!D.fornecedores[State.FIL]) D.fornecedores[State.FIL] = [];
   D.fornecedores[State.FIL].push(forn);
 
   const modal = document.getElementById('modal-forn');
-  if(modal) modal.classList.remove('on');
+  if (modal) modal.classList.remove('on');
 
   renderCotForns();
   renderFornSel();
 
-  if(nomeEl) nomeEl.value = '';
-  if(contatoEl) contatoEl.value = '';
-  if(prazoEl) prazoEl.value = '';
+  if (nomeEl) nomeEl.value = '';
+  if (contatoEl) contatoEl.value = '';
+  if (prazoEl) prazoEl.value = '';
 
   toast('Fornecedor salvo!');
 }
 
-export async function remForn(id){
-  if(!confirm('Remover fornecedor?')) return;
+export async function remForn(id) {
+  if (!confirm('Remover fornecedor?')) return;
 
-  try{
+  try {
     await SB.deleteFornecedor(id);
-  }catch(e){
+  } catch (e) {
     toast('Erro ao remover: ' + e.message);
     return;
   }
 
-  D.fornecedores[State.FIL] = FORNS().filter(f => f.id !== id);
+  D.fornecedores[State.FIL] = FORNS().filter((f) => f.id !== id);
 
-  Object.keys(CPRECOS()).forEach(k => {
-    if(k.endsWith('_' + id)) delete CPRECOS()[k];
+  Object.keys(CPRECOS()).forEach((k) => {
+    if (k.endsWith('_' + id)) delete CPRECOS()[k];
   });
 
   renderCotForns();
@@ -167,21 +173,21 @@ export async function remForn(id){
   toast('Fornecedor removido!');
 }
 
-export function cotLock(){
+export function cotLock() {
   const cot = CCFG();
   cot.locked = !cot.locked;
 
   const btn = document.getElementById('cot-lock-btn');
   const alert = document.getElementById('cot-lock-alert');
 
-  if(btn) btn.textContent = cot.locked ? 'Destravar' : 'Travar';
-  if(alert) alert.style.display = cot.locked ? 'flex' : 'none';
+  if (btn) btn.textContent = cot.locked ? 'Destravar' : 'Travar';
+  if (alert) alert.style.display = cot.locked ? 'flex' : 'none';
 
   renderCotTabela();
   toast(cot.locked ? 'Cotação travada!' : 'Cotação destravada.');
 }
 
-export function renderCotTabela(){
+export function renderCotTabela() {
   const cot = CCFG();
   const prods = P();
   const forns = FORNS();
@@ -190,9 +196,9 @@ export function renderCotTabela(){
   const el = document.getElementById('cot-tabela');
   const mc = document.getElementById('cot-met');
 
-  if(!el || !mc) return;
+  if (!el || !mc) return;
 
-  if(!prods.length || !forns.length){
+  if (!prods.length || !forns.length) {
     el.innerHTML = `<div class="empty"><div class="ico">COT</div><p>Adicione produtos e fornecedores para iniciar a cotação.</p></div>`;
     mc.innerHTML = '';
     return;
@@ -200,7 +206,7 @@ export function renderCotTabela(){
 
   let filled = 0;
   const fTot = {};
-  forns.forEach(f => fTot[f.id] = 0);
+  forns.forEach((f) => (fTot[f.id] = 0));
 
   let html = `
     <div class="tw cot-table-wrap">
@@ -209,21 +215,21 @@ export function renderCotTabela(){
           <tr>
             <th>Produto</th>
             <th>Un</th>
-            ${forns.map(f => `<th class="table-align-right">${f.nome}</th>`).join('')}
+            ${forns.map((f) => `<th class="table-align-right">${f.nome}</th>`).join('')}
             <th class="table-align-center">Melhor</th>
           </tr>
         </thead>
         <tbody>
   `;
 
-  prods.forEach(p => {
-    const prices = forns.map(f => {
+  prods.forEach((p) => {
+    const prices = forns.map((f) => {
       const k = p.id + '_' + f.id;
       const v = precos[k];
-      return (v !== undefined && v > 0) ? Number(v) : null;
+      return v !== undefined && v > 0 ? Number(v) : null;
     });
 
-    const valid = prices.filter(x => x !== null);
+    const valid = prices.filter((x) => x !== null);
     const minP = valid.length ? Math.min(...valid) : null;
     const maxP = valid.length ? Math.max(...valid) : null;
 
@@ -233,7 +239,7 @@ export function renderCotTabela(){
       const k = p.id + '_' + f.id;
       const val = precos[k] !== undefined ? Number(precos[k]) : null;
 
-      if(val !== null && val > 0){
+      if (val !== null && val > 0) {
         fTot[f.id] += val;
         filled++;
       }
@@ -244,7 +250,7 @@ export function renderCotTabela(){
 
       html += `<td class="table-align-right"${bg ? ` style="${bg}"` : ''}>`;
 
-      if(cot.locked){
+      if (cot.locked) {
         html += val !== null && val > 0 ? fmt(val) : '-';
       } else {
         html += `<input class="inp cot-table-input" type="number" value="${val !== null ? val.toFixed(2) : ''}" placeholder="0,00" min="0" step="0.01" data-change="updPreco('${p.id}','${f.id}',this.value)">`;
@@ -256,17 +262,19 @@ export function renderCotTabela(){
     html += `<td class="table-align-center">${minP !== null ? `<span class="bdg bg">${fmt(minP)}</span>` : '-'}</td></tr>`;
   });
 
-  const allTot = Object.values(fTot).filter(v => v > 0);
+  const allTot = Object.values(fTot).filter((v) => v > 0);
   const bestTot = allTot.length ? Math.min(...allTot) : null;
 
   html += `
       <tr class="cot-total-row">
         <td colspan="2" class="table-cell-muted">Total</td>
-        ${forns.map(f => {
-          const t = fTot[f.id];
-          const isBest = t > 0 && t === bestTot && allTot.length > 1;
-          return `<td class="table-align-right table-cell-strong"${isBest ? ' style="background:var(--gbg)"' : ''}>${fmt(String(t))}</td>`;
-        }).join('')}
+        ${forns
+          .map((f) => {
+            const t = fTot[f.id];
+            const isBest = t > 0 && t === bestTot && allTot.length > 1;
+            return `<td class="table-align-right table-cell-strong"${isBest ? ' style="background:var(--gbg)"' : ''}>${fmt(String(t))}</td>`;
+          })
+          .join('')}
         <td></td>
       </tr>
     </tbody></table></div>
@@ -274,15 +282,14 @@ export function renderCotTabela(){
 
   el.innerHTML = html;
 
-  const pct2 = prods.length * forns.length
-    ? Math.round(filled / (prods.length * forns.length) * 100)
-    : 0;
+  const pct2 =
+    prods.length * forns.length ? Math.round((filled / (prods.length * forns.length)) * 100) : 0;
 
   /** @type {import('../types/domain').Fornecedor | null} */
   let bestForn = null;
-  if(bestTot !== null){
+  if (bestTot !== null) {
     Object.entries(fTot).forEach(([fid, t]) => {
-      if(t === bestTot) bestForn = forns.find(f => f.id === fid);
+      if (t === bestTot) bestForn = forns.find((f) => f.id === fid);
     });
   }
 
@@ -294,22 +301,17 @@ export function renderCotTabela(){
   `;
 }
 
-export function updPreco(pid, fid, val){
+export function updPreco(pid, fid, val) {
   const cot = CCFG();
-  if(cot.locked) return;
+  if (cot.locked) return;
 
   const k = pid + '_' + fid;
   const v = parseFloat(val);
 
-  if(!isNaN(v) && v >= 0) CPRECOS()[k] = v;
+  if (!isNaN(v) && v >= 0) CPRECOS()[k] = v;
   else delete CPRECOS()[k];
 
   renderCotTabela();
 }
 
-export {
-  cotFile,
-  confirmarMapa,
-  renderMapaBody
-};
-
+export { cotFile, confirmarMapa, renderMapaBody };

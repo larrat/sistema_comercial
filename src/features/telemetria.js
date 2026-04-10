@@ -8,7 +8,19 @@ import { uid, norm, toast } from '../shared/utils.js';
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const UX_EVENTS_KEY = 'sc_ux_events_v1';
 const GOAL_METRICS_VERSION = 2;
-const KPI_PAGES = ['dashboard', 'gerencial', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas', 'filiais', 'acessos', 'notificacoes'];
+const KPI_PAGES = [
+  'dashboard',
+  'gerencial',
+  'produtos',
+  'clientes',
+  'pedidos',
+  'cotacao',
+  'estoque',
+  'campanhas',
+  'filiais',
+  'acessos',
+  'notificacoes'
+];
 const JOURNEY_MODAL_MAP = {
   'modal-produto': 'produto',
   'modal-cliente': 'cliente',
@@ -29,11 +41,11 @@ let deps = {
   onMetricsReset: () => {}
 };
 
-export function initTelemetriaModule(nextDeps = {}){
+export function initTelemetriaModule(nextDeps = {}) {
   deps = { ...deps, ...nextDeps };
 }
 
-function buildDefaultGoalMetrics(){
+function buildDefaultGoalMetrics() {
   const journeyBase = { started: 0, completed: 0, abandoned: 0, rework: 0, total_ms: 0 };
   return {
     version: GOAL_METRICS_VERSION,
@@ -67,18 +79,18 @@ function buildDefaultGoalMetrics(){
   };
 }
 
-function getDefaultJourneyShape(){
+function getDefaultJourneyShape() {
   return { started: 0, completed: 0, abandoned: 0, rework: 0, total_ms: 0 };
 }
 
-function ensureGoalMetricsShape(raw){
+function ensureGoalMetricsShape(raw) {
   const base = buildDefaultGoalMetrics();
   const out = { ...base, ...(raw || {}) };
   out.version = GOAL_METRICS_VERSION;
   out.started_at = out.started_at || base.started_at;
   out.task_start = { ...base.task_start, ...(out.task_start || {}) };
   out.critical = { ...base.critical, ...(out.critical || {}) };
-  Object.keys(base.critical).forEach(k => {
+  Object.keys(base.critical).forEach((k) => {
     out.critical[k] = { ...base.critical[k], ...(out.critical[k] || {}) };
   });
   out.errors = { ...base.errors, ...(out.errors || {}) };
@@ -89,31 +101,34 @@ function ensureGoalMetricsShape(raw){
   out.kpi.abandonment = { ...base.kpi.abandonment, ...(out.kpi.abandonment || {}) };
   out.kpi.rework = { ...base.kpi.rework, ...(out.kpi.rework || {}) };
   out.kpi.journeys = { ...base.kpi.journeys, ...(out.kpi.journeys || {}) };
-  ['produto', 'cliente', 'pedido', 'campanha'].forEach(j => {
+  ['produto', 'cliente', 'pedido', 'campanha'].forEach((j) => {
     out.kpi.journeys[j] = { ...getDefaultJourneyShape(), ...(out.kpi.journeys[j] || {}) };
   });
   out.kpi.notifications = { ...base.kpi.notifications, ...(out.kpi.notifications || {}) };
   out.kpi.primary_clicks = { ...base.kpi.primary_clicks, ...(out.kpi.primary_clicks || {}) };
-  KPI_PAGES.forEach(p => {
-    out.kpi.primary_clicks[p] = { ...base.kpi.primary_clicks[p], ...(out.kpi.primary_clicks[p] || {}) };
+  KPI_PAGES.forEach((p) => {
+    out.kpi.primary_clicks[p] = {
+      ...base.kpi.primary_clicks[p],
+      ...(out.kpi.primary_clicks[p] || {})
+    };
   });
   return out;
 }
 
-function getUxEvents(){
-  try{
+function getUxEvents() {
+  try {
     const parsed = JSON.parse(localStorage.getItem(UX_EVENTS_KEY) || '[]');
     return Array.isArray(parsed) ? parsed : [];
-  }catch{
+  } catch {
     return [];
   }
 }
 
-function saveUxEvents(events){
+function saveUxEvents(events) {
   localStorage.setItem(UX_EVENTS_KEY, JSON.stringify(events));
 }
 
-export function pushUxEvent(type, payload = {}){
+export function pushUxEvent(type, payload = {}) {
   const evs = getUxEvents();
   evs.unshift({
     id: uid(),
@@ -125,45 +140,45 @@ export function pushUxEvent(type, payload = {}){
   saveUxEvents(evs.slice(0, 300));
 }
 
-export function getGoalMetrics(){
-  try{
+export function getGoalMetrics() {
+  try {
     const parsed = JSON.parse(localStorage.getItem(GOAL_METRICS_KEY) || '{}');
     return ensureGoalMetricsShape(parsed);
-  }catch{
+  } catch {
     return buildDefaultGoalMetrics();
   }
 }
 
-function saveGoalMetrics(m){
+function saveGoalMetrics(m) {
   localStorage.setItem(GOAL_METRICS_KEY, JSON.stringify(m));
 }
 
-export function startCriticalTask(tipo){
+export function startCriticalTask(tipo) {
   const m = getGoalMetrics();
   m.task_start[tipo] = Date.now();
-  if(m.kpi.journeys[tipo]){
+  if (m.kpi.journeys[tipo]) {
     m.kpi.journeys[tipo].started += 1;
   }
   saveGoalMetrics(m);
   pushUxEvent('journey_started', { journey: tipo });
 }
 
-export function completeCriticalTask(tipo){
+export function completeCriticalTask(tipo) {
   const m = getGoalMetrics();
   const st = Number(m.task_start?.[tipo] || 0);
-  if(!st) return;
+  if (!st) return;
   const elapsed = Math.max(0, Date.now() - st);
   const cur = m.critical[tipo];
   cur.total_ms += elapsed;
   cur.count += 1;
-  if(!cur.baseline_ms) cur.baseline_ms = elapsed;
+  if (!cur.baseline_ms) cur.baseline_ms = elapsed;
   const j = m.kpi.journeys?.[tipo];
-  if(j){
+  if (j) {
     j.completed += 1;
     j.total_ms += elapsed;
   }
   m.kpi.completion.total += 1;
-  if(window.matchMedia('(max-width: 760px)').matches){
+  if (window.matchMedia('(max-width: 760px)').matches) {
     m.kpi.completion.mobile += 1;
   }
   delete m.task_start[tipo];
@@ -171,13 +186,13 @@ export function completeCriticalTask(tipo){
   pushUxEvent('journey_completed', { journey: tipo, elapsed_ms: elapsed });
 }
 
-export function abandonCriticalTask(tipo, reason = 'unknown'){
+export function abandonCriticalTask(tipo, reason = 'unknown') {
   const m = getGoalMetrics();
   const st = Number(m.task_start?.[tipo] || 0);
-  if(!st) return;
+  if (!st) return;
   const elapsed = Math.max(0, Date.now() - st);
   delete m.task_start[tipo];
-  if(m.kpi.journeys[tipo]){
+  if (m.kpi.journeys[tipo]) {
     m.kpi.journeys[tipo].abandoned += 1;
   }
   m.kpi.abandonment.total += 1;
@@ -185,32 +200,32 @@ export function abandonCriticalTask(tipo, reason = 'unknown'){
   pushUxEvent('journey_abandoned', { journey: tipo, reason, elapsed_ms: elapsed });
 }
 
-export function registerJourneyRework(tipo){
+export function registerJourneyRework(tipo) {
   const m = getGoalMetrics();
-  if(!m.kpi.journeys[tipo]) return;
+  if (!m.kpi.journeys[tipo]) return;
   m.kpi.journeys[tipo].rework += 1;
   m.kpi.rework.total += 1;
   saveGoalMetrics(m);
   pushUxEvent('journey_rework', { journey: tipo });
 }
 
-export function startPrimaryActionTracking(page){
+export function startPrimaryActionTracking(page) {
   primaryActionTracker.page = String(page || 'dashboard');
   primaryActionTracker.clicks = 0;
   primaryActionTracker.active = true;
 }
 
-function trackPrimaryActionClick(e){
-  if(!primaryActionTracker.active) return;
+function trackPrimaryActionClick(e) {
+  if (!primaryActionTracker.active) return;
   const target = e.target?.closest?.('button,[role="button"],a,.tb,.qk,.ni,.ib');
-  if(!target) return;
-  if(target.id === 'app-act-primary' || target.closest('#app-act-primary')) return;
+  if (!target) return;
+  if (target.id === 'app-act-primary' || target.closest('#app-act-primary')) return;
   primaryActionTracker.clicks += 1;
 }
 
-export function completePrimaryActionTracking(page){
+export function completePrimaryActionTracking(page) {
   const p = String(page || primaryActionTracker.page || 'dashboard');
-  if(!primaryActionTracker.active) return;
+  if (!primaryActionTracker.active) return;
   const m = getGoalMetrics();
   const key = KPI_PAGES.includes(p) ? p : 'dashboard';
   const k = m.kpi.primary_clicks[key];
@@ -223,79 +238,102 @@ export function completePrimaryActionTracking(page){
   primaryActionTracker.clicks = 0;
 }
 
-export function registerNotificationKpi(type, amount = 1){
+export function registerNotificationKpi(type, amount = 1) {
   const m = getGoalMetrics();
-  if(!(type in m.kpi.notifications)) return;
+  if (!(type in m.kpi.notifications)) return;
   m.kpi.notifications[type] += Math.max(0, Number(amount || 0));
   saveGoalMetrics(m);
 }
 
-export function logStrategicAction(tipo){
+export function logStrategicAction(tipo) {
   const m = getGoalMetrics();
-  if(!(tipo in m.strategic)) return;
+  if (!(tipo in m.strategic)) return;
   m.strategic[tipo] += 1;
   saveGoalMetrics(m);
 }
 
-export function markConsistencyPage(page){
+export function markConsistencyPage(page) {
   const m = getGoalMetrics();
-  if(page in m.consistency){
+  if (page in m.consistency) {
     m.consistency[page] = true;
     saveGoalMetrics(m);
   }
 }
 
-function classifyToastError(msg, severity = ''){
+function classifyToastError(msg, severity = '') {
   const t = norm(msg || '');
   const sev = norm(severity || '');
-  if(!t) return;
+  if (!t) return;
   const m = getGoalMetrics();
-  if(sev === 'error'){
+  if (sev === 'error') {
     m.errors.operation += 1;
     saveGoalMetrics(m);
     pushUxEvent('ux_error', { severity: sev, message: String(msg || '').slice(0, 180) });
     return;
   }
-  if(sev === 'warning'){
-    if(t.includes('obrigat') || t.includes('preencha') || t.includes('informe') || t.includes('selecione')){
+  if (sev === 'warning') {
+    if (
+      t.includes('obrigat') ||
+      t.includes('preencha') ||
+      t.includes('informe') ||
+      t.includes('selecione')
+    ) {
       m.errors.validation += 1;
       saveGoalMetrics(m);
-      pushUxEvent('ux_validation_warning', { severity: sev, message: String(msg || '').slice(0, 180) });
+      pushUxEvent('ux_validation_warning', {
+        severity: sev,
+        message: String(msg || '').slice(0, 180)
+      });
     }
     return;
   }
-  if(t.startsWith('informe') || t.startsWith('selecione') || t.startsWith('adicione') || t.includes('obrigat')){
+  if (
+    t.startsWith('informe') ||
+    t.startsWith('selecione') ||
+    t.startsWith('adicione') ||
+    t.includes('obrigat')
+  ) {
     m.errors.validation += 1;
     saveGoalMetrics(m);
-    pushUxEvent('ux_validation_warning', { severity: sev || 'warning', message: String(msg || '').slice(0, 180) });
+    pushUxEvent('ux_validation_warning', {
+      severity: sev || 'warning',
+      message: String(msg || '').slice(0, 180)
+    });
     return;
   }
-  if(t.startsWith('erro') || t.includes('falha')){
+  if (t.startsWith('erro') || t.includes('falha')) {
     m.errors.operation += 1;
     saveGoalMetrics(m);
     pushUxEvent('ux_error', { severity: sev || 'error', message: String(msg || '').slice(0, 180) });
   }
 }
 
-function formatMs(ms){
-  const s = Math.round((Number(ms || 0) / 1000));
+function formatMs(ms) {
+  const s = Math.round(Number(ms || 0) / 1000);
   const min = Math.floor(s / 60);
   const sec = s % 60;
   return min > 0 ? `${min}m ${sec}s` : `${sec}s`;
 }
 
-function calcGoalSummary(){
+function calcGoalSummary() {
   const m = getGoalMetrics();
   const crit = Object.values(m.critical);
-  const withData = crit.filter(c => c.count > 0);
-  const currentAvg = withData.length ? withData.reduce((a, c) => a + (c.total_ms / c.count), 0) / withData.length : 0;
-  const baselineAvg = withData.length ? withData.reduce((a, c) => a + (c.baseline_ms || 0), 0) / withData.length : 0;
+  const withData = crit.filter((c) => c.count > 0);
+  const currentAvg = withData.length
+    ? withData.reduce((a, c) => a + c.total_ms / c.count, 0) / withData.length
+    : 0;
+  const baselineAvg = withData.length
+    ? withData.reduce((a, c) => a + (c.baseline_ms || 0), 0) / withData.length
+    : 0;
   const ganhoTempo = baselineAvg > 0 ? ((baselineAvg - currentAvg) / baselineAvg) * 100 : 0;
   const criticalDone = withData.reduce((a, c) => a + c.count, 0);
   const erros = Number(m.errors.validation || 0) + Number(m.errors.operation || 0);
   const erroRate = criticalDone > 0 ? (erros / criticalDone) * 100 : 0;
   const reducaoRetrabalho = Math.max(0, 30 - erroRate);
-  const strategicTotal = Number(m.strategic.campanhas || 0) + Number(m.strategic.notificacoes || 0) + Number(m.strategic.oportunidades || 0);
+  const strategicTotal =
+    Number(m.strategic.campanhas || 0) +
+    Number(m.strategic.notificacoes || 0) +
+    Number(m.strategic.oportunidades || 0);
   const strategicProgress = Math.min(100, (strategicTotal / 25) * 100);
   const consistencyDone = Object.values(m.consistency).filter(Boolean).length;
   const consistencyProgress = (consistencyDone / 4) * 100;
@@ -308,8 +346,10 @@ function calcGoalSummary(){
     acc[page] = { count, avg: count > 0 ? total / count : 0 };
     return acc;
   }, {});
-  const clickBuckets = Object.values(clicksByModule).filter(x => x.count > 0);
-  const avgClicksPrimary = clickBuckets.length ? clickBuckets.reduce((a, c) => a + c.avg, 0) / clickBuckets.length : 0;
+  const clickBuckets = Object.values(clicksByModule).filter((x) => x.count > 0);
+  const avgClicksPrimary = clickBuckets.length
+    ? clickBuckets.reduce((a, c) => a + c.avg, 0) / clickBuckets.length
+    : 0;
   const notiExec = Number(m.kpi.notifications.executadas || 0);
   const notiResolved = Number(m.kpi.notifications.resolvidas || 0);
   const notiReopened = Number(m.kpi.notifications.reabertas || 0);
@@ -324,19 +364,55 @@ function calcGoalSummary(){
     const abandonmentRate = started > 0 ? (abandoned / started) * 100 : 0;
     const reworkRate = completed > 0 ? (rework / completed) * 100 : 0;
     const clicks = m.kpi.primary_clicks?.[key];
-    const clicksAvg = clicks?.count > 0 ? (Number(clicks.total || 0) / Number(clicks.count || 1)) : 0;
-    acc[key] = { started, completed, abandoned, rework, avgMs, abandonmentRate, reworkRate, clicksAvg };
+    const clicksAvg = clicks?.count > 0 ? Number(clicks.total || 0) / Number(clicks.count || 1) : 0;
+    acc[key] = {
+      started,
+      completed,
+      abandoned,
+      rework,
+      avgMs,
+      abandonmentRate,
+      reworkRate,
+      clicksAvg
+    };
     return acc;
   }, {});
   const journeyBuckets = Object.values(journeys);
-  const avgAbandonmentRate = journeyBuckets.length ? journeyBuckets.reduce((a, c) => a + c.abandonmentRate, 0) / journeyBuckets.length : 0;
-  const avgReworkRate = journeyBuckets.length ? journeyBuckets.reduce((a, c) => a + c.reworkRate, 0) / journeyBuckets.length : 0;
-  return { m, currentAvg, baselineAvg, ganhoTempo, erroRate, reducaoRetrabalho, strategicTotal, strategicProgress, consistencyDone, consistencyProgress, completionTotal, completionMobile, mobileCompletionRate, avgClicksPrimary, clicksByModule, journeys, avgAbandonmentRate, avgReworkRate, notiExec, notiResolved, notiReopened, notiResolutionRate };
+  const avgAbandonmentRate = journeyBuckets.length
+    ? journeyBuckets.reduce((a, c) => a + c.abandonmentRate, 0) / journeyBuckets.length
+    : 0;
+  const avgReworkRate = journeyBuckets.length
+    ? journeyBuckets.reduce((a, c) => a + c.reworkRate, 0) / journeyBuckets.length
+    : 0;
+  return {
+    m,
+    currentAvg,
+    baselineAvg,
+    ganhoTempo,
+    erroRate,
+    reducaoRetrabalho,
+    strategicTotal,
+    strategicProgress,
+    consistencyDone,
+    consistencyProgress,
+    completionTotal,
+    completionMobile,
+    mobileCompletionRate,
+    avgClicksPrimary,
+    clicksByModule,
+    journeys,
+    avgAbandonmentRate,
+    avgReworkRate,
+    notiExec,
+    notiResolved,
+    notiReopened,
+    notiResolutionRate
+  };
 }
 
-function renderUxJourneyKpis(summary){
+function renderUxJourneyKpis(summary) {
   const el = document.getElementById('dash-kpi-jornadas');
-  if(!el) return;
+  if (!el) return;
   const rows = ['cliente', 'pedido', 'campanha', 'produto'];
   el.innerHTML = `
     <div class="tw">
@@ -345,10 +421,12 @@ function renderUxJourneyKpis(summary){
           <tr><th>Jornada</th><th class="table-align-right">Tempo medio</th><th class="table-align-right">Inicios</th><th class="table-align-right">Conclusoes</th><th class="table-align-right">Abandono</th><th class="table-align-right">Retrabalho</th><th class="table-align-right">Cliques</th></tr>
         </thead>
         <tbody>
-          ${rows.map(j => {
-            const d = summary.journeys?.[j] || {};
-            return `<tr><td class="table-cell-strong telemetry-capitalize">${j}</td><td class="table-align-right">${formatMs(d.avgMs || 0)}</td><td class="table-align-right">${d.started || 0}</td><td class="table-align-right">${d.completed || 0}</td><td class="table-align-right">${(d.abandonmentRate || 0).toFixed(1)}%</td><td class="table-align-right">${(d.reworkRate || 0).toFixed(1)}%</td><td class="table-align-right">${(d.clicksAvg || 0).toFixed(1)}</td></tr>`;
-          }).join('')}
+          ${rows
+            .map((j) => {
+              const d = summary.journeys?.[j] || {};
+              return `<tr><td class="table-cell-strong telemetry-capitalize">${j}</td><td class="table-align-right">${formatMs(d.avgMs || 0)}</td><td class="table-align-right">${d.started || 0}</td><td class="table-align-right">${d.completed || 0}</td><td class="table-align-right">${(d.abandonmentRate || 0).toFixed(1)}%</td><td class="table-align-right">${(d.reworkRate || 0).toFixed(1)}%</td><td class="table-align-right">${(d.clicksAvg || 0).toFixed(1)}</td></tr>`;
+            })
+            .join('')}
         </tbody>
       </table>
     </div>
@@ -359,11 +437,11 @@ function renderUxJourneyKpis(summary){
   `;
 }
 
-function renderUxEventsPanel(){
+function renderUxEventsPanel() {
   const el = document.getElementById('dash-kpi-eventos');
-  if(!el) return;
+  if (!el) return;
   const events = getUxEvents();
-  if(!events.length){
+  if (!events.length) {
     el.innerHTML = `<div class="empty dash-empty-compact"><p>Sem eventos registrados ainda.</p></div>`;
     return;
   }
@@ -372,7 +450,9 @@ function renderUxEventsPanel(){
     acc[t] = (acc[t] || 0) + 1;
     return acc;
   }, {});
-  const topTypes = Object.entries(byType).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const topTypes = Object.entries(byType)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
   const recent = events.slice(0, 12);
   el.innerHTML = `
     <div class="dash-goals-foot">${topTypes.map(([k, n]) => `<span class="bdg bk">${k}: ${n}</span>`).join('')}</div>
@@ -380,49 +460,123 @@ function renderUxEventsPanel(){
       <table class="tbl">
         <thead><tr><th>Quando</th><th>Tipo</th><th>Pagina</th><th>Detalhe</th></tr></thead>
         <tbody>
-          ${recent.map(ev => `<tr><td>${new Date(ev.ts).toLocaleString('pt-BR')}</td><td><span class="bdg bb">${ev.type}</span></td><td>${ev.page || '—'}</td><td>${ev.journey || ev.message || (ev.clicks_to_primary != null ? `cliques=${ev.clicks_to_primary}` : '—')}</td></tr>`).join('')}
+          ${recent.map((ev) => `<tr><td>${new Date(ev.ts).toLocaleString('pt-BR')}</td><td><span class="bdg bb">${ev.type}</span></td><td>${ev.page || '—'}</td><td>${ev.journey || ev.message || (ev.clicks_to_primary != null ? `cliques=${ev.clicks_to_primary}` : '—')}</td></tr>`).join('')}
         </tbody>
       </table>
     </div>
   `;
 }
 
-function mapInsightToBadgeClass(kind){
-  if(kind === 'risco') return 'br';
-  if(kind === 'atencao') return 'ba';
+function mapInsightToBadgeClass(kind) {
+  if (kind === 'risco') return 'br';
+  if (kind === 'atencao') return 'ba';
   return 'bb';
 }
 
-function buildRecommendationText(item, summary){
-  if(item.kind === 'risco'){
+function buildRecommendationText(item, summary) {
+  if (item.kind === 'risco') {
     return `Impacto alto na operacao. Corrigir agora reduz retrabalho e melhora tempo medio (${formatMs(summary.currentAvg)}).`;
   }
-  if(item.kind === 'atencao'){
+  if (item.kind === 'atencao') {
     return 'Monitorar no curto prazo evita que o problema vire bloqueio operacional.';
   }
   return 'Acao com potencial de ganho comercial direto. Execute para aumentar conversao.';
 }
 
-function buildGerencialModel(summary){
+function buildGerencialModel(summary) {
   const insights = [];
   const noti = deps.getNotificacoesResumo();
-  const pendenciasCampanha = (D.campanhaEnvios?.[State.FIL] || []).filter(e => e.status === 'pendente' || e.status === 'manual').length;
-  if(summary.avgAbandonmentRate > 20) insights.push({ kind: 'risco', title: 'Abandono elevado nas jornadas criticas', metric: `${summary.avgAbandonmentRate.toFixed(1)}%`, description: 'A taxa de abandono esta acima do esperado. Revise friccoes em cliente, pedido e campanha.', action: { id: 'ir-clientes', label: 'Revisar jornada de clientes' }, priority: 1 });
-  if(summary.erroRate > 12) insights.push({ kind: 'risco', title: 'Erro operacional acima da meta', metric: `${summary.erroRate.toFixed(1)}%`, description: 'Ha mais erros em formularios e operacoes do que o aceitavel para produtividade.', action: { id: 'ir-notificacoes', label: 'Abrir notificacoes' }, priority: 2 });
-  if(noti.critico > 0) insights.push({ kind: 'risco', title: 'Itens criticos pendentes', metric: `${noti.critico}`, description: 'Existem alertas criticos ativos que podem impactar venda e operacao diaria.', action: { id: 'ir-notificacoes', label: 'Tratar criticos' }, priority: 3 });
-  if(pendenciasCampanha > 0) insights.push({ kind: 'atencao', title: 'Fila de campanha pendente', metric: `${pendenciasCampanha}`, description: 'Ha envios manuais/pendentes aguardando execucao da equipe.', action: { id: 'ir-campanhas', label: 'Abrir fila de campanhas' }, priority: 4 });
-  if(noti.oportunidade > 0) insights.push({ kind: 'oportunidade', title: 'Oportunidades comerciais detectadas', metric: `${noti.oportunidade}`, description: 'Clientes elegiveis e eventos proximos podem virar receita com acao rapida.', action: { id: 'ir-campanhas', label: 'Criar acao comercial' }, priority: 5 });
-  if(summary.mobileCompletionRate < 70) insights.push({ kind: 'atencao', title: 'Conclusao no mobile abaixo do ideal', metric: `${summary.mobileCompletionRate.toFixed(1)}%`, description: 'Usuarios mobile concluem menos tarefas. Priorize fluxos com menos passos.', action: { id: 'ir-pedidos-novo', label: 'Testar fluxo rapido de pedido' }, priority: 6 });
-  if(summary.strategicTotal >= 6 && noti.critico === 0 && summary.erroRate <= 12) insights.push({ kind: 'oportunidade', title: 'Momento favoravel para acelerar campanhas', metric: `${summary.strategicTotal} acoes`, description: 'Base esta estavel. Ha espaco para aumentar cadencia de acoes de relacionamento.', action: { id: 'nova-campanha', label: 'Nova campanha' }, priority: 7 });
+  const pendenciasCampanha = (D.campanhaEnvios?.[State.FIL] || []).filter(
+    (e) => e.status === 'pendente' || e.status === 'manual'
+  ).length;
+  if (summary.avgAbandonmentRate > 20)
+    insights.push({
+      kind: 'risco',
+      title: 'Abandono elevado nas jornadas criticas',
+      metric: `${summary.avgAbandonmentRate.toFixed(1)}%`,
+      description:
+        'A taxa de abandono esta acima do esperado. Revise friccoes em cliente, pedido e campanha.',
+      action: { id: 'ir-clientes', label: 'Revisar jornada de clientes' },
+      priority: 1
+    });
+  if (summary.erroRate > 12)
+    insights.push({
+      kind: 'risco',
+      title: 'Erro operacional acima da meta',
+      metric: `${summary.erroRate.toFixed(1)}%`,
+      description:
+        'Ha mais erros em formularios e operacoes do que o aceitavel para produtividade.',
+      action: { id: 'ir-notificacoes', label: 'Abrir notificacoes' },
+      priority: 2
+    });
+  if (noti.critico > 0)
+    insights.push({
+      kind: 'risco',
+      title: 'Itens criticos pendentes',
+      metric: `${noti.critico}`,
+      description: 'Existem alertas criticos ativos que podem impactar venda e operacao diaria.',
+      action: { id: 'ir-notificacoes', label: 'Tratar criticos' },
+      priority: 3
+    });
+  if (pendenciasCampanha > 0)
+    insights.push({
+      kind: 'atencao',
+      title: 'Fila de campanha pendente',
+      metric: `${pendenciasCampanha}`,
+      description: 'Ha envios manuais/pendentes aguardando execucao da equipe.',
+      action: { id: 'ir-campanhas', label: 'Abrir fila de campanhas' },
+      priority: 4
+    });
+  if (noti.oportunidade > 0)
+    insights.push({
+      kind: 'oportunidade',
+      title: 'Oportunidades comerciais detectadas',
+      metric: `${noti.oportunidade}`,
+      description: 'Clientes elegiveis e eventos proximos podem virar receita com acao rapida.',
+      action: { id: 'ir-campanhas', label: 'Criar acao comercial' },
+      priority: 5
+    });
+  if (summary.mobileCompletionRate < 70)
+    insights.push({
+      kind: 'atencao',
+      title: 'Conclusao no mobile abaixo do ideal',
+      metric: `${summary.mobileCompletionRate.toFixed(1)}%`,
+      description: 'Usuarios mobile concluem menos tarefas. Priorize fluxos com menos passos.',
+      action: { id: 'ir-pedidos-novo', label: 'Testar fluxo rapido de pedido' },
+      priority: 6
+    });
+  if (summary.strategicTotal >= 6 && noti.critico === 0 && summary.erroRate <= 12)
+    insights.push({
+      kind: 'oportunidade',
+      title: 'Momento favoravel para acelerar campanhas',
+      metric: `${summary.strategicTotal} acoes`,
+      description:
+        'Base esta estavel. Ha espaco para aumentar cadencia de acoes de relacionamento.',
+      action: { id: 'nova-campanha', label: 'Nova campanha' },
+      priority: 7
+    });
   const orderedInsights = insights.sort((a, b) => a.priority - b.priority).slice(0, 6);
-  const recommendations = orderedInsights.map((item, idx) => ({ id: `rec-${idx + 1}`, severity: item.kind, title: item.title, recommendation: buildRecommendationText(item, summary), action: item.action }));
-  if(!recommendations.length){
-    recommendations.push({ id: 'rec-baseline', severity: 'oportunidade', title: 'Painel esta estavel', recommendation: 'Sem riscos imediatos. Atualize os KPIs e avance com acoes comerciais da semana.', action: { id: 'atualizar-kpis', label: 'Atualizar KPIs' } });
+  const recommendations = orderedInsights.map((item, idx) => ({
+    id: `rec-${idx + 1}`,
+    severity: item.kind,
+    title: item.title,
+    recommendation: buildRecommendationText(item, summary),
+    action: item.action
+  }));
+  if (!recommendations.length) {
+    recommendations.push({
+      id: 'rec-baseline',
+      severity: 'oportunidade',
+      title: 'Painel esta estavel',
+      recommendation:
+        'Sem riscos imediatos. Atualize os KPIs e avance com acoes comerciais da semana.',
+      action: { id: 'atualizar-kpis', label: 'Atualizar KPIs' }
+    });
   }
   return { insights: orderedInsights, recommendations };
 }
 
-export function executarAcaoGerencial(actionId){
+export function executarAcaoGerencial(actionId) {
   const actions = {
     'ir-clientes': () => deps.ir('clientes'),
     'ir-notificacoes': () => deps.ir('notificacoes'),
@@ -436,35 +590,37 @@ export function executarAcaoGerencial(actionId){
     'atualizar-kpis': () => renderMetasNegocio()
   };
   pushUxEvent('gerencial_action', { action_id: actionId, page: 'gerencial' });
-  if(actions[actionId]) actions[actionId]();
+  if (actions[actionId]) actions[actionId]();
 }
 
-function renderGerencialLayer(summary){
+function renderGerencialLayer(summary) {
   const insightEl = document.getElementById('ger-insights');
   const recEl = document.getElementById('ger-recomendacoes');
-  if(!insightEl || !recEl) return;
+  if (!insightEl || !recEl) return;
   const model = buildGerencialModel(summary);
-  if(!model.insights.length){
+  if (!model.insights.length) {
     insightEl.innerHTML = `<div class="empty dash-empty-compact"><p>Sem insights disponiveis com os dados atuais.</p></div>`;
-  }else{
-    insightEl.innerHTML = `<div class="ger-insights-grid">${model.insights.map(item => `<article class="ger-insight-card ger-insight-${item.kind}"><div class="ger-insight-head"><span class="bdg ${mapInsightToBadgeClass(item.kind)}">${item.kind}</span><span class="bdg bk">${item.metric}</span></div><h4>${item.title}</h4><p>${item.description}</p><button class="btn btn-sm" data-click="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
+  } else {
+    insightEl.innerHTML = `<div class="ger-insights-grid">${model.insights.map((item) => `<article class="ger-insight-card ger-insight-${item.kind}"><div class="ger-insight-head"><span class="bdg ${mapInsightToBadgeClass(item.kind)}">${item.kind}</span><span class="bdg bk">${item.metric}</span></div><h4>${item.title}</h4><p>${item.description}</p><button class="btn btn-sm" data-click="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
   }
   recEl.innerHTML = `<div class="ger-reco-list">${model.recommendations.map((item, i) => `<article class="ger-reco-item"><div class="ger-reco-meta"><span class="bdg bk">#${i + 1}</span><span class="bdg ${mapInsightToBadgeClass(item.severity)}">${item.severity}</span></div><h4>${item.title}</h4><p>${item.recommendation}</p><button class="btn btn-sm" data-click="executarAcaoGerencial('${item.action.id}')">${item.action.label}</button></article>`).join('')}</div>`;
 }
 
-export function renderMetasNegocio(){
+export function renderMetasNegocio() {
   const el = document.getElementById('dash-metas-negocio');
-  if(!el) return;
+  if (!el) return;
   const s = calcGoalSummary();
   const tempoMeta = Math.min(100, Math.max(0, (s.ganhoTempo / 20) * 100));
   const retrabalhoMeta = Math.min(100, Math.max(0, (s.reducaoRetrabalho / 30) * 100));
   const mobileMeta = Math.min(100, s.mobileCompletionRate);
   const clickMeta = Math.min(100, Math.max(0, (4 / Math.max(1, s.avgClicksPrimary || 1)) * 100));
   const notiMeta = Math.min(100, s.notiResolutionRate);
-  const clickResumo = ['clientes', 'campanhas', 'pedidos'].map(p => {
-    const d = s.clicksByModule[p] || { avg: 0, count: 0 };
-    return `${p.slice(0, 3)} ${d.count ? d.avg.toFixed(1) : '—'}`;
-  }).join(' · ');
+  const clickResumo = ['clientes', 'campanhas', 'pedidos']
+    .map((p) => {
+      const d = s.clicksByModule[p] || { avg: 0, count: 0 };
+      return `${p.slice(0, 3)} ${d.count ? d.avg.toFixed(1) : '—'}`;
+    })
+    .join(' · ');
   el.innerHTML = `
     <div class="dash-goals-grid">
       <div class="dash-goal-item"><div class="fb"><div class="telemetry-goal-label">Tempo de acoes criticas</div><span class="bdg ${tempoMeta >= 100 ? 'bg' : 'bb'}">${s.ganhoTempo.toFixed(1)}%</span></div><div class="sbar"><div class="sbar-f" style="width:${tempoMeta}%;background:var(--b)"></div></div><div style="font-size:11px;color:var(--tx3)">Atual ${formatMs(s.currentAvg)} · Meta 20%</div></div>
@@ -485,35 +641,36 @@ export function renderMetasNegocio(){
   renderGerencialLayer(s);
 }
 
-export function initGoalTracking(){
+export function initGoalTracking() {
   getGoalMetrics();
   document.addEventListener('click', trackPrimaryActionClick, true);
-  window.addEventListener('sc:toast', e => {
-    const detail = /** @type {CustomEvent<{ message?: string; severity?: string }>} */ (e).detail || {};
+  window.addEventListener('sc:toast', (e) => {
+    const detail =
+      /** @type {CustomEvent<{ message?: string; severity?: string }>} */ (e).detail || {};
     classifyToastError(detail.message || '', detail.severity || '');
     renderMetasNegocio();
   });
-  window.addEventListener('sc:modal-open', e => {
+  window.addEventListener('sc:modal-open', (e) => {
     const id = /** @type {CustomEvent<{ id?: string }>} */ (e).detail?.id;
     const journey = JOURNEY_MODAL_MAP[id];
-    if(journey) pushUxEvent('modal_open', { modal_id: id, journey });
+    if (journey) pushUxEvent('modal_open', { modal_id: id, journey });
   });
-  window.addEventListener('sc:modal-close', e => {
+  window.addEventListener('sc:modal-close', (e) => {
     const id = /** @type {CustomEvent<{ id?: string }>} */ (e).detail?.id;
     const journey = JOURNEY_MODAL_MAP[id];
-    if(!journey) return;
+    if (!journey) return;
     pushUxEvent('modal_close', { modal_id: id, journey });
     const m = getGoalMetrics();
     const started = Number(m.task_start?.[journey] || 0);
-    if(started > 0){
+    if (started > 0) {
       abandonCriticalTask(journey, 'modal_close');
       renderMetasNegocio();
     }
   });
 }
 
-export function resetUxKpis(){
-  if(!confirm('Resetar KPIs de UX e telemetria local desta filial/navegador?')) return;
+export function resetUxKpis() {
+  if (!confirm('Resetar KPIs de UX e telemetria local desta filial/navegador?')) return;
   localStorage.removeItem(GOAL_METRICS_KEY);
   localStorage.removeItem(UX_EVENTS_KEY);
   pushUxEvent('metrics_reset', { reason: 'manual' });
@@ -521,4 +678,3 @@ export function resetUxKpis(){
   deps.onMetricsReset();
   toast('KPIs de UX resetados com sucesso.');
 }
-

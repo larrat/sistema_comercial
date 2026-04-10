@@ -5,22 +5,22 @@
  * Permite que o error handler decida como apresentar/logar.
  */
 export const ErrorSeverity = /** @type {const} */ ({
-  FATAL:   'fatal',    // boot failure, cannot continue
-  ERROR:   'error',    // operation failed, user must act
-  WARNING: 'warning',  // degraded but recoverable
-  INFO:    'info'      // expected negative path (not found, etc.)
+  FATAL: 'fatal', // boot failure, cannot continue
+  ERROR: 'error', // operation failed, user must act
+  WARNING: 'warning', // degraded but recoverable
+  INFO: 'info' // expected negative path (not found, etc.)
 });
 
 /**
  * Domínios de erro para rastreamento e filtragem.
  */
 export const ErrorDomain = /** @type {const} */ ({
-  API:        'api',
-  STORE:      'store',
+  API: 'api',
+  STORE: 'store',
   VALIDATION: 'validation',
-  AUTH:       'auth',
-  UI:         'ui',
-  CONFIG:     'config'
+  AUTH: 'auth',
+  UI: 'ui',
+  CONFIG: 'config'
 });
 
 /**
@@ -50,13 +50,13 @@ export class AppError extends Error {
   constructor({
     message,
     userMessage,
-    domain    = ErrorDomain.UI,
-    severity  = ErrorSeverity.ERROR,
-    code      = 'UNKNOWN',
+    domain = ErrorDomain.UI,
+    severity = ErrorSeverity.ERROR,
+    code = 'UNKNOWN',
     retryable = false,
-    context   = {},
+    context = {},
     cause
-  }){
+  }) {
     super(message);
     this.name = 'AppError';
     /** @type {string} */
@@ -92,7 +92,7 @@ export class ValidationError extends AppError {
    *   context?: Record<string, unknown>
    * }} options
    */
-  constructor({ message, userMessage, code = 'VALIDATION_FAILED', field, context = {} }){
+  constructor({ message, userMessage, code = 'VALIDATION_FAILED', field, context = {} }) {
     super({
       message,
       userMessage: userMessage || message,
@@ -125,7 +125,16 @@ export class ApiError extends AppError {
    *   cause?: unknown
    * }} options
    */
-  constructor({ message, userMessage, code, status, operation, resource, retryable = false, cause }){
+  constructor({
+    message,
+    userMessage,
+    code,
+    status,
+    operation,
+    resource,
+    retryable = false,
+    cause
+  }) {
     super({
       message,
       userMessage: userMessage || 'Erro de comunicação com o servidor. Tente novamente.',
@@ -150,8 +159,8 @@ export class ApiError extends AppError {
  * @param {{ domain?: string, context?: Record<string, unknown> }} [opts]
  * @returns {AppError}
  */
-export function toAppError(err, opts = {}){
-  if(err instanceof AppError) return err;
+export function toAppError(err, opts = {}) {
+  if (err instanceof AppError) return err;
 
   const msg = err instanceof Error ? err.message : String(err ?? 'Erro desconhecido');
   return new AppError({

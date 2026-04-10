@@ -7,7 +7,7 @@
 /**
  * @returns {ModuleRegistry}
  */
-export function createModuleRegistry(){
+export function createModuleRegistry() {
   /** @type {Map<string, ModuleDefinition>} */
   const defs = new Map();
   /** @type {Set<string>} */
@@ -17,19 +17,19 @@ export function createModuleRegistry(){
    * @param {string} name
    * @param {AppContext} app
    */
-  async function initModule(name, app){
-    if(initialized.has(name)) return;
+  async function initModule(name, app) {
+    if (initialized.has(name)) return;
     const def = defs.get(name);
-    if(!def) throw new Error(`Module not registered: ${name}`);
+    if (!def) throw new Error(`Module not registered: ${name}`);
 
-    if(Array.isArray(def.dependsOn) && def.dependsOn.length){
-      for(const dep of def.dependsOn){
+    if (Array.isArray(def.dependsOn) && def.dependsOn.length) {
+      for (const dep of def.dependsOn) {
         await initModule(dep, app);
       }
     }
 
     const cleanup = await def.init(app);
-    if(typeof cleanup === 'function'){
+    if (typeof cleanup === 'function') {
       app.registerCleanup(name, cleanup);
     }
     initialized.add(name);
@@ -39,8 +39,8 @@ export function createModuleRegistry(){
     /**
      * @param {ModuleDefinition} def
      */
-    register(def){
-      if(!def?.name || typeof def.init !== 'function'){
+    register(def) {
+      if (!def?.name || typeof def.init !== 'function') {
         throw new Error('Invalid module definition.');
       }
       defs.set(def.name, def);
@@ -49,8 +49,8 @@ export function createModuleRegistry(){
     /**
      * @param {AppContext} app
      */
-    async initAll(app){
-      for(const name of defs.keys()){
+    async initAll(app) {
+      for (const name of defs.keys()) {
         await initModule(name, app);
       }
     },
@@ -59,14 +59,14 @@ export function createModuleRegistry(){
      * @param {string} name
      * @param {AppContext} app
      */
-    async init(name, app){
+    async init(name, app) {
       await initModule(name, app);
     },
 
     /**
      * @returns {string[]}
      */
-    list(){
+    list() {
       return Array.from(defs.keys());
     }
   };

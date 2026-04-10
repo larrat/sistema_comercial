@@ -1,12 +1,19 @@
 import { test, expect } from '@playwright/test';
-import { injectRuntimeConfig, openSetup, performLogin, requireLoginEnv } from './support/ui-core.helpers.js';
+import {
+  injectRuntimeConfig,
+  openSetup,
+  performLogin,
+  requireLoginEnv
+} from './support/ui-core.helpers.js';
 
 test.describe('UI Core - Setup de Filial', () => {
   test.beforeEach(async ({ page }) => {
     await injectRuntimeConfig(page);
   });
 
-  test('usuario autenticado visualiza filiais ou entra em modo de criacao inicial', async ({ page }) => {
+  test('usuario autenticado visualiza filiais ou entra em modo de criacao inicial', async ({
+    page
+  }) => {
     requireLoginEnv(test);
 
     await openSetup(page);

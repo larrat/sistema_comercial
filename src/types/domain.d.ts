@@ -355,11 +355,13 @@ export type MovimentoEstoque = {
 };
 
 export type ScreenDom = {
-  get(id: string): (HTMLElement & {
-    value?: string;
-    checked?: boolean;
-    disabled?: boolean;
-  }) | null;
+  get(id: string):
+    | (HTMLElement & {
+        value?: string;
+        checked?: boolean;
+        disabled?: boolean;
+      })
+    | null;
   pick(...ids: string[]): Record<string, HTMLElement | null>;
   html(scope: string, id: string, html: string, signature?: string): void;
   text(scope: string, id: string, text: string, signature?: string): void;

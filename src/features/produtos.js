@@ -3,7 +3,19 @@
 import { SB } from '../app/api.js';
 import { D, State, P } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, fecharModal, uid, fmt, fmtQ, mk2mg, mg2mk, prV, toast, notify, focusField } from '../shared/utils.js';
+import {
+  abrirModal,
+  fecharModal,
+  uid,
+  fmt,
+  fmtQ,
+  mk2mg,
+  mg2mk,
+  prV,
+  toast,
+  notify,
+  focusField
+} from '../shared/utils.js';
 import { SEVERITY } from '../shared/messages.js';
 
 /** @typedef {import('../types/domain').Produto} Produto */
@@ -34,94 +46,130 @@ const prodDom = createScreenDom('produtos', [
   'pi-prod'
 ]);
 const PROD_FORM_IDS = [
-  'p-nome','p-sku','p-cat','p-pvv','p-mkv','p-mgv','p-qtmin','p-dv',
-  'p-mka','p-mga','p-pfa','p-da','p-emin','p-esal','p-ecm','p-custo'
+  'p-nome',
+  'p-sku',
+  'p-cat',
+  'p-pvv',
+  'p-mkv',
+  'p-mgv',
+  'p-qtmin',
+  'p-dv',
+  'p-mka',
+  'p-mga',
+  'p-pfa',
+  'p-da',
+  'p-emin',
+  'p-esal',
+  'p-ecm',
+  'p-custo'
 ];
 
 /**
  * @param {number | string | null | undefined} custo
  * @param {number | string | null | undefined} preco
  */
-function priceToMarkup(custo, preco){
+function priceToMarkup(custo, preco) {
   const c = Number(custo || 0);
   const p = Number(preco || 0);
-  if(c <= 0 || p <= 0) return 0;
-  return ((p / c) - 1) * 100;
+  if (c <= 0 || p <= 0) return 0;
+  return (p / c - 1) * 100;
 }
 
 /**
  * @param {number | string | null | undefined} custo
  * @param {number | string | null | undefined} preco
  */
-function priceToMargin(custo, preco){
+function priceToMargin(custo, preco) {
   const c = Number(custo || 0);
   const p = Number(preco || 0);
-  if(c <= 0 || p <= 0) return 0;
+  if (c <= 0 || p <= 0) return 0;
   return ((p - c) / p) * 100;
 }
 
 /**
  * @param {ProdutoModuleCallbacks} [callbacks]
  */
-export function initProdutosModule(callbacks = {}){
+export function initProdutosModule(callbacks = {}) {
   calcSaldosSafe = callbacks.calcSaldos || (() => ({}));
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
   refreshMovSelSafe = callbacks.refreshMovSel || (() => {});
 }
 
-export function renderProdMet(){
+export function renderProdMet() {
   const prods = P();
-  const cats = [...new Set(prods.map(p => p.cat).filter(Boolean))];
+  const cats = [...new Set(prods.map((p) => p.cat).filter(Boolean))];
   const cur = prodDom.get('prod-cat-fil')?.value || '';
 
-  prodDom.html('metrics', 'prod-met', `
+  prodDom.html(
+    'metrics',
+    'prod-met',
+    `
     <div class="met"><div class="ml">Produtos</div><div class="mv">${prods.length}</div></div>
     <div class="met"><div class="ml">Categorias</div><div class="mv">${cats.length}</div></div>
-    <div class="met"><div class="ml">Com precificacao</div><div class="mv">${prods.filter(p => p.mkv > 0).length}</div></div>
-  `, 'produtos:metrics');
+    <div class="met"><div class="ml">Com precificacao</div><div class="mv">${prods.filter((p) => p.mkv > 0).length}</div></div>
+  `,
+    'produtos:metrics'
+  );
 
   prodDom.select(
     'filters',
     'prod-cat-fil',
     '<option value="">Todas as categorias</option>' +
-      cats.sort().map(c => `<option value="${c}">${c}</option>`).join(''),
+      cats
+        .sort()
+        .map((c) => `<option value="${c}">${c}</option>`)
+        .join(''),
     cur,
     'produtos:categorias'
   );
 }
 
-export function renderProdutos(){
+export function renderProdutos() {
   const buscaEl = prodDom.get('prod-busca');
   const catEl = prodDom.get('prod-cat-fil');
   const el = prodDom.get('prod-lista');
 
-  if(!el) return;
+  if (!el) return;
 
   const q = (buscaEl?.value || '').toLowerCase();
   const cat = catEl?.value || '';
   const saldos = calcSaldosSafe();
 
-  const filtrados = P().filter(p =>
-    (!q || p.nome.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)) &&
-    (!cat || p.cat === cat)
+  const filtrados = P().filter(
+    (p) =>
+      (!q || p.nome.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)) &&
+      (!cat || p.cat === cat)
   );
 
-  if(!filtrados.length){
-    prodDom.html('list', 'prod-lista', `<div class="empty"><div class="ico">PR</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`, 'produtos:lista-vazia');
+  if (!filtrados.length) {
+    prodDom.html(
+      'list',
+      'prod-lista',
+      `<div class="empty"><div class="ico">PR</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`,
+      'produtos:lista-vazia'
+    );
     return;
   }
 
   const isMobile = window.matchMedia('(max-width: 1280px)').matches;
-  if(isMobile){
-    prodDom.html('list', 'prod-lista', filtrados.map(p => {
-      const pv = prV(p.custo, p.mkv);
-      const pa = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
-      const s = saldos[p.id] || { saldo: 0, cm: 0 };
-      const zero = s.saldo <= 0;
-      const baixo = p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
-      const st = zero ? '<span class="bdg br">Zerado</span>' : (baixo ? '<span class="bdg ba">Baixo</span>' : '<span class="bdg bg">OK</span>');
+  if (isMobile) {
+    prodDom.html(
+      'list',
+      'prod-lista',
+      filtrados
+        .map((p) => {
+          const pv = prV(p.custo, p.mkv);
+          const pa = p.pfa > 0 ? p.pfa : p.mka > 0 ? prV(p.custo, p.mka) : 0;
+          const s = saldos[p.id] || { saldo: 0, cm: 0 };
+          const zero = s.saldo <= 0;
+          const baixo = p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
+          const st = zero
+            ? '<span class="bdg br">Zerado</span>'
+            : baixo
+              ? '<span class="bdg ba">Baixo</span>'
+              : '<span class="bdg bg">OK</span>';
 
-      return `
+          return `
         <div class="mobile-card">
           <div class="mobile-card-head">
             <div style="min-width:0">
@@ -146,11 +194,17 @@ export function renderProdutos(){
           </div>
         </div>
       `;
-    }).join(''), 'produtos:lista-mobile');
+        })
+        .join(''),
+      'produtos:lista-mobile'
+    );
     return;
   }
 
-  prodDom.html('list', 'prod-lista', `
+  prodDom.html(
+    'list',
+    'prod-lista',
+    `
     <div class="tw">
       <table class="tbl">
         <thead>
@@ -168,14 +222,15 @@ export function renderProdutos(){
           </tr>
         </thead>
         <tbody>
-          ${filtrados.map(p => {
-            const pv = prV(p.custo, p.mkv);
-            const pa = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
-            const s = saldos[p.id] || { saldo: 0, cm: 0 };
-            const zero = s.saldo <= 0;
-            const baixo = p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
+          ${filtrados
+            .map((p) => {
+              const pv = prV(p.custo, p.mkv);
+              const pa = p.pfa > 0 ? p.pfa : p.mka > 0 ? prV(p.custo, p.mka) : 0;
+              const s = saldos[p.id] || { saldo: 0, cm: 0 };
+              const zero = s.saldo <= 0;
+              const baixo = p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
 
-            return `
+              return `
               <tr>
                 <td style="font-weight:600">${p.nome}</td>
                 <td style="color:var(--tx3);font-size:12px">${p.sku || '-'}</td>
@@ -196,31 +251,34 @@ export function renderProdutos(){
                 </td>
               </tr>
             `;
-          }).join('')}
+            })
+            .join('')}
         </tbody>
       </table>
     </div>
-  `, 'produtos:lista-desktop');
+  `,
+    'produtos:lista-desktop'
+  );
 }
 
-export function limparFormProd(){
+export function limparFormProd() {
   State.editIds.prod = null;
 
   const titulo = prodDom.get('prod-modal-titulo');
-  if(titulo) titulo.textContent = 'Novo produto';
+  if (titulo) titulo.textContent = 'Novo produto';
   const saveBtn = prodDom.get('prod-flow-save');
-  if(saveBtn) saveBtn.textContent = 'Salvar produto';
+  if (saveBtn) saveBtn.textContent = 'Salvar produto';
 
-  PROD_FORM_IDS.forEach(id => prodDom.value(id, ''));
+  PROD_FORM_IDS.forEach((id) => prodDom.value(id, ''));
 
   const un = prodDom.get('p-un');
-  if(un) un.value = 'un';
+  if (un) un.value = 'un';
 
   const preview = prodDom.get('prod-preview');
-  if(preview) preview.style.display = 'none';
+  if (preview) preview.style.display = 'none';
 
   const histEl = prodDom.get('p-hist-cot');
-  if(histEl) histEl.style.display = 'none';
+  if (histEl) histEl.style.display = 'none';
 
   setFlowStepSafe('prod', 1);
 }
@@ -228,17 +286,17 @@ export function limparFormProd(){
 /**
  * @param {string} id
  */
-export function editarProd(id){
+export function editarProd(id) {
   /** @type {Produto | undefined} */
-  const p = P().find(x => x.id === id);
-  if(!p) return;
+  const p = P().find((x) => x.id === id);
+  if (!p) return;
 
   State.editIds.prod = id;
 
   const titulo = prodDom.get('prod-modal-titulo');
-  if(titulo) titulo.textContent = 'Editar produto';
+  if (titulo) titulo.textContent = 'Editar produto';
   const saveBtn = prodDom.get('prod-flow-save');
-  if(saveBtn) saveBtn.textContent = 'Atualizar produto';
+  if (saveBtn) saveBtn.textContent = 'Atualizar produto';
 
   prodDom.value('p-nome', p.nome);
   prodDom.value('p-sku', p.sku || '');
@@ -259,33 +317,40 @@ export function editarProd(id){
   prodDom.value('p-ecm', p.ecm || '');
 
   let histEl = prodDom.get('p-hist-cot');
-  if(!histEl){
+  if (!histEl) {
     histEl = document.createElement('div');
     histEl.id = 'p-hist-cot';
     histEl.className = 'panel';
     histEl.style.marginTop = '12px';
     const btnRow = document.querySelector('#modal-produto .modal-box > div:last-child');
-    if(btnRow?.parentNode) btnRow.parentNode.insertBefore(histEl, btnRow);
+    if (btnRow?.parentNode) btnRow.parentNode.insertBefore(histEl, btnRow);
   }
 
-  if(p.hist_cot && p.hist_cot.length > 0){
+  if (p.hist_cot && p.hist_cot.length > 0) {
     const sortedHist = [...p.hist_cot].sort((a, b) => String(b.mes).localeCompare(String(a.mes)));
     const histHtml = `
       <div class="pt">Oscilacao de Preco do Fornecedor</div>
       <table class="tbl" style="margin-top:8px">
         <thead><tr><th>Mes ref.</th><th>Fornecedor</th><th>Preco cotado</th></tr></thead>
         <tbody>
-          ${sortedHist.map(h => `
+          ${sortedHist
+            .map(
+              (h) => `
             <tr>
-              <td>${String(h.mes || '').split('-').reverse().join('/')}</td>
+              <td>${String(h.mes || '')
+                .split('-')
+                .reverse()
+                .join('/')}</td>
               <td>${h.forn || ''}</td>
               <td style="font-weight:600;color:var(--tx2)">${fmt(h.preco || 0)}</td>
             </tr>
-          `).join('')}
+          `
+            )
+            .join('')}
         </tbody>
       </table>
     `;
-    if(histEl.id === 'p-hist-cot'){
+    if (histEl.id === 'p-hist-cot') {
       prodDom.html('history', 'p-hist-cot', histHtml, 'produtos:historico-cotacao');
     } else {
       histEl.innerHTML = histHtml;
@@ -303,23 +368,29 @@ export function editarProd(id){
 /**
  * @param {string} id
  */
-export function abrirProdDet(id){
+export function abrirProdDet(id) {
   /** @type {Produto | undefined} */
-  const p = P().find(x => x.id === id);
+  const p = P().find((x) => x.id === id);
   const box = prodDom.get('prod-det-box');
-  if(!p || !box) return;
+  if (!p || !box) return;
 
   const saldos = calcSaldosSafe();
   const s = saldos[p.id] || { saldo: 0, cm: 0 };
   const varejo = p.mkv > 0 ? prV(p.custo, p.mkv) : 0;
-  const atacado = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
+  const atacado = p.pfa > 0 ? p.pfa : p.mka > 0 ? prV(p.custo, p.mka) : 0;
   const margemV = varejo > 0 ? ((varejo - p.custo) / varejo) * 100 : 0;
   const margemA = atacado > 0 ? ((atacado - p.custo) / atacado) * 100 : 0;
-  const status = s.saldo <= 0
-    ? '<span class="bdg br">Zerado</span>'
-    : (p.emin > 0 && s.saldo < p.emin ? '<span class="bdg ba">Baixo</span>' : '<span class="bdg bg">OK</span>');
+  const status =
+    s.saldo <= 0
+      ? '<span class="bdg br">Zerado</span>'
+      : p.emin > 0 && s.saldo < p.emin
+        ? '<span class="bdg ba">Baixo</span>'
+        : '<span class="bdg bg">OK</span>';
 
-  prodDom.html('detail', 'prod-det-box', `
+  prodDom.html(
+    'detail',
+    'prod-det-box',
+    `
     <div class="prod-detail">
       <div class="prod-detail-head fb">
         <div>
@@ -360,7 +431,9 @@ export function abrirProdDet(id){
         </div>
       </div>
 
-      ${p.hist_cot?.length ? `
+      ${
+        p.hist_cot?.length
+          ? `
         <div class="panel prod-detail-section">
           <div class="pt">Oscilacao de custo</div>
           <div class="tw">
@@ -373,18 +446,28 @@ export function abrirProdDet(id){
                 </tr>
               </thead>
               <tbody>
-                ${[...p.hist_cot].sort((a, b) => String(b.mes).localeCompare(String(a.mes))).map(h => `
+                ${[...p.hist_cot]
+                  .sort((a, b) => String(b.mes).localeCompare(String(a.mes)))
+                  .map(
+                    (h) => `
                   <tr>
-                    <td>${String(h.mes || '').split('-').reverse().join('/')}</td>
+                    <td>${String(h.mes || '')
+                      .split('-')
+                      .reverse()
+                      .join('/')}</td>
                     <td>${h.forn || '-'}</td>
                     <td>${fmt(h.preco || 0)}</td>
                   </tr>
-                `).join('')}
+                `
+                  )
+                  .join('')}
               </tbody>
             </table>
           </div>
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="prod-detail-actions">
         <button class="btn" data-click="fecharModal('modal-prod-det')">Fechar</button>
@@ -392,25 +475,27 @@ export function abrirProdDet(id){
         <button class="btn btn-p" data-click="fecharModal('modal-prod-det');editarProd('${p.id}')">Editar</button>
       </div>
     </div>
-  `, 'produtos:detalhe');
+  `,
+    'produtos:detalhe'
+  );
 
   abrirModal('modal-prod-det');
 }
 
-export function syncV(t){
+export function syncV(t) {
   const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
   const pv = parseFloat(prodDom.get('p-pvv')?.value) || 0;
   const mk = parseFloat(prodDom.get('p-mkv')?.value) || 0;
   const mg = parseFloat(prodDom.get('p-mgv')?.value) || 0;
 
-  if(t === 'mk' && mk > 0){
+  if (t === 'mk' && mk > 0) {
     prodDom.value('p-mgv', mk2mg(mk).toFixed(1));
-    if(c > 0) prodDom.value('p-pvv', prV(c, mk).toFixed(2));
-  } else if(t === 'mg' && mg > 0){
+    if (c > 0) prodDom.value('p-pvv', prV(c, mk).toFixed(2));
+  } else if (t === 'mg' && mg > 0) {
     const mkCalc = mg2mk(mg);
     prodDom.value('p-mkv', mkCalc.toFixed(1));
-    if(c > 0) prodDom.value('p-pvv', prV(c, mkCalc).toFixed(2));
-  } else if(t === 'pv' && c > 0 && pv > 0){
+    if (c > 0) prodDom.value('p-pvv', prV(c, mkCalc).toFixed(2));
+  } else if (t === 'pv' && c > 0 && pv > 0) {
     const mkCalc = priceToMarkup(c, pv);
     prodDom.value('p-mkv', mkCalc.toFixed(1));
     prodDom.value('p-mgv', priceToMargin(c, pv).toFixed(1));
@@ -419,20 +504,20 @@ export function syncV(t){
   calcProdPreview();
 }
 
-export function syncA(t){
+export function syncA(t) {
   const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
   const pa = parseFloat(prodDom.get('p-pfa')?.value) || 0;
   const mk = parseFloat(prodDom.get('p-mka')?.value) || 0;
   const mg = parseFloat(prodDom.get('p-mga')?.value) || 0;
 
-  if(t === 'mk' && mk > 0){
+  if (t === 'mk' && mk > 0) {
     prodDom.value('p-mga', mk2mg(mk).toFixed(1));
-    if(c > 0) prodDom.value('p-pfa', prV(c, mk).toFixed(2));
-  } else if(t === 'mg' && mg > 0){
+    if (c > 0) prodDom.value('p-pfa', prV(c, mk).toFixed(2));
+  } else if (t === 'mg' && mg > 0) {
     const mkCalc = mg2mk(mg);
     prodDom.value('p-mka', mkCalc.toFixed(1));
-    if(c > 0) prodDom.value('p-pfa', prV(c, mkCalc).toFixed(2));
-  } else if(t === 'pv' && c > 0 && pa > 0){
+    if (c > 0) prodDom.value('p-pfa', prV(c, mkCalc).toFixed(2));
+  } else if (t === 'pv' && c > 0 && pa > 0) {
     const mkCalc = priceToMarkup(c, pa);
     prodDom.value('p-mka', mkCalc.toFixed(1));
     prodDom.value('p-mga', priceToMargin(c, pa).toFixed(1));
@@ -441,13 +526,13 @@ export function syncA(t){
   calcProdPreview();
 }
 
-export function syncProdFromCost(){
+export function syncProdFromCost() {
   syncV('pv');
   syncA('pv');
   calcProdPreview();
 }
 
-export function calcProdPreview(){
+export function calcProdPreview() {
   const c = parseFloat(prodDom.get('p-custo')?.value) || 0;
   const pvv = parseFloat(prodDom.get('p-pvv')?.value) || 0;
   const mkv = parseFloat(prodDom.get('p-mkv')?.value) || 0;
@@ -457,39 +542,52 @@ export function calcProdPreview(){
   const da = parseFloat(prodDom.get('p-da')?.value) || 0;
   const prev = prodDom.get('prod-preview');
 
-  if(!prev) return;
+  if (!prev) return;
 
-  const pv = pvv > 0 ? pvv : (c > 0 && mkv > 0 ? prV(c, mkv) : 0);
-  const pa = pfa > 0 ? pfa : (c > 0 && mka > 0 ? prV(c, mka) : 0);
+  const pv = pvv > 0 ? pvv : c > 0 && mkv > 0 ? prV(c, mkv) : 0;
+  const pa = pfa > 0 ? pfa : c > 0 && mka > 0 ? prV(c, mka) : 0;
 
-  if(c > 0 && (pv > 0 || pa > 0)){
+  if (c > 0 && (pv > 0 || pa > 0)) {
     prodDom.text('preview', 'ppv-v', pv > 0 ? fmt(pv) : '-', 'produtos:preview');
-    prodDom.text('preview', 'ppv-vmin', (pv > 0 && dv > 0) ? fmt(pv * (1 - dv / 100)) : '-', 'produtos:preview');
+    prodDom.text(
+      'preview',
+      'ppv-vmin',
+      pv > 0 && dv > 0 ? fmt(pv * (1 - dv / 100)) : '-',
+      'produtos:preview'
+    );
     prodDom.text('preview', 'ppv-a', pa > 0 ? fmt(pa) : '-', 'produtos:preview');
-    prodDom.text('preview', 'ppv-amin', (pa > 0 && da > 0) ? fmt(pa * (1 - da / 100)) : '-', 'produtos:preview');
+    prodDom.text(
+      'preview',
+      'ppv-amin',
+      pa > 0 && da > 0 ? fmt(pa * (1 - da / 100)) : '-',
+      'produtos:preview'
+    );
     prodDom.display('preview', 'prod-preview', 'block', 'produtos:preview');
   } else {
     prodDom.display('preview', 'prod-preview', 'none', 'produtos:preview');
   }
 }
 
-export async function salvarProduto(){
+export async function salvarProduto() {
   const nome = prodDom.get('p-nome')?.value.trim() || '';
   const custo = parseFloat(prodDom.get('p-custo')?.value) || 0;
   const precoVarejo = parseFloat(prodDom.get('p-pvv')?.value) || 0;
-  const markupVarejo = precoVarejo > 0 ? priceToMarkup(custo, precoVarejo) : (parseFloat(prodDom.get('p-mkv')?.value) || 0);
+  const markupVarejo =
+    precoVarejo > 0
+      ? priceToMarkup(custo, precoVarejo)
+      : parseFloat(prodDom.get('p-mkv')?.value) || 0;
 
-  if(!nome || custo <= 0){
+  if (!nome || custo <= 0) {
     notify(
       'Atencao: nome e custo sao obrigatorios. Impacto: produto nao pode ser salvo. Acao: preencha nome e custo maior que zero.',
       SEVERITY.WARNING
     );
-    if(!nome) focusField('p-nome', { markError: true });
+    if (!nome) focusField('p-nome', { markError: true });
     else focusField('p-custo', { markError: true });
     return;
   }
 
-  const existing = State.editIds.prod ? P().find(x => x.id === State.editIds.prod) : null;
+  const existing = State.editIds.prod ? P().find((x) => x.id === State.editIds.prod) : null;
 
   const p = {
     id: State.editIds.prod || uid(),
@@ -508,12 +606,12 @@ export async function salvarProduto(){
     emin: parseFloat(prodDom.get('p-emin')?.value) || 0,
     esal: parseFloat(prodDom.get('p-esal')?.value) || 0,
     ecm: parseFloat(prodDom.get('p-ecm')?.value) || custo,
-    hist_cot: existing ? (existing.hist_cot || []) : []
+    hist_cot: existing ? existing.hist_cot || [] : []
   };
 
-  try{
+  try {
     await SB.upsertProduto(p);
-  }catch(e){
+  } catch (e) {
     notify(
       `Erro: falha ao salvar produto (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro nao foi concluido. Acao: valide os campos e tente novamente.`,
       SEVERITY.ERROR
@@ -521,10 +619,10 @@ export async function salvarProduto(){
     return;
   }
 
-  if(State.editIds.prod){
-    D.produtos[State.FIL] = P().map(x => x.id === State.editIds.prod ? p : x);
+  if (State.editIds.prod) {
+    D.produtos[State.FIL] = P().map((x) => (x.id === State.editIds.prod ? p : x));
   } else {
-    if(!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
+    if (!D.produtos[State.FIL]) D.produtos[State.FIL] = [];
     D.produtos[State.FIL].push(p);
   }
 
@@ -536,7 +634,7 @@ export async function salvarProduto(){
   refreshMovSelSafe();
 
   const pv = p.custo > 0 && p.mkv > 0 ? prV(p.custo, p.mkv) : 0;
-  const pa = p.pfa > 0 ? p.pfa : (p.custo > 0 && p.mka > 0 ? prV(p.custo, p.mka) : 0);
+  const pa = p.pfa > 0 ? p.pfa : p.custo > 0 && p.mka > 0 ? prV(p.custo, p.mka) : 0;
   notify(
     State.editIds.prod
       ? `Produto atualizado: ${p.nome} - Varejo ${pv > 0 ? fmt(pv) : '-'} - Atacado ${pa > 0 ? fmt(pa) : '-'}`
@@ -545,19 +643,19 @@ export async function salvarProduto(){
   );
 }
 
-export async function removerProd(id){
-  if(!confirm('Remover produto?')) return;
+export async function removerProd(id) {
+  if (!confirm('Remover produto?')) return;
 
-  try{
+  try {
     await SB.deleteProduto(id);
-  }catch(e){
+  } catch (e) {
     toast('Erro: ' + e.message);
     return;
   }
 
-  D.produtos[State.FIL] = P().filter(p => p.id !== id);
-  if(D.movs?.[State.FIL]){
-    D.movs[State.FIL] = D.movs[State.FIL].filter(m => (m.prod_id || m.prodId) !== id);
+  D.produtos[State.FIL] = P().filter((p) => p.id !== id);
+  if (D.movs?.[State.FIL]) {
+    D.movs[State.FIL] = D.movs[State.FIL].filter((m) => (m.prod_id || m.prodId) !== id);
   }
 
   renderProdMet();
@@ -569,18 +667,19 @@ export async function removerProd(id){
   toast('Removido.');
 }
 
-export function refreshProdSel(){
+export function refreshProdSel() {
   const s = prodDom.get('pi-prod');
-  if(!s) return;
+  if (!s) return;
 
   const cur = s.value;
   prodDom.select(
     'selectors',
     'pi-prod',
     '<option value="">- selecione -</option>' +
-      P().map(p => `<option value="${p.id}">${p.nome} (${p.un})</option>`).join(''),
+      P()
+        .map((p) => `<option value="${p.id}">${p.nome} (${p.un})</option>`)
+        .join(''),
     cur,
     'produtos:pedido-selector'
   );
 }
-

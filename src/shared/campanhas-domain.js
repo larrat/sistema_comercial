@@ -15,10 +15,10 @@ export function addDays(baseDate, days) {
 }
 
 export function parseDateOnly(value) {
-  if(value instanceof Date) return new Date(value);
+  if (value instanceof Date) return new Date(value);
   const raw = String(value || '').trim();
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(match){
+  if (match) {
     const [, y, m, d] = match;
     return new Date(Number(y), Number(m) - 1, Number(d));
   }
@@ -66,19 +66,27 @@ export function isBirthdayWithinDays(birthDate, baseDate = new Date(), maxDays =
 
 export function filtrarAniversariantesDoDia(clientes = [], baseDate = new Date()) {
   const alvo = mmdd(baseDate);
-  return (clientes || []).filter(c => c.data_aniversario && mmdd(c.data_aniversario) === alvo);
+  return (clientes || []).filter((c) => c.data_aniversario && mmdd(c.data_aniversario) === alvo);
 }
 
-export function filtrarAniversariantesProximos(clientes = [], diasAntecedencia = 0, baseDate = new Date()) {
+export function filtrarAniversariantesProximos(
+  clientes = [],
+  diasAntecedencia = 0,
+  baseDate = new Date()
+) {
   const alvo = mmdd(addDays(baseDate, diasAntecedencia));
-  return (clientes || []).filter(c => c.data_aniversario && mmdd(c.data_aniversario) === alvo);
+  return (clientes || []).filter((c) => c.data_aniversario && mmdd(c.data_aniversario) === alvo);
 }
 
-export function filtrarClientesElegiveisCampanhaAniversario(clientes = [], campanha, baseDate = new Date()) {
+export function filtrarClientesElegiveisCampanhaAniversario(
+  clientes = [],
+  campanha,
+  baseDate = new Date()
+) {
   const dias = Number(campanha?.dias_antecedencia || 0);
   const canal = campanha?.canal || '';
 
-  return (clientes || []).filter(c => {
+  return (clientes || []).filter((c) => {
     if (!c.data_aniversario) return false;
     if (!isBirthdayWithinDays(c.data_aniversario, baseDate, dias)) return false;
 
@@ -93,9 +101,7 @@ export function filtrarClientesElegiveisCampanhaAniversario(clientes = [], campa
 export function montarMensagemCampanha({ mensagem, cliente, campanha, validade = null }) {
   let txt = String(mensagem || '');
 
-  const desconto = campanha?.desconto
-    ? `${Number(campanha.desconto)}%`
-    : '';
+  const desconto = campanha?.desconto ? `${Number(campanha.desconto)}%` : '';
 
   const cupom = campanha?.cupom || '';
   const nome = cliente?.nome || '';

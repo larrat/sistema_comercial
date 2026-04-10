@@ -138,10 +138,10 @@
 /**
  * @param {RegisterModulesOptions} options
  */
-export function registerApplicationModules({ registry, modules, deps }){
+export function registerApplicationModules({ registry, modules, deps }) {
   registry.register({
     name: 'cotacao',
-    init(){
+    init() {
       modules.initCotacaoModule({
         renderCotLogs: deps.renderCotLogs,
         renderProdMet: deps.renderProdMet,
@@ -152,7 +152,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'produtos',
-    init(){
+    init() {
       modules.initProdutosModule({
         calcSaldos: deps.calcSaldos,
         setFlowStep: deps.setFlowStep,
@@ -163,7 +163,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'clientes',
-    init(){
+    init() {
       modules.initClientesModule({
         setFlowStep: deps.setFlowStep
       });
@@ -172,7 +172,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'pedidos',
-    init(){
+    init() {
       modules.initPedidosModule({
         refreshProdSel: deps.refreshProdSel,
         refreshCliDL: deps.refreshCliDL
@@ -182,7 +182,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'dashboard',
-    init(){
+    init() {
       modules.initDashboardModule({
         calcSaldosMulti: deps.calcSaldosMulti
       });
@@ -191,7 +191,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'telemetria',
-    init(){
+    init() {
       modules.initTelemetriaModule({
         pageAtual: deps.pageAtual,
         getNotificacoesResumo: deps.getNotificacoesResumo,
@@ -207,14 +207,14 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'runtime-loading',
-    init(){
+    init() {
       modules.initRuntimeLoadingModule();
     }
   });
 
   registry.register({
     name: 'ux-workflows',
-    init(){
+    init() {
       modules.initUxWorkflowsModule({
         ir: deps.ir,
         limparFormPedTracked: deps.limparFormPedTracked,
@@ -230,7 +230,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'auth-setup',
-    init(){
+    init() {
       modules.initAuthSetupModule({
         pageAtual: deps.pageAtual,
         ir: deps.ir,
@@ -256,7 +256,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'navigation',
-    init(){
+    init() {
       modules.initNavigationModule({
         hasRole: deps.hasRole,
         canAccessPage: deps.canAccessPage,
@@ -312,7 +312,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'filiais-acessos',
-    init(){
+    init() {
       modules.initFiliaisAcessosModule({
         requireRole: deps.requireRole,
         renderSetup: deps.renderSetup,
@@ -328,7 +328,7 @@ export function registerApplicationModules({ registry, modules, deps }){
 
   registry.register({
     name: 'notificacoes',
-    init(){
+    init() {
       modules.initNotificacoesModule({
         calcSaldos: deps.calcSaldos,
         ir: deps.ir,
@@ -343,15 +343,15 @@ export function registerApplicationModules({ registry, modules, deps }){
 /**
  * @param {StartRuntimeOptions} options
  */
-export function startApplicationRuntime({ appContext, registry, deps }){
-  async function bootstrapApplication(){
+export function startApplicationRuntime({ appContext, registry, deps }) {
+  async function bootstrapApplication() {
     await registry.initAll(appContext);
   }
 
   const start = async () => {
-    try{
+    try {
       await bootstrapApplication();
-    }catch(e){
+    } catch (e) {
       console.error('Falha no bootstrap da aplicacao:', e);
       return;
     }
@@ -368,7 +368,7 @@ export function startApplicationRuntime({ appContext, registry, deps }){
     deps.renderSetup();
   };
 
-  if(document.readyState === 'loading'){
+  if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start);
     return;
   }

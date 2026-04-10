@@ -4,14 +4,7 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: [
-      'node_modules/**',
-      'test-results/**',
-      'docs/**',
-      'sql/**',
-      '.git/**',
-      '.vscode/**'
-    ]
+    ignores: ['node_modules/**', 'test-results/**', 'docs/**', 'sql/**', '.git/**', '.vscode/**']
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -55,7 +48,10 @@ export default [
       'no-useless-assignment': 'warn',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'no-undef': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }
+      ],
       '@typescript-eslint/no-explicit-any': 'warn'
     }
   },

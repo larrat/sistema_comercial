@@ -8,7 +8,7 @@ import { markInvalidation, markRender } from './render-metrics.js';
  * @param {unknown} value
  * @returns {string}
  */
-function normalizeContent(value){
+function normalizeContent(value) {
   return value == null ? '' : String(value);
 }
 
@@ -17,22 +17,22 @@ function normalizeContent(value){
  * @param {string[]} [trackedIds=[]]
  * @returns {ScreenDom}
  */
-export function createScreenDom(page, trackedIds = []){
+export function createScreenDom(page, trackedIds = []) {
   /** @type {Map<string, HTMLElement | null>} */
   const cache = new Map();
-  trackedIds.forEach(id => cache.set(id, null));
+  trackedIds.forEach((id) => cache.set(id, null));
 
   /**
    * @param {string} id
    * @returns {HTMLElement | null}
    */
-  function get(id){
-    if(!cache.has(id)){
+  function get(id) {
+    if (!cache.has(id)) {
       cache.set(id, null);
     }
 
     const cached = cache.get(id);
-    if(cached?.isConnected) return cached;
+    if (cached?.isConnected) return cached;
 
     const resolved = document.getElementById(id) || null;
     cache.set(id, resolved);
@@ -43,7 +43,7 @@ export function createScreenDom(page, trackedIds = []){
    * @param {...string} ids
    * @returns {Record<string, HTMLElement | null>}
    */
-  function pick(...ids){
+  function pick(...ids) {
     return ids.reduce((acc, id) => {
       acc[id] = get(id);
       return acc;
@@ -59,14 +59,14 @@ export function createScreenDom(page, trackedIds = []){
    * @param {unknown} nextValue
    * @returns {boolean}
    */
-  function update(area, reason, id, read, write, nextValue){
+  function update(area, reason, id, read, write, nextValue) {
     markInvalidation(page, area, reason);
 
     const el = get(id);
-    if(!el) return false;
+    if (!el) return false;
 
     const next = normalizeContent(nextValue);
-    if(normalizeContent(read(el)) === next) return false;
+    if (normalizeContent(read(el)) === next) return false;
 
     write(el, next);
     markRender(page, area);
@@ -83,10 +83,17 @@ export function createScreenDom(page, trackedIds = []){
      * @param {string} [reason='render']
      * @returns {boolean}
      */
-    html(area, id, html, reason = 'render'){
-      return update(area, reason, id, el => el.innerHTML, (el, value) => {
-        el.innerHTML = value;
-      }, html);
+    html(area, id, html, reason = 'render') {
+      return update(
+        area,
+        reason,
+        id,
+        (el) => el.innerHTML,
+        (el, value) => {
+          el.innerHTML = value;
+        },
+        html
+      );
     },
     /**
      * @param {string} area
@@ -95,21 +102,30 @@ export function createScreenDom(page, trackedIds = []){
      * @param {string} [reason='render']
      * @returns {boolean}
      */
-    text(area, id, text, reason = 'render'){
-      return update(area, reason, id, el => el.textContent, (el, value) => {
-        el.textContent = value;
-      }, text);
+    text(area, id, text, reason = 'render') {
+      return update(
+        area,
+        reason,
+        id,
+        (el) => el.textContent,
+        (el, value) => {
+          el.textContent = value;
+        },
+        text
+      );
     },
     /**
      * @param {string} id
      * @param {string | number} value
      * @returns {boolean}
      */
-    value(id, value){
-      const el = /** @type {HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null} */ (get(id));
-      if(!el) return false;
+    value(id, value) {
+      const el = /** @type {HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null} */ (
+        get(id)
+      );
+      if (!el) return false;
       const next = normalizeContent(value);
-      if(normalizeContent(el.value) === next) return false;
+      if (normalizeContent(el.value) === next) return false;
       el.value = next;
       return true;
     },
@@ -118,11 +134,11 @@ export function createScreenDom(page, trackedIds = []){
      * @param {boolean} checked
      * @returns {boolean}
      */
-    checked(id, checked){
+    checked(id, checked) {
       const el = /** @type {HTMLInputElement | null} */ (get(id));
-      if(!el) return false;
+      if (!el) return false;
       const next = !!checked;
-      if(!!el.checked === next) return false;
+      if (!!el.checked === next) return false;
       el.checked = next;
       return true;
     },
@@ -133,10 +149,17 @@ export function createScreenDom(page, trackedIds = []){
      * @param {string} [reason='render']
      * @returns {boolean}
      */
-    display(area, id, value, reason = 'render'){
-      return update(area, reason, id, el => el.style.display, (el, next) => {
-        el.style.display = next;
-      }, value);
+    display(area, id, value, reason = 'render') {
+      return update(
+        area,
+        reason,
+        id,
+        (el) => el.style.display,
+        (el, next) => {
+          el.style.display = next;
+        },
+        value
+      );
     },
     /**
      * @param {string} area
@@ -146,32 +169,32 @@ export function createScreenDom(page, trackedIds = []){
      * @param {string} [reason='render']
      * @returns {boolean}
      */
-    select(area, id, optionsHtml, currentValue = '', reason = 'render'){
+    select(area, id, optionsHtml, currentValue = '', reason = 'render') {
       markInvalidation(page, area, reason);
       const el = /** @type {HTMLSelectElement | null} */ (get(id));
-      if(!el) return false;
+      if (!el) return false;
 
       let changed = false;
       const nextOptions = normalizeContent(optionsHtml);
-      if(normalizeContent(el.innerHTML) !== nextOptions){
+      if (normalizeContent(el.innerHTML) !== nextOptions) {
         el.innerHTML = nextOptions;
         changed = true;
       }
 
       const nextValue = normalizeContent(currentValue);
-      if(nextValue && normalizeContent(el.value) !== nextValue){
+      if (nextValue && normalizeContent(el.value) !== nextValue) {
         el.value = nextValue;
         changed = true;
       }
 
-      if(changed) markRender(page, area);
+      if (changed) markRender(page, area);
       return changed;
     },
     /**
      * @param {...string} ids
      */
-    invalidate(...ids){
-      ids.forEach(id => cache.delete(id));
+    invalidate(...ids) {
+      ids.forEach((id) => cache.delete(id));
     }
   };
 }

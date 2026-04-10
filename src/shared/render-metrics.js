@@ -15,8 +15,8 @@
 const pageMetrics = new Map();
 
 /** @param {string} page */
-function ensurePage(page){
-  if(!pageMetrics.has(page)){
+function ensurePage(page) {
+  if (!pageMetrics.has(page)) {
     pageMetrics.set(page, {
       page,
       renders: {},
@@ -33,11 +33,11 @@ function ensurePage(page){
  * @param {Record<string, number>} target
  * @param {string} key
  */
-function bumpCounter(target, key){
+function bumpCounter(target, key) {
   target[key] = (target[key] || 0) + 1;
 }
 
-function nowMs(){
+function nowMs() {
   return typeof performance !== 'undefined' && typeof performance.now === 'function'
     ? performance.now()
     : Date.now();
@@ -48,7 +48,7 @@ function nowMs(){
  * @param {string} [area='page']
  * @param {string} [reason='unknown']
  */
-export function markInvalidation(page, area = 'page', reason = 'unknown'){
+export function markInvalidation(page, area = 'page', reason = 'unknown') {
   const entry = ensurePage(page);
   bumpCounter(entry.invalidations, `${area}:${reason}`);
   entry.lastInvalidationAt = Date.now();
@@ -58,7 +58,7 @@ export function markInvalidation(page, area = 'page', reason = 'unknown'){
  * @param {string} page
  * @param {string} [area='page']
  */
-export function markRender(page, area = 'page'){
+export function markRender(page, area = 'page') {
   const entry = ensurePage(page);
   bumpCounter(entry.renders, area);
   entry.lastRenderAt = Date.now();
@@ -69,7 +69,7 @@ export function markRender(page, area = 'page'){
  * @param {string} [area='page']
  * @param {number} durationMs
  */
-export function markRenderDuration(page, area = 'page', durationMs = 0){
+export function markRenderDuration(page, area = 'page', durationMs = 0) {
   const entry = ensurePage(page);
   const current = entry.durations[area] || { count: 0, total: 0, max: 0, last: 0 };
   const safeDuration = Number.isFinite(durationMs) ? Math.max(0, durationMs) : 0;
@@ -87,7 +87,7 @@ export function markRenderDuration(page, area = 'page', durationMs = 0){
  * @param {string} [area='page']
  * @returns {T}
  */
-export function measureRender(page, fn, area = 'page'){
+export function measureRender(page, fn, area = 'page') {
   const startedAt = nowMs();
   const result = fn();
   markRender(page, area);
@@ -99,19 +99,21 @@ export function measureRender(page, fn, area = 'page'){
  * @param {string} [page]
  * @returns {RenderMetricsEntry | RenderMetricsEntry[] | null}
  */
-export function getRenderMetrics(page){
-  if(page) return pageMetrics.get(page) || null;
-  return Array.from(pageMetrics.values()).map(entry => ({
+export function getRenderMetrics(page) {
+  if (page) return pageMetrics.get(page) || null;
+  return Array.from(pageMetrics.values()).map((entry) => ({
     ...entry,
     renders: { ...entry.renders },
-    durations: Object.fromEntries(Object.entries(entry.durations).map(([key, value]) => [key, { ...value }])),
+    durations: Object.fromEntries(
+      Object.entries(entry.durations).map(([key, value]) => [key, { ...value }])
+    ),
     invalidations: { ...entry.invalidations }
   }));
 }
 
 /** @param {string} [page] */
-export function resetRenderMetrics(page){
-  if(page){
+export function resetRenderMetrics(page) {
+  if (page) {
     pageMetrics.delete(page);
     return;
   }

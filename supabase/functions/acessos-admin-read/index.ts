@@ -29,18 +29,24 @@ Deno.serve(async (req) => {
   }
 
   if (!SB_URL || !SB_ANON_KEY) {
-    return json({
-      ok: false,
-      error: { code: 'CONFIG_MISSING', message: 'SUPABASE_URL/SUPABASE_ANON_KEY ausentes.' }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: { code: 'CONFIG_MISSING', message: 'SUPABASE_URL/SUPABASE_ANON_KEY ausentes.' }
+      },
+      500
+    );
   }
 
   const authHeader = req.headers.get('Authorization') || '';
   if (!authHeader.startsWith('Bearer ')) {
-    return json({
-      ok: false,
-      error: { code: 'AUTH_MISSING', message: 'Authorization Bearer obrigatorio.' }
-    }, 401);
+    return json(
+      {
+        ok: false,
+        error: { code: 'AUTH_MISSING', message: 'Authorization Bearer obrigatorio.' }
+      },
+      401
+    );
   }
 
   const supabase = createClient(SB_URL, SB_ANON_KEY, {
@@ -53,14 +59,17 @@ Deno.serve(async (req) => {
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) {
-    return json({
-      ok: false,
-      error: {
-        code: 'AUTH_INVALID',
-        message: 'Sessao invalida ou expirada.',
-        details: userError?.message || null
-      }
-    }, 401);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'AUTH_INVALID',
+          message: 'Sessao invalida ou expirada.',
+          details: userError?.message || null
+        }
+      },
+      401
+    );
   }
 
   const { data: perfilRows, error: perfilError } = await supabase
@@ -70,18 +79,31 @@ Deno.serve(async (req) => {
     .limit(1);
 
   if (perfilError) {
-    return json({
-      ok: false,
-      error: { code: 'ROLE_FETCH_FAILED', message: 'Falha ao consultar perfil RBAC.', details: perfilError.message }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'ROLE_FETCH_FAILED',
+          message: 'Falha ao consultar perfil RBAC.',
+          details: perfilError.message
+        }
+      },
+      500
+    );
   }
 
   const papelAtor = String(perfilRows?.[0]?.papel || 'operador');
   if (papelAtor !== 'admin') {
-    return json({
-      ok: false,
-      error: { code: 'FORBIDDEN', message: 'Somente admin pode consultar a leitura administrativa agregada.' }
-    }, 403);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Somente admin pode consultar a leitura administrativa agregada.'
+        }
+      },
+      403
+    );
   }
 
   const url = new URL(req.url);
@@ -115,26 +137,32 @@ Deno.serve(async (req) => {
   ].find(([, err]) => !!err);
 
   if (failed) {
-    return json({
-      ok: false,
-      error: {
-        code: 'ACCESS_READ_FAILED',
-        message: `Falha ao consultar leitura administrativa agregada em ${failed[0]}.`,
-        details: failed[1]?.message || null
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'ACCESS_READ_FAILED',
+          message: `Falha ao consultar leitura administrativa agregada em ${failed[0]}.`,
+          details: failed[1]?.message || null
+        }
+      },
+      500
+    );
   }
 
-  return json({
-    ok: true,
-    data: {
-      ator_user_id: userData.user.id,
-      papel: papelAtor,
-      perfis: perfisResult.data || [],
-      vinculos: vinculosResult.data || [],
-      filiais: filiaisResult.data || [],
-      auditoria: auditoriaResult.data || [],
-      auditoria_limit: auditoriaLimit
-    }
-  }, 200);
+  return json(
+    {
+      ok: true,
+      data: {
+        ator_user_id: userData.user.id,
+        papel: papelAtor,
+        perfis: perfisResult.data || [],
+        vinculos: vinculosResult.data || [],
+        filiais: filiaisResult.data || [],
+        auditoria: auditoriaResult.data || [],
+        auditoria_limit: auditoriaLimit
+      }
+    },
+    200
+  );
 });

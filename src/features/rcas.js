@@ -9,16 +9,16 @@ import { SEVERITY } from '../shared/messages.js';
 
 let rcaTargetFieldId = null;
 
-function getRcasCache(){
-  if(!D.rcas) D.rcas = {};
-  if(!D.rcas[State.FIL]) D.rcas[State.FIL] = [];
+function getRcasCache() {
+  if (!D.rcas) D.rcas = {};
+  if (!D.rcas[State.FIL]) D.rcas[State.FIL] = [];
   return D.rcas[State.FIL];
 }
 
 /**
  * @param {unknown} value
  */
-function esc(value){
+function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -30,24 +30,31 @@ function esc(value){
 /**
  * @param {string | null | undefined} nome
  */
-function buildRcaInicial(nome){
-  const parts = String(nome || '').trim().split(/\s+/).filter(Boolean);
-  if(!parts.length) return '';
-  return parts.slice(0, 2).map(part => part[0]).join('').toUpperCase();
+function buildRcaInicial(nome) {
+  const parts = String(nome || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return '';
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 }
 
-export function refreshRcaSelectors(){
+export function refreshRcaSelectors() {
   const options = [
     '<option value="">Sem RCA</option>',
     ...RCAS()
-      .filter(rca => rca.ativo !== false)
+      .filter((rca) => rca.ativo !== false)
       .sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'))
-      .map(rca => `<option value="${esc(rca.id)}">${esc(rca.nome)}</option>`)
+      .map((rca) => `<option value="${esc(rca.id)}">${esc(rca.nome)}</option>`)
   ].join('');
 
-  ['c-rca', 'pd-rca'].forEach(id => {
+  ['c-rca', 'pd-rca'].forEach((id) => {
     const el = /** @type {HTMLSelectElement | null} */ (document.getElementById(id));
-    if(!el) return;
+    if (!el) return;
     const current = el.value || '';
     el.innerHTML = options;
     el.value = current;
@@ -57,41 +64,48 @@ export function refreshRcaSelectors(){
 /**
  * @param {string | null | undefined} rcaId
  */
-export function getRcaNomeById(rcaId){
+export function getRcaNomeById(rcaId) {
   const id = String(rcaId || '').trim();
-  if(!id) return '';
-  return String(getRcasCache().find(item => item.id === id)?.nome || '').trim();
+  if (!id) return '';
+  return String(getRcasCache().find((item) => item.id === id)?.nome || '').trim();
 }
 
 /**
  * @param {string | null | undefined} targetId
  */
-export function abrirModalRca(targetId = null){
+export function abrirModalRca(targetId = null) {
   rcaTargetFieldId = targetId ? String(targetId) : null;
   const titulo = document.getElementById('rca-modal-titulo');
   const nome = /** @type {HTMLInputElement | null} */ (document.getElementById('rca-nome'));
-  if(titulo) titulo.textContent = 'Novo RCA';
-  if(nome) nome.value = '';
+  if (titulo) titulo.textContent = 'Novo RCA';
+  if (nome) nome.value = '';
   abrirModal('modal-rca');
   focusField('rca-nome');
 }
 
-export async function salvarRca(){
+export async function salvarRca() {
   const nomeEl = /** @type {HTMLInputElement | null} */ (document.getElementById('rca-nome'));
   const nome = String(nomeEl?.value || '').trim();
-  if(!nome){
+  if (!nome) {
     notify('Informe o nome do RCA para salvar.', SEVERITY.WARNING);
     focusField('rca-nome', { markError: true });
     return;
   }
 
-  const duplicado = getRcasCache().find(item => String(item.nome || '').trim().toLowerCase() === nome.toLowerCase());
-  if(duplicado){
+  const duplicado = getRcasCache().find(
+    (item) =>
+      String(item.nome || '')
+        .trim()
+        .toLowerCase() === nome.toLowerCase()
+  );
+  if (duplicado) {
     notify(`Este RCA já existe: ${duplicado.nome}.`, SEVERITY.INFO);
-    if(rcaTargetFieldId){
+    if (rcaTargetFieldId) {
       refreshRcaSelectors();
-      const target = /** @type {HTMLSelectElement | null} */ (document.getElementById(rcaTargetFieldId));
-      if(target) target.value = duplicado.id;
+      const target = /** @type {HTMLSelectElement | null} */ (
+        document.getElementById(rcaTargetFieldId)
+      );
+      if (target) target.value = duplicado.id;
     }
     fecharModal('modal-rca');
     return;
@@ -106,22 +120,29 @@ export async function salvarRca(){
     ativo: true
   };
 
-  try{
+  try {
     await SB.upsertRca(rca);
-  }catch(error){
-    notify(`Erro ao salvar RCA: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`, SEVERITY.ERROR);
+  } catch (error) {
+    notify(
+      `Erro ao salvar RCA: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
+      SEVERITY.ERROR
+    );
     return;
   }
 
-  if(!D.rcas[State.FIL]) D.rcas[State.FIL] = [];
+  if (!D.rcas[State.FIL]) D.rcas[State.FIL] = [];
   D.rcas[State.FIL].push(rca);
-  D.rcas[State.FIL] = RCAS().slice().sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'));
+  D.rcas[State.FIL] = RCAS()
+    .slice()
+    .sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'));
 
   refreshRcaSelectors();
 
-  if(rcaTargetFieldId){
-    const target = /** @type {HTMLSelectElement | null} */ (document.getElementById(rcaTargetFieldId));
-    if(target) target.value = rca.id;
+  if (rcaTargetFieldId) {
+    const target = /** @type {HTMLSelectElement | null} */ (
+      document.getElementById(rcaTargetFieldId)
+    );
+    if (target) target.value = rca.id;
   }
 
   fecharModal('modal-rca');

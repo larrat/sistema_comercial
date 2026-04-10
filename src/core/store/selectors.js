@@ -27,7 +27,7 @@ import { D, State } from '../../app/store.js';
  * Retorna a filial ativa atual.
  * @returns {string}
  */
-export function getActiveFilialId(){
+export function getActiveFilialId() {
   return State.FIL || '';
 }
 
@@ -38,7 +38,7 @@ export function getActiveFilialId(){
  * @param {string} [filialId]
  * @returns {T[]}
  */
-function byFilial(collection, filialId){
+function byFilial(collection, filialId) {
   const fid = filialId || getActiveFilialId();
   return collection[fid] || (collection[fid] = []);
 }
@@ -46,10 +46,14 @@ function byFilial(collection, filialId){
 // ── Selectors de dados por filial ─────────────────────────────────────────────
 
 /** @returns {import('../../types/domain').Produto[]} */
-export function getProducts(filialId){ return byFilial(D.produtos, filialId); }
+export function getProducts(filialId) {
+  return byFilial(D.produtos, filialId);
+}
 
 /** @returns {import('../../types/domain').Cliente[]} */
-export function getClients(filialId){ return byFilial(D.clientes, filialId); }
+export function getClients(filialId) {
+  return byFilial(D.clientes, filialId);
+}
 
 /**
  * Retorna pedidos com itens já parseados.
@@ -59,62 +63,83 @@ export function getClients(filialId){ return byFilial(D.clientes, filialId); }
 let _pdRawRef = null;
 let _pdParsed = /** @type {import('../../types/domain').Pedido[]} */ ([]);
 
-export function getOrders(filialId){
+export function getOrders(filialId) {
   const fid = filialId || getActiveFilialId();
   const raw = D.pedidos[fid] || (D.pedidos[fid] = []);
 
-  if(raw === _pdRawRef) return _pdParsed;
+  if (raw === _pdRawRef) return _pdParsed;
 
   _pdRawRef = raw;
-  _pdParsed = raw.map(pedido => ({
+  _pdParsed = raw.map((pedido) => ({
     ...pedido,
-    itens: typeof pedido.itens === 'string'
-      ? /** @type {import('../../types/domain').Pedido['itens']} */ (safeJsonParse(pedido.itens, []))
-      : (pedido.itens || [])
+    itens:
+      typeof pedido.itens === 'string'
+        ? /** @type {import('../../types/domain').Pedido['itens']} */ (
+            safeJsonParse(pedido.itens, [])
+          )
+        : pedido.itens || []
   }));
 
   return _pdParsed;
 }
 
 /** @returns {import('../../types/domain').Fornecedor[]} */
-export function getSuppliers(filialId){ return byFilial(D.fornecedores, filialId); }
+export function getSuppliers(filialId) {
+  return byFilial(D.fornecedores, filialId);
+}
 
 /** @returns {import('../../types/domain').Rca[]} */
-export function getRcas(filialId){ return byFilial(D.rcas, filialId); }
+export function getRcas(filialId) {
+  return byFilial(D.rcas, filialId);
+}
 
 /** @returns {any[]} */
-export function getMovements(filialId){ return byFilial(D.movs, filialId); }
+export function getMovements(filialId) {
+  return byFilial(D.movs, filialId);
+}
 
 /** @returns {import('../../types/domain').JogoAgenda[]} */
-export function getGames(filialId){ return byFilial(D.jogos, filialId); }
+export function getGames(filialId) {
+  return byFilial(D.jogos, filialId);
+}
 
 /** @returns {import('../../types/domain').Campanha[]} */
-export function getCampaigns(filialId){ return byFilial(D.campanhas, filialId); }
+export function getCampaigns(filialId) {
+  return byFilial(D.campanhas, filialId);
+}
 
 /** @returns {import('../../types/domain').CampanhaEnvio[]} */
-export function getCampaignQueue(filialId){ return byFilial(D.campanhaEnvios, filialId); }
+export function getCampaignQueue(filialId) {
+  return byFilial(D.campanhaEnvios, filialId);
+}
 
 // ── Selectors de estado ───────────────────────────────────────────────────────
 
 /** @returns {string} */
-export function getCurrentUserRole(){ return State.userRole || 'operador'; }
+export function getCurrentUserRole() {
+  return State.userRole || 'operador';
+}
 
 /** @returns {boolean} */
-export function isAdmin(){ return getCurrentUserRole() === 'admin'; }
+export function isAdmin() {
+  return getCurrentUserRole() === 'admin';
+}
 
 /** @returns {boolean} */
-export function isManagerOrAbove(){
+export function isManagerOrAbove() {
   const role = getCurrentUserRole();
   return role === 'admin' || role === 'gerente';
 }
 
 /** @returns {import('../../types/domain').Filial[]} */
-export function getAllFiliais(){ return D.filiais || []; }
+export function getAllFiliais() {
+  return D.filiais || [];
+}
 
 /** @returns {import('../../types/domain').Filial | undefined} */
-export function getActiveFilial(){
+export function getActiveFilial() {
   const fid = getActiveFilialId();
-  return D.filiais.find(f => f.id === fid);
+  return D.filiais.find((f) => f.id === fid);
 }
 
 // ── Helpers internos ──────────────────────────────────────────────────────────
@@ -126,10 +151,10 @@ export function getActiveFilial(){
  * @param {T} fallback
  * @returns {T}
  */
-function safeJsonParse(str, fallback){
-  try{
+function safeJsonParse(str, fallback) {
+  try {
     return JSON.parse(str);
-  }catch{
+  } catch {
     return fallback;
   }
 }

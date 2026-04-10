@@ -2,47 +2,59 @@
 
 import { detectarCabecalho } from './parsing.js';
 
-export function findHeaderIndexByExactName(headers, target){
-  const t = String(target || '').trim().toLowerCase();
-  if(!t) return -1;
+export function findHeaderIndexByExactName(headers, target) {
+  const t = String(target || '')
+    .trim()
+    .toLowerCase();
+  if (!t) return -1;
 
   return headers.findIndex(
-    h => String(h.label || '').trim().toLowerCase() === t
+    (h) =>
+      String(h.label || '')
+        .trim()
+        .toLowerCase() === t
   );
 }
 
-export function findHeaderIndexBySavedName(headers, saved){
-  if(!saved) return -1;
+export function findHeaderIndexBySavedName(headers, saved) {
+  if (!saved) return -1;
 
   let idx = findHeaderIndexByExactName(headers, saved);
-  if(idx >= 0) return idx;
+  if (idx >= 0) return idx;
 
   const s = String(saved).trim().toLowerCase();
 
-  idx = headers.findIndex(
-    h => String(h.label || '').trim().toLowerCase().includes(s)
+  idx = headers.findIndex((h) =>
+    String(h.label || '')
+      .trim()
+      .toLowerCase()
+      .includes(s)
   );
-  if(idx >= 0) return idx;
+  if (idx >= 0) return idx;
 
-  idx = headers.findIndex(
-    h => s.includes(String(h.label || '').trim().toLowerCase())
+  idx = headers.findIndex((h) =>
+    s.includes(
+      String(h.label || '')
+        .trim()
+        .toLowerCase()
+    )
   );
 
   return idx;
 }
 
-export function getSheetHeaders(sheet){
+export function getSheetHeaders(sheet) {
   const rows = sheet?.rows || [];
   const startIdx = detectarCabecalho(rows);
 
   return (rows[startIdx] || []).map((h, i) => ({
-    label: String(h || ('Col ' + (i + 1))),
+    label: String(h || 'Col ' + (i + 1)),
     idx: i
   }));
 }
 
-export function applySavedLayoutToSheet(sheet, layout){
-  if(!sheet || !layout) return null;
+export function applySavedLayoutToSheet(sheet, layout) {
+  if (!sheet || !layout) return null;
 
   const headers = getSheetHeaders(sheet);
 
@@ -62,9 +74,9 @@ export function applySavedLayoutToSheet(sheet, layout){
   };
 }
 
-export function getSelectedHeaderName(selectId){
+export function getSelectedHeaderName(selectId) {
   const el = /** @type {HTMLSelectElement | null} */ (document.getElementById(selectId));
-  if(!el) return null;
+  if (!el) return null;
 
   const txt = el.options?.[el.selectedIndex]?.text || '';
   return txt && !txt.includes('não importar') ? txt : null;

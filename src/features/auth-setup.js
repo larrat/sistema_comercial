@@ -69,8 +69,8 @@ let roleUiObserver = null;
  * @param {Element | null | undefined} el
  * @param {boolean} hidden
  */
-function setHidden(el, hidden){
-  if(!(el instanceof HTMLElement)) return;
+function setHidden(el, hidden) {
+  if (!(el instanceof HTMLElement)) return;
   el.hidden = hidden;
 }
 
@@ -97,7 +97,7 @@ let deps = {
 };
 
 /** @param {AuthSetupModuleDeps} [nextDeps={}] */
-export function initAuthSetupModule(nextDeps = {}){
+export function initAuthSetupModule(nextDeps = {}) {
   deps = {
     ...deps,
     ...nextDeps,
@@ -106,39 +106,48 @@ export function initAuthSetupModule(nextDeps = {}){
 }
 
 /** @param {unknown} role */
-export function normalizeUserRole(role){
+export function normalizeUserRole(role) {
   const r = norm(role || '');
   return APP_ROLES.includes(r) ? r : 'operador';
 }
 
 /** @returns {string} */
-export function currentUserRole(){
+export function currentUserRole() {
   return normalizeUserRole(State.userRole);
 }
 
 /** @param {string[]} [allowedRoles=[]] */
-export function hasRole(allowedRoles = []){
+export function hasRole(allowedRoles = []) {
   const current = currentUserRole();
   return (allowedRoles || []).map(normalizeUserRole).includes(current);
 }
 
 /** @param {string} page */
-export function canAccessPage(page){
+export function canAccessPage(page) {
   const p = String(page || 'dashboard');
   const allowed = ROLE_PAGE_ACCESS[p] || APP_ROLES;
   return hasRole(allowed);
 }
 
 /** @param {string} [preferred='dashboard'] */
-export function getFirstAllowedPage(preferred = 'dashboard'){
-  if(canAccessPage(preferred)) return preferred;
-  const order = ['dashboard', 'relatorios', 'produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'notificacoes'];
+export function getFirstAllowedPage(preferred = 'dashboard') {
+  if (canAccessPage(preferred)) return preferred;
+  const order = [
+    'dashboard',
+    'relatorios',
+    'produtos',
+    'clientes',
+    'pedidos',
+    'cotacao',
+    'estoque',
+    'notificacoes'
+  ];
   return order.find(canAccessPage) || 'dashboard';
 }
 
-export function ensureCurrentPageAccess(){
+export function ensureCurrentPageAccess() {
   const current = deps.pageAtual();
-  if(canAccessPage(current)) return;
+  if (canAccessPage(current)) return;
   deps.ir(getFirstAllowedPage('dashboard'));
 }
 
@@ -146,8 +155,11 @@ export function ensureCurrentPageAccess(){
  * @param {string[]} [allowedRoles=[]]
  * @param {string} [denyMessage='Você não tem permissão para esta ação.']
  */
-export function requireRole(allowedRoles = [], denyMessage = 'Você não tem permissão para esta ação.'){
-  if(hasRole(allowedRoles)) return true;
+export function requireRole(
+  allowedRoles = [],
+  denyMessage = 'Você não tem permissão para esta ação.'
+) {
+  if (hasRole(allowedRoles)) return true;
   toast(denyMessage);
   return false;
 }
@@ -158,126 +170,137 @@ export function requireRole(allowedRoles = [], denyMessage = 'Você não tem per
  * @param {string[]} allowedRoles
  * @param {string} denyMessage
  */
-export function buildRoleGuard(fn, allowedRoles, denyMessage){
+export function buildRoleGuard(fn, allowedRoles, denyMessage) {
   return async (...args) => {
-    if(!requireRole(allowedRoles, denyMessage)) return;
+    if (!requireRole(allowedRoles, denyMessage)) return;
     return fn(...args);
   };
 }
 
-export function renderRoleBadge(){
+export function renderRoleBadge() {
   const el = document.getElementById('sb-role');
-  if(!el) return;
+  if (!el) return;
   const role = currentUserRole();
   el.textContent = ROLE_LABEL[role] || 'Operador';
 }
 
-function setRoleUiLock(el, locked){
-  if(!el) return;
-  if(!locked){
+function setRoleUiLock(el, locked) {
+  if (!el) return;
+  if (!locked) {
     el.classList.remove('is-role-locked');
-    if(el.dataset.rolePrevDisplay != null){
+    if (el.dataset.rolePrevDisplay != null) {
       el.style.display = el.dataset.rolePrevDisplay;
       delete el.dataset.rolePrevDisplay;
     }
-    if('disabled' in el){
+    if ('disabled' in el) {
       el.disabled = false;
-    }else{
+    } else {
       el.style.pointerEvents = '';
       el.style.opacity = '';
     }
-    if(el.dataset.rolePrevTitle != null){
+    if (el.dataset.rolePrevTitle != null) {
       el.title = el.dataset.rolePrevTitle;
       delete el.dataset.rolePrevTitle;
-    }else if(el.title === 'Sem permissão para esta ação.'){
+    } else if (el.title === 'Sem permissão para esta ação.') {
       el.removeAttribute('title');
     }
     return;
   }
 
   el.classList.add('is-role-locked');
-  if(el.dataset.rolePrevDisplay == null){
+  if (el.dataset.rolePrevDisplay == null) {
     el.dataset.rolePrevDisplay = el.style.display || '';
   }
   el.style.display = 'none';
-  if(el.dataset.rolePrevTitle == null){
+  if (el.dataset.rolePrevTitle == null) {
     el.dataset.rolePrevTitle = el.title || '';
   }
   el.title = 'Sem permissão para esta ação.';
-  if('disabled' in el){
+  if ('disabled' in el) {
     el.disabled = true;
-  }else{
+  } else {
     el.style.pointerEvents = 'none';
     el.style.opacity = '0.55';
   }
 }
 
-export function applyRoleUiGuards(root = document){
+export function applyRoleUiGuards(root = document) {
   const allowManagerActions = hasRole(ROLE_MANAGER_PLUS);
   const allowAdminActions = hasRole(ROLE_ADMIN_ONLY);
 
-  root.querySelectorAll(ROLE_UI_MANAGER_SELECTORS.join(','))
-    .forEach(el => setRoleUiLock(el, !allowManagerActions));
-  root.querySelectorAll(ROLE_UI_ADMIN_SELECTORS.join(','))
-    .forEach(el => setRoleUiLock(el, !allowAdminActions));
+  root
+    .querySelectorAll(ROLE_UI_MANAGER_SELECTORS.join(','))
+    .forEach((el) => setRoleUiLock(el, !allowManagerActions));
+  root
+    .querySelectorAll(ROLE_UI_ADMIN_SELECTORS.join(','))
+    .forEach((el) => setRoleUiLock(el, !allowAdminActions));
 
-  root.querySelectorAll('[data-p="campanhas"],#pg-campanhas,#mob-campanhas')
-    .forEach(el => setRoleUiLock(el, !allowManagerActions));
-  root.querySelectorAll('[data-p="filiais"],#pg-filiais,#mob-filiais,[data-p="acessos"],#pg-acessos,#mob-acessos')
-    .forEach(el => setRoleUiLock(el, !allowAdminActions));
+  root
+    .querySelectorAll('[data-p="campanhas"],#pg-campanhas,#mob-campanhas')
+    .forEach((el) => setRoleUiLock(el, !allowManagerActions));
+  root
+    .querySelectorAll(
+      '[data-p="filiais"],#pg-filiais,#mob-filiais,[data-p="acessos"],#pg-acessos,#mob-acessos'
+    )
+    .forEach((el) => setRoleUiLock(el, !allowAdminActions));
   deps.filterSidebarNav(document.getElementById('sb-search')?.value || '');
 }
 
-export function scheduleRoleUiGuards(){
-  if(IS_E2E_UI_CORE){
+export function scheduleRoleUiGuards() {
+  if (IS_E2E_UI_CORE) {
     applyRoleUiGuards(document);
     return;
   }
-  if(roleUiGuardTimer) clearTimeout(roleUiGuardTimer);
+  if (roleUiGuardTimer) clearTimeout(roleUiGuardTimer);
   roleUiGuardTimer = setTimeout(() => {
     applyRoleUiGuards(document);
     roleUiGuardTimer = null;
   }, 0);
 }
 
-export function startRoleUiObserver(){
-  if(roleUiObserver || typeof MutationObserver === 'undefined') return;
+export function startRoleUiObserver() {
+  if (roleUiObserver || typeof MutationObserver === 'undefined') return;
   roleUiObserver = new MutationObserver(() => scheduleRoleUiGuards());
-  roleUiObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-click'] });
+  roleUiObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-click']
+  });
 }
 
 /** @param {AuthSession | null | undefined} session */
-export async function carregarContextoUsuario(session){
+export async function carregarContextoUsuario(session) {
   State.user = session?.user || null;
   let role = 'operador';
   const perfilResult = await SB.toResult(() => SB.getMeuPerfil(session?.user?.id || null));
-  if(perfilResult.ok){
+  if (perfilResult.ok) {
     const perfil = perfilResult.data;
     role = normalizeUserRole(perfil?.papel || '');
-  }else{
+  } else {
     console.warn('Perfil nao encontrado em user_perfis. Assumindo operador.', perfilResult.error);
   }
   State.userRole = role;
   renderRoleBadge();
   scheduleRoleUiGuards();
-  if(IS_E2E_UI_CORE){
+  if (IS_E2E_UI_CORE) {
     ensureCurrentPageAccess();
-  }else{
+  } else {
     setTimeout(() => ensureCurrentPageAccess(), 0);
   }
 }
 
 /** @param {AuthSession | null | undefined} session */
-export function renderAuthGate(session){
+export function renderAuthGate(session) {
   const authBox = document.getElementById('setup-auth');
   const filGrid = document.getElementById('fil-grid');
   const setupForm = document.getElementById('setup-form');
   const setupActions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
 
-  if(!authBox || !filGrid || !setupForm || !setupActions || !sub) return false;
+  if (!authBox || !filGrid || !setupForm || !setupActions || !sub) return false;
 
-  if(!session?.access_token){
+  if (!session?.access_token) {
     document.body.dataset.authGate = 'login';
     setHidden(authBox, false);
     filGrid.innerHTML = '';
@@ -292,7 +315,7 @@ export function renderAuthGate(session){
   return true;
 }
 
-export async function authEntrar(){
+export async function authEntrar() {
   const emailEl = document.getElementById('auth-email');
   const passEl = document.getElementById('auth-password');
   /** @type {HTMLButtonElement | null} */
@@ -300,42 +323,42 @@ export async function authEntrar(){
   const email = emailEl?.value.trim() || '';
   const password = passEl?.value || '';
 
-  if(!email || !password){
+  if (!email || !password) {
     toast('Informe e-mail e senha.');
     return;
   }
 
   document.body.dataset.authFlow = 'submitting';
-  if(btn) btn.disabled = true;
+  if (btn) btn.disabled = true;
   const loginResult = await SB.toResult(() => SB.signInWithPassword({ email, password }));
-  if(loginResult.ok){
+  if (loginResult.ok) {
     toast('Login realizado com sucesso.');
-    if(passEl) passEl.value = '';
+    if (passEl) passEl.value = '';
     await renderSetup();
     document.body.dataset.authFlow = 'authenticated';
-  }else{
+  } else {
     document.body.dataset.authFlow = 'error';
     toast('Falha no login: ' + (loginResult.error?.message || 'credenciais invalidas'));
   }
-  if(btn) btn.disabled = false;
+  if (btn) btn.disabled = false;
 }
 
-export async function sairConta(){
+export async function sairConta() {
   await SB.signOut();
   deps.resetRuntimeData();
   toast('Sessao encerrada.');
   await renderSetup();
 }
 
-export function renderSetupGrid(){
+export function renderSetupGrid() {
   const grid = document.getElementById('fil-grid');
   const form = document.getElementById('setup-form');
   const actions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
 
-  if(!grid || !form || !actions || !sub) return;
+  if (!grid || !form || !actions || !sub) return;
 
-  if(!D.filiais.length){
+  if (!D.filiais.length) {
     grid.innerHTML = '';
     setHidden(form, false);
     setHidden(actions, true);
@@ -348,7 +371,9 @@ export function renderSetupGrid(){
   setHidden(actions, false);
   sub.textContent = 'Selecione a filial para continuar';
 
-  grid.innerHTML = D.filiais.map(f => `
+  grid.innerHTML = D.filiais
+    .map(
+      (f) => `
     <div class="fil-opt ${State.selFil === f.id ? 'sel' : ''}" data-click="selFilial('${f.id}')">
       <div class="fil-dot" style="background:${f.cor}"></div>
       <div>
@@ -356,16 +381,18 @@ export function renderSetupGrid(){
         <div class="fil-city">${f.cidade || ''}${f.estado ? ' - ' + f.estado : ''}</div>
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
   scheduleRoleUiGuards();
 }
 
-export async function renderSetup(){
+export async function renderSetup() {
   document.body.dataset.setupState = 'starting';
   deps.mostrarTela('screen-setup');
   const sessionResult = await SB.toResult(() => SB.getSession());
   const session = sessionResult.ok ? sessionResult.data : null;
-  if(!renderAuthGate(session)){
+  if (!renderAuthGate(session)) {
     State.user = null;
     State.userRole = 'operador';
     renderRoleBadge();
@@ -378,7 +405,7 @@ export async function renderSetup(){
   const form = document.getElementById('setup-form');
   const actions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
-  if(grid && form && actions && sub){
+  if (grid && form && actions && sub) {
     document.body.dataset.setupState = 'loading-filiais';
     setHidden(form, true);
     setHidden(actions, true);
@@ -390,9 +417,9 @@ export async function renderSetup(){
   }
   deps.showLoading(true);
   const filiaisResult = await SB.toResult(() => SB.getFiliais());
-  if(filiaisResult.ok){
+  if (filiaisResult.ok) {
     D.filiais = filiaisResult.data || [];
-  }else{
+  } else {
     toast('Erro ao buscar filiais: ' + filiaisResult.error.message);
   }
   deps.showLoading(false);
@@ -400,15 +427,15 @@ export async function renderSetup(){
   document.body.dataset.setupState = D.filiais.length ? 'filiais-ready' : 'primeira-filial';
 }
 
-export function selFilial(id){
+export function selFilial(id) {
   State.selFil = id;
   renderSetupGrid();
 }
 
-export async function criarPrimeiraFilial(){
-  if(!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode criar filial.')) return;
+export async function criarPrimeiraFilial() {
+  if (!requireRole(ROLE_ADMIN_ONLY, 'Somente admin pode criar filial.')) return;
   const nome = document.getElementById('sf-nome')?.value.trim();
-  if(!nome){
+  if (!nome) {
     toast('Informe o nome da filial.');
     return;
   }
@@ -423,7 +450,7 @@ export async function criarPrimeiraFilial(){
   };
 
   const saveResult = await SB.toResult(() => SB.upsertFilial(f));
-  if(!saveResult.ok){
+  if (!saveResult.ok) {
     toast('Erro ao criar filial: ' + saveResult.error.message);
     return;
   }
@@ -433,11 +460,11 @@ export async function criarPrimeiraFilial(){
   await entrar();
 }
 
-export async function entrar(){
+export async function entrar() {
   document.body.dataset.bootstrapState = 'starting';
   const sessionResult = await SB.toResult(() => SB.getSession());
   const session = sessionResult.ok ? sessionResult.data : null;
-  if(!session?.access_token){
+  if (!session?.access_token) {
     toast('Faca login para continuar.');
     document.body.dataset.bootstrapState = 'auth-required';
     await renderSetup();
@@ -445,21 +472,21 @@ export async function entrar(){
   }
   await carregarContextoUsuario(session);
 
-  if(!State.selFil){
+  if (!State.selFil) {
     toast('Selecione uma filial.');
     document.body.dataset.bootstrapState = 'filial-required';
     return;
   }
 
   const filiaisResult = await SB.toResult(() => SB.getFiliais());
-  if(filiaisResult.ok){
+  if (filiaisResult.ok) {
     D.filiais = filiaisResult.data || [];
-  }else{
+  } else {
     console.error('Falha ao recarregar filiais na entrada', filiaisResult.error);
   }
 
-  const f = D.filiais.find(x => x.id === State.selFil);
-  if(!f){
+  const f = D.filiais.find((x) => x.id === State.selFil);
+  if (!f) {
     toast('Filial nao encontrada.');
     document.body.dataset.bootstrapState = 'filial-not-found';
     return;
@@ -469,8 +496,8 @@ export async function entrar(){
 
   const dot = document.getElementById('sb-dot');
   const fname = document.getElementById('sb-fname');
-  if(dot) dot.style.background = f.cor;
-  if(fname) fname.textContent = f.nome;
+  if (dot) dot.style.background = f.cor;
+  if (fname) fname.textContent = f.nome;
 
   document.body.dataset.bootstrapState = 'loading-runtime';
   await deps.carregarDadosFilial(State.FIL);
@@ -491,7 +518,6 @@ export async function entrar(){
   document.body.dataset.bootstrapState = 'ready';
 }
 
-export function voltarSetup(){
+export function voltarSetup() {
   return renderSetup();
 }
-

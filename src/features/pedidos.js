@@ -2,7 +2,16 @@
 
 import { SB } from '../app/api.js';
 import { D, State, P, PD, C, invalidatePdCache } from '../app/store.js';
-import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../shared/utils.js';
+import {
+  abrirModal,
+  fecharModal,
+  uid,
+  fmt,
+  toast,
+  prV,
+  notify,
+  focusField
+} from '../shared/utils.js';
 import { esc } from '../shared/sanitize.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
@@ -17,7 +26,7 @@ let refreshCliDLSafe = () => {};
 /**
  * @param {PedidosModuleCallbacks} [callbacks]
  */
-export function initPedidosModule(callbacks = {}){
+export function initPedidosModule(callbacks = {}) {
   refreshProdSelSafe = callbacks.refreshProdSel || (() => {});
   refreshCliDLSafe = callbacks.refreshCliDL || (() => {});
 }
@@ -26,77 +35,101 @@ export function initPedidosModule(callbacks = {}){
  * @param {Pedido | undefined} pedido
  * @returns {PedidoItem[]}
  */
-function getPedidoItens(pedido){
-  if(!pedido?.itens) return [];
-  if(Array.isArray(pedido.itens)) return pedido.itens;
-  try{
+function getPedidoItens(pedido) {
+  if (!pedido?.itens) return [];
+  if (Array.isArray(pedido.itens)) return pedido.itens;
+  try {
     const parsed = JSON.parse(pedido.itens || '[]');
     return Array.isArray(parsed) ? parsed : [];
-  }catch{
+  } catch {
     return [];
   }
 }
 
 const ST_PED = {
-  orcamento:'<span class="bdg bk">Orcamento</span>',
-  confirmado:'<span class="bdg bb">Confirmado</span>',
-  em_separacao:'<span class="bdg ba">Em separação</span>',
-  entregue:'<span class="bdg bg">Entregue</span>',
-  cancelado:'<span class="bdg br">Cancelado</span>'
+  orcamento: '<span class="bdg bk">Orcamento</span>',
+  confirmado: '<span class="bdg bb">Confirmado</span>',
+  em_separacao: '<span class="bdg ba">Em separação</span>',
+  entregue: '<span class="bdg bg">Entregue</span>',
+  cancelado: '<span class="bdg br">Cancelado</span>'
 };
 
 /**
  * @param {Pedido | null | undefined} pedido
  */
-function getPedidoCliente(pedido){
-  if(pedido?.cliente_id){
-    const byId = C().find(cliente => cliente.id === pedido.cliente_id);
-    if(byId) return byId;
+function getPedidoCliente(pedido) {
+  if (pedido?.cliente_id) {
+    const byId = C().find((cliente) => cliente.id === pedido.cliente_id);
+    if (byId) return byId;
   }
 
-  const nome = String(pedido?.cli || '').trim().toLowerCase();
-  if(!nome) return null;
-  return C().find(cliente => String(cliente?.nome || '').trim().toLowerCase() === nome) || null;
+  const nome = String(pedido?.cli || '')
+    .trim()
+    .toLowerCase();
+  if (!nome) return null;
+  return (
+    C().find(
+      (cliente) =>
+        String(cliente?.nome || '')
+          .trim()
+          .toLowerCase() === nome
+    ) || null
+  );
 }
 
 /**
  * @param {Pedido | null | undefined} pedido
  */
-function getPedidoClienteLabel(pedido){
+function getPedidoClienteLabel(pedido) {
   return String(getPedidoCliente(pedido)?.nome || pedido?.cli || '-').trim() || '-';
 }
 
 /**
  * @param {string} raw
  */
-function findClienteByPedidoInput(raw){
+function findClienteByPedidoInput(raw) {
   const termo = String(raw || '').trim();
-  if(!termo) return null;
+  if (!termo) return null;
 
   const lower = termo.toLowerCase();
-  return C().find(cliente =>
-    cliente.id === termo ||
-    String(cliente?.nome || '').trim().toLowerCase() === lower
-  ) || null;
+  return (
+    C().find(
+      (cliente) =>
+        cliente.id === termo ||
+        String(cliente?.nome || '')
+          .trim()
+          .toLowerCase() === lower
+    ) || null
+  );
 }
 
-export function syncPedidoRcaComCliente(){
+export function syncPedidoRcaComCliente() {
   const cliente = findClienteByPedidoInput(document.getElementById('pd-cli')?.value || '');
   const rcaEl = /** @type {HTMLSelectElement | null} */ (document.getElementById('pd-rca'));
-  if(!rcaEl) return;
+  if (!rcaEl) return;
   rcaEl.value = String(cliente?.rca_id || '').trim();
 }
 
-export function renderPedMet(){
+export function renderPedMet() {
   const peds = PD();
-  const fat = peds.filter(p => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
+  const fat = peds.filter((p) => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
   const lucro = peds
-    .filter(p => p.status === 'entregue')
-    .reduce((a, p) => a + (Array.isArray(p.itens) ? p.itens : []).reduce((b, i) => b + ((i.preco - i.custo) * i.qty), 0), 0);
-  const ab = peds.filter(p => ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)).length;
+    .filter((p) => p.status === 'entregue')
+    .reduce(
+      (a, p) =>
+        a +
+        (Array.isArray(p.itens) ? p.itens : []).reduce(
+          (b, i) => b + (i.preco - i.custo) * i.qty,
+          0
+        ),
+      0
+    );
+  const ab = peds.filter((p) =>
+    ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)
+  ).length;
 
   const el = document.getElementById('ped-met');
-  if(!el) return;
+  if (!el) return;
 
   el.innerHTML = `
     <div class="met"><div class="ml">Total</div><div class="mv">${peds.length}</div></div>
@@ -106,38 +139,43 @@ export function renderPedMet(){
   `;
 }
 
-export function renderPedidos(){
+export function renderPedidos() {
   const buscaEl = document.getElementById('ped-busca');
   const stEl = document.getElementById('ped-fil-st');
   const el = document.getElementById('ped-lista');
-  if(!el) return;
+  if (!el) return;
 
   const q = (buscaEl?.value || '').toLowerCase();
   const st = stEl?.value || '';
 
   const f = [...PD()]
     .sort((a, b) => (b.num || 0) - (a.num || 0))
-    .filter(p =>
-      (!q || getPedidoClienteLabel(p).toLowerCase().includes(q) || String(p.num || '').includes(q)) &&
-      (!st || p.status === st)
+    .filter(
+      (p) =>
+        (!q ||
+          getPedidoClienteLabel(p).toLowerCase().includes(q) ||
+          String(p.num || '').includes(q)) &&
+        (!st || p.status === st)
     );
 
-  if(!f.length){
+  if (!f.length) {
     el.innerHTML = `<div class="empty"><div class="ico">PED</div><p>${PD().length ? 'Nenhum pedido encontrado.' : 'Nenhum pedido cadastrado ainda.'}</p></div>`;
     return;
   }
 
   const pgtoLbl = {
-    a_vista:'A vista',
-    pix:'PIX',
-    boleto:'Boleto',
-    cartao:'Cartao',
-    cheque:'Cheque'
+    a_vista: 'A vista',
+    pix: 'PIX',
+    boleto: 'Boleto',
+    cartao: 'Cartao',
+    cheque: 'Cheque'
   };
 
   const isMobile = window.matchMedia('(max-width: 1080px)').matches;
-  if(isMobile){
-    el.innerHTML = f.map(p => `
+  if (isMobile) {
+    el.innerHTML = f
+      .map(
+        (p) => `
       <div class="mobile-card">
         <div class="mobile-card-head">
           <div class="mobile-card-grow">
@@ -163,7 +201,9 @@ export function renderPedidos(){
           <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
         </div>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
     return;
   }
 
@@ -184,7 +224,9 @@ export function renderPedidos(){
           </tr>
         </thead>
         <tbody>
-          ${f.map(p => `
+          ${f
+            .map(
+              (p) => `
             <tr>
               <td class="table-cell-strong table-cell-muted">#${p.num}</td>
               <td class="table-cell-strong">${esc(getPedidoClienteLabel(p))}</td>
@@ -202,30 +244,32 @@ export function renderPedidos(){
                 </div>
               </td>
             </tr>
-          `).join('')}
+          `
+            )
+            .join('')}
         </tbody>
       </table>
     </div>
   `;
 }
 
-export function limparFormPed(){
+export function limparFormPed() {
   State.editIds.ped = null;
   State.pedItens = [];
 
   const titulo = document.getElementById('ped-modal-titulo');
-  if(titulo) titulo.textContent = 'Novo pedido';
+  if (titulo) titulo.textContent = 'Novo pedido';
   refreshRcaSelectors();
 
-  ['pd-cli', 'pd-obs'].forEach(id => {
+  ['pd-cli', 'pd-obs'].forEach((id) => {
     const el = document.getElementById(id);
-    if(el) el.value = '';
+    if (el) el.value = '';
   });
   const rcaEl = document.getElementById('pd-rca');
-  if(rcaEl) rcaEl.value = '';
+  if (rcaEl) rcaEl.value = '';
 
   const dataEl = document.getElementById('pd-data');
-  if(dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+  if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
 
   const statusEl = document.getElementById('pd-status');
   const pgtoEl = document.getElementById('pd-pgto');
@@ -236,14 +280,14 @@ export function limparFormPed(){
   const precoEl = document.getElementById('pi-preco');
   const custoEl = document.getElementById('pi-custo');
 
-  if(statusEl) statusEl.value = 'orcamento';
-  if(pgtoEl) pgtoEl.value = 'a_vista';
-  if(prazoEl) prazoEl.value = 'imediato';
-  if(tipoEl) tipoEl.value = 'varejo';
-  if(prodEl) prodEl.value = '';
-  if(qtyEl) qtyEl.value = '1';
-  if(precoEl) precoEl.value = '';
-  if(custoEl) custoEl.value = '';
+  if (statusEl) statusEl.value = 'orcamento';
+  if (pgtoEl) pgtoEl.value = 'a_vista';
+  if (prazoEl) prazoEl.value = 'imediato';
+  if (tipoEl) tipoEl.value = 'varejo';
+  if (prodEl) prodEl.value = '';
+  if (qtyEl) qtyEl.value = '1';
+  if (precoEl) precoEl.value = '';
+  if (custoEl) custoEl.value = '';
 
   refreshProdSelSafe();
   refreshCliDLSafe();
@@ -253,21 +297,21 @@ export function limparFormPed(){
 /**
  * @param {string} id
  */
-export function editarPed(id){
+export function editarPed(id) {
   /** @type {Pedido | undefined} */
-  const p = PD().find(x => x.id === id);
-  if(!p) return;
+  const p = PD().find((x) => x.id === id);
+  if (!p) return;
 
   State.editIds.ped = id;
-  State.pedItens = [...getPedidoItens(p).map(i => ({ ...i }))];
+  State.pedItens = [...getPedidoItens(p).map((i) => ({ ...i }))];
   refreshRcaSelectors();
 
   const titulo = document.getElementById('ped-modal-titulo');
-  if(titulo) titulo.textContent = 'Editar pedido #' + p.num;
+  if (titulo) titulo.textContent = 'Editar pedido #' + p.num;
 
   document.getElementById('pd-cli').value = getPedidoClienteLabel(p);
   const rcaEl = /** @type {HTMLSelectElement | null} */ (document.getElementById('pd-rca'));
-  if(rcaEl) rcaEl.value = String(p.rca_id || getPedidoCliente(p)?.rca_id || '');
+  if (rcaEl) rcaEl.value = String(p.rca_id || getPedidoCliente(p)?.rca_id || '');
   document.getElementById('pd-data').value = p.data || '';
   document.getElementById('pd-status').value = p.status || 'orcamento';
   document.getElementById('pd-pgto').value = p.pgto || 'a_vista';
@@ -281,60 +325,66 @@ export function editarPed(id){
   abrirModal('modal-pedido');
 }
 
-export function preencherValoresItemPedido(){
+export function preencherValoresItemPedido() {
   const prodEl = document.getElementById('pi-prod');
   const tipoEl = document.getElementById('pd-tipo');
   const precoEl = document.getElementById('pi-preco');
   const custoEl = document.getElementById('pi-custo');
-  if(!(prodEl instanceof HTMLSelectElement)) return;
-  if(!(precoEl instanceof HTMLInputElement)) return;
-  if(!(custoEl instanceof HTMLInputElement)) return;
+  if (!(prodEl instanceof HTMLSelectElement)) return;
+  if (!(precoEl instanceof HTMLInputElement)) return;
+  if (!(custoEl instanceof HTMLInputElement)) return;
 
   const pid = prodEl.value;
-  if(!pid){
+  if (!pid) {
     precoEl.value = '';
     custoEl.value = '';
     return;
   }
 
-  const prod = P().find(p => p.id === pid);
-  if(!prod) return;
+  const prod = P().find((p) => p.id === pid);
+  if (!prod) return;
 
   const tipo = tipoEl instanceof HTMLSelectElement ? tipoEl.value : 'varejo';
-  const precoSugerido = tipo === 'atacado' && (prod.mka > 0 || prod.pfa > 0)
-    ? (prod.pfa > 0 ? prod.pfa : prV(prod.custo, prod.mka))
-    : prV(prod.custo, prod.mkv);
-  const precoBase = (!isNaN(precoSugerido) && precoSugerido > 0) ? precoSugerido : prod.custo;
+  const precoSugerido =
+    tipo === 'atacado' && (prod.mka > 0 || prod.pfa > 0)
+      ? prod.pfa > 0
+        ? prod.pfa
+        : prV(prod.custo, prod.mka)
+      : prV(prod.custo, prod.mkv);
+  const precoBase = !isNaN(precoSugerido) && precoSugerido > 0 ? precoSugerido : prod.custo;
 
-  if(!custoEl.value) custoEl.value = String(prod.custo || '');
-  if(!precoEl.value) precoEl.value = String(precoBase || '');
+  if (!custoEl.value) custoEl.value = String(prod.custo || '');
+  if (!precoEl.value) precoEl.value = String(precoBase || '');
 }
 
-export function addItem(){
+export function addItem() {
   const pid = document.getElementById('pi-prod')?.value;
   const qty = parseFloat(document.getElementById('pi-qty')?.value) || 1;
   const pm = parseFloat(document.getElementById('pi-preco')?.value) || 0;
   const cm = parseFloat(document.getElementById('pi-custo')?.value) || 0;
   const orig = document.getElementById('pi-orig')?.value || 'estoque';
 
-  if(!pid){
+  if (!pid) {
     toast('Selecione um produto.');
     return;
   }
 
-  const prod = P().find(p => p.id === pid);
-  if(!prod) return;
+  const prod = P().find((p) => p.id === pid);
+  if (!prod) return;
 
   const tipo = document.getElementById('pd-tipo')?.value || 'varejo';
-  const pa = tipo === 'atacado' && (prod.mka > 0 || prod.pfa > 0)
-    ? (prod.pfa > 0 ? prod.pfa : prV(prod.custo, prod.mka))
-    : prV(prod.custo, prod.mkv);
+  const pa =
+    tipo === 'atacado' && (prod.mka > 0 || prod.pfa > 0)
+      ? prod.pfa > 0
+        ? prod.pfa
+        : prV(prod.custo, prod.mka)
+      : prV(prod.custo, prod.mkv);
 
-  const precoBase = (isNaN(pa) || pa <= 0) ? prod.custo : pa;
+  const precoBase = isNaN(pa) || pa <= 0 ? prod.custo : pa;
   const pf = pm > 0 ? pm : precoBase;
-  const custoAplicado = cm > 0 ? cm : (prod.custo || 0);
+  const custoAplicado = cm > 0 ? cm : prod.custo || 0;
 
-  if(!State.pedItens) State.pedItens = [];
+  if (!State.pedItens) State.pedItens = [];
   State.pedItens.push({
     prodId: pid,
     nome: prod.nome,
@@ -352,10 +402,10 @@ export function addItem(){
   const precoEl = document.getElementById('pi-preco');
   const custoEl = document.getElementById('pi-custo');
 
-  if(prodEl) prodEl.value = '';
-  if(qtyEl) qtyEl.value = '1';
-  if(precoEl) precoEl.value = '';
-  if(custoEl) custoEl.value = '';
+  if (prodEl) prodEl.value = '';
+  if (qtyEl) qtyEl.value = '1';
+  if (precoEl) precoEl.value = '';
+  if (custoEl) custoEl.value = '';
 
   renderItens();
 }
@@ -363,25 +413,25 @@ export function addItem(){
 /**
  * @param {number} i
  */
-export function remItem(i){
-  if(!State.pedItens) State.pedItens = [];
+export function remItem(i) {
+  if (!State.pedItens) State.pedItens = [];
   State.pedItens.splice(i, 1);
   renderItens();
 }
 
-export function renderItens(){
+export function renderItens() {
   const el = document.getElementById('ped-itens');
   const tb = document.getElementById('ped-total');
-  if(!el || !tb) return;
+  if (!el || !tb) return;
 
-  if(!State.pedItens || !State.pedItens.length){
+  if (!State.pedItens || !State.pedItens.length) {
     el.innerHTML = '<div class="empty-inline">Nenhum item.</div>';
     tb.style.display = 'none';
     return;
   }
 
-  const tot = State.pedItens.reduce((a, i) => a + (i.qty * i.preco), 0);
-  const lucroTotal = State.pedItens.reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
+  const tot = State.pedItens.reduce((a, i) => a + i.qty * i.preco, 0);
+  const lucroTotal = State.pedItens.reduce((a, i) => a + (i.preco - i.custo) * i.qty, 0);
 
   el.innerHTML = `
     <div class="tw ped-items-wrap"><table class="tbl ped-items-table">
@@ -399,11 +449,12 @@ export function renderItens(){
         </tr>
       </thead>
       <tbody>
-        ${State.pedItens.map((it, i) => {
-          const subtotal = it.qty * it.preco;
-          const lucro = (it.preco - it.custo) * it.qty;
-          const margem = it.preco > 0 ? (((it.preco - it.custo) / it.preco) * 100) : 0;
-          return `
+        ${State.pedItens
+          .map((it, i) => {
+            const subtotal = it.qty * it.preco;
+            const lucro = (it.preco - it.custo) * it.qty;
+            const margem = it.preco > 0 ? ((it.preco - it.custo) / it.preco) * 100 : 0;
+            return `
             <tr>
               <td class="table-cell-strong">${it.nome}</td>
               <td><span class="bdg ${it.orig === 'estoque' ? 'bg' : 'bb'}">${it.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}</span></td>
@@ -416,32 +467,36 @@ export function renderItens(){
               <td><button class="btn btn-sm" title="Excluir item" data-click="remItem(${i})">Excluir</button></td>
             </tr>
           `;
-        }).join('')}
+          })
+          .join('')}
       </tbody>
     </table></div>
   `;
 
   const totalVal = document.getElementById('ped-total-val');
-  if(totalVal) totalVal.textContent = `${fmt(tot)} | Lucro ${fmt(lucroTotal)}`;
+  if (totalVal) totalVal.textContent = `${fmt(tot)} | Lucro ${fmt(lucroTotal)}`;
   tb.style.display = 'block';
 }
 
-export async function salvarPedido(){
+export async function salvarPedido() {
   const cliRef = document.getElementById('pd-cli')?.value.trim();
-  if(!cliRef){
+  if (!cliRef) {
     notify(MSG.forms.required('Cliente'), SEVERITY.WARNING);
     focusField('pd-cli', { markError: true });
     return;
   }
 
   const cliente = findClienteByPedidoInput(cliRef);
-  if(!cliente){
-    notify('Cliente invalido. Escolha um cliente cadastrado na lista para vincular o pedido corretamente.', SEVERITY.WARNING);
+  if (!cliente) {
+    notify(
+      'Cliente invalido. Escolha um cliente cadastrado na lista para vincular o pedido corretamente.',
+      SEVERITY.WARNING
+    );
     focusField('pd-cli', { markError: true });
     return;
   }
 
-  if(!State.pedItens || !State.pedItens.length){
+  if (!State.pedItens || !State.pedItens.length) {
     notify(
       'Atencao: pedido sem itens. Impacto: o total fica zerado e o pedido nao pode ser salvo. Acao: adicione ao menos 1 item.',
       SEVERITY.WARNING
@@ -449,14 +504,18 @@ export async function salvarPedido(){
     return;
   }
 
-  const selectedRcaId = String(document.getElementById('pd-rca')?.value || cliente.rca_id || '').trim();
-  const selectedRcaNome = selectedRcaId ? (getRcaNomeById(selectedRcaId) || String(cliente.rca_nome || '').trim()) : '';
+  const selectedRcaId = String(
+    document.getElementById('pd-rca')?.value || cliente.rca_id || ''
+  ).trim();
+  const selectedRcaNome = selectedRcaId
+    ? getRcaNomeById(selectedRcaId) || String(cliente.rca_nome || '').trim()
+    : '';
 
-  const total = State.pedItens.reduce((a, i) => a + (i.qty * i.preco), 0);
+  const total = State.pedItens.reduce((a, i) => a + i.qty * i.preco, 0);
   const peds = PD();
-  const allNums = peds.map(p => p.num).filter(n => typeof n === 'number' && !isNaN(n));
+  const allNums = peds.map((p) => p.num).filter((n) => typeof n === 'number' && !isNaN(n));
   const nextNum = allNums.length ? Math.max(...allNums) + 1 : 1;
-  const atual = State.editIds.ped ? (peds.find(p => p.id === State.editIds.ped) || null) : null;
+  const atual = State.editIds.ped ? peds.find((p) => p.id === State.editIds.ped) || null : null;
 
   const ped = {
     ...(atual || {}),
@@ -465,9 +524,7 @@ export async function salvarPedido(){
     cliente_id: cliente.id,
     rca_id: selectedRcaId || null,
     rca_nome: selectedRcaNome || null,
-    num: State.editIds.ped
-      ? (atual?.num || nextNum)
-      : nextNum,
+    num: State.editIds.ped ? atual?.num || nextNum : nextNum,
     cli: cliente.nome,
     data: document.getElementById('pd-data')?.value || '',
     status: document.getElementById('pd-status')?.value || 'orcamento',
@@ -481,9 +538,9 @@ export async function salvarPedido(){
 
   const pedSB = { ...ped, itens: JSON.stringify(ped.itens) };
 
-  try{
+  try {
     await SB.upsertPedido(pedSB);
-  }catch(e){
+  } catch (e) {
     notify(
       `Erro: falha ao salvar pedido (${String(e?.message || 'erro desconhecido')}). Impacto: pedido nao foi persistido. Acao: tente novamente.`,
       SEVERITY.ERROR
@@ -491,10 +548,10 @@ export async function salvarPedido(){
     return;
   }
 
-  if(State.editIds.ped){
-    D.pedidos[State.FIL] = peds.map(p => p.id === State.editIds.ped ? ped : p);
+  if (State.editIds.ped) {
+    D.pedidos[State.FIL] = peds.map((p) => (p.id === State.editIds.ped ? ped : p));
   } else {
-    if(!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
+    if (!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
     D.pedidos[State.FIL].push(ped);
   }
   invalidatePdCache();
@@ -503,23 +560,26 @@ export async function salvarPedido(){
   renderPedMet();
   renderPedidos();
 
-  notify(State.editIds.ped ? 'Sucesso: pedido atualizado.' : 'Sucesso: pedido #' + ped.num + ' criado.', SEVERITY.SUCCESS);
+  notify(
+    State.editIds.ped ? 'Sucesso: pedido atualizado.' : 'Sucesso: pedido #' + ped.num + ' criado.',
+    SEVERITY.SUCCESS
+  );
 }
 
 /**
  * @param {string} id
  */
-export async function removerPed(id){
-  if(!confirm('Remover pedido?')) return;
+export async function removerPed(id) {
+  if (!confirm('Remover pedido?')) return;
 
-  try{
+  try {
     await SB.deletePedido(id);
-  }catch(e){
+  } catch (e) {
     toast('Erro: ' + e.message);
     return;
   }
 
-  D.pedidos[State.FIL] = PD().filter(p => p.id !== id);
+  D.pedidos[State.FIL] = PD().filter((p) => p.id !== id);
   invalidatePdCache();
   renderPedMet();
   renderPedidos();
@@ -529,32 +589,32 @@ export async function removerPed(id){
 /**
  * @param {string} id
  */
-export function verPed(id){
+export function verPed(id) {
   /** @type {Pedido | undefined} */
-  const p = PD().find(x => x.id === id);
-  if(!p) return;
+  const p = PD().find((x) => x.id === id);
+  if (!p) return;
 
   const itens = getPedidoItens(p);
-  const lucro = itens.reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
+  const lucro = itens.reduce((a, i) => a + (i.preco - i.custo) * i.qty, 0);
 
   const pgtoLbl = {
-    a_vista:'A vista',
-    pix:'PIX',
-    boleto:'Boleto',
-    cartao:'Cartao',
-    cheque:'Cheque'
+    a_vista: 'A vista',
+    pix: 'PIX',
+    boleto: 'Boleto',
+    cartao: 'Cartao',
+    cheque: 'Cheque'
   };
 
   const prazoLbl = {
-    imediato:'Imediato',
-    '7d':'7 dias',
-    '15d':'15 dias',
-    '30d':'30 dias',
-    '60d':'60 dias'
+    imediato: 'Imediato',
+    '7d': '7 dias',
+    '15d': '15 dias',
+    '30d': '30 dias',
+    '60d': '60 dias'
   };
 
   const box = document.getElementById('ped-det-box');
-  if(!box) return;
+  if (!box) return;
 
   box.innerHTML = `
     <div class="ped-detail">
@@ -571,21 +631,32 @@ export function verPed(id){
         ['Tipo', p.tipo === 'atacado' ? 'Atacado' : 'Varejo'],
         ['Pagamento', pgtoLbl[p.pgto] || p.pgto],
         ['Prazo', prazoLbl[p.prazo] || p.prazo],
-        ['Lucro estimado', `<span class="table-cell-success table-cell-strong">${fmt(lucro)}</span>`]
-      ].map(([l, v]) => `
+        [
+          'Lucro estimado',
+          `<span class="table-cell-success table-cell-strong">${fmt(lucro)}</span>`
+        ]
+      ]
+        .map(
+          ([l, v]) => `
         <div class="ped-detail-kpi">
           <div class="ped-detail-label">${l}</div>
           <div class="ped-detail-value">${v}</div>
         </div>
-      `).join('')}
+      `
+        )
+        .join('')}
     </div>
 
-    ${p.obs ? `
+    ${
+      p.obs
+        ? `
         <div class="panel ped-detail-section">
         <div class="pt">Observacoes</div>
         <p class="detail-copy">${p.obs}</p>
       </div>
-    ` : ''}
+    `
+        : ''
+    }
 
       <div class="tw ped-detail-table-wrap">
         <table class="tbl ped-detail-table">
@@ -602,10 +673,11 @@ export function verPed(id){
           </tr>
         </thead>
         <tbody>
-          ${itens.map(i => {
-            const lucroItem = (i.preco - i.custo) * i.qty;
-            const margemItem = i.preco > 0 ? (((i.preco - i.custo) / i.preco) * 100) : 0;
-            return `
+          ${itens
+            .map((i) => {
+              const lucroItem = (i.preco - i.custo) * i.qty;
+              const margemItem = i.preco > 0 ? ((i.preco - i.custo) / i.preco) * 100 : 0;
+              return `
               <tr>
                 <td class="table-cell-strong">${i.nome}</td>
                 <td><span class="bdg ${i.orig === 'estoque' ? 'bg' : 'bb'} dash-badge-xs">${i.orig === 'estoque' ? 'Est.' : 'Forn.'}</span></td>
@@ -617,7 +689,8 @@ export function verPed(id){
                 <td>${margemItem.toFixed(1)}%</td>
               </tr>
             `;
-          }).join('')}
+            })
+            .join('')}
         </tbody>
         <tfoot>
           <tr>
@@ -639,4 +712,3 @@ export function verPed(id){
 
   abrirModal('modal-ped-det');
 }
-

@@ -65,14 +65,15 @@ export function PD() {
   const filialId = getFilialKey();
   const raw = D.pedidos[filialId] || (D.pedidos[filialId] = []);
 
-  if(raw === _pdRawRef) return _pdParsed;
+  if (raw === _pdRawRef) return _pdParsed;
 
   _pdRawRef = raw;
   _pdParsed = raw.map((pedido) => ({
     ...pedido,
-    itens: typeof pedido.itens === 'string'
-      ? /** @type {Pedido['itens']} */ (safeJsonParse(pedido.itens || '[]'))
-      : (pedido.itens || [])
+    itens:
+      typeof pedido.itens === 'string'
+        ? /** @type {Pedido['itens']} */ (safeJsonParse(pedido.itens || '[]'))
+        : pedido.itens || []
   }));
 
   return _pdParsed;
@@ -82,14 +83,17 @@ export function PD() {
  * Invalida o cache de PD() — chamar após mutações em D.pedidos[filialId].
  * Necessário porque os features podem trocar o array por um novo (slice/filter/map).
  */
-export function invalidatePdCache(){
+export function invalidatePdCache() {
   _pdRawRef = null;
 }
 
 /** @param {string} raw @returns {unknown} */
-function safeJsonParse(raw){
-  try{ return JSON.parse(raw); }
-  catch{ return []; }
+function safeJsonParse(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
 }
 
 export function RCAS() {
@@ -109,7 +113,10 @@ export function CPRECOS() {
 
 export function CCFG() {
   const filialId = getFilialKey();
-  return D.cotConfig[filialId] || (D.cotConfig[filialId] = { filial_id: State.FIL, locked: false, logs: [] });
+  return (
+    D.cotConfig[filialId] ||
+    (D.cotConfig[filialId] = { filial_id: State.FIL, locked: false, logs: [] })
+  );
 }
 
 export function MOVS() {

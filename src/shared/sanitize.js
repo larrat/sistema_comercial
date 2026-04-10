@@ -39,9 +39,12 @@ const ESC_PATTERN = /[&<>"'`=/]/g;
  * // DEPOIS (seguro):
  * el.innerHTML = `<div>${esc(cliente.nome)}</div>`;
  */
-export function esc(value){
-  if(value == null) return '';
-  return String(value).replace(ESC_PATTERN, ch => ESC_MAP[/** @type {keyof typeof ESC_MAP} */ (ch)]);
+export function esc(value) {
+  if (value == null) return '';
+  return String(value).replace(
+    ESC_PATTERN,
+    (ch) => ESC_MAP[/** @type {keyof typeof ESC_MAP} */ (ch)]
+  );
 }
 
 /**
@@ -60,12 +63,9 @@ export const escapeHtml = esc;
  * @param {unknown} value
  * @returns {string}
  */
-export function escAttr(value){
-  if(value == null) return '';
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+export function escAttr(value) {
+  if (value == null) return '';
+  return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 /**
@@ -75,8 +75,8 @@ export function escAttr(value){
  * @param {unknown} value
  * @returns {string}
  */
-export function escDataAttr(value){
-  if(value == null) return '';
+export function escDataAttr(value) {
+  if (value == null) return '';
   return String(value).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
 }
 
@@ -87,8 +87,8 @@ export function escDataAttr(value){
  * @param {unknown} value
  * @returns {string}
  */
-export function stripTags(value){
-  if(value == null) return '';
+export function stripTags(value) {
+  if (value == null) return '';
   return String(value).replace(/<[^>]*>/g, '');
 }
 
@@ -101,8 +101,8 @@ export function stripTags(value){
  * @param {unknown} value
  * @returns {string}
  */
-export function normalizeForSearch(value){
-  if(value == null) return '';
+export function normalizeForSearch(value) {
+  if (value == null) return '';
   return String(value)
     .trim()
     .toLowerCase()

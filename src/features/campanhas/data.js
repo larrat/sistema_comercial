@@ -116,9 +116,9 @@ export function labelStatusEnvio(status) {
 
 export function contarResumoEnvios(envios) {
   return {
-    pendentes: envios.filter(e => e.status === 'manual' || e.status === 'pendente').length,
-    enviados: envios.filter(e => e.status === 'enviado').length,
-    falhas: envios.filter(e => e.status === 'falhou').length
+    pendentes: envios.filter((e) => e.status === 'manual' || e.status === 'pendente').length,
+    enviados: envios.filter((e) => e.status === 'enviado').length,
+    falhas: envios.filter((e) => e.status === 'falhou').length
   };
 }
 
@@ -134,7 +134,7 @@ export function getCampanhasStats(campanhas = getCampanhasCache(), envios = getE
   }
 
   const result = {
-    ativas: campanhas.filter(c => c.ativo).length,
+    ativas: campanhas.filter((c) => c.ativo).length,
     resumo: contarResumoEnvios(envios)
   };
 
@@ -154,14 +154,13 @@ export function getCampanhasStats(campanhas = getCampanhasCache(), envios = getE
  * @returns {CampanhaEnvio | null}
  */
 export function getEnvioById(envioId) {
-  return getEnviosCache().find(e => e.id === envioId) || null;
+  return getEnviosCache().find((e) => e.id === envioId) || null;
 }
 
 export function getFilaWhatsApp() {
   return getEnviosCache()
-    .filter(e =>
-      e.canal === 'whatsapp_manual' &&
-      (e.status === 'manual' || e.status === 'pendente')
+    .filter(
+      (e) => e.canal === 'whatsapp_manual' && (e.status === 'manual' || e.status === 'pendente')
     )
     .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
 }
@@ -171,17 +170,22 @@ export function getFilaWhatsApp() {
  * @returns {CampanhaEnvio | null}
  */
 export function getPrimeiroEnvioWhatsAppPendenteCampanha(campanhaId) {
-  return getFilaWhatsApp().find(e =>
-    e.campanha_id === campanhaId &&
-    (e.status === 'manual' || e.status === 'pendente') &&
-    !!String(e.destino || '').trim()
-  ) || null;
+  return (
+    getFilaWhatsApp().find(
+      (e) =>
+        e.campanha_id === campanhaId &&
+        (e.status === 'manual' || e.status === 'pendente') &&
+        !!String(e.destino || '').trim()
+    ) || null
+  );
 }
 
 export function getEnviosHistoricoFiltrados() {
-  const busca = String((document.getElementById('camp-envios-busca')?.value) || '').trim().toLowerCase();
-  const status = String((document.getElementById('camp-envios-fil-status')?.value) || '').trim();
-  const canal = String((document.getElementById('camp-envios-fil-canal')?.value) || '').trim();
+  const busca = String(document.getElementById('camp-envios-busca')?.value || '')
+    .trim()
+    .toLowerCase();
+  const status = String(document.getElementById('camp-envios-fil-status')?.value || '').trim();
+  const canal = String(document.getElementById('camp-envios-fil-canal')?.value || '').trim();
   const envios = getEnviosCache();
   const clientes = C() || [];
 
@@ -200,17 +204,12 @@ export function getEnviosHistoricoFiltrados() {
 
   const result = envios
     .slice()
-    .filter(e => !status || String(e.status || '') === status)
-    .filter(e => !canal || String(e.canal || '') === canal)
-    .filter(e => {
+    .filter((e) => !status || String(e.status || '') === status)
+    .filter((e) => !canal || String(e.canal || '') === canal)
+    .filter((e) => {
       if (!busca) return true;
-      const cliente = clientes.find(c => c.id === e.cliente_id);
-      const haystack = [
-        cliente?.nome,
-        e.destino,
-        e.cliente_id,
-        e.mensagem
-      ].join(' ').toLowerCase();
+      const cliente = clientes.find((c) => c.id === e.cliente_id);
+      const haystack = [cliente?.nome, e.destino, e.cliente_id, e.mensagem].join(' ').toLowerCase();
       return haystack.includes(busca);
     })
     .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
@@ -232,7 +231,7 @@ export function getEnviosHistoricoFiltrados() {
 export function agruparHistoricoEnviosPorCampanha(envios) {
   /** @type {Map<string, CampanhaEnvio[]>} */
   const grupos = new Map();
-  envios.forEach(envio => {
+  envios.forEach((envio) => {
     const key = String(envio.campanha_id || 'sem-campanha');
     if (!grupos.has(key)) grupos.set(key, []);
     grupos.get(key)?.push(envio);
@@ -241,10 +240,14 @@ export function agruparHistoricoEnviosPorCampanha(envios) {
   return Array.from(grupos.entries())
     .map(([campanhaId, itens]) => ({
       campanhaId,
-      campanha: getCampanhasCache().find(c => c.id === campanhaId) || null,
-      envios: itens.slice().sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')))
+      campanha: getCampanhasCache().find((c) => c.id === campanhaId) || null,
+      envios: itens
+        .slice()
+        .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')))
     }))
-    .sort((a, b) => String(b.envios[0]?.criado_em || '').localeCompare(String(a.envios[0]?.criado_em || '')));
+    .sort((a, b) =>
+      String(b.envios[0]?.criado_em || '').localeCompare(String(a.envios[0]?.criado_em || ''))
+    );
 }
 
 // ── Carregamento de dados ─────────────────────────────────────────────────────
@@ -271,8 +274,12 @@ export async function carregarCampanhas() {
       const allResult = await SB.toResult(() => SB.getCampanhasAll());
       if (allResult.ok) {
         const all = allResult.data;
-        const sameFilial = (all || []).filter(c => String(c.filial_id || '') === String(State.FIL || ''));
-        const outrasFiliais = (all || []).filter(c => String(c.filial_id || '') !== String(State.FIL || ''));
+        const sameFilial = (all || []).filter(
+          (c) => String(c.filial_id || '') === String(State.FIL || '')
+        );
+        const outrasFiliais = (all || []).filter(
+          (c) => String(c.filial_id || '') !== String(State.FIL || '')
+        );
 
         campDiag.totalBanco = (all || []).length;
         campDiag.outrasFiliais = Math.max(0, (all || []).length - sameFilial.length);
@@ -324,10 +331,12 @@ export async function adotarCampanhasParaFilialAtiva() {
 
   const atuais = getCampanhasCache();
   const existentes = new Set(
-    atuais.map(c => [c.nome, c.tipo, c.canal, Number(c.dias_antecedencia || 0)].join('|').toLowerCase())
+    atuais.map((c) =>
+      [c.nome, c.tipo, c.canal, Number(c.dias_antecedencia || 0)].join('|').toLowerCase()
+    )
   );
 
-  const paraImportar = candidatas.filter(c => {
+  const paraImportar = candidatas.filter((c) => {
     const k = [c.nome, c.tipo, c.canal, Number(c.dias_antecedencia || 0)].join('|').toLowerCase();
     return !existentes.has(k);
   });

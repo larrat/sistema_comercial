@@ -24,9 +24,9 @@ import { ValidationError } from '../errors/app-error.js';
  * @param {unknown} v
  * @returns {boolean}
  */
-export function isPresent(v){
-  if(v == null) return false;
-  if(typeof v === 'string') return v.trim().length > 0;
+export function isPresent(v) {
+  if (v == null) return false;
+  if (typeof v === 'string') return v.trim().length > 0;
   return true;
 }
 
@@ -36,11 +36,11 @@ export function isPresent(v){
  * @param {number} [max]
  * @returns {boolean}
  */
-export function isNumberInRange(v, min, max){
+export function isNumberInRange(v, min, max) {
   const n = Number(v);
-  if(Number.isNaN(n)) return false;
-  if(min !== undefined && n < min) return false;
-  if(max !== undefined && n > max) return false;
+  if (Number.isNaN(n)) return false;
+  if (min !== undefined && n < min) return false;
+  if (max !== undefined && n > max) return false;
   return true;
 }
 
@@ -48,8 +48,8 @@ export function isNumberInRange(v, min, max){
  * @param {unknown} v
  * @returns {boolean}
  */
-export function isValidEmail(v){
-  if(!isPresent(v)) return false;
+export function isValidEmail(v) {
+  if (!isPresent(v)) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim());
 }
 
@@ -59,8 +59,8 @@ export function isValidEmail(v){
  * @param {Record<string, unknown>} data
  * @returns {{ nome: string, custo: number, sku?: string }}
  */
-export function validateProduto(data){
-  if(!isPresent(data.nome)){
+export function validateProduto(data) {
+  if (!isPresent(data.nome)) {
     throw new ValidationError({
       message: 'Nome do produto obrigatório',
       userMessage: 'Informe o nome do produto.',
@@ -70,7 +70,7 @@ export function validateProduto(data){
   }
 
   const custo = Number(data.custo ?? 0);
-  if(!isNumberInRange(custo, 0)){
+  if (!isNumberInRange(custo, 0)) {
     throw new ValidationError({
       message: `Custo inválido: ${data.custo}`,
       userMessage: 'O custo deve ser um número maior ou igual a zero.',
@@ -92,8 +92,8 @@ export function validateProduto(data){
  * @param {Record<string, unknown>} data
  * @returns {{ nome: string, email?: string, tel?: string, whatsapp?: string }}
  */
-export function validateCliente(data){
-  if(!isPresent(data.nome)){
+export function validateCliente(data) {
+  if (!isPresent(data.nome)) {
     throw new ValidationError({
       message: 'Nome do cliente obrigatório',
       userMessage: 'Informe o nome do cliente.',
@@ -103,7 +103,7 @@ export function validateCliente(data){
   }
 
   const email = data.email ? String(data.email).trim().toLowerCase() : undefined;
-  if(email && !isValidEmail(email)){
+  if (email && !isValidEmail(email)) {
     throw new ValidationError({
       message: `Email inválido: ${email}`,
       userMessage: 'O e-mail informado é inválido.',
@@ -115,7 +115,7 @@ export function validateCliente(data){
   return {
     nome: String(data.nome).trim(),
     email,
-    tel:      data.tel      ? String(data.tel).trim()      : undefined,
+    tel: data.tel ? String(data.tel).trim() : undefined,
     whatsapp: data.whatsapp ? String(data.whatsapp).trim() : undefined
   };
 }
@@ -127,8 +127,8 @@ export function validateCliente(data){
  * @param {{ items: unknown[] }} deps
  * @returns {{ cliente_id?: string, itens: unknown[] }}
  */
-export function validatePedido(data, deps){
-  if(!deps.items || deps.items.length === 0){
+export function validatePedido(data, deps) {
+  if (!deps.items || deps.items.length === 0) {
     throw new ValidationError({
       message: 'Pedido sem itens',
       userMessage: 'Adicione pelo menos um item ao pedido.',
@@ -148,8 +148,8 @@ export function validatePedido(data, deps){
  * @param {Record<string, unknown>} data
  * @returns {{ nome: string, canal: string, mensagem: string }}
  */
-export function validateCampanha(data){
-  if(!isPresent(data.nome)){
+export function validateCampanha(data) {
+  if (!isPresent(data.nome)) {
     throw new ValidationError({
       message: 'Nome da campanha obrigatório',
       userMessage: 'Informe o nome da campanha.',
@@ -158,7 +158,7 @@ export function validateCampanha(data){
     });
   }
 
-  if(!isPresent(data.canal)){
+  if (!isPresent(data.canal)) {
     throw new ValidationError({
       message: 'Canal da campanha obrigatório',
       userMessage: 'Selecione o canal de envio.',
@@ -167,7 +167,7 @@ export function validateCampanha(data){
     });
   }
 
-  if(!isPresent(data.mensagem)){
+  if (!isPresent(data.mensagem)) {
     throw new ValidationError({
       message: 'Mensagem da campanha obrigatória',
       userMessage: 'Defina a mensagem da campanha.',
@@ -177,8 +177,8 @@ export function validateCampanha(data){
   }
 
   return {
-    nome:     String(data.nome).trim(),
-    canal:    String(data.canal).trim(),
+    nome: String(data.nome).trim(),
+    canal: String(data.canal).trim(),
     mensagem: String(data.mensagem).trim()
   };
 }
@@ -189,8 +189,8 @@ export function validateCampanha(data){
  * @param {Record<string, unknown>} data
  * @returns {{ prod_id: string, tipo: string, qty?: number, saldo_real?: number }}
  */
-export function validateMovimentacao(data){
-  if(!isPresent(data.prod_id)){
+export function validateMovimentacao(data) {
+  if (!isPresent(data.prod_id)) {
     throw new ValidationError({
       message: 'Produto da movimentação obrigatório',
       userMessage: 'Selecione o produto.',
@@ -201,7 +201,7 @@ export function validateMovimentacao(data){
 
   const tipo = String(data.tipo || '').trim();
   const tiposValidos = ['entrada', 'saida', 'ajuste', 'transf'];
-  if(!tiposValidos.includes(tipo)){
+  if (!tiposValidos.includes(tipo)) {
     throw new ValidationError({
       message: `Tipo de movimentação inválido: ${tipo}`,
       userMessage: 'Selecione um tipo de movimentação válido.',
@@ -210,9 +210,9 @@ export function validateMovimentacao(data){
     });
   }
 
-  if(tipo === 'ajuste'){
+  if (tipo === 'ajuste') {
     const saldo = Number(data.saldo_real ?? data.saldoReal);
-    if(Number.isNaN(saldo) || saldo < 0){
+    if (Number.isNaN(saldo) || saldo < 0) {
       throw new ValidationError({
         message: `Saldo real inválido para ajuste: ${data.saldo_real}`,
         userMessage: 'Informe um saldo real válido (maior ou igual a zero).',
@@ -224,7 +224,7 @@ export function validateMovimentacao(data){
   }
 
   const qty = Number(data.qty);
-  if(Number.isNaN(qty) || qty <= 0){
+  if (Number.isNaN(qty) || qty <= 0) {
     throw new ValidationError({
       message: `Quantidade inválida: ${data.qty}`,
       userMessage: 'Informe uma quantidade maior que zero.',

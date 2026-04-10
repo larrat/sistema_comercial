@@ -1,1177 +1,2171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<link rel="icon" href="data:,">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<title>Sistema Comercial</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+  <head>
+    <link rel="icon" href="data:," />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+    <title>Sistema Comercial</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+      defer
+    ></script>
 
-<!-- Link para o seu novo arquivo CSS -->
-<link rel="stylesheet" href="./src/styles/style.css">
-</head>
-<body>
+    <!-- Link para o seu novo arquivo CSS -->
+    <link rel="stylesheet" href="./src/styles/style.css" />
+  </head>
+  <body>
+    <!-- ══ SETUP SCREEN ══ -->
+    <div id="screen-setup" class="screen">
+      <div class="setup-card">
+        <div class="setup-logo">Sistema Comercial</div>
+        <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
 
-<!-- ══ SETUP SCREEN ══ -->
-<div id="screen-setup" class="screen">
-  <div class="setup-card">
-    <div class="setup-logo">Sistema Comercial</div>
-    <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
-
-    <!-- Login -->
-    <div id="setup-auth" hidden>
-      <div class="fg">
-        <div><div class="fl">E-mail</div><input class="inp" id="auth-email" type="email" placeholder="seu@email.com"></div>
-      </div>
-      <div class="fg">
-        <div><div class="fl">Senha</div><input class="inp" id="auth-password" type="password" placeholder="********"></div>
-      </div>
-        <button class="btn btn-p btn-block-center mt-4" id="auth-login-btn" data-action="authEntrar">Entrar com conta</button>
-    </div>
-
-    <!-- Lista de filiais -->
-    <div class="fil-grid" id="fil-grid"></div>
-
-    <!-- Formulário inline (quando não há filiais) -->
-    <div id="setup-form" hidden>
-      <div class="fg">
-        <div><div class="fl">Nome da filial *</div><input class="inp" id="sf-nome" placeholder="Ex: Matriz Fortaleza"></div>
-      </div>
-      <div class="fg c2">
-        <div><div class="fl">Cidade</div><input class="inp" id="sf-cidade" placeholder="Fortaleza"></div>
-        <div><div class="fl">Estado</div><input class="inp" id="sf-estado" placeholder="CE"></div>
-      </div>
-      <div class="fg">
-          <div><div class="fl">Cor identificadora</div><input class="inp input-color" id="sf-cor" type="color" value="#163F80"></div>
-      </div>
-        <button class="btn btn-p btn-block-center mt-4" data-click="criarPrimeiraFilial()">Criar filial e entrar ></button>
-    </div>
-
-    <!-- Ações -->
-    <div id="setup-actions" class="fb" hidden>
-      <button class="btn btn-gh btn-sm" data-click="abrirModal('modal-filial');limparFormFilial()">+ Nova filial</button>
-      <button class="btn btn-p" data-click="entrar()">Entrar ></button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ APP ══ -->
-<div id="screen-app" class="screen">
-  <!-- Sidebar overlay (mobile) -->
-  <div class="sb-overlay" id="sb-overlay" data-click="fecharSb()"></div>
-
-  <!-- Sidebar -->
-  <aside class="sb" id="sb">
-    <div class="sb-head">
-      <div class="fb">
-        <div class="sb-brand">Sistema Comercial</div>
-      <button class="ib" id="sb-close" data-click="fecharSb()" hidden>Fechar</button>
-      </div>
-      <div class="sb-pill" data-click="voltarSetup()">
-        <div class="sb-pdot" id="sb-dot"></div>
-        <span class="sb-pname" id="sb-fname">-</span>
-          <span class="subtle-inline-copy">Trocar</span>
-      </div>
-      <div class="sb-search">
-        <input class="inp sb-search-input" id="sb-search" type="search" placeholder="Buscar tela..." aria-label="Buscar no menu lateral">
-      </div>
-    </div>
-    <nav class="sb-nav">
-      <section class="sb-group" data-group="Principal">
-        <div class="nl">Principal</div>
-        <button class="ni on" data-p="dashboard" data-label="Dashboard" data-click="ir('dashboard')"><span class="ico">DS</span>Dashboard</button>
-        <button class="ni" data-p="gerencial" data-label="Gerencial" data-click="ir('gerencial')"><span class="ico">GR</span>Gerencial</button>
-        <button class="ni" data-p="relatorios" data-label="Relatórios" data-click="ir('relatorios')"><span class="ico">RL</span>Relatórios</button>
-      </section>
-      <section class="sb-group" data-group="Operação">
-        <div class="nl">Operação</div>
-        <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')"><span class="ico">PR</span>Produtos</button>
-        <button class="ni" data-p="clientes" data-label="Clientes" data-click="ir('clientes')"><span class="ico">CL</span>Clientes</button>
-        <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')"><span class="ico">PD</span>Pedidos</button>
-        <button class="ni" data-p="cotacao" data-label="Cotação" data-click="ir('cotacao')"><span class="ico">CT</span>Cotação</button>
-        <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')"><span class="ico">ES</span>Estoque <span class="nb is-hidden" id="est-badge">!</span></button>
-        <button class="ni" data-p="campanhas" data-label="Campanhas" data-click="ir('campanhas')"><span class="ico">CP</span>Campanhas</button>
-        <button class="ni" data-p="notificacoes" data-label="Alertas" data-click="ir('notificacoes')"><span class="ico">NT</span>Alertas <span class="nb is-hidden" id="noti-badge">!</span></button>
-      </section>
-      <section class="sb-group" data-group="Sistema">
-        <div class="nl">Sistema</div>
-        <button class="ni" data-p="filiais" data-label="Filiais" data-click="ir('filiais')"><span class="ico">FL</span>Filiais</button>
-        <button class="ni" data-p="acessos" data-label="Acessos" data-click="ir('acessos')"><span class="ico">AC</span>Acessos</button>
-      </section>
-      <div class="sb-empty is-hidden" id="sb-empty">
-        <div class="sb-empty-title">Nenhuma tela encontrada</div>
-        <div class="sb-empty-sub">Tente buscar por nome.</div>
-      </div>
-    </nav>
-    <div class="sb-foot">
-        <div class="bdg bk btn-block-center mb-8" id="sb-role">Operador</div>
-        <button class="btn btn-gh btn-sm btn-block-center" data-click="exportarTudo()">Exportar CSVs</button>
-        <button class="btn btn-sm btn-block-center mt-8" id="sb-theme-toggle" type="button" title="Alternar tema">Auto</button>
-        <button class="btn btn-sm btn-block-center mt-4" data-click="sairConta()">Sair</button>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="main" id="main">
-    <div class="app-topbar">
-      <div>
-        <div class="app-topbar-kicker" id="app-kicker">Workspace</div>
-        <div class="app-topbar-title" id="app-title">Dashboard</div>
-        <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
-      </div>
-      <div class="app-topbar-actions">
-        <button class="btn btn-sm" id="app-act-secondary" type="button">Ação 2</button>
-        <button class="btn btn-sm" id="app-act-tertiary" type="button">Ação 3</button>
-        <button class="btn btn-p" id="app-act-primary" type="button">Ação principal</button>
-      </div>
-    </div>
-
-    <!-- ── DASHBOARD ── -->
-    <div class="pg on dash-bento-page" id="pg-dashboard">
-      <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
-        <div class="fg2">
-          <select class="inp sel select-w-sm input-compact" id="dash-fil" data-change="renderDash()"></select>
-          <div class="pseg" id="dash-pseg">
-            <button data-click="setP('semana',this)">Semana</button>
-            <button class="on" data-click="setP('mes',this)">Mes</button>
-            <button data-click="setP('ano',this)">Ano</button>
-            <button data-click="setP('tudo',this)">Tudo</button>
-          </div>
-        </div>
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" id="dash-personalizar-btn" data-click="togglePersonalizarDash()">Personalizar</button>
-        </div>
-      </div>
-
-      <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
-        <button class="btn btn-sm" type="button" data-click="ir('gerencial')">Gerencial</button>
-        <button class="btn btn-sm" type="button" data-click="ir('campanhas')">Campanhas</button>
-        <button class="btn btn-sm" type="button" data-click="ir('notificacoes')">Alertas</button>
-        <button class="btn btn-p btn-sm" type="button" data-click="limparFormPed();abrirModal('modal-pedido')">Novo pedido</button>
-      </div>
-
-      <section class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops" data-dash-slot="operacao">
-        <div class="dash-section-head">
-          <h3>Operação rápida</h3>
-          <p>Ações que precisam de decisão agora</p>
-        </div>
-        <div id="dash-alerts"></div>
-        <div class="dash-grid-cards dash-grid-cards--operacao" data-dash-zone="ops">
-          <div class="card card-shell dash-card dash-card--oportunidades dash-bento-card" data-dash-slot="oportunidades">
-            <div class="dash-drag-handle" title="Arrastar card">⠿</div>
-            <div class="fb mb-10">
-              <div class="ct ct-inline">Oportunidades por time</div>
-              <select class="inp sel select-w-xs input-compact" id="dash-opp-camp" data-change="renderDash()">
-                <option value="todas">Todas</option>
-                <option value="a">Série A</option>
-                <option value="b">Série B</option>
-                <option value="c">Série C</option>
-              </select>
+        <!-- Login -->
+        <div id="setup-auth" hidden>
+          <div class="fg">
+            <div>
+              <div class="fl">E-mail</div>
+              <input class="inp" id="auth-email" type="email" placeholder="seu@email.com" />
             </div>
-            <div id="dash-oportunidades"></div>
           </div>
-          <div class="card card-shell dash-card dash-card--jogos dash-bento-card" data-dash-slot="jogos">
-            <div class="dash-drag-handle" title="Arrastar card">⠿</div>
-            <div class="fb mb-10">
-              <div class="ct ct-inline">Proximos jogos</div>
-              <div class="fg2">
-                <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
-                <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
+          <div class="fg">
+            <div>
+              <div class="fl">Senha</div>
+              <input class="inp" id="auth-password" type="password" placeholder="********" />
+            </div>
+          </div>
+          <button
+            class="btn btn-p btn-block-center mt-4"
+            id="auth-login-btn"
+            data-action="authEntrar"
+          >
+            Entrar com conta
+          </button>
+        </div>
+
+        <!-- Lista de filiais -->
+        <div class="fil-grid" id="fil-grid"></div>
+
+        <!-- Formulário inline (quando não há filiais) -->
+        <div id="setup-form" hidden>
+          <div class="fg">
+            <div>
+              <div class="fl">Nome da filial *</div>
+              <input class="inp" id="sf-nome" placeholder="Ex: Matriz Fortaleza" />
+            </div>
+          </div>
+          <div class="fg c2">
+            <div>
+              <div class="fl">Cidade</div>
+              <input class="inp" id="sf-cidade" placeholder="Fortaleza" />
+            </div>
+            <div>
+              <div class="fl">Estado</div>
+              <input class="inp" id="sf-estado" placeholder="CE" />
+            </div>
+          </div>
+          <div class="fg">
+            <div>
+              <div class="fl">Cor identificadora</div>
+              <input class="inp input-color" id="sf-cor" type="color" value="#163F80" />
+            </div>
+          </div>
+          <button class="btn btn-p btn-block-center mt-4" data-click="criarPrimeiraFilial()">
+            Criar filial e entrar >
+          </button>
+        </div>
+
+        <!-- Ações -->
+        <div id="setup-actions" class="fb" hidden>
+          <button
+            class="btn btn-gh btn-sm"
+            data-click="abrirModal('modal-filial');limparFormFilial()"
+          >
+            + Nova filial
+          </button>
+          <button class="btn btn-p" data-click="entrar()">Entrar ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ APP ══ -->
+    <div id="screen-app" class="screen">
+      <!-- Sidebar overlay (mobile) -->
+      <div class="sb-overlay" id="sb-overlay" data-click="fecharSb()"></div>
+
+      <!-- Sidebar -->
+      <aside class="sb" id="sb">
+        <div class="sb-head">
+          <div class="fb">
+            <div class="sb-brand">Sistema Comercial</div>
+            <button class="ib" id="sb-close" data-click="fecharSb()" hidden>Fechar</button>
+          </div>
+          <div class="sb-pill" data-click="voltarSetup()">
+            <div class="sb-pdot" id="sb-dot"></div>
+            <span class="sb-pname" id="sb-fname">-</span>
+            <span class="subtle-inline-copy">Trocar</span>
+          </div>
+          <div class="sb-search">
+            <input
+              class="inp sb-search-input"
+              id="sb-search"
+              type="search"
+              placeholder="Buscar tela..."
+              aria-label="Buscar no menu lateral"
+            />
+          </div>
+        </div>
+        <nav class="sb-nav">
+          <section class="sb-group" data-group="Principal">
+            <div class="nl">Principal</div>
+            <button
+              class="ni on"
+              data-p="dashboard"
+              data-label="Dashboard"
+              data-click="ir('dashboard')"
+            >
+              <span class="ico">DS</span>Dashboard
+            </button>
+            <button
+              class="ni"
+              data-p="gerencial"
+              data-label="Gerencial"
+              data-click="ir('gerencial')"
+            >
+              <span class="ico">GR</span>Gerencial
+            </button>
+            <button
+              class="ni"
+              data-p="relatorios"
+              data-label="Relatórios"
+              data-click="ir('relatorios')"
+            >
+              <span class="ico">RL</span>Relatórios
+            </button>
+          </section>
+          <section class="sb-group" data-group="Operação">
+            <div class="nl">Operação</div>
+            <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')">
+              <span class="ico">PR</span>Produtos
+            </button>
+            <button class="ni" data-p="clientes" data-label="Clientes" data-click="ir('clientes')">
+              <span class="ico">CL</span>Clientes
+            </button>
+            <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')">
+              <span class="ico">PD</span>Pedidos
+            </button>
+            <button class="ni" data-p="cotacao" data-label="Cotação" data-click="ir('cotacao')">
+              <span class="ico">CT</span>Cotação
+            </button>
+            <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')">
+              <span class="ico">ES</span>Estoque <span class="nb is-hidden" id="est-badge">!</span>
+            </button>
+            <button
+              class="ni"
+              data-p="campanhas"
+              data-label="Campanhas"
+              data-click="ir('campanhas')"
+            >
+              <span class="ico">CP</span>Campanhas
+            </button>
+            <button
+              class="ni"
+              data-p="notificacoes"
+              data-label="Alertas"
+              data-click="ir('notificacoes')"
+            >
+              <span class="ico">NT</span>Alertas <span class="nb is-hidden" id="noti-badge">!</span>
+            </button>
+          </section>
+          <section class="sb-group" data-group="Sistema">
+            <div class="nl">Sistema</div>
+            <button class="ni" data-p="filiais" data-label="Filiais" data-click="ir('filiais')">
+              <span class="ico">FL</span>Filiais
+            </button>
+            <button class="ni" data-p="acessos" data-label="Acessos" data-click="ir('acessos')">
+              <span class="ico">AC</span>Acessos
+            </button>
+          </section>
+          <div class="sb-empty is-hidden" id="sb-empty">
+            <div class="sb-empty-title">Nenhuma tela encontrada</div>
+            <div class="sb-empty-sub">Tente buscar por nome.</div>
+          </div>
+        </nav>
+        <div class="sb-foot">
+          <div class="bdg bk btn-block-center mb-8" id="sb-role">Operador</div>
+          <button class="btn btn-gh btn-sm btn-block-center" data-click="exportarTudo()">
+            Exportar CSVs
+          </button>
+          <button
+            class="btn btn-sm btn-block-center mt-8"
+            id="sb-theme-toggle"
+            type="button"
+            title="Alternar tema"
+          >
+            Auto
+          </button>
+          <button class="btn btn-sm btn-block-center mt-4" data-click="sairConta()">Sair</button>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main" id="main">
+        <div class="app-topbar">
+          <div>
+            <div class="app-topbar-kicker" id="app-kicker">Workspace</div>
+            <div class="app-topbar-title" id="app-title">Dashboard</div>
+            <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
+          </div>
+          <div class="app-topbar-actions">
+            <button class="btn btn-sm" id="app-act-secondary" type="button">Ação 2</button>
+            <button class="btn btn-sm" id="app-act-tertiary" type="button">Ação 3</button>
+            <button class="btn btn-p" id="app-act-primary" type="button">Ação principal</button>
+          </div>
+        </div>
+
+        <!-- ── DASHBOARD ── -->
+        <div class="pg on dash-bento-page" id="pg-dashboard">
+          <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
+            <div class="fg2">
+              <select
+                class="inp sel select-w-sm input-compact"
+                id="dash-fil"
+                data-change="renderDash()"
+              ></select>
+              <div class="pseg" id="dash-pseg">
+                <button data-click="setP('semana',this)">Semana</button>
+                <button class="on" data-click="setP('mes',this)">Mes</button>
+                <button data-click="setP('ano',this)">Ano</button>
+                <button data-click="setP('tudo',this)">Tudo</button>
               </div>
             </div>
-            <div id="dash-jogos"></div>
-          </div>
-          <div class="card card-shell dash-card dash-card--estoque dash-bento-card" data-dash-slot="estoque">
-            <div class="dash-drag-handle" title="Arrastar card">⠿</div>
-            <div class="ct">Estoque em alerta</div>
-            <div id="dash-ea"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis" data-dash-zone="analise">
-        <div class="dash-section-head">
-          <h3>Análise do negócio</h3>
-          <p>Leitura de desempenho e tendencia comercial</p>
-        </div>
-        <div class="mg dash-bento-band dash-bento-band--metrics" id="dash-met" data-dash-slot="metrics">
-          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-        </div>
-        <div class="dash-grid-main dash-bento-grid dash-bento-grid--primary" data-dash-slot="chart-status">
-          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-          <div class="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart"><div class="ct">Faturamento e lucro</div>
-            <div class="barchart" id="dash-chart"></div>
-            <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden"><p>Sem pedidos entregues no periodo</p></div>
-            <div class="dash-chart-legend">
-              <span><span class="dash-legend-swatch dash-legend-swatch--fat"></span>Faturamento</span>
-              <span><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span>
-            </div>
-          </div>
-          <div class="card card-shell dash-card dash-bento-card dash-bento-card--status"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
-        </div>
-        <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
-          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-          <div class="card card-shell dash-card dash-card--top dash-bento-card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
-          <div class="card card-shell dash-card dash-card--forn dash-bento-card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
-        </div>
-        <div class="card card-shell dash-bento-card dash-bento-card--margin" data-dash-slot="margem">
-          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-          <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
-          <div id="dash-margem"></div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- ── GERENCIAL ── -->
-    <div class="pg ger-bento-page" id="pg-gerencial">
-      <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
-        <div class="toolbar-actions">
-          <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
-          <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
-        </div>
-      </div>
-      <div class="card card-shell ger-bento-card--full">
-        <div class="ct">Metas de negócio</div>
-        <div id="dash-metas-negocio"></div>
-      </div>
-      <div class="ger-bento-grid">
-        <div class="card card-shell">
-          <div class="ct">KPIs por jornada (UX)</div>
-          <div id="dash-kpi-jornadas"></div>
-        </div>
-        <div class="card card-shell">
-          <div class="ct">Telemetria de eventos</div>
-          <div id="dash-kpi-eventos"></div>
-        </div>
-        <div class="card card-shell">
-          <div class="ct">Insights de risco e oportunidade</div>
-          <div id="ger-insights"></div>
-        </div>
-        <div class="card card-shell">
-          <div class="ct">Recomendações acionáveis</div>
-          <div id="ger-recomendacoes"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pg rel-bento-page" id="pg-relatorios">
-      <div class="tabs rel-tabs">
-        <button class="tb on" data-tab-group="relatorios" data-tab="oportunidades">Oportunidades por jogos</button>
-        <button class="tb" data-tab-group="relatorios" data-tab="performance">Performance comercial</button>
-        <button class="tb" data-tab-group="relatorios" data-tab="clientes">Base de clientes</button>
-      </div>
-
-      <div class="tc on rel-bento-tab" id="relatorios-tc-oportunidades">
-        <div class="mg bento-band" id="rel-met"></div>
-        <div id="rel-context"></div>
-        <div class="card card-shell">
-          <div class="toolbar toolbar-shell toolbar-shell--section">
-            <div class="ct ct-inline">Resumo por mês</div>
-            <div class="toolbar-main">
-              <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()"><option value="">Todos os anos</option></select>
-              <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()"><option value="">Todos os meses</option></select>
-            </div>
-          </div>
-          <div id="rel-resumo"></div>
-        </div>
-        <div class="rel-bento-grid">
-          <div class="card card-shell">
-            <div class="ct">Oportunidades abertas</div>
-            <div id="rel-oportunidades"></div>
-          </div>
-          <div class="card card-shell">
-            <div class="ct">Validações realizadas</div>
-            <div id="rel-validacoes"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tc rel-bento-tab" id="relatorios-tc-performance">
-        <div class="mg bento-band" id="rel-perf-met"></div>
-        <div class="rel-bento-grid">
-          <div class="card card-shell">
-            <div class="ct">Status dos pedidos</div>
-            <div id="rel-perf-status"></div>
-          </div>
-          <div class="card card-shell">
-            <div class="ct">Top clientes por faturamento</div>
-            <div id="rel-perf-clientes"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tc rel-bento-tab" id="relatorios-tc-clientes">
-        <div class="mg bento-band" id="rel-cli-met"></div>
-        <div class="rel-bento-grid">
-          <div class="card card-shell">
-            <div class="ct">Status da base</div>
-            <div id="rel-cli-status"></div>
-          </div>
-          <div class="card card-shell">
-            <div class="ct">Segmentos e opt-ins</div>
-            <div id="rel-cli-segmentos"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── PRODUTOS ── -->
-    <div class="pg prod-bento-page" id="pg-produtos">
-      <div class="mg bento-band" id="prod-met"></div>
-      <div class="card card-shell">
-        <div class="toolbar toolbar-shell toolbar-shell--section">
-          <div class="toolbar-main">
-            <input class="inp input-w-md" id="prod-busca" placeholder="Buscar produto..." data-input="renderProdutos()">
-            <select class="inp sel select-w-md" id="prod-cat-fil" data-change="renderProdutos()"><option value="">Todas as categorias</option></select>
-          </div>
-          <div class="toolbar-actions">
-            <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
-          </div>
-        </div>
-        <div id="prod-lista"></div>
-      </div>
-    </div>
-
-    <!-- ── CLIENTES ── -->
-    <div class="pg" id="pg-clientes">
-      <div class="mg" id="cli-met"></div>
-      <div class="tabs">
-        <button class="tb on" data-click="switchTab('cli','lista')">Lista</button>
-        <button class="tb" data-click="switchTab('cli','segs');renderCliSegs()">Segmentos</button>
-      </div>
-      <div class="tc on" id="cli-tc-lista">
-        <div class="toolbar toolbar-shell">
-          <div class="toolbar-main">
-            <input class="inp input-w-sm" id="cli-busca" placeholder="Buscar..." data-input="renderClientes()">
-            <select class="inp sel select-w-sm" id="cli-fil-seg" data-change="renderClientes()"><option value="">Todos os segmentos</option></select>
-            <select class="inp sel select-w-xs" id="cli-fil-st" data-change="renderClientes()"><option value="">Todos os status</option><option>ativo</option><option>prospecto</option><option>inativo</option></select>
-          </div>
-          <div class="toolbar-actions">
-            <button class="btn btn-sm" data-click="exportCSV('clientes')">Exportar CSV</button>
-          </div>
-        </div>
-        <div class="card"><div id="cli-lista"></div></div>
-      </div>
-      <div class="tc" id="cli-tc-segs"><div id="cli-segs-lista"></div></div>
-    </div>
-
-    <!-- ── PEDIDOS ── -->
-    <div class="pg ped-bento-page" id="pg-pedidos">
-      <div class="mg bento-band" id="ped-met"></div>
-      <div class="card card-shell">
-        <div class="toolbar toolbar-shell toolbar-shell--section">
-          <div class="toolbar-main">
-            <input class="inp input-w-sm" id="ped-busca" placeholder="Cliente ou numero..." data-input="renderPedidos()">
-            <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()"><option value="">Todos os status</option><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select>
-          </div>
-          <div class="toolbar-actions">
-            <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
-          </div>
-        </div>
-        <div id="ped-lista"></div>
-      </div>
-    </div>
-
-    <!-- COTACAO -->
-    <div class="pg cot-bento-page" id="pg-cotacao">
-      <div class="tabs">
-        <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
-        <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">Fornecedores</button>
-        <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">Cotação</button>
-      </div>
-      <div class="tc on cot-bento-tab" id="cot-tc-importar">
-        <div class="cot-bento-grid">
-          <div class="card card-shell">
-            <div class="ct">Importar planilha de fornecedor</div>
-            <div class="fg c2 form-gap-bottom">
-              <div><div class="fl">Fornecedor</div><select class="inp sel" id="cot-forn-sel"><option value="">- selecione -</option></select></div>
-              <div class="toolbar-inline-end"><button class="btn" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button></div>
-            </div>
-            <div class="upz"><input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)"><div class="upload-drop-icon">ARQ</div><strong class="upload-drop-title">Clique ou arraste o arquivo</strong><p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p></div>
-          </div>
-          <div class="card card-shell">
-            <div class="ct">Histórico de importações</div>
-            <div id="cot-logs"></div>
-          </div>
-        </div>
-      </div>
-      <div class="tc cot-bento-tab" id="cot-tc-fornecedores">
-        <div class="card card-shell">
-          <div class="toolbar toolbar-shell toolbar-shell--section">
-            <div class="ct ct-inline">Fornecedores</div>
             <div class="toolbar-actions">
-              <button class="btn btn-p btn-sm" data-click="abrirModal('modal-forn')">+ Novo fornecedor</button>
+              <button
+                class="btn btn-sm"
+                id="dash-personalizar-btn"
+                data-click="togglePersonalizarDash()"
+              >
+                Personalizar
+              </button>
             </div>
           </div>
-          <div id="cot-forns-lista"></div>
+
+          <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
+            <button class="btn btn-sm" type="button" data-click="ir('gerencial')">Gerencial</button>
+            <button class="btn btn-sm" type="button" data-click="ir('campanhas')">Campanhas</button>
+            <button class="btn btn-sm" type="button" data-click="ir('notificacoes')">
+              Alertas
+            </button>
+            <button
+              class="btn btn-p btn-sm"
+              type="button"
+              data-click="limparFormPed();abrirModal('modal-pedido')"
+            >
+              Novo pedido
+            </button>
+          </div>
+
+          <section
+            class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops"
+            data-dash-slot="operacao"
+          >
+            <div class="dash-section-head">
+              <h3>Operação rápida</h3>
+              <p>Ações que precisam de decisão agora</p>
+            </div>
+            <div id="dash-alerts"></div>
+            <div class="dash-grid-cards dash-grid-cards--operacao" data-dash-zone="ops">
+              <div
+                class="card card-shell dash-card dash-card--oportunidades dash-bento-card"
+                data-dash-slot="oportunidades"
+              >
+                <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+                <div class="fb mb-10">
+                  <div class="ct ct-inline">Oportunidades por time</div>
+                  <select
+                    class="inp sel select-w-xs input-compact"
+                    id="dash-opp-camp"
+                    data-change="renderDash()"
+                  >
+                    <option value="todas">Todas</option>
+                    <option value="a">Série A</option>
+                    <option value="b">Série B</option>
+                    <option value="c">Série C</option>
+                  </select>
+                </div>
+                <div id="dash-oportunidades"></div>
+              </div>
+              <div
+                class="card card-shell dash-card dash-card--jogos dash-bento-card"
+                data-dash-slot="jogos"
+              >
+                <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+                <div class="fb mb-10">
+                  <div class="ct ct-inline">Proximos jogos</div>
+                  <div class="fg2">
+                    <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
+                    <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
+                  </div>
+                </div>
+                <div id="dash-jogos"></div>
+              </div>
+              <div
+                class="card card-shell dash-card dash-card--estoque dash-bento-card"
+                data-dash-slot="estoque"
+              >
+                <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+                <div class="ct">Estoque em alerta</div>
+                <div id="dash-ea"></div>
+              </div>
+            </div>
+          </section>
+
+          <section
+            class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis"
+            data-dash-zone="analise"
+          >
+            <div class="dash-section-head">
+              <h3>Análise do negócio</h3>
+              <p>Leitura de desempenho e tendencia comercial</p>
+            </div>
+            <div
+              class="mg dash-bento-band dash-bento-band--metrics"
+              id="dash-met"
+              data-dash-slot="metrics"
+            >
+              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+            </div>
+            <div
+              class="dash-grid-main dash-bento-grid dash-bento-grid--primary"
+              data-dash-slot="chart-status"
+            >
+              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+              <div
+                class="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart"
+              >
+                <div class="ct">Faturamento e lucro</div>
+                <div class="barchart" id="dash-chart"></div>
+                <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden">
+                  <p>Sem pedidos entregues no periodo</p>
+                </div>
+                <div class="dash-chart-legend">
+                  <span
+                    ><span class="dash-legend-swatch dash-legend-swatch--fat"></span
+                    >Faturamento</span
+                  >
+                  <span
+                    ><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span
+                  >
+                </div>
+              </div>
+              <div class="card card-shell dash-card dash-bento-card dash-bento-card--status">
+                <div class="ct">Status dos pedidos</div>
+                <div id="dash-status"></div>
+              </div>
+            </div>
+            <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
+              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+              <div class="card card-shell dash-card dash-card--top dash-bento-card">
+                <div class="ct">Top produtos</div>
+                <div id="dash-tp"></div>
+              </div>
+              <div class="card card-shell dash-card dash-card--forn dash-bento-card">
+                <div class="ct">Fornecedores</div>
+                <div id="dash-forn"></div>
+              </div>
+            </div>
+            <div
+              class="card card-shell dash-bento-card dash-bento-card--margin"
+              data-dash-slot="margem"
+            >
+              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+              <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
+              <div id="dash-margem"></div>
+            </div>
+          </section>
         </div>
-      </div>
-      <div class="tc cot-bento-tab" id="cot-tc-cotacao">
-        <div class="mg bento-band" id="cot-met"></div>
-        <div class="card card-shell">
-          <div class="toolbar toolbar-shell toolbar-shell--section">
-            <div class="ct ct-inline">Tabela de cotação</div>
+
+        <!-- ── GERENCIAL ── -->
+        <div class="pg ger-bento-page" id="pg-gerencial">
+          <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
             <div class="toolbar-actions">
-              <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
-              <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">Travar</button>
+              <button class="btn btn-sm" data-click="renderMetasNegocio()">Atualizar KPIs</button>
+              <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs UX</button>
             </div>
           </div>
-          <div id="cot-lock-alert" class="alert al-a is-hidden">Cotação travada | valores protegidos</div>
-          <div id="cot-tabela"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── ESTOQUE ── -->
-    <div class="pg est-bento-page" id="pg-estoque">
-      <div id="est-alerts"></div>
-      <div class="tabs">
-        <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">Posicao</button>
-        <button class="tb" data-click="switchTab('est','historico');renderEstHist()">Histórico</button>
-      </div>
-      <div class="tc on" id="est-tc-posicao">
-        <div class="mg bento-band" id="est-met"></div>
-        <div class="card card-shell">
-          <div class="toolbar toolbar-shell toolbar-shell--section">
-            <div class="toolbar-main">
-              <input class="inp input-w-sm" id="est-busca" placeholder="Buscar..." data-input="renderEstPosicao()">
-              <select class="inp sel select-w-sm" id="est-fil" data-change="renderEstPosicao()"><option value="">Todos</option><option value="ok">OK</option><option value="baixo">Baixo</option><option value="zerado">Zerado</option></select>
+          <div class="card card-shell ger-bento-card--full">
+            <div class="ct">Metas de negócio</div>
+            <div id="dash-metas-negocio"></div>
+          </div>
+          <div class="ger-bento-grid">
+            <div class="card card-shell">
+              <div class="ct">KPIs por jornada (UX)</div>
+              <div id="dash-kpi-jornadas"></div>
+            </div>
+            <div class="card card-shell">
+              <div class="ct">Telemetria de eventos</div>
+              <div id="dash-kpi-eventos"></div>
+            </div>
+            <div class="card card-shell">
+              <div class="ct">Insights de risco e oportunidade</div>
+              <div id="ger-insights"></div>
+            </div>
+            <div class="card card-shell">
+              <div class="ct">Recomendações acionáveis</div>
+              <div id="ger-recomendacoes"></div>
             </div>
           </div>
-          <div id="est-posicao"></div>
         </div>
-      </div>
-      <div class="tc" id="est-tc-historico">
-        <div class="card card-shell">
-          <div class="toolbar toolbar-shell toolbar-shell--section">
-            <div class="toolbar-main">
-              <input class="inp input-w-sm" id="est-hist-busca" placeholder="Buscar..." data-input="renderEstHist()">
-              <select class="inp sel select-w-sm" id="est-hist-tipo" data-change="renderEstHist()"><option value="">Todos os tipos</option><option value="entrada">Entrada</option><option value="saida">Saída</option><option value="ajuste">Ajuste</option><option value="transf">Transferência</option></select>
+
+        <div class="pg rel-bento-page" id="pg-relatorios">
+          <div class="tabs rel-tabs">
+            <button class="tb on" data-tab-group="relatorios" data-tab="oportunidades">
+              Oportunidades por jogos
+            </button>
+            <button class="tb" data-tab-group="relatorios" data-tab="performance">
+              Performance comercial
+            </button>
+            <button class="tb" data-tab-group="relatorios" data-tab="clientes">
+              Base de clientes
+            </button>
+          </div>
+
+          <div class="tc on rel-bento-tab" id="relatorios-tc-oportunidades">
+            <div class="mg bento-band" id="rel-met"></div>
+            <div id="rel-context"></div>
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="ct ct-inline">Resumo por mês</div>
+                <div class="toolbar-main">
+                  <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()">
+                    <option value="">Todos os anos</option>
+                  </select>
+                  <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()">
+                    <option value="">Todos os meses</option>
+                  </select>
+                </div>
+              </div>
+              <div id="rel-resumo"></div>
+            </div>
+            <div class="rel-bento-grid">
+              <div class="card card-shell">
+                <div class="ct">Oportunidades abertas</div>
+                <div id="rel-oportunidades"></div>
+              </div>
+              <div class="card card-shell">
+                <div class="ct">Validações realizadas</div>
+                <div id="rel-validacoes"></div>
+              </div>
             </div>
           </div>
-          <div id="est-hist"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- ── CAMPANHAS ── -->
-    <div class="pg camp-bento-page" id="pg-campanhas">
+          <div class="tc rel-bento-tab" id="relatorios-tc-performance">
+            <div class="mg bento-band" id="rel-perf-met"></div>
+            <div class="rel-bento-grid">
+              <div class="card card-shell">
+                <div class="ct">Status dos pedidos</div>
+                <div id="rel-perf-status"></div>
+              </div>
+              <div class="card card-shell">
+                <div class="ct">Top clientes por faturamento</div>
+                <div id="rel-perf-clientes"></div>
+              </div>
+            </div>
+          </div>
 
-      <div class="mg camp-bento-band camp-bento-band--metrics" id="camp-met"></div>
-      <div id="camp-diag"></div>
-
-      <div class="card card-shell camp-bento-card camp-bento-card--catalog">
-        <div class="toolbar toolbar-shell toolbar-shell--section">
-          <div class="ct ct-inline">Campanhas cadastradas</div>
-          <div class="toolbar-actions">
-            <button class="btn btn-sm" data-click="refreshCampanhasTela()">Atualizar</button>
+          <div class="tc rel-bento-tab" id="relatorios-tc-clientes">
+            <div class="mg bento-band" id="rel-cli-met"></div>
+            <div class="rel-bento-grid">
+              <div class="card card-shell">
+                <div class="ct">Status da base</div>
+                <div id="rel-cli-status"></div>
+              </div>
+              <div class="card card-shell">
+                <div class="ct">Segmentos e opt-ins</div>
+                <div id="rel-cli-segmentos"></div>
+              </div>
+            </div>
           </div>
         </div>
-        <div id="camp-lista"></div>
-      </div>
 
-      <div class="card card-shell camp-bento-card camp-bento-card--queue">
-        <div class="ct">Fila de WhatsApp manual</div>
-        <div class="toolbar toolbar-shell toolbar-gap-sm">
-          <div class="toolbar-actions">
-            <button class="btn btn-sm" data-click="toggleSelecionarTodosFilaWhatsApp()">Selecionar todos</button>
-            <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
-            <button class="btn btn-sm" data-click="marcarSelecionadosEnviados()">Marcar enviados</button>
-            <button class="btn btn-sm" data-click="marcarSelecionadosFalhou()">Marcar falhou</button>
+        <!-- ── PRODUTOS ── -->
+        <div class="pg prod-bento-page" id="pg-produtos">
+          <div class="mg bento-band" id="prod-met"></div>
+          <div class="card card-shell">
+            <div class="toolbar toolbar-shell toolbar-shell--section">
+              <div class="toolbar-main">
+                <input
+                  class="inp input-w-md"
+                  id="prod-busca"
+                  placeholder="Buscar produto..."
+                  data-input="renderProdutos()"
+                />
+                <select
+                  class="inp sel select-w-md"
+                  id="prod-cat-fil"
+                  data-change="renderProdutos()"
+                >
+                  <option value="">Todas as categorias</option>
+                </select>
+              </div>
+              <div class="toolbar-actions">
+                <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
+              </div>
+            </div>
+            <div id="prod-lista"></div>
           </div>
         </div>
-        <div id="camp-wa-fila"></div>
-      </div>
 
-      <div class="card card-shell camp-bento-card camp-bento-card--history">
-        <div class="ct">Histórico de envios</div>
-        <div class="toolbar toolbar-shell toolbar-gap-sm">
-          <div class="toolbar-main">
-            <input class="inp input-w-lg" id="camp-envios-busca" placeholder="Buscar cliente ou destino..." data-input="renderCampanhaEnvios()">
-            <select class="inp sel select-w-md" id="camp-envios-fil-status" data-change="renderCampanhaEnvios()">
-              <option value="">Todos status</option>
-              <option value="manual">Manual</option>
-              <option value="pendente">Pendente</option>
-              <option value="enviado">Enviado</option>
-              <option value="falhou">Falhou</option>
-            </select>
-            <select class="inp sel select-w-md" id="camp-envios-fil-canal" data-change="renderCampanhaEnvios()">
-              <option value="">Todos canais</option>
-              <option value="whatsapp_manual">WhatsApp manual</option>
-              <option value="email">E-mail</option>
-              <option value="sms">SMS</option>
-            </select>
+        <!-- ── CLIENTES ── -->
+        <div class="pg" id="pg-clientes">
+          <div class="mg" id="cli-met"></div>
+          <div class="tabs">
+            <button class="tb on" data-click="switchTab('cli','lista')">Lista</button>
+            <button class="tb" data-click="switchTab('cli','segs');renderCliSegs()">
+              Segmentos
+            </button>
+          </div>
+          <div class="tc on" id="cli-tc-lista">
+            <div class="toolbar toolbar-shell">
+              <div class="toolbar-main">
+                <input
+                  class="inp input-w-sm"
+                  id="cli-busca"
+                  placeholder="Buscar..."
+                  data-input="renderClientes()"
+                />
+                <select class="inp sel select-w-sm" id="cli-fil-seg" data-change="renderClientes()">
+                  <option value="">Todos os segmentos</option>
+                </select>
+                <select class="inp sel select-w-xs" id="cli-fil-st" data-change="renderClientes()">
+                  <option value="">Todos os status</option>
+                  <option>ativo</option>
+                  <option>prospecto</option>
+                  <option>inativo</option>
+                </select>
+              </div>
+              <div class="toolbar-actions">
+                <button class="btn btn-sm" data-click="exportCSV('clientes')">Exportar CSV</button>
+              </div>
+            </div>
+            <div class="card"><div id="cli-lista"></div></div>
+          </div>
+          <div class="tc" id="cli-tc-segs"><div id="cli-segs-lista"></div></div>
+        </div>
+
+        <!-- ── PEDIDOS ── -->
+        <div class="pg ped-bento-page" id="pg-pedidos">
+          <div class="mg bento-band" id="ped-met"></div>
+          <div class="card card-shell">
+            <div class="toolbar toolbar-shell toolbar-shell--section">
+              <div class="toolbar-main">
+                <input
+                  class="inp input-w-sm"
+                  id="ped-busca"
+                  placeholder="Cliente ou numero..."
+                  data-input="renderPedidos()"
+                />
+                <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()">
+                  <option value="">Todos os status</option>
+                  <option value="orcamento">Orçamento</option>
+                  <option value="confirmado">Confirmado</option>
+                  <option value="em_separacao">Em separação</option>
+                  <option value="entregue">Entregue</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+              <div class="toolbar-actions">
+                <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
+              </div>
+            </div>
+            <div id="ped-lista"></div>
           </div>
         </div>
-        <div id="camp-envios-lista"></div>
-      </div>
-    </div>
 
-    <!-- ── FILIAIS ── -->
-    <div class="pg" id="pg-filiais">
-      <div class="mg" id="fil-met"></div>
-      <div id="fil-lista"></div>
-    </div>
-
-    <!-- ── ACESSOS (ADMIN) ── -->
-    <div class="pg" id="pg-acessos">
-      <div class="mg" id="ac-met"></div>
-
-      <div class="card card-shell">
-        <div class="ct">Convidar usuário por e-mail</div>
-        <div class="fg c4">
-          <div>
-            <div class="fl">E-mail *</div>
-            <input class="inp" id="ac-invite-email" placeholder="usuario@empresa.com" data-change="resolverConviteAcessoEmail()">
-            <div class="field-help" id="ac-invite-email-help">Se o usuário já existir, vamos reaproveitar a conta e configurar o acesso.</div>
+        <!-- COTACAO -->
+        <div class="pg cot-bento-page" id="pg-cotacao">
+          <div class="tabs">
+            <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
+            <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">
+              Fornecedores
+            </button>
+            <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">
+              Cotação
+            </button>
           </div>
-          <div>
-            <div class="fl">Nome</div>
-            <input class="inp" id="ac-invite-nome" placeholder="Nome do usuário">
+          <div class="tc on cot-bento-tab" id="cot-tc-importar">
+            <div class="cot-bento-grid">
+              <div class="card card-shell">
+                <div class="ct">Importar planilha de fornecedor</div>
+                <div class="fg c2 form-gap-bottom">
+                  <div>
+                    <div class="fl">Fornecedor</div>
+                    <select class="inp sel" id="cot-forn-sel">
+                      <option value="">- selecione -</option>
+                    </select>
+                  </div>
+                  <div class="toolbar-inline-end">
+                    <button class="btn" data-click="abrirModal('modal-forn')">
+                      + Novo fornecedor
+                    </button>
+                  </div>
+                </div>
+                <div class="upz">
+                  <input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)" />
+                  <div class="upload-drop-icon">ARQ</div>
+                  <strong class="upload-drop-title">Clique ou arraste o arquivo</strong>
+                  <p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p>
+                </div>
+              </div>
+              <div class="card card-shell">
+                <div class="ct">Histórico de importações</div>
+                <div id="cot-logs"></div>
+              </div>
+            </div>
           </div>
-          <div>
-            <div class="fl">Papel inicial</div>
-            <select class="inp sel" id="ac-invite-papel">
-              <option value="operador">Operador</option>
-              <option value="gerente">Gerente</option>
-              <option value="admin">Admin</option>
-            </select>
+          <div class="tc cot-bento-tab" id="cot-tc-fornecedores">
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="ct ct-inline">Fornecedores</div>
+                <div class="toolbar-actions">
+                  <button class="btn btn-p btn-sm" data-click="abrirModal('modal-forn')">
+                    + Novo fornecedor
+                  </button>
+                </div>
+              </div>
+              <div id="cot-forns-lista"></div>
+            </div>
           </div>
-          <div>
-            <div class="fl">Filial inicial</div>
-            <select class="inp sel" id="ac-invite-filial"></select>
+          <div class="tc cot-bento-tab" id="cot-tc-cotacao">
+            <div class="mg bento-band" id="cot-met"></div>
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="ct ct-inline">Tabela de cotação</div>
+                <div class="toolbar-actions">
+                  <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
+                  <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">
+                    Travar
+                  </button>
+                </div>
+              </div>
+              <div id="cot-lock-alert" class="alert al-a is-hidden">
+                Cotação travada | valores protegidos
+              </div>
+              <div id="cot-tabela"></div>
+            </div>
           </div>
         </div>
-        <div class="modal-actions-inline form-gap-top">
-          <button class="btn btn-p" data-click="convidarUsuarioAcesso()">Convidar e configurar acesso</button>
-          <button class="btn btn-sm" data-click="reenviarConviteUsuarioAcesso()">Reenviar convite</button>
-        </div>
-      </div>
 
-      <div class="card card-shell">
-        <div class="ct">Perfil do usuário</div>
-        <div class="fg c4">
-          <div>
-            <div class="fl">E-mail ou User ID</div>
-            <input class="inp" id="ac-user-id" placeholder="usuario@empresa.com ou UUID" data-change="resolverPerfilAcessoRef()">
-            <div class="field-help" id="ac-user-id-help">Digite o e-mail do usuário para resolver automaticamente.</div>
+        <!-- ── ESTOQUE ── -->
+        <div class="pg est-bento-page" id="pg-estoque">
+          <div id="est-alerts"></div>
+          <div class="tabs">
+            <button class="tb on" data-click="switchTab('est','posicao');renderEstPosicao()">
+              Posicao
+            </button>
+            <button class="tb" data-click="switchTab('est','historico');renderEstHist()">
+              Histórico
+            </button>
           </div>
-          <div>
-            <div class="fl">Papel</div>
-            <select class="inp sel" id="ac-papel">
-              <option value="operador">Operador</option>
-              <option value="gerente">Gerente</option>
-              <option value="admin">Admin</option>
-            </select>
+          <div class="tc on" id="est-tc-posicao">
+            <div class="mg bento-band" id="est-met"></div>
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="toolbar-main">
+                  <input
+                    class="inp input-w-sm"
+                    id="est-busca"
+                    placeholder="Buscar..."
+                    data-input="renderEstPosicao()"
+                  />
+                  <select class="inp sel select-w-sm" id="est-fil" data-change="renderEstPosicao()">
+                    <option value="">Todos</option>
+                    <option value="ok">OK</option>
+                    <option value="baixo">Baixo</option>
+                    <option value="zerado">Zerado</option>
+                  </select>
+                </div>
+              </div>
+              <div id="est-posicao"></div>
+            </div>
           </div>
+          <div class="tc" id="est-tc-historico">
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="toolbar-main">
+                  <input
+                    class="inp input-w-sm"
+                    id="est-hist-busca"
+                    placeholder="Buscar..."
+                    data-input="renderEstHist()"
+                  />
+                  <select
+                    class="inp sel select-w-sm"
+                    id="est-hist-tipo"
+                    data-change="renderEstHist()"
+                  >
+                    <option value="">Todos os tipos</option>
+                    <option value="entrada">Entrada</option>
+                    <option value="saida">Saída</option>
+                    <option value="ajuste">Ajuste</option>
+                    <option value="transf">Transferência</option>
+                  </select>
+                </div>
+              </div>
+              <div id="est-hist"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CAMPANHAS ── -->
+        <div class="pg camp-bento-page" id="pg-campanhas">
+          <div class="mg camp-bento-band camp-bento-band--metrics" id="camp-met"></div>
+          <div id="camp-diag"></div>
+
+          <div class="card card-shell camp-bento-card camp-bento-card--catalog">
+            <div class="toolbar toolbar-shell toolbar-shell--section">
+              <div class="ct ct-inline">Campanhas cadastradas</div>
+              <div class="toolbar-actions">
+                <button class="btn btn-sm" data-click="refreshCampanhasTela()">Atualizar</button>
+              </div>
+            </div>
+            <div id="camp-lista"></div>
+          </div>
+
+          <div class="card card-shell camp-bento-card camp-bento-card--queue">
+            <div class="ct">Fila de WhatsApp manual</div>
+            <div class="toolbar toolbar-shell toolbar-gap-sm">
+              <div class="toolbar-actions">
+                <button class="btn btn-sm" data-click="toggleSelecionarTodosFilaWhatsApp()">
+                  Selecionar todos
+                </button>
+                <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
+                <button class="btn btn-sm" data-click="marcarSelecionadosEnviados()">
+                  Marcar enviados
+                </button>
+                <button class="btn btn-sm" data-click="marcarSelecionadosFalhou()">
+                  Marcar falhou
+                </button>
+              </div>
+            </div>
+            <div id="camp-wa-fila"></div>
+          </div>
+
+          <div class="card card-shell camp-bento-card camp-bento-card--history">
+            <div class="ct">Histórico de envios</div>
+            <div class="toolbar toolbar-shell toolbar-gap-sm">
+              <div class="toolbar-main">
+                <input
+                  class="inp input-w-lg"
+                  id="camp-envios-busca"
+                  placeholder="Buscar cliente ou destino..."
+                  data-input="renderCampanhaEnvios()"
+                />
+                <select
+                  class="inp sel select-w-md"
+                  id="camp-envios-fil-status"
+                  data-change="renderCampanhaEnvios()"
+                >
+                  <option value="">Todos status</option>
+                  <option value="manual">Manual</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="enviado">Enviado</option>
+                  <option value="falhou">Falhou</option>
+                </select>
+                <select
+                  class="inp sel select-w-md"
+                  id="camp-envios-fil-canal"
+                  data-change="renderCampanhaEnvios()"
+                >
+                  <option value="">Todos canais</option>
+                  <option value="whatsapp_manual">WhatsApp manual</option>
+                  <option value="email">E-mail</option>
+                  <option value="sms">SMS</option>
+                </select>
+              </div>
+            </div>
+            <div id="camp-envios-lista"></div>
+          </div>
+        </div>
+
+        <!-- ── FILIAIS ── -->
+        <div class="pg" id="pg-filiais">
+          <div class="mg" id="fil-met"></div>
+          <div id="fil-lista"></div>
+        </div>
+
+        <!-- ── ACESSOS (ADMIN) ── -->
+        <div class="pg" id="pg-acessos">
+          <div class="mg" id="ac-met"></div>
+
+          <div class="card card-shell">
+            <div class="ct">Convidar usuário por e-mail</div>
+            <div class="fg c4">
+              <div>
+                <div class="fl">E-mail *</div>
+                <input
+                  class="inp"
+                  id="ac-invite-email"
+                  placeholder="usuario@empresa.com"
+                  data-change="resolverConviteAcessoEmail()"
+                />
+                <div class="field-help" id="ac-invite-email-help">
+                  Se o usuário já existir, vamos reaproveitar a conta e configurar o acesso.
+                </div>
+              </div>
+              <div>
+                <div class="fl">Nome</div>
+                <input class="inp" id="ac-invite-nome" placeholder="Nome do usuário" />
+              </div>
+              <div>
+                <div class="fl">Papel inicial</div>
+                <select class="inp sel" id="ac-invite-papel">
+                  <option value="operador">Operador</option>
+                  <option value="gerente">Gerente</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Filial inicial</div>
+                <select class="inp sel" id="ac-invite-filial"></select>
+              </div>
+            </div>
+            <div class="modal-actions-inline form-gap-top">
+              <button class="btn btn-p" data-click="convidarUsuarioAcesso()">
+                Convidar e configurar acesso
+              </button>
+              <button class="btn btn-sm" data-click="reenviarConviteUsuarioAcesso()">
+                Reenviar convite
+              </button>
+            </div>
+          </div>
+
+          <div class="card card-shell">
+            <div class="ct">Perfil do usuário</div>
+            <div class="fg c4">
+              <div>
+                <div class="fl">E-mail ou User ID</div>
+                <input
+                  class="inp"
+                  id="ac-user-id"
+                  placeholder="usuario@empresa.com ou UUID"
+                  data-change="resolverPerfilAcessoRef()"
+                />
+                <div class="field-help" id="ac-user-id-help">
+                  Digite o e-mail do usuário para resolver automaticamente.
+                </div>
+              </div>
+              <div>
+                <div class="fl">Papel</div>
+                <select class="inp sel" id="ac-papel">
+                  <option value="operador">Operador</option>
+                  <option value="gerente">Gerente</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
               <div class="modal-actions-inline items-end">
-            <button class="btn btn-p" data-click="salvarPerfilAcesso()">Salvar perfil</button>
-            <button class="btn btn-sm" data-click="removerPerfilAcesso()">Remover perfil</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card card-shell">
-        <div class="ct">Vínculo usuário x filial</div>
-        <div class="fg c3">
-          <div>
-            <div class="fl">E-mail ou User ID</div>
-            <input class="inp" id="ac-v-user-id" placeholder="usuario@empresa.com ou UUID" data-change="resolverVinculoAcessoRef()">
-            <div class="field-help" id="ac-v-user-id-help">Digite o e-mail do usuário para vincular sem precisar copiar UUID.</div>
-          </div>
-          <div><div class="fl">Filial</div><select class="inp sel" id="ac-v-filial"></select></div>
-              <div class="modal-actions-inline items-end">
-            <button class="btn btn-p" data-click="vincularUsuarioFilial()">Vincular</button>
-            <button class="btn btn-sm" data-click="desvincularUsuarioFilial()">Desvincular</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card card-shell">
-        <div class="toolbar toolbar-shell toolbar-shell--section">
-          <div class="ct ct-inline">Perfis cadastrados</div>
-          <div class="toolbar-main">
-        <input class="inp input-w-lg" id="ac-busca" placeholder="Buscar por e-mail ou user_id..." data-input="renderAcessosPerfis()">
-        <select class="inp sel select-w-md" id="ac-fil-papel" data-change="renderAcessosPerfis()">
-              <option value="todos">Todos papéis</option>
-              <option value="admin">Admin</option>
-              <option value="gerente">Gerente</option>
-              <option value="operador">Operador</option>
-            </select>
-          </div>
-        </div>
-        <div id="ac-perfis-lista"></div>
-        <div class="toolbar-actions" id="ac-perfis-pager"></div>
-      </div>
-
-      <div class="card card-shell">
-        <div class="toolbar toolbar-shell toolbar-shell--section">
-          <div class="ct ct-inline">Vínculos usuário x filial</div>
-          <div class="toolbar-main">
-        <select class="inp sel select-w-xl" id="ac-fil-filial" data-change="renderAcessosVinculos()">
-              <option value="todas">Todas filiais</option>
-            </select>
-          </div>
-        </div>
-        <div id="ac-vinculos-lista"></div>
-        <div class="toolbar-actions" id="ac-vinculos-pager"></div>
-      </div>
-
-      <div class="card card-shell">
-        <div class="ct">Auditoria administrativa (RBAC)</div>
-        <div id="ac-auditoria-lista"></div>
-        <div class="toolbar-actions" id="ac-auditoria-pager"></div>
-      </div>
-    </div>
-
-    <!-- ── NOTIFICAÇÕES ── -->
-    <div class="pg" id="pg-notificacoes">
-      <div id="noti-context"></div>
-      <div class="toolbar toolbar-shell">
-        <div class="toolbar-main">
-        <select class="inp sel select-w-md" id="noti-fil-prioridade" data-change="setFiltroNotificacoes(this.value)">
-            <option value="todas">Todas prioridades</option>
-            <option value="critico">Crítico</option>
-            <option value="atencao">Atenção</option>
-            <option value="oportunidade">Oportunidade</option>
-          </select>
-        </div>
-      </div>
-      <div class="mg" id="noti-met"></div>
-      <div class="card card-shell">
-        <div class="ct">Inbox unificada por origem</div>
-        <div id="noti-lista"></div>
-      </div>
-      <div class="card card-shell">
-        <div class="ct">Histórico resolvido por origem</div>
-        <div id="noti-historico"></div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Mobile bottom nav -->
-  <nav class="mob-nav">
-    <div class="mob-items">
-      <button class="mob-btn on" id="mob-dashboard" data-click="ir('dashboard')"><span class="mico">DS</span>Início</button>
-      <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')"><span class="mico">GR</span>Gestão</button>
-      <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')"><span class="mico">PD</span>Pedidos</button>
-      <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')"><span class="mico">CP</span>Camp.</button>
-      <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')"><span class="mico">NT</span>Alertas</button>
-      <button class="mob-btn" id="mob-menu" data-click="abrirSb()"><span class="mico">MN</span>Menu</button>
-    </div>
-  </nav>
-  <button class="mob-menu-fab" id="mob-menu-fab" type="button" aria-label="Abrir menu" title="Abrir menu">
-    <span class="mob-menu-fab__icon" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
-    </span>
-  </button>
-</div>
-
-<!-- ══ MODALS ══ -->
-
-<!-- Filial -->
-<div class="modal-wrap" id="modal-filial">
-  <div class="modal-bg" data-click="fecharModal('modal-filial')"></div>
-  <div class="modal-box">
-    <div class="mt" id="filial-modal-titulo">Nova filial</div>
-    <div class="fg c2">
-      <div><div class="fl">Nome *</div><input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza"></div>
-      <div><div class="fl">Cidade</div><input class="inp" id="fil-cidade" placeholder="Fortaleza"></div>
-    </div>
-    <div class="fg c2">
-      <div><div class="fl">Estado</div><input class="inp" id="fil-estado" placeholder="CE"></div>
-          <div><div class="fl">Cor</div><input class="inp input-color" id="fil-cor" type="color" value="#163F80"></div>
-    </div>
-    <div class="fg"><div><div class="fl">Endereco (opcional)</div><input class="inp" id="fil-end" placeholder="Rua, numero, bairro"></div></div>
-    <div class="div"></div>
-    <div class="modal-actions">
-      <button class="btn" data-click="fecharModal('modal-filial')">Cancelar</button>
-      <button class="btn btn-p" data-click="salvarFilial()">Salvar filial</button>
-    </div>
-  </div>
-</div>
-
-<!-- Produto -->
-<div class="modal-wrap" id="modal-produto">
-  <div class="modal-bg" data-click="fecharModal('modal-produto')"></div>
-  <div class="modal-box">
-    <div class="mt" id="prod-modal-titulo">Novo produto</div>
-    <div class="flow-head">
-      <button class="flow-chip on" type="button" data-flow-chip="prod" data-step="1" data-click="setFlowStep('prod',1)">1 Dados</button>
-      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="2" data-click="setFlowStep('prod',2)">2 Comercial</button>
-      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="3" data-click="setFlowStep('prod',3)">3 Estoque</button>
-      <button class="flow-chip" type="button" data-flow-chip="prod" data-step="4" data-click="setFlowStep('prod',4)">4 Resumo</button>
-    </div>
-
-    <div class="flow-step on" data-flow-id="prod" data-step="1">
-      <div class="fg c2">
-        <div><div class="fl">Nome *</div><input class="inp" id="p-nome" placeholder="Nome do produto"></div>
-        <div><div class="fl">SKU / Codigo</div><input class="inp" id="p-sku" placeholder="PRD-001"></div>
-      </div>
-      <div class="fg c3">
-        <div><div class="fl">Unidade</div><select class="inp sel" id="p-un"><option>un</option><option>kg</option><option>m</option><option>m2</option><option>L</option><option>cx</option><option>pc</option><option>t</option></select></div>
-        <div><div class="fl">Categoria</div><input class="inp" id="p-cat" placeholder="Ex: aco, eletrico"></div>
-        <div><div class="fl">Custo (R$) *</div><input class="inp" id="p-custo" type="number" step="0.01" min="0" data-input="syncProdFromCost()"></div>
-      </div>
-    </div>
-
-    <div class="flow-step" data-flow-id="prod" data-step="2">
-      <div class="modal-split">
-        <div class="panel"><div class="pt">Varejo</div>
-          <div class="fg"><div><div class="fl">Preco direto (R$)</div><input class="inp" id="p-pvv" type="number" step="0.01" min="0" data-input="syncV('pv')"></div></div>
-          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mkv" type="number" step="0.1" data-input="syncV('mk')"></div></div>
-          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mgv" type="number" step="0.1" data-input="syncV('mg')"></div></div>
-          <div class="fg c2">
-            <div><div class="fl">Qtd min. atacado</div><input class="inp" id="p-qtmin" type="number" step="1" min="0"></div>
-            <div><div class="fl">Desc. max. %</div><input class="inp" id="p-dv" type="number" step="0.1" min="0"></div>
-          </div>
-        </div>
-        <div class="panel"><div class="pt">Atacado</div>
-          <div class="fg"><div><div class="fl">Markup %</div><input class="inp" id="p-mka" type="number" step="0.1" data-input="syncA('mk')"></div></div>
-          <div class="fg"><div><div class="fl">Margem sobre venda %</div><input class="inp" id="p-mga" type="number" step="0.1" data-input="syncA('mg')"></div></div>
-          <div class="fg c2">
-            <div><div class="fl">Preco fixo (R$)</div><input class="inp" id="p-pfa" type="number" step="0.01" min="0" data-input="syncA('pv')"></div>
-            <div><div class="fl">Desc. max. %</div><input class="inp" id="p-da" type="number" step="0.1" min="0"></div>
-          </div>
-        </div>
-      </div>
-      <div id="prod-preview" class="panel is-hidden">
-        <div class="pt">Previa de precos</div>
-        <div class="preview-grid-4">
-          <div><div class="preview-kicker">Varejo</div><div class="preview-value" id="ppv-v">-</div></div>
-          <div><div class="preview-kicker">Var. min.</div><div class="preview-value" id="ppv-vmin">-</div></div>
-          <div><div class="preview-kicker">Atacado</div><div class="preview-value" id="ppv-a">-</div></div>
-          <div><div class="preview-kicker">Atac. min.</div><div class="preview-value" id="ppv-amin">-</div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="flow-step" data-flow-id="prod" data-step="3">
-      <div class="fg c3">
-        <div><div class="fl">Estoque minimo</div><input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0"></div>
-        <div><div class="fl">Saldo inicial</div><input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0"></div>
-        <div><div class="fl">Custo medio inicial</div><input class="inp" id="p-ecm" type="number" step="0.01" min="0" placeholder="= custo"></div>
-      </div>
-    </div>
-
-    <div class="flow-step" data-flow-id="prod" data-step="4">
-      <div class="panel">
-        <div class="pt">Resumo</div>
-        <div id="prod-flow-resumo"></div>
-      </div>
-    </div>
-
-    <div class="flow-nav">
-      <button class="btn btn-sm" type="button" id="prod-flow-prev" data-flow="prod" data-flow-nav="-1">< Voltar</button>
-      <button class="btn btn-sm" type="button" id="prod-flow-next" data-flow="prod" data-flow-nav="1">Proximo ></button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" data-click="fecharModal('modal-produto')">Cancelar</button>
-      <button class="btn btn-p" id="prod-flow-save" data-click="salvarProduto()">Salvar produto</button>
-    </div>
-  </div>
-</div>
-
-<!-- Detalhe produto -->
-<div class="modal-wrap" id="modal-prod-det">
-  <div class="modal-bg" data-click="fecharModal('modal-prod-det')"></div>
-  <div class="modal-box" id="prod-det-box"></div>
-</div>
-
-<!-- Cliente -->
-<div class="modal-wrap" id="modal-cliente">
-  <div class="modal-bg" data-click="fecharModal('modal-cliente')"></div>
-  <div class="modal-box">
-    <div class="modal-shell">
-      <div class="modal-shell-head">
-        <div class="mt" id="cli-modal-titulo">Novo cliente</div>
-        <div class="flow-head">
-      <button class="flow-chip on" type="button" data-flow-chip="cli" data-step="1" data-click="setFlowStep('cli',1)">1 Dados</button>
-      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="2" data-click="setFlowStep('cli',2)">2 Comercial</button>
-      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="3" data-click="setFlowStep('cli',3)">3 Marketing</button>
-      <button class="flow-chip" type="button" data-flow-chip="cli" data-step="4" data-click="setFlowStep('cli',4)">4 Resumo</button>
-        </div>
-      </div>
-      <div class="modal-shell-body">
-
-    <div class="flow-step on" data-flow-id="cli" data-step="1">
-      <div class="fg c2"><div><div class="fl">Nome / Razao social *</div><input class="inp" id="c-nome"></div><div><div class="fl">Apelido / Fantasia</div><input class="inp" id="c-apelido"></div></div>
-      <div class="fg c3"><div><div class="fl">CPF / CNPJ</div><input class="inp" id="c-doc"></div><div><div class="fl">Tipo</div><select class="inp sel" id="c-tipo"><option value="PJ">PJ</option><option value="PF">PF</option></select></div><div><div class="fl">Status</div><select class="inp sel" id="c-status"><option value="ativo">Ativo</option><option value="prospecto">Prospecto</option><option value="inativo">Inativo</option></select></div></div>
-      <div class="fg c3">
-        <div><div class="fl">Telefone</div><input class="inp" id="c-tel"></div>
-        <div><div class="fl">WhatsApp</div><input class="inp" id="c-whatsapp"></div>
-        <div><div class="fl">E-mail</div><input class="inp" id="c-email"></div>
-      </div>
-    </div>
-
-    <div class="flow-step" data-flow-id="cli" data-step="2">
-      <div class="fg c2">
-        <div><div class="fl">Responsavel / Comprador</div><input class="inp" id="c-resp"></div>
-        <div>
-          <div class="fl">RCA / Vendedor</div>
-          <div class="fg2">
-            <select class="inp sel input-flex" id="c-rca"><option value="">Sem RCA</option></select>
-            <button class="btn btn-sm" type="button" data-click="abrirModalRca('c-rca')">+ RCA</button>
-          </div>
-        </div>
-      </div>
-      <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preco</div><select class="inp sel" id="c-tab"><option value="padrao">Padrao</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">A vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
-      <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
-    </div>
-
-    <div class="flow-step" data-flow-id="cli" data-step="3">
-      <div class="fg c2">
-        <div><div class="fl">Data de aniversario</div><input class="inp" id="c-aniv" type="date"></div>
-        <div>
-          <div class="fl">Opt-ins de marketing</div>
-          <div class="optins-box fg2">
-            <label class="optin-choice"><input id="c-optin-marketing" type="checkbox"> Marketing</label>
-            <label class="optin-choice"><input id="c-optin-email" type="checkbox"> E-mail</label>
-            <label class="optin-choice"><input id="c-optin-sms" type="checkbox"> SMS</label>
-          </div>
-        </div>
-      </div>
-      <div class="fg"><div><div class="fl">Observacoes</div><textarea class="inp" id="c-obs"></textarea></div></div>
-    </div>
-
-    <div class="flow-step" data-flow-id="cli" data-step="4">
-      <div class="panel">
-        <div class="pt">Resumo</div>
-        <div id="cli-flow-resumo"></div>
-      </div>
-    </div>
-
-        <div class="flow-nav">
-          <button class="btn btn-sm" type="button" id="cli-flow-prev" data-flow="cli" data-flow-nav="-1">< Voltar</button>
-          <button class="btn btn-sm" type="button" id="cli-flow-next" data-flow="cli" data-flow-nav="1">Proximo ></button>
-        </div>
-      </div>
-      <div class="modal-shell-foot">
-        <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">Salvar</button></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Detalhe cliente -->
-<div class="modal-wrap" id="modal-cli-det">
-  <div class="modal-bg" data-click="fecharModal('modal-cli-det')"></div>
-  <div class="modal-box" id="cli-det-box"></div>
-</div>
-
-<!-- Pedido -->
-<div class="modal-wrap" id="modal-pedido">
-  <div class="modal-bg" data-click="fecharModal('modal-pedido')"></div>
-  <div class="modal-box">
-    <div class="modal-shell">
-      <div class="modal-shell-head">
-        <div class="mt" id="ped-modal-titulo">Novo pedido</div>
-      </div>
-      <div class="modal-shell-body">
-        <div class="fg c3">
-          <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente" data-change="syncPedidoRcaComCliente()"><datalist id="cli-dl"></datalist></div>
-          <div>
-            <div class="fl">RCA / Vendedor</div>
-            <div class="fg2">
-              <select class="inp sel input-flex" id="pd-rca"><option value="">Sem RCA</option></select>
-              <button class="btn btn-sm" type="button" data-click="abrirModalRca('pd-rca')">+ RCA</button>
+                <button class="btn btn-p" data-click="salvarPerfilAcesso()">Salvar perfil</button>
+                <button class="btn btn-sm" data-click="removerPerfilAcesso()">
+                  Remover perfil
+                </button>
+              </div>
             </div>
           </div>
-          <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
-          <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
+
+          <div class="card card-shell">
+            <div class="ct">Vínculo usuário x filial</div>
+            <div class="fg c3">
+              <div>
+                <div class="fl">E-mail ou User ID</div>
+                <input
+                  class="inp"
+                  id="ac-v-user-id"
+                  placeholder="usuario@empresa.com ou UUID"
+                  data-change="resolverVinculoAcessoRef()"
+                />
+                <div class="field-help" id="ac-v-user-id-help">
+                  Digite o e-mail do usuário para vincular sem precisar copiar UUID.
+                </div>
+              </div>
+              <div>
+                <div class="fl">Filial</div>
+                <select class="inp sel" id="ac-v-filial"></select>
+              </div>
+              <div class="modal-actions-inline items-end">
+                <button class="btn btn-p" data-click="vincularUsuarioFilial()">Vincular</button>
+                <button class="btn btn-sm" data-click="desvincularUsuarioFilial()">
+                  Desvincular
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-shell">
+            <div class="toolbar toolbar-shell toolbar-shell--section">
+              <div class="ct ct-inline">Perfis cadastrados</div>
+              <div class="toolbar-main">
+                <input
+                  class="inp input-w-lg"
+                  id="ac-busca"
+                  placeholder="Buscar por e-mail ou user_id..."
+                  data-input="renderAcessosPerfis()"
+                />
+                <select
+                  class="inp sel select-w-md"
+                  id="ac-fil-papel"
+                  data-change="renderAcessosPerfis()"
+                >
+                  <option value="todos">Todos papéis</option>
+                  <option value="admin">Admin</option>
+                  <option value="gerente">Gerente</option>
+                  <option value="operador">Operador</option>
+                </select>
+              </div>
+            </div>
+            <div id="ac-perfis-lista"></div>
+            <div class="toolbar-actions" id="ac-perfis-pager"></div>
+          </div>
+
+          <div class="card card-shell">
+            <div class="toolbar toolbar-shell toolbar-shell--section">
+              <div class="ct ct-inline">Vínculos usuário x filial</div>
+              <div class="toolbar-main">
+                <select
+                  class="inp sel select-w-xl"
+                  id="ac-fil-filial"
+                  data-change="renderAcessosVinculos()"
+                >
+                  <option value="todas">Todas filiais</option>
+                </select>
+              </div>
+            </div>
+            <div id="ac-vinculos-lista"></div>
+            <div class="toolbar-actions" id="ac-vinculos-pager"></div>
+          </div>
+
+          <div class="card card-shell">
+            <div class="ct">Auditoria administrativa (RBAC)</div>
+            <div id="ac-auditoria-lista"></div>
+            <div class="toolbar-actions" id="ac-auditoria-pager"></div>
+          </div>
         </div>
-        <div class="fg c3">
-          <div><div class="fl">Pagamento</div><select class="inp sel" id="pd-pgto"><option value="a_vista">A vista</option><option value="pix">PIX</option><option value="boleto">Boleto</option><option value="cartao">Cartao</option><option value="cheque">Cheque</option></select></div>
-          <div><div class="fl">Prazo</div><select class="inp sel" id="pd-prazo"><option value="imediato">Imediato</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div>
-          <div><div class="fl">Tipo de venda</div><select class="inp sel" id="pd-tipo" data-change="preencherValoresItemPedido()"><option value="varejo">Varejo</option><option value="atacado">Atacado</option></select></div>
+
+        <!-- ── NOTIFICAÇÕES ── -->
+        <div class="pg" id="pg-notificacoes">
+          <div id="noti-context"></div>
+          <div class="toolbar toolbar-shell">
+            <div class="toolbar-main">
+              <select
+                class="inp sel select-w-md"
+                id="noti-fil-prioridade"
+                data-change="setFiltroNotificacoes(this.value)"
+              >
+                <option value="todas">Todas prioridades</option>
+                <option value="critico">Crítico</option>
+                <option value="atencao">Atenção</option>
+                <option value="oportunidade">Oportunidade</option>
+              </select>
+            </div>
+          </div>
+          <div class="mg" id="noti-met"></div>
+          <div class="card card-shell">
+            <div class="ct">Inbox unificada por origem</div>
+            <div id="noti-lista"></div>
+          </div>
+          <div class="card card-shell">
+            <div class="ct">Histórico resolvido por origem</div>
+            <div id="noti-historico"></div>
+          </div>
         </div>
-        <div class="div"></div>
-        <div class="ct">Itens do pedido</div>
-        <div class="fg c5 form-gap-bottom-xxs">
-          <div><div class="fl">Produto</div><select class="inp sel" id="pi-prod" data-change="preencherValoresItemPedido()"><option value="">- selecione -</option></select></div>
-          <div><div class="fl">Quantidade</div><input class="inp" id="pi-qty" type="number" min="1" value="1"></div>
-          <div><div class="fl">Preco unit. (R$)</div><input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto"></div>
-          <div><div class="fl">Custo aplicado (R$)</div><input class="inp" id="pi-custo" type="number" step="0.01" placeholder="custo do produto"></div>
-          <div><div class="fl">Origem</div><select class="inp sel" id="pi-orig"><option value="estoque">Estoque</option><option value="fornecedor">Fornecedor</option></select></div>
+      </main>
+
+      <!-- Mobile bottom nav -->
+      <nav class="mob-nav">
+        <div class="mob-items">
+          <button class="mob-btn on" id="mob-dashboard" data-click="ir('dashboard')">
+            <span class="mico">DS</span>Início
+          </button>
+          <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')">
+            <span class="mico">GR</span>Gestão
+          </button>
+          <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')">
+            <span class="mico">PD</span>Pedidos
+          </button>
+          <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')">
+            <span class="mico">CP</span>Camp.
+          </button>
+          <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')">
+            <span class="mico">NT</span>Alertas
+          </button>
+          <button class="mob-btn" id="mob-menu" data-click="abrirSb()">
+            <span class="mico">MN</span>Menu
+          </button>
         </div>
-        <div class="modal-actions modal-actions-inline">
-          <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
-        </div>
-        <div id="ped-itens"></div>
-        <div id="ped-total" class="panel ped-total-panel is-hidden"><div class="fb"><span class="ped-total-label">Total do pedido</span><span class="ped-total-value" id="ped-total-val">-</span></div></div>
-        <div class="fg form-gap-top"><div><div class="fl">Observacoes</div><textarea class="inp" id="pd-obs" rows="2"></textarea></div></div>
-      </div>
-      <div class="modal-shell-foot">
-        <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-pedido')">Cancelar</button>
-          <button class="btn btn-p" data-click="salvarPedido()">Salvar pedido</button>
-        </div>
-      </div>
+      </nav>
+      <button
+        class="mob-menu-fab"
+        id="mob-menu-fab"
+        type="button"
+        aria-label="Abrir menu"
+        title="Abrir menu"
+      >
+        <span class="mob-menu-fab__icon" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
     </div>
-  </div>
-</div>
 
-<!-- Detalhe pedido -->
-<div class="modal-wrap" id="modal-ped-det">
-  <div class="modal-bg" data-click="fecharModal('modal-ped-det')"></div>
-  <div class="modal-box" id="ped-det-box"></div>
-</div>
+    <!-- ══ MODALS ══ -->
 
-<div class="modal-wrap" id="modal-rca">
-  <div class="modal-bg" data-click="fecharModal('modal-rca')"></div>
-  <div class="modal-box">
-    <div class="modal-shell">
-      <div class="modal-shell-head">
-        <div class="mt" id="rca-modal-titulo">Novo RCA</div>
-      </div>
-      <div class="modal-shell-body">
+    <!-- Filial -->
+    <div class="modal-wrap" id="modal-filial">
+      <div class="modal-bg" data-click="fecharModal('modal-filial')"></div>
+      <div class="modal-box">
+        <div class="mt" id="filial-modal-titulo">Nova filial</div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Nome *</div>
+            <input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza" />
+          </div>
+          <div>
+            <div class="fl">Cidade</div>
+            <input class="inp" id="fil-cidade" placeholder="Fortaleza" />
+          </div>
+        </div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Estado</div>
+            <input class="inp" id="fil-estado" placeholder="CE" />
+          </div>
+          <div>
+            <div class="fl">Cor</div>
+            <input class="inp input-color" id="fil-cor" type="color" value="#163F80" />
+          </div>
+        </div>
         <div class="fg">
           <div>
-            <div class="fl">Nome do RCA *</div>
-            <input class="inp" id="rca-nome" placeholder="Ex: Joao Silva">
+            <div class="fl">Endereco (opcional)</div>
+            <input class="inp" id="fil-end" placeholder="Rua, numero, bairro" />
           </div>
         </div>
-      </div>
-      <div class="modal-shell-foot">
+        <div class="div"></div>
         <div class="modal-actions">
-          <button class="btn" type="button" data-click="fecharModal('modal-rca')">Cancelar</button>
-          <button class="btn btn-p" type="button" data-click="salvarRca()">Salvar RCA</button>
+          <button class="btn" data-click="fecharModal('modal-filial')">Cancelar</button>
+          <button class="btn btn-p" data-click="salvarFilial()">Salvar filial</button>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Campanha -->
-<div class="modal-wrap" id="modal-campanha">
-  <div class="modal-bg" data-click="fecharModal('modal-campanha')"></div>
-  <div class="modal-box">
-    <div class="modal-shell">
-      <div class="modal-shell-head">
-        <div class="mt" id="campanha-modal-titulo">Nova campanha</div>
-      </div>
-
-      <div class="modal-shell-body">
-        <div class="fg c2">
-          <div><div class="fl">Nome *</div><input class="inp" id="camp-nome" placeholder="Ex: Aniversariantes do mes" data-input="renderCampanhaPreview()"></div>
-          <div><div class="fl">Tipo</div><select class="inp sel" id="camp-tipo"><option value="aniversario">Aniversário</option></select></div>
+    <!-- Produto -->
+    <div class="modal-wrap" id="modal-produto">
+      <div class="modal-bg" data-click="fecharModal('modal-produto')"></div>
+      <div class="modal-box">
+        <div class="mt" id="prod-modal-titulo">Novo produto</div>
+        <div class="flow-head">
+          <button
+            class="flow-chip on"
+            type="button"
+            data-flow-chip="prod"
+            data-step="1"
+            data-click="setFlowStep('prod',1)"
+          >
+            1 Dados
+          </button>
+          <button
+            class="flow-chip"
+            type="button"
+            data-flow-chip="prod"
+            data-step="2"
+            data-click="setFlowStep('prod',2)"
+          >
+            2 Comercial
+          </button>
+          <button
+            class="flow-chip"
+            type="button"
+            data-flow-chip="prod"
+            data-step="3"
+            data-click="setFlowStep('prod',3)"
+          >
+            3 Estoque
+          </button>
+          <button
+            class="flow-chip"
+            type="button"
+            data-flow-chip="prod"
+            data-step="4"
+            data-click="setFlowStep('prod',4)"
+          >
+            4 Resumo
+          </button>
         </div>
 
-        <div class="fg c3">
+        <div class="flow-step on" data-flow-id="prod" data-step="1">
+          <div class="fg c2">
+            <div>
+              <div class="fl">Nome *</div>
+              <input class="inp" id="p-nome" placeholder="Nome do produto" />
+            </div>
+            <div>
+              <div class="fl">SKU / Codigo</div>
+              <input class="inp" id="p-sku" placeholder="PRD-001" />
+            </div>
+          </div>
+          <div class="fg c3">
+            <div>
+              <div class="fl">Unidade</div>
+              <select class="inp sel" id="p-un">
+                <option>un</option>
+                <option>kg</option>
+                <option>m</option>
+                <option>m2</option>
+                <option>L</option>
+                <option>cx</option>
+                <option>pc</option>
+                <option>t</option>
+              </select>
+            </div>
+            <div>
+              <div class="fl">Categoria</div>
+              <input class="inp" id="p-cat" placeholder="Ex: aco, eletrico" />
+            </div>
+            <div>
+              <div class="fl">Custo (R$) *</div>
+              <input
+                class="inp"
+                id="p-custo"
+                type="number"
+                step="0.01"
+                min="0"
+                data-input="syncProdFromCost()"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step" data-flow-id="prod" data-step="2">
+          <div class="modal-split">
+            <div class="panel">
+              <div class="pt">Varejo</div>
+              <div class="fg">
+                <div>
+                  <div class="fl">Preco direto (R$)</div>
+                  <input
+                    class="inp"
+                    id="p-pvv"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    data-input="syncV('pv')"
+                  />
+                </div>
+              </div>
+              <div class="fg">
+                <div>
+                  <div class="fl">Markup %</div>
+                  <input class="inp" id="p-mkv" type="number" step="0.1" data-input="syncV('mk')" />
+                </div>
+              </div>
+              <div class="fg">
+                <div>
+                  <div class="fl">Margem sobre venda %</div>
+                  <input class="inp" id="p-mgv" type="number" step="0.1" data-input="syncV('mg')" />
+                </div>
+              </div>
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Qtd min. atacado</div>
+                  <input class="inp" id="p-qtmin" type="number" step="1" min="0" />
+                </div>
+                <div>
+                  <div class="fl">Desc. max. %</div>
+                  <input class="inp" id="p-dv" type="number" step="0.1" min="0" />
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="pt">Atacado</div>
+              <div class="fg">
+                <div>
+                  <div class="fl">Markup %</div>
+                  <input class="inp" id="p-mka" type="number" step="0.1" data-input="syncA('mk')" />
+                </div>
+              </div>
+              <div class="fg">
+                <div>
+                  <div class="fl">Margem sobre venda %</div>
+                  <input class="inp" id="p-mga" type="number" step="0.1" data-input="syncA('mg')" />
+                </div>
+              </div>
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Preco fixo (R$)</div>
+                  <input
+                    class="inp"
+                    id="p-pfa"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    data-input="syncA('pv')"
+                  />
+                </div>
+                <div>
+                  <div class="fl">Desc. max. %</div>
+                  <input class="inp" id="p-da" type="number" step="0.1" min="0" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="prod-preview" class="panel is-hidden">
+            <div class="pt">Previa de precos</div>
+            <div class="preview-grid-4">
+              <div>
+                <div class="preview-kicker">Varejo</div>
+                <div class="preview-value" id="ppv-v">-</div>
+              </div>
+              <div>
+                <div class="preview-kicker">Var. min.</div>
+                <div class="preview-value" id="ppv-vmin">-</div>
+              </div>
+              <div>
+                <div class="preview-kicker">Atacado</div>
+                <div class="preview-value" id="ppv-a">-</div>
+              </div>
+              <div>
+                <div class="preview-kicker">Atac. min.</div>
+                <div class="preview-value" id="ppv-amin">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step" data-flow-id="prod" data-step="3">
+          <div class="fg c3">
+            <div>
+              <div class="fl">Estoque minimo</div>
+              <input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0" />
+            </div>
+            <div>
+              <div class="fl">Saldo inicial</div>
+              <input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0" />
+            </div>
+            <div>
+              <div class="fl">Custo medio inicial</div>
+              <input
+                class="inp"
+                id="p-ecm"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="= custo"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step" data-flow-id="prod" data-step="4">
+          <div class="panel">
+            <div class="pt">Resumo</div>
+            <div id="prod-flow-resumo"></div>
+          </div>
+        </div>
+
+        <div class="flow-nav">
+          <button
+            class="btn btn-sm"
+            type="button"
+            id="prod-flow-prev"
+            data-flow="prod"
+            data-flow-nav="-1"
+          >
+            < Voltar
+          </button>
+          <button
+            class="btn btn-sm"
+            type="button"
+            id="prod-flow-next"
+            data-flow="prod"
+            data-flow-nav="1"
+          >
+            Proximo >
+          </button>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-click="fecharModal('modal-produto')">Cancelar</button>
+          <button class="btn btn-p" id="prod-flow-save" data-click="salvarProduto()">
+            Salvar produto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalhe produto -->
+    <div class="modal-wrap" id="modal-prod-det">
+      <div class="modal-bg" data-click="fecharModal('modal-prod-det')"></div>
+      <div class="modal-box" id="prod-det-box"></div>
+    </div>
+
+    <!-- Cliente -->
+    <div class="modal-wrap" id="modal-cliente">
+      <div class="modal-bg" data-click="fecharModal('modal-cliente')"></div>
+      <div class="modal-box">
+        <div class="modal-shell">
+          <div class="modal-shell-head">
+            <div class="mt" id="cli-modal-titulo">Novo cliente</div>
+            <div class="flow-head">
+              <button
+                class="flow-chip on"
+                type="button"
+                data-flow-chip="cli"
+                data-step="1"
+                data-click="setFlowStep('cli',1)"
+              >
+                1 Dados
+              </button>
+              <button
+                class="flow-chip"
+                type="button"
+                data-flow-chip="cli"
+                data-step="2"
+                data-click="setFlowStep('cli',2)"
+              >
+                2 Comercial
+              </button>
+              <button
+                class="flow-chip"
+                type="button"
+                data-flow-chip="cli"
+                data-step="3"
+                data-click="setFlowStep('cli',3)"
+              >
+                3 Marketing
+              </button>
+              <button
+                class="flow-chip"
+                type="button"
+                data-flow-chip="cli"
+                data-step="4"
+                data-click="setFlowStep('cli',4)"
+              >
+                4 Resumo
+              </button>
+            </div>
+          </div>
+          <div class="modal-shell-body">
+            <div class="flow-step on" data-flow-id="cli" data-step="1">
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Nome / Razao social *</div>
+                  <input class="inp" id="c-nome" />
+                </div>
+                <div>
+                  <div class="fl">Apelido / Fantasia</div>
+                  <input class="inp" id="c-apelido" />
+                </div>
+              </div>
+              <div class="fg c3">
+                <div>
+                  <div class="fl">CPF / CNPJ</div>
+                  <input class="inp" id="c-doc" />
+                </div>
+                <div>
+                  <div class="fl">Tipo</div>
+                  <select class="inp sel" id="c-tipo">
+                    <option value="PJ">PJ</option>
+                    <option value="PF">PF</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="fl">Status</div>
+                  <select class="inp sel" id="c-status">
+                    <option value="ativo">Ativo</option>
+                    <option value="prospecto">Prospecto</option>
+                    <option value="inativo">Inativo</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg c3">
+                <div>
+                  <div class="fl">Telefone</div>
+                  <input class="inp" id="c-tel" />
+                </div>
+                <div>
+                  <div class="fl">WhatsApp</div>
+                  <input class="inp" id="c-whatsapp" />
+                </div>
+                <div>
+                  <div class="fl">E-mail</div>
+                  <input class="inp" id="c-email" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flow-step" data-flow-id="cli" data-step="2">
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Responsavel / Comprador</div>
+                  <input class="inp" id="c-resp" />
+                </div>
+                <div>
+                  <div class="fl">RCA / Vendedor</div>
+                  <div class="fg2">
+                    <select class="inp sel input-flex" id="c-rca">
+                      <option value="">Sem RCA</option>
+                    </select>
+                    <button class="btn btn-sm" type="button" data-click="abrirModalRca('c-rca')">
+                      + RCA
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="fg c4">
+                <div>
+                  <div class="fl">Time(s)</div>
+                  <input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu" />
+                </div>
+                <div>
+                  <div class="fl">Segmento</div>
+                  <input class="inp" id="c-seg" />
+                </div>
+                <div>
+                  <div class="fl">Tabela de preco</div>
+                  <select class="inp sel" id="c-tab">
+                    <option value="padrao">Padrao</option>
+                    <option value="especial">Especial</option>
+                    <option value="vip">VIP</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="fl">Prazo de pagamento</div>
+                  <select class="inp sel" id="c-prazo">
+                    <option value="a_vista">A vista</option>
+                    <option value="7d">7 dias</option>
+                    <option value="15d">15 dias</option>
+                    <option value="30d">30 dias</option>
+                    <option value="60d">60 dias</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Cidade</div>
+                  <input class="inp" id="c-cidade" />
+                </div>
+                <div>
+                  <div class="fl">Estado</div>
+                  <input class="inp" id="c-estado" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flow-step" data-flow-id="cli" data-step="3">
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Data de aniversario</div>
+                  <input class="inp" id="c-aniv" type="date" />
+                </div>
+                <div>
+                  <div class="fl">Opt-ins de marketing</div>
+                  <div class="optins-box fg2">
+                    <label class="optin-choice"
+                      ><input id="c-optin-marketing" type="checkbox" /> Marketing</label
+                    >
+                    <label class="optin-choice"
+                      ><input id="c-optin-email" type="checkbox" /> E-mail</label
+                    >
+                    <label class="optin-choice"
+                      ><input id="c-optin-sms" type="checkbox" /> SMS</label
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="fg">
+                <div>
+                  <div class="fl">Observacoes</div>
+                  <textarea class="inp" id="c-obs"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="flow-step" data-flow-id="cli" data-step="4">
+              <div class="panel">
+                <div class="pt">Resumo</div>
+                <div id="cli-flow-resumo"></div>
+              </div>
+            </div>
+
+            <div class="flow-nav">
+              <button
+                class="btn btn-sm"
+                type="button"
+                id="cli-flow-prev"
+                data-flow="cli"
+                data-flow-nav="-1"
+              >
+                < Voltar
+              </button>
+              <button
+                class="btn btn-sm"
+                type="button"
+                id="cli-flow-next"
+                data-flow="cli"
+                data-flow-nav="1"
+              >
+                Proximo >
+              </button>
+            </div>
+          </div>
+          <div class="modal-shell-foot">
+            <div class="modal-actions">
+              <button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button
+              ><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalhe cliente -->
+    <div class="modal-wrap" id="modal-cli-det">
+      <div class="modal-bg" data-click="fecharModal('modal-cli-det')"></div>
+      <div class="modal-box" id="cli-det-box"></div>
+    </div>
+
+    <!-- Pedido -->
+    <div class="modal-wrap" id="modal-pedido">
+      <div class="modal-bg" data-click="fecharModal('modal-pedido')"></div>
+      <div class="modal-box">
+        <div class="modal-shell">
+          <div class="modal-shell-head">
+            <div class="mt" id="ped-modal-titulo">Novo pedido</div>
+          </div>
+          <div class="modal-shell-body">
+            <div class="fg c3">
+              <div>
+                <div class="fl">Cliente *</div>
+                <input
+                  class="inp"
+                  id="pd-cli"
+                  list="cli-dl"
+                  placeholder="Nome do cliente"
+                  data-change="syncPedidoRcaComCliente()"
+                /><datalist id="cli-dl"></datalist>
+              </div>
+              <div>
+                <div class="fl">RCA / Vendedor</div>
+                <div class="fg2">
+                  <select class="inp sel input-flex" id="pd-rca">
+                    <option value="">Sem RCA</option>
+                  </select>
+                  <button class="btn btn-sm" type="button" data-click="abrirModalRca('pd-rca')">
+                    + RCA
+                  </button>
+                </div>
+              </div>
+              <div>
+                <div class="fl">Data</div>
+                <input class="inp" id="pd-data" type="date" />
+              </div>
+              <div>
+                <div class="fl">Status</div>
+                <select class="inp sel" id="pd-status">
+                  <option value="orcamento">Orçamento</option>
+                  <option value="confirmado">Confirmado</option>
+                  <option value="em_separacao">Em separação</option>
+                  <option value="entregue">Entregue</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg c3">
+              <div>
+                <div class="fl">Pagamento</div>
+                <select class="inp sel" id="pd-pgto">
+                  <option value="a_vista">A vista</option>
+                  <option value="pix">PIX</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="cartao">Cartao</option>
+                  <option value="cheque">Cheque</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Prazo</div>
+                <select class="inp sel" id="pd-prazo">
+                  <option value="imediato">Imediato</option>
+                  <option value="7d">7 dias</option>
+                  <option value="15d">15 dias</option>
+                  <option value="30d">30 dias</option>
+                  <option value="60d">60 dias</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Tipo de venda</div>
+                <select class="inp sel" id="pd-tipo" data-change="preencherValoresItemPedido()">
+                  <option value="varejo">Varejo</option>
+                  <option value="atacado">Atacado</option>
+                </select>
+              </div>
+            </div>
+            <div class="div"></div>
+            <div class="ct">Itens do pedido</div>
+            <div class="fg c5 form-gap-bottom-xxs">
+              <div>
+                <div class="fl">Produto</div>
+                <select class="inp sel" id="pi-prod" data-change="preencherValoresItemPedido()">
+                  <option value="">- selecione -</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Quantidade</div>
+                <input class="inp" id="pi-qty" type="number" min="1" value="1" />
+              </div>
+              <div>
+                <div class="fl">Preco unit. (R$)</div>
+                <input class="inp" id="pi-preco" type="number" step="0.01" placeholder="auto" />
+              </div>
+              <div>
+                <div class="fl">Custo aplicado (R$)</div>
+                <input
+                  class="inp"
+                  id="pi-custo"
+                  type="number"
+                  step="0.01"
+                  placeholder="custo do produto"
+                />
+              </div>
+              <div>
+                <div class="fl">Origem</div>
+                <select class="inp sel" id="pi-orig">
+                  <option value="estoque">Estoque</option>
+                  <option value="fornecedor">Fornecedor</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-actions modal-actions-inline">
+              <button class="btn btn-sm" data-click="addItem()">+ Adicionar item</button>
+            </div>
+            <div id="ped-itens"></div>
+            <div id="ped-total" class="panel ped-total-panel is-hidden">
+              <div class="fb">
+                <span class="ped-total-label">Total do pedido</span
+                ><span class="ped-total-value" id="ped-total-val">-</span>
+              </div>
+            </div>
+            <div class="fg form-gap-top">
+              <div>
+                <div class="fl">Observacoes</div>
+                <textarea class="inp" id="pd-obs" rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-shell-foot">
+            <div class="modal-actions">
+              <button class="btn" data-click="fecharModal('modal-pedido')">Cancelar</button>
+              <button class="btn btn-p" data-click="salvarPedido()">Salvar pedido</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalhe pedido -->
+    <div class="modal-wrap" id="modal-ped-det">
+      <div class="modal-bg" data-click="fecharModal('modal-ped-det')"></div>
+      <div class="modal-box" id="ped-det-box"></div>
+    </div>
+
+    <div class="modal-wrap" id="modal-rca">
+      <div class="modal-bg" data-click="fecharModal('modal-rca')"></div>
+      <div class="modal-box">
+        <div class="modal-shell">
+          <div class="modal-shell-head">
+            <div class="mt" id="rca-modal-titulo">Novo RCA</div>
+          </div>
+          <div class="modal-shell-body">
+            <div class="fg">
+              <div>
+                <div class="fl">Nome do RCA *</div>
+                <input class="inp" id="rca-nome" placeholder="Ex: Joao Silva" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-shell-foot">
+            <div class="modal-actions">
+              <button class="btn" type="button" data-click="fecharModal('modal-rca')">
+                Cancelar
+              </button>
+              <button class="btn btn-p" type="button" data-click="salvarRca()">Salvar RCA</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campanha -->
+    <div class="modal-wrap" id="modal-campanha">
+      <div class="modal-bg" data-click="fecharModal('modal-campanha')"></div>
+      <div class="modal-box">
+        <div class="modal-shell">
+          <div class="modal-shell-head">
+            <div class="mt" id="campanha-modal-titulo">Nova campanha</div>
+          </div>
+
+          <div class="modal-shell-body">
+            <div class="fg c2">
+              <div>
+                <div class="fl">Nome *</div>
+                <input
+                  class="inp"
+                  id="camp-nome"
+                  placeholder="Ex: Aniversariantes do mes"
+                  data-input="renderCampanhaPreview()"
+                />
+              </div>
+              <div>
+                <div class="fl">Tipo</div>
+                <select class="inp sel" id="camp-tipo">
+                  <option value="aniversario">Aniversário</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="fg c3">
+              <div>
+                <div class="fl">Canal</div>
+                <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
+                  <option value="whatsapp_manual">WhatsApp manual</option>
+                  <option value="email">E-mail</option>
+                  <option value="sms">SMS</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Dias de antecedencia</div>
+                <input
+                  class="inp"
+                  id="camp-dias"
+                  type="number"
+                  min="0"
+                  step="1"
+                  data-input="renderCampanhaPreview()"
+                />
+              </div>
+              <div>
+                <div class="fl">Ativa</div>
+                <label class="inline-choice inline-choice--tall"
+                  ><input id="camp-ativo" type="checkbox" checked />
+                  <span class="inline-choice__text">Campanha habilitada</span></label
+                >
+              </div>
+            </div>
+
+            <div class="fg c2">
+              <div>
+                <div class="fl">Cupom</div>
+                <input
+                  class="inp"
+                  id="camp-cupom"
+                  placeholder="NIVER10"
+                  data-input="renderCampanhaPreview()"
+                />
+              </div>
+              <div>
+                <div class="fl">Desconto (%)</div>
+                <input
+                  class="inp"
+                  id="camp-desconto"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  data-input="renderCampanhaPreview()"
+                />
+              </div>
+            </div>
+
+            <div class="fg">
+              <div>
+                <div class="fl">Assunto (opcional)</div>
+                <input
+                  class="inp"
+                  id="camp-assunto"
+                  placeholder="Feliz aniversario!"
+                  data-input="renderCampanhaPreview()"
+                />
+              </div>
+            </div>
+            <div class="fg">
+              <div>
+                <div class="fl">Mensagem *</div>
+                <textarea
+                  class="inp"
+                  id="camp-mensagem"
+                  rows="6"
+                  placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"
+                  data-input="renderCampanhaPreview()"
+                ></textarea>
+              </div>
+            </div>
+            <div class="panel camp-preview-panel">
+              <div class="pt">Preview vivo da mensagem</div>
+              <div class="camp-preview-hint">
+                Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.
+              </div>
+              <div class="camp-preview" id="camp-preview"></div>
+            </div>
+          </div>
+
+          <div class="modal-shell-foot">
+            <div class="modal-actions">
+              <button class="btn" data-click="fecharModal('modal-campanha')">Cancelar</button>
+              <button class="btn btn-p" data-click="salvarCampanha()">Salvar campanha</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalhe campanha -->
+    <div class="modal-wrap" id="modal-campanha-det">
+      <div class="modal-bg" data-click="fecharModal('modal-campanha-det')"></div>
+      <div class="modal-box" id="campanha-det-box"></div>
+    </div>
+
+    <!-- Preview WhatsApp campanha -->
+    <div class="modal-wrap" id="modal-campanha-wa-preview">
+      <div class="modal-bg" data-click="fecharModal('modal-campanha-wa-preview')"></div>
+      <div class="modal-box">
+        <div class="mt">Preview WhatsApp</div>
+        <div class="camp-preview-lote-info" id="camp-wa-preview-lote-info" hidden></div>
+        <div id="camp-wa-preview-box"></div>
+        <div class="modal-actions">
+          <button class="btn btn-sm" data-click="copiarNumeroPreviewAtual()">Copiar numero</button>
+          <button class="btn btn-sm" data-click="copiarMensagemPreviewAtual()">
+            Copiar mensagem
+          </button>
+          <button
+            class="btn btn-sm"
+            id="camp-wa-preview-next"
+            data-click="proximoEnvioLoteWhatsApp()"
+            hidden
+          >
+            Proximo do lote
+          </button>
+          <button class="btn" data-click="fecharModal('modal-campanha-wa-preview')">
+            Cancelar
+          </button>
+          <button class="btn btn-p" data-click="abrirWhatsAppPreviewAtual()">Abrir WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrap" id="modal-rel-validacao">
+      <div class="modal-bg" data-click="fecharModal('modal-rel-validacao')"></div>
+      <div class="modal-box">
+        <div class="mt">Validar oportunidade</div>
+        <input type="hidden" id="rel-val-id" />
+        <div class="fg">
           <div>
-            <div class="fl">Canal</div>
-            <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
-              <option value="whatsapp_manual">WhatsApp manual</option>
-              <option value="email">E-mail</option>
-              <option value="sms">SMS</option>
+            <div class="fl">Contexto da oportunidade</div>
+            <div class="panel rel-val-context" id="rel-val-context"></div>
+          </div>
+        </div>
+        <div class="fg">
+          <div>
+            <div class="fl">Pedido vinculado (opcional)</div>
+            <select class="inp sel" id="rel-val-pedido">
+              <option value="">Sem vincular pedido</option>
             </select>
           </div>
-          <div><div class="fl">Dias de antecedencia</div><input class="inp" id="camp-dias" type="number" min="0" step="1" data-input="renderCampanhaPreview()"></div>
-          <div><div class="fl">Ativa</div><label class="inline-choice inline-choice--tall"><input id="camp-ativo" type="checkbox" checked> <span class="inline-choice__text">Campanha habilitada</span></label></div>
         </div>
-
-        <div class="fg c2">
-          <div><div class="fl">Cupom</div><input class="inp" id="camp-cupom" placeholder="NIVER10" data-input="renderCampanhaPreview()"></div>
-          <div><div class="fl">Desconto (%)</div><input class="inp" id="camp-desconto" type="number" min="0" step="0.1" data-input="renderCampanhaPreview()"></div>
+        <div class="fg">
+          <div>
+            <div class="fl">Observação</div>
+            <textarea
+              class="inp"
+              id="rel-val-obs"
+              rows="3"
+              placeholder="Ex: oportunidade convertida em venda apos o jogo"
+            ></textarea>
+          </div>
         </div>
-
-        <div class="fg"><div><div class="fl">Assunto (opcional)</div><input class="inp" id="camp-assunto" placeholder="Feliz aniversario!" data-input="renderCampanhaPreview()"></div></div>
-        <div class="fg"><div><div class="fl">Mensagem *</div><textarea class="inp" id="camp-mensagem" rows="6" placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}" data-input="renderCampanhaPreview()"></textarea></div></div>
-        <div class="panel camp-preview-panel">
-          <div class="pt">Preview vivo da mensagem</div>
-          <div class="camp-preview-hint">Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.</div>
-          <div class="camp-preview" id="camp-preview"></div>
-        </div>
-      </div>
-
-      <div class="modal-shell-foot">
         <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-campanha')">Cancelar</button>
-          <button class="btn btn-p" data-click="salvarCampanha()">Salvar campanha</button>
+          <button class="btn" data-click="fecharModal('modal-rel-validacao')">Cancelar</button>
+          <button class="btn btn-p" data-click="salvarValidacaoOportunidade()">
+            Validar venda
+          </button>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Detalhe campanha -->
-<div class="modal-wrap" id="modal-campanha-det">
-  <div class="modal-bg" data-click="fecharModal('modal-campanha-det')"></div>
-  <div class="modal-box" id="campanha-det-box"></div>
-</div>
-
-<!-- Preview WhatsApp campanha -->
-<div class="modal-wrap" id="modal-campanha-wa-preview">
-  <div class="modal-bg" data-click="fecharModal('modal-campanha-wa-preview')"></div>
-  <div class="modal-box">
-    <div class="mt">Preview WhatsApp</div>
-    <div class="camp-preview-lote-info" id="camp-wa-preview-lote-info" hidden></div>
-    <div id="camp-wa-preview-box"></div>
-    <div class="modal-actions">
-      <button class="btn btn-sm" data-click="copiarNumeroPreviewAtual()">Copiar numero</button>
-      <button class="btn btn-sm" data-click="copiarMensagemPreviewAtual()">Copiar mensagem</button>
-      <button class="btn btn-sm" id="camp-wa-preview-next" data-click="proximoEnvioLoteWhatsApp()" hidden>Proximo do lote</button>
-      <button class="btn" data-click="fecharModal('modal-campanha-wa-preview')">Cancelar</button>
-      <button class="btn btn-p" data-click="abrirWhatsAppPreviewAtual()">Abrir WhatsApp</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-wrap" id="modal-rel-validacao">
-  <div class="modal-bg" data-click="fecharModal('modal-rel-validacao')"></div>
-  <div class="modal-box">
-    <div class="mt">Validar oportunidade</div>
-    <input type="hidden" id="rel-val-id">
-    <div class="fg">
-      <div>
-        <div class="fl">Contexto da oportunidade</div>
-        <div class="panel rel-val-context" id="rel-val-context"></div>
+    <!-- Jogo Dashboard -->
+    <div class="modal-wrap" id="modal-jogo">
+      <div class="modal-bg" data-click="fecharModal('modal-jogo')"></div>
+      <div class="modal-box">
+        <div class="mt">Novo jogo (agenda)</div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Titulo *</div>
+            <input class="inp" id="jogo-titulo" placeholder="Ex: Final do campeonato" />
+          </div>
+          <div>
+            <div class="fl">Campeonato</div>
+            <input class="inp" id="jogo-campeonato" placeholder="Brasileirao" />
+          </div>
+        </div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Mandante</div>
+            <input class="inp" id="jogo-mandante" placeholder="Time A" />
+          </div>
+          <div>
+            <div class="fl">Visitante</div>
+            <input class="inp" id="jogo-visitante" placeholder="Time B" />
+          </div>
+        </div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Data e hora *</div>
+            <input class="inp" id="jogo-data" type="datetime-local" />
+          </div>
+          <div>
+            <div class="fl">Local</div>
+            <input class="inp" id="jogo-local" placeholder="Estadio / TV" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-click="fecharModal('modal-jogo')">Cancelar</button>
+          <button class="btn btn-p" data-click="salvarJogoDashboard()">Salvar jogo</button>
+        </div>
       </div>
     </div>
-    <div class="fg">
-      <div>
-        <div class="fl">Pedido vinculado (opcional)</div>
-        <select class="inp sel" id="rel-val-pedido"><option value="">Sem vincular pedido</option></select>
+
+    <!-- Sincronização de jogos -->
+    <div class="modal-wrap" id="modal-jogo-sync">
+      <div class="modal-bg" data-click="fecharModal('modal-jogo-sync')"></div>
+      <div class="modal-box">
+        <div class="mt">Sincronizar jogos por API</div>
+        <div class="fg">
+          <div>
+            <div class="fl">URL da API (JSON) *</div>
+            <input class="inp" id="jogo-api-url" placeholder="https://..." />
+          </div>
+        </div>
+        <div class="fg2 form-gap-bottom">
+          <button
+            class="btn btn-sm"
+            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')"
+          >
+            Brasil Série A
+          </button>
+          <button
+            class="btn btn-sm"
+            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')"
+          >
+            Brasil Série B
+          </button>
+          <button
+            class="btn btn-sm"
+            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')"
+          >
+            Brasil Série C
+          </button>
+          <button
+            class="btn btn-sm"
+            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')"
+          >
+            Por time
+          </button>
+        </div>
+        <div class="fg">
+          <div>
+            <div class="fl">Filtro por time (opcional)</div>
+            <input class="inp" id="jogo-api-time" placeholder="Ex: Flamengo" />
+          </div>
+        </div>
+        <div class="panel">
+          <div class="pt">Formatos suportados</div>
+          <p class="panel-copy">
+            Array direto ou objeto com `matches`, `response`, `events` ou `data`.
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-click="fecharModal('modal-jogo-sync')">Cancelar</button>
+          <button class="btn btn-p" data-click="sincronizarJogosDashboard()">
+            Sincronizar agora
+          </button>
+        </div>
       </div>
     </div>
-    <div class="fg">
-      <div>
-        <div class="fl">Observação</div>
-        <textarea class="inp" id="rel-val-obs" rows="3" placeholder="Ex: oportunidade convertida em venda apos o jogo"></textarea>
+
+    <!-- Fornecedor cotação -->
+    <div class="modal-wrap" id="modal-forn">
+      <div class="modal-bg" data-click="fecharModal('modal-forn')"></div>
+      <div class="modal-box">
+        <div class="mt">Novo fornecedor</div>
+        <div class="fg">
+          <div>
+            <div class="fl">Nome *</div>
+            <input class="inp" id="fn-nome" />
+          </div>
+        </div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Contato</div>
+            <input class="inp" id="fn-contato" />
+          </div>
+          <div>
+            <div class="fl">Prazo entrega (dias)</div>
+            <input class="inp" id="fn-prazo" type="number" min="0" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-click="fecharModal('modal-forn')">Cancelar</button
+          ><button class="btn btn-p" data-click="salvarForn()">Salvar</button>
+        </div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn" data-click="fecharModal('modal-rel-validacao')">Cancelar</button>
-      <button class="btn btn-p" data-click="salvarValidacaoOportunidade()">Validar venda</button>
-    </div>
-  </div>
-</div>
 
-<!-- Jogo Dashboard -->
-<div class="modal-wrap" id="modal-jogo">
-  <div class="modal-bg" data-click="fecharModal('modal-jogo')"></div>
-  <div class="modal-box">
-    <div class="mt">Novo jogo (agenda)</div>
-    <div class="fg c2">
-      <div><div class="fl">Titulo *</div><input class="inp" id="jogo-titulo" placeholder="Ex: Final do campeonato"></div>
-      <div><div class="fl">Campeonato</div><input class="inp" id="jogo-campeonato" placeholder="Brasileirao"></div>
-    </div>
-    <div class="fg c2">
-      <div><div class="fl">Mandante</div><input class="inp" id="jogo-mandante" placeholder="Time A"></div>
-      <div><div class="fl">Visitante</div><input class="inp" id="jogo-visitante" placeholder="Time B"></div>
-    </div>
-    <div class="fg c2">
-      <div><div class="fl">Data e hora *</div><input class="inp" id="jogo-data" type="datetime-local"></div>
-      <div><div class="fl">Local</div><input class="inp" id="jogo-local" placeholder="Estadio / TV"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" data-click="fecharModal('modal-jogo')">Cancelar</button>
-      <button class="btn btn-p" data-click="salvarJogoDashboard()">Salvar jogo</button>
-    </div>
-  </div>
-</div>
-
-<!-- Sincronização de jogos -->
-<div class="modal-wrap" id="modal-jogo-sync">
-  <div class="modal-bg" data-click="fecharModal('modal-jogo-sync')"></div>
-  <div class="modal-box">
-    <div class="mt">Sincronizar jogos por API</div>
-    <div class="fg">
-      <div>
-        <div class="fl">URL da API (JSON) *</div>
-        <input class="inp" id="jogo-api-url" placeholder="https://...">
+    <!-- Mapeamento de colunas -->
+    <div class="modal-wrap" id="modal-mapa">
+      <div class="modal-bg" data-click="fecharModal('modal-mapa')"></div>
+      <div class="modal-box modal-box-wide">
+        <div class="mt" id="mapa-titulo">Mapear colunas</div>
+        <div id="mapa-body"></div>
       </div>
     </div>
-    <div class="fg2 form-gap-bottom">
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')">Brasil Série A</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')">Brasil Série B</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')">Brasil Série C</button>
-      <button class="btn btn-sm" data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')">Por time</button>
-    </div>
-    <div class="fg">
-      <div>
-        <div class="fl">Filtro por time (opcional)</div>
-        <input class="inp" id="jogo-api-time" placeholder="Ex: Flamengo">
+
+    <!-- Movimentação estoque -->
+    <div class="modal-wrap" id="modal-mov">
+      <div class="modal-bg" data-click="fecharModal('modal-mov')"></div>
+      <div class="modal-box">
+        <div class="mt">Nova movimentação</div>
+        <div class="tc-grid">
+          <div class="tc-card sel" id="tc-entrada" data-click="setTipo('entrada')">
+            <div class="ti">EN</div>
+            <div class="tl">Entrada</div>
+            <div class="ts">Compra / recebimento</div>
+          </div>
+          <div class="tc-card" id="tc-saida" data-click="setTipo('saida')">
+            <div class="ti">SA</div>
+            <div class="tl">Saida</div>
+            <div class="ts">Venda / consumo</div>
+          </div>
+          <div class="tc-card" id="tc-ajuste" data-click="setTipo('ajuste')">
+            <div class="ti">AJ</div>
+            <div class="tl">Ajuste</div>
+            <div class="ts">Inventario</div>
+          </div>
+          <div class="tc-card" id="tc-transf" data-click="setTipo('transf')">
+            <div class="ti">TR</div>
+            <div class="tl">Transferencia</div>
+            <div class="ts">Entre filiais</div>
+          </div>
+        </div>
+        <div class="fg c2">
+          <div>
+            <div class="fl">Produto *</div>
+            <select class="inp sel" id="mov-prod" data-change="movLoadProd()">
+              <option value="">- selecione -</option>
+            </select>
+          </div>
+          <div>
+            <div class="fl">Data</div>
+            <input class="inp" id="mov-data" type="date" />
+          </div>
+        </div>
+        <div id="mov-saldo-panel" class="panel is-hidden">
+          <div class="pt">Posicao atual</div>
+          <div class="panel-inline-metrics">
+            <span>Saldo: <b id="ms-saldo">-</b></span
+            ><span>Custo medio: <b id="ms-cm">-</b></span>
+          </div>
+        </div>
+        <div class="fg c2" id="mov-qty-row">
+          <div>
+            <div class="fl" id="mov-qty-lbl">Quantidade *</div>
+            <input
+              class="inp"
+              id="mov-qty"
+              type="number"
+              min="0"
+              step="0.01"
+              data-input="movCalc()"
+            />
+          </div>
+          <div id="mov-custo-wrap">
+            <div class="fl">Custo unitário (R$)</div>
+            <input class="inp" id="mov-custo" type="number" step="0.01" data-input="movCalc()" />
+          </div>
+        </div>
+        <div id="mov-ajuste-row" class="fg is-hidden">
+          <div>
+            <div class="fl">Saldo real (contagem fisica)</div>
+            <input
+              class="inp"
+              id="mov-real"
+              type="number"
+              step="0.01"
+              data-input="movCalcAjuste()"
+            />
+          </div>
+        </div>
+        <div id="mov-transf-row" class="fg is-hidden">
+          <div>
+            <div class="fl">Filial destino</div>
+            <select class="inp sel" id="mov-dest">
+              <option value="">- selecione -</option>
+            </select>
+          </div>
+        </div>
+        <div id="mov-preview" class="panel is-hidden">
+          <div class="pt">Previa</div>
+          <div class="panel-inline-metrics">
+            <span>Novo saldo: <b id="mp-saldo">-</b></span
+            ><span>Custo medio: <b id="mp-cm">-</b></span
+            ><span id="mp-val-wrap">Total: <b id="mp-val">-</b></span>
+          </div>
+        </div>
+        <div class="fg">
+          <div>
+            <div class="fl">Observação</div>
+            <input class="inp" id="mov-obs" placeholder="NF, pedido, referência..." />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" data-click="fecharModal('modal-mov')">Cancelar</button
+          ><button class="btn btn-p" data-click="salvarMov()">Confirmar</button>
+        </div>
       </div>
     </div>
-    <div class="panel">
-      <div class="pt">Formatos suportados</div>
-      <p class="panel-copy">Array direto ou objeto com `matches`, `response`, `events` ou `data`.</p>
+
+    <!-- Quick Command Palette -->
+    <div class="qcmd-overlay" id="qcmd-overlay">
+      <div class="qcmd-box">
+        <span class="qcmd-prefix">/</span>
+        <input
+          class="qcmd-input"
+          id="quick-cmd"
+          list="quick-cmd-list"
+          placeholder="Navegar ou executar... (Enter para confirmar)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <datalist id="quick-cmd-list"></datalist>
+      </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn" data-click="fecharModal('modal-jogo-sync')">Cancelar</button>
-      <button class="btn btn-p" data-click="sincronizarJogosDashboard()">Sincronizar agora</button>
-    </div>
-  </div>
-</div>
 
-<!-- Fornecedor cotação -->
-<div class="modal-wrap" id="modal-forn">
-  <div class="modal-bg" data-click="fecharModal('modal-forn')"></div>
-  <div class="modal-box">
-    <div class="mt">Novo fornecedor</div>
-    <div class="fg"><div><div class="fl">Nome *</div><input class="inp" id="fn-nome"></div></div>
-    <div class="fg c2"><div><div class="fl">Contato</div><input class="inp" id="fn-contato"></div><div><div class="fl">Prazo entrega (dias)</div><input class="inp" id="fn-prazo" type="number" min="0"></div></div>
-    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-forn')">Cancelar</button><button class="btn btn-p" data-click="salvarForn()">Salvar</button></div>
-  </div>
-</div>
+    <div id="toast"></div>
 
-<!-- Mapeamento de colunas -->
-<div class="modal-wrap" id="modal-mapa">
-  <div class="modal-bg" data-click="fecharModal('modal-mapa')"></div>
-  <div class="modal-box modal-box-wide">
-    <div class="mt" id="mapa-titulo">Mapear colunas</div>
-    <div id="mapa-body"></div>
-  </div>
-</div>
-
-<!-- Movimentação estoque -->
-<div class="modal-wrap" id="modal-mov">
-  <div class="modal-bg" data-click="fecharModal('modal-mov')"></div>
-  <div class="modal-box">
-    <div class="mt">Nova movimentação</div>
-    <div class="tc-grid">
-      <div class="tc-card sel" id="tc-entrada" data-click="setTipo('entrada')"><div class="ti">EN</div><div class="tl">Entrada</div><div class="ts">Compra / recebimento</div></div>
-      <div class="tc-card" id="tc-saida" data-click="setTipo('saida')"><div class="ti">SA</div><div class="tl">Saida</div><div class="ts">Venda / consumo</div></div>
-      <div class="tc-card" id="tc-ajuste" data-click="setTipo('ajuste')"><div class="ti">AJ</div><div class="tl">Ajuste</div><div class="ts">Inventario</div></div>
-      <div class="tc-card" id="tc-transf" data-click="setTipo('transf')"><div class="ti">TR</div><div class="tl">Transferencia</div><div class="ts">Entre filiais</div></div>
-    </div>
-    <div class="fg c2">
-      <div><div class="fl">Produto *</div><select class="inp sel" id="mov-prod" data-change="movLoadProd()"><option value="">- selecione -</option></select></div>
-      <div><div class="fl">Data</div><input class="inp" id="mov-data" type="date"></div>
-    </div>
-    <div id="mov-saldo-panel" class="panel is-hidden"><div class="pt">Posicao atual</div><div class="panel-inline-metrics"><span>Saldo: <b id="ms-saldo">-</b></span><span>Custo medio: <b id="ms-cm">-</b></span></div></div>
-    <div class="fg c2" id="mov-qty-row">
-      <div><div class="fl" id="mov-qty-lbl">Quantidade *</div><input class="inp" id="mov-qty" type="number" min="0" step="0.01" data-input="movCalc()"></div>
-      <div id="mov-custo-wrap"><div class="fl">Custo unitário (R$)</div><input class="inp" id="mov-custo" type="number" step="0.01" data-input="movCalc()"></div>
-    </div>
-    <div id="mov-ajuste-row" class="fg is-hidden"><div><div class="fl">Saldo real (contagem fisica)</div><input class="inp" id="mov-real" type="number" step="0.01" data-input="movCalcAjuste()"></div></div>
-    <div id="mov-transf-row" class="fg is-hidden"><div><div class="fl">Filial destino</div><select class="inp sel" id="mov-dest"><option value="">- selecione -</option></select></div></div>
-    <div id="mov-preview" class="panel is-hidden"><div class="pt">Previa</div><div class="panel-inline-metrics"><span>Novo saldo: <b id="mp-saldo">-</b></span><span>Custo medio: <b id="mp-cm">-</b></span><span id="mp-val-wrap">Total: <b id="mp-val">-</b></span></div></div>
-    <div class="fg"><div><div class="fl">Observação</div><input class="inp" id="mov-obs" placeholder="NF, pedido, referência..."></div></div>
-    <div class="modal-actions"><button class="btn" data-click="fecharModal('modal-mov')">Cancelar</button><button class="btn btn-p" data-click="salvarMov()">Confirmar</button></div>
-  </div>
-</div>
-
-<!-- Quick Command Palette -->
-<div class="qcmd-overlay" id="qcmd-overlay">
-  <div class="qcmd-box">
-    <span class="qcmd-prefix">/</span>
-    <input class="qcmd-input" id="quick-cmd" list="quick-cmd-list" placeholder="Navegar ou executar... (Enter para confirmar)" autocomplete="off" spellcheck="false">
-    <datalist id="quick-cmd-list"></datalist>
-  </div>
-</div>
-
-<div id="toast"></div>
-
-<!-- Link para o seu novo arquivo JS MODULARIZADO -->
-<script src="./src/app/runtime-config.js"></script>
-<script src="./src/app/local-config.js"></script>
-<script type="module" src="./src/app/main.js"></script>
-</body>
+    <!-- Link para o seu novo arquivo JS MODULARIZADO -->
+    <script src="./src/app/runtime-config.js"></script>
+    <script src="./src/app/local-config.js"></script>
+    <script type="module" src="./src/app/main.js"></script>
+  </body>
 </html>

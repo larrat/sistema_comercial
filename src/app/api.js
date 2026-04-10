@@ -27,31 +27,29 @@ const ALLOW_LEGACY_SUPABASE_DEFAULTS = window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULT
 const WARN_CONFIG = window.__SC_WARN_CONFIG__ === true;
 
 const CONFIGURED_SB_URL =
-  window.__SC_SUPABASE_URL__ ||
-  localStorage.getItem('sc_supabase_url') ||
-  '';
+  window.__SC_SUPABASE_URL__ || localStorage.getItem('sc_supabase_url') || '';
 
-const SB_URL =
-  CONFIGURED_SB_URL ||
-  (ALLOW_LEGACY_SUPABASE_DEFAULTS ? LEGACY_DEFAULT_SB_URL : '');
+const SB_URL = CONFIGURED_SB_URL || (ALLOW_LEGACY_SUPABASE_DEFAULTS ? LEGACY_DEFAULT_SB_URL : '');
 
 const CONFIGURED_SB_KEY =
-  window.__SC_SUPABASE_KEY__ ||
-  localStorage.getItem('sc_supabase_key') ||
-  '';
+  window.__SC_SUPABASE_KEY__ || localStorage.getItem('sc_supabase_key') || '';
 
-const SB_KEY =
-  CONFIGURED_SB_KEY ||
-  (ALLOW_LEGACY_SUPABASE_DEFAULTS ? LEGACY_DEFAULT_SB_KEY : '');
+const SB_KEY = CONFIGURED_SB_KEY || (ALLOW_LEGACY_SUPABASE_DEFAULTS ? LEGACY_DEFAULT_SB_KEY : '');
 
 if (WARN_CONFIG && ALLOW_LEGACY_SUPABASE_DEFAULTS) {
-  console.warn('Configuracao: usando defaults legados do Supabase por opt-in explicito. Recomenda-se configurar window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__.');
+  console.warn(
+    'Configuracao: usando defaults legados do Supabase por opt-in explicito. Recomenda-se configurar window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__.'
+  );
 }
 if (WARN_CONFIG && !CONFIGURED_SB_URL && !ALLOW_LEGACY_SUPABASE_DEFAULTS) {
-  console.warn('Configuracao: URL do Supabase ausente. Configure window.__SC_SUPABASE_URL__ ou grave sc_supabase_url no localStorage.');
+  console.warn(
+    'Configuracao: URL do Supabase ausente. Configure window.__SC_SUPABASE_URL__ ou grave sc_supabase_url no localStorage.'
+  );
 }
 if (WARN_CONFIG && !CONFIGURED_SB_KEY && !ALLOW_LEGACY_SUPABASE_DEFAULTS) {
-  console.warn('Configuracao: chave publishable do Supabase ausente. Configure window.__SC_SUPABASE_KEY__ ou grave sc_supabase_key no localStorage.');
+  console.warn(
+    'Configuracao: chave publishable do Supabase ausente. Configure window.__SC_SUPABASE_KEY__ ou grave sc_supabase_key no localStorage.'
+  );
 }
 
 const REQ_TIMEOUT_MS = Number(window.__SC_REQ_TIMEOUT_MS__ || 12000);
@@ -62,7 +60,8 @@ const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
 function ensureSupabaseConfig() {
   if (SB_URL && SB_KEY) return;
   throw createSbError({
-    message: 'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app, ou grave sc_supabase_url/sc_supabase_key no localStorage. Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.',
+    message:
+      'Configuracao obrigatoria do Supabase ausente. Defina window.__SC_SUPABASE_URL__ e window.__SC_SUPABASE_KEY__ antes de iniciar o app, ou grave sc_supabase_url/sc_supabase_key no localStorage. Para transicao local controlada, use window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true.',
     code: 'SB_CONFIG_MISSING',
     source: 'config',
     operation: 'bootstrap',
@@ -74,7 +73,7 @@ function ensureSupabaseConfig() {
  * @param {number} ms
  */
 function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -141,17 +140,43 @@ function createSbError({
  */
 function normalizeSbError(err, fallback = {}) {
   if (err instanceof Error && err.name === 'SbApiError') return /** @type {SbApiError} */ (err);
+  const errStatus =
+    err && typeof err === 'object' && 'status' in err
+      ? /** @type {{status?: number | null}} */ (err).status
+      : undefined;
   return createSbError({
-    message: err instanceof Error ? err.message : fallback.message || 'Falha inesperada na camada SB.',
-    status: err && typeof err === 'object' && 'status' in err ? /** @type {{status?: number | null}} */ (err).status ?? fallback.status ?? null : fallback.status ?? null,
-    code: err && typeof err === 'object' && 'code' in err ? String(/** @type {{code?: unknown}} */ (err).code || fallback.code || 'SB_UNHANDLED') : fallback.code || 'SB_UNHANDLED',
-    source: err && typeof err === 'object' && 'source' in err ? String(/** @type {{source?: unknown}} */ (err).source || fallback.source || 'api') : fallback.source || 'api',
-    operation: err && typeof err === 'object' && 'operation' in err ? String(/** @type {{operation?: unknown}} */ (err).operation || fallback.operation || 'unknown') : fallback.operation || 'unknown',
-    resource: err && typeof err === 'object' && 'resource' in err ? /** @type {{resource?: string | null}} */ (err).resource || fallback.resource || null : fallback.resource || null,
-    details: err && typeof err === 'object' && 'details' in err ? /** @type {{details?: unknown}} */ (err).details || fallback.details || null : fallback.details || null,
-    retryable: err && typeof err === 'object' && 'retryable' in err && typeof /** @type {{retryable?: unknown}} */ (err).retryable === 'boolean'
-      ? /** @type {{retryable: boolean}} */ (err).retryable
-      : !!fallback.retryable,
+    message:
+      err instanceof Error ? err.message : fallback.message || 'Falha inesperada na camada SB.',
+    status: errStatus ?? fallback.status ?? null,
+    code:
+      err && typeof err === 'object' && 'code' in err
+        ? String(/** @type {{code?: unknown}} */ (err).code || fallback.code || 'SB_UNHANDLED')
+        : fallback.code || 'SB_UNHANDLED',
+    source:
+      err && typeof err === 'object' && 'source' in err
+        ? String(/** @type {{source?: unknown}} */ (err).source || fallback.source || 'api')
+        : fallback.source || 'api',
+    operation:
+      err && typeof err === 'object' && 'operation' in err
+        ? String(
+            /** @type {{operation?: unknown}} */ (err).operation || fallback.operation || 'unknown'
+          )
+        : fallback.operation || 'unknown',
+    resource:
+      err && typeof err === 'object' && 'resource' in err
+        ? /** @type {{resource?: string | null}} */ (err).resource || fallback.resource || null
+        : fallback.resource || null,
+    details:
+      err && typeof err === 'object' && 'details' in err
+        ? /** @type {{details?: unknown}} */ (err).details || fallback.details || null
+        : fallback.details || null,
+    retryable:
+      err &&
+      typeof err === 'object' &&
+      'retryable' in err &&
+      typeof (/** @type {{retryable?: unknown}} */ (err).retryable) === 'boolean'
+        ? /** @type {{retryable: boolean}} */ (err).retryable
+        : !!fallback.retryable,
     cause: err
   });
 }
@@ -223,7 +248,9 @@ function buildSupabaseHttpError(status, resource, operation, details) {
  */
 async function toSbResult(promiseOrFactory) {
   try {
-    const data = await (typeof promiseOrFactory === 'function' ? promiseOrFactory() : promiseOrFactory);
+    const data = await (typeof promiseOrFactory === 'function'
+      ? promiseOrFactory()
+      : promiseOrFactory);
     return { ok: true, data, error: null };
   } catch (err) {
     return { ok: false, data: null, error: normalizeSbError(err) };
@@ -371,7 +398,7 @@ async function getActiveAuthSession() {
 
 async function getAuthBearerForRequest() {
   const s = await getActiveAuthSession();
-  return s?.access_token ? ('Bearer ' + s.access_token) : ('Bearer ' + SB_KEY);
+  return s?.access_token ? 'Bearer ' + s.access_token : 'Bearer ' + SB_KEY;
 }
 
 async function sbReq(table, method = 'GET', body = null, params = '') {
@@ -379,9 +406,9 @@ async function sbReq(table, method = 'GET', body = null, params = '') {
   const operation = `${method} ${table}`;
   const prefer =
     method === 'POST'
-      ? (params.includes('on_conflict')
-          ? 'resolution=merge-duplicates,return=representation'
-          : 'return=representation')
+      ? params.includes('on_conflict')
+        ? 'resolution=merge-duplicates,return=representation'
+        : 'return=representation'
       : '';
 
   const authBearer = await getAuthBearerForRequest();
@@ -465,7 +492,11 @@ async function sbRpc(fnName, payload = null) {
   return data;
 }
 
-async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST', query = null } = {}) {
+async function invokeEdgeFunction(
+  functionName,
+  payload = {},
+  { method = 'POST', query = null } = {}
+) {
   ensureSupabaseConfig();
   const session = await getActiveAuthSession();
   if (!session?.access_token) {
@@ -480,13 +511,14 @@ async function invokeEdgeFunction(functionName, payload = {}, { method = 'POST',
   }
 
   let res;
-  const queryString = query && typeof query === 'object'
-    ? `?${new URLSearchParams(
-      Object.entries(query)
-        .filter(([, value]) => value !== undefined && value !== null && value !== '')
-        .map(([key, value]) => [key, String(value)])
-    ).toString()}`
-    : '';
+  const queryString =
+    query && typeof query === 'object'
+      ? `?${new URLSearchParams(
+          Object.entries(query)
+            .filter(([, value]) => value !== undefined && value !== null && value !== '')
+            .map(([key, value]) => [key, String(value)])
+        ).toString()}`
+      : '';
   const url = `${SB_URL}/functions/v1/${functionName}${queryString}`;
   try {
     res = await resilientFetch(url, {
@@ -541,7 +573,7 @@ export const SB = {
   contractVersion: 'v1',
   normalizeError: normalizeSbError,
   toResult: toSbResult,
-  isSbError: err => err?.name === 'SbApiError',
+  isSbError: (err) => err?.name === 'SbApiError',
   signInWithPassword: async ({ email, password }) => {
     ensureSupabaseConfig();
     let res;
@@ -621,13 +653,11 @@ export const SB = {
     return r && r[0] ? r[0] : null;
   },
   /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminOperationData>} */
-  acessosAdminEdge: payload =>
-    invokeEdgeFunction('acessos-admin', payload),
+  acessosAdminEdge: (payload) => invokeEdgeFunction('acessos-admin', payload),
   /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminInviteData>} */
-  convidarUsuarioAcessoEdge: payload =>
-    invokeEdgeFunction('acessos-admin-convite', payload),
+  convidarUsuarioAcessoEdge: (payload) => invokeEdgeFunction('acessos-admin-convite', payload),
   /** @param {Record<string, unknown>} payload @returns {Promise<AccessAdminInviteData>} */
-  reenviarConviteUsuarioAcessoEdge: payload =>
+  reenviarConviteUsuarioAcessoEdge: (payload) =>
     invokeEdgeFunction('acessos-admin-convite', { ...payload, action: 'resend_invite' }),
   /** @param {{ auditoria_limit?: number }} [params] @returns {Promise<AccessAdminReadData>} */
   getAcessosAdminReadEdge: ({ auditoria_limit = 100 } = {}) =>
@@ -636,11 +666,12 @@ export const SB = {
       query: { auditoria_limit }
     }),
   /** @returns {Promise<AccessAdminUser[]>} */
-  getAcessosAdminUsersIndex: () =>
-    sbRpc('admin_access_users_index'),
+  getAcessosAdminUsersIndex: () => sbRpc('admin_access_users_index'),
   /** @param {string} email @returns {Promise<AccessAdminUser | null>} */
-  lookupAccessUserByEmail: async email => {
-    const r = /** @type {AccessAdminUser[] | null} */ (await sbRpc('admin_lookup_user_by_email', { p_email: email }));
+  lookupAccessUserByEmail: async (email) => {
+    const r = /** @type {AccessAdminUser[] | null} */ (
+      await sbRpc('admin_lookup_user_by_email', { p_email: email })
+    );
     return r && r[0] ? r[0] : null;
   },
   upsertUserPerfilEdge: ({ user_id, papel, user_nome = null, user_email = null, detalhes = {} }) =>
@@ -658,7 +689,13 @@ export const SB = {
       alvo_user_id: userId,
       detalhes
     }),
-  upsertUserFilialEdge: ({ user_id, filial_id, user_nome = null, user_email = null, detalhes = {} }) =>
+  upsertUserFilialEdge: ({
+    user_id,
+    filial_id,
+    user_nome = null,
+    user_email = null,
+    detalhes = {}
+  }) =>
     invokeEdgeFunction('acessos-admin', {
       action: 'vinculo_upsert',
       alvo_user_id: user_id,
@@ -711,50 +748,64 @@ export const SB = {
   invokeEdgeFunction,
   /** @returns {Promise<Filial[]>} */
   getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
-  upsertFilial: f => sbReq('filiais', 'POST', f, '?on_conflict=id'),
-  deleteFilial: id => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
+  upsertFilial: (f) => sbReq('filiais', 'POST', f, '?on_conflict=id'),
+  deleteFilial: (id) => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Produto[]>} */
-  getProdutos: fid => sbReq('produtos', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
-  upsertProduto: p => sbReq('produtos', 'POST', p, '?on_conflict=id'),
-  upsertProdutosLote: items => sbReq('produtos', 'POST', items, '?on_conflict=id'),
-  deleteProduto: id => sbReq(`produtos?id=eq.${id}`, 'DELETE'),
+  getProdutos: (fid) => sbReq('produtos', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
+  upsertProduto: (p) => sbReq('produtos', 'POST', p, '?on_conflict=id'),
+  upsertProdutosLote: (items) => sbReq('produtos', 'POST', items, '?on_conflict=id'),
+  deleteProduto: (id) => sbReq(`produtos?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Cliente[]>} */
-  getClientes: fid => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
-  upsertCliente: c => sbReq('clientes', 'POST', c, '?on_conflict=id'),
-  deleteCliente: id => sbReq(`clientes?id=eq.${id}`, 'DELETE'),
+  getClientes: (fid) => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
+  upsertCliente: (c) => sbReq('clientes', 'POST', c, '?on_conflict=id'),
+  deleteCliente: (id) => sbReq(`clientes?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Rca[]>} */
-  getRcas: fid => sbReq('rcas', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
-  upsertRca: r => sbReq('rcas', 'POST', r, '?on_conflict=id'),
-  deleteRca: id => sbReq(`rcas?id=eq.${id}`, 'DELETE'),
+  getRcas: (fid) => sbReq('rcas', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
+  upsertRca: (r) => sbReq('rcas', 'POST', r, '?on_conflict=id'),
+  deleteRca: (id) => sbReq(`rcas?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Pedido[]>} */
-  getPedidos: fid => sbReq('pedidos', 'GET', null, `?filial_id=eq.${fid}&order=num.desc`),
-  upsertPedido: p => sbReq('pedidos', 'POST', p, '?on_conflict=id'),
-  deletePedido: id => sbReq(`pedidos?id=eq.${id}`, 'DELETE'),
+  getPedidos: (fid) => sbReq('pedidos', 'GET', null, `?filial_id=eq.${fid}&order=num.desc`),
+  upsertPedido: (p) => sbReq('pedidos', 'POST', p, '?on_conflict=id'),
+  deletePedido: (id) => sbReq(`pedidos?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Fornecedor[]>} */
-  getFornecedores: fid => sbReq('fornecedores', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
-  upsertFornecedor: f => sbReq('fornecedores', 'POST', f, '?on_conflict=id'),
-  deleteFornecedor: id => sbReq(`fornecedores?id=eq.${id}`, 'DELETE'),
+  getFornecedores: (fid) => sbReq('fornecedores', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
+  upsertFornecedor: (f) => sbReq('fornecedores', 'POST', f, '?on_conflict=id'),
+  deleteFornecedor: (id) => sbReq(`fornecedores?id=eq.${id}`, 'DELETE'),
 
-  getCotPrecos: fid => sbReq('cotacao_precos', 'GET', null, `?filial_id=eq.${fid}`),
-  upsertCotPreco: p => sbReq('cotacao_precos', 'POST', p, '?on_conflict=filial_id,produto_id,fornecedor_id'),
-  upsertCotPrecosLote: items =>
+  getCotPrecos: (fid) => sbReq('cotacao_precos', 'GET', null, `?filial_id=eq.${fid}`),
+  upsertCotPreco: (p) =>
+    sbReq('cotacao_precos', 'POST', p, '?on_conflict=filial_id,produto_id,fornecedor_id'),
+  upsertCotPrecosLote: (items) =>
     sbReq('cotacao_precos', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id'),
   deleteCotPreco: (fid, pid, fnid) =>
-    sbReq(`cotacao_precos?filial_id=eq.${fid}&produto_id=eq.${pid}&fornecedor_id=eq.${fnid}`, 'DELETE'),
+    sbReq(
+      `cotacao_precos?filial_id=eq.${fid}&produto_id=eq.${pid}&fornecedor_id=eq.${fnid}`,
+      'DELETE'
+    ),
 
-  getCotHistorico: fid =>
+  getCotHistorico: (fid) =>
     sbReq('cotacao_historico', 'GET', null, `?filial_id=eq.${fid}&order=mes_ref.desc`),
 
-  upsertCotHistorico: h =>
-    sbReq('cotacao_historico', 'POST', h, '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'),
+  upsertCotHistorico: (h) =>
+    sbReq(
+      'cotacao_historico',
+      'POST',
+      h,
+      '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'
+    ),
 
-  upsertCotHistoricoLote: items =>
-    sbReq('cotacao_historico', 'POST', items, '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'),
+  upsertCotHistoricoLote: (items) =>
+    sbReq(
+      'cotacao_historico',
+      'POST',
+      items,
+      '?on_conflict=filial_id,produto_id,fornecedor_id,mes_ref'
+    ),
 
   getCotLayout: async (filialId, fornecedorId) => {
     const r = await sbReq(
@@ -766,37 +817,34 @@ export const SB = {
     return r && r[0] ? r[0] : null;
   },
 
-  upsertCotLayout: layout =>
+  upsertCotLayout: (layout) =>
     sbReq('cotacao_layouts', 'POST', layout, '?on_conflict=filial_id,fornecedor_id'),
 
-  getCotConfig: fid =>
-    sbReq('cotacao_config', 'GET', null, `?filial_id=eq.${fid}`).then(r => r && r[0]),
+  getCotConfig: (fid) =>
+    sbReq('cotacao_config', 'GET', null, `?filial_id=eq.${fid}`).then((r) => r && r[0]),
 
-  upsertCotConfig: c => sbReq('cotacao_config', 'POST', c, '?on_conflict=filial_id'),
+  upsertCotConfig: (c) => sbReq('cotacao_config', 'POST', c, '?on_conflict=filial_id'),
 
-  getMovs: fid => sbReq('movimentacoes', 'GET', null, `?filial_id=eq.${fid}&order=ts.asc`),
-  insertMov: m => sbReq('movimentacoes', 'POST', m, ''),
-  deleteMov: id => sbReq(`movimentacoes?id=eq.${id}`, 'DELETE'),
+  getMovs: (fid) => sbReq('movimentacoes', 'GET', null, `?filial_id=eq.${fid}&order=ts.asc`),
+  insertMov: (m) => sbReq('movimentacoes', 'POST', m, ''),
+  deleteMov: (id) => sbReq(`movimentacoes?id=eq.${id}`, 'DELETE'),
 
-  getNotas: cid => sbReq('notas', 'GET', null, `?cliente_id=eq.${cid}&order=criado_em.desc`),
-  insertNota: n => sbReq('notas', 'POST', n, ''),
+  getNotas: (cid) => sbReq('notas', 'GET', null, `?cliente_id=eq.${cid}&order=criado_em.desc`),
+  insertNota: (n) => sbReq('notas', 'POST', n, ''),
 
   // =====================================================
   // FIDELIDADE
   // =====================================================
   /** @param {string} clienteId @returns {Promise<ClienteFidelidadeSaldo | null>} */
-  getClienteFidelidadeSaldo: async clienteId => {
-    const r = /** @type {ClienteFidelidadeSaldo[] | null} */ (await sbReq(
-      'cliente_fidelidade_saldos',
-      'GET',
-      null,
-      `?cliente_id=eq.${clienteId}&limit=1`
-    ));
+  getClienteFidelidadeSaldo: async (clienteId) => {
+    const r = /** @type {ClienteFidelidadeSaldo[] | null} */ (
+      await sbReq('cliente_fidelidade_saldos', 'GET', null, `?cliente_id=eq.${clienteId}&limit=1`)
+    );
     return r && r[0] ? r[0] : null;
   },
 
   /** @param {string} clienteId @returns {Promise<ClienteFidelidadeLancamento[]>} */
-  getClienteFidelidadeLancamentos: clienteId =>
+  getClienteFidelidadeLancamentos: (clienteId) =>
     sbReq(
       'cliente_fidelidade_lancamentos',
       'GET',
@@ -805,45 +853,42 @@ export const SB = {
     ),
 
   /** @param {ClienteFidelidadeLancamento} lancamento @returns {Promise<ClienteFidelidadeLancamento[]>} */
-  insertClienteFidelidadeLancamento: lancamento =>
+  insertClienteFidelidadeLancamento: (lancamento) =>
     sbReq('cliente_fidelidade_lancamentos', 'POST', lancamento, ''),
 
   // =====================================================
   // AGENDA DE JOGOS
   // =====================================================
   /** @param {string} fid @returns {Promise<JogoAgenda[]>} */
-  getJogosAgenda: fid =>
+  getJogosAgenda: (fid) =>
     sbReq('jogos_agenda', 'GET', null, `?filial_id=eq.${fid}&order=data_hora.asc`),
 
-  upsertJogoAgenda: j =>
-    sbReq('jogos_agenda', 'POST', j, '?on_conflict=id'),
+  upsertJogoAgenda: (j) => sbReq('jogos_agenda', 'POST', j, '?on_conflict=id'),
 
-  deleteJogoAgenda: id =>
-    sbReq(`jogos_agenda?id=eq.${id}`, 'DELETE'),
+  deleteJogoAgenda: (id) => sbReq(`jogos_agenda?id=eq.${id}`, 'DELETE'),
 
   // =====================================================
   // CAMPANHAS
   // =====================================================
   /** @param {string} fid @returns {Promise<Campanha[]>} */
-  getCampanhas: fid =>
+  getCampanhas: (fid) =>
     sbReq('campanhas', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
 
   /** @returns {Promise<Campanha[]>} */
-  getCampanhasAll: () =>
-    sbReq('campanhas', 'GET', null, '?order=criado_em.desc'),
+  getCampanhasAll: () => sbReq('campanhas', 'GET', null, '?order=criado_em.desc'),
 
   /** @param {string} id @returns {Promise<Campanha | null>} */
-  getCampanhaById: async id => {
+  getCampanhaById: async (id) => {
     const r = await sbReq('campanhas', 'GET', null, `?id=eq.${id}&limit=1`);
     return r && r[0] ? r[0] : null;
   },
 
-  upsertCampanha: c => sbReq('campanhas', 'POST', c, '?on_conflict=id'),
+  upsertCampanha: (c) => sbReq('campanhas', 'POST', c, '?on_conflict=id'),
 
-  deleteCampanha: id => sbReq(`campanhas?id=eq.${id}`, 'DELETE'),
+  deleteCampanha: (id) => sbReq(`campanhas?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Campanha[]>} */
-  getCampanhasAtivasAniversario: fid =>
+  getCampanhasAtivasAniversario: (fid) =>
     sbReq(
       'campanhas',
       'GET',
@@ -855,19 +900,19 @@ export const SB = {
   // CAMPANHA_ENVIOS
   // =====================================================
   /** @param {string} fid @returns {Promise<CampanhaEnvio[]>} */
-  getCampanhaEnvios: fid =>
+  getCampanhaEnvios: (fid) =>
     sbReq('campanha_envios', 'GET', null, `?filial_id=eq.${fid}&order=criado_em.desc`),
 
   /** @param {string} campanhaId @returns {Promise<CampanhaEnvio[]>} */
-  getCampanhaEnviosByCampanha: campanhaId =>
+  getCampanhaEnviosByCampanha: (campanhaId) =>
     sbReq('campanha_envios', 'GET', null, `?campanha_id=eq.${campanhaId}&order=criado_em.desc`),
 
   /** @param {string} clienteId @returns {Promise<CampanhaEnvio[]>} */
-  getCampanhaEnviosByCliente: clienteId =>
+  getCampanhaEnviosByCliente: (clienteId) =>
     sbReq('campanha_envios', 'GET', null, `?cliente_id=eq.${clienteId}&order=criado_em.desc`),
 
   /** @param {string} fid @returns {Promise<CampanhaEnvio[]>} */
-  getCampanhaEnviosPendentes: fid =>
+  getCampanhaEnviosPendentes: (fid) =>
     sbReq(
       'campanha_envios',
       'GET',
@@ -875,34 +920,27 @@ export const SB = {
       `?filial_id=eq.${fid}&status=eq.pendente&order=criado_em.desc`
     ),
 
-  insertCampanhaEnvio: envio =>
-    sbReq('campanha_envios', 'POST', envio, ''),
+  insertCampanhaEnvio: (envio) => sbReq('campanha_envios', 'POST', envio, ''),
 
-  upsertCampanhaEnvio: envio =>
-    sbReq(
-      'campanha_envios',
-      'POST',
-      envio,
-      '?on_conflict=campanha_id,cliente_id,canal,data_ref'
-    ),
+  upsertCampanhaEnvio: (envio) =>
+    sbReq('campanha_envios', 'POST', envio, '?on_conflict=campanha_id,cliente_id,canal,data_ref'),
 
-  updateCampanhaEnvio: envio =>
-    sbReq('campanha_envios', 'POST', envio, '?on_conflict=id'),
+  updateCampanhaEnvio: (envio) => sbReq('campanha_envios', 'POST', envio, '?on_conflict=id'),
 
-  deleteCampanhaEnvio: id =>
-    sbReq(`campanha_envios?id=eq.${id}`, 'DELETE'),
+  deleteCampanhaEnvio: (id) => sbReq(`campanha_envios?id=eq.${id}`, 'DELETE'),
 
   existeCampanhaEnvioNoDia: async ({ campanha_id, cliente_id, canal, data_ref }) => {
-    const r = /** @type {any[] | null} */ (await sbReq(
-      'campanha_envios',
-      'GET',
-      null,
-      `?campanha_id=eq.${campanha_id}&cliente_id=eq.${cliente_id}&canal=eq.${canal}&data_ref=eq.${data_ref}&limit=1`
-    ));
+    const r = /** @type {any[] | null} */ (
+      await sbReq(
+        'campanha_envios',
+        'GET',
+        null,
+        `?campanha_id=eq.${campanha_id}&cliente_id=eq.${cliente_id}&canal=eq.${canal}&data_ref=eq.${data_ref}&limit=1`
+      )
+    );
     return !!(r && r.length);
   },
   /** @param {string} campanha_id @param {boolean} [dry_run=false] @returns {Promise<CampanhaFilaResult>} */
   gerarFilaCampanhaEdge: (campanha_id, dry_run = false) =>
-    invokeEdgeFunction('campanhas-gerar-fila', { campanha_id, dry_run }),
-
+    invokeEdgeFunction('campanhas-gerar-fila', { campanha_id, dry_run })
 };
