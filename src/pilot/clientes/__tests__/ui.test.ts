@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Cliente } from '../../../types/domain';
+import { renderClienteCard, getContatoInfo } from '../ui/ClienteCard';
 import { renderClienteEmptyState } from '../ui/ClienteEmptyState';
 import { renderClienteListItemDesktop, renderClienteListItemMobile } from '../ui/ClienteListItem';
 import { renderClienteList } from '../ui/ClienteList';
@@ -29,6 +30,86 @@ const cli: Cliente = {
 const cliMinimo: Cliente = { id: 'c2', nome: 'Ana Souza', status: 'prospecto' };
 
 const lista: Cliente[] = [cli, cliMinimo];
+
+// ---------------------------------------------------------------------------
+// ClienteCard + getContatoInfo
+// ---------------------------------------------------------------------------
+
+describe('getContatoInfo', () => {
+  it('prioriza WhatsApp', () => {
+    const info = getContatoInfo({
+      id: '1',
+      nome: 'A',
+      whatsapp: '11999990000',
+      tel: '1133330000',
+      status: 'ativo'
+    });
+    expect(info.principal).toContain('WhatsApp');
+    expect(info.badge).toContain('WhatsApp');
+    expect(info.secundario).toContain('Telefone');
+  });
+
+  it('usa telefone quando não há WhatsApp', () => {
+    const info = getContatoInfo({ id: '1', nome: 'A', tel: '1133330000', status: 'ativo' });
+    expect(info.principal).toContain('Telefone');
+    expect(info.badge).toContain('Telefone');
+  });
+
+  it('usa e-mail quando não há telefone', () => {
+    const info = getContatoInfo({ id: '1', nome: 'A', email: 'a@b.com', status: 'ativo' });
+    expect(info.principal).toBe('a@b.com');
+    expect(info.badge).toContain('E-mail');
+  });
+
+  it('retorna "Sem contato" quando não há nenhum', () => {
+    const info = getContatoInfo({ id: '1', nome: 'A', status: 'ativo' });
+    expect(info.principal).toBe('Sem contato');
+    expect(info.badge).toContain('Sem contato');
+  });
+});
+
+describe('renderClienteCard', () => {
+  it('contém nome e iniciais', () => {
+    const html = renderClienteCard(cli);
+    expect(html).toContain('João Silva');
+    expect(html).toContain('JS');
+  });
+
+  it('contém status badge', () => {
+    expect(renderClienteCard(cli)).toContain('Ativo');
+    expect(renderClienteCard({ ...cli, status: 'inativo' })).toContain('Inativo');
+    expect(renderClienteCard({ ...cli, status: 'prospecto' })).toContain('Prospecto');
+  });
+
+  it('inclui badge de segmento quando presente', () => {
+    expect(renderClienteCard(cli)).toContain('Varejo');
+  });
+
+  it('omite badge de segmento quando ausente', () => {
+    const html = renderClienteCard(cliMinimo);
+    const badgeCount = (html.match(/class="bdg bk"/g) || []).length;
+    expect(badgeCount).toBe(0);
+  });
+
+  it('escapa HTML no nome', () => {
+    const html = renderClienteCard({
+      id: 'x',
+      nome: '<img src=x onerror=alert(1)>',
+      status: 'ativo'
+    });
+    expect(html).not.toContain('<img');
+    expect(html).toContain('&lt;img');
+  });
+
+  it('oculta contato secundário quando showSecondaryContact=false', () => {
+    const html = renderClienteCard(cli, { showSecondaryContact: false });
+    expect(html).not.toContain('cliente-card__contact-secondary');
+  });
+
+  it('renderiza cliente mínimo sem erros', () => {
+    expect(() => renderClienteCard(cliMinimo)).not.toThrow();
+  });
+});
 
 // ---------------------------------------------------------------------------
 // ClienteEmptyState

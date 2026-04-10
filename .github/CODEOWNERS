@@ -30,6 +30,9 @@
 # Banco
 /sql/ @larrat
 
+# Piloto de migração
+/src/pilot/ @larrat
+
 # Testes
 /tests/ @larrat
 /playwright.config.js @larrat

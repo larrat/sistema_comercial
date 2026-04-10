@@ -18,6 +18,11 @@ import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 import { buildSkeletonLines } from './runtime-loading.js';
+import {
+  checkClienteIdentity,
+  filterClientesFromLegacy,
+  getClienteSegmentosFromLegacy
+} from '../pilot/clientes/adapter.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -314,6 +319,14 @@ function normalizeDoc(value) {
  *   editId?: string | null;
  * }} [input]
  */
+/** @type {Record<string, string>} */
+const CLI_FIELD_DOM_IDS = {
+  doc: 'c-doc',
+  email: 'c-email',
+  tel: 'c-tel',
+  whatsapp: 'c-whatsapp'
+};
+
 function findClienteDuplicadoIdentidade({
   doc = '',
   email = '',
@@ -321,64 +334,15 @@ function findClienteDuplicadoIdentidade({
   whatsapp = '',
   editId = null
 } = {}) {
-  const checks = [
-    {
-      key: 'doc',
-      label: 'documento',
-      fieldId: 'c-doc',
-      value: normalizeDoc(doc),
-      valuesFromCliente: (cliente) => [normalizeDoc(cliente.doc)]
-    },
-    {
-      key: 'email',
-      label: 'e-mail',
-      fieldId: 'c-email',
-      value: normalizeEmail(email),
-      valuesFromCliente: (cliente) => [normalizeEmail(cliente.email)]
-    },
-    {
-      key: 'tel',
-      label: 'telefone',
-      fieldId: 'c-tel',
-      value: normalizePhone(tel),
-      valuesFromCliente: (cliente) => [
-        normalizePhone(cliente.tel),
-        normalizePhone(cliente.whatsapp)
-      ]
-    },
-    {
-      key: 'whatsapp',
-      label: 'WhatsApp',
-      fieldId: 'c-whatsapp',
-      value: normalizePhone(whatsapp),
-      valuesFromCliente: (cliente) => [
-        normalizePhone(cliente.tel),
-        normalizePhone(cliente.whatsapp)
-      ]
-    }
-  ];
-
-  for (const check of checks) {
-    if (!check.value) continue;
-
-    const clienteDuplicado =
-      C().find((cliente) => {
-        if (!cliente || cliente.id === editId) return false;
-        return check.valuesFromCliente(cliente).filter(Boolean).includes(check.value);
-      }) || null;
-
-    if (clienteDuplicado) {
-      return {
-        key: check.key,
-        label: check.label,
-        fieldId: check.fieldId,
-        value: check.value,
-        cliente: clienteDuplicado
-      };
-    }
-  }
-
-  return null;
+  const conflict = checkClienteIdentity({ id: editId, nome: '', doc, email, tel, whatsapp }, C());
+  if (!conflict) return null;
+  return {
+    key: conflict.field,
+    label: conflict.label,
+    fieldId: CLI_FIELD_DOM_IDS[conflict.field] ?? `c-${conflict.field}`,
+    value: conflict.normalizedValue,
+    cliente: conflict.existing
+  };
 }
 
 /**
@@ -613,7 +577,7 @@ function buildClienteContextualPanelV2(cliente, pedidos) {
 }
 
 function getFilteredClientes() {
-  const q = normTxt(cliDom.get('cli-busca')?.value || '');
+  const q = cliDom.get('cli-busca')?.value || '';
   const seg = cliDom.get('cli-fil-seg')?.value || '';
   const status = cliDom.get('cli-fil-st')?.value || '';
   const clientes = C();
@@ -629,36 +593,9 @@ function getFilteredClientes() {
     return clientesFilterCache.result;
   }
 
-  const result = clientes.filter((cliente) => {
-    const termos = [
-      cliente.nome,
-      cliente.apelido,
-      cliente.seg,
-      cliente.resp,
-      cliente.email,
-      cliente.tel,
-      cliente.whatsapp,
-      parseTimes(cliente.time).join(' ')
-    ]
-      .map(normTxt)
-      .join(' ');
+  const result = filterClientesFromLegacy(clientes, { q, seg, status });
 
-    return (
-      (!q || termos.includes(q)) &&
-      (!seg || cliente.seg === seg) &&
-      (!status || cliente.status === status)
-    );
-  });
-
-  clientesFilterCache = {
-    ref: clientes,
-    len: clientes.length,
-    q,
-    seg,
-    status,
-    result
-  };
-
+  clientesFilterCache = { ref: clientes, len: clientes.length, q, seg, status, result };
   return result;
 }
 
@@ -672,16 +609,9 @@ function getClienteSegmentos() {
     return clientesSegCache.result;
   }
 
-  const result = [...new Set(clientes.map((cliente) => cliente.seg || 'Sem segmento'))].sort(
-    (a, b) => a.localeCompare(b)
-  );
+  const result = getClienteSegmentosFromLegacy(clientes);
 
-  clientesSegCache = {
-    ref: clientes,
-    len: clientes.length,
-    result
-  };
-
+  clientesSegCache = { ref: clientes, len: clientes.length, result };
   return result;
 }
 

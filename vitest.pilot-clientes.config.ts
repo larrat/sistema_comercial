@@ -11,10 +11,10 @@ export default defineConfig({
       include: ['src/pilot/clientes/**/*.ts'],
       exclude: ['src/pilot/clientes/**/*.test.ts', 'src/pilot/clientes/index.ts'],
       thresholds: {
-        lines: 60,
-        functions: 60,
-        statements: 60,
-        branches: 45
+        lines: 85,
+        functions: 95,
+        statements: 80,
+        branches: 75
       }
     }
   }
