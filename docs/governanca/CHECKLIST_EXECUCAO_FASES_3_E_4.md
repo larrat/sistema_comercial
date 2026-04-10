@@ -22,11 +22,11 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Template de ADR criado
 - [x] Template de PR criado
 - [x] Guia de contribuicao inicial criado
-- [ ] ESLint configurado
-- [ ] Prettier configurado
+- [x] ESLint configurado
+- [x] Prettier configurado
 - [ ] Husky configurado
 - [ ] lint-staged configurado
-- [ ] Workflow de CI criado
+- [x] Workflow de CI criado
 - [ ] Gates de merge definidos
 - [ ] Coverage threshold definido
 - [ ] Checklist de code review publicado
@@ -35,22 +35,22 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 
 ### Prioridade 1
 
-- [ ] Criar `.github/PULL_REQUEST_TEMPLATE.md`
-- [ ] Criar `CONTRIBUTING.md`
-- [ ] Criar template de ADR
-- [ ] Criar workflow inicial de CI
+- [x] Criar `.github/PULL_REQUEST_TEMPLATE.md`
+- [x] Criar `CONTRIBUTING.md`
+- [x] Criar template de ADR
+- [x] Criar workflow inicial de CI
 
 ### Prioridade 2
 
-- [ ] Adicionar ESLint
-- [ ] Adicionar Prettier
+- [x] Adicionar ESLint
+- [x] Adicionar Prettier
 - [ ] Adicionar Husky
 - [ ] Adicionar lint-staged
 
 ### Prioridade 3
 
-- [ ] Ativar typecheck no CI
-- [ ] Ativar Playwright no CI
+- [x] Ativar typecheck no CI
+- [x] Ativar Playwright no CI
 - [ ] Definir policy de branch e revisao
 
 ## Registro de execucao
@@ -62,3 +62,8 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Template de ADR criado
 - [x] Template de PR criado
 - [x] Guia inicial de contribuicao criado
+- [x] ESLint inicial configurado
+- [x] Prettier inicial configurado
+- [x] Workflow inicial de CI criado
+- [x] Bug em `notificacoes.js` corrigido durante a ativacao do lint
+- [ ] Repositorio ainda possui pendencias para `lint`, `format:check` e `typecheck`

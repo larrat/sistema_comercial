@@ -411,7 +411,6 @@ export function updateNotiBadge(){
  */
 export function setFiltroNotificacoes(filtro){
   notiFiltroPrioridade = filtro || 'todas';
-  notiPendingResolve.delete(id);
   renderNotificacoes();
 }
 
