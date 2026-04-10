@@ -9962,3 +9962,182 @@ html[data-theme="dark"] .bdg.br{
   border-color:rgba(248,113,113,.34);
   color:#fecaca;
 }
+
+/* =========================================================
+   TABS, CHIPS, INPUTS E HEADERS - PADRAO GLOBAL UNIFICADO
+   ========================================================= */
+
+:root{
+  --tabs-shell-bg: linear-gradient(180deg, rgba(255,255,255,.94), rgba(245,249,255,.98));
+  --tabs-shell-border: color-mix(in srgb, var(--bd) 88%, rgba(255,255,255,.7));
+  --tabs-shell-shadow: 0 10px 24px rgba(15, 34, 66, .05);
+  --tab-active-bg: linear-gradient(180deg, rgba(228,239,255,.98), rgba(214,229,255,1));
+  --tab-active-border: color-mix(in srgb, var(--acc) 32%, rgba(255,255,255,.55));
+  --chip-neutral-bg: linear-gradient(180deg, rgba(255,255,255,.96), rgba(243,247,253,.98));
+  --chip-neutral-border: color-mix(in srgb, var(--bd) 88%, rgba(255,255,255,.7));
+  --chip-active-bg: linear-gradient(180deg, rgba(67,124,255,.98), rgba(36,87,232,1));
+  --chip-active-shadow: 0 12px 26px rgba(37, 99, 235, .18);
+  --field-bg: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,249,254,1));
+  --field-border: color-mix(in srgb, var(--bd) 90%, rgba(255,255,255,.68));
+  --field-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 8px 18px rgba(15, 34, 66, .04);
+  --card-header-accent: color-mix(in srgb, var(--acc) 82%, #7fa4ff);
+}
+
+.tabs{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px;
+  border:1px solid var(--tabs-shell-border);
+  border-radius:999px;
+  background:var(--tabs-shell-bg);
+  box-shadow:var(--tabs-shell-shadow);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+
+.tabs::-webkit-scrollbar{
+  display:none;
+}
+
+.tb,
+.qk,
+.flow-chip{
+  min-height:38px;
+  padding:0 14px;
+  border:1px solid var(--chip-neutral-border);
+  border-radius:999px;
+  background:var(--chip-neutral-bg);
+  color:var(--tx2);
+  font-family:var(--font-sans);
+  font-size:var(--fs-13);
+  font-weight:800;
+  letter-spacing:-.01em;
+  box-shadow:0 8px 18px rgba(15, 34, 66, .05);
+}
+
+.tb{
+  margin-bottom:0;
+}
+
+.tb.on,
+.qk.on,
+.flow-chip.on,
+.tb[aria-selected="true"]{
+  border-color:var(--tab-active-border);
+  background:var(--tab-active-bg);
+  color:var(--tx);
+  box-shadow:0 10px 22px rgba(86, 126, 255, .16);
+}
+
+.flow-chip.on{
+  border-color:transparent;
+  background:var(--chip-active-bg);
+  color:#fff;
+  box-shadow:var(--chip-active-shadow);
+}
+
+.inp,
+.sel,
+textarea.inp,
+input[type="search"]{
+  min-height:46px;
+  padding:0 15px;
+  border:1px solid var(--field-border);
+  border-radius:18px;
+  background:var(--field-bg);
+  color:var(--tx);
+  font-family:var(--font-sans);
+  font-size:var(--fs-14);
+  font-weight:600;
+  box-shadow:var(--field-shadow);
+}
+
+textarea.inp{
+  min-height:110px;
+  padding:13px 15px;
+  line-height:1.5;
+}
+
+.sel{
+  padding-right:42px;
+  background-position:right 14px center;
+}
+
+.inp::placeholder,
+.sel::placeholder,
+textarea.inp::placeholder,
+input[type="search"]::placeholder{
+  color:var(--tx3);
+  font-weight:500;
+}
+
+.ct,
+.context-panel__section-title,
+.mobile-card-head .ct,
+.dash-section-head h3,
+.dash-section-head .ct{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  font-family:var(--font-sans);
+  font-size:var(--fs-12);
+  font-weight:800;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  color:var(--tx3);
+}
+
+.ct::before{
+  width:9px;
+  height:9px;
+  border:none;
+  border-radius:999px;
+  background:var(--card-header-accent);
+  box-shadow:0 0 0 4px color-mix(in srgb, var(--card-header-accent) 16%, transparent);
+}
+
+.mobile-card-head{
+  margin-bottom:12px;
+}
+
+.context-panel__section-title{
+  margin-bottom:0;
+}
+
+.dash-section-head h3{
+  margin:0;
+}
+
+html[data-theme="dark"]{
+  --tabs-shell-bg: linear-gradient(180deg, rgba(23,31,47,.9), rgba(15,22,37,.96));
+  --tabs-shell-border: rgba(148,163,184,.2);
+  --tabs-shell-shadow: 0 14px 28px rgba(2, 8, 23, .28);
+  --tab-active-bg: linear-gradient(180deg, rgba(96,165,250,.24), rgba(59,130,246,.18));
+  --tab-active-border: rgba(96,165,250,.34);
+  --chip-neutral-bg: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  --chip-neutral-border: rgba(148,163,184,.2);
+  --chip-active-bg: linear-gradient(180deg, #7ea2ff 0%, #5d82eb 100%);
+  --field-bg: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+  --field-border: rgba(148,163,184,.22);
+  --field-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 22px rgba(2, 8, 23, .18);
+  --card-header-accent: #7ea2ff;
+}
+
+html[data-theme="dark"] .tb,
+html[data-theme="dark"] .qk,
+html[data-theme="dark"] .flow-chip{
+  color:var(--tx2);
+}
+
+html[data-theme="dark"] .tb.on,
+html[data-theme="dark"] .qk.on,
+html[data-theme="dark"] .tb[aria-selected="true"]{
+  color:#eef4ff;
+}
+
+html[data-theme="dark"] .flow-chip.on{
+  color:#07111f;
+}
