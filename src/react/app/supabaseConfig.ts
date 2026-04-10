@@ -20,7 +20,7 @@ const LEGACY_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
 const LEGACY_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
 
 function resolve(windowKey: string, storageKey: string, legacyValue: string): string {
-  const fromWindow = (window as Record<string, unknown>)[windowKey];
+  const fromWindow = (window as unknown as Record<string, unknown>)[windowKey];
   if (typeof fromWindow === 'string' && fromWindow) return fromWindow;
   const fromStorage = localStorage.getItem(storageKey);
   if (fromStorage) return fromStorage;

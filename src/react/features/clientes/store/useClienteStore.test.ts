@@ -33,6 +33,14 @@ describe('useClienteStore', () => {
     expect(result.current.status).toBe('ready');
   });
 
+  it('setClientes limpa erro anterior ao concluir carga com sucesso', () => {
+    const { result } = renderHook(() => useClienteStore((s) => s));
+    act(() => result.current.setStatus('error', 'Falhou'));
+    act(() => result.current.setClientes(CLIENTES));
+    expect(result.current.status).toBe('ready');
+    expect(result.current.error).toBeNull();
+  });
+
   it('setStatus atualiza status e erro', () => {
     const { result } = renderHook(() => useClienteStore((s) => s));
     act(() => result.current.setStatus('error', 'Falhou'));
@@ -54,6 +62,15 @@ describe('useClienteStore', () => {
     });
     act(() => result.current.clearFiltro());
     expect(result.current.filtro).toEqual({ q: '', seg: '', status: '' });
+  });
+
+  it('clearFiltro preserva lista e status carregados', () => {
+    const { result } = renderHook(() => useClienteStore((s) => s));
+    act(() => result.current.setClientes(CLIENTES));
+    act(() => result.current.setFiltro({ q: 'joao' }));
+    act(() => result.current.clearFiltro());
+    expect(result.current.clientes).toHaveLength(3);
+    expect(result.current.status).toBe('ready');
   });
 });
 

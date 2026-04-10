@@ -25,6 +25,9 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - cobertura do modulo piloto
 - estrutura inicial da nova feature
 - testes unitarios da regra critica
+- store React de clientes coberto por testes
+- hook React de carregamento coberto por testes
+- stores-base de auth e filial cobertos por testes
 
 ### Nao entrar agora
 
@@ -38,3 +41,4 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - a primeira regra critica foi extraida para codigo testavel
 - o coverage do piloto pode ser medido isoladamente
 - o legado continua funcionando sem regressao
+- a primeira fatia React do piloto roda com testes e coverage acima do threshold

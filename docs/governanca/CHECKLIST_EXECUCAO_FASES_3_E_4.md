@@ -78,4 +78,5 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] `clientes` oficializado como modulo piloto
 - [x] Coverage do modulo piloto preparado no CI
 - [x] Migracao do piloto iniciada com regra de identidade extraida para TypeScript testavel
+- [x] Stores e hook React do piloto `clientes` cobertos por testes
 - [ ] Falta aplicar branch protection no GitHub

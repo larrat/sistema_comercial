@@ -43,12 +43,30 @@ function getContatoInfo(cliente: Cliente): ContatoInfo & { badgeCls: string; bad
     };
   }
   if (tel) {
-    return { principal: `Telefone: ${tel}`, secundario: email, badge: '', badgeCls: 'bdg ba', badgeLabel: 'Telefone' };
+    return {
+      principal: `Telefone: ${tel}`,
+      secundario: email,
+      badge: '',
+      badgeCls: 'bdg ba',
+      badgeLabel: 'Telefone'
+    };
   }
   if (email) {
-    return { principal: email, secundario: '', badge: '', badgeCls: 'bdg bb', badgeLabel: 'E-mail' };
+    return {
+      principal: email,
+      secundario: '',
+      badge: '',
+      badgeCls: 'bdg bb',
+      badgeLabel: 'E-mail'
+    };
   }
-  return { principal: 'Sem contato', secundario: '', badge: '', badgeCls: 'bdg br', badgeLabel: 'Sem contato' };
+  return {
+    principal: 'Sem contato',
+    secundario: '',
+    badge: '',
+    badgeCls: 'bdg br',
+    badgeLabel: 'Sem contato'
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -71,18 +89,12 @@ export function ClienteCard({ cliente, onDetalhe, onEditar }: Props) {
       {/* Header */}
       <div className="cliente-card__header">
         <div className="cliente-card__hero">
-          <div
-            className="av"
-            style={{ background: cor.bg, color: cor.c }}
-            aria-hidden="true"
-          >
+          <div className="av" style={{ background: cor.bg, color: cor.c }} aria-hidden="true">
             {initials(cliente.nome)}
           </div>
           <div className="cliente-card__info">
             <div className="cliente-card__nome">{cliente.nome}</div>
-            {cliente.apelido && (
-              <div className="cliente-card__apelido">{cliente.apelido}</div>
-            )}
+            {cliente.apelido && <div className="cliente-card__apelido">{cliente.apelido}</div>}
           </div>
         </div>
         {status && <span className={status.cls}>{status.label}</span>}

@@ -5,7 +5,7 @@ import { useAuthStore } from './app/useAuthStore';
 import { useFilialStore } from './app/useFilialStore';
 
 function ClientesPage() {
-  const { reload } = useClienteData();
+  useClienteData();
 
   return (
     <ClienteListView

@@ -1,10 +1,6 @@
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
-import {
-  useClienteStore,
-  selectFilteredClientes,
-  selectSegmentos
-} from '../store/useClienteStore';
+import { useClienteStore, selectFilteredClientes, selectSegmentos } from '../store/useClienteStore';
 import { ClienteCard } from './ClienteCard';
 
 // ---------------------------------------------------------------------------
