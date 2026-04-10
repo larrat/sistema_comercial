@@ -5,7 +5,9 @@
       "Bash(wc -l e:/Programas/sistema_comercial/sql/*.sql)",
       "Bash(wc -l e:/Programas/sistema_comercial/supabase/functions/_shared/*.ts e:/Programas/sistema_comercial/supabase/functions/*/index.ts)",
       "Bash(wc -l /e/Programas/sistema_comercial/src/app/*.js /e/Programas/sistema_comercial/src/shared/*.js)",
-      "Bash(xargs wc:*)"
+      "Bash(xargs wc:*)",
+      "Bash(xargs ls:*)",
+      "Bash(npx vitest:*)"
     ]
   }
 }
