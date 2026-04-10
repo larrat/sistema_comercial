@@ -1,7 +1,7 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D } from '../app/store.js';
+import { D, invalidatePdCache } from '../app/store.js';
 import { toast } from '../shared/utils.js';
 
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -149,6 +149,7 @@ export async function carregarDadosFilial(filId){
         itens: typeof pedido.itens === 'string' ? JSON.parse(pedido.itens || '[]') : (pedido.itens || [])
       };
     });
+    invalidatePdCache();
     D.rcas[filId] = rcas || [];
     D.fornecedores[filId] = forns || [];
 

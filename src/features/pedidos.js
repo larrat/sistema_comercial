@@ -1,8 +1,9 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, P, PD, C } from '../app/store.js';
+import { D, State, P, PD, C, invalidatePdCache } from '../app/store.js';
 import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../shared/utils.js';
+import { esc } from '../shared/sanitize.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 
@@ -140,7 +141,7 @@ export function renderPedidos(){
       <div class="mobile-card">
         <div class="mobile-card-head">
           <div class="mobile-card-grow">
-            <div class="mobile-card-title">#${p.num} | ${getPedidoClienteLabel(p)}</div>
+            <div class="mobile-card-title">#${p.num} | ${esc(getPedidoClienteLabel(p))}</div>
             <div class="mobile-card-sub">${p.data || 'Sem data'} | ${(p.itens || []).length} item(ns)</div>
           </div>
           <div>${ST_PED[p.status] || ''}</div>
@@ -186,7 +187,7 @@ export function renderPedidos(){
           ${f.map(p => `
             <tr>
               <td class="table-cell-strong table-cell-muted">#${p.num}</td>
-              <td class="table-cell-strong">${getPedidoClienteLabel(p)}</td>
+              <td class="table-cell-strong">${esc(getPedidoClienteLabel(p))}</td>
               <td class="table-cell-muted">${p.data || '-'}</td>
               <td>${p.tipo === 'atacado' ? '<span class="bdg ba">Atacado</span>' : '<span class="bdg bb">Varejo</span>'}</td>
               <td class="table-cell-muted">${(p.itens || []).length}</td>
@@ -496,6 +497,7 @@ export async function salvarPedido(){
     if(!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
     D.pedidos[State.FIL].push(ped);
   }
+  invalidatePdCache();
 
   fecharModal('modal-pedido');
   renderPedMet();
@@ -518,6 +520,7 @@ export async function removerPed(id){
   }
 
   D.pedidos[State.FIL] = PD().filter(p => p.id !== id);
+  invalidatePdCache();
   renderPedMet();
   renderPedidos();
   toast('Removido.');

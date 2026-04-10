@@ -1,7 +1,7 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, C } from '../app/store.js';
+import { D, State, C, invalidatePdCache } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt } from '../shared/utils.js';
 import { measureRender } from '../shared/render-metrics.js';
@@ -1250,6 +1250,7 @@ export async function fecharVendaCliente(pedidoId, clienteId){
 
   if(!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
   D.pedidos[State.FIL] = D.pedidos[State.FIL].map(item => item.id === pedidoId ? atualizado : item);
+  invalidatePdCache();
   renderPedMet();
   renderPedidos();
   toast(`Venda do pedido #${pedido.num} fechada com sucesso.`);

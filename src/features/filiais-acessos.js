@@ -3,6 +3,7 @@
 import { SB } from '../app/api.js';
 import { D, State } from '../app/store.js';
 import { uid, toast, abrirModal, fecharModal, markFieldState, focusField } from '../shared/utils.js';
+import { esc } from '../shared/sanitize.js';
 
 /** @typedef {import('../types/domain').FiliaisAcessosModuleDeps} FiliaisAcessosModuleDeps */
 /** @typedef {import('../types/domain').AccessAdminReadData} AccessAdminReadData */
@@ -316,9 +317,9 @@ export function renderFilLista(){
           <div class="filial-card__dot" style="background:${f.cor}"></div>
           <div>
             <div class="filial-card__title">
-              ${f.nome}${ativa ? ` <span class="bdg bb filial-card__badge">Ativa</span>` : ''}
+              ${esc(f.nome)}${ativa ? ` <span class="bdg bb filial-card__badge">Ativa</span>` : ''}
             </div>
-            <div class="filial-card__sub">${f.cidade || ''}${f.estado ? ' - ' + f.estado : ''}</div>
+            <div class="filial-card__sub">${esc(f.cidade || '')}${f.estado ? ' - ' + esc(f.estado) : ''}</div>
             <div class="filial-card__stats">
               <span class="bdg bk">${prods} produto(s)</span>
               <span class="bdg bk">${clis} cliente(s)</span>
@@ -419,10 +420,10 @@ export function renderAcessosPerfis(){
             <tr>
               <td><code>${pf.user_id}</code></td>
               <td>
-                <div class="table-cell-strong">${String(userMap.get(pf.user_id)?.nome || '').trim() || '-'}</div>
-                <div class="table-cell-caption table-cell-muted">${userMap.get(pf.user_id)?.email || '-'}</div>
+                <div class="table-cell-strong">${esc(String(userMap.get(pf.user_id)?.nome || '').trim()) || '-'}</div>
+                <div class="table-cell-caption table-cell-muted">${esc(userMap.get(pf.user_id)?.email || '') || '-'}</div>
               </td>
-              <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${pf.papel}</span></td>
+              <td><span class="bdg ${pf.papel === 'admin' ? 'br' : pf.papel === 'gerente' ? 'ba' : 'bk'}">${esc(pf.papel)}</span></td>
               <td>${pf.atualizado_em ? new Date(pf.atualizado_em).toLocaleString('pt-BR') : '-'}</td>
               <td class="table-align-right">
                 <button class="btn btn-sm" data-click="preencherPerfilAcesso('${pf.user_id}','${pf.papel}')">Editar</button>
@@ -471,11 +472,11 @@ export function renderAcessosVinculos(){
             <tr>
               <td><code>${v.user_id}</code></td>
               <td>
-                <div class="table-cell-strong">${String(userMap.get(v.user_id)?.nome || '').trim() || '-'}</div>
-                <div class="table-cell-caption table-cell-muted">${userMap.get(v.user_id)?.email || '-'}</div>
+                <div class="table-cell-strong">${esc(String(userMap.get(v.user_id)?.nome || '').trim()) || '-'}</div>
+                <div class="table-cell-caption table-cell-muted">${esc(userMap.get(v.user_id)?.email || '') || '-'}</div>
               </td>
-              <td><span class="bdg bk">${perfMap.get(v.user_id) || 'sem_perfil'}</span></td>
-              <td>${filMap.get(v.filial_id) || v.filial_id}</td>
+              <td><span class="bdg bk">${esc(perfMap.get(v.user_id) || 'sem_perfil')}</span></td>
+              <td>${esc(filMap.get(v.filial_id) || v.filial_id)}</td>
               <td class="table-align-right">
                 <button class="btn btn-sm" data-click="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
               </td>
@@ -517,12 +518,12 @@ export function renderAcessosAuditoria(){
           ${p.slice.map(a => `
             <tr>
               <td>${a.criado_em ? new Date(a.criado_em).toLocaleString('pt-BR') : '-'}</td>
-              <td><span class="bdg ba">${a.acao || 'acao'}</span></td>
-              <td>${a.recurso || '-'}</td>
-              <td><code>${a.ator_user_id || '-'}</code></td>
+              <td><span class="bdg ba">${esc(a.acao || 'acao')}</span></td>
+              <td>${esc(a.recurso || '') || '-'}</td>
+              <td><code>${esc(a.ator_user_id || '') || '-'}</code></td>
               <td>
-                <div><code>${a.alvo_user_id || '-'}</code></div>
-                <div class="table-cell-caption table-cell-muted">${a.alvo_filial_id ? (filMap.get(a.alvo_filial_id) || a.alvo_filial_id) : '-'}</div>
+                <div><code>${esc(a.alvo_user_id || '') || '-'}</code></div>
+                <div class="table-cell-caption table-cell-muted">${a.alvo_filial_id ? esc(filMap.get(a.alvo_filial_id) || a.alvo_filial_id) : '-'}</div>
               </td>
             </tr>
           `).join('')}
