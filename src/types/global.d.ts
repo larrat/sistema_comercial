@@ -1,5 +1,11 @@
 export {};
 
+// Permite import de CSS como side-effect em arquivos TS/TSX
+declare module '*.css' {
+  const _: string;
+  export default _;
+}
+
 declare global {
   interface HTMLElement {
     value?: string;

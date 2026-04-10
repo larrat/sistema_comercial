@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+
+/*
+  Re-exporta os tokens do design system legado para que os
+  componentes React possam consumir via var(--token).
+  O arquivo canônico continua sendo src/styles/style.css.
+*/
+@import '../styles/style.css';

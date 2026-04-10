@@ -9,6 +9,10 @@
     "format:check": "prettier . --check",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "typecheck:strict": "tsc --project tsconfig.strict.json --noEmit",
+    "dev:react": "vite --config vite.config.ts",
+    "build:react": "vite build --config vite.config.ts",
+    "test:react": "vitest run --config vitest.react.config.ts",
+    "test:react:coverage": "vitest run --config vitest.react.config.ts --coverage",
     "test:pilot:clientes": "vitest run --config vitest.pilot-clientes.config.ts",
     "test:pilot:clientes:coverage": "vitest run --config vitest.pilot-clientes.config.ts --coverage",
     "test:e2e": "playwright test",
@@ -32,14 +36,30 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.53.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
     "husky": "^9.1.7",
+    "jsdom": "^29.0.2",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.2",
+    "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.1",
+    "vite": "^8.0.8",
     "vitest": "^4.1.4"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
   }
 }
