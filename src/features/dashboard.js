@@ -7,6 +7,7 @@ import { abrirModal, fecharModal, fmt, fmtK, pct, uid, notify, focusField } from
 import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { getOportunidadesJogosDaFilial, syncHistoricoOportunidadesJogos } from './oportunidades-jogos.js';
+import { buildSkeletonLines } from './runtime-loading.js';
 
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
 /** @typedef {import('../types/domain').DashboardModuleCallbacks} DashboardModuleCallbacks */
@@ -59,6 +60,31 @@ const JOGOS_EXPIRY_GRACE_MS = 3 * 60 * 60 * 1000;
 
 /** @type {Map<string, Promise<unknown>>} */
 const jogosSyncPromises = new Map();
+
+function isRuntimeBootstrapping(){
+  return document.body.dataset.runtimeBootstrap === 'starting';
+}
+
+function renderDashboardSkeleton(){
+  dashDom.text('header', 'dash-desc', 'Carregando painel...', 'dashboard:skeleton-desc');
+  dashDom.html('metrics', 'dash-met', `
+    <div class="sk-grid sk-grid-4">
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+      <div class="sk-card">${buildSkeletonLines(2)}</div>
+    </div>
+  `, 'dashboard:skeleton-metrics');
+  dashDom.html('alerts', 'dash-alerts', `<div class="sk-card">${buildSkeletonLines(3)}</div>`, 'dashboard:skeleton-alerts');
+  dashDom.html('chart', 'dash-chart', `<div class="sk-card">${buildSkeletonLines(5)}</div>`, 'dashboard:skeleton-chart');
+  dashDom.html('status', 'dash-status', `<div class="sk-card">${buildSkeletonLines(4)}</div>`, 'dashboard:skeleton-status');
+  dashDom.html('ranking', 'dash-tp', `<div class="sk-card">${buildSkeletonLines(4)}</div>`, 'dashboard:skeleton-top');
+  dashDom.html('alerts', 'dash-ea', `<div class="sk-card">${buildSkeletonLines(4)}</div>`, 'dashboard:skeleton-alert-list');
+  dashDom.html('ranking', 'dash-forn', `<div class="sk-card">${buildSkeletonLines(4)}</div>`, 'dashboard:skeleton-forn');
+  dashDom.html('chart', 'dash-margem', `<div class="sk-card">${buildSkeletonLines(5)}</div>`, 'dashboard:skeleton-margin');
+  dashDom.html('opps', 'dash-oportunidades', `<div class="sk-card">${buildSkeletonLines(4)}</div>`, 'dashboard:skeleton-opps');
+  dashDom.html('games', 'dash-jogos', `<div class="sk-card">${buildSkeletonLines(4)}</div>`, 'dashboard:skeleton-games');
+}
 
 function getFilialCalendarioId(){
   const filiais = D.filiais || [];
@@ -821,6 +847,14 @@ export function renderDash(){
     const fsel = State.FIL || dashDom.get('dash-fil')?.value || '';
     const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';
     const range = getRange();
+    const pedidosFilial = D.pedidos?.[fsel] || [];
+    const produtosFilial = D.produtos?.[fsel] || [];
+    const clientesFilialBoot = D.clientes?.[fsel] || [];
+
+    if(isRuntimeBootstrapping() && !pedidosFilial.length && !produtosFilial.length && !clientesFilialBoot.length){
+      renderDashboardSkeleton();
+      return;
+    }
 
   const pLabels = {
     semana:'Esta semana',

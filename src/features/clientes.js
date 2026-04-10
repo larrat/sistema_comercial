@@ -8,6 +8,7 @@ import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
+import { buildSkeletonLines } from './runtime-loading.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -18,6 +19,10 @@ import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 let setFlowStepSafe = () => {};
 let clientesFilterCache = null;
 let clientesSegCache = null;
+
+function isRuntimeBootstrapping(){
+  return document.body.dataset.runtimeBootstrap === 'starting';
+}
 
 /** @type {ScreenDom} */
 const cliDom = createScreenDom('clientes', [
@@ -974,6 +979,17 @@ function renderNotasCliente(id){
 export function renderCliMet(){
   return measureRender('clientes', 'metrics', () => {
     const clientes = C();
+    if(isRuntimeBootstrapping() && !clientes.length){
+      cliDom.html('metrics', 'cli-met', `
+        <div class="sk-grid sk-grid-4">
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+        </div>
+      `, 'clientes:skeleton-metrics');
+      return;
+    }
     const ativos = clientes.filter(cliente => cliente.status === 'ativo').length;
     const prospectos = clientes.filter(cliente => cliente.status === 'prospecto').length;
     const segmentos = [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))].length;
@@ -1003,6 +1019,15 @@ export function renderCliMet(){
 export function renderClientes(){
   return measureRender('clientes', 'list', () => {
     const filtrados = getFilteredClientes();
+    if(isRuntimeBootstrapping() && !C().length){
+      cliDom.html(
+        'list',
+        'cli-lista',
+        `<div class="sk-card">${buildSkeletonLines(5)}</div>`,
+        'clientes:skeleton-list'
+      );
+      return;
+    }
     if(!filtrados.length){
       renderEstadoVazio();
       return;

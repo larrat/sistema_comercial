@@ -3,6 +3,7 @@
 import { D, State, P, C } from '../app/store.js';
 import { fmtQ, toast } from '../shared/utils.js';
 import { measureRender } from '../shared/render-metrics.js';
+import { buildSkeletonLines } from './runtime-loading.js';
 
 /** @typedef {import('../types/domain').NotificationItem} NotificationItem */
 /** @typedef {import('../types/domain').NotificacoesModuleDeps} NotificacoesModuleDeps */
@@ -35,6 +36,11 @@ let notiFiltroPrioridade = 'todas';
 /** @type {NotificationItem[]} */
 let notiCache = [];
 let notiBuildCache = null;
+let notiPendingResolve = new Set();
+
+function isRuntimeBootstrapping(){
+  return document.body.dataset.runtimeBootstrap === 'starting';
+}
 
 function getNotiBuildRefs(){
   const filialId = State.FIL || '';
@@ -405,6 +411,7 @@ export function updateNotiBadge(){
  */
 export function setFiltroNotificacoes(filtro){
   notiFiltroPrioridade = filtro || 'todas';
+  notiPendingResolve.delete(id);
   renderNotificacoes();
 }
 
@@ -426,6 +433,8 @@ export function executarNotificacao(id){
 export function resolverNotificacao(id){
   const n = notiCache.find(x => x.id === id);
   if(!n) return;
+  notiPendingResolve.add(id);
+  renderNotificacoes();
   const hist = getNotiHistory();
   if(!hist.find(x => x.id === id)){
     hist.unshift({
@@ -448,6 +457,7 @@ export function resolverNotificacao(id){
  * @param {string} id
  */
 export function reabrirNotificacao(id){
+  notiPendingResolve.delete(id);
   const hist = getNotiHistory().filter(x => x.id !== id);
   setNotiHistory(hist);
   registerNotificationKpiSafe('reabertas', 1);
@@ -462,6 +472,8 @@ export function resolverTodasNotificacoes(){
     toast('Inbox ja esta vazia.');
     return;
   }
+  ativos.forEach(n => notiPendingResolve.add(n.id));
+  renderNotificacoes();
 
   const hist = getNotiHistory();
   const ids = new Set(hist.map(x => x.id));
@@ -484,6 +496,7 @@ export function resolverTodasNotificacoes(){
 
   setNotiHistory(hist.slice(0, 200));
   if(resolvidasNow > 0) registerNotificationKpiSafe('resolvidas', resolvidasNow);
+  ativos.forEach(n => notiPendingResolve.delete(n.id));
   renderNotificacoes();
   updateNotiBadge();
   toast('Todas notificacoes ativas foram resolvidas.');
@@ -607,7 +620,7 @@ function renderNotificacoesAtivasAgrupadas(ativos){
             </div>
             <div class="noti-actions">
               <button class="btn btn-sm" data-click="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
-              <button class="btn btn-sm" data-click="resolverNotificacao('${n.id}')">Resolver</button>
+              <button class="btn btn-sm ${notiPendingResolve.has(n.id) ? 'is-loading' : ''}" ${notiPendingResolve.has(n.id) ? 'disabled' : ''} data-click="resolverNotificacao('${n.id}')">${notiPendingResolve.has(n.id) ? 'Resolvendo' : 'Resolver'}</button>
             </div>
           </div>
         `).join('')}
@@ -656,8 +669,27 @@ export function renderNotificacoes(){
   const lista = document.getElementById('noti-lista');
   const histEl = document.getElementById('noti-historico');
   const fil = document.getElementById('noti-fil-prioridade');
+  const contextEl = document.getElementById('noti-context');
   if(!met || !lista || !histEl) return;
   if(fil) fil.value = notiFiltroPrioridade;
+
+  const produtos = P();
+  const clientes = C();
+  const envios = D.campanhaEnvios?.[State.FIL] || [];
+  if(isRuntimeBootstrapping() && !produtos.length && !clientes.length && !envios.length){
+    if(contextEl) contextEl.innerHTML = `<div class="sk-card">${buildSkeletonLines(3)}</div>`;
+    met.innerHTML = `
+      <div class="sk-grid sk-grid-4">
+        <div class="sk-card">${buildSkeletonLines(2)}</div>
+        <div class="sk-card">${buildSkeletonLines(2)}</div>
+        <div class="sk-card">${buildSkeletonLines(2)}</div>
+        <div class="sk-card">${buildSkeletonLines(2)}</div>
+      </div>
+    `;
+    lista.innerHTML = `<div class="sk-card">${buildSkeletonLines(5)}</div>`;
+    histEl.innerHTML = `<div class="sk-card">${buildSkeletonLines(4)}</div>`;
+    return;
+  }
 
   const all = buildNotificacoes();
   const hist = getNotiHistory();

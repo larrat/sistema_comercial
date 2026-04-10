@@ -5,6 +5,7 @@ import { D, State, C } from '../app/store.js';
 import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../shared/utils.js';
 import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
+import { buildSkeletonLines } from './runtime-loading.js';
 
 /** @typedef {import('../types/domain').Campanha} Campanha */
 /** @typedef {import('../types/domain').CampanhaEnvio} CampanhaEnvio */
@@ -40,6 +41,10 @@ const campUiState = {
 };
 let campanhasStatsCache = null;
 let campanhasHistoricoCache = null;
+
+function isRuntimeBootstrapping(){
+  return document.body.dataset.runtimeBootstrap === 'starting';
+}
 
 /** @returns {Campanha[]} */
 function getCampanhasCache() {
@@ -419,23 +424,29 @@ function agruparHistoricoEnviosPorCampanha(envios) {
 }
 
 async function persistirStatusEnvio(payload) {
-  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
-  if (!updateResult.ok) {
-    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
-    return false;
-  }
-
-  const idx = getEnviosCache().findIndex(e => e.id === payload.id);
-  if (idx >= 0) getEnviosCache()[idx] = payload;
+  const prevEnvios = getEnviosCache().slice();
+  const idx = prevEnvios.findIndex(e => e.id === payload.id);
+  D.campanhaEnvios[State.FIL] = idx >= 0
+    ? prevEnvios.map((envio, i) => (i === idx ? payload : envio))
+    : [payload, ...prevEnvios];
   campUiState.statusFeedback = {
     envioId: payload.id,
     status: payload.status,
     at: Date.now()
   };
-
   renderCampanhasMet();
   renderFilaWhatsApp();
   renderCampanhaEnvios();
+
+  const updateResult = await SB.toResult(() => SB.updateCampanhaEnvio(payload));
+  if (!updateResult.ok) {
+    D.campanhaEnvios[State.FIL] = prevEnvios;
+    renderCampanhasMet();
+    renderFilaWhatsApp();
+    renderCampanhaEnvios();
+    notify(MSG.campanhas.envioUpdateFailed(updateResult.error?.message), SEVERITY.ERROR);
+    return false;
+  }
   return true;
 }
 
@@ -1029,6 +1040,16 @@ export function renderCampanhasMet() {
     const { ativas, resumo } = getCampanhasStats(campanhas, envios);
     const el = document.getElementById('camp-met');
     if (!el) return;
+    if(isRuntimeBootstrapping() && !campanhas.length && !envios.length){
+      el.innerHTML = `
+        <div class="sk-grid sk-grid-3">
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+          <div class="sk-card">${buildSkeletonLines(2)}</div>
+        </div>
+      `;
+      return;
+    }
 
     el.innerHTML = `
       <div class="met metric-card camp-metric-card">
@@ -1059,6 +1080,10 @@ export function renderCampanhas() {
     const envios = getEnviosCache();
     const el = document.getElementById('camp-lista');
     if (!el) return;
+    if(isRuntimeBootstrapping() && !campanhas.length && !envios.length){
+      el.innerHTML = `<div class="sk-card">${buildSkeletonLines(6)}</div>`;
+      return;
+    }
     renderCampDiag();
     const contextHtml = buildCampanhasContextPanelV2(campanhas, envios);
     const { resumo } = getCampanhasStats(campanhas, envios);
@@ -1325,6 +1350,10 @@ export function renderFilaWhatsApp() {
 
   const el = document.getElementById('camp-wa-fila');
   if (!el) return;
+  if(isRuntimeBootstrapping() && !getEnviosCache().length){
+    el.innerHTML = `<div class="sk-card">${buildSkeletonLines(4)}</div>`;
+    return;
+  }
   limparSelecaoFilaInexistente(envios);
 
   if (!envios.length) {
@@ -1564,6 +1593,10 @@ export function renderCampanhaEnvios() {
     const envios = getEnviosHistoricoFiltrados();
     const el = document.getElementById('camp-envios-lista');
     if (!el) return;
+    if(isRuntimeBootstrapping() && !getEnviosCache().length){
+      el.innerHTML = `<div class="sk-card">${buildSkeletonLines(4)}</div>`;
+      return;
+    }
 
     if (!envios.length) {
       el.innerHTML = `<div class="empty"><div class="ico">VR</div><p>Nenhum envio registrado.</p></div>`;
