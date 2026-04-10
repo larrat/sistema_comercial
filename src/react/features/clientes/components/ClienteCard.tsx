@@ -77,9 +77,10 @@ type Props = {
   cliente: Cliente;
   onDetalhe?: (id: string) => void;
   onEditar?: (id: string) => void;
+  onExcluir?: (id: string) => void;
 };
 
-export function ClienteCard({ cliente, onDetalhe, onEditar }: Props) {
+export function ClienteCard({ cliente, onDetalhe, onEditar, onExcluir }: Props) {
   const cor = avatarColor(cliente.nome);
   const contato = getContatoInfo(cliente);
   const status = STATUS_LABEL[cliente.status ?? ''];
@@ -116,7 +117,7 @@ export function ClienteCard({ cliente, onDetalhe, onEditar }: Props) {
       </div>
 
       {/* Ações */}
-      {(onDetalhe || onEditar) && (
+      {(onDetalhe || onEditar || onExcluir) && (
         <div className="mobile-card-actions">
           {onDetalhe && (
             <button className="btn btn-sm" onClick={() => onDetalhe(String(cliente.id))}>
@@ -126,6 +127,11 @@ export function ClienteCard({ cliente, onDetalhe, onEditar }: Props) {
           {onEditar && (
             <button className="btn btn-p btn-sm" onClick={() => onEditar(String(cliente.id))}>
               Editar
+            </button>
+          )}
+          {onExcluir && (
+            <button className="btn btn-r btn-sm" onClick={() => onExcluir(String(cliente.id))}>
+              Excluir
             </button>
           )}
         </div>

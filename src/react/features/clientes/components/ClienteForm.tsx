@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import type { Cliente } from '../../../../types/domain';
 import { useClienteMutations } from '../hooks/useClienteMutations';
+import { ClienteContextSummary } from './ClienteContextSummary';
 
 type ClienteFormValues = {
   nome: string;
@@ -92,6 +93,8 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
           </button>
         )}
       </div>
+
+      {initialCliente && <ClienteContextSummary cliente={initialCliente} />}
 
       <label className="form-field">
         <span>Nome</span>

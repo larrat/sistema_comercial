@@ -30,6 +30,8 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - stores-base de auth e filial cobertos por testes
 - adapter React de leitura/escrita de clientes extraido e coberto por testes
 - formulario React de cliente plugado no adapter com fluxo de salvar/editar
+- remocao real de cliente plugada no piloto React
+- resumo contextual do cliente adicionado para aproximar o fluxo do legado
 
 ### Nao entrar agora
 
@@ -46,3 +48,4 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - a primeira fatia React do piloto roda com testes e coverage acima do threshold
 - o contrato de leitura/escrita ja pode ser plugado na UI nova sem depender de `fetch` espalhado
 - a primeira UI real de escrita ja salva e edita clientes pelo fluxo React
+- o piloto React ja cobre leitura, escrita, edicao e exclusao com testes

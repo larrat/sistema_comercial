@@ -103,6 +103,13 @@ describe('ClienteCard', () => {
     expect(onEditar).toHaveBeenCalledWith('c1');
   });
 
+  it('chama onExcluir com o id ao clicar em Excluir', async () => {
+    const onExcluir = vi.fn();
+    render(<ClienteCard cliente={cli} onExcluir={onExcluir} />);
+    await userEvent.click(screen.getByText('Excluir'));
+    expect(onExcluir).toHaveBeenCalledWith('c1');
+  });
+
   it('renderiza cliente mínimo sem erros', () => {
     expect(() => render(<ClienteCard cliente={cliMinimo} />)).not.toThrow();
   });

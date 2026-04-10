@@ -9,7 +9,7 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useClienteStore } from '../store/useClienteStore';
 import { ClientesPilotPage } from './ClientesPilotPage';
-import { saveCliente } from '../services/clientesApi';
+import { deleteCliente, saveCliente } from '../services/clientesApi';
 
 vi.mock('../../../app/supabaseConfig', () => ({
   getSupabaseConfig: vi.fn()
@@ -19,12 +19,14 @@ vi.mock('../services/clientesApi', async () => {
   const actual = await vi.importActual('../services/clientesApi');
   return {
     ...actual,
-    saveCliente: vi.fn()
+    saveCliente: vi.fn(),
+    deleteCliente: vi.fn()
   };
 });
 
 const getSupabaseConfigMock = vi.mocked(getSupabaseConfig);
 const saveClienteMock = vi.mocked(saveCliente);
+const deleteClienteMock = vi.mocked(deleteCliente);
 
 const CLIENTES: Cliente[] = [
   { id: '1', nome: 'Maria Souza', status: 'ativo', seg: 'Varejo', email: 'maria@a.com' }
@@ -148,5 +150,39 @@ describe('ClientesPilotPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Maria Souza Premium')).toBeInTheDocument();
     });
+  });
+
+  it('remove cliente da lista pelo fluxo real de exclusao', async () => {
+    deleteClienteMock.mockResolvedValue(undefined);
+
+    render(<ClientesPilotPage />);
+
+    await userEvent.click(screen.getByText('Excluir'));
+
+    await waitFor(() => {
+      expect(deleteClienteMock).toHaveBeenCalledWith(
+        {
+          url: 'https://example.supabase.co',
+          key: 'public-key',
+          token: 'token-1',
+          filialId: 'filial-1'
+        },
+        '1'
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Maria Souza')).not.toBeInTheDocument();
+    });
+  });
+
+  it('mostra resumo contextual ao abrir um cliente existente', async () => {
+    render(<ClientesPilotPage />);
+
+    await userEvent.click(screen.getByText('Detalhes'));
+
+    expect(screen.getByTestId('cliente-context-summary')).toBeInTheDocument();
+    expect(screen.getByText('Resumo do cliente')).toBeInTheDocument();
+    expect(screen.getByText(/Segmento: Varejo/)).toBeInTheDocument();
   });
 });

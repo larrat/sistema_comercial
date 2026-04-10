@@ -23,6 +23,7 @@ export type ClienteStoreActions = {
   setFiltro: (patch: Partial<ClienteFiltro>) => void;
   clearFiltro: () => void;
   upsertCliente: (cliente: Cliente) => void;
+  removeCliente: (clienteId: string) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -63,5 +64,11 @@ export const useClienteStore = create<ClienteStoreState & ClienteStoreActions>((
         status: 'ready',
         error: null
       };
-    })
+    }),
+  removeCliente: (clienteId) =>
+    set((state) => ({
+      clientes: state.clientes.filter((item) => item.id !== clienteId),
+      status: 'ready',
+      error: null
+    }))
 }));

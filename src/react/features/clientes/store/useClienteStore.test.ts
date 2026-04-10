@@ -102,6 +102,15 @@ describe('useClienteStore', () => {
     expect(result.current.clientes.find((item) => item.id === '2')?.email).toBe('nova@a.com');
     expect(result.current.error).toBeNull();
   });
+
+  it('removeCliente remove o registro e preserva estado pronto', () => {
+    const { result } = renderHook(() => useClienteStore((s) => s));
+    act(() => result.current.setClientes(CLIENTES));
+    act(() => result.current.removeCliente('2'));
+    expect(result.current.clientes.map((item) => item.id)).toEqual(['1', '3']);
+    expect(result.current.status).toBe('ready');
+    expect(result.current.error).toBeNull();
+  });
 });
 
 describe('selectFilteredClientes', () => {

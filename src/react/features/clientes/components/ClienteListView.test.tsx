@@ -128,6 +128,14 @@ describe('ClienteListView', () => {
     expect(onDetalhe).toHaveBeenCalledWith('1');
   });
 
+  it('propaga onExcluir ao ClienteCard', async () => {
+    carregarClientes();
+    const onExcluir = vi.fn();
+    render(<ClienteListView onExcluir={onExcluir} />);
+    await userEvent.click(screen.getAllByText('Excluir')[0]);
+    expect(onExcluir).toHaveBeenCalledWith('1');
+  });
+
   it('não mostra botão Novo quando onNovoCliente ausente', () => {
     carregarClientes();
     render(<ClienteListView />);

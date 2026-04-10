@@ -124,9 +124,10 @@ type Props = {
   onNovoCliente?: () => void;
   onDetalhe?: (id: string) => void;
   onEditar?: (id: string) => void;
+  onExcluir?: (id: string) => void;
 };
 
-export function ClienteListView({ onNovoCliente, onDetalhe, onEditar }: Props) {
+export function ClienteListView({ onNovoCliente, onDetalhe, onEditar, onExcluir }: Props) {
   const status = useClienteStore((s) => s.status);
   const error = useClienteStore((s) => s.error);
   const clientes = useClienteStore(useShallow((s) => s.clientes));
@@ -177,6 +178,7 @@ export function ClienteListView({ onNovoCliente, onDetalhe, onEditar }: Props) {
               cliente={cliente}
               onDetalhe={onDetalhe}
               onEditar={onEditar}
+              onExcluir={onExcluir}
             />
           ))}
         </div>
