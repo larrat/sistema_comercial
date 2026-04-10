@@ -1,61 +1,57 @@
 import { useEffect } from 'react';
 import { ClienteListView } from './features/clientes/components/ClienteListView';
-import { useClienteStore } from './features/clientes/store/useClienteStore';
-import type { Cliente } from '../types/domain';
+import { useClienteData } from './features/clientes/hooks/useClienteData';
+import { useAuthStore } from './app/useAuthStore';
+import { useFilialStore } from './app/useFilialStore';
 
-// Dados demo — substituir por chamada real à API quando auth estiver disponível no React
-const DEMO_CLIENTES: Cliente[] = [
-  {
-    id: 'c1',
-    nome: 'João Silva',
-    apelido: 'Joãozinho',
-    status: 'ativo',
-    seg: 'Varejo',
-    whatsapp: '11999990000',
-    tel: '1133330000',
-    email: 'joao@empresa.com',
-    optin_marketing: true,
-    data_aniversario: '1990-04-10'
-  },
-  {
-    id: 'c2',
-    nome: 'Maria Souza',
-    status: 'prospecto',
-    seg: 'Atacado',
-    email: 'maria@empresa.com'
-  },
-  {
-    id: 'c3',
-    nome: 'Pedro Café',
-    status: 'inativo',
-    tel: '21988880000'
-  },
-  {
-    id: 'c4',
-    nome: 'Ana Lima',
-    status: 'ativo',
-    seg: 'Varejo',
-    whatsapp: '11988880000',
-    optin_marketing: true
-  }
-];
+function ClientesPage() {
+  const { reload } = useClienteData();
+
+  return (
+    <ClienteListView
+      onNovoCliente={() => alert('Novo cliente — a implementar')}
+      onDetalhe={(id) => alert(`Detalhes: ${id}`)}
+      onEditar={(id) => alert(`Editar: ${id} — recarregue após salvar`)}
+    />
+  );
+}
 
 export function App() {
-  const setClientes = useClienteStore((s) => s.setClientes);
+  const hydrateAuth = useAuthStore((s) => s.hydrate);
+  const hydrateFilial = useFilialStore((s) => s.hydrate);
+  const authStatus = useAuthStore((s) => s.status);
 
+  // Hidrata auth e filial na montagem — lê do localStorage do legado
   useEffect(() => {
-    // Simula carregamento assíncrono
-    const t = setTimeout(() => setClientes(DEMO_CLIENTES), 400);
-    return () => clearTimeout(t);
-  }, [setClientes]);
+    hydrateFilial();
+    hydrateAuth();
+  }, [hydrateAuth, hydrateFilial]);
+
+  if (authStatus === 'unknown') {
+    return (
+      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+        <div className="sk-card" style={{ width: 320 }}>
+          <div className="sk-line" />
+          <div className="sk-line" />
+        </div>
+      </div>
+    );
+  }
+
+  if (authStatus === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex items-center justify-center">
+        <div className="empty">
+          <div className="ico">CL</div>
+          <p>Sessão não encontrada. Faça login no sistema principal.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 max-w-2xl mx-auto">
-      <ClienteListView
-        onNovoCliente={() => alert('Novo cliente — a implementar')}
-        onDetalhe={(id) => alert(`Detalhes: ${id}`)}
-        onEditar={(id) => alert(`Editar: ${id}`)}
-      />
+      <ClientesPage />
     </div>
   );
 }
