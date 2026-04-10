@@ -1,6 +1,9 @@
-import { ClienteCard } from './features/clientes/components/ClienteCard';
+import { useEffect } from 'react';
+import { ClienteListView } from './features/clientes/components/ClienteListView';
+import { useClienteStore } from './features/clientes/store/useClienteStore';
 import type { Cliente } from '../types/domain';
 
+// Dados demo — substituir por chamada real à API quando auth estiver disponível no React
 const DEMO_CLIENTES: Cliente[] = [
   {
     id: 'c1',
@@ -26,20 +29,33 @@ const DEMO_CLIENTES: Cliente[] = [
     nome: 'Pedro Café',
     status: 'inativo',
     tel: '21988880000'
+  },
+  {
+    id: 'c4',
+    nome: 'Ana Lima',
+    status: 'ativo',
+    seg: 'Varejo',
+    whatsapp: '11988880000',
+    optin_marketing: true
   }
 ];
 
 export function App() {
+  const setClientes = useClienteStore((s) => s.setClientes);
+
+  useEffect(() => {
+    // Simula carregamento assíncrono
+    const t = setTimeout(() => setClientes(DEMO_CLIENTES), 400);
+    return () => clearTimeout(t);
+  }, [setClientes]);
+
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6">
-      <h1 className="text-xl font-semibold mb-6" style={{ fontFamily: 'var(--font-sans)' }}>
-        Clientes — React
-      </h1>
-      <div className="flex flex-col gap-3 max-w-sm">
-        {DEMO_CLIENTES.map((cliente) => (
-          <ClienteCard key={cliente.id} cliente={cliente} />
-        ))}
-      </div>
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 max-w-2xl mx-auto">
+      <ClienteListView
+        onNovoCliente={() => alert('Novo cliente — a implementar')}
+        onDetalhe={(id) => alert(`Detalhes: ${id}`)}
+        onEditar={(id) => alert(`Editar: ${id}`)}
+      />
     </div>
   );
 }
