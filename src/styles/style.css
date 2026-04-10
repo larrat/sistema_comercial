@@ -8186,6 +8186,64 @@ html[data-theme="dark"]{
   --surface-control:rgba(26,36,50,.92);
 }
 
+/* ── sidebar dark mode — contraste e legibilidade ── */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .sb{
+    background:#1a2638;
+    border-right:1px solid #3a536e;
+  }
+  :root:not([data-theme="light"]) .sb-group{
+    background:rgba(255,255,255,.05);
+    border-color:#2e445c;
+  }
+  :root:not([data-theme="light"]) .nl{
+    color:#a8bdd4;
+  }
+  :root:not([data-theme="light"]) .ni{
+    color:#d4e2f0;
+  }
+  :root:not([data-theme="light"]) .ni:hover{
+    background:rgba(255,255,255,.07);
+    color:#eff5ff;
+  }
+  :root:not([data-theme="light"]) .ni .ico{
+    background:#243348;
+    border-color:#4a6685;
+    color:#c7d9ee;
+  }
+  :root:not([data-theme="light"]) .sb-head,
+  :root:not([data-theme="light"]) .sb-foot{
+    border-color:#2e445c;
+  }
+}
+html[data-theme="dark"] .sb{
+  background:#1a2638;
+  border-right:1px solid #3a536e;
+}
+html[data-theme="dark"] .sb-group{
+  background:rgba(255,255,255,.05);
+  border-color:#2e445c;
+}
+html[data-theme="dark"] .nl{
+  color:#a8bdd4;
+}
+html[data-theme="dark"] .ni{
+  color:#d4e2f0;
+}
+html[data-theme="dark"] .ni:hover{
+  background:rgba(255,255,255,.07);
+  color:#eff5ff;
+}
+html[data-theme="dark"] .ni .ico{
+  background:#243348;
+  border-color:#4a6685;
+  color:#c7d9ee;
+}
+html[data-theme="dark"] .sb-head,
+html[data-theme="dark"] .sb-foot{
+  border-color:#2e445c;
+}
+
 /* ── html global rules (fora do dark mode) ── */
 html{
   background:
@@ -9122,20 +9180,22 @@ input[type="search"]:focus-visible{
    ========================================================= */
 
 /* ── Layout base das páginas bento ── */
-.ped-bento-page,
-.prod-bento-page,
-.est-bento-page,
-.rel-bento-page,
-.cot-bento-page,
-.ger-bento-page{
+/* Scoped to .on: evita que display:flex sobreponha o display:none do .pg pai */
+.pg.on.ped-bento-page,
+.pg.on.prod-bento-page,
+.pg.on.est-bento-page,
+.pg.on.rel-bento-page,
+.pg.on.cot-bento-page,
+.pg.on.ger-bento-page{
   display:flex;
   flex-direction:column;
   gap:var(--space-5);
 }
 
 /* ── tab containers bento (flex column com gap, igual à página) ── */
-.rel-bento-tab,
-.cot-bento-tab{
+/* Scoped to .on: evita que display:flex sobreponha o display:none do .tc pai */
+.tc.on.rel-bento-tab,
+.tc.on.cot-bento-tab{
   display:flex;
   flex-direction:column;
   gap:var(--space-5);
