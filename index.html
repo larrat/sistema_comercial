@@ -550,9 +550,22 @@
               </div>
               <div class="toolbar-actions">
                 <button class="btn btn-sm" data-click="exportCSV('clientes')">Exportar CSV</button>
+                <button
+                  class="btn btn-gh btn-sm"
+                  id="cli-react-toggle"
+                  data-click="toggleClientesReactBridge()"
+                  hidden
+                >
+                  Piloto React
+                </button>
               </div>
             </div>
-            <div class="card"><div id="cli-lista"></div></div>
+            <div id="cli-legacy-shell">
+              <div class="card"><div id="cli-lista"></div></div>
+            </div>
+            <div class="card card-shell" id="cli-react-shell" hidden>
+              <div id="cli-react-root"></div>
+            </div>
           </div>
           <div class="tc" id="cli-tc-segs"><div id="cli-segs-lista"></div></div>
         </div>

@@ -23,6 +23,7 @@ import {
   filterClientesFromLegacy,
   getClienteSegmentosFromLegacy
 } from '../shared/clientes-pilot-bridge.js';
+import { shouldRenderLegacyClientes, syncClientesReactBridge } from './clientes-react-bridge.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -127,6 +128,7 @@ const PRAZO_DETALHE_LABELS = {
  */
 export function initClientesModule(callbacks = {}) {
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
+  syncClientesReactBridge();
 }
 
 /**
@@ -887,6 +889,7 @@ export function renderCliMet() {
   return measureRender(
     'clientes',
     () => {
+      if (!shouldRenderLegacyClientes()) return;
       const clientes = C();
       if (isRuntimeBootstrapping() && !clientes.length) {
         cliDom.html(
@@ -941,6 +944,8 @@ export function renderClientes() {
   return measureRender(
     'clientes',
     () => {
+      syncClientesReactBridge();
+      if (!shouldRenderLegacyClientes()) return;
       const filtrados = getFilteredClientes();
       if (isRuntimeBootstrapping() && !C().length) {
         cliDom.html(

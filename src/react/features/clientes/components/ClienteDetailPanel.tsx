@@ -67,6 +67,7 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
 
       {tab === 'notas' && (
         <div className="form-gap-lg" data-testid="cliente-detail-notas">
+          <div className="cli-detail-label form-gap-bottom-xs">Notas / histórico</div>
           <div className="fg2 cli-detail-notes-input form-gap-bottom-xs">
             <input
               className="inp input-flex"
@@ -97,16 +98,16 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
               <div className="sk-line" />
             </div>
           ) : notas.length ? (
-            <div className="form-gap-bottom-xs" data-testid="nota-list">
+            <div className="cli-detail-notes" data-testid="nota-list">
               {notas.map((nota, index) => (
-                <div key={`${nota.data}-${index}`} className="empty-inline">
-                  <strong>{nota.data}</strong>
+                <div key={`${nota.data}-${index}`} className="nota">
                   <p>{nota.texto}</p>
+                  <div className="nota-d">{nota.data}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="empty-inline" data-testid="nota-empty">
+            <div className="empty-inline table-cell-muted" data-testid="nota-empty">
               Nenhuma nota.
             </div>
           )}

@@ -150,6 +150,7 @@ function getHandlerRegistry() {
     navigation: {
       ir: deps.ir,
       switchTab: deps.switchTab,
+      toggleClientesReactBridge: deps.toggleClientesReactBridge,
       renderMetasNegocio: deps.renderMetasNegocio,
       resetUxKpis: deps.resetUxKpis,
       executarAcaoGerencial: deps.executarAcaoGerencial

@@ -657,6 +657,7 @@ export type DomBindingsDeps = {
   switchTab?: (group: string, tab: string) => void;
   renderCliSegs?: () => void;
   renderClientes?: () => void;
+  toggleClientesReactBridge?: () => void;
   renderPedidos?: () => void;
   renderCotForns?: () => void;
   renderCotTabela?: () => void;
