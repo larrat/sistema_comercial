@@ -517,6 +517,140 @@ function buildClienteContextualPanel(cliente, pedidos){
   `;
 }
 
+function buildClienteContextualPanelV2(cliente, pedidos){
+  const duplicidades = getClienteDuplicidadeSignals(cliente);
+  const aniversarioDias = getDiasParaAniversario(cliente?.data_aniversario || '');
+  const contato = getContatoInfo(cliente);
+  const canaisMarketing = [
+    cliente?.optin_marketing && (cliente?.whatsapp || cliente?.tel) ? 'WhatsApp' : '',
+    cliente?.optin_email && cliente?.email ? 'E-mail' : '',
+    cliente?.optin_sms && cliente?.tel ? 'SMS' : ''
+  ].filter(Boolean);
+  const pedidoFechavel = pedidos.find(pedido => isPedidoFechavel(pedido)) || null;
+  const pedidoAberto = pedidos.find(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado') || null;
+
+  /** @type {string[]} */
+  const cadastroERisco = [];
+  /** @type {string[]} */
+  const momentoComercial = [];
+
+  const renderSection = (title, sub, cards) => {
+    if(!cards.length) return '';
+    return `
+      <section class="context-panel__section">
+        <div class="context-panel__section-head">
+          <div class="context-panel__section-title">${title}</div>
+          <div class="context-panel__section-sub">${sub}</div>
+        </div>
+        <div class="context-panel__grid">
+          ${cards.join('')}
+        </div>
+      </section>
+    `;
+  };
+
+  if(duplicidades.length){
+    const duplicidade = duplicidades[0];
+    cadastroERisco.push(`
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Cadastro</span>
+          <span class="context-card__kicker">Risco</span>
+        </div>
+        <div class="context-card__title">Suspeita de duplicidade</div>
+        <div class="context-card__copy">${duplicidade.label} tambem aparece em ${esc(duplicidade.cliente?.nome || 'outro cliente')}.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="editarCli('${cliente.id}')">Revisar cadastro</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if((typeof aniversarioDias === 'number' && aniversarioDias <= 7) || !canaisMarketing.length || contato.principal === 'Sem contato'){
+    const copy = contato.principal === 'Sem contato'
+      ? 'Cliente sem canal principal de contato cadastrado.'
+      : !canaisMarketing.length
+        ? 'Cliente sem opt-in pronto para ativacao comercial.'
+        : aniversarioDias === 0
+          ? 'Aniversario hoje com canal pronto para relacionamento.'
+          : aniversarioDias === 1
+            ? 'Aniversario amanha com base pronta para abordagem.'
+            : `Aniversario em ${aniversarioDias} dia(s) com canal pronto para campanha.`;
+
+    cadastroERisco.push(`
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Relacionamento</span>
+          <span class="context-card__kicker">Cadastro</span>
+        </div>
+        <div class="context-card__title">Proxima acao comercial</div>
+        <div class="context-card__copy">${copy}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="editarCli('${cliente.id}')">Atualizar cadastro</button>
+          <button class="btn btn-sm" data-click="ir('campanhas')">Ir para campanhas</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(pedidoFechavel){
+    momentoComercial.push(`
+      <article class="context-card context-card--success">
+        <div class="context-card__head">
+          <span class="bdg bg">Venda</span>
+          <span class="context-card__kicker">Fechamento</span>
+        </div>
+        <div class="context-card__title">Pedido pronto para fechar</div>
+        <div class="context-card__copy">Pedido #${pedidoFechavel.num} ja foi entregue e pode virar venda fechada agora.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-p btn-sm" data-click="fecharVendaCliente('${pedidoFechavel.id}','${cliente.id}')">Fechar venda</button>
+        </div>
+      </article>
+    `);
+  }else if(pedidoAberto){
+    momentoComercial.push(`
+      <article class="context-card context-card--info">
+        <div class="context-card__head">
+          <span class="bdg bb">Pipeline</span>
+          <span class="context-card__kicker">Pedidos</span>
+        </div>
+        <div class="context-card__title">Cliente com venda em andamento</div>
+        <div class="context-card__copy">Ha pedido(s) aberto(s) para este cliente e vale acompanhar o fechamento.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="switchCliDetTab('${cliente.id}','abertas')">Ver vendas abertas</button>
+        </div>
+      </article>
+    `);
+  }
+
+  const sections = [
+    renderSection(
+      'Cadastro e risco',
+      'Sinais que pertencem ao cadastro e aos canais deste cliente.',
+      cadastroERisco.slice(0, 2)
+    ),
+    renderSection(
+      'Momento comercial',
+      'Leitura da jornada do cliente com base nos pedidos e no proximo movimento.',
+      momentoComercial.slice(0, 1)
+    )
+  ].filter(Boolean);
+
+  if(!sections.length) return '';
+
+  return `
+    <div class="context-panel context-panel--cliente">
+      <div class="context-panel__head">
+        <div class="context-panel__title">Contexto do cliente</div>
+        <div class="context-panel__sub">Leitura separada entre cadastro, risco e momento comercial</div>
+      </div>
+      <div class="context-panel__sections">
+        ${sections.join('')}
+      </div>
+    </div>
+  `;
+}
+
 function getFilteredClientes(){
   const q = normTxt(cliDom.get('cli-busca')?.value || '');
   const seg = cliDom.get('cli-fil-seg')?.value || '';
@@ -963,7 +1097,7 @@ export async function abrirCliDet(id){
   const pedidos = getPedidosCliente(cliente);
   const vendasFechadas = pedidos.filter(pedido => !!pedido.venda_fechada);
   const vendasAbertas = pedidos.filter(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado');
-  const contextoCliente = buildClienteContextualPanel(cliente, pedidos);
+  const contextoCliente = buildClienteContextualPanelV2(cliente, pedidos);
 
   const times = parseTimes(cliente.time);
   const contato = [

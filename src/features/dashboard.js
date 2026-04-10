@@ -256,6 +256,151 @@ function fmtDataHora(v){
   return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }
 
+function buildDashboardContextualPanelV2({
+  crit = [],
+  baixo = [],
+  anivProximos = [],
+  clientesSemAniversario = 0,
+  oportunidades = [],
+  oportunidadesHoje = [],
+  abertos = 0,
+  mg = 0
+} = {}){
+  /** @type {string[]} */
+  const operacaoLocal = [];
+  /** @type {string[]} */
+  const sinaisCruzados = [];
+
+  const renderSection = (title, sub, cards) => {
+    if(!cards.length) return '';
+    return `
+      <section class="context-panel__section">
+        <div class="context-panel__section-head">
+          <div class="context-panel__section-title">${title}</div>
+          <div class="context-panel__section-sub">${sub}</div>
+        </div>
+        <div class="context-panel__grid">
+          ${cards.join('')}
+        </div>
+      </section>
+    `;
+  };
+
+  if(crit.length){
+    const n = crit.length;
+    operacaoLocal.push(`
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Prioridade</span>
+          <span class="context-card__kicker">Estoque</span>
+        </div>
+        <div class="context-card__title">Reposicao imediata</div>
+        <div class="context-card__copy">${n} produto${n !== 1 ? 's' : ''} zerado${n !== 1 ? 's' : ''} e reposicao necessaria agora.</div>
+        <div class="context-card__meta">${crit.slice(0, 3).map(p => p.nome).join(', ')}${n > 3 ? '...' : ''}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('estoque')">Abrir estoque</button>
+        </div>
+      </article>
+    `);
+  }else if(baixo.length){
+    const n = baixo.length;
+    operacaoLocal.push(`
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Atencao</span>
+          <span class="context-card__kicker">Estoque</span>
+        </div>
+        <div class="context-card__title">Itens proximos do minimo</div>
+        <div class="context-card__copy">${n} item${n !== 1 ? 'ns' : ''} abaixo do nivel ideal e pedindo revisao.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('estoque')">Revisar estoque</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(abertos > 0 && mg < 10){
+    operacaoLocal.push(`
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Pipeline</span>
+          <span class="context-card__kicker">Pedidos</span>
+        </div>
+        <div class="context-card__title">Converter pedidos antes de perder margem</div>
+        <div class="context-card__copy">${abertos} pedido${abertos !== 1 ? 's' : ''} em aberto com margem de ${pct(mg)} no periodo.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('pedidos')">Abrir pedidos</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(oportunidades.length){
+    const n = oportunidades.length;
+    const nh = oportunidadesHoje.length;
+    sinaisCruzados.push(`
+      <article class="context-card context-card--success">
+        <div class="context-card__head">
+          <span class="bdg bg">Acao sugerida</span>
+          <span class="context-card__kicker">Campanhas</span>
+        </div>
+        <div class="context-card__title">Clientes prontos para ativacao</div>
+        <div class="context-card__copy">${n} oportunidade${n !== 1 ? 's' : ''} por jogos na semana, sendo ${nh} para hoje.</div>
+        <div class="context-card__meta">${oportunidades.slice(0, 2).map(o => `${o.cliente} (${o.time})`).join(', ')}</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('campanhas')">Abrir campanhas</button>
+          <button class="btn btn-p btn-sm" data-click="abrirNovaCampanha()">Nova campanha</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(anivProximos.length || clientesSemAniversario > 0){
+    const na = anivProximos.length;
+    const ns = clientesSemAniversario;
+    sinaisCruzados.push(`
+      <article class="context-card context-card--info">
+        <div class="context-card__head">
+          <span class="bdg bb">Relacionamento</span>
+          <span class="context-card__kicker">Clientes</span>
+        </div>
+        <div class="context-card__title">Base pronta para calendario comercial</div>
+        <div class="context-card__copy">${na} aniversario${na !== 1 ? 's' : ''} nos proximos 7 dias e ${ns} cadastro${ns !== 1 ? 's' : ''} sem data.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('clientes')">Revisar clientes</button>
+        </div>
+      </article>
+    `);
+  }
+
+  const sections = [
+    renderSection(
+      'Operacao local',
+      'Leituras do proprio dashboard que pedem acao direta na filial.',
+      operacaoLocal.slice(0, 2)
+    ),
+    renderSection(
+      'Sinais cruzados',
+      'Dados de clientes e campanhas que ajudam a priorizar a proxima jogada comercial.',
+      sinaisCruzados.slice(0, 2)
+    )
+  ].filter(Boolean);
+
+  if(!sections.length) return '';
+
+  return `
+    <div class="context-panel context-panel--dashboard">
+      <div class="context-panel__head">
+        <div class="context-panel__title">Contexto sugerido</div>
+        <div class="context-panel__sub">Prioridades separadas entre operacao desta tela e sinais cruzados do sistema</div>
+      </div>
+      <div class="context-panel__sections">
+        ${sections.join('')}
+      </div>
+    </div>
+  `;
+}
+
 function normTxt(v){
   return String(v || '')
     .normalize('NFD')
@@ -793,7 +938,7 @@ export function renderDash(){
     ah += `<div class="alert al-g"><b>Oportunidades por jogos:</b> ${oportunidades.length} cliente${oportunidades.length !== 1 ? 's' : ''} elegível${oportunidades.length !== 1 ? 'is' : ''} na semana (${serieTxt}). ${oportunidades.slice(0,3).map(o => `${o.cliente} (${o.time})`).join(', ')}${oportunidades.length > 3 ? '...' : ''}</div>`;
   }
 
-  const contextHtml = buildDashboardContextualPanel({
+  const contextHtml = buildDashboardContextualPanelV2({
     crit,
     baixo,
     anivProximos,

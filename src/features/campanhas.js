@@ -264,6 +264,142 @@ function renderResumoEnviosCampanha(envios) {
   `;
 }
 
+function buildCampanhasContextPanelV2(campanhas, envios){
+  const resumo = contarResumoEnvios(envios);
+  const primeiraFalha = envios.find(e => e.status === 'falhou') || null;
+  const primeiraPendente = envios.find(e => e.status === 'manual' || e.status === 'pendente') || null;
+  const primeiraAtivaSemFila = campanhas.find(c => {
+    if(!c?.ativo) return false;
+    return !envios.some(e => e.campanha_id === c.id);
+  }) || null;
+
+  /** @type {string[]} */
+  const execucaoLocal = [];
+  /** @type {string[]} */
+  const aceleradoresExternos = [];
+
+  const renderSection = (title, sub, cards) => {
+    if(!cards.length) return '';
+    return `
+      <section class="context-panel__section">
+        <div class="context-panel__section-head">
+          <div class="context-panel__section-title">${title}</div>
+          <div class="context-panel__section-sub">${sub}</div>
+        </div>
+        <div class="context-panel__grid">
+          ${cards.join('')}
+        </div>
+      </section>
+    `;
+  };
+
+  if(resumo.falhas > 0){
+    execucaoLocal.push(`
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Revisao</span>
+          <span class="context-card__kicker">Fila</span>
+        </div>
+        <div class="context-card__title">Falhas pedem tratamento manual</div>
+        <div class="context-card__copy">${resumo.falhas} envio${resumo.falhas !== 1 ? 's' : ''} com falha no historico precisando de revisao.</div>
+        <div class="context-card__actions">
+          ${primeiraFalha ? `<button class="btn btn-sm" data-click="abrirPreviewWhatsAppEnvio('${primeiraFalha.id}')">Abrir falha</button>` : ''}
+        </div>
+      </article>
+    `);
+  }
+
+  if(resumo.pendentes > 0){
+    execucaoLocal.push(`
+      <article class="context-card context-card--success">
+        <div class="context-card__head">
+          <span class="bdg bg">Proxima acao</span>
+          <span class="context-card__kicker">Execucao</span>
+        </div>
+        <div class="context-card__title">Fila pronta para execucao</div>
+        <div class="context-card__copy">${resumo.pendentes} envio${resumo.pendentes !== 1 ? 's' : ''} aguardando abertura no WhatsApp manual.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="abrirWhatsAppLote()">Abrir lote</button>
+          ${primeiraPendente ? `<button class="btn btn-p btn-sm" data-click="abrirPreviewWhatsAppEnvio('${primeiraPendente.id}')">Primeiro envio</button>` : ''}
+        </div>
+      </article>
+    `);
+  }
+
+  if(primeiraAtivaSemFila){
+    execucaoLocal.push(`
+      <article class="context-card context-card--info">
+        <div class="context-card__head">
+          <span class="bdg bb">Sugestao</span>
+          <span class="context-card__kicker">Campanha local</span>
+        </div>
+        <div class="context-card__title">Campanha ativa sem rodada recente</div>
+        <div class="context-card__copy">${primeiraAtivaSemFila.nome} esta ativa, mas ainda nao gerou fila nesta filial.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="gerarFilaCampanha('${primeiraAtivaSemFila.id}')">Gerar fila</button>
+        </div>
+      </article>
+    `);
+  }else if(!campanhas.some(c => c.ativo)){
+    execucaoLocal.push(`
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Base</span>
+          <span class="context-card__kicker">Campanha local</span>
+        </div>
+        <div class="context-card__title">Nenhuma campanha ativa</div>
+        <div class="context-card__copy">Sem campanha ativa, a base perde timing de relacionamento e recuperacao.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="abrirNovaCampanha()">Nova campanha</button>
+        </div>
+      </article>
+    `);
+  }
+
+  if(campDiag.candidatasOutrasFiliais?.length && campDiag.carregadasFilial === 0){
+    aceleradoresExternos.push(`
+      <article class="context-card context-card--info">
+        <div class="context-card__head">
+          <span class="bdg bb">Acelerador</span>
+          <span class="context-card__kicker">Outras filiais</span>
+        </div>
+        <div class="context-card__title">Campanhas prontas para importar</div>
+        <div class="context-card__copy">${campDiag.candidatasOutrasFiliais.length} campanha${campDiag.candidatasOutrasFiliais.length !== 1 ? 's' : ''} de outras filiais prontas para acelerar a operacao local.</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="adotarCampanhasParaFilialAtiva()">Importar agora</button>
+        </div>
+      </article>
+    `);
+  }
+
+  const sections = [
+    renderSection(
+      'Execucao local',
+      'Tudo o que depende da fila e das campanhas desta filial agora.',
+      execucaoLocal.slice(0, 3)
+    ),
+    renderSection(
+      'Aceleradores externos',
+      'Sugestoes vindas de outras bases para acelerar a operacao local.',
+      aceleradoresExternos.slice(0, 1)
+    )
+  ].filter(Boolean);
+
+  if(!sections.length) return '';
+
+  return `
+    <div class="context-panel context-panel--campanhas">
+      <div class="context-panel__head">
+        <div class="context-panel__title">Contexto operacional</div>
+        <div class="context-panel__sub">Sinais separados entre execucao desta tela e aceleradores de fora da fila local</div>
+      </div>
+      <div class="context-panel__sections">
+        ${sections.join('')}
+      </div>
+    </div>
+  `;
+}
+
 function agruparHistoricoEnviosPorCampanha(envios) {
   /** @type {Map<string, CampanhaEnvio[]>} */
   const grupos = new Map();
@@ -924,7 +1060,7 @@ export function renderCampanhas() {
     const el = document.getElementById('camp-lista');
     if (!el) return;
     renderCampDiag();
-    const contextHtml = buildCampanhasContextPanel(campanhas, envios);
+    const contextHtml = buildCampanhasContextPanelV2(campanhas, envios);
     const { resumo } = getCampanhasStats(campanhas, envios);
     const pendentes = resumo.pendentes;
     const falhas = resumo.falhas;
