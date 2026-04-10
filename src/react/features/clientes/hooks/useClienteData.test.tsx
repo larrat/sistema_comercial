@@ -141,7 +141,7 @@ describe('useClienteData', () => {
     useFilialStore.setState({ filialId: 'filial-1' });
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: async () => CLIENTES
+      text: async () => JSON.stringify(CLIENTES)
     } as Response);
 
     renderHook(() => useClienteData());
@@ -169,7 +169,7 @@ describe('useClienteData', () => {
     useFilialStore.setState({ filialId: 'filial-1' });
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
-      json: async () => CLIENTES
+      text: async () => JSON.stringify(CLIENTES)
     } as Response);
 
     renderHook(() => useClienteData(), {
@@ -201,11 +201,11 @@ describe('useClienteData', () => {
       .mockResolvedValueOnce({
         ok: false,
         status: 500,
-        json: async () => ({ message: 'Falhou no backend' })
+        text: async () => JSON.stringify({ message: 'Falhou no backend' })
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => CLIENTES
+        text: async () => JSON.stringify(CLIENTES)
       } as Response);
 
     const { result } = renderHook(() => useClienteData());

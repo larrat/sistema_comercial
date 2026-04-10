@@ -6,37 +6,11 @@
  */
 
 import { useEffect, useRef } from 'react';
-import type { Cliente } from '../../../../types/domain';
 import { useClienteStore } from '../store/useClienteStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-
-async function fetchClientes(
-  url: string,
-  key: string,
-  token: string,
-  filialId: string
-): Promise<Cliente[]> {
-  const res = await fetch(
-    `${url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(filialId)}&order=nome`,
-    {
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      signal: AbortSignal.timeout(12000)
-    }
-  );
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.message || `Erro ${res.status} ao carregar clientes`);
-  }
-
-  return res.json();
-}
+import { listClientes } from '../services/clientesApi';
 
 export type UseClienteDataOptions = {
   /** Não dispara o fetch automaticamente — útil para testes */
@@ -79,7 +53,7 @@ export function useClienteData(options: UseClienteDataOptions = {}) {
 
     setStatus('loading');
 
-    fetchClientes(url, key, session.access_token, filialId)
+    listClientes({ url, key, token: session.access_token, filialId })
       .then((data) => setClientes(data))
       .catch((err: unknown) => {
         fetchedRef.current = false; // permite retry
@@ -95,7 +69,7 @@ export function useClienteData(options: UseClienteDataOptions = {}) {
     const { url, key, ready } = getSupabaseConfig();
     if (!ready) return;
     fetchedRef.current = true;
-    fetchClientes(url, key, session.access_token, filialId)
+    listClientes({ url, key, token: session.access_token, filialId })
       .then((data) => setClientes(data))
       .catch((err: unknown) => {
         fetchedRef.current = false;
