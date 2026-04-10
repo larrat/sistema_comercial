@@ -1041,9 +1041,9 @@ export function renderDash(){
   const tot = allPeds.length || 1;
 
   dashDom.html('status', 'dash-status', Object.entries(stMap).map(([k, v]) => `
-      <div class="rrow dash-status-row">
+      <div class="rrow dash-status-row dash-status-row--${k}">
         <span class="bdg ${stCls[k]}">${stLbl[k]}</span>
-        <div class="rbar"><div class="rbar-f dash-status-bar" style="width:${Math.round((v / tot) * 100)}%"></div></div>
+        <div class="rbar"><div class="rbar-f dash-status-bar dash-status-bar--${k}" style="width:${Math.round((v / tot) * 100)}%"></div></div>
         <span class="dash-status-count">${v}</span>
         <span class="dash-status-share">${Math.round((v / tot) * 100)}%</span>
       </div>
