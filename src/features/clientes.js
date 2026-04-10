@@ -3,7 +3,7 @@
 import { SB } from '../app/api.js';
 import { D, State, C, invalidatePdCache } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt } from '../shared/utils.js';
+import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt, uid } from '../shared/utils.js';
 import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
@@ -940,7 +940,7 @@ function renderClientePedidosLista(pedidos, clienteId, tipo){
 
 /**
  * @param {string} clienteId
- * @param {'resumo'|'abertas'|'fechadas'} tab
+ * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'} tab
  */
 export function switchCliDetTab(clienteId, tab){
   const box = cliDom.get('cli-det-box');
@@ -1105,6 +1105,142 @@ export function renderCliSegs(){
   });
 }
 
+// ── Fidelidade UI ─────────────────────────────────────────────────────────────
+
+/**
+ * @param {string} clienteId
+ * @param {import('../types/domain').ClienteFidelidadeSaldo | null} saldo
+ * @param {import('../types/domain').ClienteFidelidadeLancamento[]} lancamentos
+ * @returns {string}
+ */
+function renderFidelidadeTab(clienteId, saldo, lancamentos){
+  const TIPO_LABEL = { credito: 'Crédito', debito: 'Débito', ajuste: 'Ajuste', expiracao: 'Expiração', estorno: 'Estorno' };
+  const STATUS_LABEL = { pendente: 'Pendente', confirmado: 'Confirmado', cancelado: 'Cancelado' };
+  const STATUS_BADGE = { pendente: 'ba', confirmado: 'bg', cancelado: 'br' };
+
+  const saldoHtml = saldo
+    ? `
+      <div class="fid-saldo-grid">
+        <div class="met fid-met">
+          <div class="ml">Saldo</div>
+          <div class="mv ${saldo.bloqueado ? 'tone-danger' : 'tone-success'}">${Number(saldo.saldo_pontos ?? 0)}<span class="mv-unit"> pts</span></div>
+          ${saldo.bloqueado ? `<div class="ms tone-danger">Bloqueado${saldo.motivo_bloqueio ? ` — ${esc(saldo.motivo_bloqueio)}` : ''}</div>` : '<div class="ms tone-success">Ativo</div>'}
+        </div>
+        <div class="met fid-met">
+          <div class="ml">Acumulado</div>
+          <div class="mv">${Number(saldo.total_acumulado ?? 0)}<span class="mv-unit"> pts</span></div>
+          <div class="ms">total creditado</div>
+        </div>
+        <div class="met fid-met">
+          <div class="ml">Resgatado</div>
+          <div class="mv">${Number(saldo.total_resgatado ?? 0)}<span class="mv-unit"> pts</span></div>
+          <div class="ms">total debitado</div>
+        </div>
+      </div>
+    `
+    : `<div class="empty-inline"><p>Nenhum saldo de fidelidade registrado para este cliente.</p></div>`;
+
+  const lancsHtml = lancamentos.length
+    ? `
+      <div class="tw fid-hist-table">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Pontos</th>
+              <th>Status</th>
+              <th>Origem</th>
+              <th>Obs</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lancamentos.slice(0, 30).map(l => `
+              <tr>
+                <td class="table-cell-muted">${l.criado_em ? new Date(l.criado_em).toLocaleDateString('pt-BR') : '—'}</td>
+                <td><span class="bdg ${l.pontos > 0 ? 'bg' : 'br'}">${TIPO_LABEL[l.tipo] || esc(l.tipo || '')}</span></td>
+                <td class="table-cell-strong ${l.pontos > 0 ? 'tone-success' : 'tone-danger'}">${l.pontos > 0 ? '+' : ''}${l.pontos}</td>
+                <td><span class="bdg ${STATUS_BADGE[l.status] || 'bk'}">${STATUS_LABEL[l.status] || esc(l.status || '')}</span></td>
+                <td class="table-cell-muted">${esc(l.origem || '') || '—'}</td>
+                <td class="table-cell-caption">${esc(l.observacao || '') || '—'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `
+    : `<div class="empty-inline"><p>Nenhum lançamento registrado.</p></div>`;
+
+  return `
+    <div class="fid-panel">
+      <div class="cli-detail-label form-gap-bottom-xs">Saldo de fidelidade</div>
+      ${saldoHtml}
+
+      <div class="cli-detail-label form-gap-bottom-xs" style="margin-top:16px">Adicionar lançamento manual</div>
+      <div class="fid-form fg2 form-gap-bottom-xs">
+        <select class="inp fid-tipo" id="fid-tipo-${clienteId}">
+          <option value="credito">Crédito</option>
+          <option value="debito">Débito</option>
+          <option value="ajuste">Ajuste</option>
+          <option value="estorno">Estorno</option>
+        </select>
+        <input type="number" class="inp fid-pontos" id="fid-pontos-${clienteId}" placeholder="Pontos (ex: 100 ou -50)" step="1">
+        <input class="inp fid-obs input-flex" id="fid-obs-${clienteId}" placeholder="Observação (opcional)">
+        <button class="btn btn-p btn-sm" data-click="adicionarLancamentoFidelidade('${clienteId}')">Lançar</button>
+      </div>
+
+      <div class="cli-detail-label form-gap-bottom-xs">Histórico (últimos 30)</div>
+      ${lancsHtml}
+    </div>
+  `;
+}
+
+/**
+ * Lança pontos de fidelidade manualmente para um cliente.
+ * @param {string} clienteId
+ */
+export async function adicionarLancamentoFidelidade(clienteId){
+  const tipoEl = /** @type {HTMLSelectElement|null} */ (document.getElementById(`fid-tipo-${clienteId}`));
+  const pontosEl = /** @type {HTMLInputElement|null} */ (document.getElementById(`fid-pontos-${clienteId}`));
+  const obsEl = /** @type {HTMLInputElement|null} */ (document.getElementById(`fid-obs-${clienteId}`));
+
+  const tipo = tipoEl?.value || 'credito';
+  const pontosRaw = Number(pontosEl?.value || 0);
+  const obs = obsEl?.value.trim() || null;
+
+  if(!pontosRaw || Number.isNaN(pontosRaw)){
+    notify('Informe a quantidade de pontos para o lançamento.', SEVERITY.WARNING);
+    pontosEl?.focus();
+    return;
+  }
+
+  // Débito e ajuste negativo: o banco espera pontos negativos para debitar
+  const pontos = (tipo === 'debito') ? -Math.abs(pontosRaw) : pontosRaw;
+
+  const lancamento = {
+    id: uid(),
+    cliente_id: clienteId,
+    filial_id: State.FIL,
+    tipo,
+    status: 'confirmado',
+    pontos,
+    origem: 'manual',
+    observacao: obs
+  };
+
+  const result = await SB.toResult(() => SB.insertClienteFidelidadeLancamento(lancamento));
+  if(!result.ok){
+    console.error('Erro ao inserir lançamento de fidelidade', result.error);
+    notify(`Erro ao lançar pontos: ${String(result.error?.message || 'tente novamente')}.`, SEVERITY.ERROR);
+    return;
+  }
+
+  notify(`Sucesso: ${pontos > 0 ? '+' : ''}${pontos} pontos lançados.`, SEVERITY.SUCCESS);
+  // Reabrir a ficha com dados atualizados
+  await abrirCliDet(clienteId);
+  switchCliDetTab(clienteId, 'fidelidade');
+}
+
 export async function abrirCliDet(id){
   const cliente = C().find(item => item.id === id);
   if(!cliente) return;
@@ -1119,6 +1255,18 @@ export async function abrirCliDet(id){
   }
 
   syncNotasCache(id, notas);
+
+  // ── Fidelidade (carregado em paralelo com notas) ──────────────────────────
+  const [fidelSaldo, fidelLancs] = await Promise.all([
+    SB.toResult(() => SB.getClienteFidelidadeSaldo(id)),
+    SB.toResult(() => SB.getClienteFidelidadeLancamentos(id))
+  ]);
+
+  /** @type {import('../types/domain').ClienteFidelidadeSaldo | null} */
+  const saldo = fidelSaldo.ok ? (fidelSaldo.data || null) : null;
+  /** @type {import('../types/domain').ClienteFidelidadeLancamento[]} */
+  const lancamentos = fidelLancs.ok ? (fidelLancs.data || []) : [];
+
   const pedidos = getPedidosCliente(cliente);
   const vendasFechadas = pedidos.filter(pedido => !!pedido.venda_fechada);
   const vendasAbertas = pedidos.filter(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado');
@@ -1171,6 +1319,7 @@ export async function abrirCliDet(id){
         <button class="tb on" type="button" data-cli-tab="${id}" data-tab="resumo" data-click="switchCliDetTab('${id}','resumo')">Resumo</button>
         <button class="tb" type="button" data-cli-tab="${id}" data-tab="abertas" data-click="switchCliDetTab('${id}','abertas')">Vendas abertas <span class="bdg bk">${vendasAbertas.length}</span></button>
         <button class="tb" type="button" data-cli-tab="${id}" data-tab="fechadas" data-click="switchCliDetTab('${id}','fechadas')">Vendas fechadas <span class="bdg bb">${vendasFechadas.length}</span></button>
+        <button class="tb" type="button" data-cli-tab="${id}" data-tab="fidelidade" data-click="switchCliDetTab('${id}','fidelidade')">Fidelidade ${saldo ? `<span class="bdg ${saldo.bloqueado ? 'br' : 'bg'}">${Number(saldo.saldo_pontos ?? 0)} pts</span>` : '<span class="bdg bk">—</span>'}</button>
       </div>
 
       <div class="tc on" data-cli-panel="${id}" data-panel="resumo">
@@ -1202,6 +1351,10 @@ export async function abrirCliDet(id){
         <div class="cli-sales-list">
           ${renderClientePedidosLista(vendasFechadas, id, 'fechadas')}
         </div>
+      </div>
+
+      <div class="tc" data-cli-panel="${id}" data-panel="fidelidade">
+        ${renderFidelidadeTab(id, saldo, lancamentos)}
       </div>
 
       <div class="cli-detail-actions">

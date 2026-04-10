@@ -5950,6 +5950,21 @@ textarea.inp:focus{
   margin-top:4px;
 }
 
+/* ── Fidelidade tab ── */
+.fid-panel{ display:flex;flex-direction:column;gap:12px;padding-top:4px }
+.fid-saldo-grid{ display:grid;grid-template-columns:repeat(3,1fr);gap:8px }
+.fid-met{ flex:1;min-width:0 }
+.fid-met .mv-unit{ font-size:13px;font-weight:500;color:var(--tx2) }
+.fid-form{ flex-wrap:wrap;align-items:center;gap:8px }
+.fid-tipo{ width:130px }
+.fid-pontos{ width:130px }
+.fid-hist-table{ max-height:280px;overflow-y:auto;border-radius:var(--rad) }
+@media(max-width:800px){
+  .fid-saldo-grid{ grid-template-columns:1fr 1fr }
+  .fid-form{ flex-direction:column;align-items:stretch }
+  .fid-tipo,.fid-pontos{ width:100% }
+}
+
 .ped-detail-table-wrap{
   border-radius:18px;
   overflow:auto;
