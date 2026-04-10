@@ -4,3 +4,6 @@ export * from './identity';
 export * from './filter';
 export * from './adapter';
 export * from './ui/ClienteCard';
+export * from './ui/ClienteEmptyState';
+export * from './ui/ClienteListItem';
+export * from './ui/ClienteList';
