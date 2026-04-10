@@ -34,6 +34,7 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - resumo contextual do cliente adicionado para aproximar o fluxo do legado
 - abas leves de detalhe iniciadas no piloto React
 - notas/historico iniciados no detalhe do cliente com API coberta por testes
+- fidelidade iniciada como primeira subarea de alto valor no detalhe React
 
 ### Nao entrar agora
 
@@ -52,3 +53,4 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - a primeira UI real de escrita ja salva e edita clientes pelo fluxo React
 - o piloto React ja cobre leitura, escrita, edicao e exclusao com testes
 - o detalhe do cliente ja comeca a convergir para o legado sem perder blindagem de cobertura
+- a primeira subarea de fidelidade ja carrega saldo, historico e lancamento manual no piloto

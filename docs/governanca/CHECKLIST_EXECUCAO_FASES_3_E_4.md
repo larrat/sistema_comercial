@@ -84,4 +84,5 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Remocao real e resumo contextual do cliente adicionados ao piloto React
 - [x] Abas leves e notas/historico iniciados no detalhe do piloto `clientes`
 - [x] Coverage React estabilizado acima do threshold apos a camada de notas
+- [x] Fidelidade iniciada no detalhe React com saldo, historico e lancamento manual
 - [ ] Falta aplicar branch protection no GitHub

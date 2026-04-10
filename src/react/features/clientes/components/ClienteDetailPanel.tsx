@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { Cliente } from '../../../../types/domain';
 import { useClienteNotes } from '../hooks/useClienteNotes';
 import { ClienteContextSummary } from './ClienteContextSummary';
+import { ClienteFidelidadePanel } from './ClienteFidelidadePanel';
 
 type Props = {
   cliente: Cliente;
@@ -10,7 +11,7 @@ type Props = {
   onClose?: () => void;
 };
 
-type DetailTab = 'resumo' | 'notas';
+type DetailTab = 'resumo' | 'notas' | 'fidelidade';
 
 export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
   const [tab, setTab] = useState<DetailTab>('resumo');
@@ -53,6 +54,12 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
         </button>
         <button className={`tb ${tab === 'notas' ? 'on' : ''}`} onClick={() => setTab('notas')}>
           Notas / histórico
+        </button>
+        <button
+          className={`tb ${tab === 'fidelidade' ? 'on' : ''}`}
+          onClick={() => setTab('fidelidade')}
+        >
+          Fidelidade
         </button>
       </div>
 
@@ -105,6 +112,8 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
           )}
         </div>
       )}
+
+      {tab === 'fidelidade' && <ClienteFidelidadePanel cliente={cliente} />}
     </div>
   );
 }
