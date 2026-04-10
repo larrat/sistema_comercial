@@ -8,6 +8,10 @@ export type ClienteApiContext = {
 };
 
 export type ClienteWriteInput = Partial<Cliente> & Pick<Cliente, 'nome'>;
+export type ClienteWritePayload = Omit<Partial<Cliente>, 'nome'> & {
+  filial_id: string;
+  nome: string;
+};
 
 function createHeaders(key: string, token: string, prefer?: string): HeadersInit {
   return {
@@ -44,7 +48,10 @@ export function buildDeleteClienteUrl(url: string, clienteId: string): string {
   return `${url}/rest/v1/clientes?id=eq.${encodeURIComponent(clienteId)}`;
 }
 
-export function toClienteWritePayload(input: ClienteWriteInput, filialId: string): Cliente {
+export function toClienteWritePayload(
+  input: ClienteWriteInput,
+  filialId: string
+): ClienteWritePayload {
   return {
     id: input.id ?? undefined,
     filial_id: filialId,
@@ -100,7 +107,13 @@ export async function saveCliente(
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao salvar cliente`);
-  return Array.isArray(body) ? ((body[0] as Cliente | undefined) ?? payload) : payload;
+  if (Array.isArray(body) && body[0]) {
+    return body[0] as Cliente;
+  }
+  if (input.id) {
+    return { ...payload, id: input.id } as Cliente;
+  }
+  return null;
 }
 
 export async function deleteCliente(context: ClienteApiContext, clienteId: string): Promise<void> {
