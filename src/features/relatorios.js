@@ -57,6 +57,13 @@ function fmtPeriodo(mesRef){
 }
 
 /**
+ * @param {OportunidadeJogo} item
+ */
+function getOportunidadeData(item){
+  return item.data_jogo || item.jogo_data_hora || item.jogo?.data_hora || '';
+}
+
+/**
  * @param {unknown} v
  */
 function norm(v){
@@ -412,15 +419,17 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
   seteDias.setDate(seteDias.getDate() + 7);
 
   const jogosHoje = oportunidadesAtuais.filter(j => {
-    if(!j.data_jogo) return false;
-    const d = new Date(j.data_jogo);
+    const data = getOportunidadeData(j);
+    if(!data) return false;
+    const d = new Date(data);
     d.setHours(0, 0, 0, 0);
     return d.getTime() === hoje.getTime();
   });
 
   const jogosSemana = oportunidadesAtuais.filter(j => {
-    if(!j.data_jogo) return false;
-    const d = new Date(j.data_jogo);
+    const data = getOportunidadeData(j);
+    if(!data) return false;
+    const d = new Date(data);
     d.setHours(0, 0, 0, 0);
     return d >= amanha && d <= seteDias;
   });

@@ -66,4 +66,5 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Prettier inicial configurado
 - [x] Workflow inicial de CI criado
 - [x] Bug em `notificacoes.js` corrigido durante a ativacao do lint
-- [ ] Repositorio ainda possui pendencias para `lint`, `format:check` e `typecheck`
+- [x] `typecheck` e `typecheck:strict` estabilizados e passando
+- [ ] Repositorio ainda possui pendencias para `lint` e `format:check`

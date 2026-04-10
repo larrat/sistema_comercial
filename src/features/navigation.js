@@ -13,7 +13,7 @@ const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
 const MOBILE_MENU_FAB_IDLE_MS = 1600;
 const THEME_KEY = 'sc_theme_v1';
 
-/** @type {'auto'|'light'|'dark'} */
+/** @type {readonly ('auto'|'light'|'dark')[]} */
 const THEME_CYCLE = /** @type {const} */ (['auto', 'light', 'dark']);
 
 const THEME_LABELS = { auto: 'Auto', light: 'Claro', dark: 'Escuro' };
@@ -52,7 +52,7 @@ export function initTheme(){
   btn.addEventListener('click', () => {
     const current = getStoredTheme();
     const idx = THEME_CYCLE.indexOf(current);
-    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+    const next = /** @type {'auto'|'light'|'dark'} */ (THEME_CYCLE[(idx + 1) % THEME_CYCLE.length]);
     applyTheme(next);
   });
 }

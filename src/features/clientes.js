@@ -977,7 +977,7 @@ function renderNotasCliente(id){
 }
 
 export function renderCliMet(){
-  return measureRender('clientes', 'metrics', () => {
+  return measureRender('clientes', () => {
     const clientes = C();
     if(isRuntimeBootstrapping() && !clientes.length){
       cliDom.html('metrics', 'cli-met', `
@@ -1013,11 +1013,11 @@ export function renderCliMet(){
       currentSeg,
       'clientes:segmentos'
     );
-  });
+  }, 'metrics');
 }
 
 export function renderClientes(){
-  return measureRender('clientes', 'list', () => {
+  return measureRender('clientes', () => {
     const filtrados = getFilteredClientes();
     if(isRuntimeBootstrapping() && !C().length){
       cliDom.html(
@@ -1063,11 +1063,11 @@ export function renderClientes(){
         </table>
       </div>
     `, 'clientes:lista-desktop');
-  });
+  }, 'list');
 }
 
 export function renderCliSegs(){
-  return measureRender('clientes', 'segments', () => {
+  return measureRender('clientes', () => {
     const el = cliDom.get('cli-segs-lista');
     if(!el) return;
 
@@ -1102,7 +1102,7 @@ export function renderCliSegs(){
         </div>
       `;
     }).join(''), 'clientes:segmentos-lista');
-  });
+  }, 'segments');
 }
 
 // ── Fidelidade UI ─────────────────────────────────────────────────────────────

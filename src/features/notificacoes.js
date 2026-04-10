@@ -663,7 +663,7 @@ function renderHistoricoAgrupado(historico){
 }
 
 export function renderNotificacoes(){
-  return measureRender('notificacoes', 'page', () => {
+  return measureRender('notificacoes', () => {
   const met = document.getElementById('noti-met');
   const lista = document.getElementById('noti-lista');
   const histEl = document.getElementById('noti-historico');
@@ -722,5 +722,5 @@ export function renderNotificacoes(){
   }
 
   histEl.innerHTML = renderHistoricoAgrupado(hist.slice(0, 30));
-  });
+  }, 'page');
 }

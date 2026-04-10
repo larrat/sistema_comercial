@@ -262,7 +262,7 @@ function buildCampanhasContextPanelV2(campanhas, envios) {
 // ── Renders públicos ──────────────────────────────────────────────────────────
 
 export function renderCampanhasMet() {
-  return measureRender('campanhas', 'metrics', () => {
+  return measureRender('campanhas', () => {
     const campanhas = getCampanhasCache();
     const envios = getEnviosCache();
     const { ativas, resumo } = getCampanhasStats(campanhas, envios);
@@ -299,11 +299,11 @@ export function renderCampanhasMet() {
         <div class="ms metric-card__foot">${envios.length} envio(s) no histórico</div>
       </div>
     `;
-  });
+  }, 'metrics');
 }
 
 export function renderCampanhas() {
-  return measureRender('campanhas', 'list', () => {
+  return measureRender('campanhas', () => {
     const campanhas = getCampanhasCache();
     const envios = getEnviosCache();
     const el = document.getElementById('camp-lista');
@@ -421,7 +421,7 @@ export function renderCampanhas() {
         </table>
       </div>
     `;
-  });
+  }, 'list');
 }
 
 export function renderCampanhaPreview() {
@@ -720,7 +720,7 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
 }
 
 export function renderCampanhaEnvios() {
-  return measureRender('campanhas', 'history', () => {
+  return measureRender('campanhas', () => {
     const envios = getEnviosHistoricoFiltrados();
     const el = document.getElementById('camp-envios-lista');
     if (!el) return;
@@ -737,7 +737,7 @@ export function renderCampanhaEnvios() {
     const grupos = agruparHistoricoEnviosPorCampanha(envios);
     const isMobile = window.matchMedia('(max-width: 1280px)').matches;
     el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
-  });
+  }, 'history');
 }
 
 export function renderPreviewWhatsAppAtual() {

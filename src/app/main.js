@@ -634,7 +634,10 @@ registerApplicationModules({
     entrar,
     appRoles: APP_ROLES,
     registerNotificationKpi,
-    logStrategicAction
+    logStrategicAction,
+    abrirModalRca,
+    salvarRca,
+    syncPedidoRcaComCliente
   }
 });
 
@@ -728,7 +731,6 @@ startApplicationRuntime({
       switchCliDetTab,
       fecharVendaCliente,
       addNota,
-      adicionarLancamentoFidelidade,
       salvarClienteTracked,
       addItem,
       syncPedidoRcaComCliente,

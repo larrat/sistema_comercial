@@ -843,7 +843,7 @@ export function renderDashFilSel(){
 }
 
 export function renderDash(){
-  return measureRender('dashboard', 'page', () => {
+  return measureRender('dashboard', () => {
     const fsel = State.FIL || dashDom.get('dash-fil')?.value || '';
     const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';
     const range = getRange();

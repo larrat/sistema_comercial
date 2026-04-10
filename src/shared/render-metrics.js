@@ -83,11 +83,11 @@ export function markRenderDuration(page, area = 'page', durationMs = 0){
 /**
  * @template T
  * @param {string} page
- * @param {string} [area='page']
  * @param {() => T} fn
+ * @param {string} [area='page']
  * @returns {T}
  */
-export function measureRender(page, area = 'page', fn){
+export function measureRender(page, fn, area = 'page'){
   const startedAt = nowMs();
   const result = fn();
   markRender(page, area);

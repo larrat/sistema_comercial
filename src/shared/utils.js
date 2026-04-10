@@ -220,12 +220,13 @@ export function markFieldState(id, state = 'error'){
 
 /**
  * @param {string} id
- * @param {{ markError?: boolean }} [options]
+ * @param {{ markError?: boolean, markSuccess?: boolean }} [options]
  */
-export function focusField(id, { markError = false } = {}){
+export function focusField(id, { markError = false, markSuccess = false } = {}){
   const el = document.getElementById(id);
   if(!el) return;
   if(markError) markFieldState(id, 'error');
+  if(markSuccess) markFieldState(id, 'success');
   try{
     el.focus();
     if('select' in el && typeof el.select === 'function') el.select();

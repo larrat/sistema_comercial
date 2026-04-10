@@ -543,6 +543,7 @@ export type OportunidadeJogo = {
   jogo_titulo?: string;
   jogo_campeonato?: string | null;
   jogo_data_hora?: string;
+  data_jogo?: string;
   jogo?: {
     titulo?: string;
     data_hora?: string;
@@ -639,6 +640,7 @@ export type DomBindingsDeps = {
   exportarTudo?: () => void;
   sairConta?: () => void | Promise<void>;
   renderDash?: () => void;
+  togglePersonalizarDash?: () => void;
   setP?: (period: string, el?: Element | null) => void;
   limparFormPedTracked?: () => void;
   abrirSyncJogos?: () => void;
@@ -711,6 +713,7 @@ export type DomBindingsDeps = {
   switchCliDetTab?: (clienteId?: Id | null, tab?: string) => void;
   fecharVendaCliente?: (pedidoId?: Id | null, clienteId?: Id | null) => void | Promise<void>;
   addNota?: (id?: Id | null) => void | Promise<void>;
+  adicionarLancamentoFidelidade?: (clienteId?: Id | null) => void | Promise<void>;
   salvarClienteTracked?: () => void | Promise<void>;
   addItem?: () => void;
   preencherValoresItemPedido?: () => void;

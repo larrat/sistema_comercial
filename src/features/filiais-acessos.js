@@ -115,7 +115,7 @@ function getAccessUserLabel(user){
 /**
  * @param {string} ref
  * @param {{ inputId: string, hintId: string, silent?: boolean }} options
- * @returns {Promise<AccessAdminUser | { user_id: string, email?: string | null } | null>}
+ * @returns {Promise<AccessAdminUser | { user_id: string, email?: string | null, nome?: string | null } | null>}
  */
 async function resolveAccessUserRef(ref, { inputId, hintId, silent = false }){
   const raw = String(ref || '').trim();
@@ -133,7 +133,7 @@ async function resolveAccessUserRef(ref, { inputId, hintId, silent = false }){
       cached?.email ? `UUID informado. Usuário encontrado: ${cached.email}` : 'UUID informado manualmente.',
       'success'
     );
-    return cached || { user_id: raw, email: cached?.email || null };
+    return cached || { user_id: raw, email: cached?.email || null, nome: cached?.nome || null };
   }
 
   if(!isEmail(raw)){
