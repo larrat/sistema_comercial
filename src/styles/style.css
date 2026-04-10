@@ -211,6 +211,11 @@ body{
   display:none;
   contain:layout style;   /* isola reflow/estilo da página — não vaza pro layout pai */
 }
+/* regra nuclear: garante que nenhuma classe filha (bento-page, ID+classe)
+   sobrescreva o display:none em páginas inativas */
+.pg:not(.on){
+  display:none !important;
+}
 .pg.on{
   display:block;
   animation:pageIn .2s ease-out;

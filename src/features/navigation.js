@@ -619,12 +619,12 @@ function setActivePageVisibility(nextPage){
 
   if(prevEl instanceof HTMLElement){
     prevEl.classList.remove('on', 'anim-done');
-    prevEl.style.display = 'none';
+    prevEl.style.removeProperty('display');
   }
   if(nextEl instanceof HTMLElement){
     nextEl.classList.remove('anim-done');
+    nextEl.style.removeProperty('display');
     nextEl.classList.add('on');
-    nextEl.style.display = 'block';
     nextEl.addEventListener('animationend', () => {
       nextEl.classList.add('anim-done');
     }, { once: true });
