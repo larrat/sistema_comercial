@@ -5,9 +5,7 @@ const SB_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
 const SB_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const APP_INVITE_REDIRECT_TO = Deno.env.get('APP_INVITE_REDIRECT_TO') || '';
 const APP_ROLES = ['admin', 'gerente', 'operador'] as const;
-const INVITE_ACTIONS = ['invite_and_assign', 'resend_invite'] as const;
-
-type InviteAction = typeof INVITE_ACTIONS[number];
+type InviteAction = 'invite_and_assign' | 'resend_invite';
 
 type RequestBody = {
   action?: string | null;
@@ -31,7 +29,9 @@ function json(body: unknown, status = 200) {
 }
 
 function normalizeEmail(value: unknown) {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '')
+    .trim()
+    .toLowerCase();
 }
 
 function isEmail(value: unknown) {
@@ -55,14 +55,13 @@ function normalizeRedirectUrl(value: unknown) {
 }
 
 function normalizeInviteAction(value: unknown): InviteAction {
-  const raw = String(value || '').trim().toLowerCase();
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase();
   return raw === 'resend_invite' ? 'resend_invite' : 'invite_and_assign';
 }
 
-async function lookupUserByEmail(
-  supabase: ReturnType<typeof createClient>,
-  email: string
-) {
+async function lookupUserByEmail(supabase: ReturnType<typeof createClient>, email: string) {
   const { data, error } = await supabase.rpc('admin_lookup_user_by_email', {
     p_email: email
   });
@@ -77,28 +76,34 @@ async function lookupUserByEmail(
   };
 }
 
-Deno.serve(async req => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return json({ ok: true }, 200);
   if (req.method !== 'POST') {
     return json({ ok: false, error: { code: 'METHOD_NOT_ALLOWED', message: 'Use POST.' } }, 405);
   }
 
   if (!SB_URL || !SB_ANON_KEY || !SB_SERVICE_ROLE_KEY) {
-    return json({
-      ok: false,
-      error: {
-        code: 'CONFIG_MISSING',
-        message: 'SUPABASE_URL/SUPABASE_ANON_KEY/SUPABASE_SERVICE_ROLE_KEY ausentes.'
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'CONFIG_MISSING',
+          message: 'SUPABASE_URL/SUPABASE_ANON_KEY/SUPABASE_SERVICE_ROLE_KEY ausentes.'
+        }
+      },
+      500
+    );
   }
 
   const authHeader = req.headers.get('Authorization') || '';
   if (!authHeader.startsWith('Bearer ')) {
-    return json({
-      ok: false,
-      error: { code: 'AUTH_MISSING', message: 'Authorization Bearer obrigatorio.' }
-    }, 401);
+    return json(
+      {
+        ok: false,
+        error: { code: 'AUTH_MISSING', message: 'Authorization Bearer obrigatorio.' }
+      },
+      401
+    );
   }
 
   const supabase = createClient(SB_URL, SB_ANON_KEY, {
@@ -118,37 +123,47 @@ Deno.serve(async req => {
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) {
-    return json({
-      ok: false,
-      error: {
-        code: 'AUTH_INVALID',
-        message: 'Sessao invalida ou expirada.',
-        details: userError?.message || null
-      }
-    }, 401);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'AUTH_INVALID',
+          message: 'Sessao invalida ou expirada.',
+          details: userError?.message || null
+        }
+      },
+      401
+    );
   }
 
-  const body = await req.json().catch(() => null) as RequestBody | null;
+  const body = (await req.json().catch(() => null)) as RequestBody | null;
   const action = normalizeInviteAction(body?.action);
   const email = normalizeEmail(body?.email);
   const nome = String(body?.nome || '').trim();
   const papel = String(body?.papel || '').trim();
   const filialId = String(body?.filial_id || '').trim();
-  const redirectTo = normalizeRedirectUrl(APP_INVITE_REDIRECT_TO) || normalizeRedirectUrl(body?.redirect_to);
+  const redirectTo =
+    normalizeRedirectUrl(APP_INVITE_REDIRECT_TO) || normalizeRedirectUrl(body?.redirect_to);
   const detalhes = normalizeDetalhes(body?.detalhes);
 
   if (!isEmail(email)) {
-    return json({
-      ok: false,
-      error: { code: 'INVALID_EMAIL', message: 'Informe um e-mail valido.' }
-    }, 400);
+    return json(
+      {
+        ok: false,
+        error: { code: 'INVALID_EMAIL', message: 'Informe um e-mail valido.' }
+      },
+      400
+    );
   }
 
   if (!(APP_ROLES as readonly string[]).includes(papel)) {
-    return json({
-      ok: false,
-      error: { code: 'INVALID_ROLE', message: `papel invalido. Use: ${APP_ROLES.join(', ')}.` }
-    }, 400);
+    return json(
+      {
+        ok: false,
+        error: { code: 'INVALID_ROLE', message: `papel invalido. Use: ${APP_ROLES.join(', ')}.` }
+      },
+      400
+    );
   }
 
   const { data: perfilRows, error: perfilError } = await supabase
@@ -158,18 +173,31 @@ Deno.serve(async req => {
     .limit(1);
 
   if (perfilError) {
-    return json({
-      ok: false,
-      error: { code: 'ROLE_FETCH_FAILED', message: 'Falha ao consultar perfil RBAC.', details: perfilError.message }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'ROLE_FETCH_FAILED',
+          message: 'Falha ao consultar perfil RBAC.',
+          details: perfilError.message
+        }
+      },
+      500
+    );
   }
 
   const papelAtor = String(perfilRows?.[0]?.papel || 'operador');
   if (papelAtor !== 'admin') {
-    return json({
-      ok: false,
-      error: { code: 'FORBIDDEN', message: 'Somente admin pode convidar usuarios e configurar acessos.' }
-    }, 403);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Somente admin pode convidar usuarios e configurar acessos.'
+        }
+      },
+      403
+    );
   }
 
   if (filialId) {
@@ -180,30 +208,43 @@ Deno.serve(async req => {
       .limit(1);
 
     if (filialError) {
-      return json({
-        ok: false,
-        error: { code: 'FILIAL_FETCH_FAILED', message: 'Falha ao validar filial alvo.', details: filialError.message }
-      }, 500);
+      return json(
+        {
+          ok: false,
+          error: {
+            code: 'FILIAL_FETCH_FAILED',
+            message: 'Falha ao validar filial alvo.',
+            details: filialError.message
+          }
+        },
+        500
+      );
     }
 
     if (!filialRows?.[0]?.id) {
-      return json({
-        ok: false,
-        error: { code: 'FILIAL_NOT_FOUND', message: 'Filial alvo inexistente ou sem acesso.' }
-      }, 404);
+      return json(
+        {
+          ok: false,
+          error: { code: 'FILIAL_NOT_FOUND', message: 'Filial alvo inexistente ou sem acesso.' }
+        },
+        404
+      );
     }
   }
 
   const lookupBefore = await lookupUserByEmail(supabase, email);
   if (lookupBefore.error) {
-    return json({
-      ok: false,
-      error: {
-        code: 'USER_LOOKUP_FAILED',
-        message: 'Falha ao consultar usuario por e-mail.',
-        details: lookupBefore.error.message
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'USER_LOOKUP_FAILED',
+          message: 'Falha ao consultar usuario por e-mail.',
+          details: lookupBefore.error.message
+        }
+      },
+      500
+    );
   }
 
   let invited = false;
@@ -229,26 +270,34 @@ Deno.serve(async req => {
         inviteMessage.includes('already exists');
 
       if (alreadyAccepted) {
-        return json({
-          ok: false,
-          error: {
-            code: 'INVITE_ALREADY_ACCEPTED',
-            message: 'Esse e-mail ja possui uma conta ativa. O convite nao pode ser reenviado; oriente o usuario a entrar normalmente ou redefinir a senha.',
-            details: inviteError.message
-          }
-        }, 409);
+        return json(
+          {
+            ok: false,
+            error: {
+              code: 'INVITE_ALREADY_ACCEPTED',
+              message:
+                'Esse e-mail ja possui uma conta ativa. O convite nao pode ser reenviado; oriente o usuario a entrar normalmente ou redefinir a senha.',
+              details: inviteError.message
+            }
+          },
+          409
+        );
       }
 
-      return json({
-        ok: false,
-        error: {
-          code: 'INVITE_FAILED',
-          message: action === 'resend_invite'
-            ? 'Falha ao reenviar convite por e-mail.'
-            : 'Falha ao enviar convite por e-mail.',
-          details: inviteError.message
-        }
-      }, 500);
+      return json(
+        {
+          ok: false,
+          error: {
+            code: 'INVITE_FAILED',
+            message:
+              action === 'resend_invite'
+                ? 'Falha ao reenviar convite por e-mail.'
+                : 'Falha ao enviar convite por e-mail.',
+            details: inviteError.message
+          }
+        },
+        500
+      );
     }
 
     invited = true;
@@ -261,66 +310,80 @@ Deno.serve(async req => {
     : await lookupUserByEmail(supabase, email);
 
   if (lookupAfter.error) {
-    return json({
-      ok: false,
-      error: {
-        code: 'INVITE_RESOLVE_FAILED',
-        message: 'Convite enviado, mas falhou ao resolver o usuario criado.',
-        details: lookupAfter.error.message
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'INVITE_RESOLVE_FAILED',
+          message: 'Convite enviado, mas falhou ao resolver o usuario criado.',
+          details: lookupAfter.error.message
+        }
+      },
+      500
+    );
   }
 
   const alvoUserId = String(lookupAfter.data?.user_id || '').trim();
   if (!alvoUserId) {
-    return json({
-      ok: false,
-      error: {
-        code: 'USER_ID_MISSING',
-        message: 'Nao foi possivel determinar o user_id apos o convite.'
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'USER_ID_MISSING',
+          message: 'Nao foi possivel determinar o user_id apos o convite.'
+        }
+      },
+      500
+    );
   }
 
-  const { error: perfilUpsertError } = await supabase
-    .from('user_perfis')
-    .upsert({
+  const { error: perfilUpsertError } = await supabase.from('user_perfis').upsert(
+    {
       user_id: alvoUserId,
       papel,
       user_nome: nome || lookupBefore.data?.nome || null,
       user_email: email
-    }, { onConflict: 'user_id' });
+    },
+    { onConflict: 'user_id' }
+  );
 
   if (perfilUpsertError) {
-    return json({
-      ok: false,
-      error: {
-        code: 'PROFILE_UPSERT_FAILED',
-        message: 'Falha ao salvar perfil do usuario convidado.',
-        details: perfilUpsertError.message
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'PROFILE_UPSERT_FAILED',
+          message: 'Falha ao salvar perfil do usuario convidado.',
+          details: perfilUpsertError.message
+        }
+      },
+      500
+    );
   }
 
   if (filialId) {
-    const { error: vinculoUpsertError } = await supabase
-      .from('user_filiais')
-      .upsert({
+    const { error: vinculoUpsertError } = await supabase.from('user_filiais').upsert(
+      {
         user_id: alvoUserId,
         filial_id: filialId,
         user_nome: nome || lookupBefore.data?.nome || null,
         user_email: email
-      }, { onConflict: 'user_id,filial_id' });
+      },
+      { onConflict: 'user_id,filial_id' }
+    );
 
     if (vinculoUpsertError) {
-      return json({
-        ok: false,
-        error: {
-          code: 'LINK_UPSERT_FAILED',
-          message: 'Falha ao vincular usuario convidado a filial.',
-          details: vinculoUpsertError.message
-        }
-      }, 500);
+      return json(
+        {
+          ok: false,
+          error: {
+            code: 'LINK_UPSERT_FAILED',
+            message: 'Falha ao vincular usuario convidado a filial.',
+            details: vinculoUpsertError.message
+          }
+        },
+        500
+      );
     }
   }
 
@@ -356,51 +419,60 @@ Deno.serve(async req => {
         via: 'edge_function_acessos_admin_convite_v3'
       }
     },
-    ...(filialId ? [{
-      ator_user_id: userData.user.id,
-      acao: 'vinculo_upsert',
-      recurso: 'user_filiais',
-      alvo_user_id: alvoUserId,
-      alvo_filial_id: filialId,
-      detalhes: {
-        email,
-        nome: nome || null,
-        papel,
-        action,
-        via: 'edge_function_acessos_admin_convite_v3'
-      }
-    }] : [])
+    ...(filialId
+      ? [
+          {
+            ator_user_id: userData.user.id,
+            acao: 'vinculo_upsert',
+            recurso: 'user_filiais',
+            alvo_user_id: alvoUserId,
+            alvo_filial_id: filialId,
+            detalhes: {
+              email,
+              nome: nome || null,
+              papel,
+              action,
+              via: 'edge_function_acessos_admin_convite_v3'
+            }
+          }
+        ]
+      : [])
   ];
 
-  const { error: auditError } = await supabase
-    .from('acessos_auditoria')
-    .insert(auditPayload);
+  const { error: auditError } = await supabase.from('acessos_auditoria').insert(auditPayload);
 
   if (auditError) {
-    return json({
-      ok: false,
-      error: {
-        code: 'AUDIT_INSERT_FAILED',
-        message: 'Convite executado, mas a auditoria administrativa falhou. Validar consistencia antes de repetir.',
-        details: auditError.message
-      }
-    }, 500);
+    return json(
+      {
+        ok: false,
+        error: {
+          code: 'AUDIT_INSERT_FAILED',
+          message:
+            'Convite executado, mas a auditoria administrativa falhou. Validar consistencia antes de repetir.',
+          details: auditError.message
+        }
+      },
+      500
+    );
   }
 
-  return json({
-    ok: true,
-    data: {
-      ator_user_id: userData.user.id,
-      alvo_user_id: alvoUserId,
-      email,
-      action,
-      nome: nome || lookupBefore.data?.nome || null,
-      papel,
-      filial_id: filialId || null,
-      user_created: created,
-      convite_enviado: invited,
-      perfil_salvo: true,
-      vinculo_salvo: !!filialId
-    }
-  }, 200);
+  return json(
+    {
+      ok: true,
+      data: {
+        ator_user_id: userData.user.id,
+        alvo_user_id: alvoUserId,
+        email,
+        action,
+        nome: nome || lookupBefore.data?.nome || null,
+        papel,
+        filial_id: filialId || null,
+        user_created: created,
+        convite_enviado: invited,
+        perfil_salvo: true,
+        vinculo_salvo: !!filialId
+      }
+    },
+    200
+  );
 });

@@ -55,7 +55,34 @@ export function isBirthdayWithinDays(birthDate: string, baseDate = new Date(), m
   return next >= start && next <= end;
 }
 
-export function filtrarClientesElegiveisCampanhaAniversario(clientes: any[] = [], campanha: any, baseDate = new Date()) {
+type CampanhaClienteElegivel = {
+  data_aniversario?: string | null;
+  optin_email?: boolean | null;
+  email?: string | null;
+  optin_sms?: boolean | null;
+  tel?: string | null;
+  optin_marketing?: boolean | null;
+  whatsapp?: string | null;
+};
+
+type CampanhaMensagemInput = {
+  mensagem?: string | null;
+  cliente?: {
+    nome?: string | null;
+    apelido?: string | null;
+  } | null;
+  campanha?: {
+    desconto?: number | string | null;
+    cupom?: string | null;
+  } | null;
+  validade?: Date | string | null;
+};
+
+export function filtrarClientesElegiveisCampanhaAniversario(
+  clientes: CampanhaClienteElegivel[] = [],
+  campanha: { dias_antecedencia?: number | string | null; canal?: string | null } | null,
+  baseDate = new Date()
+) {
   const dias = Number(campanha?.dias_antecedencia || 0);
   const canal = String(campanha?.canal || '');
 
@@ -71,7 +98,12 @@ export function filtrarClientesElegiveisCampanhaAniversario(clientes: any[] = []
   });
 }
 
-export function montarMensagemCampanha({ mensagem, cliente, campanha, validade = null }: any) {
+export function montarMensagemCampanha({
+  mensagem,
+  cliente,
+  campanha,
+  validade = null
+}: CampanhaMensagemInput) {
   let txt = String(mensagem || '');
 
   const desconto = campanha?.desconto ? `${Number(campanha.desconto)}%` : '';

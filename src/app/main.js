@@ -9,7 +9,7 @@
 /** @typedef {import('../types/domain').AppCache} AppCache */
 
 import { SB } from './api.js';
-import { D, State, P, C, PD, FORNS, CPRECOS, CCFG } from './store.js';
+import { D, State, P, C, PD, FORNS, CPRECOS } from './store.js';
 import { createAppContext } from '../shared/app-context.js';
 import { createModuleRegistry } from '../shared/module-registry.js';
 import { getRenderMetrics, resetRenderMetrics } from '../shared/render-metrics.js';
@@ -65,7 +65,6 @@ import {
   switchCliDetTab,
   fecharVendaCliente,
   addNota,
-  adicionarLancamentoFidelidade,
   limparFormCli,
   editarCli,
   salvarCliente,
@@ -89,11 +88,7 @@ import {
   verPed
 } from '../features/pedidos.js';
 
-import {
-  refreshRcaSelectors,
-  abrirModalRca,
-  salvarRca
-} from '../features/rcas.js';
+import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
 
 import {
   calcSaldos,
@@ -119,9 +114,7 @@ import {
   renderDashFilSel,
   renderDash,
   setP,
-  renderDashJogos,
   abrirNovoJogo,
-  limparFormJogo,
   salvarJogoDashboard,
   removerJogoDashboard,
   abrirSyncJogos,
@@ -141,7 +134,6 @@ import {
   carregarCampanhas,
   carregarCampanhaEnvios,
   refreshCampanhasTela,
-  limparFormCampanha,
   abrirNovaCampanha,
   adotarCampanhasParaFilialAtiva,
   editarCampanha,
@@ -186,7 +178,6 @@ import {
   initTelemetriaModule,
   startCriticalTask,
   completeCriticalTask,
-  abandonCriticalTask,
   registerJourneyRework,
   startPrimaryActionTracking,
   completePrimaryActionTracking,
@@ -229,7 +220,6 @@ import {
   trocarFilial,
   renderFilMet,
   renderFilLista,
-  renderAcessosMet,
   renderAcessosPerfis,
   renderAcessosVinculos,
   renderAcessosAuditoria,
@@ -263,7 +253,6 @@ import {
 import {
   initUxWorkflowsModule,
   executarAuditoriaVisual,
-  executarAuditoriaAceite,
   initQuickCommand,
   setFlowStep,
   initFlowWizards
@@ -277,14 +266,9 @@ import {
   mostrarTela
 } from '../features/runtime-loading.js';
 
-import {
-  registerApplicationModules,
-  startApplicationRuntime
-} from '../features/boot-runtime.js';
+import { registerApplicationModules, startApplicationRuntime } from '../features/boot-runtime.js';
 
-import {
-  initDomBindings
-} from '../features/dom-bindings.js';
+import { initDomBindings } from '../features/dom-bindings.js';
 
 import { configureErrorHandler } from '../core/errors/error-handler.js';
 import { notify } from '../shared/utils.js';
@@ -306,10 +290,10 @@ const AppModules = createModuleRegistry();
 window.__SC_DEBUG__ = Object.freeze({
   getRenderMetrics,
   resetRenderMetrics,
-  logRenderMetrics(page){
+  logRenderMetrics(page) {
     const metrics = page ? getRenderMetrics(page) : getRenderMetrics();
-    const rows = Array.isArray(metrics) ? metrics : (metrics ? [metrics] : []);
-    const flat = rows.flatMap(entry =>
+    const rows = Array.isArray(metrics) ? metrics : metrics ? [metrics] : [];
+    const flat = rows.flatMap((entry) =>
       Object.entries(entry.durations || {}).map(([area, stats]) => ({
         page: entry.page,
         area,
@@ -329,11 +313,11 @@ window.__SC_DEBUG__ = Object.freeze({
  * @param {Pedido['itens']} itens
  * @returns {PedidoItem[]}
  */
-function asPedidoItens(itens){
+function asPedidoItens(itens) {
   return Array.isArray(itens) ? itens : [];
 }
 
-function resetRuntimeData(){
+function resetRuntimeData() {
   D.filiais = [];
   D.produtos = {};
   D.clientes = {};
@@ -363,64 +347,64 @@ function resetRuntimeData(){
   State.pedItens = [];
 }
 
-function limparFormProdTracked(){
+function limparFormProdTracked() {
   startCriticalTask('produto');
   return limparFormProd();
 }
-function limparFormCliTracked(){
+function limparFormCliTracked() {
   startCriticalTask('cliente');
   return limparFormCli();
 }
-function limparFormPedTracked(){
+function limparFormPedTracked() {
   startCriticalTask('pedido');
   return limparFormPed();
 }
-function abrirNovaCampanhaTracked(){
+function abrirNovaCampanhaTracked() {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode criar campanha.')) return;
   startCriticalTask('campanha');
   logStrategicAction('campanhas');
   return abrirNovaCampanha();
 }
-async function salvarProdutoTracked(){
-  if(State.editIds.prod) registerJourneyRework('produto');
+async function salvarProdutoTracked() {
+  if (State.editIds.prod) registerJourneyRework('produto');
   await salvarProduto();
   const open = document.getElementById('modal-produto')?.classList.contains('on');
-  if(!open) completeCriticalTask('produto');
+  if (!open) completeCriticalTask('produto');
   renderMetasNegocio();
 }
-async function salvarClienteTracked(){
-  if(State.editIds.cli) registerJourneyRework('cliente');
+async function salvarClienteTracked() {
+  if (State.editIds.cli) registerJourneyRework('cliente');
   await salvarCliente();
   const open = document.getElementById('modal-cliente')?.classList.contains('on');
-  if(!open) completeCriticalTask('cliente');
+  if (!open) completeCriticalTask('cliente');
   renderMetasNegocio();
 }
-async function salvarPedidoTracked(){
-  if(State.editIds.ped) registerJourneyRework('pedido');
+async function salvarPedidoTracked() {
+  if (State.editIds.ped) registerJourneyRework('pedido');
   await salvarPedido();
   const open = document.getElementById('modal-pedido')?.classList.contains('on');
-  if(!open) completeCriticalTask('pedido');
+  if (!open) completeCriticalTask('pedido');
   renderMetasNegocio();
 }
-async function salvarCampanhaTracked(){
+async function salvarCampanhaTracked() {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode salvar campanha.')) return;
-  if(State.editIds?.campanha) registerJourneyRework('campanha');
+  if (State.editIds?.campanha) registerJourneyRework('campanha');
   await salvarCampanha();
   const open = document.getElementById('modal-campanha')?.classList.contains('on');
-  if(!open){
+  if (!open) {
     completeCriticalTask('campanha');
     logStrategicAction('campanhas');
   }
   renderMetasNegocio();
 }
-async function gerarFilaCampanhaTracked(id){
+async function gerarFilaCampanhaTracked(id) {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode gerar fila de campanha.')) return;
   logStrategicAction('campanhas');
   await gerarFilaCampanha(id);
   renderMetasNegocio();
 }
 
-function resolverTodasNotificacoesTracked(){
+function resolverTodasNotificacoesTracked() {
   logStrategicAction('notificacoes');
   resolverTodasNotificacoes();
   renderMetasNegocio();
@@ -435,27 +419,94 @@ function exportCSV(tipo) {
   if (tipo === 'produtos') {
     name = 'produtos';
     rows = [
-      ['Nome', 'SKU', 'Un', 'Categoria', 'Custo', 'Mk Varejo%', 'Mg Varejo%', 'Preço Varejo', 'Mk Atacado%', 'Preço Atacado', 'Est. Min', 'Saldo Atual'],
-      ...P().map(p => {
+      [
+        'Nome',
+        'SKU',
+        'Un',
+        'Categoria',
+        'Custo',
+        'Mk Varejo%',
+        'Mg Varejo%',
+        'Preço Varejo',
+        'Mk Atacado%',
+        'Preço Atacado',
+        'Est. Min',
+        'Saldo Atual'
+      ],
+      ...P().map((p) => {
         const pv = prV(p.custo, p.mkv);
-        const pa = p.pfa > 0 ? p.pfa : (p.mka > 0 ? prV(p.custo, p.mka) : 0);
+        const pa = p.pfa > 0 ? p.pfa : p.mka > 0 ? prV(p.custo, p.mka) : 0;
         const s = saldos[p.id] || { saldo: 0 };
-        return [p.nome, p.sku || '', p.un, p.cat || '', fmtN(p.custo), fmtN(p.mkv), fmtN(mk2mg(p.mkv)), fmtN(pv), fmtN(p.mka), pa > 0 ? fmtN(pa) : '', p.emin || '', fmtN(s.saldo)];
+        return [
+          p.nome,
+          p.sku || '',
+          p.un,
+          p.cat || '',
+          fmtN(p.custo),
+          fmtN(p.mkv),
+          fmtN(mk2mg(p.mkv)),
+          fmtN(pv),
+          fmtN(p.mka),
+          pa > 0 ? fmtN(pa) : '',
+          p.emin || '',
+          fmtN(s.saldo)
+        ];
       })
     ];
   } else if (tipo === 'clientes') {
     name = 'clientes';
     rows = [
-      ['Nome', 'Apelido', 'CPF/CNPJ', 'Tipo', 'Status', 'Telefone', 'Email', 'Time', 'Segmento', 'Tabela', 'Prazo', 'Cidade', 'WhatsApp', 'Aniversário'],
-      ...C().map(c => [c.nome, c.apelido || '', c.doc || '', c.tipo, c.status, c.tel || '', c.email || '', c.time || '', c.seg || '', c.tab, c.prazo, c.cidade || '', c.whatsapp || '', c.data_aniversario || ''])
+      [
+        'Nome',
+        'Apelido',
+        'CPF/CNPJ',
+        'Tipo',
+        'Status',
+        'Telefone',
+        'Email',
+        'Time',
+        'Segmento',
+        'Tabela',
+        'Prazo',
+        'Cidade',
+        'WhatsApp',
+        'Aniversário'
+      ],
+      ...C().map((c) => [
+        c.nome,
+        c.apelido || '',
+        c.doc || '',
+        c.tipo,
+        c.status,
+        c.tel || '',
+        c.email || '',
+        c.time || '',
+        c.seg || '',
+        c.tab,
+        c.prazo,
+        c.cidade || '',
+        c.whatsapp || '',
+        c.data_aniversario || ''
+      ])
     ];
   } else if (tipo === 'pedidos') {
     name = 'pedidos';
     rows = [
       ['Nº', 'Cliente', 'Data', 'Status', 'Tipo', 'Pagamento', 'Prazo', 'Total', 'Lucro', 'Obs'],
-      ...PD().map(p => {
-        const lucro = asPedidoItens(p.itens).reduce((a, i) => a + ((i.preco - i.custo) * i.qty), 0);
-        return [p.num, p.cli, p.data, p.status, p.tipo, p.pgto, p.prazo, fmtN(p.total), fmtN(lucro), p.obs || ''];
+      ...PD().map((p) => {
+        const lucro = asPedidoItens(p.itens).reduce((a, i) => a + (i.preco - i.custo) * i.qty, 0);
+        return [
+          p.num,
+          p.cli,
+          p.data,
+          p.status,
+          p.tipo,
+          p.pgto,
+          p.prazo,
+          fmtN(p.total),
+          fmtN(lucro),
+          p.obs || ''
+        ];
       })
     ];
   } else if (tipo === 'cotacao') {
@@ -467,35 +518,59 @@ function exportCSV(tipo) {
     }
 
     rows = [
-      ['Produto', 'Un', ...forns.map(f => f.nome), 'Melhor preço', 'Melhor fornecedor'],
-      ...P().map(p => {
-        const prices = forns.map(f => {
+      ['Produto', 'Un', ...forns.map((f) => f.nome), 'Melhor preço', 'Melhor fornecedor'],
+      ...P().map((p) => {
+        const prices = forns.map((f) => {
           const k = p.id + '_' + f.id;
           return CPRECOS()[k] !== undefined ? Number(CPRECOS()[k]) : null;
         });
         const valid = prices.filter((v) => typeof v === 'number' && v > 0);
         const mp = valid.length ? Math.min(...valid) : null;
-        const bi = prices.findIndex(v => v === mp);
-        return [p.nome, p.un, ...prices.map(v => v == null ? '' : v), mp != null ? fmtN(mp) : '', bi >= 0 ? forns[bi].nome : ''];
+        const bi = prices.findIndex((v) => v === mp);
+        return [
+          p.nome,
+          p.un,
+          ...prices.map((v) => (v == null ? '' : v)),
+          mp != null ? fmtN(mp) : '',
+          bi >= 0 ? forns[bi].nome : ''
+        ];
       })
     ];
   } else if (tipo === 'estoque') {
     name = 'estoque';
     rows = [
       ['Produto', 'SKU', 'Un', 'Saldo', 'Custo Médio', 'Valor Total', 'Est. Mín', 'Status'],
-      ...P().map(p => {
+      ...P().map((p) => {
         const s = saldos[p.id] || { saldo: 0, cm: 0 };
         const min = p.emin || 0;
         const st = s.saldo <= 0 ? 'Zerado' : min > 0 && s.saldo < min ? 'Baixo' : 'OK';
-        return [p.nome, p.sku || '', p.un, fmtN(s.saldo), fmtN(s.cm), fmtN(s.saldo * s.cm), min || '', st];
+        return [
+          p.nome,
+          p.sku || '',
+          p.un,
+          fmtN(s.saldo),
+          fmtN(s.cm),
+          fmtN(s.saldo * s.cm),
+          min || '',
+          st
+        ];
       })
     ];
   } else if (tipo === 'campanhas') {
     name = 'campanhas';
-    const campanhas = (D.campanhas?.[State.FIL] || []);
+    const campanhas = D.campanhas?.[State.FIL] || [];
     rows = [
       ['Nome', 'Tipo', 'Canal', 'Antecedência', 'Assunto', 'Cupom', 'Desconto', 'Ativo'],
-      ...campanhas.map(c => [c.nome, c.tipo, c.canal, c.dias_antecedencia || 0, c.assunto || '', c.cupom || '', c.desconto || 0, c.ativo ? 'Sim' : 'Não'])
+      ...campanhas.map((c) => [
+        c.nome,
+        c.tipo,
+        c.canal,
+        c.dias_antecedencia || 0,
+        c.assunto || '',
+        c.cupom || '',
+        c.desconto || 0,
+        c.ativo ? 'Sim' : 'Não'
+      ])
     ];
   }
 
@@ -504,7 +579,9 @@ function exportCSV(tipo) {
     return;
   }
 
-  const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const csv = rows
+    .map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -519,22 +596,76 @@ function exportarTudo() {
   );
 }
 
-
-
-const removerProdGuard = buildRoleGuard(removerProd, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover produto.');
-const removerCliGuard = buildRoleGuard(removerCli, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover cliente.');
-const removerPedGuard = buildRoleGuard(removerPed, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover pedido.');
-const remFornGuard = buildRoleGuard(remForn, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover fornecedor.');
-const excluirMovGuard = buildRoleGuard(excluirMov, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode excluir movimentação.');
-const removerJogoDashboardGuard = buildRoleGuard(removerJogoDashboard, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover jogo.');
-const salvarJogoDashboardGuard = buildRoleGuard(salvarJogoDashboard, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode salvar jogo.');
-const sincronizarJogosDashboardGuard = buildRoleGuard(sincronizarJogosDashboard, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode sincronizar jogos.');
-const removerCampanhaGuard = buildRoleGuard(removerCampanha, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode remover campanha.');
-const marcarEnvioEnviadoGuard = buildRoleGuard(marcarEnvioEnviado, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
-const marcarEnvioFalhouGuard = buildRoleGuard(marcarEnvioFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envio.');
-const marcarSelecionadosEnviadosGuard = buildRoleGuard(marcarSelecionadosEnviados, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
-const marcarSelecionadosFalhouGuard = buildRoleGuard(marcarSelecionadosFalhou, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
-const desfazerStatusEnvioGuard = buildRoleGuard(desfazerStatusEnvio, ROLE_MANAGER_PLUS, 'Somente gerente/admin pode alterar envios.');
+const removerProdGuard = buildRoleGuard(
+  removerProd,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode remover produto.'
+);
+const removerCliGuard = buildRoleGuard(
+  removerCli,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode remover cliente.'
+);
+const removerPedGuard = buildRoleGuard(
+  removerPed,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode remover pedido.'
+);
+const remFornGuard = buildRoleGuard(
+  remForn,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode remover fornecedor.'
+);
+const excluirMovGuard = buildRoleGuard(
+  excluirMov,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode excluir movimentação.'
+);
+const removerJogoDashboardGuard = buildRoleGuard(
+  removerJogoDashboard,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode remover jogo.'
+);
+const salvarJogoDashboardGuard = buildRoleGuard(
+  salvarJogoDashboard,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode salvar jogo.'
+);
+const sincronizarJogosDashboardGuard = buildRoleGuard(
+  sincronizarJogosDashboard,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode sincronizar jogos.'
+);
+const removerCampanhaGuard = buildRoleGuard(
+  removerCampanha,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode remover campanha.'
+);
+const marcarEnvioEnviadoGuard = buildRoleGuard(
+  marcarEnvioEnviado,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode alterar envio.'
+);
+const marcarEnvioFalhouGuard = buildRoleGuard(
+  marcarEnvioFalhou,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode alterar envio.'
+);
+const marcarSelecionadosEnviadosGuard = buildRoleGuard(
+  marcarSelecionadosEnviados,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode alterar envios.'
+);
+const marcarSelecionadosFalhouGuard = buildRoleGuard(
+  marcarSelecionadosFalhou,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode alterar envios.'
+);
+const desfazerStatusEnvioGuard = buildRoleGuard(
+  desfazerStatusEnvio,
+  ROLE_MANAGER_PLUS,
+  'Somente gerente/admin pode alterar envios.'
+);
 
 // ── Centralised error handling ────────────────────────────────────────────────
 configureErrorHandler({ notify });
@@ -645,148 +776,155 @@ startApplicationRuntime({
   appContext: AppContext,
   registry: AppModules,
   deps: {
-    initDomBindings: () => initDomBindings({
-      abrirModal,
-      fecharModal,
-      selFilial,
-      authEntrar,
-      criarPrimeiraFilial,
-      limparFormFilial,
-      entrar,
-      fecharSb,
-      voltarSetup,
-      ir,
-      exportarTudo,
-      sairConta,
-      renderDash,
-      setP,
-      limparFormPedTracked,
-      abrirSyncJogos,
-      abrirNovoJogo,
-      renderMetasNegocio,
-      renderRelatorios,
-      resetUxKpis,
-      limparFormProdTracked,
-      renderProdutos,
-      exportCSV,
-      limparFormCliTracked,
-      switchTab,
-      renderCliSegs,
-      renderClientes,
-      renderPedidos,
-      renderCotForns,
-      renderCotTabela,
-      cotFile,
-      cotLock,
-      resetMov,
-      renderEstPosicao,
-      renderEstHist,
-      abrirNovaCampanhaTracked,
-      removerJogoDashboardGuard,
-      abrirMovProd,
-      editarProd,
-      removerProdGuard,
-      excluirMovGuard,
-      refreshCampanhasTela,
-      renderAcessosAdmin,
-      salvarPerfilAcesso,
-      removerPerfilAcesso,
-      vincularUsuarioFilial,
-      desvincularUsuarioFilial,
-      renderAcessosPerfis,
-      renderAcessosVinculos,
-      renderAcessosAuditoria,
-      changeAcessosPage,
-      preencherPerfilAcesso,
-      preencherVinculoAcesso,
-      resolverPerfilAcessoRef,
-      resolverVinculoAcessoRef,
-      resolverConviteAcessoEmail,
-      convidarUsuarioAcesso,
-      reenviarConviteUsuarioAcesso,
-      renderNotificacoes,
-      executarNotificacao,
-      resolverNotificacao,
-      reabrirNotificacao,
-      resolverTodasNotificacoesTracked,
-      abrirSb,
-      salvarFilial,
-      editarFilial,
-      removerFilial,
-      trocarFilial,
-      setFlowStep,
-      calcProdPreview,
-      syncV,
-      syncA,
-      syncProdFromCost,
-      salvarProdutoTracked,
-      abrirProdDet,
-      refreshProdSel,
-      refreshRcaSelectors,
-      abrirModalRca,
-      salvarRca,
-      editarCli,
-      removerCliGuard,
-      abrirCliDet,
-      switchCliDetTab,
-      fecharVendaCliente,
-      addNota,
-      salvarClienteTracked,
-      addItem,
-      syncPedidoRcaComCliente,
-      preencherValoresItemPedido,
-      editarPed,
-      removerPedGuard,
-      verPed,
-      remItem,
-      renderItens,
-      salvarPedidoTracked,
-      salvarCampanhaTracked,
-      carregarCampanhas: () => { void carregarCampanhas(); },
-      carregarCampanhaEnvios: () => { void carregarCampanhaEnvios(); },
-      adotarCampanhasParaFilialAtiva: () => { void adotarCampanhasParaFilialAtiva(); },
-      editarCampanha,
-      abrirCampanhaDet,
-      removerCampanhaGuard,
-      renderCampanhas,
-      renderCampanhaPreview,
-      gerarFilaCampanhaTracked,
-      renderFilaWhatsApp,
-      renderCampanhaEnvios,
-      toggleEnvioFilaSelecionado,
-      toggleSelecionarTodosFilaWhatsApp,
-      abrirPreviewWhatsAppEnvio,
-      abrirWhatsAppPreviewAtual,
-      abrirWhatsAppEnvio,
-      copiarNumeroPreviewAtual,
-      copiarMensagemPreviewAtual,
-      abrirWhatsAppLote,
-      proximoEnvioLoteWhatsApp,
-      marcarEnvioEnviadoGuard,
-      marcarEnvioFalhouGuard,
-      marcarSelecionadosEnviadosGuard,
-      marcarSelecionadosFalhouGuard,
-      desfazerStatusEnvio: desfazerStatusEnvioGuard,
-      salvarJogoDashboardGuard,
-      usarExemploSyncJogos,
-      togglePersonalizarDash,
-      sincronizarJogosDashboardGuard,
-      abrirValidacaoOportunidade,
-      salvarValidacaoOportunidade,
-      salvarForn,
-      remFornGuard,
-      confirmarMapa,
-      renderMapaBody,
-      renderCotLogs,
-      updPreco,
-      setTipo,
-      movLoadProd,
-      movCalc,
-      movCalcAjuste,
-      salvarMov,
-      setFiltroNotificacoes,
-      executarAcaoGerencial
-    }),
+    initDomBindings: () =>
+      initDomBindings({
+        abrirModal,
+        fecharModal,
+        selFilial,
+        authEntrar,
+        criarPrimeiraFilial,
+        limparFormFilial,
+        entrar,
+        fecharSb,
+        voltarSetup,
+        ir,
+        exportarTudo,
+        sairConta,
+        renderDash,
+        setP,
+        limparFormPedTracked,
+        abrirSyncJogos,
+        abrirNovoJogo,
+        renderMetasNegocio,
+        renderRelatorios,
+        resetUxKpis,
+        limparFormProdTracked,
+        renderProdutos,
+        exportCSV,
+        limparFormCliTracked,
+        switchTab,
+        renderCliSegs,
+        renderClientes,
+        renderPedidos,
+        renderCotForns,
+        renderCotTabela,
+        cotFile,
+        cotLock,
+        resetMov,
+        renderEstPosicao,
+        renderEstHist,
+        abrirNovaCampanhaTracked,
+        removerJogoDashboardGuard,
+        abrirMovProd,
+        editarProd,
+        removerProdGuard,
+        excluirMovGuard,
+        refreshCampanhasTela,
+        renderAcessosAdmin,
+        salvarPerfilAcesso,
+        removerPerfilAcesso,
+        vincularUsuarioFilial,
+        desvincularUsuarioFilial,
+        renderAcessosPerfis,
+        renderAcessosVinculos,
+        renderAcessosAuditoria,
+        changeAcessosPage,
+        preencherPerfilAcesso,
+        preencherVinculoAcesso,
+        resolverPerfilAcessoRef,
+        resolverVinculoAcessoRef,
+        resolverConviteAcessoEmail,
+        convidarUsuarioAcesso,
+        reenviarConviteUsuarioAcesso,
+        renderNotificacoes,
+        executarNotificacao,
+        resolverNotificacao,
+        reabrirNotificacao,
+        resolverTodasNotificacoesTracked,
+        abrirSb,
+        salvarFilial,
+        editarFilial,
+        removerFilial,
+        trocarFilial,
+        setFlowStep,
+        calcProdPreview,
+        syncV,
+        syncA,
+        syncProdFromCost,
+        salvarProdutoTracked,
+        abrirProdDet,
+        refreshProdSel,
+        refreshRcaSelectors,
+        abrirModalRca,
+        salvarRca,
+        editarCli,
+        removerCliGuard,
+        abrirCliDet,
+        switchCliDetTab,
+        fecharVendaCliente,
+        addNota,
+        salvarClienteTracked,
+        addItem,
+        syncPedidoRcaComCliente,
+        preencherValoresItemPedido,
+        editarPed,
+        removerPedGuard,
+        verPed,
+        remItem,
+        renderItens,
+        salvarPedidoTracked,
+        salvarCampanhaTracked,
+        carregarCampanhas: () => {
+          void carregarCampanhas();
+        },
+        carregarCampanhaEnvios: () => {
+          void carregarCampanhaEnvios();
+        },
+        adotarCampanhasParaFilialAtiva: () => {
+          void adotarCampanhasParaFilialAtiva();
+        },
+        editarCampanha,
+        abrirCampanhaDet,
+        removerCampanhaGuard,
+        renderCampanhas,
+        renderCampanhaPreview,
+        gerarFilaCampanhaTracked,
+        renderFilaWhatsApp,
+        renderCampanhaEnvios,
+        toggleEnvioFilaSelecionado,
+        toggleSelecionarTodosFilaWhatsApp,
+        abrirPreviewWhatsAppEnvio,
+        abrirWhatsAppPreviewAtual,
+        abrirWhatsAppEnvio,
+        copiarNumeroPreviewAtual,
+        copiarMensagemPreviewAtual,
+        abrirWhatsAppLote,
+        proximoEnvioLoteWhatsApp,
+        marcarEnvioEnviadoGuard,
+        marcarEnvioFalhouGuard,
+        marcarSelecionadosEnviadosGuard,
+        marcarSelecionadosFalhouGuard,
+        desfazerStatusEnvio: desfazerStatusEnvioGuard,
+        salvarJogoDashboardGuard,
+        usarExemploSyncJogos,
+        togglePersonalizarDash,
+        sincronizarJogosDashboardGuard,
+        abrirValidacaoOportunidade,
+        salvarValidacaoOportunidade,
+        salvarForn,
+        remFornGuard,
+        confirmarMapa,
+        renderMapaBody,
+        renderCotLogs,
+        updPreco,
+        setTipo,
+        movLoadProd,
+        movCalc,
+        movCalcAjuste,
+        salvarMov,
+        setFiltroNotificacoes,
+        executarAcaoGerencial
+      }),
     initTheme,
     initGlobalMicroInteractions,
     initGoalTracking,

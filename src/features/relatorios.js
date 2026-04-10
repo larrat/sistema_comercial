@@ -1,11 +1,10 @@
 // @ts-check
 
-import { C, D, State, PD } from '../app/store.js';
+import { C, State, PD } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import { abrirModal, fecharModal, fmt, pct, notify } from '../shared/utils.js';
 import { SEVERITY } from '../shared/messages.js';
 import {
-  getHistoricoOportunidadesJogos,
   getOportunidadeJogoById,
   getOportunidadesJogosDaFilial,
   salvarValidacaoOportunidadeJogo,
@@ -40,18 +39,18 @@ const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'O
 /**
  * @param {string | undefined | null} v
  */
-function fmtDataHora(v){
-  if(!v) return '-';
+function fmtDataHora(v) {
+  if (!v) return '-';
   const d = new Date(v);
-  if(Number.isNaN(d.getTime())) return String(v);
+  if (Number.isNaN(d.getTime())) return String(v);
   return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 }
 
 /**
  * @param {string | undefined | null} mesRef
  */
-function fmtPeriodo(mesRef){
-  if(!mesRef || !/^\d{4}-\d{2}$/.test(String(mesRef))) return String(mesRef || '-');
+function fmtPeriodo(mesRef) {
+  if (!mesRef || !/^\d{4}-\d{2}$/.test(String(mesRef))) return String(mesRef || '-');
   const [ano, mes] = String(mesRef).split('-');
   return `${MESES[Math.max(0, Number(mes) - 1)]}/${ano}`;
 }
@@ -59,14 +58,14 @@ function fmtPeriodo(mesRef){
 /**
  * @param {OportunidadeJogo} item
  */
-function getOportunidadeData(item){
+function getOportunidadeData(item) {
   return item.data_jogo || item.jogo_data_hora || item.jogo?.data_hora || '';
 }
 
 /**
  * @param {unknown} v
  */
-function norm(v){
+function norm(v) {
   return String(v || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -77,13 +76,17 @@ function norm(v){
 /**
  * @param {string | undefined} clienteNome
  */
-function buildPedidoOptions(clienteNome){
+function buildPedidoOptions(clienteNome) {
   const pedidos = PD()
-    .filter(p => !clienteNome || norm(p.cli) === norm(clienteNome))
+    .filter((p) => !clienteNome || norm(p.cli) === norm(clienteNome))
     .sort((a, b) => Number(b.num || 0) - Number(a.num || 0));
 
-  const options = [`<option value="">Sem vincular pedido</option>`]
-    .concat(pedidos.map(p => `<option value="${p.id}">#${p.num} • ${p.status || '-'} • ${fmt(p.total || 0)}</option>`));
+  const options = [`<option value="">Sem vincular pedido</option>`].concat(
+    pedidos.map(
+      (p) =>
+        `<option value="${p.id}">#${p.num} • ${p.status || '-'} • ${fmt(p.total || 0)}</option>`
+    )
+  );
 
   return {
     pedidos,
@@ -94,12 +97,12 @@ function buildPedidoOptions(clienteNome){
 /**
  * @param {OportunidadeJogo[]} [hist]
  */
-function ensureFiltrosAnoMes(hist = []){
+function ensureFiltrosAnoMes(hist = []) {
   const anoSel = relDom.get('rel-ano');
   const mesSel = relDom.get('rel-mes');
-  if(!anoSel || !mesSel) return;
+  if (!anoSel || !mesSel) return;
 
-  const anos = [...new Set(hist.map(item => String(item.ano_ref || '')))]
+  const anos = [...new Set(hist.map((item) => String(item.ano_ref || '')))]
     .filter(Boolean)
     .sort((a, b) => Number(b) - Number(a));
 
@@ -110,7 +113,11 @@ function ensureFiltrosAnoMes(hist = []){
     'filters',
     'rel-ano',
     [`<option value="">Todos os anos</option>`]
-      .concat((anos.includes(anoAtual) ? anos : [anoAtual, ...anos]).filter((v, i, arr) => arr.indexOf(v) === i).map(ano => `<option value="${ano}">${ano}</option>`))
+      .concat(
+        (anos.includes(anoAtual) ? anos : [anoAtual, ...anos])
+          .filter((v, i, arr) => arr.indexOf(v) === i)
+          .map((ano) => `<option value="${ano}">${ano}</option>`)
+      )
       .join(''),
     currentAno,
     'relatorios:ano'
@@ -120,14 +127,18 @@ function ensureFiltrosAnoMes(hist = []){
     'filters',
     'rel-mes',
     ['<option value="">Todos os meses</option>']
-      .concat(MESES.map((mes, idx) => `<option value="${String(idx + 1).padStart(2, '0')}">${mes}</option>`))
+      .concat(
+        MESES.map(
+          (mes, idx) => `<option value="${String(idx + 1).padStart(2, '0')}">${mes}</option>`
+        )
+      )
       .join(''),
     mesSel.value || '',
     'relatorios:mes'
   );
 }
 
-function getFiltros(){
+function getFiltros() {
   return {
     ano: relDom.get('rel-ano')?.value || '',
     mes: relDom.get('rel-mes')?.value || ''
@@ -138,11 +149,11 @@ function getFiltros(){
  * @param {OportunidadeJogo[]} [hist]
  * @returns {OportunidadeJogo[]}
  */
-function filtrarHistorico(hist = []){
+function filtrarHistorico(hist = []) {
   const { ano, mes } = getFiltros();
-  return hist.filter(item => {
-    if(ano && String(item.ano_ref || '') !== String(ano)) return false;
-    if(mes && String(item.mes_ref || '').split('-')[1] !== String(mes)) return false;
+  return hist.filter((item) => {
+    if (ano && String(item.ano_ref || '') !== String(ano)) return false;
+    if (mes && String(item.mes_ref || '').split('-')[1] !== String(mes)) return false;
     return true;
   });
 }
@@ -150,18 +161,18 @@ function filtrarHistorico(hist = []){
 /**
  * @param {OportunidadeJogo[]} [hist]
  */
-function renderResumoPeriodo(hist = []){
+function renderResumoPeriodo(hist = []) {
   const el = relDom.get('rel-resumo');
-  if(!el) return;
+  if (!el) return;
 
   const grupos = {};
-  hist.forEach(item => {
+  hist.forEach((item) => {
     const key = String(item.mes_ref || 'sem-mes');
-    if(!grupos[key]){
+    if (!grupos[key]) {
       grupos[key] = { total: 0, validadas: 0 };
     }
     grupos[key].total += 1;
-    if(item.validada) grupos[key].validadas += 1;
+    if (item.validada) grupos[key].validadas += 1;
   });
 
   const rows = Object.entries(grupos)
@@ -209,20 +220,22 @@ function renderResumoPeriodo(hist = []){
  * @param {OportunidadeJogo[]} [oportunidadesAtuais]
  * @param {OportunidadeJogo[]} [hist]
  */
-function renderPendentes(oportunidadesAtuais = [], hist = []){
+function renderPendentes(oportunidadesAtuais = [], hist = []) {
   const el = relDom.get('rel-oportunidades');
-  if(!el) return;
+  if (!el) return;
 
-  const validMap = new Map(hist.map(item => [item.id, item]));
+  const validMap = new Map(hist.map((item) => [item.id, item]));
   const pendentes = oportunidadesAtuais
-    .map(item => validMap.get(item.id) || item)
-    .filter(item => !item.validada);
+    .map((item) => validMap.get(item.id) || item)
+    .filter((item) => !item.validada);
 
   relDom.html(
     'pending',
     'rel-oportunidades',
     pendentes.length
-      ? pendentes.map(item => `
+      ? pendentes
+          .map(
+            (item) => `
           <div class="rrow rel-op-row">
             <span class="rel-op-dot"></span>
             <div class="rel-grow">
@@ -231,7 +244,9 @@ function renderPendentes(oportunidadesAtuais = [], hist = []){
             </div>
             <button class="btn btn-sm" data-click="abrirValidacaoOportunidade('${item.id}')">Validar venda</button>
           </div>
-        `).join('')
+        `
+          )
+          .join('')
       : `<div class="empty"><div class="ico">OK</div><p>Sem oportunidades abertas para validar agora.</p></div>`,
     'relatorios:pendentes'
   );
@@ -240,12 +255,12 @@ function renderPendentes(oportunidadesAtuais = [], hist = []){
 /**
  * @param {OportunidadeJogo[]} [hist]
  */
-function renderValidacoes(hist = []){
+function renderValidacoes(hist = []) {
   const el = relDom.get('rel-validacoes');
-  if(!el) return;
+  if (!el) return;
 
   const validacoes = hist
-    .filter(item => item.validada)
+    .filter((item) => item.validada)
     .sort((a, b) => String(b.validada_em || '').localeCompare(String(a.validada_em || '')))
     .slice(0, 12);
 
@@ -253,7 +268,9 @@ function renderValidacoes(hist = []){
     'validated',
     'rel-validacoes',
     validacoes.length
-      ? validacoes.map(item => `
+      ? validacoes
+          .map(
+            (item) => `
           <div class="rrow rel-op-row">
             <span class="rel-op-dot rel-op-dot--success"></span>
             <div class="rel-grow">
@@ -265,24 +282,31 @@ function renderValidacoes(hist = []){
             </div>
             <span class="bdg bg">Validada</span>
           </div>
-        `).join('')
+        `
+          )
+          .join('')
       : `<div class="empty"><div class="ico">VR</div><p>Nenhuma oportunidade validada no filtro.</p></div>`,
     'relatorios:validacoes'
   );
 }
 
-function renderPerformanceComercial(){
+function renderPerformanceComercial() {
   const pedidos = PD();
-  const entregues = pedidos.filter(item => item.status === 'entregue');
+  const entregues = pedidos.filter((item) => item.status === 'entregue');
   const faturamento = entregues.reduce((acc, item) => acc + Number(item.total || 0), 0);
   const ticketMedio = entregues.length ? faturamento / entregues.length : 0;
 
-  relDom.html('performance', 'rel-perf-met', `
+  relDom.html(
+    'performance',
+    'rel-perf-met',
+    `
     <div class="met"><div class="ml">Pedidos</div><div class="mv">${pedidos.length}</div></div>
     <div class="met"><div class="ml">Entregues</div><div class="mv tone-success">${entregues.length}</div></div>
     <div class="met"><div class="ml">Faturamento</div><div class="mv">${fmt(faturamento)}</div></div>
     <div class="met"><div class="ml">Ticket medio</div><div class="mv">${fmt(ticketMedio)}</div></div>
-  `, 'relatorios:perf-metricas');
+  `,
+    'relatorios:perf-metricas'
+  );
 
   const statusMap = pedidos.reduce((acc, item) => {
     const key = String(item.status || 'sem_status');
@@ -292,24 +316,28 @@ function renderPerformanceComercial(){
   const totalPedidos = pedidos.length || 1;
   const statusRows = Object.entries(statusMap)
     .sort((a, b) => b[1] - a[1])
-    .map(([status, qtd]) => `
+    .map(
+      ([status, qtd]) => `
       <div class="rrow rel-kpi-row">
         <div class="rel-kpi-label">${String(status).replace(/_/g, ' ')}</div>
         <div class="rel-kpi-bar"><span style="--rel-bar-pct:${Math.max(8, (qtd / totalPedidos) * 100)}%"></span></div>
         <div class="rel-kpi-value">${qtd}</div>
       </div>
-    `).join('');
+    `
+    )
+    .join('');
 
   relDom.html(
     'performance',
     'rel-perf-status',
-    statusRows || `<div class="empty"><div class="ico">PD</div><p>Sem pedidos para compor este relatorio.</p></div>`,
+    statusRows ||
+      `<div class="empty"><div class="ico">PD</div><p>Sem pedidos para compor este relatorio.</p></div>`,
     'relatorios:perf-status'
   );
 
   const clientes = pedidos.reduce((acc, item) => {
     const key = String(item.cli || 'Sem cliente');
-    if(!acc[key]) acc[key] = { total: 0, pedidos: 0 };
+    if (!acc[key]) acc[key] = { total: 0, pedidos: 0 };
     acc[key].total += Number(item.total || 0);
     acc[key].pedidos += 1;
     return acc;
@@ -318,7 +346,8 @@ function renderPerformanceComercial(){
   const topClientes = Object.entries(clientes)
     .sort((a, b) => b[1].total - a[1].total)
     .slice(0, 8)
-    .map(([nome, dados]) => `
+    .map(
+      ([nome, dados]) => `
       <div class="rrow rel-op-row">
         <span class="rel-op-dot rel-op-dot--success"></span>
         <div class="rel-grow">
@@ -326,28 +355,40 @@ function renderPerformanceComercial(){
           <div class="rel-op-sub">${dados.pedidos} pedido(s) • ${fmt(dados.total)}</div>
         </div>
       </div>
-    `).join('');
+    `
+    )
+    .join('');
 
   relDom.html(
     'performance',
     'rel-perf-clientes',
-    topClientes || `<div class="empty"><div class="ico">CL</div><p>Nenhum cliente com pedido registrado ainda.</p></div>`,
+    topClientes ||
+      `<div class="empty"><div class="ico">CL</div><p>Nenhum cliente com pedido registrado ainda.</p></div>`,
     'relatorios:perf-clientes'
   );
 }
 
-function renderBaseClientes(){
+function renderBaseClientes() {
   const clientes = C();
-  const comAniversario = clientes.filter(item => String(item.data_aniversario || '').trim()).length;
-  const marketing = clientes.filter(item => item.optin_marketing).length;
-  const prospects = clientes.filter(item => String(item.status || '').toLowerCase() === 'prospecto').length;
+  const comAniversario = clientes.filter((item) =>
+    String(item.data_aniversario || '').trim()
+  ).length;
+  const marketing = clientes.filter((item) => item.optin_marketing).length;
+  const prospects = clientes.filter(
+    (item) => String(item.status || '').toLowerCase() === 'prospecto'
+  ).length;
 
-  relDom.html('clientes', 'rel-cli-met', `
+  relDom.html(
+    'clientes',
+    'rel-cli-met',
+    `
     <div class="met"><div class="ml">Clientes</div><div class="mv">${clientes.length}</div></div>
     <div class="met"><div class="ml">Com aniversario</div><div class="mv">${comAniversario}</div></div>
     <div class="met"><div class="ml">Opt-in marketing</div><div class="mv tone-success">${marketing}</div></div>
     <div class="met"><div class="ml">Prospectos</div><div class="mv tone-warning">${prospects}</div></div>
-  `, 'relatorios:cli-metricas');
+  `,
+    'relatorios:cli-metricas'
+  );
 
   const statusMap = clientes.reduce((acc, item) => {
     const key = String(item.status || 'sem_status');
@@ -357,33 +398,38 @@ function renderBaseClientes(){
 
   const statusRows = Object.entries(statusMap)
     .sort((a, b) => b[1] - a[1])
-    .map(([status, qtd]) => `
+    .map(
+      ([status, qtd]) => `
       <div class="rrow rel-kpi-row">
         <div class="rel-kpi-label">${String(status).replace(/_/g, ' ')}</div>
         <div class="rel-kpi-bar"><span style="--rel-bar-pct:${Math.max(8, (qtd / Math.max(1, clientes.length)) * 100)}%"></span></div>
         <div class="rel-kpi-value">${qtd}</div>
       </div>
-    `).join('');
+    `
+    )
+    .join('');
 
   relDom.html(
     'clientes',
     'rel-cli-status',
-    statusRows || `<div class="empty"><div class="ico">CL</div><p>Sem clientes cadastrados para analisar.</p></div>`,
+    statusRows ||
+      `<div class="empty"><div class="ico">CL</div><p>Sem clientes cadastrados para analisar.</p></div>`,
     'relatorios:cli-status'
   );
 
   const segmentos = clientes.reduce((acc, item) => {
     const seg = String(item.seg || 'Sem segmento');
-    if(!acc[seg]) acc[seg] = { total: 0, marketing: 0 };
+    if (!acc[seg]) acc[seg] = { total: 0, marketing: 0 };
     acc[seg].total += 1;
-    if(item.optin_marketing) acc[seg].marketing += 1;
+    if (item.optin_marketing) acc[seg].marketing += 1;
     return acc;
   }, /** @type {Record<string, { total: number; marketing: number }>} */ ({}));
 
   const segmentosRows = Object.entries(segmentos)
     .sort((a, b) => b[1].total - a[1].total)
     .slice(0, 8)
-    .map(([seg, dados]) => `
+    .map(
+      ([seg, dados]) => `
       <div class="rrow rel-op-row">
         <span class="rel-op-dot"></span>
         <div class="rel-grow">
@@ -391,12 +437,15 @@ function renderBaseClientes(){
           <div class="rel-op-sub">${dados.total} cliente(s) • ${dados.marketing} com opt-in marketing</div>
         </div>
       </div>
-    `).join('');
+    `
+    )
+    .join('');
 
   relDom.html(
     'clientes',
     'rel-cli-segmentos',
-    segmentosRows || `<div class="empty"><div class="ico">SG</div><p>Sem segmentos suficientes para compor o relatorio.</p></div>`,
+    segmentosRows ||
+      `<div class="empty"><div class="ico">SG</div><p>Sem segmentos suficientes para compor o relatorio.</p></div>`,
     'relatorios:cli-segmentos'
   );
 }
@@ -407,9 +456,9 @@ function renderBaseClientes(){
  * @param {number} total
  * @param {number} taxa
  */
-function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa){
+function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa) {
   const el = relDom.get('rel-context');
-  if(!el) return;
+  if (!el) return;
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -418,23 +467,23 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
   const seteDias = new Date(hoje);
   seteDias.setDate(seteDias.getDate() + 7);
 
-  const jogosHoje = oportunidadesAtuais.filter(j => {
+  const jogosHoje = oportunidadesAtuais.filter((j) => {
     const data = getOportunidadeData(j);
-    if(!data) return false;
+    if (!data) return false;
     const d = new Date(data);
     d.setHours(0, 0, 0, 0);
     return d.getTime() === hoje.getTime();
   });
 
-  const jogosSemana = oportunidadesAtuais.filter(j => {
+  const jogosSemana = oportunidadesAtuais.filter((j) => {
     const data = getOportunidadeData(j);
-    if(!data) return false;
+    if (!data) return false;
     const d = new Date(data);
     d.setHours(0, 0, 0, 0);
     return d >= amanha && d <= seteDias;
   });
 
-  if(jogosHoje.length){
+  if (jogosHoje.length) {
     el.innerHTML = `
       <article class="context-card context-card--danger">
         <div class="context-card__head">
@@ -451,7 +500,7 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
     return;
   }
 
-  if(jogosSemana.length){
+  if (jogosSemana.length) {
     el.innerHTML = `
       <article class="context-card context-card--warning">
         <div class="context-card__head">
@@ -468,7 +517,7 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
     return;
   }
 
-  if(taxa >= 70 && total > 0){
+  if (taxa >= 70 && total > 0) {
     el.innerHTML = `
       <article class="context-card context-card--success">
         <div class="context-card__head">
@@ -482,7 +531,7 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
     return;
   }
 
-  if(!total){
+  if (!total) {
     el.innerHTML = `
       <article class="context-card context-card--info">
         <div class="context-card__head">
@@ -499,21 +548,73 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
 }
 
 /** @param {number} total @param {number} taxa */
-function validadas(total, taxa){ return Math.round(total * taxa / 100); }
+function validadas(total, taxa) {
+  return Math.round((total * taxa) / 100);
+}
 
-export function renderRelatorios(){
+export function renderRelatorios() {
   const fid = State.FIL;
-  if(!fid){
-    relDom.html('metrics', 'rel-met', `<div class="empty"><p>Sem filial ativa.</p></div>`, 'relatorios:sem-filial');
-    relDom.html('summary', 'rel-resumo', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-dados');
-    relDom.html('pending', 'rel-oportunidades', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-pendentes');
-    relDom.html('validated', 'rel-validacoes', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-validacoes');
-    relDom.html('performance', 'rel-perf-met', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-perf-met');
-    relDom.html('performance', 'rel-perf-status', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-perf-status');
-    relDom.html('performance', 'rel-perf-clientes', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-perf-clientes');
-    relDom.html('clientes', 'rel-cli-met', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-cli-met');
-    relDom.html('clientes', 'rel-cli-status', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-cli-status');
-    relDom.html('clientes', 'rel-cli-segmentos', `<div class="empty"><p>Sem dados.</p></div>`, 'relatorios:sem-cli-segmentos');
+  if (!fid) {
+    relDom.html(
+      'metrics',
+      'rel-met',
+      `<div class="empty"><p>Sem filial ativa.</p></div>`,
+      'relatorios:sem-filial'
+    );
+    relDom.html(
+      'summary',
+      'rel-resumo',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-dados'
+    );
+    relDom.html(
+      'pending',
+      'rel-oportunidades',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-pendentes'
+    );
+    relDom.html(
+      'validated',
+      'rel-validacoes',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-validacoes'
+    );
+    relDom.html(
+      'performance',
+      'rel-perf-met',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-perf-met'
+    );
+    relDom.html(
+      'performance',
+      'rel-perf-status',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-perf-status'
+    );
+    relDom.html(
+      'performance',
+      'rel-perf-clientes',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-perf-clientes'
+    );
+    relDom.html(
+      'clientes',
+      'rel-cli-met',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-cli-met'
+    );
+    relDom.html(
+      'clientes',
+      'rel-cli-status',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-cli-status'
+    );
+    relDom.html(
+      'clientes',
+      'rel-cli-segmentos',
+      `<div class="empty"><p>Sem dados.</p></div>`,
+      'relatorios:sem-cli-segmentos'
+    );
     return;
   }
 
@@ -524,16 +625,21 @@ export function renderRelatorios(){
 
   const hist = filtrarHistorico(histCompleto);
   const total = hist.length;
-  const validadas = hist.filter(item => item.validada).length;
+  const validadas = hist.filter((item) => item.validada).length;
   const pendentes = total - validadas;
   const taxa = total > 0 ? (validadas / total) * 100 : 0;
 
-  relDom.html('metrics', 'rel-met', `
+  relDom.html(
+    'metrics',
+    'rel-met',
+    `
     <div class="met"><div class="ml">Oportunidades</div><div class="mv">${total}</div></div>
     <div class="met"><div class="ml">Validadas</div><div class="mv tone-success">${validadas}</div></div>
     <div class="met"><div class="ml">Pendentes</div><div class="mv tone-warning">${pendentes}</div></div>
     <div class="met"><div class="ml">Conversao</div><div class="mv">${pct(taxa)}</div></div>
-  `, 'relatorios:metricas');
+  `,
+    'relatorios:metricas'
+  );
 
   renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa);
   renderResumoPeriodo(hist);
@@ -543,12 +649,12 @@ export function renderRelatorios(){
   renderBaseClientes();
 }
 
-export function abrirValidacaoOportunidade(id){
+export function abrirValidacaoOportunidade(id) {
   const fid = State.FIL;
-  if(!fid) return;
+  if (!fid) return;
 
   const item = getOportunidadeJogoById(fid, id);
-  if(!item){
+  if (!item) {
     notify('Oportunidade nao encontrada para validacao.', SEVERITY.WARNING);
     return;
   }
@@ -566,23 +672,29 @@ export function abrirValidacaoOportunidade(id){
     `,
     'relatorios:validacao-contexto'
   );
-  if(pedidoSel){
-    relDom.select('validation', 'rel-val-pedido', html, item.pedido_id || '', 'relatorios:validacao-pedidos');
+  if (pedidoSel) {
+    relDom.select(
+      'validation',
+      'rel-val-pedido',
+      html,
+      item.pedido_id || '',
+      'relatorios:validacao-pedidos'
+    );
   }
   relDom.value('rel-val-obs', item.observacao_validacao || '');
 
   abrirModal('modal-rel-validacao');
 }
 
-export function salvarValidacaoOportunidade(){
+export function salvarValidacaoOportunidade() {
   const fid = State.FIL;
   const id = relDom.get('rel-val-id')?.value || '';
-  if(!fid || !id) return;
+  if (!fid || !id) return;
 
   const pedidoId = relDom.get('rel-val-pedido')?.value || '';
   const obs = relDom.get('rel-val-obs')?.value || '';
   /** @type {Pedido | null} */
-  const pedido = pedidoId ? (PD().find(item => item.id === pedidoId) || null) : null;
+  const pedido = pedidoId ? PD().find((item) => item.id === pedidoId) || null : null;
 
   salvarValidacaoOportunidadeJogo(fid, id, {
     pedido_id: pedido?.id || null,

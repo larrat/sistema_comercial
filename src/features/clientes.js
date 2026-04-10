@@ -3,7 +3,16 @@
 import { SB } from '../app/api.js';
 import { D, State, C, invalidatePdCache } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt, uid } from '../shared/utils.js';
+import {
+  abrirModal,
+  fecharModal,
+  toast,
+  notify,
+  notifyGuided,
+  focusField,
+  fmt,
+  uid
+} from '../shared/utils.js';
 import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
@@ -20,7 +29,7 @@ let setFlowStepSafe = () => {};
 let clientesFilterCache = null;
 let clientesSegCache = null;
 
-function isRuntimeBootstrapping(){
+function isRuntimeBootstrapping() {
   return document.body.dataset.runtimeBootstrap === 'starting';
 }
 
@@ -40,8 +49,19 @@ const cliDom = createScreenDom('clientes', [
 ]);
 
 const CLI_FORM_IDS = [
-  'c-nome', 'c-apelido', 'c-doc', 'c-tel', 'c-whatsapp', 'c-email', 'c-aniv',
-  'c-time', 'c-resp', 'c-seg', 'c-cidade', 'c-estado', 'c-obs'
+  'c-nome',
+  'c-apelido',
+  'c-doc',
+  'c-tel',
+  'c-whatsapp',
+  'c-email',
+  'c-aniv',
+  'c-time',
+  'c-resp',
+  'c-seg',
+  'c-cidade',
+  'c-estado',
+  'c-obs'
 ];
 
 const CLI_SELECT_DEFAULTS = {
@@ -68,11 +88,11 @@ const ST_B = {
 };
 
 const ST_PED = {
-  orcamento:'<span class="bdg bk">Orcamento</span>',
-  confirmado:'<span class="bdg bb">Confirmado</span>',
-  em_separacao:'<span class="bdg ba">Em separação</span>',
-  entregue:'<span class="bdg bg">Entregue</span>',
-  cancelado:'<span class="bdg br">Cancelado</span>'
+  orcamento: '<span class="bdg bk">Orcamento</span>',
+  confirmado: '<span class="bdg bb">Confirmado</span>',
+  em_separacao: '<span class="bdg ba">Em separação</span>',
+  entregue: '<span class="bdg bg">Entregue</span>',
+  cancelado: '<span class="bdg br">Cancelado</span>'
 };
 
 const TAB_LABELS = {
@@ -100,14 +120,14 @@ const PRAZO_DETALHE_LABELS = {
 /**
  * @param {ClientesModuleCallbacks} [callbacks]
  */
-export function initClientesModule(callbacks = {}){
+export function initClientesModule(callbacks = {}) {
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
 }
 
 /**
  * @param {unknown} value
  */
-function esc(value){
+function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -119,7 +139,7 @@ function esc(value){
 /**
  * @param {unknown} nome
  */
-function avc(nome){
+function avc(nome) {
   const value = String(nome || 'X');
   return AVC[value.charCodeAt(0) % AVC.length];
 }
@@ -127,30 +147,33 @@ function avc(nome){
 /**
  * @param {unknown} nome
  */
-function ini(nome){
-  const parts = String(nome || '').trim().split(/\s+/).filter(Boolean);
-  if(!parts.length) return 'CL';
+function ini(nome) {
+  const parts = String(nome || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return 'CL';
   return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
 }
 
 /**
  * @param {string | null | undefined} iso
  */
-function fmtAniv(iso){
-  if(!iso) return '';
+function fmtAniv(iso) {
+  if (!iso) return '';
   const [year, month, day] = String(iso).split('-');
-  if(!year || !month || !day) return iso;
+  if (!year || !month || !day) return iso;
   return `${day}/${month}`;
 }
 
 /**
  * @param {string | null | undefined} iso
  */
-function getDiasParaAniversario(iso){
-  if(!iso) return null;
+function getDiasParaAniversario(iso) {
+  if (!iso) return null;
 
   const [, month, day] = String(iso).split('-').map(Number);
-  if(!month || !day) return null;
+  if (!month || !day) return null;
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -158,7 +181,7 @@ function getDiasParaAniversario(iso){
   let alvo = new Date(hoje.getFullYear(), month - 1, day);
   alvo.setHours(0, 0, 0, 0);
 
-  if(alvo < hoje){
+  if (alvo < hoje) {
     alvo = new Date(hoje.getFullYear() + 1, month - 1, day);
     alvo.setHours(0, 0, 0, 0);
   }
@@ -169,17 +192,17 @@ function getDiasParaAniversario(iso){
 /**
  * @param {Cliente | null | undefined} cliente
  */
-function getBadgeAniversario(cliente){
-  if(!cliente?.data_aniversario) return '';
+function getBadgeAniversario(cliente) {
+  if (!cliente?.data_aniversario) return '';
 
   const dias = getDiasParaAniversario(cliente.data_aniversario);
-  if(dias == null){
+  if (dias == null) {
     return `<span class="bdg bb">Aniv ${esc(fmtAniv(cliente.data_aniversario))}</span>`;
   }
-  if(dias === 0){
+  if (dias === 0) {
     return '<span class="bdg br">Aniv hoje</span>';
   }
-  if(dias <= 7){
+  if (dias <= 7) {
     return `<span class="bdg ba">Aniv ${dias}d</span>`;
   }
   return `<span class="bdg bb">Aniv ${esc(fmtAniv(cliente.data_aniversario))}</span>`;
@@ -188,12 +211,12 @@ function getBadgeAniversario(cliente){
 /**
  * @param {Cliente | null | undefined} cliente
  */
-function getContatoInfo(cliente){
+function getContatoInfo(cliente) {
   const whatsapp = String(cliente?.whatsapp || '').trim();
   const tel = String(cliente?.tel || '').trim();
   const email = String(cliente?.email || '').trim();
 
-  if(whatsapp){
+  if (whatsapp) {
     return {
       principal: `WhatsApp: ${whatsapp}`,
       secundario: tel && tel !== whatsapp ? `Telefone: ${tel}` : '',
@@ -201,7 +224,7 @@ function getContatoInfo(cliente){
     };
   }
 
-  if(tel){
+  if (tel) {
     return {
       principal: `Telefone: ${tel}`,
       secundario: email,
@@ -209,7 +232,7 @@ function getContatoInfo(cliente){
     };
   }
 
-  if(email){
+  if (email) {
     return {
       principal: email,
       secundario: '',
@@ -227,7 +250,7 @@ function getContatoInfo(cliente){
 /**
  * @param {unknown} value
  */
-function normTxt(value){
+function normTxt(value) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -238,19 +261,17 @@ function normTxt(value){
 /**
  * @param {string | string[] | null | undefined} value
  */
-function parseTimes(value){
-  const raw = Array.isArray(value)
-    ? value
-    : String(value || '').split(/[,;\n]+/);
+function parseTimes(value) {
+  const raw = Array.isArray(value) ? value : String(value || '').split(/[,;\n]+/);
 
   const seen = new Set();
   const out = [];
 
-  raw.forEach(item => {
+  raw.forEach((item) => {
     const nome = String(item || '').trim();
-    if(!nome) return;
+    if (!nome) return;
     const key = normTxt(nome);
-    if(seen.has(key)) return;
+    if (seen.has(key)) return;
     seen.add(key);
     out.push(nome);
   });
@@ -261,21 +282,23 @@ function parseTimes(value){
 /**
  * @param {unknown} value
  */
-function normalizePhone(value){
+function normalizePhone(value) {
   return String(value || '').replace(/\D+/g, '');
 }
 
 /**
  * @param {unknown} value
  */
-function normalizeEmail(value){
-  return String(value || '').trim().toLowerCase();
+function normalizeEmail(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase();
 }
 
 /**
  * @param {unknown} value
  */
-function normalizeDoc(value){
+function normalizeDoc(value) {
   return String(value || '')
     .replace(/[^0-9A-Za-z]+/g, '')
     .trim()
@@ -291,47 +314,60 @@ function normalizeDoc(value){
  *   editId?: string | null;
  * }} [input]
  */
-function findClienteDuplicadoIdentidade({ doc = '', email = '', tel = '', whatsapp = '', editId = null } = {}){
+function findClienteDuplicadoIdentidade({
+  doc = '',
+  email = '',
+  tel = '',
+  whatsapp = '',
+  editId = null
+} = {}) {
   const checks = [
     {
       key: 'doc',
       label: 'documento',
       fieldId: 'c-doc',
       value: normalizeDoc(doc),
-      valuesFromCliente: cliente => [normalizeDoc(cliente.doc)]
+      valuesFromCliente: (cliente) => [normalizeDoc(cliente.doc)]
     },
     {
       key: 'email',
       label: 'e-mail',
       fieldId: 'c-email',
       value: normalizeEmail(email),
-      valuesFromCliente: cliente => [normalizeEmail(cliente.email)]
+      valuesFromCliente: (cliente) => [normalizeEmail(cliente.email)]
     },
     {
       key: 'tel',
       label: 'telefone',
       fieldId: 'c-tel',
       value: normalizePhone(tel),
-      valuesFromCliente: cliente => [normalizePhone(cliente.tel), normalizePhone(cliente.whatsapp)]
+      valuesFromCliente: (cliente) => [
+        normalizePhone(cliente.tel),
+        normalizePhone(cliente.whatsapp)
+      ]
     },
     {
       key: 'whatsapp',
       label: 'WhatsApp',
       fieldId: 'c-whatsapp',
       value: normalizePhone(whatsapp),
-      valuesFromCliente: cliente => [normalizePhone(cliente.tel), normalizePhone(cliente.whatsapp)]
+      valuesFromCliente: (cliente) => [
+        normalizePhone(cliente.tel),
+        normalizePhone(cliente.whatsapp)
+      ]
     }
   ];
 
-  for(const check of checks){
-    if(!check.value) continue;
+  for (const check of checks) {
+    if (!check.value) continue;
 
-    const clienteDuplicado = C().find(cliente => {
-      if(!cliente || cliente.id === editId) return false;
-      return check.valuesFromCliente(cliente).filter(Boolean).includes(check.value);
-    }) || null;
+    const clienteDuplicado =
+      C().find((cliente) => {
+        if (!cliente || cliente.id === editId) return false;
+        return check.valuesFromCliente(cliente).filter(Boolean).includes(check.value);
+      }) || null;
 
-    if(clienteDuplicado){
+    if (clienteDuplicado) {
       return {
         key: check.key,
         label: check.label,
@@ -348,23 +384,29 @@ function findClienteDuplicadoIdentidade({ doc = '', email = '', tel = '', whatsa
 /**
  * @param {unknown} err
  */
-function extractClienteConstraintName(err){
+function extractClienteConstraintName(err) {
   /** @type {{ message?: unknown; details?: unknown } | null} */
-  const errObj = err && typeof err === 'object'
-    ? /** @type {{ message?: unknown; details?: unknown }} */ (err)
-    : null;
+  const errObj =
+    err && typeof err === 'object'
+      ? /** @type {{ message?: unknown; details?: unknown }} */ (err)
+      : null;
 
   /** @type {{ response?: { message?: unknown; details?: unknown; code?: unknown } } | null} */
-  const detailsObj = errObj?.details && typeof errObj.details === 'object'
-    ? /** @type {{ response?: { message?: unknown; details?: unknown; code?: unknown } }} */ (errObj.details)
-    : null;
+  const detailsObj =
+    errObj?.details && typeof errObj.details === 'object'
+      ? /** @type {{ response?: { message?: unknown; details?: unknown; code?: unknown } }} */ (
+          errObj.details
+        )
+      : null;
 
   const text = [
     errObj?.message,
     detailsObj?.response?.message,
     detailsObj?.response?.details,
     detailsObj?.response?.code
-  ].map(value => String(value || '')).join(' | ');
+  ]
+    .map((value) => String(value || ''))
+    .join(' | ');
 
   const match = text.match(/ux_clientes_[A-Za-z0-9_]+/);
   return match ? match[0] : '';
@@ -374,17 +416,23 @@ function extractClienteConstraintName(err){
  * @param {unknown} err
  * @param {ReturnType<typeof findClienteDuplicadoIdentidade> | null} [fallbackConflict=null]
  */
-function handleClienteDuplicadoError(err, fallbackConflict = null){
+function handleClienteDuplicadoError(err, fallbackConflict = null) {
   const constraint = extractClienteConstraintName(err);
   const conflictByConstraint =
-    constraint === 'ux_clientes_filial_doc_norm' ? { label: 'documento', fieldId: 'c-doc', cliente: null } :
-    constraint === 'ux_clientes_filial_email_norm' ? { label: 'e-mail', fieldId: 'c-email', cliente: null } :
-    constraint === 'ux_clientes_filial_tel_norm' || constraint === 'ux_clientes_filial_tel_identity' ? { label: 'telefone', fieldId: 'c-tel', cliente: null } :
-    constraint === 'ux_clientes_filial_whatsapp_norm' || constraint === 'ux_clientes_filial_whatsapp_identity' ? { label: 'WhatsApp', fieldId: 'c-whatsapp', cliente: null } :
-    null;
+    constraint === 'ux_clientes_filial_doc_norm'
+      ? { label: 'documento', fieldId: 'c-doc', cliente: null }
+      : constraint === 'ux_clientes_filial_email_norm'
+        ? { label: 'e-mail', fieldId: 'c-email', cliente: null }
+        : constraint === 'ux_clientes_filial_tel_norm' ||
+            constraint === 'ux_clientes_filial_tel_identity'
+          ? { label: 'telefone', fieldId: 'c-tel', cliente: null }
+          : constraint === 'ux_clientes_filial_whatsapp_norm' ||
+              constraint === 'ux_clientes_filial_whatsapp_identity'
+            ? { label: 'WhatsApp', fieldId: 'c-whatsapp', cliente: null }
+            : null;
 
   const conflict = fallbackConflict || conflictByConstraint;
-  if(!conflict) return false;
+  if (!conflict) return false;
 
   notifyGuided({
     severity: SEVERITY.WARNING,
@@ -396,7 +444,7 @@ function handleClienteDuplicadoError(err, fallbackConflict = null){
   return true;
 }
 
-function getClienteDuplicidadeSignals(cliente){
+function getClienteDuplicidadeSignals(cliente) {
   const checks = [
     { label: 'documento', value: normalizeDoc(cliente?.doc), fieldId: 'c-doc' },
     { label: 'e-mail', value: normalizeEmail(cliente?.email), fieldId: 'c-email' },
@@ -404,21 +452,27 @@ function getClienteDuplicidadeSignals(cliente){
     { label: 'WhatsApp', value: normalizePhone(cliente?.whatsapp), fieldId: 'c-whatsapp' }
   ];
 
-  return checks.filter(check => check.value).map(check => {
-    const duplicado = C().find(item => {
-      if(!item || item.id === cliente?.id) return false;
-      if(check.label === 'telefone' || check.label === 'WhatsApp'){
-        return [normalizePhone(item.tel), normalizePhone(item.whatsapp)].filter(Boolean).includes(check.value);
-      }
-      if(check.label === 'documento') return normalizeDoc(item.doc) === check.value;
-      return normalizeEmail(item.email) === check.value;
-    }) || null;
+  return checks
+    .filter((check) => check.value)
+    .map((check) => {
+      const duplicado =
+        C().find((item) => {
+          if (!item || item.id === cliente?.id) return false;
+          if (check.label === 'telefone' || check.label === 'WhatsApp') {
+            return [normalizePhone(item.tel), normalizePhone(item.whatsapp)]
+              .filter(Boolean)
+              .includes(check.value);
+          }
+          if (check.label === 'documento') return normalizeDoc(item.doc) === check.value;
+          return normalizeEmail(item.email) === check.value;
+        }) || null;
 
-    return duplicado ? { ...check, cliente: duplicado } : null;
-  }).filter(Boolean);
+      return duplicado ? { ...check, cliente: duplicado } : null;
+    })
+    .filter(Boolean);
 }
 
-function buildClienteContextualPanel(cliente, pedidos){
+function buildClienteContextualPanelV2(cliente, pedidos) {
   const duplicidades = getClienteDuplicidadeSignals(cliente);
   const aniversarioDias = getDiasParaAniversario(cliente?.data_aniversario || '');
   const contato = getContatoInfo(cliente);
@@ -427,112 +481,9 @@ function buildClienteContextualPanel(cliente, pedidos){
     cliente?.optin_email && cliente?.email ? 'E-mail' : '',
     cliente?.optin_sms && cliente?.tel ? 'SMS' : ''
   ].filter(Boolean);
-  const pedidoFechavel = pedidos.find(pedido => isPedidoFechavel(pedido)) || null;
-  const pedidoAberto = pedidos.find(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado') || null;
-
-  /** @type {string[]} */
-  const cards = [];
-
-  if(duplicidades.length){
-    const duplicidade = duplicidades[0];
-    cards.push(`
-      <article class="context-card context-card--danger">
-        <div class="context-card__head">
-          <span class="bdg br">Cadastro</span>
-          <span class="context-card__kicker">Risco</span>
-        </div>
-        <div class="context-card__title">Suspeita de duplicidade</div>
-        <div class="context-card__copy">${duplicidade.label} tambem aparece em ${esc(duplicidade.cliente?.nome || 'outro cliente')}.</div>
-        <div class="context-card__actions">
-          <button class="btn btn-sm" data-click="editarCli('${cliente.id}')">Revisar cadastro</button>
-        </div>
-      </article>
-    `);
-  }
-
-  if(pedidoFechavel){
-    cards.push(`
-      <article class="context-card context-card--success">
-        <div class="context-card__head">
-          <span class="bdg bg">Venda</span>
-          <span class="context-card__kicker">Fechamento</span>
-        </div>
-        <div class="context-card__title">Pedido pronto para fechar</div>
-        <div class="context-card__copy">Pedido #${pedidoFechavel.num} ja foi entregue e pode virar venda fechada agora.</div>
-        <div class="context-card__actions">
-          <button class="btn btn-p btn-sm" data-click="fecharVendaCliente('${pedidoFechavel.id}','${cliente.id}')">Fechar venda</button>
-        </div>
-      </article>
-    `);
-  }else if(pedidoAberto){
-    cards.push(`
-      <article class="context-card context-card--info">
-        <div class="context-card__head">
-          <span class="bdg bb">Pipeline</span>
-          <span class="context-card__kicker">Pedidos</span>
-        </div>
-        <div class="context-card__title">Cliente com venda em andamento</div>
-        <div class="context-card__copy">Ha pedido(s) aberto(s) para este cliente e vale acompanhar o fechamento.</div>
-        <div class="context-card__actions">
-          <button class="btn btn-sm" data-click="switchCliDetTab('${cliente.id}','abertas')">Ver vendas abertas</button>
-        </div>
-      </article>
-    `);
-  }
-
-  if((typeof aniversarioDias === 'number' && aniversarioDias <= 7) || !canaisMarketing.length || contato.principal === 'Sem contato'){
-    const copy = contato.principal === 'Sem contato'
-      ? 'Cliente sem canal principal de contato cadastrado.'
-      : !canaisMarketing.length
-        ? 'Cliente sem opt-in pronto para ativacao comercial.'
-        : aniversarioDias === 0
-          ? 'Aniversario hoje com canal pronto para relacionamento.'
-          : aniversarioDias === 1
-            ? 'Aniversario amanha com base pronta para abordagem.'
-            : `Aniversario em ${aniversarioDias} dia(s) com canal pronto para campanha.`;
-
-    cards.push(`
-      <article class="context-card context-card--warning">
-        <div class="context-card__head">
-          <span class="bdg ba">Relacionamento</span>
-          <span class="context-card__kicker">Cliente</span>
-        </div>
-        <div class="context-card__title">Proxima acao comercial</div>
-        <div class="context-card__copy">${copy}</div>
-        <div class="context-card__actions">
-          <button class="btn btn-sm" data-click="editarCli('${cliente.id}')">Atualizar cadastro</button>
-          <button class="btn btn-sm" data-click="ir('campanhas')">Ir para campanhas</button>
-        </div>
-      </article>
-    `);
-  }
-
-  if(!cards.length) return '';
-
-  return `
-    <div class="context-panel context-panel--cliente">
-      <div class="context-panel__head">
-        <div class="context-panel__title">Contexto do cliente</div>
-        <div class="context-panel__sub">Risco de cadastro, proxima acao comercial e momento da jornada</div>
-      </div>
-      <div class="context-panel__grid">
-        ${cards.slice(0, 3).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function buildClienteContextualPanelV2(cliente, pedidos){
-  const duplicidades = getClienteDuplicidadeSignals(cliente);
-  const aniversarioDias = getDiasParaAniversario(cliente?.data_aniversario || '');
-  const contato = getContatoInfo(cliente);
-  const canaisMarketing = [
-    cliente?.optin_marketing && (cliente?.whatsapp || cliente?.tel) ? 'WhatsApp' : '',
-    cliente?.optin_email && cliente?.email ? 'E-mail' : '',
-    cliente?.optin_sms && cliente?.tel ? 'SMS' : ''
-  ].filter(Boolean);
-  const pedidoFechavel = pedidos.find(pedido => isPedidoFechavel(pedido)) || null;
-  const pedidoAberto = pedidos.find(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado') || null;
+  const pedidoFechavel = pedidos.find((pedido) => isPedidoFechavel(pedido)) || null;
+  const pedidoAberto =
+    pedidos.find((pedido) => !pedido.venda_fechada && pedido.status !== 'cancelado') || null;
 
   /** @type {string[]} */
   const cadastroERisco = [];
@@ -540,7 +491,7 @@ function buildClienteContextualPanelV2(cliente, pedidos){
   const momentoComercial = [];
 
   const renderSection = (title, sub, cards) => {
-    if(!cards.length) return '';
+    if (!cards.length) return '';
     return `
       <section class="context-panel__section">
         <div class="context-panel__section-head">
@@ -554,7 +505,7 @@ function buildClienteContextualPanelV2(cliente, pedidos){
     `;
   };
 
-  if(duplicidades.length){
+  if (duplicidades.length) {
     const duplicidade = duplicidades[0];
     cadastroERisco.push(`
       <article class="context-card context-card--danger">
@@ -571,16 +522,21 @@ function buildClienteContextualPanelV2(cliente, pedidos){
     `);
   }
 
-  if((typeof aniversarioDias === 'number' && aniversarioDias <= 7) || !canaisMarketing.length || contato.principal === 'Sem contato'){
-    const copy = contato.principal === 'Sem contato'
-      ? 'Cliente sem canal principal de contato cadastrado.'
-      : !canaisMarketing.length
-        ? 'Cliente sem opt-in pronto para ativacao comercial.'
-        : aniversarioDias === 0
-          ? 'Aniversario hoje com canal pronto para relacionamento.'
-          : aniversarioDias === 1
-            ? 'Aniversario amanha com base pronta para abordagem.'
-            : `Aniversario em ${aniversarioDias} dia(s) com canal pronto para campanha.`;
+  if (
+    (typeof aniversarioDias === 'number' && aniversarioDias <= 7) ||
+    !canaisMarketing.length ||
+    contato.principal === 'Sem contato'
+  ) {
+    const copy =
+      contato.principal === 'Sem contato'
+        ? 'Cliente sem canal principal de contato cadastrado.'
+        : !canaisMarketing.length
+          ? 'Cliente sem opt-in pronto para ativacao comercial.'
+          : aniversarioDias === 0
+            ? 'Aniversario hoje com canal pronto para relacionamento.'
+            : aniversarioDias === 1
+              ? 'Aniversario amanha com base pronta para abordagem.'
+              : `Aniversario em ${aniversarioDias} dia(s) com canal pronto para campanha.`;
 
     cadastroERisco.push(`
       <article class="context-card context-card--warning">
@@ -598,7 +554,7 @@ function buildClienteContextualPanelV2(cliente, pedidos){
     `);
   }
 
-  if(pedidoFechavel){
+  if (pedidoFechavel) {
     momentoComercial.push(`
       <article class="context-card context-card--success">
         <div class="context-card__head">
@@ -612,7 +568,7 @@ function buildClienteContextualPanelV2(cliente, pedidos){
         </div>
       </article>
     `);
-  }else if(pedidoAberto){
+  } else if (pedidoAberto) {
     momentoComercial.push(`
       <article class="context-card context-card--info">
         <div class="context-card__head">
@@ -641,7 +597,7 @@ function buildClienteContextualPanelV2(cliente, pedidos){
     )
   ].filter(Boolean);
 
-  if(!sections.length) return '';
+  if (!sections.length) return '';
 
   return `
     <div class="context-panel context-panel--cliente">
@@ -656,24 +612,24 @@ function buildClienteContextualPanelV2(cliente, pedidos){
   `;
 }
 
-function getFilteredClientes(){
+function getFilteredClientes() {
   const q = normTxt(cliDom.get('cli-busca')?.value || '');
   const seg = cliDom.get('cli-fil-seg')?.value || '';
   const status = cliDom.get('cli-fil-st')?.value || '';
   const clientes = C();
 
-  if(
+  if (
     clientesFilterCache &&
     clientesFilterCache.ref === clientes &&
     clientesFilterCache.len === clientes.length &&
     clientesFilterCache.q === q &&
     clientesFilterCache.seg === seg &&
     clientesFilterCache.status === status
-  ){
+  ) {
     return clientesFilterCache.result;
   }
 
-  const result = clientes.filter(cliente => {
+  const result = clientes.filter((cliente) => {
     const termos = [
       cliente.nome,
       cliente.apelido,
@@ -683,11 +639,15 @@ function getFilteredClientes(){
       cliente.tel,
       cliente.whatsapp,
       parseTimes(cliente.time).join(' ')
-    ].map(normTxt).join(' ');
+    ]
+      .map(normTxt)
+      .join(' ');
 
-    return (!q || termos.includes(q))
-      && (!seg || cliente.seg === seg)
-      && (!status || cliente.status === status);
+    return (
+      (!q || termos.includes(q)) &&
+      (!seg || cliente.seg === seg) &&
+      (!status || cliente.status === status)
+    );
   });
 
   clientesFilterCache = {
@@ -702,18 +662,19 @@ function getFilteredClientes(){
   return result;
 }
 
-function getClienteSegmentos(){
+function getClienteSegmentos() {
   const clientes = C();
-  if(
+  if (
     clientesSegCache &&
     clientesSegCache.ref === clientes &&
     clientesSegCache.len === clientes.length
-  ){
+  ) {
     return clientesSegCache.result;
   }
 
-  const result = [...new Set(clientes.map(cliente => cliente.seg || 'Sem segmento'))]
-    .sort((a, b) => a.localeCompare(b));
+  const result = [...new Set(clientes.map((cliente) => cliente.seg || 'Sem segmento'))].sort(
+    (a, b) => a.localeCompare(b)
+  );
 
   clientesSegCache = {
     ref: clientes,
@@ -724,7 +685,7 @@ function getClienteSegmentos(){
   return result;
 }
 
-function renderEstadoVazio(){
+function renderEstadoVazio() {
   const texto = C().length
     ? 'Nenhum cliente encontrado com os filtros atuais.'
     : 'Clique em "Novo cliente" para cadastrar o primeiro.';
@@ -737,7 +698,7 @@ function renderEstadoVazio(){
   );
 }
 
-function renderTagsCliente(cliente, contato, times){
+function renderTagsCliente(cliente, contato, times) {
   return [
     getBadgeAniversario(cliente),
     contato.badge,
@@ -745,11 +706,13 @@ function renderTagsCliente(cliente, contato, times){
     cliente.optin_email ? '<span class="bdg bk">E-mail</span>' : '',
     cliente.optin_sms ? '<span class="bdg bk">SMS</span>' : '',
     cliente.seg ? `<span class="bdg bk">${esc(cliente.seg)}</span>` : '',
-    ...times.map(time => `<span class="bdg bb">${esc(time)}</span>`)
-  ].filter(Boolean).join('');
+    ...times.map((time) => `<span class="bdg bb">${esc(time)}</span>`)
+  ]
+    .filter(Boolean)
+    .join('');
 }
 
-function renderClienteMobile(cliente){
+function renderClienteMobile(cliente) {
   const cor = avc(cliente.nome);
   const contato = getContatoInfo(cliente);
   const times = parseTimes(cliente.time);
@@ -789,7 +752,7 @@ function renderClienteMobile(cliente){
   `;
 }
 
-function renderClienteDesktop(cliente){
+function renderClienteDesktop(cliente) {
   const cor = avc(cliente.nome);
   const contato = getContatoInfo(cliente);
   const times = parseTimes(cliente.time);
@@ -818,7 +781,7 @@ function renderClienteDesktop(cliente){
       <td>
         <div class="fg2 gap-4">
           ${cliente.seg ? `<span class="bdg bk">${esc(cliente.seg)}</span>` : ''}
-          ${times.map(time => `<span class="bdg bb">${esc(time)}</span>`).join('')}
+          ${times.map((time) => `<span class="bdg bb">${esc(time)}</span>`).join('')}
           ${!cliente.seg && !times.length ? '-' : ''}
         </div>
       </td>
@@ -836,42 +799,52 @@ function renderClienteDesktop(cliente){
   `;
 }
 
-function renderNotasHtml(notas){
-  if(!notas.length){
+function renderNotasHtml(notas) {
+  if (!notas.length) {
     return '<div class="empty-inline table-cell-muted">Nenhuma nota.</div>';
   }
 
-  return notas.map(nota => `
+  return notas
+    .map(
+      (nota) => `
     <div class="nota">
       <div>${esc(nota.texto)}</div>
       <div class="nota-d">${esc(nota.data)}</div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 /**
  * @param {Cliente} cliente
  * @returns {Pedido[]}
  */
-function getPedidosCliente(cliente){
+function getPedidosCliente(cliente) {
   return (D.pedidos?.[State.FIL] || [])
-    .filter(pedido => {
+    .filter((pedido) => {
       const clienteId = String(cliente.id || '').trim();
       const pedidoClienteId = String(pedido?.cliente_id || '').trim();
       if (clienteId && pedidoClienteId) return pedidoClienteId === clienteId;
 
-      const nome = String(cliente.nome || '').trim().toLowerCase();
-      return String(pedido?.cli || '').trim().toLowerCase() === nome;
+      const nome = String(cliente.nome || '')
+        .trim()
+        .toLowerCase();
+      return (
+        String(pedido?.cli || '')
+          .trim()
+          .toLowerCase() === nome
+      );
     })
-    .map(pedido => ({
+    .map((pedido) => ({
       ...pedido,
       itens: Array.isArray(pedido.itens)
         ? pedido.itens
         : (() => {
-            try{
+            try {
               const parsed = JSON.parse(String(pedido.itens || '[]'));
               return Array.isArray(parsed) ? parsed : [];
-            }catch{
+            } catch {
               return [];
             }
           })()
@@ -882,15 +855,15 @@ function getPedidosCliente(cliente){
 /**
  * @param {Pedido} pedido
  */
-function isPedidoFechavel(pedido){
+function isPedidoFechavel(pedido) {
   return pedido.status === 'entregue' && !pedido.venda_fechada;
 }
 
 /**
  * @param {Pedido[]} pedidos
  */
-function renderClientePedidosVazios(pedidos){
-  if(pedidos.length) return '';
+function renderClientePedidosVazios(pedidos) {
+  if (pedidos.length) return '';
   return '<div class="empty-inline table-cell-muted">Nenhuma venda neste grupo.</div>';
 }
 
@@ -899,17 +872,18 @@ function renderClientePedidosVazios(pedidos){
  * @param {string} clienteId
  * @param {'abertas'|'fechadas'} tipo
  */
-function renderClientePedidosLista(pedidos, clienteId, tipo){
-  if(!pedidos.length) return renderClientePedidosVazios(pedidos);
+function renderClientePedidosLista(pedidos, clienteId, tipo) {
+  if (!pedidos.length) return renderClientePedidosVazios(pedidos);
 
-  return pedidos.map(pedido => {
-    const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
-    const itensTxt = itens.length ? `${itens.length} item(ns)` : 'Sem itens';
-    const fechadoEm = pedido.venda_fechada_em
-      ? new Date(pedido.venda_fechada_em).toLocaleString('pt-BR')
-      : '';
+  return pedidos
+    .map((pedido) => {
+      const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+      const itensTxt = itens.length ? `${itens.length} item(ns)` : 'Sem itens';
+      const fechadoEm = pedido.venda_fechada_em
+        ? new Date(pedido.venda_fechada_em).toLocaleString('pt-BR')
+        : '';
 
-    return `
+      return `
       <div class="cli-sale-card">
         <div class="cli-sale-card__head">
           <div>
@@ -929,27 +903,30 @@ function renderClientePedidosLista(pedidos, clienteId, tipo){
         </div>
         <div class="cli-sale-card__actions">
           <button class="btn btn-sm" data-click="verPed('${pedido.id}')">Ver pedido</button>
-          ${tipo === 'abertas' && isPedidoFechavel(pedido)
-            ? `<button class="btn btn-p btn-sm" data-click="fecharVendaCliente('${pedido.id}','${clienteId}')">Fechar venda</button>`
-            : ''}
+          ${
+            tipo === 'abertas' && isPedidoFechavel(pedido)
+              ? `<button class="btn btn-p btn-sm" data-click="fecharVendaCliente('${pedido.id}','${clienteId}')">Fechar venda</button>`
+              : ''
+          }
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 }
 
 /**
  * @param {string} clienteId
  * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'} tab
  */
-export function switchCliDetTab(clienteId, tab){
+export function switchCliDetTab(clienteId, tab) {
   const box = cliDom.get('cli-det-box');
-  if(!box) return;
+  if (!box) return;
 
-  box.querySelectorAll(`[data-cli-tab="${clienteId}"]`).forEach(el => {
+  box.querySelectorAll(`[data-cli-tab="${clienteId}"]`).forEach((el) => {
     el.classList.toggle('on', el instanceof HTMLElement && el.dataset.tab === tab);
   });
-  box.querySelectorAll(`[data-cli-panel="${clienteId}"]`).forEach(el => {
+  box.querySelectorAll(`[data-cli-panel="${clienteId}"]`).forEach((el) => {
     el.classList.toggle('on', el instanceof HTMLElement && el.dataset.panel === tab);
   });
 }
@@ -958,92 +935,111 @@ export function switchCliDetTab(clienteId, tab){
  * @param {string} id
  * @returns {{ input: HTMLInputElement | null; list: HTMLElement | null }}
  */
-function getDetailElements(id){
+function getDetailElements(id) {
   return {
     input: /** @type {HTMLInputElement | null} */ (document.getElementById(`nota-inp-${id}`)),
     list: /** @type {HTMLElement | null} */ (document.getElementById(`notas-${id}`))
   };
 }
 
-function syncNotasCache(id, notas){
-  if(!D.notas) D.notas = {};
+function syncNotasCache(id, notas) {
+  if (!D.notas) D.notas = {};
   D.notas[id] = Array.isArray(notas) ? [...notas] : [];
 }
 
-function renderNotasCliente(id){
+function renderNotasCliente(id) {
   const { list } = getDetailElements(id);
-  if(!list) return;
+  if (!list) return;
   list.innerHTML = renderNotasHtml(D.notas?.[id] || []);
 }
 
-export function renderCliMet(){
-  return measureRender('clientes', () => {
-    const clientes = C();
-    if(isRuntimeBootstrapping() && !clientes.length){
-      cliDom.html('metrics', 'cli-met', `
+export function renderCliMet() {
+  return measureRender(
+    'clientes',
+    () => {
+      const clientes = C();
+      if (isRuntimeBootstrapping() && !clientes.length) {
+        cliDom.html(
+          'metrics',
+          'cli-met',
+          `
         <div class="sk-grid sk-grid-4">
           <div class="sk-card">${buildSkeletonLines(2)}</div>
           <div class="sk-card">${buildSkeletonLines(2)}</div>
           <div class="sk-card">${buildSkeletonLines(2)}</div>
           <div class="sk-card">${buildSkeletonLines(2)}</div>
         </div>
-      `, 'clientes:skeleton-metrics');
-      return;
-    }
-    const ativos = clientes.filter(cliente => cliente.status === 'ativo').length;
-    const prospectos = clientes.filter(cliente => cliente.status === 'prospecto').length;
-    const segmentos = [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))].length;
-    const currentSeg = cliDom.get('cli-fil-seg')?.value || '';
+      `,
+          'clientes:skeleton-metrics'
+        );
+        return;
+      }
+      const ativos = clientes.filter((cliente) => cliente.status === 'ativo').length;
+      const prospectos = clientes.filter((cliente) => cliente.status === 'prospecto').length;
+      const segmentos = [...new Set(clientes.map((cliente) => cliente.seg).filter(Boolean))].length;
+      const currentSeg = cliDom.get('cli-fil-seg')?.value || '';
 
-    cliDom.html('metrics', 'cli-met', `
+      cliDom.html(
+        'metrics',
+        'cli-met',
+        `
       <div class="met"><div class="ml">Total</div><div class="mv">${clientes.length}</div></div>
       <div class="met"><div class="ml">Ativos</div><div class="mv">${ativos}</div></div>
       <div class="met"><div class="ml">Prospectos</div><div class="mv">${prospectos}</div></div>
       <div class="met"><div class="ml">Segmentos</div><div class="mv">${segmentos}</div></div>
-    `, 'clientes:metrics');
+    `,
+        'clientes:metrics'
+      );
 
-    cliDom.select(
-      'filters',
-      'cli-fil-seg',
-      '<option value="">Todos os segmentos</option>' +
-        [...new Set(clientes.map(cliente => cliente.seg).filter(Boolean))]
-          .sort((a, b) => a.localeCompare(b))
-          .map(seg => `<option value="${esc(seg)}">${esc(seg)}</option>`)
-          .join(''),
-      currentSeg,
-      'clientes:segmentos'
-    );
-  }, 'metrics');
+      cliDom.select(
+        'filters',
+        'cli-fil-seg',
+        '<option value="">Todos os segmentos</option>' +
+          [...new Set(clientes.map((cliente) => cliente.seg).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b))
+            .map((seg) => `<option value="${esc(seg)}">${esc(seg)}</option>`)
+            .join(''),
+        currentSeg,
+        'clientes:segmentos'
+      );
+    },
+    'metrics'
+  );
 }
 
-export function renderClientes(){
-  return measureRender('clientes', () => {
-    const filtrados = getFilteredClientes();
-    if(isRuntimeBootstrapping() && !C().length){
+export function renderClientes() {
+  return measureRender(
+    'clientes',
+    () => {
+      const filtrados = getFilteredClientes();
+      if (isRuntimeBootstrapping() && !C().length) {
+        cliDom.html(
+          'list',
+          'cli-lista',
+          `<div class="sk-card">${buildSkeletonLines(5)}</div>`,
+          'clientes:skeleton-list'
+        );
+        return;
+      }
+      if (!filtrados.length) {
+        renderEstadoVazio();
+        return;
+      }
+
+      if (window.matchMedia('(max-width: 1280px)').matches) {
+        cliDom.html(
+          'list',
+          'cli-lista',
+          filtrados.map(renderClienteMobile).join(''),
+          'clientes:lista-mobile'
+        );
+        return;
+      }
+
       cliDom.html(
         'list',
         'cli-lista',
-        `<div class="sk-card">${buildSkeletonLines(5)}</div>`,
-        'clientes:skeleton-list'
-      );
-      return;
-    }
-    if(!filtrados.length){
-      renderEstadoVazio();
-      return;
-    }
-
-    if(window.matchMedia('(max-width: 1280px)').matches){
-      cliDom.html(
-        'list',
-        'cli-lista',
-        filtrados.map(renderClienteMobile).join(''),
-        'clientes:lista-mobile'
-      );
-      return;
-    }
-
-    cliDom.html('list', 'cli-lista', `
+        `
       <div class="tw">
         <table class="tbl">
           <thead>
@@ -1062,30 +1058,41 @@ export function renderClientes(){
           <tbody>${filtrados.map(renderClienteDesktop).join('')}</tbody>
         </table>
       </div>
-    `, 'clientes:lista-desktop');
-  }, 'list');
+    `,
+        'clientes:lista-desktop'
+      );
+    },
+    'list'
+  );
 }
 
-export function renderCliSegs(){
-  return measureRender('clientes', () => {
-    const el = cliDom.get('cli-segs-lista');
-    if(!el) return;
+export function renderCliSegs() {
+  return measureRender(
+    'clientes',
+    () => {
+      const el = cliDom.get('cli-segs-lista');
+      if (!el) return;
 
-    const segmentos = getClienteSegmentos();
+      const segmentos = getClienteSegmentos();
 
-    cliDom.html('segments', 'cli-segs-lista', segmentos.map(seg => {
-      const clientes = C().filter(cliente => (cliente.seg || 'Sem segmento') === seg);
+      cliDom.html(
+        'segments',
+        'cli-segs-lista',
+        segmentos
+          .map((seg) => {
+            const clientes = C().filter((cliente) => (cliente.seg || 'Sem segmento') === seg);
 
-      return `
+            return `
         <div class="card">
           <div class="fb form-gap-bottom-xs">
             <div class="table-cell-strong">${esc(seg)}</div>
             <span class="bdg bb">${clientes.length}</span>
           </div>
           <div class="fg2">
-            ${clientes.map(cliente => {
-              const cor = avc(cliente.nome);
-              return `
+            ${clientes
+              .map((cliente) => {
+                const cor = avc(cliente.nome);
+                return `
                 <button
                   class="btn btn-inline-card"
                   type="button"
@@ -1097,12 +1104,18 @@ export function renderCliSegs(){
                   <span class="btn-inline-card__label">${esc(cliente.apelido || cliente.nome)}</span>
                 </button>
               `;
-            }).join('')}
+              })
+              .join('')}
           </div>
         </div>
       `;
-    }).join(''), 'clientes:segmentos-lista');
-  }, 'segments');
+          })
+          .join(''),
+        'clientes:segmentos-lista'
+      );
+    },
+    'segments'
+  );
 }
 
 // ── Fidelidade UI ─────────────────────────────────────────────────────────────
@@ -1113,8 +1126,14 @@ export function renderCliSegs(){
  * @param {import('../types/domain').ClienteFidelidadeLancamento[]} lancamentos
  * @returns {string}
  */
-function renderFidelidadeTab(clienteId, saldo, lancamentos){
-  const TIPO_LABEL = { credito: 'Crédito', debito: 'Débito', ajuste: 'Ajuste', expiracao: 'Expiração', estorno: 'Estorno' };
+function renderFidelidadeTab(clienteId, saldo, lancamentos) {
+  const TIPO_LABEL = {
+    credito: 'Crédito',
+    debito: 'Débito',
+    ajuste: 'Ajuste',
+    expiracao: 'Expiração',
+    estorno: 'Estorno'
+  };
   const STATUS_LABEL = { pendente: 'Pendente', confirmado: 'Confirmado', cancelado: 'Cancelado' };
   const STATUS_BADGE = { pendente: 'ba', confirmado: 'bg', cancelado: 'br' };
 
@@ -1155,7 +1174,10 @@ function renderFidelidadeTab(clienteId, saldo, lancamentos){
             </tr>
           </thead>
           <tbody>
-            ${lancamentos.slice(0, 30).map(l => `
+            ${lancamentos
+              .slice(0, 30)
+              .map(
+                (l) => `
               <tr>
                 <td class="table-cell-muted">${l.criado_em ? new Date(l.criado_em).toLocaleDateString('pt-BR') : '—'}</td>
                 <td><span class="bdg ${l.pontos > 0 ? 'bg' : 'br'}">${TIPO_LABEL[l.tipo] || esc(l.tipo || '')}</span></td>
@@ -1164,7 +1186,9 @@ function renderFidelidadeTab(clienteId, saldo, lancamentos){
                 <td class="table-cell-muted">${esc(l.origem || '') || '—'}</td>
                 <td class="table-cell-caption">${esc(l.observacao || '') || '—'}</td>
               </tr>
-            `).join('')}
+            `
+              )
+              .join('')}
           </tbody>
         </table>
       </div>
@@ -1199,23 +1223,29 @@ function renderFidelidadeTab(clienteId, saldo, lancamentos){
  * Lança pontos de fidelidade manualmente para um cliente.
  * @param {string} clienteId
  */
-export async function adicionarLancamentoFidelidade(clienteId){
-  const tipoEl = /** @type {HTMLSelectElement|null} */ (document.getElementById(`fid-tipo-${clienteId}`));
-  const pontosEl = /** @type {HTMLInputElement|null} */ (document.getElementById(`fid-pontos-${clienteId}`));
-  const obsEl = /** @type {HTMLInputElement|null} */ (document.getElementById(`fid-obs-${clienteId}`));
+export async function adicionarLancamentoFidelidade(clienteId) {
+  const tipoEl = /** @type {HTMLSelectElement|null} */ (
+    document.getElementById(`fid-tipo-${clienteId}`)
+  );
+  const pontosEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById(`fid-pontos-${clienteId}`)
+  );
+  const obsEl = /** @type {HTMLInputElement|null} */ (
+    document.getElementById(`fid-obs-${clienteId}`)
+  );
 
   const tipo = tipoEl?.value || 'credito';
   const pontosRaw = Number(pontosEl?.value || 0);
   const obs = obsEl?.value.trim() || null;
 
-  if(!pontosRaw || Number.isNaN(pontosRaw)){
+  if (!pontosRaw || Number.isNaN(pontosRaw)) {
     notify('Informe a quantidade de pontos para o lançamento.', SEVERITY.WARNING);
     pontosEl?.focus();
     return;
   }
 
   // Débito e ajuste negativo: o banco espera pontos negativos para debitar
-  const pontos = (tipo === 'debito') ? -Math.abs(pontosRaw) : pontosRaw;
+  const pontos = tipo === 'debito' ? -Math.abs(pontosRaw) : pontosRaw;
 
   const lancamento = {
     id: uid(),
@@ -1229,9 +1259,12 @@ export async function adicionarLancamentoFidelidade(clienteId){
   };
 
   const result = await SB.toResult(() => SB.insertClienteFidelidadeLancamento(lancamento));
-  if(!result.ok){
+  if (!result.ok) {
     console.error('Erro ao inserir lançamento de fidelidade', result.error);
-    notify(`Erro ao lançar pontos: ${String(result.error?.message || 'tente novamente')}.`, SEVERITY.ERROR);
+    notify(
+      `Erro ao lançar pontos: ${String(result.error?.message || 'tente novamente')}.`,
+      SEVERITY.ERROR
+    );
     return;
   }
 
@@ -1241,16 +1274,16 @@ export async function adicionarLancamentoFidelidade(clienteId){
   switchCliDetTab(clienteId, 'fidelidade');
 }
 
-export async function abrirCliDet(id){
-  const cliente = C().find(item => item.id === id);
-  if(!cliente) return;
+export async function abrirCliDet(id) {
+  const cliente = C().find((item) => item.id === id);
+  if (!cliente) return;
 
   const cor = avc(cliente.nome);
   let notas = [];
 
-  try{
-    notas = await SB.getNotas(id) || [];
-  }catch(error){
+  try {
+    notas = (await SB.getNotas(id)) || [];
+  } catch (error) {
     console.error('Erro ao carregar notas do cliente', error);
   }
 
@@ -1263,13 +1296,15 @@ export async function abrirCliDet(id){
   ]);
 
   /** @type {import('../types/domain').ClienteFidelidadeSaldo | null} */
-  const saldo = fidelSaldo.ok ? (fidelSaldo.data || null) : null;
+  const saldo = fidelSaldo.ok ? fidelSaldo.data || null : null;
   /** @type {import('../types/domain').ClienteFidelidadeLancamento[]} */
-  const lancamentos = fidelLancs.ok ? (fidelLancs.data || []) : [];
+  const lancamentos = fidelLancs.ok ? fidelLancs.data || [] : [];
 
   const pedidos = getPedidosCliente(cliente);
-  const vendasFechadas = pedidos.filter(pedido => !!pedido.venda_fechada);
-  const vendasAbertas = pedidos.filter(pedido => !pedido.venda_fechada && pedido.status !== 'cancelado');
+  const vendasFechadas = pedidos.filter((pedido) => !!pedido.venda_fechada);
+  const vendasAbertas = pedidos.filter(
+    (pedido) => !pedido.venda_fechada && pedido.status !== 'cancelado'
+  );
   const contextoCliente = buildClienteContextualPanelV2(cliente, pedidos);
 
   const times = parseTimes(cliente.time);
@@ -1282,7 +1317,10 @@ export async function abrirCliDet(id){
     cliente.cidade ? `${cliente.cidade}${cliente.estado ? ` - ${cliente.estado}` : ''}` : ''
   ].filter(Boolean);
 
-  cliDom.html('detail', 'cli-det-box', `
+  cliDom.html(
+    'detail',
+    'cli-det-box',
+    `
     <div class="cli-detail">
       <div class="cli-detail-head fb">
         <div class="cli-detail-hero">
@@ -1300,7 +1338,7 @@ export async function abrirCliDet(id){
       <div class="cli-detail-grid">
         <div class="cli-detail-panel">
           <div class="cli-detail-label">Contato</div>
-        ${contato.length ? contato.map(item => `<div class="detail-line">${esc(item)}</div>`).join('') : '-'}
+        ${contato.length ? contato.map((item) => `<div class="detail-line">${esc(item)}</div>`).join('') : '-'}
         </div>
 
         <div class="cli-detail-panel">
@@ -1323,12 +1361,16 @@ export async function abrirCliDet(id){
       </div>
 
       <div class="tc on" data-cli-panel="${id}" data-panel="resumo">
-      ${cliente.obs ? `
+      ${
+        cliente.obs
+          ? `
         <div class="panel cli-detail-section">
         <div class="pt">Observacoes</div>
           <p class="detail-copy">${esc(cliente.obs)}</p>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="cli-detail-label form-gap-bottom-xs">Notas / historico</div>
       <div class="fg2 cli-detail-notes-input form-gap-bottom-xs">
@@ -1362,7 +1404,9 @@ export async function abrirCliDet(id){
       <button class="btn btn-p" data-click="fecharModal('modal-cli-det');editarCli('${id}')">Editar</button>
       </div>
     </div>
-  `, 'clientes:detalhe');
+  `,
+    'clientes:detalhe'
+  );
 
   abrirModal('modal-cli-det');
 }
@@ -1371,15 +1415,15 @@ export async function abrirCliDet(id){
  * @param {string} pedidoId
  * @param {string} clienteId
  */
-export async function fecharVendaCliente(pedidoId, clienteId){
-  const cliente = C().find(item => item.id === clienteId);
-  const pedido = (D.pedidos?.[State.FIL] || []).find(item => item.id === pedidoId);
-  if(!cliente || !pedido) return;
-  if(!isPedidoFechavel(pedido)){
+export async function fecharVendaCliente(pedidoId, clienteId) {
+  const cliente = C().find((item) => item.id === clienteId);
+  const pedido = (D.pedidos?.[State.FIL] || []).find((item) => item.id === pedidoId);
+  if (!cliente || !pedido) return;
+  if (!isPedidoFechavel(pedido)) {
     toast('Somente pedidos entregues e ainda abertos podem ser fechados.');
     return;
   }
-  if(!confirm(`Fechar a venda do pedido #${pedido.num}?`)) return;
+  if (!confirm(`Fechar a venda do pedido #${pedido.num}?`)) return;
 
   const atualizado = {
     ...pedido,
@@ -1388,12 +1432,12 @@ export async function fecharVendaCliente(pedidoId, clienteId){
     venda_fechada_por: String(State.user?.email || State.user?.id || '').trim() || null
   };
 
-  try{
+  try {
     await SB.upsertPedido({
       ...atualizado,
       itens: JSON.stringify(Array.isArray(atualizado.itens) ? atualizado.itens : [])
     });
-  }catch(error){
+  } catch (error) {
     notify(
       `Erro ao fechar venda: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
       SEVERITY.ERROR
@@ -1401,8 +1445,10 @@ export async function fecharVendaCliente(pedidoId, clienteId){
     return;
   }
 
-  if(!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
-  D.pedidos[State.FIL] = D.pedidos[State.FIL].map(item => item.id === pedidoId ? atualizado : item);
+  if (!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
+  D.pedidos[State.FIL] = D.pedidos[State.FIL].map((item) =>
+    item.id === pedidoId ? atualizado : item
+  );
   invalidatePdCache();
   renderPedMet();
   renderPedidos();
@@ -1411,10 +1457,10 @@ export async function fecharVendaCliente(pedidoId, clienteId){
   switchCliDetTab(clienteId, 'fechadas');
 }
 
-export async function addNota(id){
+export async function addNota(id) {
   const { input } = getDetailElements(id);
   const texto = input?.value.trim() || '';
-  if(!texto) return;
+  if (!texto) return;
 
   const nota = {
     cliente_id: id,
@@ -1422,39 +1468,39 @@ export async function addNota(id){
     data: new Date().toLocaleString('pt-BR')
   };
 
-  try{
+  try {
     await SB.insertNota(nota);
-  }catch(error){
+  } catch (error) {
     toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
     return;
   }
 
-  if(!D.notas) D.notas = {};
-  if(!Array.isArray(D.notas[id])) D.notas[id] = [];
+  if (!D.notas) D.notas = {};
+  if (!Array.isArray(D.notas[id])) D.notas[id] = [];
   D.notas[id].unshift(nota);
 
-  if(input) input.value = '';
+  if (input) input.value = '';
   renderNotasCliente(id);
   toast('Nota adicionada!');
 }
 
-export function limparFormCli(){
+export function limparFormCli() {
   State.editIds.cli = null;
   refreshRcaSelectors();
 
   cliDom.text('modal', 'cli-modal-titulo', 'Novo cliente', 'clientes:modal-titulo');
   cliDom.text('modal', 'cli-flow-save', 'Salvar cliente', 'clientes:modal-acao');
 
-  CLI_FORM_IDS.forEach(id => cliDom.value(id, ''));
+  CLI_FORM_IDS.forEach((id) => cliDom.value(id, ''));
   Object.entries(CLI_SELECT_DEFAULTS).forEach(([id, value]) => cliDom.value(id, value));
-  CLI_CHECKBOX_IDS.forEach(id => cliDom.checked(id, false));
+  CLI_CHECKBOX_IDS.forEach((id) => cliDom.checked(id, false));
 
   setFlowStepSafe('cli', 1);
 }
 
-export function editarCli(id){
-  const cliente = C().find(item => item.id === id);
-  if(!cliente) return;
+export function editarCli(id) {
+  const cliente = C().find((item) => item.id === id);
+  if (!cliente) return;
 
   State.editIds.cli = id;
   refreshRcaSelectors();
@@ -1488,9 +1534,9 @@ export function editarCli(id){
   abrirModal('modal-cliente');
 }
 
-export async function salvarCliente(){
+export async function salvarCliente() {
   const nome = cliDom.get('c-nome')?.value.trim() || '';
-  if(!nome){
+  if (!nome) {
     notify(MSG.forms.required('Nome do cliente'), SEVERITY.WARNING);
     focusField('c-nome', { markError: true });
     return;
@@ -1534,7 +1580,7 @@ export async function salvarCliente(){
     editId
   });
 
-  if(clienteDuplicado){
+  if (clienteDuplicado) {
     notifyGuided({
       severity: SEVERITY.WARNING,
       what: `${clienteDuplicado.label} ja cadastrado para ${clienteDuplicado.cliente.nome}`,
@@ -1545,10 +1591,10 @@ export async function salvarCliente(){
     return;
   }
 
-  try{
+  try {
     await SB.upsertCliente(cliente);
-  }catch(error){
-    if(handleClienteDuplicadoError(error, clienteDuplicado)){
+  } catch (error) {
+    if (handleClienteDuplicadoError(error, clienteDuplicado)) {
       return;
     }
     notify(
@@ -1558,10 +1604,10 @@ export async function salvarCliente(){
     return;
   }
 
-  if(!D.clientes[State.FIL]) D.clientes[State.FIL] = [];
+  if (!D.clientes[State.FIL]) D.clientes[State.FIL] = [];
 
-  if(editId){
-    D.clientes[State.FIL] = C().map(item => item.id === editId ? cliente : item);
+  if (editId) {
+    D.clientes[State.FIL] = C().map((item) => (item.id === editId ? cliente : item));
   } else {
     D.clientes[State.FIL].push(cliente);
   }
@@ -1587,17 +1633,17 @@ export async function salvarCliente(){
   );
 }
 
-export async function removerCli(id){
-  if(!confirm('Remover cliente?')) return;
+export async function removerCli(id) {
+  if (!confirm('Remover cliente?')) return;
 
-  try{
+  try {
     await SB.deleteCliente(id);
-  }catch(error){
+  } catch (error) {
     toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
     return;
   }
 
-  D.clientes[State.FIL] = C().filter(cliente => cliente.id !== id);
+  D.clientes[State.FIL] = C().filter((cliente) => cliente.id !== id);
 
   renderCliMet();
   renderClientes();
@@ -1607,11 +1653,13 @@ export async function removerCli(id){
   toast('Cliente removido.');
 }
 
-export function refreshCliDL(){
+export function refreshCliDL() {
   cliDom.html(
     'selectors',
     'cli-dl',
-    C().map(cliente => `<option value="${esc(cliente.nome)}">`).join(''),
+    C()
+      .map((cliente) => `<option value="${esc(cliente.nome)}">`)
+      .join(''),
     'clientes:datalist'
   );
 }

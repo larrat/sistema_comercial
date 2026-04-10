@@ -6,28 +6,34 @@
  * actions.js pode importar daqui para re-render após mutações.
  */
 
-import { State, C } from '../../app/store.js';
+import { C } from '../../app/store.js';
 import { abrirModal } from '../../shared/utils.js';
 import { measureRender } from '../../shared/render-metrics.js';
 import { esc } from '../../shared/sanitize.js';
 import { buildSkeletonLines } from '../runtime-loading.js';
 
 import {
-  campDiag, campUiState, campanhasStatsCache, getCampanhasCache, getEnviosCache,
-  isRuntimeBootstrapping, getCampanhasStats, contarResumoEnvios,
-  labelCanal, labelStatusEnvio, formatarDataBR, escAttr,
-  getEnvioById, getFilaWhatsApp, getEnviosHistoricoFiltrados, agruparHistoricoEnviosPorCampanha
+  campDiag,
+  campUiState,
+  getCampanhasCache,
+  getEnviosCache,
+  isRuntimeBootstrapping,
+  getCampanhasStats,
+  contarResumoEnvios,
+  labelCanal,
+  labelStatusEnvio,
+  formatarDataBR,
+  escAttr,
+  getEnvioById,
+  getFilaWhatsApp,
+  getEnviosHistoricoFiltrados,
+  agruparHistoricoEnviosPorCampanha
 } from './data.js';
 
 /** @typedef {import('../../types/domain').Campanha} Campanha */
 /** @typedef {import('../../types/domain').CampanhaEnvio} CampanhaEnvio */
 
 // ── Helpers internos de render ────────────────────────────────────────────────
-
-function setInputValue(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.value = value ?? '';
-}
 
 function getInputValue(id) {
   return document.getElementById(id)?.value ?? '';
@@ -48,8 +54,11 @@ function substituirTokensCampanha(template, campanha = {}) {
   const nome = String(cliente?.nome || 'Cliente especial').trim();
   const primeiroNome = nome.split(/\s+/)[0] || nome;
   const hoje = new Date();
-  const validade = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 7)
-    .toLocaleDateString('pt-BR');
+  const validade = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate() + 7
+  ).toLocaleDateString('pt-BR');
   const values = {
     nome,
     apelido: primeiroNome,
@@ -67,9 +76,12 @@ function substituirTokensCampanha(template, campanha = {}) {
 
 function badgeSaudeCampanha(campanha, envios) {
   if (!campanha?.ativo) return '<span class="bdg br">Inativa</span>';
-  const fila = (envios || []).filter(e => e.campanha_id === campanha.id && (e.status === 'manual' || e.status === 'pendente')).length;
+  const fila = (envios || []).filter(
+    (e) => e.campanha_id === campanha.id && (e.status === 'manual' || e.status === 'pendente')
+  ).length;
   if (fila > 0) return `<span class="bdg ba">Fila ${fila}</span>`;
-  if (Number(campanha?.desconto || 0) <= 0 && !String(campanha?.cupom || '').trim()) return '<span class="bdg bk">Sem oferta</span>';
+  if (Number(campanha?.desconto || 0) <= 0 && !String(campanha?.cupom || '').trim())
+    return '<span class="bdg bk">Sem oferta</span>';
   return '<span class="bdg bg">Pronta</span>';
 }
 
@@ -98,9 +110,11 @@ export function renderCampDiag() {
   const _ne = campDiag.carregadasFilial;
   const exibidas = `${_ne} campanha${_ne !== 1 ? 's' : ''} exibida${_ne !== 1 ? 's' : ''}`;
   const banco = campDiag.totalBanco == null ? '' : `${campDiag.totalBanco} no banco`;
-  const outras = campDiag.outrasFiliais == null ? '' : `${campDiag.outrasFiliais} em outras filiais`;
+  const outras =
+    campDiag.outrasFiliais == null ? '' : `${campDiag.outrasFiliais} em outras filiais`;
   const origem = campDiag.origem ? `Origem: ${campDiag.origem}` : '';
-  const podeImportar = (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
+  const podeImportar =
+    (campDiag.candidatasOutrasFiliais || []).length > 0 && campDiag.carregadasFilial === 0;
   const acao = podeImportar
     ? ` <button class="btn btn-sm camp-diag-action" data-click="adotarCampanhasParaFilialAtiva()">Importar para filial ativa</button>`
     : '';
@@ -125,12 +139,14 @@ export function renderCampDiag() {
 
 function buildCampanhasContextPanelV2(campanhas, envios) {
   const resumo = contarResumoEnvios(envios);
-  const primeiraFalha = envios.find(e => e.status === 'falhou') || null;
-  const primeiraPendente = envios.find(e => e.status === 'manual' || e.status === 'pendente') || null;
-  const primeiraAtivaSemFila = campanhas.find(c => {
-    if (!c?.ativo) return false;
-    return !envios.some(e => e.campanha_id === c.id);
-  }) || null;
+  const primeiraFalha = envios.find((e) => e.status === 'falhou') || null;
+  const primeiraPendente =
+    envios.find((e) => e.status === 'manual' || e.status === 'pendente') || null;
+  const primeiraAtivaSemFila =
+    campanhas.find((c) => {
+      if (!c?.ativo) return false;
+      return !envios.some((e) => e.campanha_id === c.id);
+    }) || null;
 
   /** @type {string[]} */
   const execucaoLocal = [];
@@ -199,7 +215,7 @@ function buildCampanhasContextPanelV2(campanhas, envios) {
         </div>
       </article>
     `);
-  } else if (!campanhas.some(c => c.ativo)) {
+  } else if (!campanhas.some((c) => c.ativo)) {
     execucaoLocal.push(`
       <article class="context-card context-card--warning">
         <div class="context-card__head">
@@ -262,24 +278,26 @@ function buildCampanhasContextPanelV2(campanhas, envios) {
 // ── Renders públicos ──────────────────────────────────────────────────────────
 
 export function renderCampanhasMet() {
-  return measureRender('campanhas', () => {
-    const campanhas = getCampanhasCache();
-    const envios = getEnviosCache();
-    const { ativas, resumo } = getCampanhasStats(campanhas, envios);
-    const el = document.getElementById('camp-met');
-    if (!el) return;
-    if (isRuntimeBootstrapping() && !campanhas.length && !envios.length) {
-      el.innerHTML = `
+  return measureRender(
+    'campanhas',
+    () => {
+      const campanhas = getCampanhasCache();
+      const envios = getEnviosCache();
+      const { ativas, resumo } = getCampanhasStats(campanhas, envios);
+      const el = document.getElementById('camp-met');
+      if (!el) return;
+      if (isRuntimeBootstrapping() && !campanhas.length && !envios.length) {
+        el.innerHTML = `
         <div class="sk-grid sk-grid-3">
           <div class="sk-card">${buildSkeletonLines(2)}</div>
           <div class="sk-card">${buildSkeletonLines(2)}</div>
           <div class="sk-card">${buildSkeletonLines(2)}</div>
         </div>
       `;
-      return;
-    }
+        return;
+      }
 
-    el.innerHTML = `
+      el.innerHTML = `
       <div class="met metric-card camp-metric-card">
         <div class="metric-card__eyebrow">Base</div>
         <div class="ml">Campanhas</div>
@@ -299,28 +317,32 @@ export function renderCampanhasMet() {
         <div class="ms metric-card__foot">${envios.length} envio(s) no histórico</div>
       </div>
     `;
-  }, 'metrics');
+    },
+    'metrics'
+  );
 }
 
 export function renderCampanhas() {
-  return measureRender('campanhas', () => {
-    const campanhas = getCampanhasCache();
-    const envios = getEnviosCache();
-    const el = document.getElementById('camp-lista');
-    if (!el) return;
-    if (isRuntimeBootstrapping() && !campanhas.length && !envios.length) {
-      el.innerHTML = `<div class="sk-card">${buildSkeletonLines(6)}</div>`;
-      return;
-    }
-    renderCampDiag();
-    const contextHtml = buildCampanhasContextPanelV2(campanhas, envios);
-    const { resumo } = getCampanhasStats(campanhas, envios);
-    const pendentes = resumo.pendentes;
-    const falhas = resumo.falhas;
-    const enviadas = resumo.enviados;
+  return measureRender(
+    'campanhas',
+    () => {
+      const campanhas = getCampanhasCache();
+      const envios = getEnviosCache();
+      const el = document.getElementById('camp-lista');
+      if (!el) return;
+      if (isRuntimeBootstrapping() && !campanhas.length && !envios.length) {
+        el.innerHTML = `<div class="sk-card">${buildSkeletonLines(6)}</div>`;
+        return;
+      }
+      renderCampDiag();
+      const contextHtml = buildCampanhasContextPanelV2(campanhas, envios);
+      const { resumo } = getCampanhasStats(campanhas, envios);
+      const pendentes = resumo.pendentes;
+      const falhas = resumo.falhas;
+      const enviadas = resumo.enviados;
 
-    if (!campanhas.length) {
-      el.innerHTML = `
+      if (!campanhas.length) {
+        el.innerHTML = `
         ${contextHtml}
         <div class="camp-quick camp-summary-strip">
           <span class="bdg bb">Fila: ${pendentes}</span>
@@ -329,19 +351,21 @@ export function renderCampanhas() {
         </div>
         <div class="empty"><div class="ico">CP</div><p>Nenhuma campanha cadastrada.</p></div>
       `;
-      return;
-    }
+        return;
+      }
 
-    const isMobile = window.matchMedia('(max-width: 1280px)').matches;
-    if (isMobile) {
-      el.innerHTML = `
+      const isMobile = window.matchMedia('(max-width: 1280px)').matches;
+      if (isMobile) {
+        el.innerHTML = `
         ${contextHtml}
         <div class="camp-quick camp-summary-strip">
           <span class="bdg bb">Fila: ${pendentes}</span>
           <span class="bdg br">Falhas: ${falhas}</span>
           <span class="bdg bg">Enviadas: ${enviadas}</span>
         </div>
-        ${campanhas.map(c => `
+        ${campanhas
+          .map(
+            (c) => `
         <div class="mobile-card">
           <div class="mobile-card-head">
             <div class="mobile-card-grow">
@@ -366,12 +390,14 @@ export function renderCampanhas() {
             <button class="btn btn-sm" data-click="removerCampanha('${c.id}')">Excluir</button>
           </div>
         </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       `;
-      return;
-    }
+        return;
+      }
 
-    el.innerHTML = `
+      el.innerHTML = `
       ${contextHtml}
       <div class="camp-quick camp-summary-strip">
         <span class="bdg bb">Fila: ${pendentes}</span>
@@ -393,7 +419,9 @@ export function renderCampanhas() {
             </tr>
           </thead>
           <tbody>
-            ${campanhas.map(c => `
+            ${campanhas
+              .map(
+                (c) => `
               <tr>
                 <td class="table-cell-strong">${esc(c.nome)}</td>
                 <td><span class="bdg bk">${esc(c.tipo || 'aniversario')}</span></td>
@@ -416,12 +444,16 @@ export function renderCampanhas() {
                   </div>
                 </td>
               </tr>
-            `).join('')}
+            `
+              )
+              .join('')}
           </tbody>
         </table>
       </div>
     `;
-  }, 'list');
+    },
+    'list'
+  );
 }
 
 export function renderCampanhaPreview() {
@@ -452,14 +484,14 @@ export function renderCampanhaPreview() {
 }
 
 export function abrirCampanhaDet(campanhaId) {
-  const campanha = getCampanhasCache().find(c => c.id === campanhaId);
+  const campanha = getCampanhasCache().find((c) => c.id === campanhaId);
   const box = document.getElementById('campanha-det-box');
   if (!campanha || !box) return;
 
-  const envios = getEnviosCache().filter(e => e.campanha_id === campanha.id);
-  const fila = envios.filter(e => e.status === 'manual' || e.status === 'pendente');
-  const enviados = envios.filter(e => e.status === 'enviado');
-  const falhas = envios.filter(e => e.status === 'falhou');
+  const envios = getEnviosCache().filter((e) => e.campanha_id === campanha.id);
+  const fila = envios.filter((e) => e.status === 'manual' || e.status === 'pendente');
+  const enviados = envios.filter((e) => e.status === 'enviado');
+  const falhas = envios.filter((e) => e.status === 'falhou');
   const recentes = envios
     .slice()
     .sort((a, b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')))
@@ -502,11 +534,14 @@ export function abrirCampanhaDet(campanhaId) {
 
       <div class="panel camp-detail-section">
         <div class="pt">Envios recentes</div>
-        ${recentes.length ? `
+        ${
+          recentes.length
+            ? `
           <div class="camp-detail-list">
-            ${recentes.map(envio => {
-              const cliente = (C() || []).find(c => c.id === envio.cliente_id);
-              return `
+            ${recentes
+              .map((envio) => {
+                const cliente = (C() || []).find((c) => c.id === envio.cliente_id);
+                return `
                 <div class="camp-detail-row">
                   <div class="camp-detail-row-main">
                     <div class="camp-detail-row-title">${esc(cliente?.nome || envio.cliente_id)}</div>
@@ -515,9 +550,12 @@ export function abrirCampanhaDet(campanhaId) {
                   <span class="bdg ${envio.status === 'enviado' ? 'bg' : envio.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(envio.status)}</span>
                 </div>
               `;
-            }).join('')}
+              })
+              .join('')}
           </div>
-        ` : `<div class="empty" style="padding:12px"><p>Nenhum envio associado ainda.</p></div>`}
+        `
+            : `<div class="empty" style="padding:12px"><p>Nenhum envio associado ainda.</p></div>`
+        }
       </div>
 
       <div class="camp-detail-actions">
@@ -544,9 +582,9 @@ export function renderFilaWhatsApp() {
     return;
   }
 
-  const pendentes = envios.filter(e => e.status === 'manual' || e.status === 'pendente').length;
-  const falhas = envios.filter(e => e.status === 'falhou').length;
-  const selecionados = envios.filter(e => campUiState.waSelecionados.has(e.id)).length;
+  const pendentes = envios.filter((e) => e.status === 'manual' || e.status === 'pendente').length;
+  const falhas = envios.filter((e) => e.status === 'falhou').length;
+  const selecionados = envios.filter((e) => campUiState.waSelecionados.has(e.id)).length;
   const isMobile = window.matchMedia('(max-width: 1280px)').matches;
 
   if (isMobile) {
@@ -556,10 +594,11 @@ export function renderFilaWhatsApp() {
         <span class="bdg br">Falhas: ${falhas}</span>
         <span class="bdg bk">Selecionados: ${selecionados}</span>
       </div>
-      ${envios.map(e => {
-        const cliente = (C() || []).find(c => c.id === e.cliente_id);
-        const campanha = getCampanhasCache().find(c => c.id === e.campanha_id);
-        return `
+      ${envios
+        .map((e) => {
+          const cliente = (C() || []).find((c) => c.id === e.cliente_id);
+          const campanha = getCampanhasCache().find((c) => c.id === e.campanha_id);
+          return `
           <div class="mobile-card">
             <div class="mobile-card-head">
               <div class="mobile-card-grow">
@@ -580,7 +619,8 @@ export function renderFilaWhatsApp() {
             </div>
           </div>
         `;
-      }).join('')}
+        })
+        .join('')}
     `;
     return;
   }
@@ -605,10 +645,11 @@ export function renderFilaWhatsApp() {
           </tr>
         </thead>
         <tbody>
-          ${envios.map(e => {
-            const cliente = (C() || []).find(c => c.id === e.cliente_id);
-            const campanha = getCampanhasCache().find(c => c.id === e.campanha_id);
-            return `
+          ${envios
+            .map((e) => {
+              const cliente = (C() || []).find((c) => c.id === e.cliente_id);
+              const campanha = getCampanhasCache().find((c) => c.id === e.campanha_id);
+              return `
               <tr>
                 <td class="table-align-center"><input type="checkbox" ${campUiState.waSelecionados.has(e.id) ? 'checked' : ''} data-change="toggleEnvioFilaSelecionado('${e.id}')"></td>
                 <td class="table-cell-strong">${esc(cliente?.nome || e.cliente_id)}</td>
@@ -625,7 +666,8 @@ export function renderFilaWhatsApp() {
                 </td>
               </tr>
             `;
-          }).join('')}
+            })
+            .join('')}
         </tbody>
       </table>
     </div>
@@ -634,7 +676,9 @@ export function renderFilaWhatsApp() {
 
 function renderCampanhaEnviosAgrupados(grupos, isMobile) {
   if (isMobile) {
-    return grupos.map(grupo => `
+    return grupos
+      .map(
+        (grupo) => `
       <div class="camp-history-group">
         <div class="camp-history-head">
           <div>
@@ -645,9 +689,10 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
             ${renderResumoEnviosCampanha(grupo.envios)}
           </div>
         </div>
-        ${grupo.envios.map(e => {
-          const cliente = (C() || []).find(c => c.id === e.cliente_id);
-          return `
+        ${grupo.envios
+          .map((e) => {
+            const cliente = (C() || []).find((c) => c.id === e.cliente_id);
+            return `
             <div class="mobile-card ${isStatusFeedbackAtivo(e.id) ? 'camp-history-item-fresh' : ''}">
               <div class="mobile-card-head">
                 <div class="mobile-card-grow">
@@ -661,19 +706,28 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
                 <div>Criado em: <b class="table-cell-muted">${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '&mdash;'}</b></div>
                 ${isStatusFeedbackAtivo(e.id) ? `<div><span class="bdg bb">Atualizado agora</span></div>` : ''}
               </div>
-              ${(e.status === 'enviado' || e.status === 'falhou') ? `
+              ${
+                e.status === 'enviado' || e.status === 'falhou'
+                  ? `
                 <div class="mobile-card-actions">
                   <button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer status</button>
                 </div>
-              ` : ''}
+              `
+                  : ''
+              }
             </div>
           `;
-        }).join('')}
+          })
+          .join('')}
       </div>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
-  return grupos.map(grupo => `
+  return grupos
+    .map(
+      (grupo) => `
     <div class="camp-history-group">
       <div class="camp-history-head">
         <div>
@@ -698,9 +752,10 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
             </tr>
           </thead>
           <tbody>
-            ${grupo.envios.map(e => {
-              const cliente = (C() || []).find(c => c.id === e.cliente_id);
-              return `
+            ${grupo.envios
+              .map((e) => {
+                const cliente = (C() || []).find((c) => c.id === e.cliente_id);
+                return `
                 <tr class="${isStatusFeedbackAtivo(e.id) ? 'camp-history-row-fresh' : ''}">
                   <td class="table-cell-strong">${esc(cliente?.nome || e.cliente_id)}</td>
                   <td><span class="bdg bk">${labelCanal(e.canal)}</span></td>
@@ -708,36 +763,43 @@ function renderCampanhaEnviosAgrupados(grupos, isMobile) {
                   <td><span class="bdg ${e.status === 'enviado' ? 'bg' : e.status === 'falhou' ? 'br' : 'ba'}">${labelStatusEnvio(e.status)}</span></td>
                   <td>${formatarDataBR(e.data_ref)}</td>
                   <td>${e.criado_em ? new Date(e.criado_em).toLocaleString('pt-BR') : '&mdash;'}</td>
-                  <td>${(e.status === 'enviado' || e.status === 'falhou') ? `<button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer</button>` : '&mdash;'}</td>
+                  <td>${e.status === 'enviado' || e.status === 'falhou' ? `<button class="btn btn-sm" data-click="desfazerStatusEnvio('${e.id}')">Desfazer</button>` : '&mdash;'}</td>
                 </tr>
               `;
-            }).join('')}
+              })
+              .join('')}
           </tbody>
         </table>
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 export function renderCampanhaEnvios() {
-  return measureRender('campanhas', () => {
-    const envios = getEnviosHistoricoFiltrados();
-    const el = document.getElementById('camp-envios-lista');
-    if (!el) return;
-    if (isRuntimeBootstrapping() && !getEnviosCache().length) {
-      el.innerHTML = `<div class="sk-card">${buildSkeletonLines(4)}</div>`;
-      return;
-    }
+  return measureRender(
+    'campanhas',
+    () => {
+      const envios = getEnviosHistoricoFiltrados();
+      const el = document.getElementById('camp-envios-lista');
+      if (!el) return;
+      if (isRuntimeBootstrapping() && !getEnviosCache().length) {
+        el.innerHTML = `<div class="sk-card">${buildSkeletonLines(4)}</div>`;
+        return;
+      }
 
-    if (!envios.length) {
-      el.innerHTML = `<div class="empty"><div class="ico">VR</div><p>Nenhum envio registrado.</p></div>`;
-      return;
-    }
+      if (!envios.length) {
+        el.innerHTML = `<div class="empty"><div class="ico">VR</div><p>Nenhum envio registrado.</p></div>`;
+        return;
+      }
 
-    const grupos = agruparHistoricoEnviosPorCampanha(envios);
-    const isMobile = window.matchMedia('(max-width: 1280px)').matches;
-    el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
-  }, 'history');
+      const grupos = agruparHistoricoEnviosPorCampanha(envios);
+      const isMobile = window.matchMedia('(max-width: 1280px)').matches;
+      el.innerHTML = renderCampanhaEnviosAgrupados(grupos, isMobile);
+    },
+    'history'
+  );
 }
 
 export function renderPreviewWhatsAppAtual() {
@@ -747,8 +809,8 @@ export function renderPreviewWhatsAppAtual() {
   const loteInfo = document.getElementById('camp-wa-preview-lote-info');
   if (!envio || !box) return false;
 
-  const cliente = (C() || []).find(c => c.id === envio.cliente_id);
-  const campanha = getCampanhasCache().find(c => c.id === envio.campanha_id);
+  const cliente = (C() || []).find((c) => c.id === envio.cliente_id);
+  const campanha = getCampanhasCache().find((c) => c.id === envio.campanha_id);
   const emLote = campUiState.waLoteIds.length > 1;
   const lotePos = emLote ? `${campUiState.waLoteIndex + 1} de ${campUiState.waLoteIds.length}` : '';
 

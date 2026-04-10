@@ -67,4 +67,5 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Workflow inicial de CI criado
 - [x] Bug em `notificacoes.js` corrigido durante a ativacao do lint
 - [x] `typecheck` e `typecheck:strict` estabilizados e passando
-- [ ] Repositorio ainda possui pendencias para `lint` e `format:check`
+- [x] `lint` estabilizado e utilizavel como gate real
+- [ ] Repositorio ainda possui pendencias para `format:check`

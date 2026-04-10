@@ -8,19 +8,37 @@
 
 import { SB } from '../../app/api.js';
 import { D, State, C } from '../../app/store.js';
-import { abrirModal, fecharModal, toast, uid, setButtonLoading, notify, focusField } from '../../shared/utils.js';
+import {
+  abrirModal,
+  fecharModal,
+  toast,
+  uid,
+  setButtonLoading,
+  notify,
+  focusField
+} from '../../shared/utils.js';
 import { MSG, SEVERITY } from '../../shared/messages.js';
 
 import {
-  campDiag, campUiState, getCampanhasCache, getEnviosCache,
-  getEnvioById, getFilaWhatsApp, getPrimeiroEnvioWhatsAppPendenteCampanha,
-  buildWhatsAppUrl, labelStatusEnvio,
-  carregarCampanhas, carregarCampanhaEnvios
+  campUiState,
+  getCampanhasCache,
+  getEnviosCache,
+  getEnvioById,
+  getFilaWhatsApp,
+  getPrimeiroEnvioWhatsAppPendenteCampanha,
+  buildWhatsAppUrl,
+  labelStatusEnvio,
+  carregarCampanhas,
+  carregarCampanhaEnvios
 } from './data.js';
 
 import {
-  renderCampDiag, renderCampanhasMet, renderCampanhas,
-  renderFilaWhatsApp, renderCampanhaEnvios, renderCampanhaPreview,
+  renderCampDiag,
+  renderCampanhasMet,
+  renderCampanhas,
+  renderFilaWhatsApp,
+  renderCampanhaEnvios,
+  renderCampanhaPreview,
   renderPreviewWhatsAppAtual
 } from './render.js';
 
@@ -45,28 +63,29 @@ function setBotaoGerarFilaLoading(campanhaId, loading) {
 }
 
 function limparSelecaoFilaInexistente(envios) {
-  const idsAtuais = new Set((envios || []).map(e => e.id));
-  campUiState.waSelecionados.forEach(id => {
+  const idsAtuais = new Set((envios || []).map((e) => e.id));
+  campUiState.waSelecionados.forEach((id) => {
     if (!idsAtuais.has(id)) campUiState.waSelecionados.delete(id);
   });
 }
 
 function getFilaWhatsAppSelecionados() {
-  const envios = getFilaWhatsApp().filter(e => campUiState.waSelecionados.has(e.id));
+  const envios = getFilaWhatsApp().filter((e) => campUiState.waSelecionados.has(e.id));
   limparSelecaoFilaInexistente(getFilaWhatsApp());
   return envios;
 }
 
 function syncLoteGuiadoAtual() {
   if (!campUiState.waLoteIds.length) return;
-  campUiState.waLoteIds = campUiState.waLoteIds.filter(id => !!getEnvioById(id));
+  campUiState.waLoteIds = campUiState.waLoteIds.filter((id) => !!getEnvioById(id));
   if (!campUiState.waLoteIds.length) {
     campUiState.waLoteIndex = -1;
     campUiState.waPreviewAtualId = null;
     return;
   }
   if (campUiState.waLoteIndex < 0) campUiState.waLoteIndex = 0;
-  if (campUiState.waLoteIndex >= campUiState.waLoteIds.length) campUiState.waLoteIndex = campUiState.waLoteIds.length - 1;
+  if (campUiState.waLoteIndex >= campUiState.waLoteIds.length)
+    campUiState.waLoteIndex = campUiState.waLoteIds.length - 1;
   campUiState.waPreviewAtualId = campUiState.waLoteIds[campUiState.waLoteIndex] || null;
 }
 
@@ -128,10 +147,11 @@ async function copyToClipboard(text, successMessage) {
 
 async function persistirStatusEnvio(payload) {
   const prevEnvios = getEnviosCache().slice();
-  const idx = prevEnvios.findIndex(e => e.id === payload.id);
-  D.campanhaEnvios[State.FIL] = idx >= 0
-    ? prevEnvios.map((envio, i) => (i === idx ? payload : envio))
-    : [payload, ...prevEnvios];
+  const idx = prevEnvios.findIndex((e) => e.id === payload.id);
+  D.campanhaEnvios[State.FIL] =
+    idx >= 0
+      ? prevEnvios.map((envio, i) => (i === idx ? payload : envio))
+      : [payload, ...prevEnvios];
   campUiState.statusFeedback = {
     envioId: payload.id,
     status: payload.status,
@@ -178,7 +198,10 @@ export function limparFormCampanha() {
   setInputValue('camp-canal', 'whatsapp_manual');
   setInputValue('camp-dias', 0);
   setInputValue('camp-assunto', '');
-  setInputValue('camp-mensagem', 'Olá, {{nome}}!\n\nPreparamos uma condição especial para você:\n{{desconto}} de desconto com o cupom {{cupom}}.\n\nVálido até {{validade}}.');
+  setInputValue(
+    'camp-mensagem',
+    'Olá, {{nome}}!\n\nPreparamos uma condição especial para você:\n{{desconto}} de desconto com o cupom {{cupom}}.\n\nVálido até {{validade}}.'
+  );
   setInputValue('camp-cupom', '');
   setInputValue('camp-desconto', 0);
 
@@ -193,7 +216,7 @@ export function abrirNovaCampanha() {
 }
 
 export function editarCampanha(id) {
-  const campanha = getCampanhasCache().find(c => c.id === id);
+  const campanha = getCampanhasCache().find((c) => c.id === id);
   if (!campanha) return;
 
   State.editIds = State.editIds || {};
@@ -264,14 +287,19 @@ export async function salvarCampanha() {
   }
 
   const list = getCampanhasCache();
-  const idx = list.findIndex(c => c.id === item.id);
+  const idx = list.findIndex((c) => c.id === item.id);
   if (idx >= 0) list[idx] = item;
   else list.unshift(item);
 
   fecharModal('modal-campanha');
   renderCampanhasMet();
   renderCampanhas();
-  notify(State.editIds?.campanha ? 'Sucesso: campanha atualizada e pronta para uso.' : 'Sucesso: campanha criada e pronta para uso.', SEVERITY.SUCCESS);
+  notify(
+    State.editIds?.campanha
+      ? 'Sucesso: campanha atualizada e pronta para uso.'
+      : 'Sucesso: campanha criada e pronta para uso.',
+    SEVERITY.SUCCESS
+  );
 }
 
 export async function removerCampanha(id) {
@@ -284,7 +312,7 @@ export async function removerCampanha(id) {
     return;
   }
 
-  D.campanhas[State.FIL] = getCampanhasCache().filter(c => c.id !== id);
+  D.campanhas[State.FIL] = getCampanhasCache().filter((c) => c.id !== id);
   renderCampanhasMet();
   renderCampanhas();
   toast('Campanha removida.');
@@ -293,7 +321,7 @@ export async function removerCampanha(id) {
 // ── Geração de fila ───────────────────────────────────────────────────────────
 
 export async function gerarFilaCampanha(campanhaId) {
-  const campanha = getCampanhasCache().find(c => c.id === campanhaId);
+  const campanha = getCampanhasCache().find((c) => c.id === campanhaId);
   if (!campanha) {
     notify(MSG.campanhas.notFound, SEVERITY.ERROR);
     return;
@@ -348,7 +376,10 @@ export async function gerarFilaCampanha(campanhaId) {
     const abriuConversa = redirecionarJanelaWhatsApp(janelaWhatsApp, primeiroEnvio);
     if (!abriuConversa) {
       if (janelaWhatsApp && !janelaWhatsApp.closed) janelaWhatsApp.close();
-      notify('Fila gerada, mas nenhum envio com número válido ficou disponível para abrir no WhatsApp.', SEVERITY.WARNING);
+      notify(
+        'Fila gerada, mas nenhum envio com número válido ficou disponível para abrir no WhatsApp.',
+        SEVERITY.WARNING
+      );
     }
   }
 
@@ -368,7 +399,12 @@ export async function desfazerStatusEnvio(envioId) {
   const envio = getEnvioById(String(envioId || '').trim());
   if (!envio) return;
 
-  if (!confirm(`Desfazer o status de ${labelStatusEnvio(envio.status).toLowerCase()} e devolver este envio para a fila manual?`)) return;
+  if (
+    !confirm(
+      `Desfazer o status de ${labelStatusEnvio(envio.status).toLowerCase()} e devolver este envio para a fila manual?`
+    )
+  )
+    return;
 
   const payload = {
     ...envio,
@@ -383,10 +419,10 @@ export async function desfazerStatusEnvio(envioId) {
 }
 
 export async function marcarEnvioEnviado(envioId) {
-  const envio = getEnviosCache().find(e => e.id === envioId);
+  const envio = getEnviosCache().find((e) => e.id === envioId);
   if (!envio) return;
 
-  const cliente = (C() || []).find(c => c.id === envio.cliente_id);
+  const cliente = (C() || []).find((c) => c.id === envio.cliente_id);
   if (!confirm(`Confirmar envio para ${cliente?.nome || 'este cliente'}?`)) return;
 
   const payload = {
@@ -402,10 +438,10 @@ export async function marcarEnvioEnviado(envioId) {
 }
 
 export async function marcarEnvioFalhou(envioId) {
-  const envio = getEnviosCache().find(e => e.id === envioId);
+  const envio = getEnviosCache().find((e) => e.id === envioId);
   if (!envio) return;
 
-  const cliente = (C() || []).find(c => c.id === envio.cliente_id);
+  const cliente = (C() || []).find((c) => c.id === envio.cliente_id);
   if (!confirm(`Confirmar falha de envio para ${cliente?.nome || 'este cliente'}?`)) return;
 
   const motivo = prompt('Informe o motivo da falha:', envio.erro || '') || null;
@@ -419,7 +455,10 @@ export async function marcarEnvioFalhou(envioId) {
 
   const ok = await persistirStatusEnvio(payload);
   if (!ok) return;
-  notify('Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.', SEVERITY.WARNING);
+  notify(
+    'Atenção: envio marcado como falho. Impacto: cliente não recebeu a mensagem. Ação: revise o motivo e tente novo envio.',
+    SEVERITY.WARNING
+  );
 }
 
 export async function marcarSelecionadosEnviados() {
@@ -429,7 +468,12 @@ export async function marcarSelecionadosEnviados() {
     return;
   }
 
-  if (!confirm(`Confirmar ${selecionados.length} envio${selecionados.length !== 1 ? 's' : ''} como enviado${selecionados.length !== 1 ? 's' : ''}?`)) return;
+  if (
+    !confirm(
+      `Confirmar ${selecionados.length} envio${selecionados.length !== 1 ? 's' : ''} como enviado${selecionados.length !== 1 ? 's' : ''}?`
+    )
+  )
+    return;
 
   for (const envio of selecionados) {
     const payload = {
@@ -438,7 +482,6 @@ export async function marcarSelecionadosEnviados() {
       enviado_em: new Date().toISOString(),
       erro: null
     };
-    // eslint-disable-next-line no-await-in-loop
     const ok = await persistirStatusEnvio(payload);
     if (!ok) continue;
   }
@@ -454,7 +497,12 @@ export async function marcarSelecionadosFalhou() {
     return;
   }
 
-  if (!confirm(`Confirmar ${selecionados.length} envio${selecionados.length !== 1 ? 's' : ''} como falho${selecionados.length !== 1 ? 's' : ''}?`)) return;
+  if (
+    !confirm(
+      `Confirmar ${selecionados.length} envio${selecionados.length !== 1 ? 's' : ''} como falho${selecionados.length !== 1 ? 's' : ''}?`
+    )
+  )
+    return;
 
   const motivo = prompt('Informe o motivo da falha para os envios selecionados:', '') || null;
 
@@ -465,7 +513,6 @@ export async function marcarSelecionadosFalhou() {
       erro: motivo,
       enviado_em: null
     };
-    // eslint-disable-next-line no-await-in-loop
     const ok = await persistirStatusEnvio(payload);
     if (!ok) continue;
   }
@@ -504,9 +551,12 @@ export function abrirWhatsAppPreviewAtual() {
 }
 
 export async function abrirWhatsAppEnvio(envioId) {
-  const envio = getEnviosCache().find(e => e.id === envioId);
+  const envio = getEnviosCache().find((e) => e.id === envioId);
   if (!envio) {
-    notify('Erro: envio não encontrado. Impacto: não foi possível abrir a conversa. Ação: atualize a fila e tente novamente.', SEVERITY.ERROR);
+    notify(
+      'Erro: envio não encontrado. Impacto: não foi possível abrir a conversa. Ação: atualize a fila e tente novamente.',
+      SEVERITY.ERROR
+    );
     return;
   }
   if (!envio.destino) {
@@ -542,11 +592,14 @@ export function toggleEnvioFilaSelecionado(envioId) {
 }
 
 export function toggleSelecionarTodosFilaWhatsApp() {
-  const elegiveis = getFilaWhatsApp().filter(e => e.status === 'manual' || e.status === 'pendente');
-  const todosSelecionados = elegiveis.length > 0 && elegiveis.every(e => campUiState.waSelecionados.has(e.id));
+  const elegiveis = getFilaWhatsApp().filter(
+    (e) => e.status === 'manual' || e.status === 'pendente'
+  );
+  const todosSelecionados =
+    elegiveis.length > 0 && elegiveis.every((e) => campUiState.waSelecionados.has(e.id));
 
-  if (todosSelecionados) elegiveis.forEach(e => campUiState.waSelecionados.delete(e.id));
-  else elegiveis.forEach(e => campUiState.waSelecionados.add(e.id));
+  if (todosSelecionados) elegiveis.forEach((e) => campUiState.waSelecionados.delete(e.id));
+  else elegiveis.forEach((e) => campUiState.waSelecionados.add(e.id));
 
   renderFilaWhatsApp();
 }
@@ -559,8 +612,8 @@ export function abrirWhatsAppLote() {
   }
 
   campUiState.waLoteIds = selecionados
-    .filter(envio => !!String(envio.destino || '').trim())
-    .map(envio => envio.id);
+    .filter((envio) => !!String(envio.destino || '').trim())
+    .map((envio) => envio.id);
   campUiState.waLoteIndex = 0;
   syncLoteGuiadoAtual();
 
