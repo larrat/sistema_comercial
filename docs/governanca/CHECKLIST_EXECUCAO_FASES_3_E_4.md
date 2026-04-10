@@ -12,7 +12,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Matriz de priorizacao por modulo definida
 - [x] Roadmap de sprints definido
 - [x] Plano de rollback por camada definido
-- [ ] Modulo piloto escolhido oficialmente
+- [x] Modulo piloto escolhido oficialmente
 - [ ] Feature flags por modulo definidas
 - [ ] Criterios de aceite por sprint formalizados no board
 
@@ -75,4 +75,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Proposta objetiva de branch protection documentada
 - [x] `CODEOWNERS` inicial criado
 - [x] Proposta de threshold de coverage documentada
+- [x] `clientes` oficializado como modulo piloto
+- [x] Coverage do modulo piloto preparado no CI
+- [x] Migracao do piloto iniciada com regra de identidade extraida para TypeScript testavel
 - [ ] Falta aplicar branch protection no GitHub

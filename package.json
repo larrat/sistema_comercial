@@ -9,6 +9,8 @@
     "format:check": "prettier . --check",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "typecheck:strict": "tsc --project tsconfig.strict.json --noEmit",
+    "test:pilot:clientes": "vitest run --config vitest.pilot-clientes.config.ts",
+    "test:pilot:clientes:coverage": "vitest run --config vitest.pilot-clientes.config.ts --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui-core": "playwright test tests/e2e/login.spec.js tests/e2e/setup-filial.spec.js tests/e2e/bootstrap-filial.spec.js",
     "test:e2e:onda-b": "powershell -ExecutionPolicy Bypass -File ./scripts/smoke/run-fase-2-ui-core.ps1",
@@ -30,12 +32,14 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.53.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.2",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.1",
+    "vitest": "^4.1.4"
   }
 }

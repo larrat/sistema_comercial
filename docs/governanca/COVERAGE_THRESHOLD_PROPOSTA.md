@@ -130,6 +130,11 @@ Assim que o modulo piloto novo estiver no ar:
 - adicionar check de coverage para o modulo piloto
 - exigir `60%` nesse modulo
 
+Status atual:
+
+- o check `pilot-clientes-coverage` ja existe no CI
+- o piloto de `clientes` ja esta com coverage acima do threshold inicial proposto
+
 ### Depois
 
 Quando `clientes` e `pedidos` estiverem migrados:

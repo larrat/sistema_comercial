@@ -1,5 +1,6 @@
 node_modules
 test-results
+coverage
 docs
 sql
 package-lock.json

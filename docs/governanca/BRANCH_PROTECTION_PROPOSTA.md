@@ -35,6 +35,7 @@ Exigir sucesso destes checks antes do merge:
 
 - `quality`
 - `e2e-ui-core`
+- `pilot-clientes-coverage`
 
 Se novos checks forem adicionados depois, revisar esta lista para nao criar bypass sem querer.
 
@@ -92,6 +93,7 @@ Checks:
 
 - `quality`
 - `e2e-ui-core`
+- `pilot-clientes-coverage`
 
 ### Additional settings
 
@@ -110,6 +112,7 @@ Checks:
 - checks obrigatorios:
   - `quality`
   - `e2e-ui-core`
+  - `pilot-clientes-coverage`
 - sem push direto
 
 ### Depois
