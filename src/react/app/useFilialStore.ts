@@ -19,7 +19,7 @@ export type FilialStoreState = {
 
 export type FilialStoreActions = {
   hydrate: () => void;
-  setFilial: (filialId: string) => void;
+  setFilial: (_filialId: string) => void;
   clearFilial: () => void;
 };
 

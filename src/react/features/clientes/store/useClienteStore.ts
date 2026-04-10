@@ -18,12 +18,12 @@ export type ClienteStoreState = {
 };
 
 export type ClienteStoreActions = {
-  setClientes: (clientes: Cliente[]) => void;
-  setStatus: (status: ClienteStoreState['status'], error?: string) => void;
-  setFiltro: (patch: Partial<ClienteFiltro>) => void;
+  setClientes: (_clientes: Cliente[]) => void;
+  setStatus: (_status: ClienteStoreState['status'], _error?: string) => void;
+  setFiltro: (_patch: Partial<ClienteFiltro>) => void;
   clearFiltro: () => void;
-  upsertCliente: (cliente: Cliente) => void;
-  removeCliente: (clienteId: string) => void;
+  upsertCliente: (_cliente: Cliente) => void;
+  removeCliente: (_clienteId: string) => void;
 };
 
 // ---------------------------------------------------------------------------

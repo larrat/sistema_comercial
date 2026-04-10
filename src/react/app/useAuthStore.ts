@@ -69,7 +69,7 @@ export type AuthStoreState = {
 export type AuthStoreActions = {
   /** Lê sessão do storage e refresca se necessário. Deve ser chamado no boot. */
   hydrate: () => Promise<void>;
-  setSession: (session: AuthSession | null) => void;
+  setSession: (_session: AuthSession | null) => void;
   clearSession: () => void;
 };
 
