@@ -4,3 +4,4 @@ docs
 sql
 package-lock.json
 .vscode
+.github/CODEOWNERS

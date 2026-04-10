@@ -1,0 +1,38 @@
+# CODEOWNERS inicial
+# Owner base provisório: substituir ou expandir conforme a equipe formalizar
+# novos reviewers, times ou CODEOWNERS por domínio.
+
+* @larrat
+
+# Governança e CI
+/.github/ @larrat
+/docs/governanca/ @larrat
+/CONTRIBUTING.md @larrat
+/README.md @larrat
+/package.json @larrat
+/package-lock.json @larrat
+/eslint.config.js @larrat
+/.prettierrc.json @larrat
+/.prettierignore @larrat
+
+# Frontend
+/index.html @larrat
+/src/app/ @larrat
+/src/core/ @larrat
+/src/features/ @larrat
+/src/shared/ @larrat
+/src/styles/ @larrat
+/src/types/ @larrat
+
+# Backend / Edge Functions
+/supabase/functions/ @larrat
+
+# Banco
+/sql/ @larrat
+
+# Testes
+/tests/ @larrat
+/playwright.config.js @larrat
+
+# Scripts operacionais
+/scripts/ @larrat

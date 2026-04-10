@@ -81,7 +81,7 @@ Justificativa:
 
 Observacao:
 
-Se o time ainda nao usar `CODEOWNERS`, esta opcao pode ser ligada depois.
+O repositorio ja possui um `CODEOWNERS` inicial em [`.github/CODEOWNERS`](../../.github/CODEOWNERS).
 
 ### Require status checks to pass before merging
 
@@ -115,7 +115,6 @@ Checks:
 ### Depois
 
 - `2` aprovacoes para areas criticas
-- `CODEOWNERS`
 - coverage threshold como check obrigatorio
 
 ## Resultado esperado

@@ -28,7 +28,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] lint-staged configurado
 - [x] Workflow de CI criado
 - [ ] Gates de merge definidos
-- [ ] Coverage threshold definido
+- [x] Coverage threshold proposto
 - [x] Checklist de code review publicado
 
 ## Proxima onda de execucao
@@ -52,6 +52,8 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Ativar typecheck no CI
 - [x] Ativar Playwright no CI
 - [x] Definir proposta de policy de branch e revisao
+- [x] Criar `CODEOWNERS` inicial
+- [x] Definir proposta de coverage por fase
 
 ## Registro de execucao
 
@@ -71,4 +73,6 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] `format:check` estabilizado e passando
 - [x] Checklist de code review publicado
 - [x] Proposta objetiva de branch protection documentada
+- [x] `CODEOWNERS` inicial criado
+- [x] Proposta de threshold de coverage documentada
 - [ ] Falta aplicar branch protection no GitHub
