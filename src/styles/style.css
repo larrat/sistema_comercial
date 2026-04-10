@@ -10141,3 +10141,56 @@ html[data-theme="dark"] .tb[aria-selected="true"]{
 html[data-theme="dark"] .flow-chip.on{
   color:#07111f;
 }
+
+/* =========================================================
+   DESKTOP APP SHELL CENTRALIZADO
+   ========================================================= */
+
+:root{
+  --app-sidebar-width: 248px;
+  --app-shell-gap: 24px;
+  --app-shell-max: calc(var(--app-sidebar-width) + var(--app-shell-gap) + var(--app-content-max));
+}
+
+@media (min-width: 1180px){
+  #screen-app.on{
+    display:grid;
+    grid-template-columns:var(--app-sidebar-width) minmax(0, 1fr);
+    gap:var(--app-shell-gap);
+    justify-content:center;
+    align-items:start;
+    width:min(100%, calc(var(--app-shell-max) + 48px));
+    margin-inline:auto;
+    padding:24px;
+  }
+
+  .sb{
+    position:sticky;
+    top:24px;
+    left:auto;
+    bottom:auto;
+    width:var(--app-sidebar-width);
+    height:calc(100vh - 48px);
+    border-right:none;
+    border-radius:var(--shell-radius-xl-harmony);
+    border:1px solid var(--shell-border-harmony);
+    box-shadow:var(--shell-shadow-harmony);
+  }
+
+  .main{
+    margin-left:0;
+    width:min(100%, var(--app-content-max));
+    min-width:0;
+    min-height:calc(100vh - 48px);
+    padding:0;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr);
+    justify-content:stretch;
+  }
+
+  .main > .app-topbar,
+  .main > .pg{
+    width:100%;
+    margin-inline:0;
+  }
+}
