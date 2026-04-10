@@ -139,6 +139,9 @@
             <button data-click="setP('tudo',this)">Tudo</button>
           </div>
         </div>
+        <div class="toolbar-actions">
+          <button class="btn btn-sm" id="dash-personalizar-btn" data-click="togglePersonalizarDash()">Personalizar</button>
+        </div>
       </div>
 
       <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
@@ -148,14 +151,15 @@
         <button class="btn btn-p btn-sm" type="button" data-click="limparFormPed();abrirModal('modal-pedido')">Novo pedido</button>
       </div>
 
-      <section class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
+      <section class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops" data-dash-slot="operacao">
         <div class="dash-section-head">
           <h3>Operação rápida</h3>
           <p>Ações que precisam de decisão agora</p>
         </div>
         <div id="dash-alerts"></div>
-        <div class="dash-grid-cards dash-grid-cards--operacao">
-          <div class="card card-shell dash-card dash-card--oportunidades dash-bento-card">
+        <div class="dash-grid-cards dash-grid-cards--operacao" data-dash-zone="ops">
+          <div class="card card-shell dash-card dash-card--oportunidades dash-bento-card" data-dash-slot="oportunidades">
+            <div class="dash-drag-handle" title="Arrastar card">⠿</div>
             <div class="fb mb-10">
               <div class="ct ct-inline">Oportunidades por time</div>
               <select class="inp sel select-w-xs input-compact" id="dash-opp-camp" data-change="renderDash()">
@@ -167,7 +171,8 @@
             </div>
             <div id="dash-oportunidades"></div>
           </div>
-          <div class="card card-shell dash-card dash-card--jogos dash-bento-card">
+          <div class="card card-shell dash-card dash-card--jogos dash-bento-card" data-dash-slot="jogos">
+            <div class="dash-drag-handle" title="Arrastar card">⠿</div>
             <div class="fb mb-10">
               <div class="ct ct-inline">Proximos jogos</div>
               <div class="fg2">
@@ -177,17 +182,24 @@
             </div>
             <div id="dash-jogos"></div>
           </div>
-          <div class="card card-shell dash-card dash-card--estoque dash-bento-card"><div class="ct">Estoque em alerta</div><div id="dash-ea"></div></div>
+          <div class="card card-shell dash-card dash-card--estoque dash-bento-card" data-dash-slot="estoque">
+            <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+            <div class="ct">Estoque em alerta</div>
+            <div id="dash-ea"></div>
+          </div>
         </div>
       </section>
 
-      <section class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis">
+      <section class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis" data-dash-zone="analise">
         <div class="dash-section-head">
           <h3>Análise do negócio</h3>
           <p>Leitura de desempenho e tendencia comercial</p>
         </div>
-        <div class="mg dash-bento-band dash-bento-band--metrics" id="dash-met"></div>
-        <div class="dash-grid-main dash-bento-grid dash-bento-grid--primary">
+        <div class="mg dash-bento-band dash-bento-band--metrics" id="dash-met" data-dash-slot="metrics">
+          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+        </div>
+        <div class="dash-grid-main dash-bento-grid dash-bento-grid--primary" data-dash-slot="chart-status">
+          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
           <div class="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart"><div class="ct">Faturamento e lucro</div>
             <div class="barchart" id="dash-chart"></div>
             <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden"><p>Sem pedidos entregues no periodo</p></div>
@@ -198,11 +210,13 @@
           </div>
           <div class="card card-shell dash-card dash-bento-card dash-bento-card--status"><div class="ct">Status dos pedidos</div><div id="dash-status"></div></div>
         </div>
-        <div class="dash-grid-cards dash-grid-cards--analise">
+        <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
+          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
           <div class="card card-shell dash-card dash-card--top dash-bento-card"><div class="ct">Top produtos</div><div id="dash-tp"></div></div>
           <div class="card card-shell dash-card dash-card--forn dash-bento-card"><div class="ct">Fornecedores</div><div id="dash-forn"></div></div>
         </div>
-        <div class="card card-shell dash-bento-card dash-bento-card--margin">
+        <div class="card card-shell dash-bento-card dash-bento-card--margin" data-dash-slot="margem">
+          <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
           <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
           <div id="dash-margem"></div>
         </div>

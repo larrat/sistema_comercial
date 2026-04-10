@@ -126,7 +126,9 @@ import {
   removerJogoDashboard,
   abrirSyncJogos,
   sincronizarJogosDashboard,
-  usarExemploSyncJogos
+  usarExemploSyncJogos,
+  togglePersonalizarDash,
+  applyDashSavedLayout
 } from '../features/dashboard.js';
 
 import {
@@ -537,6 +539,9 @@ const desfazerStatusEnvioGuard = buildRoleGuard(desfazerStatusEnvio, ROLE_MANAGE
 // ── Centralised error handling ────────────────────────────────────────────────
 configureErrorHandler({ notify });
 
+// ── Restaura ordem dos cards do dashboard salva pelo usuário ─────────────────
+applyDashSavedLayout();
+
 registerApplicationModules({
   registry: AppModules,
   modules: {
@@ -762,6 +767,7 @@ startApplicationRuntime({
       desfazerStatusEnvio: desfazerStatusEnvioGuard,
       salvarJogoDashboardGuard,
       usarExemploSyncJogos,
+      togglePersonalizarDash,
       sincronizarJogosDashboardGuard,
       abrirValidacaoOportunidade,
       salvarValidacaoOportunidade,

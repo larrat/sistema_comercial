@@ -8573,18 +8573,18 @@ body{
 }
 
 #pg-dashboard .dash-section--analise{
-  grid-column:span 7;
+  grid-column:span 6;
   display:grid;
   grid-template-columns:repeat(12,minmax(0,1fr));
-  gap:var(--space-5);
+  gap:var(--space-4);
   align-content:start;
 }
 
 #pg-dashboard .dash-section--operacao{
-  grid-column:span 5;
+  grid-column:span 6;
   display:flex;
   flex-direction:column;
-  gap:var(--space-5);
+  gap:var(--space-4);
   min-width:0;
 }
 
@@ -9499,4 +9499,68 @@ html[data-theme="dark"] .qcmd-box{
 .cot-bento-grid,
 .ger-bento-grid{
   contain:layout style;
+}
+
+/* ── Dashboard personalizar layout ─────────────────────────────────────────── */
+
+/* Handle oculto por padrão */
+.dash-drag-handle{
+  display:none;
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:24px;
+  height:24px;
+  align-items:center;
+  justify-content:center;
+  border-radius:6px;
+  background:var(--surf2);
+  border:1px solid var(--bd);
+  color:var(--tx3);
+  font-size:14px;
+  cursor:grab;
+  z-index:10;
+  user-select:none;
+  transition:background .12s,color .12s;
+}
+.dash-drag-handle:active{ cursor:grabbing; }
+
+/* Modo edição: mostra handles, indica que cards são arrastáveis */
+.dash-edit-mode [data-dash-slot]{
+  position:relative;
+  cursor:grab;
+  outline:2px dashed var(--bd2);
+  outline-offset:3px;
+  transition:box-shadow .14s, outline-color .14s;
+}
+.dash-edit-mode [data-dash-slot]:hover{
+  outline-color:var(--acc);
+  box-shadow:var(--shadow-md);
+}
+.dash-edit-mode .dash-drag-handle{
+  display:inline-flex;
+}
+
+/* Card sendo arrastado */
+.dash-dragging{
+  opacity:.45;
+  cursor:grabbing !important;
+  outline-style:solid !important;
+  outline-color:var(--acc) !important;
+}
+
+/* Card alvo do drop */
+.dash-drag-over{
+  outline-color:var(--acc) !important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 28%,transparent), var(--shadow-md) !important;
+  background:color-mix(in srgb,var(--acc) 6%,var(--surf)) !important;
+}
+
+/* Barra de modo edição */
+.dash-edit-mode #dash-personalizar-btn{
+  animation:pulseBtn 1.4s ease-in-out infinite;
+}
+@keyframes pulseBtn{
+  0%,100%{ box-shadow:0 0 0 0 color-mix(in srgb,var(--acc) 40%,transparent); }
+  50%{ box-shadow:0 0 0 5px color-mix(in srgb,var(--acc) 0%,transparent); }
 }

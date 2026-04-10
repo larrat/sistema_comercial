@@ -1443,3 +1443,137 @@ export function renderDashJogos(fsel = 'todas'){
     </div>
   `).join(''), 'dashboard:jogos-lista');
 }
+
+// ── Personalizar Layout ──────────────────────────────────────────────────────
+
+const DASH_LAYOUT_KEY = 'sc_dash_layout_v1';
+
+/** @returns {Record<string, string[]>} */
+function getDashSavedLayout(){
+  try{ return JSON.parse(localStorage.getItem(DASH_LAYOUT_KEY) || '{}'); }
+  catch{ return {}; }
+}
+
+function saveDashCurrentLayout(){
+  /** @type {Record<string, string[]>} */
+  const layout = {};
+  document.querySelectorAll('[data-dash-zone]').forEach(zone => {
+    if(!(zone instanceof HTMLElement)) return;
+    const id = zone.dataset.dashZone || '';
+    layout[id] = Array.from(zone.children)
+      .filter(el => el instanceof HTMLElement && el.dataset.dashSlot)
+      .map(el => /** @type {HTMLElement} */ (el).dataset.dashSlot || '');
+  });
+  localStorage.setItem(DASH_LAYOUT_KEY, JSON.stringify(layout));
+}
+
+export function applyDashSavedLayout(){
+  const layout = getDashSavedLayout();
+  Object.entries(layout).forEach(([zoneId, order]) => {
+    const zone = document.querySelector(`[data-dash-zone="${zoneId}"]`);
+    if(!zone) return;
+    /** @type {Record<string, Element>} */
+    const slotMap = {};
+    // só filhos diretos para evitar capturar slots de sub-zonas
+    Array.from(zone.children).forEach(el => {
+      if(el instanceof HTMLElement && el.dataset.dashSlot) slotMap[el.dataset.dashSlot] = el;
+    });
+    order.forEach(slotId => {
+      const el = slotMap[slotId];
+      if(el) zone.appendChild(el);
+    });
+  });
+}
+
+/** @type {HTMLElement|null} */
+let _dragSrc = null;
+let _dashEditMode = false;
+
+/** @param {DragEvent} e */
+function onDragStart(e){
+  _dragSrc = /** @type {HTMLElement} */ (e.currentTarget);
+  _dragSrc.classList.add('dash-dragging');
+  if(e.dataTransfer){
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', _dragSrc.dataset.dashSlot || '');
+  }
+}
+
+/** @param {DragEvent} e */
+function onDragEnd(e){
+  _dragSrc?.classList.remove('dash-dragging');
+  document.querySelectorAll('.dash-drag-over').forEach(el => el.classList.remove('dash-drag-over'));
+  _dragSrc = null;
+}
+
+/** @param {DragEvent} e */
+function onDragOver(e){
+  e.preventDefault();
+  const target = /** @type {HTMLElement} */ (e.currentTarget);
+  if(!_dragSrc || target === _dragSrc) return;
+  if(_dragSrc.parentElement !== target.parentElement) return;
+  target.classList.add('dash-drag-over');
+  if(e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+}
+
+/** @param {DragEvent} e */
+function onDragLeave(e){
+  /** @type {HTMLElement} */ (e.currentTarget).classList.remove('dash-drag-over');
+}
+
+/** @param {DragEvent} e */
+function onDrop(e){
+  e.preventDefault();
+  const target = /** @type {HTMLElement} */ (e.currentTarget);
+  target.classList.remove('dash-drag-over');
+  if(!_dragSrc || target === _dragSrc) return;
+  if(_dragSrc.parentElement !== target.parentElement) return;
+  const parent = target.parentElement;
+  if(!parent) return;
+  const children = Array.from(parent.children);
+  const srcIdx = children.indexOf(_dragSrc);
+  const tgtIdx = children.indexOf(target);
+  parent.insertBefore(_dragSrc, srcIdx < tgtIdx ? target.nextSibling : target);
+}
+
+function initDashDrag(){
+  document.querySelectorAll('[data-dash-slot]').forEach(card => {
+    if(!(card instanceof HTMLElement)) return;
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragend', onDragEnd);
+    card.addEventListener('dragover', onDragOver);
+    card.addEventListener('dragleave', onDragLeave);
+    card.addEventListener('drop', onDrop);
+  });
+}
+
+function destroyDashDrag(){
+  document.querySelectorAll('[data-dash-slot]').forEach(card => {
+    card.removeAttribute('draggable');
+    card.removeEventListener('dragstart', onDragStart);
+    card.removeEventListener('dragend', onDragEnd);
+    card.removeEventListener('dragover', onDragOver);
+    card.removeEventListener('dragleave', onDragLeave);
+    card.removeEventListener('drop', onDrop);
+  });
+}
+
+export function togglePersonalizarDash(){
+  _dashEditMode = !_dashEditMode;
+  const pg = document.getElementById('pg-dashboard');
+  const btn = document.getElementById('dash-personalizar-btn');
+  if(!pg || !btn) return;
+  if(_dashEditMode){
+    pg.classList.add('dash-edit-mode');
+    btn.textContent = '✓ Salvar layout';
+    btn.classList.add('btn-p');
+    initDashDrag();
+  } else {
+    pg.classList.remove('dash-edit-mode');
+    btn.textContent = 'Personalizar';
+    btn.classList.remove('btn-p');
+    saveDashCurrentLayout();
+    destroyDashDrag();
+  }
+}
