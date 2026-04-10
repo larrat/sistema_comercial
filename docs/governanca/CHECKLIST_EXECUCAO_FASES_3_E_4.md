@@ -29,7 +29,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Workflow de CI criado
 - [ ] Gates de merge definidos
 - [ ] Coverage threshold definido
-- [ ] Checklist de code review publicado
+- [x] Checklist de code review publicado
 
 ## Proxima onda de execucao
 
@@ -51,7 +51,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 
 - [x] Ativar typecheck no CI
 - [x] Ativar Playwright no CI
-- [ ] Definir policy de branch e revisao
+- [x] Definir proposta de policy de branch e revisao
 
 ## Registro de execucao
 
@@ -68,4 +68,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Bug em `notificacoes.js` corrigido durante a ativacao do lint
 - [x] `typecheck` e `typecheck:strict` estabilizados e passando
 - [x] `lint` estabilizado e utilizavel como gate real
-- [ ] Repositorio ainda possui pendencias para `format:check`
+- [x] `format:check` estabilizado e passando
+- [x] Checklist de code review publicado
+- [x] Proposta objetiva de branch protection documentada
+- [ ] Falta aplicar branch protection no GitHub
