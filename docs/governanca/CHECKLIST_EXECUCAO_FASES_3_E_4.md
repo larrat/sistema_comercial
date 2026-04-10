@@ -82,4 +82,6 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Adapter React de leitura/escrita de `clientes` extraido e testado
 - [x] Primeira UI real de escrita do piloto `clientes` plugada e testada
 - [x] Remocao real e resumo contextual do cliente adicionados ao piloto React
+- [x] Abas leves e notas/historico iniciados no detalhe do piloto `clientes`
+- [x] Coverage React estabilizado acima do threshold apos a camada de notas
 - [ ] Falta aplicar branch protection no GitHub

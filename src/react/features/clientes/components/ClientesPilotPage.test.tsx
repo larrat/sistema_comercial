@@ -1,5 +1,5 @@
 import { act } from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -10,6 +10,7 @@ import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useClienteStore } from '../store/useClienteStore';
 import { ClientesPilotPage } from './ClientesPilotPage';
 import { deleteCliente, saveCliente } from '../services/clientesApi';
+import { listNotas } from '../services/notasApi';
 
 vi.mock('../../../app/supabaseConfig', () => ({
   getSupabaseConfig: vi.fn()
@@ -24,9 +25,18 @@ vi.mock('../services/clientesApi', async () => {
   };
 });
 
+vi.mock('../services/notasApi', async () => {
+  const actual = await vi.importActual('../services/notasApi');
+  return {
+    ...actual,
+    listNotas: vi.fn().mockResolvedValue([])
+  };
+});
+
 const getSupabaseConfigMock = vi.mocked(getSupabaseConfig);
 const saveClienteMock = vi.mocked(saveCliente);
 const deleteClienteMock = vi.mocked(deleteCliente);
+const listNotasMock = vi.mocked(listNotas);
 
 const CLIENTES: Cliente[] = [
   { id: '1', nome: 'Maria Souza', status: 'ativo', seg: 'Varejo', email: 'maria@a.com' }
@@ -62,6 +72,7 @@ describe('ClientesPilotPage', () => {
       key: 'public-key',
       ready: true
     });
+    listNotasMock.mockResolvedValue([]);
     act(() => useClienteStore.getState().setClientes(CLIENTES));
   });
 
@@ -104,7 +115,8 @@ describe('ClientesPilotPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Ana Paula')).toBeInTheDocument();
+      expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
+      expect(within(screen.getByTestId('cliente-list')).getByText('Ana Paula')).toBeInTheDocument();
     });
     expect(screen.queryByTestId('cliente-form')).not.toBeInTheDocument();
   });
@@ -148,7 +160,10 @@ describe('ClientesPilotPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Maria Souza Premium')).toBeInTheDocument();
+      expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
+      expect(
+        within(screen.getByTestId('cliente-list')).getByText('Maria Souza Premium')
+      ).toBeInTheDocument();
     });
   });
 
@@ -181,7 +196,7 @@ describe('ClientesPilotPage', () => {
 
     await userEvent.click(screen.getByText('Detalhes'));
 
-    expect(screen.getByTestId('cliente-context-summary')).toBeInTheDocument();
+    expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
     expect(screen.getByText('Resumo do cliente')).toBeInTheDocument();
     expect(screen.getByText(/Segmento: Varejo/)).toBeInTheDocument();
   });
