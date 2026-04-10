@@ -22,7 +22,7 @@ import {
   checkClienteIdentity,
   filterClientesFromLegacy,
   getClienteSegmentosFromLegacy
-} from '../pilot/clientes/adapter.js';
+} from '../shared/clientes-pilot-bridge.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
