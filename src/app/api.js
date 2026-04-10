@@ -7,6 +7,7 @@
 /** @typedef {import('../types/domain').Produto} Produto */
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
+/** @typedef {import('../types/domain').Rca} Rca */
 /** @typedef {import('../types/domain').ClienteFidelidadeSaldo} ClienteFidelidadeSaldo */
 /** @typedef {import('../types/domain').ClienteFidelidadeLancamento} ClienteFidelidadeLancamento */
 /** @typedef {import('../types/domain').Fornecedor} Fornecedor */
@@ -723,6 +724,11 @@ export const SB = {
   getClientes: fid => sbReq('clientes', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
   upsertCliente: c => sbReq('clientes', 'POST', c, '?on_conflict=id'),
   deleteCliente: id => sbReq(`clientes?id=eq.${id}`, 'DELETE'),
+
+  /** @param {string} fid @returns {Promise<Rca[]>} */
+  getRcas: fid => sbReq('rcas', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
+  upsertRca: r => sbReq('rcas', 'POST', r, '?on_conflict=id'),
+  deleteRca: id => sbReq(`rcas?id=eq.${id}`, 'DELETE'),
 
   /** @param {string} fid @returns {Promise<Pedido[]>} */
   getPedidos: fid => sbReq('pedidos', 'GET', null, `?filial_id=eq.${fid}&order=num.desc`),

@@ -76,6 +76,7 @@ export async function carregarDadosFilial(filId){
       prodsResult,
       clisResult,
       pedsResult,
+      rcasResult,
       fornsResult,
       precosResult,
       cfgResult,
@@ -87,6 +88,7 @@ export async function carregarDadosFilial(filId){
       SB.toResult(() => SB.getProdutos(filId)),
       SB.toResult(() => SB.getClientes(filId)),
       SB.toResult(() => SB.getPedidos(filId)),
+      SB.toResult(() => SB.getRcas(filId)),
       SB.toResult(() => SB.getFornecedores(filId)),
       SB.toResult(() => SB.getCotPrecos(filId)),
       SB.toResult(() => SB.getCotConfig(filId)),
@@ -100,6 +102,7 @@ export async function carregarDadosFilial(filId){
       prodsResult,
       clisResult,
       pedsResult,
+      rcasResult,
       fornsResult,
       precosResult,
       cfgResult,
@@ -113,6 +116,7 @@ export async function carregarDadosFilial(filId){
     const prods = prodsResult.data;
     const clis = clisResult.data;
     const peds = pedsResult.data;
+    const rcas = rcasResult.data;
     const forns = fornsResult.data;
     const precos = precosResult.data;
     const cfg = cfgResult.data;
@@ -145,6 +149,7 @@ export async function carregarDadosFilial(filId){
         itens: typeof pedido.itens === 'string' ? JSON.parse(pedido.itens || '[]') : (pedido.itens || [])
       };
     });
+    D.rcas[filId] = rcas || [];
     D.fornecedores[filId] = forns || [];
 
     if(!D.cotPrecos[filId]) D.cotPrecos[filId] = {};

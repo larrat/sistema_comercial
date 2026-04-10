@@ -11,6 +11,14 @@ const NOTI_HISTORY_KEY = 'sc_noti_hist_v1';
 const NOTI_PRIORITY_ORDER = { critico: 0, atencao: 1, oportunidade: 2 };
 const NOTI_MAX_ITEMS_PER_ORIGEM = 2;
 const NOTI_MAX_TOTAL_ITEMS = 12;
+const NOTI_ORIGEM_ORDER = { campanhas: 0, estoque: 1, clientes: 2, agenda: 3, sistema: 4 };
+const NOTI_ORIGEM_LABELS = {
+  campanhas: 'Campanhas',
+  estoque: 'Estoque',
+  clientes: 'Clientes',
+  agenda: 'Agenda e oportunidades',
+  sistema: 'Sistema'
+};
 
 /** @type {NonNullable<NotificacoesModuleDeps['calcSaldos']>} */
 let calcSaldosSafe = () => ({});
@@ -59,6 +67,37 @@ function summarizeNotificacoes(list){
     acc.total += 1;
     return acc;
   }, { critico: 0, atencao: 0, oportunidade: 0, total: 0 });
+}
+
+/**
+ * @param {string | undefined | null} origem
+ */
+function getNotiOrigemLabel(origem){
+  const key = String(origem || 'sistema').toLowerCase();
+  return NOTI_ORIGEM_LABELS[key] || 'Sistema';
+}
+
+/**
+ * @template T
+ * @param {(T & { origem?: string | null })[]} list
+ */
+function groupNotificacoesByOrigem(list){
+  /** @type {Map<string, (T & { origem?: string | null })[]>} */
+  const groups = new Map();
+  list.forEach(item => {
+    const key = String(item.origem || 'sistema').toLowerCase();
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key)?.push(item);
+  });
+
+  return Array.from(groups.entries())
+    .sort((a, b) => {
+      const pa = NOTI_ORIGEM_ORDER[a[0]] ?? 99;
+      const pb = NOTI_ORIGEM_ORDER[b[0]] ?? 99;
+      if(pa !== pb) return pa - pb;
+      return getNotiOrigemLabel(a[0]).localeCompare(getNotiOrigemLabel(b[0]), 'pt-BR');
+    })
+    .map(([origem, items]) => ({ origem, label: getNotiOrigemLabel(origem), items }));
 }
 
 /**
@@ -475,6 +514,8 @@ function renderNotiMetric(label, value, style = ''){
 function renderNotiContextCard(ativos, resumo){
   const el = document.getElementById('noti-context');
   if(!el) return;
+  const grupos = groupNotificacoesByOrigem(ativos);
+  const origensResumo = grupos.map(g => g.label).join(' | ');
 
   if(!ativos.length){
     el.innerHTML = `
@@ -484,13 +525,13 @@ function renderNotiContextCard(ativos, resumo){
           <span class="context-card__kicker">Notificações</span>
         </div>
         <div class="context-card__title">Inbox zerada — tudo em ordem</div>
-        <div class="context-card__copy">Nenhuma notificação ativa no momento. Continue monitorando para antecipar problemas antes que afetem operações.</div>
+        <div class="context-card__copy">Nenhuma notificação ativa no momento. A central continua pronta para reunir sinais de campanhas, estoque, clientes e agenda quando algo exigir ação.</div>
       </article>`;
     return;
   }
 
   if(resumo.critico > 0){
-    const origens = [...new Set(ativos.filter(n => n.prioridade === 'critico').map(n => n.origem))].join(', ');
+    const origens = [...new Set(ativos.filter(n => n.prioridade === 'critico').map(n => getNotiOrigemLabel(n.origem)))].join(', ');
     el.innerHTML = `
       <article class="context-card context-card--danger">
         <div class="context-card__head">
@@ -498,7 +539,7 @@ function renderNotiContextCard(ativos, resumo){
           <span class="context-card__kicker">Notificações</span>
         </div>
         <div class="context-card__title">${resumo.critico} alerta${resumo.critico > 1 ? 's' : ''} crítico${resumo.critico > 1 ? 's' : ''} exigem ação imediata</div>
-        <div class="context-card__copy">Situações críticas identificadas em: ${origens}. Resolva primeiro para evitar impacto direto na operação.</div>
+        <div class="context-card__copy">Situações críticas identificadas em: ${origens}. A central agora organiza os sinais por origem para evitar a sensação de dados misturados.</div>
         <div class="context-card__meta">${resumo.total} notificações ativas no total</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="setFiltroNotificacoes('critico')">Ver críticos</button>
@@ -508,7 +549,7 @@ function renderNotiContextCard(ativos, resumo){
   }
 
   if(resumo.atencao > 0){
-    const origens = [...new Set(ativos.filter(n => n.prioridade === 'atencao').map(n => n.origem))].join(', ');
+    const origens = [...new Set(ativos.filter(n => n.prioridade === 'atencao').map(n => getNotiOrigemLabel(n.origem)))].join(', ');
     el.innerHTML = `
       <article class="context-card context-card--warning">
         <div class="context-card__head">
@@ -532,11 +573,81 @@ function renderNotiContextCard(ativos, resumo){
         <span class="context-card__kicker">Notificações</span>
       </div>
       <div class="context-card__title">${resumo.oportunidade} oportunidade${resumo.oportunidade > 1 ? 's' : ''} para aproveitar</div>
-      <div class="context-card__copy">Nenhum alerta crítico ou de atenção. Confira as oportunidades mapeadas para ação proativa.</div>
+      <div class="context-card__copy">Nenhum alerta crítico ou de atenção. Confira oportunidades organizadas por origem: ${origensResumo}.</div>
       <div class="context-card__actions">
         <button class="btn btn-sm" data-click="setFiltroNotificacoes('oportunidade')">Ver oportunidades</button>
       </div>
     </article>`;
+}
+
+/**
+ * @param {NotificationItem[]} ativos
+ */
+function renderNotificacoesAtivasAgrupadas(ativos){
+  const grupos = groupNotificacoesByOrigem(ativos);
+  return grupos.map(grupo => `
+    <section class="noti-group">
+      <div class="noti-group__head">
+        <div>
+          <div class="noti-group__title">${grupo.label}</div>
+          <div class="noti-group__sub">${grupo.items.length} item(ns) nesta origem</div>
+        </div>
+        <span class="bdg bk">${grupo.label}</span>
+      </div>
+      <div class="noti-group__list">
+        ${grupo.items.map(n => `
+          <div class="noti-item ${n.prioridade}">
+            <div class="noti-head">
+              <div>
+                <div class="noti-title">${n.titulo}</div>
+                <div class="noti-desc">${n.descricao}</div>
+                <div class="noti-meta">${n.meta} | ${getNotiOrigemLabel(n.origem)} | ${n.prioridade}</div>
+              </div>
+              <span class="bdg ${badgeClassForPriority(n.prioridade)}">${n.prioridade}</span>
+            </div>
+            <div class="noti-actions">
+              <button class="btn btn-sm" data-click="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
+              <button class="btn btn-sm" data-click="resolverNotificacao('${n.id}')">Resolver</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
+}
+
+/**
+ * @param {{ id: string, prioridade?: string, titulo?: string, meta?: string, origem?: string, resolvido_em: string }[]} historico
+ */
+function renderHistoricoAgrupado(historico){
+  const grupos = groupNotificacoesByOrigem(historico);
+  return grupos.map(grupo => `
+    <section class="noti-group noti-group--history">
+      <div class="noti-group__head">
+        <div>
+          <div class="noti-group__title">${grupo.label}</div>
+          <div class="noti-group__sub">${grupo.items.length} item(ns) resolvido(s)</div>
+        </div>
+        <span class="bdg bk">Resolvido</span>
+      </div>
+      <div class="noti-group__list">
+        ${grupo.items.map(h => `
+          <div class="noti-item">
+            <div class="noti-head">
+              <div>
+                <div class="noti-title">${h.titulo}</div>
+                <div class="noti-meta">${h.meta || 'Sistema'} | ${getNotiOrigemLabel(h.origem)} | resolvida em ${new Date(h.resolvido_em).toLocaleString('pt-BR')}</div>
+              </div>
+              <span class="bdg bk">${h.prioridade || 'resolvida'}</span>
+            </div>
+            <div class="noti-actions">
+              <button class="btn btn-sm" data-click="reabrirNotificacao('${h.id}')">Reabrir</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>
+  `).join('');
 }
 
 export function renderNotificacoes(){
@@ -571,22 +682,7 @@ export function renderNotificacoes(){
   if(!ativos.length){
     lista.innerHTML = `<div class="empty"><div class="ico">Inbox</div><p>Nenhuma notificação ativa para o filtro selecionado.</p></div>`;
   }else{
-    lista.innerHTML = ativos.map(n => `
-      <div class="noti-item ${n.prioridade}">
-        <div class="noti-head">
-          <div>
-            <div class="noti-title">${n.titulo}</div>
-            <div class="noti-desc">${n.descricao}</div>
-            <div class="noti-meta">${n.meta} - ${n.prioridade}</div>
-          </div>
-          <span class="bdg ${badgeClassForPriority(n.prioridade)}">${n.prioridade}</span>
-        </div>
-        <div class="noti-actions">
-          <button class="btn btn-sm" data-click="executarNotificacao('${n.id}')">${n.acaoLabel || 'Abrir'}</button>
-          <button class="btn btn-sm" data-click="resolverNotificacao('${n.id}')">Resolver</button>
-        </div>
-      </div>
-    `).join('');
+    lista.innerHTML = renderNotificacoesAtivasAgrupadas(ativos);
   }
 
   if(!hist.length){
@@ -594,19 +690,6 @@ export function renderNotificacoes(){
     return;
   }
 
-  histEl.innerHTML = hist.slice(0, 30).map(h => `
-    <div class="noti-item">
-      <div class="noti-head">
-        <div>
-          <div class="noti-title">${h.titulo}</div>
-          <div class="noti-meta">${h.meta || 'Sistema'} - resolvida em ${new Date(h.resolvido_em).toLocaleString('pt-BR')}</div>
-        </div>
-        <span class="bdg bk">${h.prioridade || 'resolvida'}</span>
-      </div>
-      <div class="noti-actions">
-        <button class="btn btn-sm" data-click="reabrirNotificacao('${h.id}')">Reabrir</button>
-      </div>
-    </div>
-  `).join('');
+  histEl.innerHTML = renderHistoricoAgrupado(hist.slice(0, 30));
   });
 }

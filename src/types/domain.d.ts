@@ -125,6 +125,8 @@ export type Cliente = {
   id: Id;
   filial_id?: Id | null;
   nome: string;
+  rca_id?: Id | null;
+  rca_nome?: string | null;
   apelido?: string;
   doc?: string;
   tipo?: string;
@@ -162,6 +164,8 @@ export type Pedido = {
   id: Id;
   filial_id?: Id | null;
   cliente_id?: Id | null;
+  rca_id?: Id | null;
+  rca_nome?: string | null;
   num: number;
   cli: string;
   data?: string;
@@ -175,6 +179,15 @@ export type Pedido = {
   venda_fechada?: boolean;
   venda_fechada_em?: string | null;
   venda_fechada_por?: string | null;
+};
+
+export type Rca = {
+  id: Id;
+  filial_id?: Id | null;
+  nome: string;
+  inicial?: string | null;
+  ativo?: boolean;
+  criado_em?: string;
 };
 
 export type ClienteFidelidadeSaldo = {
@@ -554,6 +567,7 @@ export type AppCache = {
   produtos: Record<string, Produto[]>;
   clientes: Record<string, Cliente[]>;
   pedidos: Record<string, Pedido[]>;
+  rcas: Record<string, Rca[]>;
   fornecedores: Record<string, Fornecedor[]>;
   cotPrecos: Record<string, Record<string, number>>;
   cotConfig: Record<string, CotacaoConfig>;
@@ -688,6 +702,9 @@ export type DomBindingsDeps = {
   salvarProdutoTracked?: () => void | Promise<void>;
   abrirProdDet?: (id?: Id | null) => void;
   refreshProdSel?: () => void;
+  refreshRcaSelectors?: () => void;
+  abrirModalRca?: (targetId?: string | null) => void;
+  salvarRca?: () => void | Promise<void>;
   editarCli?: (id?: Id | null) => void;
   removerCliGuard?: (id?: Id | null) => void | Promise<void>;
   abrirCliDet?: (id?: Id | null) => void;
@@ -697,6 +714,7 @@ export type DomBindingsDeps = {
   salvarClienteTracked?: () => void | Promise<void>;
   addItem?: () => void;
   preencherValoresItemPedido?: () => void;
+  syncPedidoRcaComCliente?: () => void;
   editarPed?: (id?: Id | null) => void;
   removerPedGuard?: (id?: Id | null) => void | Promise<void>;
   verPed?: (id?: Id | null) => void;

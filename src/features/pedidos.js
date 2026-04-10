@@ -4,6 +4,7 @@ import { SB } from '../app/api.js';
 import { D, State, P, PD, C } from '../app/store.js';
 import { abrirModal, fecharModal, uid, fmt, toast, prV, notify, focusField } from '../shared/utils.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
+import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 
 /** @typedef {import('../types/domain').Pedido} Pedido */
 /** @typedef {import('../types/domain').PedidoItem} PedidoItem */
@@ -76,6 +77,13 @@ function findClienteByPedidoInput(raw){
     cliente.id === termo ||
     String(cliente?.nome || '').trim().toLowerCase() === lower
   ) || null;
+}
+
+export function syncPedidoRcaComCliente(){
+  const cliente = findClienteByPedidoInput(document.getElementById('pd-cli')?.value || '');
+  const rcaEl = /** @type {HTMLSelectElement | null} */ (document.getElementById('pd-rca'));
+  if(!rcaEl) return;
+  rcaEl.value = String(cliente?.rca_id || '').trim();
 }
 
 export function renderPedMet(){
@@ -206,11 +214,14 @@ export function limparFormPed(){
 
   const titulo = document.getElementById('ped-modal-titulo');
   if(titulo) titulo.textContent = 'Novo pedido';
+  refreshRcaSelectors();
 
   ['pd-cli', 'pd-obs'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
+  const rcaEl = document.getElementById('pd-rca');
+  if(rcaEl) rcaEl.value = '';
 
   const dataEl = document.getElementById('pd-data');
   if(dataEl) dataEl.value = new Date().toISOString().split('T')[0];
@@ -248,11 +259,14 @@ export function editarPed(id){
 
   State.editIds.ped = id;
   State.pedItens = [...getPedidoItens(p).map(i => ({ ...i }))];
+  refreshRcaSelectors();
 
   const titulo = document.getElementById('ped-modal-titulo');
   if(titulo) titulo.textContent = 'Editar pedido #' + p.num;
 
   document.getElementById('pd-cli').value = getPedidoClienteLabel(p);
+  const rcaEl = /** @type {HTMLSelectElement | null} */ (document.getElementById('pd-rca'));
+  if(rcaEl) rcaEl.value = String(p.rca_id || getPedidoCliente(p)?.rca_id || '');
   document.getElementById('pd-data').value = p.data || '';
   document.getElementById('pd-status').value = p.status || 'orcamento';
   document.getElementById('pd-pgto').value = p.pgto || 'a_vista';
@@ -434,6 +448,9 @@ export async function salvarPedido(){
     return;
   }
 
+  const selectedRcaId = String(document.getElementById('pd-rca')?.value || cliente.rca_id || '').trim();
+  const selectedRcaNome = selectedRcaId ? (getRcaNomeById(selectedRcaId) || String(cliente.rca_nome || '').trim()) : '';
+
   const total = State.pedItens.reduce((a, i) => a + (i.qty * i.preco), 0);
   const peds = PD();
   const allNums = peds.map(p => p.num).filter(n => typeof n === 'number' && !isNaN(n));
@@ -445,6 +462,8 @@ export async function salvarPedido(){
     id: State.editIds.ped || uid(),
     filial_id: State.FIL,
     cliente_id: cliente.id,
+    rca_id: selectedRcaId || null,
+    rca_nome: selectedRcaNome || null,
     num: State.editIds.ped
       ? (atual?.num || nextNum)
       : nextNum,
@@ -544,6 +563,7 @@ export function verPed(id){
       <div class="ped-detail-grid">
       ${[
         ['Cliente', getPedidoClienteLabel(p)],
+        ['RCA', p.rca_nome || getPedidoCliente(p)?.rca_nome || '-'],
         ['Data', p.data || '-'],
         ['Tipo', p.tipo === 'atacado' ? 'Atacado' : 'Varejo'],
         ['Pagamento', pgtoLbl[p.pgto] || p.pgto],

@@ -40,6 +40,7 @@ $$;
 alter table public.produtos enable row level security;
 alter table public.clientes enable row level security;
 alter table public.pedidos enable row level security;
+alter table public.rcas enable row level security;
 alter table public.fornecedores enable row level security;
 alter table public.cotacao_precos enable row level security;
 alter table public.cotacao_historico enable row level security;
@@ -69,6 +70,7 @@ drop policy if exists app_all_filiais on public.filiais;
 drop policy if exists app_all_produtos on public.produtos;
 drop policy if exists app_all_clientes on public.clientes;
 drop policy if exists app_all_pedidos on public.pedidos;
+drop policy if exists app_all_rcas on public.rcas;
 drop policy if exists app_all_fornecedores on public.fornecedores;
 drop policy if exists app_all_cotacao_precos on public.cotacao_precos;
 drop policy if exists app_all_cotacao_historico on public.cotacao_historico;
@@ -126,6 +128,13 @@ with check (public.can_access_filial(filial_id));
 -- pedidos
 drop policy if exists p_pedidos_all on public.pedidos;
 create policy p_pedidos_all on public.pedidos
+for all to authenticated
+using (public.can_access_filial(filial_id))
+with check (public.can_access_filial(filial_id));
+
+-- rcas
+drop policy if exists p_rcas_all on public.rcas;
+create policy p_rcas_all on public.rcas
 for all to authenticated
 using (public.can_access_filial(filial_id))
 with check (public.can_access_filial(filial_id));

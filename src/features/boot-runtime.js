@@ -52,6 +52,7 @@
  *   buildSkeletonLines: (count?: number) => string
  *   carregarDadosFilial: (filialId: string) => Promise<void>
  *   refreshProdSel: () => void
+ *   refreshRcaSelectors: () => void
  *   renderFornSel: () => void
  *   refreshDestSel: () => void
  *   renderDashFilSel: () => void
@@ -85,6 +86,9 @@
  *   renderFilLista: () => void
  *   renderAcessosAdmin: () => void
  *   renderNotificacoes: () => void
+ *   abrirModalRca: (targetId?: string | null) => void
+ *   salvarRca: () => void | Promise<void>
+ *   syncPedidoRcaComCliente: () => void
  *   gerarFilaCampanhaTracked: (id: string) => void | Promise<void>
  *   exportCSV: (tipo: string) => void
  *   cotLock: () => void
@@ -371,4 +375,3 @@ export function startApplicationRuntime({ appContext, registry, deps }){
 
   start();
 }
-

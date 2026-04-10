@@ -7,6 +7,7 @@ import { abrirModal, fecharModal, toast, notify, notifyGuided, focusField, fmt }
 import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
+import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -29,7 +30,8 @@ const cliDom = createScreenDom('clientes', [
   'cli-modal-titulo',
   'cli-flow-save',
   'cli-dl',
-  'cli-det-box'
+  'cli-det-box',
+  'c-rca'
 ]);
 
 const CLI_FORM_IDS = [
@@ -40,6 +42,7 @@ const CLI_FORM_IDS = [
 const CLI_SELECT_DEFAULTS = {
   'c-tipo': 'PJ',
   'c-status': 'ativo',
+  'c-rca': '',
   'c-tab': 'padrao',
   'c-prazo': 'a_vista'
 };
@@ -997,6 +1000,7 @@ export async function abrirCliDet(id){
           <div class="cli-detail-label">Comercial</div>
           <div>Tabela: ${TAB_LABELS[cliente.tab] || '-'}</div>
           <div>Prazo: ${esc(PRAZO_DETALHE_LABELS[cliente.prazo] || '-')}</div>
+        ${cliente.rca_nome ? `<div>RCA: ${esc(cliente.rca_nome)}</div>` : ''}
         ${times.length ? `<div>Times: ${esc(times.join(', '))}</div>` : ''}
         ${cliente.seg ? `<div>Segmento: ${esc(cliente.seg)}</div>` : ''}
         </div>
@@ -1123,6 +1127,7 @@ export async function addNota(id){
 
 export function limparFormCli(){
   State.editIds.cli = null;
+  refreshRcaSelectors();
 
   cliDom.text('modal', 'cli-modal-titulo', 'Novo cliente', 'clientes:modal-titulo');
   cliDom.text('modal', 'cli-flow-save', 'Salvar cliente', 'clientes:modal-acao');
@@ -1139,6 +1144,7 @@ export function editarCli(id){
   if(!cliente) return;
 
   State.editIds.cli = id;
+  refreshRcaSelectors();
 
   cliDom.text('modal', 'cli-modal-titulo', 'Editar cliente', 'clientes:modal-titulo');
   cliDom.text('modal', 'cli-flow-save', 'Atualizar cliente', 'clientes:modal-acao');
@@ -1154,6 +1160,7 @@ export function editarCli(id){
   cliDom.value('c-aniv', cliente.data_aniversario || '');
   cliDom.value('c-time', parseTimes(cliente.time).join(', '));
   cliDom.value('c-resp', cliente.resp || '');
+  cliDom.value('c-rca', cliente.rca_id || '');
   cliDom.value('c-seg', cliente.seg || '');
   cliDom.value('c-tab', cliente.tab || 'padrao');
   cliDom.value('c-prazo', cliente.prazo || 'a_vista');
@@ -1177,10 +1184,14 @@ export async function salvarCliente(){
   }
 
   const editId = State.editIds.cli;
+  const rcaId = String(cliDom.get('c-rca')?.value || '').trim();
+  const rcaNome = rcaId ? getRcaNomeById(rcaId) : '';
   const cliente = {
     id: editId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     filial_id: State.FIL,
     nome,
+    rca_id: rcaId || null,
+    rca_nome: rcaNome || null,
     apelido: cliDom.get('c-apelido')?.value.trim() || '',
     doc: cliDom.get('c-doc')?.value.trim() || '',
     tipo: cliDom.get('c-tipo')?.value || 'PJ',

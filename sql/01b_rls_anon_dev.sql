@@ -27,6 +27,7 @@ alter table public.filiais enable row level security;
 alter table public.produtos enable row level security;
 alter table public.clientes enable row level security;
 alter table public.pedidos enable row level security;
+alter table public.rcas enable row level security;
 alter table public.fornecedores enable row level security;
 alter table public.cotacao_precos enable row level security;
 alter table public.cotacao_historico enable row level security;
@@ -51,6 +52,9 @@ create policy app_all_clientes on public.clientes for all to anon using (true) w
 
 drop policy if exists app_all_pedidos on public.pedidos;
 create policy app_all_pedidos on public.pedidos for all to anon using (true) with check (true);
+
+drop policy if exists app_all_rcas on public.rcas;
+create policy app_all_rcas on public.rcas for all to anon using (true) with check (true);
 
 drop policy if exists app_all_fornecedores on public.fornecedores;
 create policy app_all_fornecedores on public.fornecedores for all to anon using (true) with check (true);

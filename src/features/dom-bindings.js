@@ -147,6 +147,8 @@ function getHandlerRegistry(){
       limparFormProd: deps.limparFormProdTracked,
       limparFormCli: deps.limparFormCliTracked,
       limparFormPed: deps.limparFormPedTracked,
+      abrirModalRca: deps.abrirModalRca,
+      salvarRca: deps.salvarRca,
       calcProdPreview: deps.calcProdPreview,
       syncV: deps.syncV,
       syncA: deps.syncA,
@@ -190,6 +192,7 @@ function getHandlerRegistry(){
       renderPedidos: deps.renderPedidos,
       salvarPedido: deps.salvarPedidoTracked,
       addItem: deps.addItem,
+      syncPedidoRcaComCliente: deps.syncPedidoRcaComCliente,
       preencherValoresItemPedido: deps.preencherValoresItemPedido,
       editarPed: deps.editarPed,
       removerPed: deps.removerPedGuard,
@@ -515,4 +518,3 @@ export function initDomBindings(nextDeps = {}){
   document.addEventListener('input', onFieldEvent);
   document.addEventListener('change', onFieldEvent);
 }
-

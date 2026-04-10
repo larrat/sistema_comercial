@@ -538,7 +538,7 @@
 
       <div class="card card-shell">
         <div class="ct">Perfil do usuário</div>
-        <div class="fg c3">
+        <div class="fg c4">
           <div>
             <div class="fl">E-mail ou User ID</div>
             <input class="inp" id="ac-user-id" placeholder="usuario@empresa.com ou UUID" data-change="resolverPerfilAcessoRef()">
@@ -627,11 +627,11 @@
       </div>
       <div class="mg" id="noti-met"></div>
       <div class="card card-shell">
-        <div class="ct">Inbox ativa</div>
+        <div class="ct">Inbox unificada por origem</div>
         <div id="noti-lista"></div>
       </div>
       <div class="card card-shell">
-        <div class="ct">Histórico resolvido</div>
+        <div class="ct">Histórico resolvido por origem</div>
         <div id="noti-historico"></div>
       </div>
     </div>
@@ -796,7 +796,16 @@
     </div>
 
     <div class="flow-step" data-flow-id="cli" data-step="2">
-      <div class="fg"><div><div class="fl">Responsavel / Comprador</div><input class="inp" id="c-resp"></div></div>
+      <div class="fg c2">
+        <div><div class="fl">Responsavel / Comprador</div><input class="inp" id="c-resp"></div>
+        <div>
+          <div class="fl">RCA / Vendedor</div>
+          <div class="fg2">
+            <select class="inp sel input-flex" id="c-rca"><option value="">Sem RCA</option></select>
+            <button class="btn btn-sm" type="button" data-click="abrirModalRca('c-rca')">+ RCA</button>
+          </div>
+        </div>
+      </div>
       <div class="fg c4"><div><div class="fl">Time(s)</div><input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu"></div><div><div class="fl">Segmento</div><input class="inp" id="c-seg"></div><div><div class="fl">Tabela de preco</div><select class="inp sel" id="c-tab"><option value="padrao">Padrao</option><option value="especial">Especial</option><option value="vip">VIP</option></select></div><div><div class="fl">Prazo de pagamento</div><select class="inp sel" id="c-prazo"><option value="a_vista">A vista</option><option value="7d">7 dias</option><option value="15d">15 dias</option><option value="30d">30 dias</option><option value="60d">60 dias</option></select></div></div>
       <div class="fg c2"><div><div class="fl">Cidade</div><input class="inp" id="c-cidade"></div><div><div class="fl">Estado</div><input class="inp" id="c-estado"></div></div>
     </div>
@@ -851,7 +860,14 @@
       </div>
       <div class="modal-shell-body">
         <div class="fg c3">
-          <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente"><datalist id="cli-dl"></datalist></div>
+          <div><div class="fl">Cliente *</div><input class="inp" id="pd-cli" list="cli-dl" placeholder="Nome do cliente" data-change="syncPedidoRcaComCliente()"><datalist id="cli-dl"></datalist></div>
+          <div>
+            <div class="fl">RCA / Vendedor</div>
+            <div class="fg2">
+              <select class="inp sel input-flex" id="pd-rca"><option value="">Sem RCA</option></select>
+              <button class="btn btn-sm" type="button" data-click="abrirModalRca('pd-rca')">+ RCA</button>
+            </div>
+          </div>
           <div><div class="fl">Data</div><input class="inp" id="pd-data" type="date"></div>
           <div><div class="fl">Status</div><select class="inp sel" id="pd-status"><option value="orcamento">Orçamento</option><option value="confirmado">Confirmado</option><option value="em_separacao">Em separação</option><option value="entregue">Entregue</option><option value="cancelado">Cancelado</option></select></div>
         </div>
@@ -890,6 +906,31 @@
 <div class="modal-wrap" id="modal-ped-det">
   <div class="modal-bg" data-click="fecharModal('modal-ped-det')"></div>
   <div class="modal-box" id="ped-det-box"></div>
+</div>
+
+<div class="modal-wrap" id="modal-rca">
+  <div class="modal-bg" data-click="fecharModal('modal-rca')"></div>
+  <div class="modal-box">
+    <div class="modal-shell">
+      <div class="modal-shell-head">
+        <div class="mt" id="rca-modal-titulo">Novo RCA</div>
+      </div>
+      <div class="modal-shell-body">
+        <div class="fg">
+          <div>
+            <div class="fl">Nome do RCA *</div>
+            <input class="inp" id="rca-nome" placeholder="Ex: Joao Silva">
+          </div>
+        </div>
+      </div>
+      <div class="modal-shell-foot">
+        <div class="modal-actions">
+          <button class="btn" type="button" data-click="fecharModal('modal-rca')">Cancelar</button>
+          <button class="btn btn-p" type="button" data-click="salvarRca()">Salvar RCA</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Campanha -->

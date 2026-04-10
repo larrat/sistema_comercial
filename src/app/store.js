@@ -10,6 +10,7 @@ export const D = {
   produtos: {},
   clientes: {},
   pedidos: {},
+  rcas: {},
   fornecedores: {},
   cotPrecos: {},
   cotConfig: {},
@@ -60,6 +61,11 @@ export function PD() {
       ? /** @type {Pedido['itens']} */ (JSON.parse(pedido.itens || '[]'))
       : (pedido.itens || [])
   }));
+}
+
+export function RCAS() {
+  const filialId = getFilialKey();
+  return D.rcas[filialId] || (D.rcas[filialId] = []);
 }
 
 export function FORNS() {

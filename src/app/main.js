@@ -77,6 +77,7 @@ import {
   renderPedMet,
   renderPedidos,
   limparFormPed,
+  syncPedidoRcaComCliente,
   preencherValoresItemPedido,
   editarPed,
   addItem,
@@ -86,6 +87,12 @@ import {
   removerPed,
   verPed
 } from '../features/pedidos.js';
+
+import {
+  refreshRcaSelectors,
+  abrirModalRca,
+  salvarRca
+} from '../features/rcas.js';
 
 import {
   calcSaldos,
@@ -325,6 +332,7 @@ function resetRuntimeData(){
   D.produtos = {};
   D.clientes = {};
   D.pedidos = {};
+  D.rcas = {};
   D.fornecedores = {};
   D.cotPrecos = {};
   D.cotConfig = {};
@@ -545,6 +553,7 @@ registerApplicationModules({
     calcSaldos,
     setFlowStep,
     refreshProdSel,
+    refreshRcaSelectors,
     refreshCliDL,
     calcSaldosMulti,
     pageAtual,
@@ -698,6 +707,9 @@ startApplicationRuntime({
       salvarProdutoTracked,
       abrirProdDet,
       refreshProdSel,
+      refreshRcaSelectors,
+      abrirModalRca,
+      salvarRca,
       editarCli,
       removerCliGuard,
       abrirCliDet,
@@ -706,6 +718,7 @@ startApplicationRuntime({
       addNota,
       salvarClienteTracked,
       addItem,
+      syncPedidoRcaComCliente,
       preencherValoresItemPedido,
       editarPed,
       removerPedGuard,
