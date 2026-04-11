@@ -63,6 +63,20 @@ const TAB_STATUSES = {
 /** @type {Record<string, number>} */
 const PRAZO_DIAS = { '7d': 7, '15d': 15, '30d': 30, '60d': 60 };
 
+/** Próximo status na progressão operacional */
+const NEXT_STATUS = {
+  orcamento: 'confirmado',
+  confirmado: 'em_separacao',
+  em_separacao: 'entregue'
+};
+
+/** Label do botão de avanço por status atual */
+const ACAO_LABEL = {
+  orcamento: 'Confirmar',
+  confirmado: 'Em Separação',
+  em_separacao: 'Entregar'
+};
+
 /**
  * Calcula a data de vencimento somando dias ao prazo.
  * @param {string | undefined} dataBase - YYYY-MM-DD
@@ -75,6 +89,40 @@ function calcVencimento(dataBase, prazo) {
   const base = dataBase ? new Date(dataBase + 'T00:00:00') : new Date();
   base.setDate(base.getDate() + dias);
   return base.toISOString().split('T')[0];
+}
+
+/**
+ * Gera conta a receber quando pedido vira "entregue" pela primeira vez,
+ * se o prazo tiver dias configurados.
+ * @param {Pedido} ped
+ * @param {string} statusAnterior
+ */
+async function _gerarContaSeNecessario(ped, statusAnterior) {
+  if (ped.status !== 'entregue' || statusAnterior === 'entregue') return;
+  const vencimento = calcVencimento(ped.data, ped.prazo);
+  if (!vencimento) return;
+  if (CR().some((cr) => cr.pedido_id === ped.id)) return;
+
+  /** @type {import('../types/domain').ContaReceber} */
+  const conta = {
+    id: uid(),
+    filial_id: /** @type {string} */ (State.FIL),
+    pedido_id: ped.id,
+    pedido_num: ped.num,
+    cliente_id: ped.cliente_id || null,
+    cliente: ped.cli,
+    valor: ped.total,
+    vencimento,
+    status: 'pendente'
+  };
+  try {
+    await SB.upsertContaReceber(conta);
+    if (!D.contasReceber) D.contasReceber = {};
+    if (!D.contasReceber[State.FIL]) D.contasReceber[State.FIL] = [];
+    D.contasReceber[State.FIL].push(conta);
+  } catch (e) {
+    console.error('Falha ao gerar conta a receber para pedido #' + ped.num, e);
+  }
 }
 
 /**
@@ -176,13 +224,21 @@ export function renderPedMet() {
 }
 
 export function renderPedidos() {
-  renderPedList('ped-busca', 'ped-fil-st', 'ped-lista', TAB_STATUSES.emaberto, false);
-  renderPedList('ped-busca-entregues', null, 'ped-lista-entregues', TAB_STATUSES.entregues, true);
+  renderPedList('ped-busca', 'ped-fil-st', 'ped-lista', TAB_STATUSES.emaberto, false, true);
+  renderPedList(
+    'ped-busca-entregues',
+    null,
+    'ped-lista-entregues',
+    TAB_STATUSES.entregues,
+    true,
+    false
+  );
   renderPedList(
     'ped-busca-cancelados',
     null,
     'ped-lista-cancelados',
     TAB_STATUSES.cancelados,
+    false,
     false
   );
 }
@@ -193,8 +249,9 @@ export function renderPedidos() {
  * @param {string} listaId
  * @param {string[]} statuses
  * @param {boolean} showGerarCr - mostra botão "Gerar A Receber" para pedidos sem conta
+ * @param {boolean} showAvancar - mostra botão de avanço de status inline
  */
-function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr) {
+function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAvancar) {
   const buscaEl = document.getElementById(buscaId);
   const stEl = filtroId ? document.getElementById(filtroId) : null;
   const el = document.getElementById(listaId);
@@ -256,6 +313,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr) {
           <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
           <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
           ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
+          ${showAvancar && ACAO_LABEL[p.status] ? `<button class="btn btn-sm ${p.status === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[p.status]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[p.status]}</button>` : ''}
         </div>
       </div>
     `
@@ -299,6 +357,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr) {
                   <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
                   <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
                   ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
+                  ${showAvancar && ACAO_LABEL[p.status] ? `<button class="btn btn-sm ${p.status === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[p.status]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[p.status]}</button>` : ''}
                 </div>
               </td>
             </tr>
@@ -614,35 +673,7 @@ export async function salvarPedido() {
   }
   invalidatePdCache();
 
-  // Gera conta a receber quando pedido é marcado como entregue pela primeira vez
-  // com prazo a prazo (não imediato).
-  const statusAnterior = atual?.status;
-  const virandoEntregue = ped.status === 'entregue' && statusAnterior !== 'entregue';
-  const vencimento = calcVencimento(ped.data, ped.prazo);
-  const jaTemConta = CR().some((cr) => cr.pedido_id === ped.id);
-
-  if (virandoEntregue && vencimento && !jaTemConta) {
-    /** @type {import('../types/domain').ContaReceber} */
-    const conta = {
-      id: uid(),
-      filial_id: /** @type {string} */ (State.FIL),
-      pedido_id: ped.id,
-      pedido_num: ped.num,
-      cliente_id: ped.cliente_id || null,
-      cliente: ped.cli,
-      valor: ped.total,
-      vencimento,
-      status: 'pendente'
-    };
-    try {
-      await SB.upsertContaReceber(conta);
-      if (!D.contasReceber) D.contasReceber = {};
-      if (!D.contasReceber[State.FIL]) D.contasReceber[State.FIL] = [];
-      D.contasReceber[State.FIL].push(conta);
-    } catch (e) {
-      console.error('Falha ao gerar conta a receber para pedido #' + ped.num, e);
-    }
-  }
+  await _gerarContaSeNecessario(ped, atual?.status || '');
 
   fecharModal('modal-pedido');
   renderPedMet();
@@ -672,6 +703,45 @@ export async function removerPed(id) {
   renderPedMet();
   renderPedidos();
   toast('Removido.');
+}
+
+/**
+ * Avança o status operacional do pedido um passo:
+ * Orçamento → Confirmado → Em Separação → Entregue
+ * @param {string} id
+ */
+export async function avancarStatusPed(id) {
+  const peds = PD();
+  const p = peds.find((x) => x.id === id);
+  if (!p) return;
+
+  const proximoStatus = NEXT_STATUS[p.status];
+  if (!proximoStatus) return;
+
+  const atualizado = { ...p, status: proximoStatus, itens: JSON.stringify(p.itens) };
+
+  try {
+    await SB.upsertPedido(atualizado);
+  } catch (e) {
+    notify(
+      `Erro ao avançar status do pedido #${p.num}: ${String(e?.message || 'erro desconhecido')}`,
+      SEVERITY.ERROR
+    );
+    return;
+  }
+
+  const pedAtualizado = { ...p, status: proximoStatus };
+  D.pedidos[State.FIL] = peds.map((x) => (x.id === id ? pedAtualizado : x));
+  invalidatePdCache();
+
+  await _gerarContaSeNecessario(pedAtualizado, p.status);
+
+  renderPedMet();
+  renderPedidos();
+  notify(
+    `Pedido #${p.num} → ${proximoStatus === 'em_separacao' ? 'Em Separação' : proximoStatus.charAt(0).toUpperCase() + proximoStatus.slice(1)}.`,
+    SEVERITY.SUCCESS
+  );
 }
 
 /**

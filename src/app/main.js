@@ -99,7 +99,8 @@ import {
   renderItens,
   salvarPedido,
   removerPed,
-  verPed
+  verPed,
+  avancarStatusPed
 } from '../features/pedidos.js';
 
 import {
@@ -853,6 +854,7 @@ startApplicationRuntime({
         abrirFidelidadeClienteReact,
         renderPedidos,
         switchPedTab,
+        avancarStatusPed,
         renderContasReceberMet,
         renderContasReceber,
         switchCrTab,
