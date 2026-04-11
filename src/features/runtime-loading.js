@@ -82,7 +82,8 @@ export async function carregarDadosFilial(filId) {
       movsResult,
       jogosResult,
       campanhasResult,
-      campanhaEnviosResult
+      campanhaEnviosResult,
+      contasReceberResult
     ] = await Promise.all([
       SB.toResult(() => SB.getProdutos(filId)),
       SB.toResult(() => SB.getClientes(filId)),
@@ -94,7 +95,8 @@ export async function carregarDadosFilial(filId) {
       SB.toResult(() => SB.getMovs(filId)),
       SB.toResult(() => SB.getJogosAgenda(filId)),
       SB.toResult(() => SB.getCampanhas(filId)),
-      SB.toResult(() => SB.getCampanhaEnvios(filId))
+      SB.toResult(() => SB.getCampanhaEnvios(filId)),
+      SB.toResult(() => SB.getContasReceber(filId))
     ]);
 
     const baseFailures = [
@@ -181,6 +183,16 @@ export async function carregarDadosFilial(filId) {
     if (!D.campanhaEnvios) D.campanhaEnvios = {};
     D.campanhas[filId] = campanhas || [];
     D.campanhaEnvios[filId] = campanhaEnvios || [];
+
+    const contasReceber = contasReceberResult.ok
+      ? contasReceberResult.data || []
+      : D.contasReceber?.[filId] || [];
+    if (!contasReceberResult.ok) {
+      console.error('Falha ao carregar contas a receber', contasReceberResult.error);
+    }
+    if (!D.contasReceber) D.contasReceber = {};
+    D.contasReceber[filId] = contasReceber || [];
+
     document.body.dataset.runtimeBootstrap = 'ready';
   } catch (e) {
     const err = SB.normalizeError(e);

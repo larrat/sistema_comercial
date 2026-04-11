@@ -181,6 +181,21 @@ export type Pedido = {
   venda_fechada_por?: string | null;
 };
 
+export type ContaReceber = {
+  id: Id;
+  filial_id: Id;
+  pedido_id: Id;
+  pedido_num?: number | null;
+  cliente_id?: Id | null;
+  cliente: string;
+  valor: number;
+  vencimento: string; // YYYY-MM-DD
+  status: 'pendente' | 'recebido' | 'vencido' | string;
+  recebido_em?: string | null;
+  obs?: string | null;
+  criado_em?: string;
+};
+
 export type Rca = {
   id: Id;
   filial_id?: Id | null;
@@ -579,6 +594,7 @@ export type AppCache = {
   campanhas?: Record<string, Campanha[]>;
   campanhaEnvios?: Record<string, CampanhaEnvio[]>;
   notas?: Record<string, unknown[]>;
+  contasReceber?: Record<string, ContaReceber[]>;
   userPerfis: UserPerfil[];
   userFiliais: UserFilial[];
   acessosAudit: AcessoAuditoria[];

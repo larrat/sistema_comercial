@@ -772,6 +772,12 @@ export const SB = {
   upsertPedido: (p) => sbReq('pedidos', 'POST', p, '?on_conflict=id'),
   deletePedido: (id) => sbReq(`pedidos?id=eq.${id}`, 'DELETE'),
 
+  /** @param {string} fid @returns {Promise<import('../types/domain').ContaReceber[]>} */
+  getContasReceber: (fid) =>
+    sbReq('contas_receber', 'GET', null, `?filial_id=eq.${fid}&order=vencimento`),
+  upsertContaReceber: (cr) => sbReq('contas_receber', 'POST', cr, '?on_conflict=id'),
+  deleteContaReceber: (id) => sbReq(`contas_receber?id=eq.${id}`, 'DELETE'),
+
   /** @param {string} fid @returns {Promise<Fornecedor[]>} */
   getFornecedores: (fid) => sbReq('fornecedores', 'GET', null, `?filial_id=eq.${fid}&order=nome`),
   upsertFornecedor: (f) => sbReq('fornecedores', 'POST', f, '?on_conflict=id'),

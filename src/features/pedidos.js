@@ -1,7 +1,7 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, P, PD, C, invalidatePdCache } from '../app/store.js';
+import { D, State, P, PD, C, CR, invalidatePdCache } from '../app/store.js';
 import {
   abrirModal,
   fecharModal,
@@ -59,6 +59,23 @@ const TAB_STATUSES = {
   entregues: ['entregue'],
   cancelados: ['cancelado']
 };
+
+/** @type {Record<string, number>} */
+const PRAZO_DIAS = { '7d': 7, '15d': 15, '30d': 30, '60d': 60 };
+
+/**
+ * Calcula a data de vencimento somando dias ao prazo.
+ * @param {string | undefined} dataBase - YYYY-MM-DD
+ * @param {string | undefined} prazo
+ * @returns {string | null} YYYY-MM-DD ou null se imediato
+ */
+function calcVencimento(dataBase, prazo) {
+  const dias = PRAZO_DIAS[prazo || ''];
+  if (!dias) return null;
+  const base = dataBase ? new Date(dataBase + 'T00:00:00') : new Date();
+  base.setDate(base.getDate() + dias);
+  return base.toISOString().split('T')[0];
+}
 
 /**
  * @param {Pedido | null | undefined} pedido
@@ -587,6 +604,36 @@ export async function salvarPedido() {
     D.pedidos[State.FIL].push(ped);
   }
   invalidatePdCache();
+
+  // Gera conta a receber quando pedido é marcado como entregue pela primeira vez
+  // com prazo a prazo (não imediato).
+  const statusAnterior = atual?.status;
+  const virandoEntregue = ped.status === 'entregue' && statusAnterior !== 'entregue';
+  const vencimento = calcVencimento(ped.data, ped.prazo);
+  const jaTemConta = CR().some((cr) => cr.pedido_id === ped.id);
+
+  if (virandoEntregue && vencimento && !jaTemConta) {
+    /** @type {import('../types/domain').ContaReceber} */
+    const conta = {
+      id: uid(),
+      filial_id: /** @type {string} */ (State.FIL),
+      pedido_id: ped.id,
+      pedido_num: ped.num,
+      cliente_id: ped.cliente_id || null,
+      cliente: ped.cli,
+      valor: ped.total,
+      vencimento,
+      status: 'pendente'
+    };
+    try {
+      await SB.upsertContaReceber(conta);
+      if (!D.contasReceber) D.contasReceber = {};
+      if (!D.contasReceber[State.FIL]) D.contasReceber[State.FIL] = [];
+      D.contasReceber[State.FIL].push(conta);
+    } catch (e) {
+      console.error('Falha ao gerar conta a receber para pedido #' + ped.num, e);
+    }
+  }
 
   fecharModal('modal-pedido');
   renderPedMet();

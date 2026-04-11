@@ -16,6 +16,7 @@ export const D = {
   cotConfig: {},
   movs: {},
   jogos: {},
+  contasReceber: {},
   userPerfis: [],
   userFiliais: [],
   acessosAudit: [],
@@ -122,4 +123,10 @@ export function CCFG() {
 export function MOVS() {
   const filialId = getFilialKey();
   return D.movs[filialId] || (D.movs[filialId] = []);
+}
+
+export function CR() {
+  const filialId = getFilialKey();
+  if (!D.contasReceber) D.contasReceber = {};
+  return D.contasReceber[filialId] || (D.contasReceber[filialId] = []);
 }
