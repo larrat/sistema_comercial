@@ -113,6 +113,16 @@ export function ClientesPilotPage() {
         return;
       }
 
+      if (data.type === 'clientes:abrir-abertas') {
+        if (detailId) setDetailTab('abertas');
+        return;
+      }
+
+      if (data.type === 'clientes:abrir-fechadas') {
+        if (detailId) setDetailTab('fechadas');
+        return;
+      }
+
       if (data.type === 'clientes:abrir-notas') {
         if (detailId) setDetailTab('notas');
         return;

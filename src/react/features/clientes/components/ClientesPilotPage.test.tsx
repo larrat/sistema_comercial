@@ -10,7 +10,12 @@ import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useClienteStore } from '../store/useClienteStore';
 import { ClientesPilotPage } from './ClientesPilotPage';
 import { deleteCliente, saveCliente } from '../services/clientesApi';
+import {
+  getClienteFidelidadeSaldo,
+  listClienteFidelidadeLancamentos
+} from '../services/fidelidadeApi';
 import { listNotas } from '../services/notasApi';
+import { listPedidosByCliente } from '../services/pedidosApi';
 
 vi.mock('../../../app/supabaseConfig', () => ({
   getSupabaseConfig: vi.fn()
@@ -33,10 +38,30 @@ vi.mock('../services/notasApi', async () => {
   };
 });
 
+vi.mock('../services/fidelidadeApi', async () => {
+  const actual = await vi.importActual('../services/fidelidadeApi');
+  return {
+    ...actual,
+    getClienteFidelidadeSaldo: vi.fn().mockResolvedValue(null),
+    listClienteFidelidadeLancamentos: vi.fn().mockResolvedValue([])
+  };
+});
+
+vi.mock('../services/pedidosApi', async () => {
+  const actual = await vi.importActual('../services/pedidosApi');
+  return {
+    ...actual,
+    listPedidosByCliente: vi.fn().mockResolvedValue([])
+  };
+});
+
 const getSupabaseConfigMock = vi.mocked(getSupabaseConfig);
 const saveClienteMock = vi.mocked(saveCliente);
 const deleteClienteMock = vi.mocked(deleteCliente);
 const listNotasMock = vi.mocked(listNotas);
+const getClienteFidelidadeSaldoMock = vi.mocked(getClienteFidelidadeSaldo);
+const listClienteFidelidadeLancamentosMock = vi.mocked(listClienteFidelidadeLancamentos);
+const listPedidosByClienteMock = vi.mocked(listPedidosByCliente);
 const ORIGINAL_PARENT = window.parent;
 
 const CLIENTES: Cliente[] = [
@@ -74,6 +99,9 @@ describe('ClientesPilotPage', () => {
       ready: true
     });
     listNotasMock.mockResolvedValue([]);
+    getClienteFidelidadeSaldoMock.mockResolvedValue(null);
+    listClienteFidelidadeLancamentosMock.mockResolvedValue([]);
+    listPedidosByClienteMock.mockResolvedValue([]);
     act(() => useClienteStore.getState().setClientes(CLIENTES));
   });
 
@@ -284,6 +312,72 @@ describe('ClientesPilotPage', () => {
     });
 
     expect(await screen.findByTestId('cliente-detail-fidelidade')).toBeInTheDocument();
+  });
+
+  it('troca para pedidos abertos quando recebe comando do shell legado no detalhe', async () => {
+    setEmbeddedParent();
+    listPedidosByClienteMock.mockResolvedValue([
+      {
+        id: 'p1',
+        cliente_id: '1',
+        num: 40,
+        cli: 'Maria Souza',
+        status: 'confirmado',
+        pgto: 'pix',
+        prazo: 'a_vista',
+        itens: [],
+        total: 210,
+        venda_fechada: false
+      }
+    ]);
+    render(<ClientesPilotPage />);
+
+    await userEvent.click(screen.getByText('Detalhes'));
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-abertas' }
+        })
+      );
+    });
+
+    expect(await screen.findByTestId('cliente-detail-pedidos-abertos')).toBeInTheDocument();
+    expect(screen.getByText('Pedido #40')).toBeInTheDocument();
+  });
+
+  it('troca para pedidos fechados quando recebe comando do shell legado no detalhe', async () => {
+    setEmbeddedParent();
+    listPedidosByClienteMock.mockResolvedValue([
+      {
+        id: 'p2',
+        cliente_id: '1',
+        num: 12,
+        cli: 'Maria Souza',
+        status: 'entregue',
+        pgto: 'boleto',
+        prazo: '30d',
+        itens: [],
+        total: 450,
+        venda_fechada: true
+      }
+    ]);
+    render(<ClientesPilotPage />);
+
+    await userEvent.click(screen.getByText('Detalhes'));
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fechadas' }
+        })
+      );
+    });
+
+    expect(await screen.findByTestId('cliente-detail-pedidos-fechados')).toBeInTheDocument();
+    expect(screen.getByText('Pedido #12')).toBeInTheDocument();
   });
 
   it('exporta csv filtrado quando recebe comando do shell legado', async () => {

@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'sc_clientes_ui_mode';
+const FEATURE_FLAG_KEY = 'sc_clientes_react_enabled';
 const MODE_LEGACY = 'legacy';
 const MODE_REACT = 'react';
 const REACT_CLIENTES_URL = './react.html?embed=clientes';
@@ -24,11 +25,27 @@ let pageObserver = null;
 let currentBridgeState = { ...DEFAULT_BRIDGE_STATE };
 
 function getMode() {
-  return localStorage.getItem(STORAGE_KEY) || MODE_LEGACY;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === MODE_LEGACY || stored === MODE_REACT) return stored;
+  return isClientesReactFeatureEnabled() ? MODE_REACT : MODE_LEGACY;
 }
 
 function setMode(mode) {
   localStorage.setItem(STORAGE_KEY, mode);
+}
+
+export function isClientesReactFeatureEnabled() {
+  const stored = localStorage.getItem(FEATURE_FLAG_KEY);
+  if (stored === 'true') return true;
+  if (stored === 'false') return false;
+  return window.__SC_CLIENTES_REACT_ENABLED__ === true;
+}
+
+export function setClientesReactFeatureEnabled(enabled) {
+  localStorage.setItem(FEATURE_FLAG_KEY, enabled ? 'true' : 'false');
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    setMode(enabled ? MODE_REACT : MODE_LEGACY);
+  }
 }
 
 function getToggle() {
@@ -244,6 +261,12 @@ function syncBridgeState(state) {
   const fidelidadeButton = /** @type {HTMLButtonElement | null} */ (
     document.getElementById('cli-react-open-fidelidade')
   );
+  const abertasButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-open-abertas')
+  );
+  const fechadasButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-open-fechadas')
+  );
   const detailOpen = currentBridgeState.view === 'detail';
 
   if (resumoButton) {
@@ -254,6 +277,12 @@ function syncBridgeState(state) {
   }
   if (fidelidadeButton) {
     fidelidadeButton.hidden = !detailOpen || currentBridgeState.detailTab === 'fidelidade';
+  }
+  if (abertasButton) {
+    abertasButton.hidden = !detailOpen || currentBridgeState.detailTab === 'abertas';
+  }
+  if (fechadasButton) {
+    fechadasButton.hidden = !detailOpen || currentBridgeState.detailTab === 'fechadas';
   }
 
   updateBridgeIndicators();
@@ -393,6 +422,14 @@ export function exportarClientesReactCsv() {
 
 export function abrirResumoClienteReact() {
   postToReactFrame('clientes:abrir-resumo');
+}
+
+export function abrirAbertasClienteReact() {
+  postToReactFrame('clientes:abrir-abertas');
+}
+
+export function abrirFechadasClienteReact() {
+  postToReactFrame('clientes:abrir-fechadas');
 }
 
 export function abrirNotasClienteReact() {

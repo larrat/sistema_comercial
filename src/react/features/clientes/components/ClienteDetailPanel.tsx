@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { Cliente } from '../../../../types/domain';
+import type { Cliente, Pedido } from '../../../../types/domain';
 import { useClienteNotes } from '../hooks/useClienteNotes';
+import { useClientePedidos } from '../hooks/useClientePedidos';
 import { ClienteContextSummary } from './ClienteContextSummary';
 import { ClienteFidelidadePanel } from './ClienteFidelidadePanel';
 
-export type DetailTab = 'resumo' | 'notas' | 'fidelidade';
+export type DetailTab = 'resumo' | 'abertas' | 'fechadas' | 'notas' | 'fidelidade';
 
 type Props = {
   cliente: Cliente;
@@ -15,11 +16,106 @@ type Props = {
   onTabChange?: (tab: DetailTab) => void;
 };
 
+function formatCurrency(value: number): string {
+  return Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(Number(value || 0));
+}
+
+function renderPedidosList(
+  pedidos: Pedido[],
+  kind: 'abertas' | 'fechadas',
+  options: { loading: boolean; error: string | null; clienteNome: string }
+) {
+  if (options.loading) {
+    return (
+      <div className="sk-card" data-testid={`pedidos-${kind}-loading`}>
+        <div className="sk-line" />
+        <div className="sk-line" />
+      </div>
+    );
+  }
+
+  if (options.error) {
+    return (
+      <div className="empty" data-testid={`pedidos-${kind}-error`}>
+        <p>{options.error}</p>
+      </div>
+    );
+  }
+
+  if (!pedidos.length) {
+    return (
+      <div className="empty-inline table-cell-muted" data-testid={`pedidos-${kind}-empty`}>
+        {kind === 'abertas'
+          ? 'Nenhum pedido em andamento para este cliente.'
+          : 'Nenhum pedido fechado para este cliente.'}
+      </div>
+    );
+  }
+
+  return (
+    <div className="cli-sales-list" data-testid={`pedidos-${kind}-list`}>
+      {pedidos.map((pedido) => (
+        <article key={pedido.id} className="card-shell form-gap-md">
+          <div className="fb">
+            <div>
+              <div className="table-cell-caption table-cell-muted">Pedido #{pedido.num}</div>
+              <div className="table-cell-strong">{pedido.cli || options.clienteNome}</div>
+            </div>
+            <span className={`bdg ${pedido.venda_fechada ? 'bb' : 'ba'}`}>
+              {pedido.venda_fechada ? 'Fechado' : pedido.status || 'Em andamento'}
+            </span>
+          </div>
+
+          <div className="mobile-card-grid">
+            <div className="mobile-card-panel">
+              <div className="table-cell-caption table-cell-muted">Status</div>
+              <div>{pedido.status || '-'}</div>
+            </div>
+            <div className="mobile-card-panel">
+              <div className="table-cell-caption table-cell-muted">Pagamento</div>
+              <div>{pedido.pgto || '-'}</div>
+            </div>
+            <div className="mobile-card-panel">
+              <div className="table-cell-caption table-cell-muted">Prazo</div>
+              <div>{pedido.prazo || '-'}</div>
+            </div>
+            <div className="mobile-card-panel">
+              <div className="table-cell-caption table-cell-muted">Total</div>
+              <div className="table-cell-strong">{formatCurrency(Number(pedido.total || 0))}</div>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTabChange }: Props) {
   const [internalTab, setInternalTab] = useState<DetailTab>('resumo');
   const [notaDraft, setNotaDraft] = useState('');
   const { notas, loading, saving, error, submitNota } = useClienteNotes({ clienteId: cliente.id });
   const tab = activeTab ?? internalTab;
+  const {
+    pedidosAbertos,
+    pedidosFechados,
+    loading: pedidosLoading,
+    error: pedidosError
+  } = useClientePedidos({
+    cliente,
+    skip: tab !== 'abertas' && tab !== 'fechadas'
+  });
+
+  const pedidosUi = useMemo(
+    () => ({
+      loading: pedidosLoading,
+      error: pedidosError,
+      clienteNome: cliente.nome
+    }),
+    [cliente.nome, pedidosError, pedidosLoading]
+  );
 
   function setTab(nextTab: DetailTab) {
     if (onTabChange) {
@@ -41,7 +137,7 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTa
           <div className="table-cell-caption table-cell-muted">Detalhe do cliente</div>
           <h3 className="table-cell-strong">{cliente.nome}</h3>
           <div className="table-cell-caption table-cell-muted">
-            {cliente.seg || 'Sem segmento'} • {cliente.cidade || 'Cidade não informada'}
+            {cliente.seg || 'Sem segmento'} - {cliente.cidade || 'Cidade nao informada'}
           </div>
         </div>
         <div className="mobile-card-actions">
@@ -66,8 +162,17 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTa
         <button className={`tb ${tab === 'resumo' ? 'on' : ''}`} onClick={() => setTab('resumo')}>
           Resumo
         </button>
+        <button className={`tb ${tab === 'abertas' ? 'on' : ''}`} onClick={() => setTab('abertas')}>
+          Pedidos abertos
+        </button>
+        <button
+          className={`tb ${tab === 'fechadas' ? 'on' : ''}`}
+          onClick={() => setTab('fechadas')}
+        >
+          Pedidos fechados
+        </button>
         <button className={`tb ${tab === 'notas' ? 'on' : ''}`} onClick={() => setTab('notas')}>
-          Notas / histórico
+          Notas / historico
         </button>
         <button
           className={`tb ${tab === 'fidelidade' ? 'on' : ''}`}
@@ -79,9 +184,23 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTa
 
       {tab === 'resumo' && <ClienteContextSummary cliente={cliente} />}
 
+      {tab === 'abertas' && (
+        <div className="form-gap-lg" data-testid="cliente-detail-pedidos-abertos">
+          <div className="cli-detail-label form-gap-bottom-xs">Pedidos em andamento</div>
+          {renderPedidosList(pedidosAbertos, 'abertas', pedidosUi)}
+        </div>
+      )}
+
+      {tab === 'fechadas' && (
+        <div className="form-gap-lg" data-testid="cliente-detail-pedidos-fechados">
+          <div className="cli-detail-label form-gap-bottom-xs">Pedidos fechados</div>
+          {renderPedidosList(pedidosFechados, 'fechadas', pedidosUi)}
+        </div>
+      )}
+
       {tab === 'notas' && (
         <div className="form-gap-lg" data-testid="cliente-detail-notas">
-          <div className="cli-detail-label form-gap-bottom-xs">Notas / histórico</div>
+          <div className="cli-detail-label form-gap-bottom-xs">Notas / historico</div>
           <div className="fg2 cli-detail-notes-input form-gap-bottom-xs">
             <input
               className="inp input-flex"

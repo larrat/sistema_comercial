@@ -79,6 +79,8 @@ import {
   editarClienteReactAtual,
   exportarClientesReactCsv,
   abrirResumoClienteReact,
+  abrirAbertasClienteReact,
+  abrirFechadasClienteReact,
   abrirNotasClienteReact,
   abrirFidelidadeClienteReact
 } from '../features/clientes-react-bridge.js';
@@ -761,6 +763,8 @@ registerApplicationModules({
     editarClienteReactAtual,
     exportarClientesReactCsv,
     abrirResumoClienteReact,
+    abrirAbertasClienteReact,
+    abrirFechadasClienteReact,
     abrirNotasClienteReact,
     abrirFidelidadeClienteReact,
     renderPedMet,
@@ -842,6 +846,8 @@ startApplicationRuntime({
         editarClienteReactAtual,
         exportarClientesReactCsv,
         abrirResumoClienteReact,
+        abrirAbertasClienteReact,
+        abrirFechadasClienteReact,
         abrirNotasClienteReact,
         abrirFidelidadeClienteReact,
         renderPedidos,

@@ -5,7 +5,9 @@ import { norm, toast } from '../shared/utils.js';
 import { markInvalidation, markRender } from '../shared/render-metrics.js';
 import {
   getClientesReactBridgeState,
-  isClientesReactPilotActive
+  isClientesReactFeatureEnabled,
+  isClientesReactPilotActive,
+  syncClientesReactBridge
 } from './clientes-react-bridge.js';
 
 /** @typedef {import('../types/domain').NavigationModuleDeps} NavigationModuleDeps */
@@ -84,6 +86,8 @@ let deps = {
   editarClienteReactAtual: () => {},
   exportarClientesReactCsv: () => {},
   abrirResumoClienteReact: () => {},
+  abrirAbertasClienteReact: () => {},
+  abrirFechadasClienteReact: () => {},
   abrirNotasClienteReact: () => {},
   abrirFidelidadeClienteReact: () => {},
   renderPedMet: () => {},
@@ -417,11 +421,11 @@ export function getContextualPageMeta(page) {
 
       if (reactState.view === 'detail') {
         meta.secondary = {
-          label: reactState.detailTab === 'fidelidade' ? 'Abrir notas' : 'Abrir fidelidade',
+          label: reactState.detailTab === 'abertas' ? 'Pedidos fechados' : 'Pedidos abertos',
           run: () =>
-            reactState.detailTab === 'fidelidade'
-              ? deps.abrirNotasClienteReact()
-              : deps.abrirFidelidadeClienteReact()
+            reactState.detailTab === 'abertas'
+              ? deps.abrirFechadasClienteReact()
+              : deps.abrirAbertasClienteReact()
         };
         meta.tertiary = { label: 'Voltar lista', run: () => deps.abrirListaClienteReact() };
       } else if (reactState.view === 'form') {
@@ -816,6 +820,9 @@ export function ir(page) {
     n.classList.toggle('on', n.dataset.p === nextPage);
   });
   setActivePageVisibility(nextPage);
+  if (nextPage === 'clientes' && isClientesReactFeatureEnabled()) {
+    syncClientesReactBridge();
+  }
   document
     .querySelectorAll('.mob-btn')
     .forEach((b) => b.classList.toggle('on', b.id === 'mob-' + nextPage));

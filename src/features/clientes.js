@@ -1591,6 +1591,9 @@ export async function removerCli(id) {
 }
 
 export function refreshCliDL() {
+  syncClientesReactBridge();
+  if (!shouldRenderLegacyClientes()) return;
+
   cliDom.html(
     'selectors',
     'cli-dl',

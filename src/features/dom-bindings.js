@@ -157,6 +157,8 @@ function getHandlerRegistry() {
       editarClienteReactAtual: deps.editarClienteReactAtual,
       exportarClientesReactCsv: deps.exportarClientesReactCsv,
       abrirResumoClienteReact: deps.abrirResumoClienteReact,
+      abrirAbertasClienteReact: deps.abrirAbertasClienteReact,
+      abrirFechadasClienteReact: deps.abrirFechadasClienteReact,
       abrirNotasClienteReact: deps.abrirNotasClienteReact,
       abrirFidelidadeClienteReact: deps.abrirFidelidadeClienteReact,
       renderMetasNegocio: deps.renderMetasNegocio,
@@ -411,6 +413,8 @@ function runAction(action, el) {
     editarClienteReactAtual: () => deps.editarClienteReactAtual?.(),
     exportarClientesReactCsv: () => deps.exportarClientesReactCsv?.(),
     abrirResumoClienteReact: () => deps.abrirResumoClienteReact?.(),
+    abrirAbertasClienteReact: () => deps.abrirAbertasClienteReact?.(),
+    abrirFechadasClienteReact: () => deps.abrirFechadasClienteReact?.(),
     abrirNotasClienteReact: () => deps.abrirNotasClienteReact?.(),
     abrirFidelidadeClienteReact: () => deps.abrirFidelidadeClienteReact?.(),
     abrirModalPedido: () => {
