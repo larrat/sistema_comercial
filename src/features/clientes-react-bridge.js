@@ -1,6 +1,8 @@
 const STORAGE_KEY = 'sc_clientes_ui_mode';
 const MODE_LEGACY = 'legacy';
 const MODE_REACT = 'react';
+const REACT_CLIENTES_URL = './react.html?embed=clientes';
+const FRAME_ID = 'cli-react-frame';
 
 /** @type {{ mount?: (el: HTMLElement) => void | Promise<void>, unmount?: () => void } | null} */
 let bridge = null;
@@ -28,6 +30,10 @@ function getReactShell() {
 
 function getRoot() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-react-root'));
+}
+
+function getFrame() {
+  return /** @type {HTMLIFrameElement | null} */ (document.getElementById(FRAME_ID));
 }
 
 function isClientesPageActive() {
@@ -95,7 +101,31 @@ export function toggleClientesReactBridge() {
   void applyMode();
 }
 
+function createClientesIframeBridge() {
+  return {
+    mount(root) {
+      const existing = getFrame();
+      if (existing) return;
+
+      root.innerHTML = '';
+      const frame = document.createElement('iframe');
+      frame.id = FRAME_ID;
+      frame.src = REACT_CLIENTES_URL;
+      frame.title = 'Piloto React de clientes';
+      frame.loading = 'lazy';
+      frame.className = 'cli-react-frame';
+      root.appendChild(frame);
+    },
+    unmount() {
+      const root = getRoot();
+      if (!root) return;
+      root.innerHTML = '';
+    }
+  };
+}
+
 if (typeof window !== 'undefined') {
+  registerClientesReactBridge(createClientesIframeBridge());
   window.addEventListener('storage', () => {
     void applyMode();
   });

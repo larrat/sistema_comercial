@@ -37,6 +37,7 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - fidelidade iniciada como primeira subarea de alto valor no detalhe React
 - layout de notas/historico aproximado do legado no detalhe React
 - primeira ponte de shell entre `pg-clientes` legado e piloto React preparada
+- bridge React real registrada via iframe para montar no `cli-react-root`
 
 ### Nao entrar agora
 
@@ -57,3 +58,4 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - o detalhe do cliente ja comeca a convergir para o legado sem perder blindagem de cobertura
 - a primeira subarea de fidelidade ja carrega saldo, historico e lancamento manual no piloto
 - o shell da navegacao real de clientes ja esta preparado para receber o piloto React por bridge
+- o toggle `Piloto React` ja pode montar o piloto de clientes no shell real

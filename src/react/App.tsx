@@ -11,6 +11,8 @@ function ClientesPage() {
 }
 
 export function App() {
+  const isEmbeddedClientes =
+    new URLSearchParams(window.location.search).get('embed') === 'clientes';
   const hydrateAuth = useAuthStore((s) => s.hydrate);
   const hydrateFilial = useFilialStore((s) => s.hydrate);
   const authStatus = useAuthStore((s) => s.status);
@@ -43,7 +45,13 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 max-w-4xl mx-auto">
+    <div
+      className={
+        isEmbeddedClientes
+          ? 'bg-[var(--bg)] text-[var(--text)] p-4'
+          : 'min-h-screen bg-[var(--bg)] text-[var(--text)] p-6 max-w-4xl mx-auto'
+      }
+    >
       <ClientesPage />
     </div>
   );

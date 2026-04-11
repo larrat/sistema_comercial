@@ -7162,6 +7162,18 @@ textarea.inp:focus {
   gap: 8px;
 }
 
+#cli-react-shell {
+  min-height: 820px;
+}
+
+.cli-react-frame {
+  width: 100%;
+  min-height: 780px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+}
+
 .cli-detail-tabs {
   margin-bottom: 0;
 }

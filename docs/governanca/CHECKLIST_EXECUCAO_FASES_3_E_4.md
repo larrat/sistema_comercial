@@ -87,4 +87,5 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Fidelidade iniciada no detalhe React com saldo, historico e lancamento manual
 - [x] Notas/historico aproximados do layout legado no detalhe React
 - [x] Primeira ponte preparada entre `pg-clientes` legado e shell React
+- [x] Bridge React real registrada para montar o piloto no `cli-react-root`
 - [ ] Falta aplicar branch protection no GitHub
