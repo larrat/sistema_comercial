@@ -4,7 +4,7 @@ import { SB } from '../app/api.js';
 import { D, State, CR } from '../app/store.js';
 import { fmt, toast, notify } from '../shared/utils.js';
 import { esc } from '../shared/sanitize.js';
-import { MSG, SEVERITY } from '../shared/messages.js';
+import { SEVERITY } from '../shared/messages.js';
 
 /** @typedef {import('../types/domain').ContaReceber} ContaReceber */
 

@@ -24,6 +24,7 @@ export const ROLE_PAGE_ACCESS = {
   produtos: APP_ROLES,
   clientes: APP_ROLES,
   pedidos: APP_ROLES,
+  receber: APP_ROLES,
   cotacao: APP_ROLES,
   estoque: APP_ROLES,
   notificacoes: APP_ROLES,
