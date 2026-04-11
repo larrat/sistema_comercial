@@ -107,7 +107,8 @@ import {
   renderContasReceber,
   switchCrTab,
   marcarRecebido,
-  marcarPendente
+  marcarPendente,
+  gerarContaManual
 } from '../features/contas-receber.js';
 
 import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
@@ -857,6 +858,7 @@ startApplicationRuntime({
         switchCrTab,
         marcarRecebido,
         marcarPendente,
+        gerarContaManual,
         renderCotForns,
         renderCotTabela,
         cotFile,

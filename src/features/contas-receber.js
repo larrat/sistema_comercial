@@ -1,8 +1,8 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, CR } from '../app/store.js';
-import { fmt, toast, notify } from '../shared/utils.js';
+import { D, State, CR, PD } from '../app/store.js';
+import { fmt, toast, notify, uid } from '../shared/utils.js';
 import { esc } from '../shared/sanitize.js';
 import { SEVERITY } from '../shared/messages.js';
 
@@ -214,4 +214,59 @@ export async function marcarPendente(id) {
   renderContasReceberMet();
   renderContasReceber();
   toast('Recebimento desfeito.');
+}
+
+/** @type {Record<string, number>} */
+const PRAZO_DIAS_CR = { '7d': 7, '15d': 15, '30d': 30, '60d': 60 };
+
+/**
+ * Gera manualmente uma conta a receber para um pedido já entregue.
+ * Usado para backfill de pedidos entregues antes da feature existir.
+ * @param {string} pedidoId
+ */
+export async function gerarContaManual(pedidoId) {
+  const p = PD().find((x) => x.id === pedidoId);
+  if (!p) return;
+
+  if (CR().some((c) => c.pedido_id === pedidoId)) {
+    toast('Este pedido já tem uma conta a receber.');
+    return;
+  }
+
+  const dias = PRAZO_DIAS_CR[p.prazo || ''];
+  let vencimento;
+  if (dias && p.data) {
+    const base = new Date(p.data + 'T00:00:00');
+    base.setDate(base.getDate() + dias);
+    vencimento = base.toISOString().split('T')[0];
+  } else {
+    vencimento = p.data || new Date().toISOString().split('T')[0];
+  }
+
+  /** @type {import('../types/domain').ContaReceber} */
+  const conta = {
+    id: uid(),
+    filial_id: /** @type {string} */ (State.FIL),
+    pedido_id: p.id,
+    pedido_num: p.num,
+    cliente_id: p.cliente_id || null,
+    cliente: p.cli,
+    valor: p.total,
+    vencimento,
+    status: 'pendente'
+  };
+
+  try {
+    await SB.upsertContaReceber(conta);
+  } catch (e) {
+    notify(`Erro ao gerar conta: ${String(e?.message || 'erro desconhecido')}`, SEVERITY.ERROR);
+    return;
+  }
+
+  if (!D.contasReceber) D.contasReceber = {};
+  if (!D.contasReceber[State.FIL]) D.contasReceber[State.FIL] = [];
+  D.contasReceber[State.FIL].push(conta);
+  renderContasReceberMet();
+  renderContasReceber();
+  notify('Conta a receber gerada para pedido #' + p.num, SEVERITY.SUCCESS);
 }

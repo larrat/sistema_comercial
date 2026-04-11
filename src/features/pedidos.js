@@ -176,9 +176,15 @@ export function renderPedMet() {
 }
 
 export function renderPedidos() {
-  renderPedList('ped-busca', 'ped-fil-st', 'ped-lista', TAB_STATUSES.emaberto);
-  renderPedList('ped-busca-entregues', null, 'ped-lista-entregues', TAB_STATUSES.entregues);
-  renderPedList('ped-busca-cancelados', null, 'ped-lista-cancelados', TAB_STATUSES.cancelados);
+  renderPedList('ped-busca', 'ped-fil-st', 'ped-lista', TAB_STATUSES.emaberto, false);
+  renderPedList('ped-busca-entregues', null, 'ped-lista-entregues', TAB_STATUSES.entregues, true);
+  renderPedList(
+    'ped-busca-cancelados',
+    null,
+    'ped-lista-cancelados',
+    TAB_STATUSES.cancelados,
+    false
+  );
 }
 
 /**
@@ -186,8 +192,9 @@ export function renderPedidos() {
  * @param {string | null} filtroId
  * @param {string} listaId
  * @param {string[]} statuses
+ * @param {boolean} showGerarCr - mostra botão "Gerar A Receber" para pedidos sem conta
  */
-function renderPedList(buscaId, filtroId, listaId, statuses) {
+function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr) {
   const buscaEl = document.getElementById(buscaId);
   const stEl = filtroId ? document.getElementById(filtroId) : null;
   const el = document.getElementById(listaId);
@@ -248,6 +255,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses) {
           <button class="btn btn-sm" title="Ver pedido" data-click="verPed('${p.id}')">Ver</button>
           <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
           <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
+          ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
         </div>
       </div>
     `
@@ -290,6 +298,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses) {
                   <button class="btn btn-sm" title="Ver pedido" data-click="verPed('${p.id}')">Ver</button>
                   <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
                   <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
+                  ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
                 </div>
               </td>
             </tr>

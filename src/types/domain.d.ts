@@ -702,6 +702,7 @@ export type DomBindingsDeps = {
   switchCrTab?: (tab: string) => void;
   marcarRecebido?: (id: string) => void | Promise<void>;
   marcarPendente?: (id: string) => void | Promise<void>;
+  gerarContaManual?: (pedidoId: string) => void | Promise<void>;
   renderCotForns?: () => void;
   renderCotTabela?: () => void;
   cotFile?: (event?: Event) => void;
