@@ -565,6 +565,24 @@
                   <span class="bdg bb" id="cli-react-indicator-view">Lista</span>
                   <span class="bdg bk" id="cli-react-indicator-status">Pronto</span>
                   <span class="bdg bg" id="cli-react-indicator-count">0 clientes</span>
+                  <span class="bdg bk" id="cli-react-indicator-filters">Sem filtros</span>
+                </div>
+                <div class="cli-react-modebar__actions">
+                  <button
+                    class="btn btn-p btn-sm"
+                    id="cli-react-new-btn"
+                    data-action="abrirNovoClienteReact"
+                  >
+                    Novo cliente
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    id="cli-react-clear-filters"
+                    data-action="limparFiltrosClienteReact"
+                    hidden
+                  >
+                    Limpar filtros
+                  </button>
                 </div>
               </div>
               <div class="toolbar-actions">
@@ -596,6 +614,7 @@
                   <span class="bdg bb" id="cli-react-shell-view">Lista</span>
                   <span class="bdg bk" id="cli-react-shell-status">Pronto</span>
                   <span class="bdg bg" id="cli-react-shell-count">0 clientes</span>
+                  <span class="bdg bk" id="cli-react-shell-filters">Sem filtros</span>
                 </div>
               </div>
               <div id="cli-react-root"></div>

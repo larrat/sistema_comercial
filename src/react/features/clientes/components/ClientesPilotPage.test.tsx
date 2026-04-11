@@ -1,7 +1,7 @@
 import { act } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Cliente } from '../../../../types/domain';
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -37,6 +37,7 @@ const getSupabaseConfigMock = vi.mocked(getSupabaseConfig);
 const saveClienteMock = vi.mocked(saveCliente);
 const deleteClienteMock = vi.mocked(deleteCliente);
 const listNotasMock = vi.mocked(listNotas);
+const ORIGINAL_PARENT = window.parent;
 
 const CLIENTES: Cliente[] = [
   { id: '1', nome: 'Maria Souza', status: 'ativo', seg: 'Varejo', email: 'maria@a.com' }
@@ -75,6 +76,15 @@ describe('ClientesPilotPage', () => {
     listNotasMock.mockResolvedValue([]);
     act(() => useClienteStore.getState().setClientes(CLIENTES));
   });
+
+  function setEmbeddedParent() {
+    const parentMock = { postMessage: vi.fn() };
+    Object.defineProperty(window, 'parent', {
+      value: parentMock,
+      configurable: true
+    });
+    return parentMock;
+  }
 
   it('cria um novo cliente pelo formulario React', async () => {
     saveClienteMock.mockResolvedValue({
@@ -199,5 +209,50 @@ describe('ClientesPilotPage', () => {
     expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
     expect(screen.getByText('Resumo do cliente')).toBeInTheDocument();
     expect(screen.getByText(/Segmento: Varejo/)).toBeInTheDocument();
+  });
+
+  it('abre novo formulario quando recebe comando do shell legado', async () => {
+    setEmbeddedParent();
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:novo' }
+        })
+      );
+    });
+
+    expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
+  });
+
+  it('limpa filtros quando recebe comando do shell legado', async () => {
+    setEmbeddedParent();
+    render(<ClientesPilotPage />);
+
+    await userEvent.type(screen.getByTestId('busca-input'), 'maria');
+    expect(screen.getByTestId('busca-input')).toHaveValue('maria');
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:limpar-filtros' }
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('busca-input')).toHaveValue('');
+      expect(screen.queryByTestId('limpar-filtro')).not.toBeInTheDocument();
+    });
+  });
+});
+
+afterEach(() => {
+  Object.defineProperty(window, 'parent', {
+    value: ORIGINAL_PARENT,
+    configurable: true
   });
 });

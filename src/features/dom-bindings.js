@@ -151,6 +151,8 @@ function getHandlerRegistry() {
       ir: deps.ir,
       switchTab: deps.switchTab,
       toggleClientesReactBridge: deps.toggleClientesReactBridge,
+      abrirNovoClienteReact: deps.abrirNovoClienteReact,
+      limparFiltrosClienteReact: deps.limparFiltrosClienteReact,
       renderMetasNegocio: deps.renderMetasNegocio,
       resetUxKpis: deps.resetUxKpis,
       executarAcaoGerencial: deps.executarAcaoGerencial
@@ -397,6 +399,8 @@ function runAction(action, el) {
       deps.limparFormCliTracked();
       deps.abrirModal('modal-cliente');
     },
+    abrirNovoClienteReact: () => deps.abrirNovoClienteReact?.(),
+    limparFiltrosClienteReact: () => deps.limparFiltrosClienteReact?.(),
     abrirModalPedido: () => {
       deps.limparFormPedTracked();
       deps.abrirModal('modal-pedido');

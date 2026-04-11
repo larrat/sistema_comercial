@@ -9,9 +9,12 @@ import { ClienteForm } from './ClienteForm';
 import { ClienteDetailPanel } from './ClienteDetailPanel';
 
 const MESSAGE_SOURCE = 'clientes-react-pilot';
+const COMMAND_SOURCE = 'clientes-legacy-shell';
 
 export function ClientesPilotPage() {
   const clientes = useClienteStore(useShallow((s) => s.clientes));
+  const filtro = useClienteStore((s) => s.filtro);
+  const clearFiltro = useClienteStore((s) => s.clearFiltro);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const { deleteClienteById, deletingId, error } = useClienteMutations();
@@ -35,6 +38,38 @@ export function ClientesPilotPage() {
       setDetailId(null);
     }
   }
+
+  useEffect(() => {
+    if (window.parent === window) return;
+
+    function handleParentCommand(event: MessageEvent) {
+      if (event.origin !== window.location.origin) return;
+
+      const data = event.data;
+      if (!data || data.source !== COMMAND_SOURCE) return;
+
+      if (data.type === 'clientes:novo') {
+        setDetailId(null);
+        setEditingId('new');
+        return;
+      }
+
+      if (data.type === 'clientes:limpar-filtros') {
+        clearFiltro();
+        return;
+      }
+
+      if (data.type === 'clientes:abrir-lista') {
+        setEditingId(null);
+        setDetailId(null);
+      }
+    }
+
+    window.addEventListener('message', handleParentCommand);
+    return () => {
+      window.removeEventListener('message', handleParentCommand);
+    };
+  }, [clearFiltro]);
 
   useEffect(() => {
     if (window.parent === window) return;
@@ -78,12 +113,22 @@ export function ClientesPilotPage() {
         state: {
           view: editingId ? 'form' : detailId ? 'detail' : 'list',
           status: deletingId ? 'deleting' : error ? 'error' : 'ready',
-          count: clientes.length
+          count: clientes.length,
+          filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length
         }
       },
       window.location.origin
     );
-  }, [clientes.length, deletingId, detailId, editingId, error]);
+  }, [
+    clientes.length,
+    deletingId,
+    detailId,
+    editingId,
+    error,
+    filtro.q,
+    filtro.seg,
+    filtro.status
+  ]);
 
   return (
     <div

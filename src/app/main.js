@@ -71,7 +71,11 @@ import {
   removerCli,
   refreshCliDL
 } from '../features/clientes.js';
-import { toggleClientesReactBridge } from '../features/clientes-react-bridge.js';
+import {
+  toggleClientesReactBridge,
+  abrirNovoClienteReact,
+  limparFiltrosClienteReact
+} from '../features/clientes-react-bridge.js';
 
 import {
   initPedidosModule,
@@ -807,6 +811,8 @@ startApplicationRuntime({
         renderCliSegs,
         renderClientes,
         toggleClientesReactBridge,
+        abrirNovoClienteReact,
+        limparFiltrosClienteReact,
         renderPedidos,
         renderCotForns,
         renderCotTabela,

@@ -7202,6 +7202,14 @@ textarea.inp:focus {
   justify-content: flex-end;
 }
 
+.cli-react-modebar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .cli-react-shell__head {
   display: flex;
   align-items: flex-start;
@@ -7228,6 +7236,7 @@ textarea.inp:focus {
   }
 
   .cli-react-modebar__chips,
+  .cli-react-modebar__actions,
   .cli-react-shell__chips {
     justify-content: flex-start;
   }

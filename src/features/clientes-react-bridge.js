@@ -4,11 +4,13 @@ const MODE_REACT = 'react';
 const REACT_CLIENTES_URL = './react.html?embed=clientes';
 const FRAME_ID = 'cli-react-frame';
 const MESSAGE_SOURCE = 'clientes-react-pilot';
+const COMMAND_SOURCE = 'clientes-legacy-shell';
 const DEFAULT_FRAME_HEIGHT = 820;
 const DEFAULT_BRIDGE_STATE = {
   view: 'list',
   status: 'ready',
-  count: 0
+  count: 0,
+  filtersActive: 0
 };
 
 /** @type {{ mount?: (el: HTMLElement) => void | Promise<void>, unmount?: () => void } | null} */
@@ -104,6 +106,16 @@ function toStatusTone(status) {
   return status === 'deleting' ? 'ba' : status === 'error' ? 'br' : 'bk';
 }
 
+function toFiltersLabel(filtersActive) {
+  const count = Number(filtersActive || 0);
+  if (!count) return 'Sem filtros';
+  return `${count} filtro${count === 1 ? '' : 's'}`;
+}
+
+function toFiltersTone(filtersActive) {
+  return Number(filtersActive || 0) > 0 ? 'ba' : 'bk';
+}
+
 function updateBridgeIndicators() {
   const indicators = [
     ['cli-react-indicator-view', toViewLabel(currentBridgeState.view), 'bb'],
@@ -127,6 +139,16 @@ function updateBridgeIndicators() {
       'cli-react-shell-count',
       `${currentBridgeState.count || 0} cliente${currentBridgeState.count === 1 ? '' : 's'}`,
       'bg'
+    ],
+    [
+      'cli-react-indicator-filters',
+      toFiltersLabel(currentBridgeState.filtersActive),
+      toFiltersTone(currentBridgeState.filtersActive)
+    ],
+    [
+      'cli-react-shell-filters',
+      toFiltersLabel(currentBridgeState.filtersActive),
+      toFiltersTone(currentBridgeState.filtersActive)
     ]
   ];
 
@@ -164,16 +186,47 @@ function syncBridgeState(state) {
   currentBridgeState = {
     view: String(nextState.view || 'list'),
     status: String(nextState.status || 'ready'),
-    count: Number(nextState.count ?? 0) || 0
+    count: Number(nextState.count ?? 0) || 0,
+    filtersActive: Number(nextState.filtersActive ?? 0) || 0
   };
 
   if (reactShell) {
     reactShell.dataset.reactView = currentBridgeState.view;
     reactShell.dataset.reactStatus = currentBridgeState.status;
     reactShell.dataset.reactCount = String(currentBridgeState.count);
+    reactShell.dataset.reactFiltersActive = String(currentBridgeState.filtersActive);
+  }
+
+  const clearFiltersButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-clear-filters')
+  );
+  if (clearFiltersButton) {
+    clearFiltersButton.hidden = currentBridgeState.filtersActive <= 0;
   }
 
   updateBridgeIndicators();
+}
+
+function isReactModeActive() {
+  return !!(bridge?.mount && getMode() === MODE_REACT && isClientesPageActive());
+}
+
+function postToReactFrame(type, payload = {}) {
+  if (!isReactModeActive()) return false;
+
+  const frame = getFrame();
+  if (!frame?.contentWindow) return false;
+
+  frame.contentWindow.postMessage(
+    {
+      source: COMMAND_SOURCE,
+      type,
+      ...payload
+    },
+    window.location.origin
+  );
+
+  return true;
 }
 
 function forceClientesListTab() {
@@ -221,7 +274,7 @@ async function applyMode() {
   const legacyShell = getLegacyShell();
   const reactShell = getReactShell();
   const root = getRoot();
-  const reactActive = bridge?.mount && getMode() === MODE_REACT && isClientesPageActive();
+  const reactActive = isReactModeActive();
 
   if (legacyShell) legacyShell.hidden = !!reactActive;
   if (reactShell) reactShell.hidden = !reactActive;
@@ -267,6 +320,14 @@ export function toggleClientesReactBridge() {
   if (!bridge?.mount) return;
   setMode(getMode() === MODE_REACT ? MODE_LEGACY : MODE_REACT);
   void applyMode();
+}
+
+export function abrirNovoClienteReact() {
+  postToReactFrame('clientes:novo');
+}
+
+export function limparFiltrosClienteReact() {
+  postToReactFrame('clientes:limpar-filtros');
 }
 
 function createClientesIframeBridge() {

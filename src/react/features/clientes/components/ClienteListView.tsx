@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
+
 import { useClienteStore, selectFilteredClientes, selectSegmentos } from '../store/useClienteStore';
 import { ClienteCard } from './ClienteCard';
 
-// ---------------------------------------------------------------------------
-// Sub-componentes
-// ---------------------------------------------------------------------------
+type ToolbarProps = {
+  onNovoCliente?: () => void;
+};
 
-function ClienteToolbar() {
+function ClienteToolbar({ onNovoCliente }: ToolbarProps) {
   const filtro = useClienteStore((s) => s.filtro);
   const setFiltro = useClienteStore((s) => s.setFiltro);
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
@@ -20,7 +21,7 @@ function ClienteToolbar() {
       <input
         className="inp"
         type="search"
-        placeholder="Buscar clientes…"
+        placeholder="Buscar..."
         value={filtro.q ?? ''}
         onChange={(e) => setFiltro({ q: e.target.value })}
         aria-label="Buscar clientes"
@@ -58,6 +59,12 @@ function ClienteToolbar() {
       {temFiltro && (
         <button className="btn btn-sm" onClick={clearFiltro} data-testid="limpar-filtro">
           Limpar filtros
+        </button>
+      )}
+
+      {onNovoCliente && (
+        <button className="btn btn-p btn-sm" onClick={onNovoCliente} data-testid="novo-btn">
+          Novo cliente
         </button>
       )}
     </div>
@@ -116,10 +123,6 @@ function ClienteListSkeleton() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// View principal
-// ---------------------------------------------------------------------------
-
 type Props = {
   onNovoCliente?: () => void;
   onDetalhe?: (id: string) => void;
@@ -133,7 +136,6 @@ export function ClienteListView({ onNovoCliente, onDetalhe, onEditar, onExcluir 
   const clientes = useClienteStore(useShallow((s) => s.clientes));
   const filtrados = useClienteStore(useShallow(selectFilteredClientes));
 
-  // Garante que a tela inicia em loading na primeira montagem se ainda idle
   const setStatus = useClienteStore((s) => s.setStatus);
   useEffect(() => {
     if (status === 'idle') setStatus('loading');
@@ -141,23 +143,14 @@ export function ClienteListView({ onNovoCliente, onDetalhe, onEditar, onExcluir 
 
   return (
     <div className="screen-content" data-testid="cliente-list-view">
-      {/* Header */}
       <div className="fb form-gap-bottom-xs">
         <h2 className="table-cell-strong">Clientes</h2>
-        {onNovoCliente && (
-          <button className="btn btn-p btn-sm" onClick={onNovoCliente} data-testid="novo-btn">
-            Novo cliente
-          </button>
-        )}
       </div>
 
-      {/* Métricas */}
       {status === 'ready' && <ClienteMetrics />}
 
-      {/* Toolbar */}
-      {status === 'ready' && <ClienteToolbar />}
+      {status === 'ready' && <ClienteToolbar onNovoCliente={onNovoCliente} />}
 
-      {/* Conteúdo */}
       {status === 'loading' && <ClienteListSkeleton />}
 
       {status === 'error' && (
