@@ -74,13 +74,17 @@ import {
 import {
   toggleClientesReactBridge,
   abrirNovoClienteReact,
-  limparFiltrosClienteReact
+  limparFiltrosClienteReact,
+  abrirListaClienteReact,
+  editarClienteReactAtual,
+  exportarClientesReactCsv
 } from '../features/clientes-react-bridge.js';
 
 import {
   initPedidosModule,
   renderPedMet,
   renderPedidos,
+  switchPedTab,
   limparFormPed,
   syncPedidoRcaComCliente,
   preencherValoresItemPedido,
@@ -813,7 +817,11 @@ startApplicationRuntime({
         toggleClientesReactBridge,
         abrirNovoClienteReact,
         limparFiltrosClienteReact,
+        abrirListaClienteReact,
+        editarClienteReactAtual,
+        exportarClientesReactCsv,
         renderPedidos,
+        switchPedTab,
         renderCotForns,
         renderCotTabela,
         cotFile,

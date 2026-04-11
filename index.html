@@ -569,6 +569,29 @@
                 </div>
                 <div class="cli-react-modebar__actions">
                   <button
+                    class="btn btn-sm"
+                    id="cli-react-export-btn"
+                    data-action="exportarClientesReactCsv"
+                  >
+                    Exportar CSV
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    id="cli-react-back-list"
+                    data-action="abrirListaClienteReact"
+                    hidden
+                  >
+                    Voltar para lista
+                  </button>
+                  <button
+                    class="btn btn-sm"
+                    id="cli-react-edit-current"
+                    data-action="editarClienteReactAtual"
+                    hidden
+                  >
+                    Editar atual
+                  </button>
+                  <button
                     class="btn btn-p btn-sm"
                     id="cli-react-new-btn"
                     data-action="abrirNovoClienteReact"
@@ -626,29 +649,70 @@
         <!-- ── PEDIDOS ── -->
         <div class="pg ped-bento-page" id="pg-pedidos">
           <div class="mg bento-band" id="ped-met"></div>
-          <div class="card card-shell">
-            <div class="toolbar toolbar-shell toolbar-shell--section">
-              <div class="toolbar-main">
-                <input
-                  class="inp input-w-sm"
-                  id="ped-busca"
-                  placeholder="Cliente ou numero..."
-                  data-input="renderPedidos()"
-                />
-                <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()">
-                  <option value="">Todos os status</option>
-                  <option value="orcamento">Orçamento</option>
-                  <option value="confirmado">Confirmado</option>
-                  <option value="em_separacao">Em separação</option>
-                  <option value="entregue">Entregue</option>
-                  <option value="cancelado">Cancelado</option>
-                </select>
+          <div class="tabs">
+            <button class="tb on" data-click="switchPedTab('emaberto')">Em Aberto</button>
+            <button class="tb" data-click="switchPedTab('entregues')">Entregues</button>
+            <button class="tb" data-click="switchPedTab('cancelados')">Cancelados</button>
+          </div>
+
+          <div class="tc on" id="pedidos-tc-emaberto">
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="toolbar-main">
+                  <input
+                    class="inp input-w-sm"
+                    id="ped-busca"
+                    placeholder="Cliente ou numero..."
+                    data-input="renderPedidos()"
+                  />
+                  <select class="inp sel select-w-sm" id="ped-fil-st" data-change="renderPedidos()">
+                    <option value="">Todos</option>
+                    <option value="orcamento">Orçamento</option>
+                    <option value="confirmado">Confirmado</option>
+                    <option value="em_separacao">Em separação</option>
+                  </select>
+                </div>
+                <div class="toolbar-actions">
+                  <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
+                </div>
               </div>
-              <div class="toolbar-actions">
-                <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
-              </div>
+              <div id="ped-lista"></div>
             </div>
-            <div id="ped-lista"></div>
+          </div>
+
+          <div class="tc" id="pedidos-tc-entregues">
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="toolbar-main">
+                  <input
+                    class="inp input-w-sm"
+                    id="ped-busca-entregues"
+                    placeholder="Cliente ou numero..."
+                    data-input="renderPedidos()"
+                  />
+                </div>
+                <div class="toolbar-actions">
+                  <button class="btn btn-sm" data-click="exportCSV('pedidos')">Exportar CSV</button>
+                </div>
+              </div>
+              <div id="ped-lista-entregues"></div>
+            </div>
+          </div>
+
+          <div class="tc" id="pedidos-tc-cancelados">
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="toolbar-main">
+                  <input
+                    class="inp input-w-sm"
+                    id="ped-busca-cancelados"
+                    placeholder="Cliente ou numero..."
+                    data-input="renderPedidos()"
+                  />
+                </div>
+              </div>
+              <div id="ped-lista-cancelados"></div>
+            </div>
           </div>
         </div>
 

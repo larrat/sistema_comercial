@@ -54,6 +54,12 @@ const ST_PED = {
   cancelado: '<span class="bdg br">Cancelado</span>'
 };
 
+const TAB_STATUSES = {
+  emaberto: ['orcamento', 'confirmado', 'em_separacao'],
+  entregues: ['entregue'],
+  cancelados: ['cancelado']
+};
+
 /**
  * @param {Pedido | null | undefined} pedido
  */
@@ -110,6 +116,19 @@ export function syncPedidoRcaComCliente() {
   rcaEl.value = String(cliente?.rca_id || '').trim();
 }
 
+/**
+ * @param {'emaberto' | 'entregues' | 'cancelados'} tab
+ */
+export function switchPedTab(tab) {
+  ['emaberto', 'entregues', 'cancelados'].forEach((t) => {
+    document.getElementById(`pedidos-tc-${t}`)?.classList.toggle('on', t === tab);
+  });
+  const tabBtns = document.querySelectorAll('#pg-pedidos .tabs .tb');
+  const names = ['emaberto', 'entregues', 'cancelados'];
+  tabBtns.forEach((btn, i) => btn.classList.toggle('on', names[i] === tab));
+  renderPedidos();
+}
+
 export function renderPedMet() {
   const peds = PD();
   const fat = peds.filter((p) => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
@@ -140,9 +159,21 @@ export function renderPedMet() {
 }
 
 export function renderPedidos() {
-  const buscaEl = document.getElementById('ped-busca');
-  const stEl = document.getElementById('ped-fil-st');
-  const el = document.getElementById('ped-lista');
+  renderPedList('ped-busca', 'ped-fil-st', 'ped-lista', TAB_STATUSES.emaberto);
+  renderPedList('ped-busca-entregues', null, 'ped-lista-entregues', TAB_STATUSES.entregues);
+  renderPedList('ped-busca-cancelados', null, 'ped-lista-cancelados', TAB_STATUSES.cancelados);
+}
+
+/**
+ * @param {string} buscaId
+ * @param {string | null} filtroId
+ * @param {string} listaId
+ * @param {string[]} statuses
+ */
+function renderPedList(buscaId, filtroId, listaId, statuses) {
+  const buscaEl = document.getElementById(buscaId);
+  const stEl = filtroId ? document.getElementById(filtroId) : null;
+  const el = document.getElementById(listaId);
   if (!el) return;
 
   const q = (buscaEl?.value || '').toLowerCase();
@@ -152,6 +183,7 @@ export function renderPedidos() {
     .sort((a, b) => (b.num || 0) - (a.num || 0))
     .filter(
       (p) =>
+        statuses.includes(p.status) &&
         (!q ||
           getPedidoClienteLabel(p).toLowerCase().includes(q) ||
           String(p.num || '').includes(q)) &&
@@ -159,7 +191,7 @@ export function renderPedidos() {
     );
 
   if (!f.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">PED</div><p>${PD().length ? 'Nenhum pedido encontrado.' : 'Nenhum pedido cadastrado ainda.'}</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">PED</div><p>Nenhum pedido encontrado.</p></div>`;
     return;
   }
 
