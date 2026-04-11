@@ -11,7 +11,12 @@
       "Bash(gh repo:*)",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in {**d.get\\('scripts',{}\\), **{'devDeps': list\\(d.get\\('devDependencies',{}\\).keys\\(\\)\\)}}.items\\(\\)}, indent=2\\)\\)\")",
       "Bash(npm run:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(grep -n \"fecharVendaCliente\\\\|venda_fechada\" /e/Programas/sistema_comercial/src/features/*.js)",
+      "Bash(grep -E \"\\\\.js$\")",
+      "Bash(find /e/Programas/sistema_comercial -name \"*.json\" -path \"*/package.json\" -exec grep -l \"electron\" {} \\\\;)",
+      "Bash(grep -n \"no-unused-vars\\\\|unused\" e:/Programas/sistema_comercial/.eslintrc* e:/Programas/sistema_comercial/eslint.config*)",
+      "Bash(ls e:/Programas/sistema_comercial/eslint* e:/Programas/sistema_comercial/.eslint*)"
     ]
   }
 }
