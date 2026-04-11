@@ -524,14 +524,20 @@
         <div class="pg" id="pg-clientes">
           <div class="mg" id="cli-met"></div>
           <div class="tabs">
-            <button class="tb on" data-click="switchTab('cli','lista')">Lista</button>
-            <button class="tb" data-click="switchTab('cli','segs');renderCliSegs()">
+            <button class="tb on" id="cli-tab-lista" data-click="switchTab('cli','lista')">
+              Lista
+            </button>
+            <button
+              class="tb"
+              id="cli-tab-segs"
+              data-click="switchTab('cli','segs');renderCliSegs()"
+            >
               Segmentos
             </button>
           </div>
           <div class="tc on" id="cli-tc-lista">
             <div class="toolbar toolbar-shell">
-              <div class="toolbar-main">
+              <div class="toolbar-main" id="cli-legacy-controls">
                 <input
                   class="inp input-w-sm"
                   id="cli-busca"
@@ -548,8 +554,23 @@
                   <option>inativo</option>
                 </select>
               </div>
+              <div class="toolbar-main cli-react-modebar" id="cli-react-modebar" hidden>
+                <div class="cli-react-modebar__copy">
+                  <div class="cli-react-modebar__kicker">Piloto React ativo</div>
+                  <div class="cli-react-modebar__title" id="cli-react-modebar-title">
+                    Lista React em substituição controlada
+                  </div>
+                </div>
+                <div class="cli-react-modebar__chips" id="cli-react-indicators">
+                  <span class="bdg bb" id="cli-react-indicator-view">Lista</span>
+                  <span class="bdg bk" id="cli-react-indicator-status">Pronto</span>
+                  <span class="bdg bg" id="cli-react-indicator-count">0 clientes</span>
+                </div>
+              </div>
               <div class="toolbar-actions">
-                <button class="btn btn-sm" data-click="exportCSV('clientes')">Exportar CSV</button>
+                <button class="btn btn-sm" id="cli-export-btn" data-click="exportCSV('clientes')">
+                  Exportar CSV
+                </button>
                 <button
                   class="btn btn-gh btn-sm"
                   id="cli-react-toggle"
@@ -564,6 +585,19 @@
               <div class="card"><div id="cli-lista"></div></div>
             </div>
             <div class="card card-shell" id="cli-react-shell" hidden>
+              <div class="cli-react-shell__head">
+                <div>
+                  <div class="cli-react-shell__kicker">Clientes React</div>
+                  <div class="cli-react-shell__title" id="cli-react-shell-title">
+                    Lista em migração controlada
+                  </div>
+                </div>
+                <div class="cli-react-shell__chips">
+                  <span class="bdg bb" id="cli-react-shell-view">Lista</span>
+                  <span class="bdg bk" id="cli-react-shell-status">Pronto</span>
+                  <span class="bdg bg" id="cli-react-shell-count">0 clientes</span>
+                </div>
+              </div>
               <div id="cli-react-root"></div>
             </div>
           </div>

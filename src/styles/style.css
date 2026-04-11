@@ -7166,12 +7166,71 @@ textarea.inp:focus {
   min-height: 820px;
 }
 
+.cli-react-modebar {
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cli-react-modebar__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.cli-react-modebar__kicker,
+.cli-react-shell__kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tx3);
+}
+
+.cli-react-modebar__title,
+.cli-react-shell__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tx);
+}
+
+.cli-react-modebar__chips,
+.cli-react-shell__chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cli-react-shell__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
 .cli-react-frame {
   width: 100%;
   min-height: 780px;
   border: 0;
   border-radius: 18px;
   background: transparent;
+}
+
+@media (max-width: 760px) {
+  .cli-react-modebar,
+  .cli-react-shell__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cli-react-modebar__chips,
+  .cli-react-shell__chips {
+    justify-content: flex-start;
+  }
 }
 
 .cli-detail-tabs {
