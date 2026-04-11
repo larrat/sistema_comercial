@@ -77,7 +77,10 @@ import {
   limparFiltrosClienteReact,
   abrirListaClienteReact,
   editarClienteReactAtual,
-  exportarClientesReactCsv
+  exportarClientesReactCsv,
+  abrirResumoClienteReact,
+  abrirNotasClienteReact,
+  abrirFidelidadeClienteReact
 } from '../features/clientes-react-bridge.js';
 
 import {
@@ -96,6 +99,14 @@ import {
   removerPed,
   verPed
 } from '../features/pedidos.js';
+
+import {
+  renderContasReceberMet,
+  renderContasReceber,
+  switchCrTab,
+  marcarRecebido,
+  marcarPendente
+} from '../features/contas-receber.js';
 
 import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
 
@@ -744,8 +755,18 @@ registerApplicationModules({
     renderRelatorios,
     renderCliMet,
     renderClientes,
+    abrirNovoClienteReact,
+    limparFiltrosClienteReact,
+    abrirListaClienteReact,
+    editarClienteReactAtual,
+    exportarClientesReactCsv,
+    abrirResumoClienteReact,
+    abrirNotasClienteReact,
+    abrirFidelidadeClienteReact,
     renderPedMet,
     renderPedidos,
+    renderContasReceberMet,
+    renderContasReceber,
     renderCotForns,
     renderCotTabela,
     renderEstAlerts,
@@ -820,8 +841,16 @@ startApplicationRuntime({
         abrirListaClienteReact,
         editarClienteReactAtual,
         exportarClientesReactCsv,
+        abrirResumoClienteReact,
+        abrirNotasClienteReact,
+        abrirFidelidadeClienteReact,
         renderPedidos,
         switchPedTab,
+        renderContasReceberMet,
+        renderContasReceber,
+        switchCrTab,
+        marcarRecebido,
+        marcarPendente,
         renderCotForns,
         renderCotTabela,
         cotFile,

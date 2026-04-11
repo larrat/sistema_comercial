@@ -156,6 +156,9 @@ function getHandlerRegistry() {
       abrirListaClienteReact: deps.abrirListaClienteReact,
       editarClienteReactAtual: deps.editarClienteReactAtual,
       exportarClientesReactCsv: deps.exportarClientesReactCsv,
+      abrirResumoClienteReact: deps.abrirResumoClienteReact,
+      abrirNotasClienteReact: deps.abrirNotasClienteReact,
+      abrirFidelidadeClienteReact: deps.abrirFidelidadeClienteReact,
       renderMetasNegocio: deps.renderMetasNegocio,
       resetUxKpis: deps.resetUxKpis,
       executarAcaoGerencial: deps.executarAcaoGerencial
@@ -407,6 +410,9 @@ function runAction(action, el) {
     abrirListaClienteReact: () => deps.abrirListaClienteReact?.(),
     editarClienteReactAtual: () => deps.editarClienteReactAtual?.(),
     exportarClientesReactCsv: () => deps.exportarClientesReactCsv?.(),
+    abrirResumoClienteReact: () => deps.abrirResumoClienteReact?.(),
+    abrirNotasClienteReact: () => deps.abrirNotasClienteReact?.(),
+    abrirFidelidadeClienteReact: () => deps.abrirFidelidadeClienteReact?.(),
     abrirModalPedido: () => {
       deps.limparFormPedTracked();
       deps.abrirModal('modal-pedido');

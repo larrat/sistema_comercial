@@ -6,7 +6,7 @@ import { selectFilteredClientes, useClienteStore } from '../store/useClienteStor
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { ClienteListView } from './ClienteListView';
 import { ClienteForm } from './ClienteForm';
-import { ClienteDetailPanel } from './ClienteDetailPanel';
+import { ClienteDetailPanel, type DetailTab } from './ClienteDetailPanel';
 
 const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
@@ -17,6 +17,7 @@ export function ClientesPilotPage() {
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailTab, setDetailTab] = useState<DetailTab>('resumo');
   const { deleteClienteById, deletingId, error } = useClienteMutations();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -79,6 +80,7 @@ export function ClientesPilotPage() {
       if (data.type === 'clientes:novo') {
         setDetailId(null);
         setEditingId('new');
+        setDetailTab('resumo');
         return;
       }
 
@@ -90,17 +92,34 @@ export function ClientesPilotPage() {
       if (data.type === 'clientes:editar-atual' && detailId) {
         setEditingId(detailId);
         setDetailId(null);
+        setDetailTab('resumo');
         return;
       }
 
       if (data.type === 'clientes:abrir-lista') {
         setEditingId(null);
         setDetailId(null);
+        setDetailTab('resumo');
         return;
       }
 
       if (data.type === 'clientes:exportar-csv') {
         exportarCsvAtual();
+        return;
+      }
+
+      if (data.type === 'clientes:abrir-resumo') {
+        setDetailTab('resumo');
+        return;
+      }
+
+      if (data.type === 'clientes:abrir-notas') {
+        if (detailId) setDetailTab('notas');
+        return;
+      }
+
+      if (data.type === 'clientes:abrir-fidelidade') {
+        if (detailId) setDetailTab('fidelidade');
       }
     }
 
@@ -155,7 +174,8 @@ export function ClientesPilotPage() {
           count: clientes.length,
           filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length,
           selectedId: editingId === 'new' ? '' : editingId || detailId || '',
-          selectedName: editingCliente?.nome || detailCliente?.nome || ''
+          selectedName: editingCliente?.nome || detailCliente?.nome || '',
+          detailTab
         }
       },
       window.location.origin
@@ -170,7 +190,8 @@ export function ClientesPilotPage() {
     filtro.seg,
     filtro.status,
     editingCliente?.nome,
-    detailCliente?.nome
+    detailCliente?.nome,
+    detailTab
   ]);
 
   return (
@@ -189,14 +210,17 @@ export function ClientesPilotPage() {
         onNovoCliente={() => {
           setDetailId(null);
           setEditingId('new');
+          setDetailTab('resumo');
         }}
         onEditar={(id) => {
           setDetailId(null);
           setEditingId(id);
+          setDetailTab('resumo');
         }}
         onDetalhe={(id) => {
           setEditingId(null);
           setDetailId(id);
+          setDetailTab('resumo');
         }}
         onExcluir={handleExcluir}
       />
@@ -204,11 +228,17 @@ export function ClientesPilotPage() {
       {detailCliente && !editingId && (
         <ClienteDetailPanel
           cliente={detailCliente}
+          activeTab={detailTab}
+          onTabChange={setDetailTab}
           onEditar={(id) => {
             setDetailId(null);
             setEditingId(id);
+            setDetailTab('resumo');
           }}
-          onClose={() => setDetailId(null)}
+          onClose={() => {
+            setDetailId(null);
+            setDetailTab('resumo');
+          }}
         />
       )}
 
@@ -224,6 +254,7 @@ export function ClientesPilotPage() {
           onSaved={(cliente) => {
             setEditingId(null);
             setDetailId(cliente.id);
+            setDetailTab('resumo');
           }}
           onCancel={() => {
             setEditingId(null);

@@ -5,18 +5,29 @@ import { useClienteNotes } from '../hooks/useClienteNotes';
 import { ClienteContextSummary } from './ClienteContextSummary';
 import { ClienteFidelidadePanel } from './ClienteFidelidadePanel';
 
+export type DetailTab = 'resumo' | 'notas' | 'fidelidade';
+
 type Props = {
   cliente: Cliente;
   onEditar?: (id: string) => void;
   onClose?: () => void;
+  activeTab?: DetailTab;
+  onTabChange?: (tab: DetailTab) => void;
 };
 
-type DetailTab = 'resumo' | 'notas' | 'fidelidade';
-
-export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
-  const [tab, setTab] = useState<DetailTab>('resumo');
+export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTabChange }: Props) {
+  const [internalTab, setInternalTab] = useState<DetailTab>('resumo');
   const [notaDraft, setNotaDraft] = useState('');
   const { notas, loading, saving, error, submitNota } = useClienteNotes({ clienteId: cliente.id });
+  const tab = activeTab ?? internalTab;
+
+  function setTab(nextTab: DetailTab) {
+    if (onTabChange) {
+      onTabChange(nextTab);
+      return;
+    }
+    setInternalTab(nextTab);
+  }
 
   async function handleSubmitNota() {
     await submitNota(notaDraft);
@@ -29,6 +40,9 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose }: Props) {
         <div>
           <div className="table-cell-caption table-cell-muted">Detalhe do cliente</div>
           <h3 className="table-cell-strong">{cliente.nome}</h3>
+          <div className="table-cell-caption table-cell-muted">
+            {cliente.seg || 'Sem segmento'} • {cliente.cidade || 'Cidade não informada'}
+          </div>
         </div>
         <div className="mobile-card-actions">
           {onEditar && (

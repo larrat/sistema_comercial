@@ -11,6 +11,17 @@ function buildContato(cliente: Cliente): string {
   return 'Sem contato principal';
 }
 
+function buildRelacionamento(cliente: Cliente): string {
+  const canais = [
+    cliente.optin_marketing && (cliente.whatsapp || cliente.tel) ? 'WhatsApp' : '',
+    cliente.optin_email && cliente.email ? 'E-mail' : '',
+    cliente.optin_sms && cliente.tel ? 'SMS' : ''
+  ].filter(Boolean);
+
+  if (canais.length) return `Canais prontos: ${canais.join(', ')}`;
+  return 'Sem canais de relacionamento prontos';
+}
+
 export function ClienteContextSummary({ cliente }: Props) {
   return (
     <div className="card-shell form-gap-bottom-xs" data-testid="cliente-context-summary">
@@ -33,6 +44,24 @@ export function ClienteContextSummary({ cliente }: Props) {
             Segmento: {cliente.seg || 'Sem segmento'}
             <br />
             Prazo: {cliente.prazo || 'a_vista'}
+            <br />
+            RCA: {cliente.rca_nome || 'Sem RCA'}
+          </p>
+        </div>
+        <div className="empty-inline">
+          <strong>Relacionamento</strong>
+          <p>
+            {buildRelacionamento(cliente)}
+            <br />
+            Tabela: {cliente.tab || 'padrao'}
+          </p>
+        </div>
+        <div className="empty-inline">
+          <strong>Cadastro</strong>
+          <p>
+            Cidade: {cliente.cidade || 'Nao informada'}
+            <br />
+            E-mail: {cliente.email || 'Nao informado'}
           </p>
         </div>
       </div>

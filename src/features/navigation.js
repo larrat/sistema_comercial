@@ -3,6 +3,10 @@
 import { D, State } from '../app/store.js';
 import { norm, toast } from '../shared/utils.js';
 import { markInvalidation, markRender } from '../shared/render-metrics.js';
+import {
+  getClientesReactBridgeState,
+  isClientesReactPilotActive
+} from './clientes-react-bridge.js';
 
 /** @typedef {import('../types/domain').NavigationModuleDeps} NavigationModuleDeps */
 /** @typedef {import('../types/domain').NavigationPageMeta} NavigationPageMeta */
@@ -74,8 +78,18 @@ let deps = {
   renderProdutos: () => {},
   renderCliMet: () => {},
   renderClientes: () => {},
+  abrirNovoClienteReact: () => {},
+  limparFiltrosClienteReact: () => {},
+  abrirListaClienteReact: () => {},
+  editarClienteReactAtual: () => {},
+  exportarClientesReactCsv: () => {},
+  abrirResumoClienteReact: () => {},
+  abrirNotasClienteReact: () => {},
+  abrirFidelidadeClienteReact: () => {},
   renderPedMet: () => {},
   renderPedidos: () => {},
+  renderContasReceberMet: () => {},
+  renderContasReceber: () => {},
   renderFornSel: () => {},
   renderCotForns: () => {},
   renderCotLogs: () => {},
@@ -133,8 +147,9 @@ function getPageRenderers() {
     gerencial: [deps.renderMetasNegocio],
     relatorios: [deps.renderRelatorios],
     produtos: [deps.renderProdMet, deps.renderProdutos],
-    clientes: [deps.renderCliMet, deps.renderClientes],
+    clientes: isClientesReactPilotActive() ? [] : [deps.renderCliMet, deps.renderClientes],
     pedidos: [deps.renderPedMet, deps.renderPedidos],
+    receber: [deps.renderContasReceberMet, deps.renderContasReceber],
     cotacao: [deps.renderFornSel, deps.renderCotForns, deps.renderCotLogs, deps.renderCotTabela],
     estoque: [deps.renderEstAlerts, deps.renderEstPosicao, deps.renderEstHist],
     campanhas: [
@@ -277,6 +292,14 @@ const PAGE_META = {
     },
     tertiary: { label: 'Ir estoque', run: () => ir('estoque') }
   },
+  receber: {
+    kicker: 'Financeiro',
+    title: 'A Receber',
+    sub: 'Contas a receber e recebimentos',
+    primary: { label: 'Ir pedidos', run: () => ir('pedidos') },
+    secondary: null,
+    tertiary: null
+  },
   cotacao: {
     kicker: 'Compras',
     title: 'Cotação',
@@ -386,9 +409,47 @@ export function getContextualPageMeta(page) {
 
   if (page === 'clientes') {
     const segTabAtiva = !!document.getElementById('cli-tc-segs')?.classList.contains('on');
-    meta.tertiary = segTabAtiva
-      ? { label: 'Voltar lista', run: () => switchTab('cli', 'lista') }
-      : { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') };
+    const reactState = getClientesReactBridgeState();
+    const reactAtivo = isClientesReactPilotActive();
+
+    if (reactAtivo) {
+      meta.primary = { label: 'Novo cliente', run: () => deps.abrirNovoClienteReact() };
+
+      if (reactState.view === 'detail') {
+        meta.secondary = {
+          label: reactState.detailTab === 'fidelidade' ? 'Abrir notas' : 'Abrir fidelidade',
+          run: () =>
+            reactState.detailTab === 'fidelidade'
+              ? deps.abrirNotasClienteReact()
+              : deps.abrirFidelidadeClienteReact()
+        };
+        meta.tertiary = { label: 'Voltar lista', run: () => deps.abrirListaClienteReact() };
+      } else if (reactState.view === 'form') {
+        meta.secondary = {
+          label: 'Voltar lista',
+          run: () => deps.abrirListaClienteReact()
+        };
+        meta.tertiary = {
+          label: 'Exportar CSV',
+          run: () => deps.exportarClientesReactCsv(),
+          roles: deps.roleManagerPlus
+        };
+      } else {
+        meta.secondary = {
+          label: 'Exportar CSV',
+          run: () => deps.exportarClientesReactCsv(),
+          roles: deps.roleManagerPlus
+        };
+        meta.tertiary =
+          reactState.filtersActive > 0
+            ? { label: 'Limpar filtros', run: () => deps.limparFiltrosClienteReact() }
+            : null;
+      }
+    } else {
+      meta.tertiary = segTabAtiva
+        ? { label: 'Voltar lista', run: () => switchTab('cli', 'lista') }
+        : { label: 'Ver segmentos', run: () => switchTab('cli', 'segs') };
+    }
   }
 
   if (page === 'campanhas') {

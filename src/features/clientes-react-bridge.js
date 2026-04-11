@@ -12,7 +12,8 @@ const DEFAULT_BRIDGE_STATE = {
   count: 0,
   filtersActive: 0,
   selectedId: '',
-  selectedName: ''
+  selectedName: '',
+  detailTab: 'resumo'
 };
 
 /** @type {{ mount?: (el: HTMLElement) => void | Promise<void>, unmount?: () => void } | null} */
@@ -200,7 +201,8 @@ function syncBridgeState(state) {
     count: Number(nextState.count ?? 0) || 0,
     filtersActive: Number(nextState.filtersActive ?? 0) || 0,
     selectedId: String(nextState.selectedId || ''),
-    selectedName: String(nextState.selectedName || '')
+    selectedName: String(nextState.selectedName || ''),
+    detailTab: String(nextState.detailTab || 'resumo')
   };
 
   if (reactShell) {
@@ -231,6 +233,27 @@ function syncBridgeState(state) {
   if (editCurrentButton) {
     editCurrentButton.hidden =
       currentBridgeState.view !== 'detail' || !currentBridgeState.selectedId;
+  }
+
+  const resumoButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-open-resumo')
+  );
+  const notasButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-open-notas')
+  );
+  const fidelidadeButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-open-fidelidade')
+  );
+  const detailOpen = currentBridgeState.view === 'detail';
+
+  if (resumoButton) {
+    resumoButton.hidden = !detailOpen || currentBridgeState.detailTab === 'resumo';
+  }
+  if (notasButton) {
+    notasButton.hidden = !detailOpen || currentBridgeState.detailTab === 'notas';
+  }
+  if (fidelidadeButton) {
+    fidelidadeButton.hidden = !detailOpen || currentBridgeState.detailTab === 'fidelidade';
   }
 
   updateBridgeIndicators();
@@ -330,6 +353,14 @@ export function shouldRenderLegacyClientes() {
   return !isReactModeActive();
 }
 
+export function isClientesReactPilotActive() {
+  return isReactModeActive();
+}
+
+export function getClientesReactBridgeState() {
+  return { ...currentBridgeState };
+}
+
 export function syncClientesReactBridge() {
   void applyMode();
 }
@@ -358,6 +389,18 @@ export function editarClienteReactAtual() {
 
 export function exportarClientesReactCsv() {
   postToReactFrame('clientes:exportar-csv');
+}
+
+export function abrirResumoClienteReact() {
+  postToReactFrame('clientes:abrir-resumo');
+}
+
+export function abrirNotasClienteReact() {
+  postToReactFrame('clientes:abrir-notas');
+}
+
+export function abrirFidelidadeClienteReact() {
+  postToReactFrame('clientes:abrir-fidelidade');
 }
 
 function createClientesIframeBridge() {

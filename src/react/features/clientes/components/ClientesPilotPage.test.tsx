@@ -268,6 +268,24 @@ describe('ClientesPilotPage', () => {
     expect(screen.getByTestId('form-nome')).toHaveValue('Maria Souza');
   });
 
+  it('troca para fidelidade quando recebe comando do shell legado no detalhe', async () => {
+    setEmbeddedParent();
+    render(<ClientesPilotPage />);
+
+    await userEvent.click(screen.getByText('Detalhes'));
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fidelidade' }
+        })
+      );
+    });
+
+    expect(await screen.findByTestId('cliente-detail-fidelidade')).toBeInTheDocument();
+  });
+
   it('exporta csv filtrado quando recebe comando do shell legado', async () => {
     setEmbeddedParent();
     const createObjectURLMock = vi
