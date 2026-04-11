@@ -89,3 +89,11 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Primeira ponte preparada entre `pg-clientes` legado e shell React
 - [x] Bridge React real registrada para montar o piloto no `cli-react-root`
 - [ ] Falta aplicar branch protection no GitHub
+
+### 2026-04-11
+
+- [x] Incidente de `typecheck:strict` no adapter React de `clientes` identificado e resolvido
+- [x] Incidente de `pilot-clientes-coverage` no CI identificado e resolvido com ajuste de escopo e thresholds por fase
+- [x] Falhas intermediarias de `format:check` no shell React e componentes do piloto corrigidas antes da estabilizacao final
+- [x] Shell legado passou a espelhar acoes reais do piloto React de `clientes`
+- [x] Renderizacao do legado foi reduzida adicionalmente quando `Clientes React` esta ativo

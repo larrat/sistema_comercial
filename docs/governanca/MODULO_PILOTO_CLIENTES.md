@@ -59,3 +59,15 @@ Isso torna `clientes` o melhor modulo para validar a arquitetura alvo sem precis
 - a primeira subarea de fidelidade ja carrega saldo, historico e lancamento manual no piloto
 - o shell da navegacao real de clientes ja esta preparado para receber o piloto React por bridge
 - o toggle `Piloto React` ja pode montar o piloto de clientes no shell real
+
+## Registro curto de incidentes resolvidos do CI
+
+- `typecheck:strict` falhou durante a extracao do adapter React de `clientes` por incompatibilidade entre o retorno do payload de criacao e o tipo `Cliente`; corrigido alinhando o contrato do adapter ao retorno real do backend.
+- `pilot-clientes-coverage` falhou quando o CI passou a medir arquivos fora do runtime efetivo do piloto e com thresholds acima da fase atual; corrigido ajustando o escopo do coverage e os thresholds para a etapa do modulo piloto.
+- `format:check` falhou em algumas entregas intermediarias do shell React e dos componentes de `clientes`; corrigido consolidando Prettier como gate real antes dos pushes seguintes.
+
+## Aprendizados aplicados
+
+- o piloto precisa manter escopo de coverage coerente com os arquivos realmente executados em runtime
+- contracts do adapter React devem refletir o retorno real do backend antes de serem promovidos a gate strict
+- componentes novos do piloto devem entrar com testes e formatacao no mesmo corte para evitar retrabalho no CI
