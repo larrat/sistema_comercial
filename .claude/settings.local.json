@@ -16,7 +16,9 @@
       "Bash(grep -E \"\\\\.js$\")",
       "Bash(find /e/Programas/sistema_comercial -name \"*.json\" -path \"*/package.json\" -exec grep -l \"electron\" {} \\\\;)",
       "Bash(grep -n \"no-unused-vars\\\\|unused\" e:/Programas/sistema_comercial/.eslintrc* e:/Programas/sistema_comercial/eslint.config*)",
-      "Bash(ls e:/Programas/sistema_comercial/eslint* e:/Programas/sistema_comercial/.eslint*)"
+      "Bash(ls e:/Programas/sistema_comercial/eslint* e:/Programas/sistema_comercial/.eslint*)",
+      "Bash(ls e:/Programas/sistema_comercial/src/*.css)",
+      "Bash(ls e:/Programas/sistema_comercial/*.css)"
     ]
   }
 }
