@@ -10,7 +10,9 @@ const DEFAULT_BRIDGE_STATE = {
   view: 'list',
   status: 'ready',
   count: 0,
-  filtersActive: 0
+  filtersActive: 0,
+  selectedId: '',
+  selectedName: ''
 };
 
 /** @type {{ mount?: (el: HTMLElement) => void | Promise<void>, unmount?: () => void } | null} */
@@ -84,6 +86,10 @@ function isClientesPageActive() {
   return getClientesPage()?.classList.contains('on') || false;
 }
 
+function isReactModeActive() {
+  return !!(bridge?.mount && getMode() === MODE_REACT && isClientesPageActive());
+}
+
 function updateFrameHeight(nextHeight) {
   const frame = getFrame();
   if (!frame) return;
@@ -108,8 +114,7 @@ function toStatusTone(status) {
 
 function toFiltersLabel(filtersActive) {
   const count = Number(filtersActive || 0);
-  if (!count) return 'Sem filtros';
-  return `${count} filtro${count === 1 ? '' : 's'}`;
+  return count > 0 ? `${count} filtro${count === 1 ? '' : 's'}` : 'Sem filtros';
 }
 
 function toFiltersTone(filtersActive) {
@@ -161,22 +166,28 @@ function updateBridgeIndicators() {
 
   const modebarTitle = document.getElementById('cli-react-modebar-title');
   if (modebarTitle) {
-    modebarTitle.textContent =
+    const baseTitle =
       currentBridgeState.view === 'form'
         ? 'Formulario React no fluxo principal'
         : currentBridgeState.view === 'detail'
           ? 'Detalhe React aberto no piloto'
-          : 'Lista React em substituição controlada';
+          : 'Lista React em substituicao controlada';
+    modebarTitle.textContent = currentBridgeState.selectedName
+      ? `${baseTitle} - ${currentBridgeState.selectedName}`
+      : baseTitle;
   }
 
   const shellTitle = document.getElementById('cli-react-shell-title');
   if (shellTitle) {
-    shellTitle.textContent =
+    const baseTitle =
       currentBridgeState.view === 'form'
         ? 'Edicao e cadastro rodando no piloto'
         : currentBridgeState.view === 'detail'
           ? 'Detalhe do cliente em foco'
           : 'Lista em migracao controlada';
+    shellTitle.textContent = currentBridgeState.selectedName
+      ? `${baseTitle} - ${currentBridgeState.selectedName}`
+      : baseTitle;
   }
 }
 
@@ -187,7 +198,9 @@ function syncBridgeState(state) {
     view: String(nextState.view || 'list'),
     status: String(nextState.status || 'ready'),
     count: Number(nextState.count ?? 0) || 0,
-    filtersActive: Number(nextState.filtersActive ?? 0) || 0
+    filtersActive: Number(nextState.filtersActive ?? 0) || 0,
+    selectedId: String(nextState.selectedId || ''),
+    selectedName: String(nextState.selectedName || '')
   };
 
   if (reactShell) {
@@ -195,6 +208,7 @@ function syncBridgeState(state) {
     reactShell.dataset.reactStatus = currentBridgeState.status;
     reactShell.dataset.reactCount = String(currentBridgeState.count);
     reactShell.dataset.reactFiltersActive = String(currentBridgeState.filtersActive);
+    reactShell.dataset.reactSelectedId = currentBridgeState.selectedId;
   }
 
   const clearFiltersButton = /** @type {HTMLButtonElement | null} */ (
@@ -204,11 +218,22 @@ function syncBridgeState(state) {
     clearFiltersButton.hidden = currentBridgeState.filtersActive <= 0;
   }
 
-  updateBridgeIndicators();
-}
+  const backToListButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-back-list')
+  );
+  if (backToListButton) {
+    backToListButton.hidden = currentBridgeState.view === 'list';
+  }
 
-function isReactModeActive() {
-  return !!(bridge?.mount && getMode() === MODE_REACT && isClientesPageActive());
+  const editCurrentButton = /** @type {HTMLButtonElement | null} */ (
+    document.getElementById('cli-react-edit-current')
+  );
+  if (editCurrentButton) {
+    editCurrentButton.hidden =
+      currentBridgeState.view !== 'detail' || !currentBridgeState.selectedId;
+  }
+
+  updateBridgeIndicators();
 }
 
 function postToReactFrame(type, payload = {}) {
@@ -230,15 +255,10 @@ function postToReactFrame(type, payload = {}) {
 }
 
 function forceClientesListTab() {
-  const listaTab = getListaTab();
-  const segTab = getSegmentosTab();
-  const listaPanel = getListaPanel();
-  const segPanel = getSegmentosPanel();
-
-  listaTab?.classList.add('on');
-  segTab?.classList.remove('on');
-  listaPanel?.classList.add('on');
-  segPanel?.classList.remove('on');
+  getListaTab()?.classList.add('on');
+  getSegmentosTab()?.classList.remove('on');
+  getListaPanel()?.classList.add('on');
+  getSegmentosPanel()?.classList.remove('on');
 }
 
 function syncShellModeUi(reactActive) {
@@ -252,9 +272,7 @@ function syncShellModeUi(reactActive) {
   if (exportButton) exportButton.hidden = !!reactActive;
   if (segTab) segTab.hidden = !!reactActive;
 
-  if (reactActive) {
-    forceClientesListTab();
-  }
+  if (reactActive) forceClientesListTab();
 }
 
 function updateToggle() {
@@ -278,7 +296,7 @@ async function applyMode() {
 
   if (legacyShell) legacyShell.hidden = !!reactActive;
   if (reactShell) reactShell.hidden = !reactActive;
-  syncShellModeUi(!!reactActive);
+  syncShellModeUi(reactActive);
 
   if (!reactActive) {
     if (mounted && bridge?.unmount) bridge.unmount();
@@ -309,7 +327,7 @@ export function registerClientesReactBridge(nextBridge) {
 }
 
 export function shouldRenderLegacyClientes() {
-  return !(bridge?.mount && getMode() === MODE_REACT && isClientesPageActive());
+  return !isReactModeActive();
 }
 
 export function syncClientesReactBridge() {
@@ -328,6 +346,18 @@ export function abrirNovoClienteReact() {
 
 export function limparFiltrosClienteReact() {
   postToReactFrame('clientes:limpar-filtros');
+}
+
+export function abrirListaClienteReact() {
+  postToReactFrame('clientes:abrir-lista');
+}
+
+export function editarClienteReactAtual() {
+  postToReactFrame('clientes:editar-atual');
+}
+
+export function exportarClientesReactCsv() {
+  postToReactFrame('clientes:exportar-csv');
 }
 
 function createClientesIframeBridge() {

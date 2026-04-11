@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import type { Cliente } from '../../../../types/domain';
-import { useClienteStore } from '../store/useClienteStore';
+import { selectFilteredClientes, useClienteStore } from '../store/useClienteStore';
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { ClienteListView } from './ClienteListView';
 import { ClienteForm } from './ClienteForm';
@@ -28,6 +28,7 @@ export function ClientesPilotPage() {
     () => clientes.find((cliente) => cliente.id === detailId) ?? null,
     [clientes, detailId]
   );
+  const filteredClientes = useClienteStore(useShallow(selectFilteredClientes));
 
   async function handleExcluir(id: string) {
     await deleteClienteById(id);
@@ -37,6 +38,33 @@ export function ClientesPilotPage() {
     if (detailId === id) {
       setDetailId(null);
     }
+  }
+
+  function exportarCsvAtual() {
+    const rows = [
+      ['Nome', 'E-mail', 'Telefone', 'WhatsApp', 'Segmento', 'Status', 'Cidade', 'RCA'],
+      ...filteredClientes.map((cliente) => [
+        cliente.nome || '',
+        cliente.email || '',
+        cliente.tel || '',
+        cliente.whatsapp || '',
+        cliente.seg || '',
+        cliente.status || '',
+        cliente.cidade || '',
+        cliente.rca_nome || ''
+      ])
+    ];
+
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const anchor = document.createElement('a');
+    anchor.href = URL.createObjectURL(blob);
+    anchor.download = 'clientes-react.csv';
+    anchor.click();
+    URL.revokeObjectURL(anchor.href);
   }
 
   useEffect(() => {
@@ -59,9 +87,20 @@ export function ClientesPilotPage() {
         return;
       }
 
+      if (data.type === 'clientes:editar-atual' && detailId) {
+        setEditingId(detailId);
+        setDetailId(null);
+        return;
+      }
+
       if (data.type === 'clientes:abrir-lista') {
         setEditingId(null);
         setDetailId(null);
+        return;
+      }
+
+      if (data.type === 'clientes:exportar-csv') {
+        exportarCsvAtual();
       }
     }
 
@@ -69,7 +108,7 @@ export function ClientesPilotPage() {
     return () => {
       window.removeEventListener('message', handleParentCommand);
     };
-  }, [clearFiltro]);
+  }, [clearFiltro, detailId, filteredClientes]);
 
   useEffect(() => {
     if (window.parent === window) return;
@@ -114,7 +153,9 @@ export function ClientesPilotPage() {
           view: editingId ? 'form' : detailId ? 'detail' : 'list',
           status: deletingId ? 'deleting' : error ? 'error' : 'ready',
           count: clientes.length,
-          filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length
+          filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length,
+          selectedId: editingId === 'new' ? '' : editingId || detailId || '',
+          selectedName: editingCliente?.nome || detailCliente?.nome || ''
         }
       },
       window.location.origin
@@ -127,7 +168,9 @@ export function ClientesPilotPage() {
     error,
     filtro.q,
     filtro.seg,
-    filtro.status
+    filtro.status,
+    editingCliente?.nome,
+    detailCliente?.nome
   ]);
 
   return (

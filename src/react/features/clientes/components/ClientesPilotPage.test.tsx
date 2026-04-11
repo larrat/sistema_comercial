@@ -248,6 +248,57 @@ describe('ClientesPilotPage', () => {
       expect(screen.queryByTestId('limpar-filtro')).not.toBeInTheDocument();
     });
   });
+
+  it('abre edicao do cliente atual quando recebe comando do shell legado', async () => {
+    setEmbeddedParent();
+    render(<ClientesPilotPage />);
+
+    await userEvent.click(screen.getByText('Detalhes'));
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:editar-atual' }
+        })
+      );
+    });
+
+    expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
+    expect(screen.getByTestId('form-nome')).toHaveValue('Maria Souza');
+  });
+
+  it('exporta csv filtrado quando recebe comando do shell legado', async () => {
+    setEmbeddedParent();
+    const createObjectURLMock = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValue('blob:clientes-react');
+    const revokeObjectURLMock = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickMock = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      useClienteStore.getState().setFiltro({ q: 'maria' });
+    });
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:exportar-csv' }
+        })
+      );
+    });
+
+    expect(createObjectURLMock).toHaveBeenCalledOnce();
+    expect(clickMock).toHaveBeenCalledOnce();
+    expect(revokeObjectURLMock).toHaveBeenCalledWith('blob:clientes-react');
+
+    createObjectURLMock.mockRestore();
+    revokeObjectURLMock.mockRestore();
+    clickMock.mockRestore();
+  });
 });
 
 afterEach(() => {

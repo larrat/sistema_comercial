@@ -1005,6 +1005,8 @@ export function renderCliSegs() {
   return measureRender(
     'clientes',
     () => {
+      syncClientesReactBridge();
+      if (!shouldRenderLegacyClientes()) return;
       const el = cliDom.get('cli-segs-lista');
       if (!el) return;
 
