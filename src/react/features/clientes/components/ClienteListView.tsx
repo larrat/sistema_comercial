@@ -6,9 +6,10 @@ import { ClienteCard } from './ClienteCard';
 
 type ToolbarProps = {
   onNovoCliente?: () => void;
+  onExportar?: () => void;
 };
 
-function ClienteToolbar({ onNovoCliente }: ToolbarProps) {
+function ClienteToolbar({ onNovoCliente, onExportar }: ToolbarProps) {
   const filtro = useClienteStore((s) => s.filtro);
   const setFiltro = useClienteStore((s) => s.setFiltro);
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
@@ -59,6 +60,12 @@ function ClienteToolbar({ onNovoCliente }: ToolbarProps) {
       {temFiltro && (
         <button className="btn btn-sm" onClick={clearFiltro} data-testid="limpar-filtro">
           Limpar filtros
+        </button>
+      )}
+
+      {onExportar && (
+        <button className="btn btn-sm" onClick={onExportar} data-testid="export-btn">
+          Exportar CSV
         </button>
       )}
 
@@ -128,9 +135,16 @@ type Props = {
   onDetalhe?: (id: string) => void;
   onEditar?: (id: string) => void;
   onExcluir?: (id: string) => void;
+  onExportar?: () => void;
 };
 
-export function ClienteListView({ onNovoCliente, onDetalhe, onEditar, onExcluir }: Props) {
+export function ClienteListView({
+  onNovoCliente,
+  onDetalhe,
+  onEditar,
+  onExcluir,
+  onExportar
+}: Props) {
   const status = useClienteStore((s) => s.status);
   const error = useClienteStore((s) => s.error);
   const clientes = useClienteStore(useShallow((s) => s.clientes));
@@ -149,7 +163,9 @@ export function ClienteListView({ onNovoCliente, onDetalhe, onEditar, onExcluir 
 
       {status === 'ready' && <ClienteMetrics />}
 
-      {status === 'ready' && <ClienteToolbar onNovoCliente={onNovoCliente} />}
+      {status === 'ready' && (
+        <ClienteToolbar onNovoCliente={onNovoCliente} onExportar={onExportar} />
+      )}
 
       {status === 'loading' && <ClienteListSkeleton />}
 

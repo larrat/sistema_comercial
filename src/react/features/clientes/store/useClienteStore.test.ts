@@ -137,6 +137,14 @@ describe('selectFilteredClientes', () => {
     const state = useClienteStore.getState();
     expect(selectFilteredClientes(state)).toHaveLength(2);
   });
+
+  it('filtra por "Sem segmento" quando nao ha segmento', () => {
+    const clientes: Cliente[] = [...CLIENTES, { id: '4', nome: 'Sem Seg', status: 'ativo' }];
+    useClienteStore.setState({ clientes, filtro: { seg: 'Sem segmento' } });
+    const state = useClienteStore.getState();
+    expect(selectFilteredClientes(state)).toHaveLength(1);
+    expect(selectFilteredClientes(state)[0]?.id).toBe('4');
+  });
 });
 
 describe('selectSegmentos', () => {

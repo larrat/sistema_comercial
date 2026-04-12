@@ -80,6 +80,18 @@ describe('ClienteListView', () => {
     expect(screen.getAllByTestId('cliente-card')).toHaveLength(2);
   });
 
+  it('filtra por "Sem segmento"', async () => {
+    act(() =>
+      useClienteStore
+        .getState()
+        .setClientes([...CLIENTES, { id: '4', nome: 'Sem Seg', status: 'ativo' }])
+    );
+    render(<ClienteListView />);
+    await userEvent.selectOptions(screen.getByTestId('seg-select'), 'Sem segmento');
+    expect(screen.getAllByTestId('cliente-card')).toHaveLength(1);
+    expect(screen.getByText('Sem Seg')).toBeInTheDocument();
+  });
+
   it('filtra por status', async () => {
     carregarClientes();
     render(<ClienteListView />);
@@ -118,6 +130,14 @@ describe('ClienteListView', () => {
     render(<ClienteListView onNovoCliente={onNovo} />);
     await userEvent.click(screen.getByTestId('novo-btn'));
     expect(onNovo).toHaveBeenCalledOnce();
+  });
+
+  it('chama onExportar ao clicar no botÃ£o', async () => {
+    carregarClientes();
+    const onExportar = vi.fn();
+    render(<ClienteListView onExportar={onExportar} />);
+    await userEvent.click(screen.getByTestId('export-btn'));
+    expect(onExportar).toHaveBeenCalledOnce();
   });
 
   it('propaga onDetalhe ao ClienteCard', async () => {

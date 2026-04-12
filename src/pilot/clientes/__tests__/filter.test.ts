@@ -43,6 +43,13 @@ describe('filterClientes', () => {
     expect(result).toHaveLength(2);
   });
 
+  it('filtra por "Sem segmento" quando cliente nao possui segmento', () => {
+    const clientes: Cliente[] = [...base, { id: '4', nome: 'Sem Seg', status: 'ativo', seg: '' }];
+    const result = filterClientes(clientes, { seg: 'Sem segmento' });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('4');
+  });
+
   it('filtra por status', () => {
     const result = filterClientes(base, { status: 'inativo' });
     expect(result).toHaveLength(1);

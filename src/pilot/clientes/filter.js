@@ -23,7 +23,8 @@ function parseTimes(value) {
 
 export function filterClientes(clientes, filtro) {
   const q = normTxt(filtro?.q);
-  const seg = filtro?.seg || '';
+  const seg = String(filtro?.seg || '').trim();
+  const segKey = normTxt(seg).replace(/[^a-z0-9]/g, '');
   const status = filtro?.status || '';
 
   return clientes.filter((cliente) => {
@@ -40,9 +41,11 @@ export function filterClientes(clientes, filtro) {
       .map(normTxt)
       .join(' ');
 
+    const clienteSeg = cliente.seg || 'Sem segmento';
+    const clienteSegKey = normTxt(clienteSeg).replace(/[^a-z0-9]/g, '');
     return (
       (!q || termos.includes(q)) &&
-      (!seg || cliente.seg === seg) &&
+      (!seg || clienteSegKey === segKey) &&
       (!status || cliente.status === status)
     );
   });

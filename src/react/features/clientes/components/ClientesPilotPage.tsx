@@ -222,6 +222,7 @@ export function ClientesPilotPage() {
           setEditingId('new');
           setDetailTab('resumo');
         }}
+        onExportar={exportarCsvAtual}
         onEditar={(id) => {
           setDetailId(null);
           setEditingId(id);
