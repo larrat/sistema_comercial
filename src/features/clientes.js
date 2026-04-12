@@ -1,7 +1,7 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, C, invalidatePdCache } from '../app/store.js';
+import { D, State, invalidatePdCache } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import {
   abrirModal,
@@ -18,6 +18,14 @@ import { MSG, SEVERITY } from '../shared/messages.js';
 import { renderPedMet, renderPedidos } from './pedidos.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 import { buildSkeletonLines } from './runtime-loading.js';
+import {
+  deleteClienteRemote,
+  getClienteById,
+  getClientes,
+  removeClienteLocal,
+  upsertClienteLocal,
+  upsertClienteRemote
+} from './clientes/repository.js';
 import {
   getContatoInfo,
   normalizeDoc,
@@ -215,7 +223,10 @@ function findClienteDuplicadoIdentidade({
   whatsapp = '',
   editId = null
 } = {}) {
-  const conflict = checkClienteIdentity({ id: editId, nome: '', doc, email, tel, whatsapp }, C());
+  const conflict = checkClienteIdentity(
+    { id: editId, nome: '', doc, email, tel, whatsapp },
+    getClientes()
+  );
   if (!conflict) return null;
   return {
     key: conflict.field,
@@ -301,7 +312,7 @@ function getClienteDuplicidadeSignals(cliente) {
     .filter((check) => check.value)
     .map((check) => {
       const duplicado =
-        C().find((item) => {
+        getClientes().find((item) => {
           if (!item || item.id === cliente?.id) return false;
           if (check.label === 'telefone' || check.label === 'WhatsApp') {
             return [normalizePhone(item.tel), normalizePhone(item.whatsapp)]
@@ -461,7 +472,7 @@ function getFilteredClientes() {
   const q = cliDom.get('cli-busca')?.value || '';
   const seg = cliDom.get('cli-fil-seg')?.value || '';
   const status = cliDom.get('cli-fil-st')?.value || '';
-  const clientes = C();
+  const clientes = getClientes();
 
   if (
     clientesFilterCache &&
@@ -481,7 +492,7 @@ function getFilteredClientes() {
 }
 
 function getClienteSegmentos() {
-  const clientes = C();
+  const clientes = getClientes();
   if (
     clientesSegCache &&
     clientesSegCache.ref === clientes &&
@@ -497,7 +508,7 @@ function getClienteSegmentos() {
 }
 
 function renderEstadoVazio() {
-  const texto = C().length
+  const texto = getClientes().length
     ? 'Nenhum cliente encontrado com os filtros atuais.'
     : 'Clique em "Novo cliente" para cadastrar o primeiro.';
 
@@ -772,7 +783,7 @@ export function renderCliMet() {
     'clientes',
     () => {
       if (!shouldRenderLegacyClientes()) return;
-      const clientes = C();
+      const clientes = getClientes();
       if (isRuntimeBootstrapping() && !clientes.length) {
         cliDom.html(
           'metrics',
@@ -829,7 +840,7 @@ export function renderClientes() {
       syncClientesReactBridge();
       if (!shouldRenderLegacyClientes()) return;
       const filtrados = getFilteredClientes();
-      if (isRuntimeBootstrapping() && !C().length) {
+      if (isRuntimeBootstrapping() && !getClientes().length) {
         cliDom.html(
           'list',
           'cli-lista',
@@ -899,7 +910,9 @@ export function renderCliSegs() {
         'cli-segs-lista',
         segmentos
           .map((seg) => {
-            const clientes = C().filter((cliente) => (cliente.seg || 'Sem segmento') === seg);
+            const clientes = getClientes().filter(
+              (cliente) => (cliente.seg || 'Sem segmento') === seg
+            );
 
             return `
         <div class="card">
@@ -1097,7 +1110,7 @@ export async function abrirCliDet(id) {
   syncClientesReactBridge();
   if (!shouldRenderLegacyClientes()) return;
 
-  const cliente = C().find((item) => item.id === id);
+  const cliente = getClienteById(id);
   if (!cliente) return;
 
   const cor = avc(cliente.nome);
@@ -1238,7 +1251,7 @@ export async function abrirCliDet(id) {
  * @param {string} clienteId
  */
 export async function fecharVendaCliente(pedidoId, clienteId) {
-  const cliente = C().find((item) => item.id === clienteId);
+  const cliente = getClienteById(clienteId);
   const pedido = (D.pedidos?.[State.FIL] || []).find((item) => item.id === pedidoId);
   if (!cliente || !pedido) return;
   if (!isPedidoFechavel(pedido)) {
@@ -1323,7 +1336,7 @@ export function limparFormCli() {
 
 export function editarCli(id) {
   if (!shouldRenderLegacyClientes()) return;
-  const cliente = C().find((item) => item.id === id);
+  const cliente = getClienteById(id);
   if (!cliente) return;
 
   State.editIds.cli = id;
@@ -1417,7 +1430,7 @@ export async function salvarCliente() {
   }
 
   try {
-    await SB.upsertCliente(cliente);
+    await upsertClienteRemote(cliente);
   } catch (error) {
     if (handleClienteDuplicadoError(error, clienteDuplicado)) {
       return;
@@ -1429,13 +1442,7 @@ export async function salvarCliente() {
     return;
   }
 
-  if (!D.clientes[State.FIL]) D.clientes[State.FIL] = [];
-
-  if (editId) {
-    D.clientes[State.FIL] = C().map((item) => (item.id === editId ? cliente : item));
-  } else {
-    D.clientes[State.FIL].push(cliente);
-  }
+  upsertClienteLocal(cliente, editId);
 
   fecharModal('modal-cliente');
   renderCliMet();
@@ -1463,13 +1470,13 @@ export async function removerCli(id) {
   if (!confirm('Remover cliente?')) return;
 
   try {
-    await SB.deleteCliente(id);
+    await deleteClienteRemote(id);
   } catch (error) {
     toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
     return;
   }
 
-  D.clientes[State.FIL] = C().filter((cliente) => cliente.id !== id);
+  removeClienteLocal(id);
 
   renderCliMet();
   renderClientes();
@@ -1486,7 +1493,7 @@ export function refreshCliDL() {
   cliDom.html(
     'selectors',
     'cli-dl',
-    C()
+    getClientes()
       .map((cliente) => `<option value="${esc(cliente.nome)}">`)
       .join(''),
     'clientes:datalist'
