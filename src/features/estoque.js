@@ -3,7 +3,15 @@
 import { SB } from '../app/api.js';
 import { D, State, P, MOVS } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
-import { abrirModal, fecharModal, fmt, fmtN, fmtQ, toast } from '../shared/utils.js';
+import {
+  abrirModal,
+  fecharModal,
+  fmt,
+  fmtN,
+  fmtQ,
+  toast,
+  setButtonLoading
+} from '../shared/utils.js';
 
 /** @typedef {import('../types/domain').MovimentoEstoque} MovimentoEstoque */
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
@@ -516,10 +524,14 @@ export function renderEstHist() {
 export async function excluirMov(id) {
   if (!confirm('Excluir movimentação?')) return;
 
+  const btn = document.querySelector(`[data-click="excluirMov('${id}')"]`);
+  setButtonLoading(btn, true, 'Excluir');
+
   try {
     await SB.deleteMov(id);
   } catch (e) {
     toast('Erro: ' + e.message);
+    setButtonLoading(btn, false, 'Excluir');
     return;
   }
 
@@ -528,6 +540,8 @@ export async function excluirMov(id) {
   renderEstPosicao();
   renderEstHist();
   renderEstAlerts();
+
+  setButtonLoading(btn, false, 'Excluir');
 }
 
 export function refreshMovSel() {
@@ -816,10 +830,14 @@ export async function salvarMov() {
     }
   }
 
+  const saveBtn = document.getElementById('mov-save-btn');
+  setButtonLoading(saveBtn, true, 'Confirmar');
+
   try {
     await SB.insertMov(mov);
   } catch (e) {
     toast('Erro: ' + e.message);
+    setButtonLoading(saveBtn, false, 'Confirmar');
     return;
   }
 
@@ -831,5 +849,6 @@ export async function salvarMov() {
   renderEstAlerts();
   renderEstHist();
 
+  setButtonLoading(saveBtn, false, 'Confirmar');
   toast('Movimentação registrada!');
 }

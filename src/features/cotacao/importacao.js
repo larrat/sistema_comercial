@@ -5,7 +5,15 @@
 
 import { SB } from '../../app/api.js';
 import { D, State, P, FORNS, CPRECOS, CCFG } from '../../app/store.js';
-import { uid, norm, toast, abrirModal, fecharModal, chunkArray } from '../../shared/utils.js';
+import {
+  uid,
+  norm,
+  toast,
+  abrirModal,
+  fecharModal,
+  chunkArray,
+  setButtonLoading
+} from '../../shared/utils.js';
 import {
   detectarCabecalho,
   scoreSheet,
@@ -435,6 +443,8 @@ export async function confirmarMapa() {
     return;
   }
 
+  const confirmBtn = document.getElementById('map-confirm-btn');
+  setButtonLoading(confirmBtn, true, 'Confirmar importação');
   const forn = ctx.forn;
   const linhas = rows.slice(start);
 
@@ -659,6 +669,7 @@ export async function confirmarMapa() {
     });
     toast('Nenhum item válido encontrado para importar.');
     resetImportProgress();
+    setButtonLoading(confirmBtn, false, 'Confirmar importação');
     return;
   }
 
@@ -703,6 +714,7 @@ export async function confirmarMapa() {
       ignoradosExemplos
     });
     toast('Erro ao salvar importação em lote: ' + err.message);
+    setButtonLoading(confirmBtn, false, 'Confirmar importação');
     return;
   }
 
@@ -742,6 +754,7 @@ export async function confirmarMapa() {
   renderProdMetSafe();
   renderProdutosSafe();
 
+  setButtonLoading(confirmBtn, false, 'Confirmar importação');
   setTimeout(() => {
     fecharModal('modal-mapa');
     resetImportProgress();

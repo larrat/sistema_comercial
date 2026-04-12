@@ -54,6 +54,22 @@ const ST_PED = {
   cancelado: '<span class="bdg br">Cancelado</span>'
 };
 
+/**
+ * Normaliza variaÃ§Ãµes de status vindas do legado/DB.
+ * @param {string | null | undefined} status
+ */
+function normalizePedStatus(status) {
+  const raw = String(status || '')
+    .trim()
+    .toLowerCase();
+  if (!raw) return '';
+  if (raw === 'entregues') return 'entregue';
+  if (raw === 'cancelados') return 'cancelado';
+  if (raw === 'em separacao' || raw === 'em separaÃ§Ã£o') return 'em_separacao';
+  if (raw === 'orcamento' || raw === 'orÃ§amento') return 'orcamento';
+  return raw;
+}
+
 const TAB_STATUSES = {
   emaberto: ['orcamento', 'confirmado', 'em_separacao'],
   entregues: ['entregue'],
@@ -98,7 +114,9 @@ function calcVencimento(dataBase, prazo) {
  * @param {string} statusAnterior
  */
 async function _gerarContaSeNecessario(ped, statusAnterior) {
-  if (ped.status !== 'entregue' || statusAnterior === 'entregue') return;
+  const statusAtual = normalizePedStatus(ped.status);
+  const statusPrev = normalizePedStatus(statusAnterior);
+  if (statusAtual !== 'entregue' || statusPrev === 'entregue') return;
   const vencimento = calcVencimento(ped.data, ped.prazo);
   if (!vencimento) return;
   if (CR().some((cr) => cr.pedido_id === ped.id)) return;
@@ -196,9 +214,11 @@ export function switchPedTab(tab) {
 
 export function renderPedMet() {
   const peds = PD();
-  const fat = peds.filter((p) => p.status === 'entregue').reduce((a, p) => a + (p.total || 0), 0);
+  const fat = peds
+    .filter((p) => normalizePedStatus(p.status) === 'entregue')
+    .reduce((a, p) => a + (p.total || 0), 0);
   const lucro = peds
-    .filter((p) => p.status === 'entregue')
+    .filter((p) => normalizePedStatus(p.status) === 'entregue')
     .reduce(
       (a, p) =>
         a +
@@ -209,7 +229,7 @@ export function renderPedMet() {
       0
     );
   const ab = peds.filter((p) =>
-    ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)
+    ['orcamento', 'confirmado', 'em_separacao'].includes(normalizePedStatus(p.status))
   ).length;
 
   const el = document.getElementById('ped-met');
@@ -264,11 +284,11 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
     .sort((a, b) => (b.num || 0) - (a.num || 0))
     .filter(
       (p) =>
-        statuses.includes(p.status) &&
+        statuses.includes(normalizePedStatus(p.status)) &&
         (!q ||
           getPedidoClienteLabel(p).toLowerCase().includes(q) ||
           String(p.num || '').includes(q)) &&
-        (!st || p.status === st)
+        (!st || normalizePedStatus(p.status) === st)
     );
 
   if (!f.length) {
@@ -295,7 +315,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
             <div class="mobile-card-title">#${p.num} | ${esc(getPedidoClienteLabel(p))}</div>
             <div class="mobile-card-sub">${p.data || 'Sem data'} | ${(p.itens || []).length} item(ns)</div>
           </div>
-          <div>${ST_PED[p.status] || ''}</div>
+          <div>${ST_PED[normalizePedStatus(p.status)] || ''}</div>
         </div>
 
         <div class="mobile-card-tags">
@@ -313,7 +333,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
           <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
           <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
           ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
-          ${showAvancar && ACAO_LABEL[p.status] ? `<button class="btn btn-sm ${p.status === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[p.status]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[p.status]}</button>` : ''}
+          ${showAvancar && ACAO_LABEL[normalizePedStatus(p.status)] ? `<button class="btn btn-sm ${normalizePedStatus(p.status) === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[normalizePedStatus(p.status)]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[normalizePedStatus(p.status)]}</button>` : ''}
         </div>
       </div>
     `
@@ -350,14 +370,14 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
               <td class="table-cell-muted">${(p.itens || []).length}</td>
               <td class="table-cell-strong">${fmt(p.total || 0)}</td>
               <td class="table-cell-caption table-cell-muted">${pgtoLbl[p.pgto] || p.pgto || '-'}</td>
-              <td>${ST_PED[p.status] || ''}</td>
+              <td>${ST_PED[normalizePedStatus(p.status)] || ''}</td>
               <td>
                 <div class="fg2 orders-row-actions">
                   <button class="btn btn-sm" title="Ver pedido" data-click="verPed('${p.id}')">Ver</button>
                   <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
                   <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
                   ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
-                  ${showAvancar && ACAO_LABEL[p.status] ? `<button class="btn btn-sm ${p.status === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[p.status]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[p.status]}</button>` : ''}
+                  ${showAvancar && ACAO_LABEL[normalizePedStatus(p.status)] ? `<button class="btn btn-sm ${normalizePedStatus(p.status) === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[normalizePedStatus(p.status)]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[normalizePedStatus(p.status)]}</button>` : ''}
                 </div>
               </td>
             </tr>
@@ -715,7 +735,8 @@ export async function avancarStatusPed(id) {
   const p = peds.find((x) => x.id === id);
   if (!p) return;
 
-  const proximoStatus = NEXT_STATUS[p.status];
+  const statusAtual = normalizePedStatus(p.status);
+  const proximoStatus = NEXT_STATUS[statusAtual];
   if (!proximoStatus) return;
 
   const atualizado = { ...p, status: proximoStatus, itens: JSON.stringify(p.itens) };
@@ -778,7 +799,7 @@ export function verPed(id) {
     <div class="ped-detail">
       <div class="ped-detail-head fb">
         <div class="mt ped-detail-title modal-title-reset">Pedido #${p.num}</div>
-      ${ST_PED[p.status] || ''}
+      ${ST_PED[normalizePedStatus(p.status)] || ''}
     </div>
 
       <div class="ped-detail-grid">
