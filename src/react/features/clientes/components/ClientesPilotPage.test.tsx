@@ -452,4 +452,3 @@ describe('ClientesPilotPage', () => {
     clickMock.mockRestore();
   });
 });
-

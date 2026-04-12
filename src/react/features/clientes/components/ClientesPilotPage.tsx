@@ -192,10 +192,7 @@ export function ClientesPilotPage() {
   ]);
 
   return (
-    <div
-      className="screen-content form-gap-lg"
-      data-testid="clientes-pilot-page"
-    >
+    <div className="screen-content form-gap-lg" data-testid="clientes-pilot-page">
       {error && (
         <div className="empty" data-testid="cliente-pilot-error">
           <p>{error}</p>

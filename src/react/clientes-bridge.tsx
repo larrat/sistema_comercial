@@ -30,7 +30,14 @@ declare global {
       mount: (el: HTMLElement) => void;
       unmount: () => void;
     };
-    __SC_AUTH_SESSION__?: { access_token: string; refresh_token: string; token_type: string; expires_in: number; expires_at: number; user: null };
+    __SC_AUTH_SESSION__?: {
+      access_token: string;
+      refresh_token: string;
+      token_type: string;
+      expires_in: number;
+      expires_at: number;
+      user: null;
+    };
     __SC_FILIAL_ID__?: string;
   }
 }
