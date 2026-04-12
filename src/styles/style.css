@@ -8658,22 +8658,22 @@ textarea.inp:focus {
 #pg-pedidos .tw,
 #pg-relatorios .tw,
 #pg-campanhas .tw {
-  border-color: #dfe8f2;
-  background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  border-color: var(--bd);
+  background: var(--surf);
+  box-shadow: var(--shadow-xs);
 }
 
 #pg-pedidos .tbl th,
 #pg-relatorios .tbl th,
 #pg-campanhas .tbl th {
-  background: linear-gradient(180deg, #f7fafe 0%, #f2f6fb 100%);
-  color: #73869a;
+  background: var(--surf2);
+  color: var(--tx2);
 }
 
 #pg-pedidos .tbl td,
 #pg-relatorios .tbl td,
 #pg-campanhas .tbl td {
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1px solid var(--bd);
 }
 
 #pg-dashboard .dash-section-head,
@@ -8704,7 +8704,7 @@ textarea.inp:focus {
   align-items: center;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid #e8eef5;
+  border-bottom: 1px solid var(--bd);
 }
 
 .rel-op-row:last-child {
@@ -8745,9 +8745,10 @@ textarea.inp:focus {
 
 .rel-val-context {
   padding: 14px 16px;
-  border: 1px solid #e4ebf4;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #fbfdff 0%, #f6faff 100%);
+  border: 1px solid var(--bd);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, var(--shell-highlight-strong), var(--shell-card-bottom)), var(--surf2);
 }
 
 .rel-kpi-row {
@@ -8767,7 +8768,7 @@ textarea.inp:focus {
 .rel-kpi-bar {
   height: 8px;
   border-radius: 999px;
-  background: #e8eef5;
+  background: var(--surf2);
   overflow: hidden;
 }
 
@@ -9615,7 +9616,9 @@ textarea.inp:focus {
   }
 
   #pg-dashboard #dash-margem .tw,
-  #pg-campanhas .tw {
+  #pg-campanhas .tw,
+  #pg-pedidos .tw,
+  #pg-relatorios .tw {
     background: rgba(9, 15, 24, 0.28);
     border-color: rgba(255, 255, 255, 0.06);
   }
@@ -9634,6 +9637,23 @@ textarea.inp:focus {
 
   #pg-campanhas #camp-wa-fila input[type='checkbox'] {
     accent-color: var(--color-accent);
+  }
+
+  /* ── relatorios dark mode ── */
+  .rel-op-dot {
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+  }
+
+  .rel-op-dot--success {
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12);
+  }
+
+  .rel-kpi-bar > span {
+    background: linear-gradient(
+      90deg,
+      var(--acc) 0%,
+      color-mix(in srgb, var(--acc) 60%, #fff) 100%
+    );
   }
 }
 
@@ -10829,6 +10849,26 @@ html[data-theme='dark'] .bento-band .met {
 
 html[data-theme='dark'] .card-shell > .toolbar-shell--section {
   border-bottom-color: var(--shell-border-subtle);
+}
+
+html[data-theme='dark'] #pg-dashboard #dash-margem .tw,
+html[data-theme='dark'] #pg-campanhas .tw,
+html[data-theme='dark'] #pg-pedidos .tw,
+html[data-theme='dark'] #pg-relatorios .tw {
+  background: rgba(9, 15, 24, 0.28);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme='dark'] .rel-op-dot {
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+}
+
+html[data-theme='dark'] .rel-op-dot--success {
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.12);
+}
+
+html[data-theme='dark'] .rel-kpi-bar > span {
+  background: linear-gradient(90deg, var(--acc) 0%, color-mix(in srgb, var(--acc) 60%, #fff) 100%);
 }
 
 /* ── Quick Command Palette ── */
