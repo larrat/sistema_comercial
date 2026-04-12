@@ -23,11 +23,7 @@ function formatCurrency(value: number): string {
   }).format(Number(value || 0));
 }
 
-function sendPedidoAction(
-  action: 'ver' | 'editar' | 'fechar-venda',
-  pedidoId: string,
-  clienteId: string
-) {
+function sendPedidoAction(action: 'ver' | 'editar', pedidoId: string, clienteId: string) {
   window.postMessage(
     {
       source: 'clientes-react-pilot',
@@ -43,7 +39,13 @@ function sendPedidoAction(
 function renderPedidosList(
   pedidos: Pedido[],
   kind: 'abertas' | 'fechadas',
-  options: { loading: boolean; error: string | null; clienteNome: string }
+  options: {
+    loading: boolean;
+    error: string | null;
+    clienteNome: string;
+    onFecharVenda?: (pedido: Pedido) => void;
+    fechandoId?: string | null;
+  }
 ) {
   if (options.loading) {
     return (
@@ -122,14 +124,15 @@ function renderPedidosList(
             >
               Editar
             </button>
-            {!pedido.venda_fechada && pedido.status === 'entregue' && (
+            {!pedido.venda_fechada && pedido.status === 'entregue' && options.onFecharVenda && (
               <button
                 className="btn btn-p btn-sm"
                 type="button"
-                onClick={() => sendPedidoAction('fechar-venda', pedido.id, pedido.cliente_id || '')}
+                disabled={options.fechandoId === pedido.id}
+                onClick={() => options.onFecharVenda!(pedido)}
                 data-testid={`pedido-fechar-${pedido.id}`}
               >
-                Fechar venda
+                {options.fechandoId === pedido.id ? 'Fechando...' : 'Fechar venda'}
               </button>
             )}
           </div>
@@ -148,7 +151,9 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTa
     pedidosAbertos,
     pedidosFechados,
     loading: pedidosLoading,
-    error: pedidosError
+    error: pedidosError,
+    fecharVenda,
+    fechandoId
   } = useClientePedidos({
     cliente,
     skip: tab !== 'abertas' && tab !== 'fechadas'
@@ -158,9 +163,11 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTa
     () => ({
       loading: pedidosLoading,
       error: pedidosError,
-      clienteNome: cliente.nome
+      clienteNome: cliente.nome,
+      onFecharVenda: fecharVenda,
+      fechandoId
     }),
-    [cliente.nome, pedidosError, pedidosLoading]
+    [cliente.nome, fechandoId, fecharVenda, pedidosError, pedidosLoading]
   );
 
   function setTab(nextTab: DetailTab) {

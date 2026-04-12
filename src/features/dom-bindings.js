@@ -572,8 +572,5 @@ export function initDomBindings(nextDeps = {}) {
       deps.editarPed?.(detail.pedidoId);
       return;
     }
-    if (action === 'fechar-venda' && detail.pedidoId && detail.clienteId) {
-      deps.fecharVendaCliente?.(detail.pedidoId, detail.clienteId);
-    }
   });
 }

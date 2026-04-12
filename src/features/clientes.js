@@ -1066,6 +1066,7 @@ function renderFidelidadeTab(clienteId, saldo, lancamentos) {
  * @param {string} clienteId
  */
 export async function adicionarLancamentoFidelidade(clienteId) {
+  if (!shouldRenderLegacyClientes()) return;
   const tipoEl = /** @type {HTMLSelectElement|null} */ (
     document.getElementById(`fid-tipo-${clienteId}`)
   );
@@ -1285,6 +1286,7 @@ export async function fecharVendaCliente(pedidoId, clienteId) {
 }
 
 export async function addNota(id) {
+  if (!shouldRenderLegacyClientes()) return;
   const { input } = getDetailElements(id);
   const texto = input?.value.trim() || '';
   if (!texto) return;

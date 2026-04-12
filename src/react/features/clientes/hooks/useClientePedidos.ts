@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Cliente, Pedido } from '../../../../types/domain';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { listPedidosByCliente, splitClientePedidos } from '../services/pedidosApi';
+import {
+  fecharVendaPedido,
+  listPedidosByCliente,
+  splitClientePedidos
+} from '../services/pedidosApi';
 
 type Options = {
   cliente?: Cliente | null;
@@ -18,6 +22,9 @@ export function useClientePedidos({ cliente, skip = false }: Options) {
   const [pedidosFechados, setPedidosFechados] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fechandoId, setFechandoId] = useState<string | null>(null);
+  const userEmailRef = useRef<string | null>(null);
+  userEmailRef.current = (session?.user as { email?: string } | null)?.email ?? null;
 
   const resolveContext = useCallback(() => {
     if (!session?.access_token) {
@@ -53,5 +60,32 @@ export function useClientePedidos({ cliente, skip = false }: Options) {
     void loadData();
   }, [loadData]);
 
-  return { pedidosAbertos, pedidosFechados, loading, error, reload: loadData };
+  const fecharVenda = useCallback(
+    async (pedido: Pedido): Promise<boolean> => {
+      if (fechandoId) return false;
+      setFechandoId(pedido.id);
+      try {
+        const updated = await fecharVendaPedido(resolveContext(), pedido, userEmailRef.current);
+        setPedidosAbertos((prev) => prev.filter((p) => p.id !== updated.id));
+        setPedidosFechados((prev) => [updated, ...prev]);
+        return true;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao fechar venda.');
+        return false;
+      } finally {
+        setFechandoId(null);
+      }
+    },
+    [fechandoId, resolveContext]
+  );
+
+  return {
+    pedidosAbertos,
+    pedidosFechados,
+    loading,
+    error,
+    reload: loadData,
+    fecharVenda,
+    fechandoId
+  };
 }

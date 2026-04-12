@@ -70,6 +70,33 @@ export function splitClientePedidos(pedidos: Pedido[]): {
   );
 }
 
+export async function fecharVendaPedido(
+  context: ClientePedidosContext,
+  pedido: Pedido,
+  userEmail: string | null
+): Promise<Pedido> {
+  const updated: Pedido = {
+    ...pedido,
+    venda_fechada: true,
+    venda_fechada_em: new Date().toISOString(),
+    venda_fechada_por: userEmail || null
+  };
+
+  const res = await fetch(`${context.url}/rest/v1/pedidos?id=eq.${encodeURIComponent(pedido.id)}`, {
+    method: 'PATCH',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({
+      venda_fechada: true,
+      venda_fechada_em: updated.venda_fechada_em,
+      venda_fechada_por: updated.venda_fechada_por
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao fechar venda`);
+  return updated;
+}
+
 export async function listPedidosByCliente(
   context: ClientePedidosContext,
   cliente: Cliente
