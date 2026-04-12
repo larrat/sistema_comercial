@@ -524,6 +524,7 @@ export function renderEstHist() {
 export async function excluirMov(id) {
   if (!confirm('Excluir movimentação?')) return;
 
+  /** @type {HTMLButtonElement | null} */
   const btn = document.querySelector(`[data-click="excluirMov('${id}')"]`);
   setButtonLoading(btn, true, 'Excluir');
 
@@ -830,6 +831,7 @@ export async function salvarMov() {
     }
   }
 
+  /** @type {HTMLButtonElement | null} */
   const saveBtn = document.getElementById('mov-save-btn');
   setButtonLoading(saveBtn, true, 'Confirmar');
 
