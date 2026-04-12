@@ -7037,19 +7037,25 @@ textarea.inp:focus {
   white-space: normal;
 }
 
-#pg-pedidos .orders-row-actions {
+#pg-pedidos .orders-row-actions,
+.table-row-actions {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
-#pg-pedidos .orders-row-actions .btn {
-  min-width: 84px;
+#pg-pedidos .orders-row-actions .btn,
+.table-row-actions .btn {
+  width: 112px;
   min-height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-shadow: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #modal-pedido #ped-itens .btn {

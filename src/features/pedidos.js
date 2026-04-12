@@ -89,7 +89,7 @@ const NEXT_STATUS = {
 /** Label do botão de avanço por status atual */
 const ACAO_LABEL = {
   orcamento: 'Confirmar',
-  confirmado: 'Em Separação',
+  confirmado: 'Separar',
   em_separacao: 'Entregar'
 };
 
@@ -372,7 +372,7 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
               <td class="table-cell-caption table-cell-muted">${pgtoLbl[p.pgto] || p.pgto || '-'}</td>
               <td>${ST_PED[normalizePedStatus(p.status)] || ''}</td>
               <td>
-                <div class="fg2 orders-row-actions">
+                <div class="fg2 table-row-actions">
                   <button class="btn btn-sm" title="Ver pedido" data-click="verPed('${p.id}')">Ver</button>
                   <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
                   <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>

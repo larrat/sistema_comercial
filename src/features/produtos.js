@@ -242,7 +242,7 @@ export function renderProdutos() {
                 <td><span style="font-weight:600;color:${zero ? 'var(--r)' : baixo ? 'var(--a)' : 'inherit'}">${fmtQ(s.saldo)} ${p.un}</span></td>
                 <td style="color:var(--tx2)">${p.emin > 0 ? fmtQ(p.emin) : '-'}</td>
                 <td>
-                  <div class="fg2">
+                  <div class="fg2 table-row-actions">
                     <button class="btn btn-sm" title="Detalhes do produto" data-click="abrirProdDet('${p.id}')">Detalhes</button>
                     <button class="btn btn-sm" title="Movimentar estoque" data-click="abrirMovProd('${p.id}')">Movimentar</button>
                     <button class="btn btn-sm" title="Editar produto" data-click="editarProd('${p.id}')">Editar</button>

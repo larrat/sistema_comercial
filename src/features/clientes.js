@@ -721,7 +721,7 @@ function renderClienteDesktop(cliente) {
       <td class="table-cell-muted">${esc(PRAZO_LABELS[cliente.prazo] || '-')}</td>
       <td>${ST_B[cliente.status] || ''}</td>
       <td>
-        <div class="fg2">
+        <div class="fg2 table-row-actions">
           <button class="btn btn-sm" data-click="abrirCliDet('${cliente.id}')">Detalhes</button>
           <button class="btn btn-p btn-sm" data-click="editarCli('${cliente.id}')">Editar</button>
           <button class="btn btn-sm" data-click="removerCli('${cliente.id}')">Excluir</button>
