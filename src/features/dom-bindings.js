@@ -555,7 +555,7 @@ export function initDomBindings(nextDeps = {}) {
   document.addEventListener('change', onFieldEvent);
   window.addEventListener('sc:clientes-pedido-acao', (event) => {
     const detail = /** @type {{ action?: string; pedidoId?: string; clienteId?: string }} */ (
-      event.detail || {}
+      /** @type {CustomEvent} */ (event).detail || {}
     );
     const action = detail.action || '';
     if (action === 'ver' && detail.pedidoId) {

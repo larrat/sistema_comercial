@@ -1428,6 +1428,7 @@ export async function addNota(id) {
 }
 
 export function limparFormCli() {
+  if (!shouldRenderLegacyClientes()) return;
   State.editIds.cli = null;
   refreshRcaSelectors();
 
@@ -1442,6 +1443,7 @@ export function limparFormCli() {
 }
 
 export function editarCli(id) {
+  if (!shouldRenderLegacyClientes()) return;
   const cliente = C().find((item) => item.id === id);
   if (!cliente) return;
 
@@ -1478,6 +1480,7 @@ export function editarCli(id) {
 }
 
 export async function salvarCliente() {
+  if (!shouldRenderLegacyClientes()) return;
   const nome = cliDom.get('c-nome')?.value.trim() || '';
   if (!nome) {
     notify(MSG.forms.required('Nome do cliente'), SEVERITY.WARNING);
@@ -1577,6 +1580,7 @@ export async function salvarCliente() {
 }
 
 export async function removerCli(id) {
+  if (!shouldRenderLegacyClientes()) return;
   if (!confirm('Remover cliente?')) return;
 
   try {
