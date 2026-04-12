@@ -13,7 +13,12 @@ export default defineConfig({
       reporter: ['text', 'json-summary', 'html'],
       reportsDirectory: 'coverage/react',
       include: ['src/react/**/*.tsx', 'src/react/**/*.ts'],
-      exclude: ['src/react/**/*.test.*', 'src/react/main.tsx', 'src/react/test-setup.ts'],
+      exclude: [
+        'src/react/**/*.test.*',
+        'src/react/**/*.d.ts',
+        'src/react/main.tsx',
+        'src/react/test-setup.ts'
+      ],
       thresholds: { lines: 80, functions: 80, statements: 80, branches: 70 }
     }
   }
