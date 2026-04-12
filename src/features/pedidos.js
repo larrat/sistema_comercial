@@ -93,6 +93,9 @@ const ACAO_LABEL = {
   em_separacao: 'Entregar'
 };
 
+/** IDs de pedidos com operação assíncrona em andamento (evita double-submit) */
+const inFlightPedIds = new Set();
+
 /**
  * Calcula a data de vencimento somando dias ao prazo.
  * @param {string | undefined} dataBase - YYYY-MM-DD
@@ -244,13 +247,24 @@ export function renderPedMet() {
 }
 
 export function renderPedidos() {
-  renderPedList('ped-busca', 'ped-fil-st', 'ped-lista', TAB_STATUSES.emaberto, false, true);
+  renderPedList(
+    'ped-busca',
+    'ped-fil-st',
+    'ped-lista',
+    TAB_STATUSES.emaberto,
+    false,
+    true,
+    true,
+    false
+  );
   renderPedList(
     'ped-busca-entregues',
     null,
     'ped-lista-entregues',
     TAB_STATUSES.entregues,
     true,
+    false,
+    false,
     false
   );
   renderPedList(
@@ -259,7 +273,9 @@ export function renderPedidos() {
     'ped-lista-cancelados',
     TAB_STATUSES.cancelados,
     false,
-    false
+    false,
+    false,
+    true
   );
 }
 
@@ -270,8 +286,19 @@ export function renderPedidos() {
  * @param {string[]} statuses
  * @param {boolean} showGerarCr - mostra botão "Gerar A Receber" para pedidos sem conta
  * @param {boolean} showAvancar - mostra botão de avanço de status inline
+ * @param {boolean} showCancelar - mostra botão "Cancelar" para pedidos em aberto
+ * @param {boolean} showReabrir - mostra botão "Reabrir" para pedidos cancelados
  */
-function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAvancar) {
+function renderPedList(
+  buscaId,
+  filtroId,
+  listaId,
+  statuses,
+  showGerarCr,
+  showAvancar,
+  showCancelar = false,
+  showReabrir = false
+) {
   const buscaEl = document.getElementById(buscaId);
   const stEl = filtroId ? document.getElementById(filtroId) : null;
   const el = document.getElementById(listaId);
@@ -333,7 +360,9 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
           <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
           <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
           ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
-          ${showAvancar && ACAO_LABEL[normalizePedStatus(p.status)] ? `<button class="btn btn-sm ${normalizePedStatus(p.status) === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[normalizePedStatus(p.status)]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[normalizePedStatus(p.status)]}</button>` : ''}
+          ${showAvancar && ACAO_LABEL[normalizePedStatus(p.status)] ? `<button class="btn btn-sm ${normalizePedStatus(p.status) === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[normalizePedStatus(p.status)]}" data-click="avancarStatusPed('${p.id}')" ${inFlightPedIds.has(p.id) ? 'disabled' : ''}>${inFlightPedIds.has(p.id) ? '...' : ACAO_LABEL[normalizePedStatus(p.status)]}</button>` : ''}
+          ${showCancelar ? `<button class="btn btn-sm" title="Cancelar pedido" data-click="cancelarStatusPed('${p.id}')" ${inFlightPedIds.has(p.id) ? 'disabled' : ''}>${inFlightPedIds.has(p.id) ? '...' : 'Cancelar'}</button>` : ''}
+          ${showReabrir ? `<button class="btn btn-sm" title="Reabrir pedido" data-click="reabrirPed('${p.id}')" ${inFlightPedIds.has(p.id) ? 'disabled' : ''}>${inFlightPedIds.has(p.id) ? '...' : 'Reabrir'}</button>` : ''}
         </div>
       </div>
     `
@@ -377,7 +406,9 @@ function renderPedList(buscaId, filtroId, listaId, statuses, showGerarCr, showAv
                   <button class="btn btn-sm" title="Editar pedido" data-click="editarPed('${p.id}')">Editar</button>
                   <button class="btn btn-sm" title="Excluir pedido" data-click="removerPed('${p.id}')">Excluir</button>
                   ${showGerarCr && !CR().some((c) => c.pedido_id === p.id) ? `<button class="btn btn-sm btn-p" title="Gerar conta a receber" data-click="gerarContaManual('${p.id}')">A Receber</button>` : ''}
-                  ${showAvancar && ACAO_LABEL[normalizePedStatus(p.status)] ? `<button class="btn btn-sm ${normalizePedStatus(p.status) === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[normalizePedStatus(p.status)]}" data-click="avancarStatusPed('${p.id}')">${ACAO_LABEL[normalizePedStatus(p.status)]}</button>` : ''}
+                  ${showAvancar && ACAO_LABEL[normalizePedStatus(p.status)] ? `<button class="btn btn-sm ${normalizePedStatus(p.status) === 'em_separacao' ? 'btn-p' : ''}" title="${ACAO_LABEL[normalizePedStatus(p.status)]}" data-click="avancarStatusPed('${p.id}')" ${inFlightPedIds.has(p.id) ? 'disabled' : ''}>${inFlightPedIds.has(p.id) ? '...' : ACAO_LABEL[normalizePedStatus(p.status)]}</button>` : ''}
+                  ${showCancelar ? `<button class="btn btn-sm" title="Cancelar pedido" data-click="cancelarStatusPed('${p.id}')" ${inFlightPedIds.has(p.id) ? 'disabled' : ''}>${inFlightPedIds.has(p.id) ? '...' : 'Cancelar'}</button>` : ''}
+                  ${showReabrir ? `<button class="btn btn-sm" title="Reabrir pedido" data-click="reabrirPed('${p.id}')" ${inFlightPedIds.has(p.id) ? 'disabled' : ''}>${inFlightPedIds.has(p.id) ? '...' : 'Reabrir'}</button>` : ''}
                 </div>
               </td>
             </tr>
@@ -731,6 +762,7 @@ export async function removerPed(id) {
  * @param {string} id
  */
 export async function avancarStatusPed(id) {
+  if (inFlightPedIds.has(id)) return;
   const peds = PD();
   const p = peds.find((x) => x.id === id);
   if (!p) return;
@@ -739,18 +771,24 @@ export async function avancarStatusPed(id) {
   const proximoStatus = NEXT_STATUS[statusAtual];
   if (!proximoStatus) return;
 
+  inFlightPedIds.add(id);
+  renderPedidos();
+
   const atualizado = { ...p, status: proximoStatus, itens: JSON.stringify(p.itens) };
 
   try {
     await SB.upsertPedido(atualizado);
   } catch (e) {
+    inFlightPedIds.delete(id);
     notify(
       `Erro ao avançar status do pedido #${p.num}: ${String(e?.message || 'erro desconhecido')}`,
       SEVERITY.ERROR
     );
+    renderPedidos();
     return;
   }
 
+  inFlightPedIds.delete(id);
   const pedAtualizado = { ...p, status: proximoStatus };
   D.pedidos[State.FIL] = peds.map((x) => (x.id === id ? pedAtualizado : x));
   invalidatePdCache();
@@ -763,6 +801,81 @@ export async function avancarStatusPed(id) {
     `Pedido #${p.num} → ${proximoStatus === 'em_separacao' ? 'Em Separação' : proximoStatus.charAt(0).toUpperCase() + proximoStatus.slice(1)}.`,
     SEVERITY.SUCCESS
   );
+}
+
+/**
+ * @param {string} id
+ */
+export async function cancelarStatusPed(id) {
+  if (inFlightPedIds.has(id)) return;
+  const peds = PD();
+  const p = peds.find((x) => x.id === id);
+  if (!p) return;
+
+  const statusAtual = normalizePedStatus(p.status);
+  if (statusAtual === 'cancelado') return;
+
+  inFlightPedIds.add(id);
+  renderPedidos();
+
+  const atualizado = { ...p, status: 'cancelado', itens: JSON.stringify(p.itens) };
+
+  try {
+    await SB.upsertPedido(atualizado);
+  } catch (e) {
+    inFlightPedIds.delete(id);
+    notify(
+      `Erro ao cancelar pedido #${p.num}: ${String(e?.message || 'erro desconhecido')}`,
+      SEVERITY.ERROR
+    );
+    renderPedidos();
+    return;
+  }
+
+  inFlightPedIds.delete(id);
+  D.pedidos[State.FIL] = peds.map((x) => (x.id === id ? { ...p, status: 'cancelado' } : x));
+  invalidatePdCache();
+
+  renderPedMet();
+  renderPedidos();
+  notify(`Pedido #${p.num} cancelado.`, SEVERITY.SUCCESS);
+}
+
+/**
+ * @param {string} id
+ */
+export async function reabrirPed(id) {
+  if (inFlightPedIds.has(id)) return;
+  const peds = PD();
+  const p = peds.find((x) => x.id === id);
+  if (!p) return;
+
+  if (normalizePedStatus(p.status) !== 'cancelado') return;
+
+  inFlightPedIds.add(id);
+  renderPedidos();
+
+  const atualizado = { ...p, status: 'orcamento', itens: JSON.stringify(p.itens) };
+
+  try {
+    await SB.upsertPedido(atualizado);
+  } catch (e) {
+    inFlightPedIds.delete(id);
+    notify(
+      `Erro ao reabrir pedido #${p.num}: ${String(e?.message || 'erro desconhecido')}`,
+      SEVERITY.ERROR
+    );
+    renderPedidos();
+    return;
+  }
+
+  inFlightPedIds.delete(id);
+  D.pedidos[State.FIL] = peds.map((x) => (x.id === id ? { ...p, status: 'orcamento' } : x));
+  invalidatePdCache();
+
+  renderPedMet();
+  renderPedidos();
+  notify(`Pedido #${p.num} reaberto como Orçamento.`, SEVERITY.SUCCESS);
 }
 
 /**

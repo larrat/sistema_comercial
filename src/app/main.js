@@ -101,7 +101,9 @@ import {
   salvarPedido,
   removerPed,
   verPed,
-  avancarStatusPed
+  avancarStatusPed,
+  cancelarStatusPed,
+  reabrirPed
 } from '../features/pedidos.js';
 
 import {
@@ -858,6 +860,8 @@ startApplicationRuntime({
         renderPedidos,
         switchPedTab,
         avancarStatusPed,
+        cancelarStatusPed,
+        reabrirPed,
         renderContasReceberMet,
         renderContasReceber,
         switchCrTab,
