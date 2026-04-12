@@ -10,6 +10,8 @@ let deps = {
   limparFormPedTracked: () => {},
   limparFormCliTracked: () => {},
   limparFormProdTracked: () => {},
+  isClientesReactPilotActive: () => false,
+  abrirNovoClienteReact: () => {},
   abrirNovaCampanhaTracked: () => {},
   abrirModal: () => {},
   resetMov: () => {},
@@ -131,6 +133,10 @@ function getQuickCommands() {
       cmd: '/ novo cliente',
       label: 'Novo Cliente',
       run: () => {
+        if (deps.isClientesReactPilotActive?.()) {
+          deps.abrirNovoClienteReact?.();
+          return;
+        }
         deps.limparFormCliTracked?.();
         deps.abrirModal?.('modal-cliente');
       }

@@ -404,8 +404,12 @@ function runAction(action, el) {
       deps.abrirModal('modal-produto');
     },
     abrirModalCliente: () => {
-      deps.limparFormCliTracked();
-      deps.abrirModal('modal-cliente');
+      if (deps.isClientesReactPilotActive?.()) {
+        deps.abrirNovoClienteReact?.();
+        return;
+      }
+      deps.limparFormCliTracked?.();
+      deps.abrirModal?.('modal-cliente');
     },
     abrirNovoClienteReact: () => deps.abrirNovoClienteReact?.(),
     limparFiltrosClienteReact: () => deps.limparFiltrosClienteReact?.(),

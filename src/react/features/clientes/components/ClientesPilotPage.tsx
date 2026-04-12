@@ -81,6 +81,25 @@ export function ClientesPilotPage() {
         return;
       }
 
+      if (data.type === 'clientes:abrir-detalhe' && data.id) {
+        setEditingId(null);
+        setDetailId(String(data.id));
+        setDetailTab((data.tab as DetailTab) || 'resumo');
+        return;
+      }
+
+      if (data.type === 'clientes:editar' && data.id) {
+        setDetailId(null);
+        setEditingId(String(data.id));
+        setDetailTab('resumo');
+        return;
+      }
+
+      if (data.type === 'clientes:excluir' && data.id) {
+        void handleExcluir(String(data.id));
+        return;
+      }
+
       if (data.type === 'clientes:limpar-filtros') {
         clearFiltro();
         return;
@@ -106,27 +125,32 @@ export function ClientesPilotPage() {
       }
 
       if (data.type === 'clientes:abrir-resumo') {
+        if (!detailId && data.id) setDetailId(String(data.id));
         setDetailTab('resumo');
         return;
       }
 
       if (data.type === 'clientes:abrir-abertas') {
-        if (detailId) setDetailTab('abertas');
+        if (!detailId && data.id) setDetailId(String(data.id));
+        if (detailId || data.id) setDetailTab('abertas');
         return;
       }
 
       if (data.type === 'clientes:abrir-fechadas') {
-        if (detailId) setDetailTab('fechadas');
+        if (!detailId && data.id) setDetailId(String(data.id));
+        if (detailId || data.id) setDetailTab('fechadas');
         return;
       }
 
       if (data.type === 'clientes:abrir-notas') {
-        if (detailId) setDetailTab('notas');
+        if (!detailId && data.id) setDetailId(String(data.id));
+        if (detailId || data.id) setDetailTab('notas');
         return;
       }
 
       if (data.type === 'clientes:abrir-fidelidade') {
-        if (detailId) setDetailTab('fidelidade');
+        if (!detailId && data.id) setDetailId(String(data.id));
+        if (detailId || data.id) setDetailTab('fidelidade');
       }
     }
 

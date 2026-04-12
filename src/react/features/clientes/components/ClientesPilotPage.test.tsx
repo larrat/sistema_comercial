@@ -243,6 +243,64 @@ describe('ClientesPilotPage', () => {
     expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
   });
 
+  it('abre detalhe quando recebe comando com id', async () => {
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-detalhe', id: '1' }
+        })
+      );
+    });
+
+    const detail = await screen.findByTestId('cliente-detail-panel');
+    expect(within(detail).getAllByText('Maria Souza').length).toBeGreaterThan(0);
+  });
+
+  it('abre edicao quando recebe comando com id', async () => {
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:editar', id: '1' }
+        })
+      );
+    });
+
+    expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
+    expect(screen.getByTestId('form-nome')).toHaveValue('Maria Souza');
+  });
+
+  it('remove cliente quando recebe comando com id', async () => {
+    deleteClienteMock.mockResolvedValue(undefined);
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:excluir', id: '1' }
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(deleteClienteMock).toHaveBeenCalledWith(
+        {
+          url: 'https://example.supabase.co',
+          key: 'public-key',
+          token: 'token-1',
+          filialId: 'filial-1'
+        },
+        '1'
+      );
+    });
+  });
+
   it('limpa filtros quando recebe comando do shell legado', async () => {
     render(<ClientesPilotPage />);
 

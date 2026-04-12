@@ -383,6 +383,21 @@ export function abrirNovoClienteReact() {
   postToReactFrame('clientes:novo');
 }
 
+export function abrirDetalheClienteReact(clienteId, tab = 'resumo') {
+  if (!clienteId) return;
+  postToReactFrame('clientes:abrir-detalhe', { id: String(clienteId), tab });
+}
+
+export function editarClienteReact(clienteId) {
+  if (!clienteId) return;
+  postToReactFrame('clientes:editar', { id: String(clienteId) });
+}
+
+export function excluirClienteReact(clienteId) {
+  if (!clienteId) return;
+  postToReactFrame('clientes:excluir', { id: String(clienteId) });
+}
+
 export function limparFiltrosClienteReact() {
   postToReactFrame('clientes:limpar-filtros');
 }

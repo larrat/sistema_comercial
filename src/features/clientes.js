@@ -42,7 +42,14 @@ import {
   filterClientesFromLegacy,
   getClienteSegmentosFromLegacy
 } from '../shared/clientes-pilot-bridge.js';
-import { shouldRenderLegacyClientes, syncClientesReactBridge } from './clientes-react-bridge.js';
+import {
+  abrirDetalheClienteReact,
+  abrirNovoClienteReact,
+  editarClienteReact,
+  excluirClienteReact,
+  shouldRenderLegacyClientes,
+  syncClientesReactBridge
+} from './clientes-react-bridge.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -1100,7 +1107,10 @@ export async function adicionarLancamentoFidelidade(clienteId) {
 
 export async function abrirCliDet(id) {
   syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) return;
+  if (!shouldRenderLegacyClientes()) {
+    abrirDetalheClienteReact(id, 'resumo');
+    return;
+  }
 
   const cliente = getClienteById(id);
   if (!cliente) return;
@@ -1293,7 +1303,10 @@ export async function addNota(id) {
 }
 
 export function limparFormCli() {
-  if (!shouldRenderLegacyClientes()) return;
+  if (!shouldRenderLegacyClientes()) {
+    abrirNovoClienteReact();
+    return;
+  }
   State.editIds.cli = null;
   refreshRcaSelectors();
 
@@ -1308,7 +1321,10 @@ export function limparFormCli() {
 }
 
 export function editarCli(id) {
-  if (!shouldRenderLegacyClientes()) return;
+  if (!shouldRenderLegacyClientes()) {
+    editarClienteReact(id);
+    return;
+  }
   const cliente = getClienteById(id);
   if (!cliente) return;
 
@@ -1436,7 +1452,10 @@ export async function salvarCliente() {
 }
 
 export async function removerCli(id) {
-  if (!shouldRenderLegacyClientes()) return;
+  if (!shouldRenderLegacyClientes()) {
+    excluirClienteReact(id);
+    return;
+  }
   if (!confirm('Remover cliente?')) return;
 
   const result = await removerClienteAction(id);

@@ -74,6 +74,7 @@ import {
 import {
   toggleClientesReactBridge,
   abrirNovoClienteReact,
+  isClientesReactPilotActive,
   limparFiltrosClienteReact,
   abrirListaClienteReact,
   editarClienteReactAtual,
@@ -760,6 +761,7 @@ registerApplicationModules({
     renderCliMet,
     renderClientes,
     abrirNovoClienteReact,
+    isClientesReactPilotActive,
     limparFiltrosClienteReact,
     abrirListaClienteReact,
     editarClienteReactAtual,
@@ -842,6 +844,7 @@ startApplicationRuntime({
         renderCliSegs,
         renderClientes,
         toggleClientesReactBridge,
+        isClientesReactPilotActive,
         abrirNovoClienteReact,
         limparFiltrosClienteReact,
         abrirListaClienteReact,
