@@ -1,7 +1,7 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, invalidatePdCache } from '../app/store.js';
+import { D, State } from '../app/store.js';
 import { createScreenDom } from '../shared/dom.js';
 import {
   abrirModal,
@@ -10,8 +10,7 @@ import {
   notify,
   notifyGuided,
   focusField,
-  fmt,
-  uid
+  fmt
 } from '../shared/utils.js';
 import { measureRender } from '../shared/render-metrics.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
@@ -19,13 +18,13 @@ import { renderPedMet, renderPedidos } from './pedidos.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 import { buildSkeletonLines } from './runtime-loading.js';
 import {
-  deleteClienteRemote,
-  getClienteById,
-  getClientes,
-  removeClienteLocal,
-  upsertClienteLocal,
-  upsertClienteRemote
-} from './clientes/repository.js';
+  adicionarLancamentoFidelidadeAction,
+  adicionarNotaAction,
+  fecharVendaClienteAction,
+  removerClienteAction,
+  salvarClienteAction
+} from './clientes/actions.js';
+import { getClienteById, getClientes } from './clientes/repository.js';
 import {
   getContatoInfo,
   normalizeDoc,
@@ -1079,18 +1078,11 @@ export async function adicionarLancamentoFidelidade(clienteId) {
   // Débito e ajuste negativo: o banco espera pontos negativos para debitar
   const pontos = tipo === 'debito' ? -Math.abs(pontosRaw) : pontosRaw;
 
-  const lancamento = {
-    id: uid(),
-    cliente_id: clienteId,
-    filial_id: State.FIL,
+  const result = await adicionarLancamentoFidelidadeAction(clienteId, {
     tipo,
-    status: 'confirmado',
     pontos,
-    origem: 'manual',
     observacao: obs
-  };
-
-  const result = await SB.toResult(() => SB.insertClienteFidelidadeLancamento(lancamento));
+  });
   if (!result.ok) {
     console.error('Erro ao inserir lançamento de fidelidade', result.error);
     notify(
@@ -1260,31 +1252,17 @@ export async function fecharVendaCliente(pedidoId, clienteId) {
   }
   if (!confirm(`Fechar a venda do pedido #${pedido.num}?`)) return;
 
-  const atualizado = {
-    ...pedido,
-    venda_fechada: true,
-    venda_fechada_em: new Date().toISOString(),
-    venda_fechada_por: String(State.user?.email || State.user?.id || '').trim() || null
-  };
-
-  try {
-    await SB.upsertPedido({
-      ...atualizado,
-      itens: JSON.stringify(Array.isArray(atualizado.itens) ? atualizado.itens : [])
-    });
-  } catch (error) {
+  const result = await fecharVendaClienteAction(pedido, {
+    userEmail: String(State.user?.email || State.user?.id || '').trim() || null
+  });
+  if (!result.ok) {
     notify(
-      `Erro ao fechar venda: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
+      `Erro ao fechar venda: ${String(result.error instanceof Error ? result.error.message : 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
     return;
   }
 
-  if (!D.pedidos[State.FIL]) D.pedidos[State.FIL] = [];
-  D.pedidos[State.FIL] = D.pedidos[State.FIL].map((item) =>
-    item.id === pedidoId ? atualizado : item
-  );
-  invalidatePdCache();
   renderPedMet();
   renderPedidos();
   toast(`Venda do pedido #${pedido.num} fechada com sucesso.`);
@@ -1303,16 +1281,11 @@ export async function addNota(id) {
     data: new Date().toLocaleString('pt-BR')
   };
 
-  try {
-    await SB.insertNota(nota);
-  } catch (error) {
-    toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
+  const result = await adicionarNotaAction(nota);
+  if (!result.ok) {
+    toast(`Erro: ${result.error instanceof Error ? result.error.message : 'erro desconhecido'}`);
     return;
   }
-
-  if (!D.notas) D.notas = {};
-  if (!Array.isArray(D.notas[id])) D.notas[id] = [];
-  D.notas[id].unshift(nota);
 
   if (input) input.value = '';
   renderNotasCliente(id);
@@ -1429,20 +1402,17 @@ export async function salvarCliente() {
     return;
   }
 
-  try {
-    await upsertClienteRemote(cliente);
-  } catch (error) {
-    if (handleClienteDuplicadoError(error, clienteDuplicado)) {
+  const result = await salvarClienteAction(cliente, editId);
+  if (!result.ok) {
+    if (handleClienteDuplicadoError(result.error, clienteDuplicado)) {
       return;
     }
     notify(
-      `Erro ao salvar cliente: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
+      `Erro ao salvar cliente: ${String(result.error instanceof Error ? result.error.message : 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
     return;
   }
-
-  upsertClienteLocal(cliente, editId);
 
   fecharModal('modal-cliente');
   renderCliMet();
@@ -1469,14 +1439,11 @@ export async function removerCli(id) {
   if (!shouldRenderLegacyClientes()) return;
   if (!confirm('Remover cliente?')) return;
 
-  try {
-    await deleteClienteRemote(id);
-  } catch (error) {
-    toast(`Erro: ${error instanceof Error ? error.message : 'erro desconhecido'}`);
+  const result = await removerClienteAction(id);
+  if (!result.ok) {
+    toast(`Erro: ${result.error instanceof Error ? result.error.message : 'erro desconhecido'}`);
     return;
   }
-
-  removeClienteLocal(id);
 
   renderCliMet();
   renderClientes();
