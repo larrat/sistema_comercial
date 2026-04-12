@@ -1,3 +1,4 @@
+import { act } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -137,20 +138,25 @@ describe('ClienteDetailPanel', () => {
   });
 
   it('abre na aba resumo por padrao', () => {
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    act(() => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
     expect(screen.getByTestId('cliente-context-summary')).toBeInTheDocument();
   });
 
   it('carrega pedidos ao trocar para a aba de pedidos abertos', async () => {
+    const user = userEvent.setup();
     const parentMock = { postMessage: vi.fn() };
     Object.defineProperty(window, 'parent', {
       value: parentMock,
       configurable: true
     });
 
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    await act(async () => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
 
-    await userEvent.click(screen.getByText('Pedidos abertos'));
+    await user.click(screen.getByText('Pedidos abertos'));
 
     await waitFor(() => {
       expect(listPedidosByClienteMock).toHaveBeenCalledWith(
@@ -167,7 +173,7 @@ describe('ClienteDetailPanel', () => {
     expect(screen.getByText('Pedido #101')).toBeInTheDocument();
     expect(screen.getByText('R$ 320,00')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByTestId('pedido-ver-p1'));
+    await user.click(screen.getByTestId('pedido-ver-p1'));
 
     expect(parentMock.postMessage).toHaveBeenCalledWith(
       {
@@ -182,18 +188,24 @@ describe('ClienteDetailPanel', () => {
   });
 
   it('mostra pedidos fechados na aba correspondente', async () => {
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
 
-    await userEvent.click(screen.getByText('Pedidos fechados'));
+    await user.click(screen.getByText('Pedidos fechados'));
 
     expect(await screen.findByText('Pedido #88')).toBeInTheDocument();
     expect(screen.getByText('Fechado')).toBeInTheDocument();
   });
 
   it('carrega notas ao trocar para a aba de notas e historico', async () => {
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
 
-    await userEvent.click(screen.getByText('Notas / historico'));
+    await user.click(screen.getByText('Notas / historico'));
 
     await waitFor(() => {
       expect(listNotasMock).toHaveBeenCalledWith(
@@ -216,11 +228,14 @@ describe('ClienteDetailPanel', () => {
       data: '10/04/2026 11:00'
     });
 
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
 
-    await userEvent.click(screen.getByText('Notas / historico'));
-    await userEvent.type(screen.getByTestId('nota-input'), 'Retorno confirmado');
-    await userEvent.click(screen.getByTestId('nota-add'));
+    await user.click(screen.getByText('Notas / historico'));
+    await user.type(screen.getByTestId('nota-input'), 'Retorno confirmado');
+    await user.click(screen.getByTestId('nota-add'));
 
     await waitFor(() => {
       expect(addNotaMock).toHaveBeenCalled();
@@ -230,9 +245,12 @@ describe('ClienteDetailPanel', () => {
   });
 
   it('carrega fidelidade ao trocar para a aba correspondente', async () => {
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
 
-    await userEvent.click(screen.getByText('Fidelidade'));
+    await user.click(screen.getByText('Fidelidade'));
 
     await waitFor(() => {
       expect(getClienteFidelidadeSaldoMock).toHaveBeenCalledWith(
@@ -261,12 +279,15 @@ describe('ClienteDetailPanel', () => {
       observacao: 'Bonus'
     });
 
-    render(<ClienteDetailPanel cliente={CLIENTE} />);
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<ClienteDetailPanel cliente={CLIENTE} />);
+    });
 
-    await userEvent.click(screen.getByText('Fidelidade'));
-    await userEvent.type(screen.getByTestId('fid-pontos'), '50');
-    await userEvent.type(screen.getByTestId('fid-obs'), 'Bonus');
-    await userEvent.click(screen.getByTestId('fid-submit'));
+    await user.click(screen.getByText('Fidelidade'));
+    await user.type(screen.getByTestId('fid-pontos'), '50');
+    await user.type(screen.getByTestId('fid-obs'), 'Bonus');
+    await user.click(screen.getByTestId('fid-submit'));
 
     await waitFor(() => {
       expect(addClienteFidelidadeLancamentoMock).toHaveBeenCalledWith(
