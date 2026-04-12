@@ -4,7 +4,16 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    ignores: ['node_modules/**', 'test-results/**', 'docs/**', 'sql/**', '.git/**', '.vscode/**']
+    ignores: [
+      'node_modules/**',
+      'test-results/**',
+      'docs/**',
+      'sql/**',
+      '.git/**',
+      '.vscode/**',
+      'dist-react/**',
+      'coverage/**'
+    ]
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

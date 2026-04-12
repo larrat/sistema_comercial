@@ -146,11 +146,7 @@ describe('ClienteDetailPanel', () => {
 
   it('carrega pedidos ao trocar para a aba de pedidos abertos', async () => {
     const user = userEvent.setup();
-    const parentMock = { postMessage: vi.fn() };
-    Object.defineProperty(window, 'parent', {
-      value: parentMock,
-      configurable: true
-    });
+    const postMessageSpy = vi.spyOn(window, 'postMessage');
 
     await act(async () => {
       render(<ClienteDetailPanel cliente={CLIENTE} />);
@@ -175,7 +171,7 @@ describe('ClienteDetailPanel', () => {
 
     await user.click(screen.getByTestId('pedido-ver-p1'));
 
-    expect(parentMock.postMessage).toHaveBeenCalledWith(
+    expect(postMessageSpy).toHaveBeenCalledWith(
       {
         source: 'clientes-react-pilot',
         type: 'clientes:pedido-acao',

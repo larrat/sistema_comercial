@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import type { Cliente } from '../../../../types/domain';
@@ -19,7 +19,6 @@ export function ClientesPilotPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>('resumo');
   const { deleteClienteById, deletingId, error } = useClienteMutations();
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const editingCliente = useMemo<Cliente | null>(
     () => clientes.find((cliente) => cliente.id === editingId) ?? null,
@@ -69,8 +68,6 @@ export function ClientesPilotPage() {
   }
 
   useEffect(() => {
-    if (window.parent === window) return;
-
     function handleParentCommand(event: MessageEvent) {
       if (event.origin !== window.location.origin) return;
 
@@ -140,41 +137,7 @@ export function ClientesPilotPage() {
   }, [clearFiltro, detailId, filteredClientes]);
 
   useEffect(() => {
-    if (window.parent === window) return;
-
-    const container = containerRef.current;
-    if (!container) return;
-    const element: HTMLDivElement = container;
-
-    function postHeight() {
-      window.parent.postMessage(
-        {
-          source: MESSAGE_SOURCE,
-          type: 'clientes:height',
-          height: element.scrollHeight + 24
-        },
-        window.location.origin
-      );
-    }
-
-    postHeight();
-
-    if (typeof ResizeObserver === 'undefined') return;
-
-    const observer = new ResizeObserver(() => {
-      postHeight();
-    });
-    observer.observe(element);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [clientes.length, deletingId, detailId, editingId, error]);
-
-  useEffect(() => {
-    if (window.parent === window) return;
-
-    window.parent.postMessage(
+    window.postMessage(
       {
         source: MESSAGE_SOURCE,
         type: 'clientes:state',
@@ -206,7 +169,6 @@ export function ClientesPilotPage() {
 
   return (
     <div
-      ref={containerRef}
       className="screen-content form-gap-lg"
       data-testid="clientes-pilot-page"
     >

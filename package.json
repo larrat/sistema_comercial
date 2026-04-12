@@ -11,6 +11,8 @@
     "typecheck:strict": "tsc --project tsconfig.strict.json --noEmit",
     "dev:react": "vite --config vite.config.ts",
     "build:react": "vite build --config vite.config.ts",
+    "dev:bridge": "vite --config vite.bridge.config.ts",
+    "build:bridge": "vite build --config vite.bridge.config.ts",
     "test:react": "vitest run --config vitest.react.config.ts",
     "test:react:coverage": "vitest run --config vitest.react.config.ts --coverage",
     "test:pilot:clientes": "vitest run --config vitest.pilot-clientes.config.ts",

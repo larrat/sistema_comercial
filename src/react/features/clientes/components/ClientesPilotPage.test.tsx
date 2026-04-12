@@ -62,8 +62,6 @@ const listNotasMock = vi.mocked(listNotas);
 const getClienteFidelidadeSaldoMock = vi.mocked(getClienteFidelidadeSaldo);
 const listClienteFidelidadeLancamentosMock = vi.mocked(listClienteFidelidadeLancamentos);
 const listPedidosByClienteMock = vi.mocked(listPedidosByCliente);
-const ORIGINAL_PARENT = window.parent;
-
 const CLIENTES: Cliente[] = [
   { id: '1', nome: 'Maria Souza', status: 'ativo', seg: 'Varejo', email: 'maria@a.com' }
 ];
@@ -104,15 +102,6 @@ describe('ClientesPilotPage', () => {
     listPedidosByClienteMock.mockResolvedValue([]);
     act(() => useClienteStore.getState().setClientes(CLIENTES));
   });
-
-  function setEmbeddedParent() {
-    const parentMock = { postMessage: vi.fn() };
-    Object.defineProperty(window, 'parent', {
-      value: parentMock,
-      configurable: true
-    });
-    return parentMock;
-  }
 
   it('cria um novo cliente pelo formulario React', async () => {
     saveClienteMock.mockResolvedValue({
@@ -240,7 +229,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('abre novo formulario quando recebe comando do shell legado', async () => {
-    setEmbeddedParent();
     render(<ClientesPilotPage />);
 
     act(() => {
@@ -256,7 +244,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('limpa filtros quando recebe comando do shell legado', async () => {
-    setEmbeddedParent();
     render(<ClientesPilotPage />);
 
     await userEvent.type(screen.getByTestId('busca-input'), 'maria');
@@ -278,7 +265,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('abre edicao do cliente atual quando recebe comando do shell legado', async () => {
-    setEmbeddedParent();
     render(<ClientesPilotPage />);
 
     await userEvent.click(screen.getByText('Detalhes'));
@@ -297,7 +283,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('troca para fidelidade quando recebe comando do shell legado no detalhe', async () => {
-    setEmbeddedParent();
     render(<ClientesPilotPage />);
 
     await userEvent.click(screen.getByText('Detalhes'));
@@ -315,7 +300,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('troca para pedidos abertos quando recebe comando do shell legado no detalhe', async () => {
-    setEmbeddedParent();
     listPedidosByClienteMock.mockResolvedValue([
       {
         id: 'p1',
@@ -348,7 +332,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('troca para pedidos fechados quando recebe comando do shell legado no detalhe', async () => {
-    setEmbeddedParent();
     listPedidosByClienteMock.mockResolvedValue([
       {
         id: 'p2',
@@ -381,7 +364,6 @@ describe('ClientesPilotPage', () => {
   });
 
   it('exporta csv filtrado quando recebe comando do shell legado', async () => {
-    setEmbeddedParent();
     const createObjectURLMock = vi
       .spyOn(URL, 'createObjectURL')
       .mockReturnValue('blob:clientes-react');
@@ -413,9 +395,3 @@ describe('ClientesPilotPage', () => {
   });
 });
 
-afterEach(() => {
-  Object.defineProperty(window, 'parent', {
-    value: ORIGINAL_PARENT,
-    configurable: true
-  });
-});

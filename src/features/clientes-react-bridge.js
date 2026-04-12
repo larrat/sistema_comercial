@@ -2,11 +2,8 @@ const STORAGE_KEY = 'sc_clientes_ui_mode';
 const FEATURE_FLAG_KEY = 'sc_clientes_react_enabled';
 const MODE_LEGACY = 'legacy';
 const MODE_REACT = 'react';
-const REACT_CLIENTES_URL = './react.html?embed=clientes';
-const FRAME_ID = 'cli-react-frame';
 const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
-const DEFAULT_FRAME_HEIGHT = 820;
 const DEFAULT_BRIDGE_STATE = {
   view: 'list',
   status: 'ready',
@@ -64,10 +61,6 @@ function getRoot() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-react-root'));
 }
 
-function getFrame() {
-  return /** @type {HTMLIFrameElement | null} */ (document.getElementById(FRAME_ID));
-}
-
 function getLegacyControls() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-legacy-controls'));
 }
@@ -106,16 +99,6 @@ function isClientesPageActive() {
 
 function isReactModeActive() {
   return !!(bridge?.mount && getMode() === MODE_REACT && isClientesPageActive());
-}
-
-function updateFrameHeight(nextHeight) {
-  const frame = getFrame();
-  if (!frame) return;
-
-  const height = Number.isFinite(nextHeight)
-    ? Math.max(620, Math.round(nextHeight))
-    : DEFAULT_FRAME_HEIGHT;
-  frame.style.height = `${height}px`;
 }
 
 function toViewLabel(view) {
@@ -291,10 +274,7 @@ function syncBridgeState(state) {
 function postToReactFrame(type, payload = {}) {
   if (!isReactModeActive()) return false;
 
-  const frame = getFrame();
-  if (!frame?.contentWindow) return false;
-
-  frame.contentWindow.postMessage(
+  window.postMessage(
     {
       source: COMMAND_SOURCE,
       type,
@@ -353,7 +333,6 @@ async function applyMode() {
   if (!reactActive) {
     if (mounted && bridge?.unmount) bridge.unmount();
     mounted = false;
-    updateFrameHeight(DEFAULT_FRAME_HEIGHT);
     syncBridgeState(null);
     updateToggle();
     return;
@@ -440,29 +419,16 @@ export function abrirFidelidadeClienteReact() {
   postToReactFrame('clientes:abrir-fidelidade');
 }
 
-function createClientesIframeBridge() {
+function createClientesDirectBridge() {
+  const directBridge = window.__SC_CLIENTES_DIRECT_BRIDGE__;
+  if (!directBridge) return null;
+
   return {
     mount(root) {
-      const existing = getFrame();
-      if (existing) {
-        updateFrameHeight(DEFAULT_FRAME_HEIGHT);
-        return;
-      }
-
-      root.innerHTML = '';
-      const frame = document.createElement('iframe');
-      frame.id = FRAME_ID;
-      frame.src = REACT_CLIENTES_URL;
-      frame.title = 'Piloto React de clientes';
-      frame.loading = 'lazy';
-      frame.className = 'cli-react-frame';
-      frame.style.height = `${DEFAULT_FRAME_HEIGHT}px`;
-      root.appendChild(frame);
+      directBridge.mount(root);
     },
     unmount() {
-      const root = getRoot();
-      if (!root) return;
-      root.innerHTML = '';
+      directBridge.unmount();
     }
   };
 }
@@ -485,11 +451,6 @@ function handleBridgeMessage(event) {
   const data = event.data;
   if (!data || data.source !== MESSAGE_SOURCE) return;
 
-  if (data.type === 'clientes:height') {
-    updateFrameHeight(Number(data.height));
-    return;
-  }
-
   if (data.type === 'clientes:state') {
     syncBridgeState(data.state);
     return;
@@ -507,7 +468,7 @@ function handleBridgeMessage(event) {
 
 if (typeof window !== 'undefined') {
   ensurePageObserver();
-  registerClientesReactBridge(createClientesIframeBridge());
+  registerClientesReactBridge(createClientesDirectBridge());
   window.addEventListener('message', handleBridgeMessage);
   window.addEventListener('storage', () => {
     void applyMode();

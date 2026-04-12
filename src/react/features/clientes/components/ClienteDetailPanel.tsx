@@ -28,8 +28,7 @@ function sendPedidoAction(
   pedidoId: string,
   clienteId: string
 ) {
-  if (window.parent === window) return;
-  window.parent.postMessage(
+  window.postMessage(
     {
       source: 'clientes-react-pilot',
       type: 'clientes:pedido-acao',
