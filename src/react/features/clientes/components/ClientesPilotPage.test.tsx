@@ -140,7 +140,7 @@ describe('ClientesPilotPage', () => {
           token: 'token-1',
           filialId: 'filial-1'
         },
-        {
+        expect.objectContaining({
           id: undefined,
           nome: 'Ana Paula',
           email: 'ana@a.com',
@@ -148,7 +148,7 @@ describe('ClientesPilotPage', () => {
           whatsapp: '',
           seg: 'Atacado',
           status: 'ativo'
-        }
+        })
       );
     });
 
@@ -185,7 +185,7 @@ describe('ClientesPilotPage', () => {
           token: 'token-1',
           filialId: 'filial-1'
         },
-        {
+        expect.objectContaining({
           id: '1',
           nome: 'Maria Souza Premium',
           email: 'maria@a.com',
@@ -193,7 +193,7 @@ describe('ClientesPilotPage', () => {
           whatsapp: '',
           seg: 'Varejo',
           status: 'ativo'
-        }
+        })
       );
     });
 

@@ -142,6 +142,12 @@ describe('ClienteDetailPanel', () => {
   });
 
   it('carrega pedidos ao trocar para a aba de pedidos abertos', async () => {
+    const parentMock = { postMessage: vi.fn() };
+    Object.defineProperty(window, 'parent', {
+      value: parentMock,
+      configurable: true
+    });
+
     render(<ClienteDetailPanel cliente={CLIENTE} />);
 
     await userEvent.click(screen.getByText('Pedidos abertos'));
@@ -160,6 +166,19 @@ describe('ClienteDetailPanel', () => {
 
     expect(screen.getByText('Pedido #101')).toBeInTheDocument();
     expect(screen.getByText('R$ 320,00')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByTestId('pedido-ver-p1'));
+
+    expect(parentMock.postMessage).toHaveBeenCalledWith(
+      {
+        source: 'clientes-react-pilot',
+        type: 'clientes:pedido-acao',
+        action: 'ver',
+        pedidoId: 'p1',
+        clienteId: '1'
+      },
+      window.location.origin
+    );
   });
 
   it('mostra pedidos fechados na aba correspondente', async () => {

@@ -23,6 +23,24 @@ function formatCurrency(value: number): string {
   }).format(Number(value || 0));
 }
 
+function sendPedidoAction(
+  action: 'ver' | 'editar' | 'fechar-venda',
+  pedidoId: string,
+  clienteId: string
+) {
+  if (window.parent === window) return;
+  window.parent.postMessage(
+    {
+      source: 'clientes-react-pilot',
+      type: 'clientes:pedido-acao',
+      action,
+      pedidoId,
+      clienteId
+    },
+    window.location.origin
+  );
+}
+
 function renderPedidosList(
   pedidos: Pedido[],
   kind: 'abertas' | 'fechadas',
@@ -86,6 +104,35 @@ function renderPedidosList(
               <div className="table-cell-caption table-cell-muted">Total</div>
               <div className="table-cell-strong">{formatCurrency(Number(pedido.total || 0))}</div>
             </div>
+          </div>
+
+          <div className="mobile-card-actions">
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => sendPedidoAction('ver', pedido.id, pedido.cliente_id || '')}
+              data-testid={`pedido-ver-${pedido.id}`}
+            >
+              Ver pedido
+            </button>
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => sendPedidoAction('editar', pedido.id, pedido.cliente_id || '')}
+              data-testid={`pedido-editar-${pedido.id}`}
+            >
+              Editar
+            </button>
+            {!pedido.venda_fechada && pedido.status === 'entregue' && (
+              <button
+                className="btn btn-p btn-sm"
+                type="button"
+                onClick={() => sendPedidoAction('fechar-venda', pedido.id, pedido.cliente_id || '')}
+                data-testid={`pedido-fechar-${pedido.id}`}
+              >
+                Fechar venda
+              </button>
+            )}
           </div>
         </article>
       ))}

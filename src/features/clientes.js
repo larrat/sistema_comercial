@@ -852,6 +852,9 @@ function renderClientePedidosLista(pedidos, clienteId, tipo) {
  * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'} tab
  */
 export function switchCliDetTab(clienteId, tab) {
+  syncClientesReactBridge();
+  if (!shouldRenderLegacyClientes()) return;
+
   const box = cliDom.get('cli-det-box');
   if (!box) return;
 
@@ -1212,6 +1215,9 @@ export async function adicionarLancamentoFidelidade(clienteId) {
 }
 
 export async function abrirCliDet(id) {
+  syncClientesReactBridge();
+  if (!shouldRenderLegacyClientes()) return;
+
   const cliente = C().find((item) => item.id === id);
   if (!cliente) return;
 

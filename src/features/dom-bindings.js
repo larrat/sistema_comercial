@@ -553,4 +553,21 @@ export function initDomBindings(nextDeps = {}) {
   document.addEventListener('click', onClick);
   document.addEventListener('input', onFieldEvent);
   document.addEventListener('change', onFieldEvent);
+  window.addEventListener('sc:clientes-pedido-acao', (event) => {
+    const detail = /** @type {{ action?: string; pedidoId?: string; clienteId?: string }} */ (
+      event.detail || {}
+    );
+    const action = detail.action || '';
+    if (action === 'ver' && detail.pedidoId) {
+      deps.verPed?.(detail.pedidoId);
+      return;
+    }
+    if (action === 'editar' && detail.pedidoId) {
+      deps.editarPed?.(detail.pedidoId);
+      return;
+    }
+    if (action === 'fechar-venda' && detail.pedidoId && detail.clienteId) {
+      deps.fecharVendaCliente?.(detail.pedidoId, detail.clienteId);
+    }
+  });
 }

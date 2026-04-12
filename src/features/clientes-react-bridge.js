@@ -492,6 +492,16 @@ function handleBridgeMessage(event) {
 
   if (data.type === 'clientes:state') {
     syncBridgeState(data.state);
+    return;
+  }
+
+  if (data.type === 'clientes:pedido-acao') {
+    const payload = {
+      action: String(data.action || ''),
+      pedidoId: String(data.pedidoId || ''),
+      clienteId: String(data.clienteId || '')
+    };
+    window.dispatchEvent(new CustomEvent('sc:clientes-pedido-acao', { detail: payload }));
   }
 }
 
