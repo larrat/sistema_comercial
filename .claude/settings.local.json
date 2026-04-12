@@ -18,7 +18,27 @@
       "Bash(grep -n \"no-unused-vars\\\\|unused\" e:/Programas/sistema_comercial/.eslintrc* e:/Programas/sistema_comercial/eslint.config*)",
       "Bash(ls e:/Programas/sistema_comercial/eslint* e:/Programas/sistema_comercial/.eslint*)",
       "Bash(ls e:/Programas/sistema_comercial/src/*.css)",
-      "Bash(ls e:/Programas/sistema_comercial/*.css)"
+      "Bash(ls e:/Programas/sistema_comercial/*.css)",
+      "Bash(xargs basename:*)",
+      "Bash(npx tsc:*)",
+      "Bash(sed -n '1214,1260p' src/features/clientes.js)",
+      "Bash(sed -n '1424,1480p' src/features/clientes.js)",
+      "Bash(sed -n '1573,1600p' src/features/clientes.js)",
+      "Bash(cat vite.config.ts)",
+      "Bash(cat vite.config.js)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(node -e \"const d=require\\('./package.json'\\); console.log\\(JSON.stringify\\(d.scripts,null,2\\)\\)\")",
+      "Bash(sed -n '854,860p' src/features/clientes.js)",
+      "Bash(sed -n '1163,1170p' src/features/clientes.js)",
+      "Bash(sed -n '1214,1220p' src/features/clientes.js)",
+      "Bash(sed -n '1424,1430p' src/features/clientes.js)",
+      "Bash(sed -n '1438,1445p' src/features/clientes.js)",
+      "Bash(grep -rn \"bento\\\\|bento-band\\\\|card-shell\\\\|toolbar-shell\" src/features/oportunidades*.js)",
+      "Bash(sed -n '10385,10460p' src/styles/style.css)",
+      "Bash(sed -n '11145,11175p' src/styles/style.css)",
+      "Bash(awk '/prefers-color-scheme: dark/,/^}/' src/styles/style.css)",
+      "Bash(sed -n '799,815p' src/styles/style.css)",
+      "Bash(sed -n '4000,4015p' src/styles/style.css)"
     ]
   }
 }
