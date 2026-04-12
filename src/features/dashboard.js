@@ -26,7 +26,6 @@ import {
   toggleDashboardReactBridge
 } from './dashboard-react-bridge.js';
 
-// Expor toggle no window para o botão inline do HTML
 if (typeof window !== 'undefined') {
   window.__SC_TOGGLE_DASH_REACT__ = toggleDashboardReactBridge;
 }

@@ -153,7 +153,7 @@ function ensurePageObserver() {
 if (typeof window !== 'undefined') {
   ensurePageObserver();
   registerDashboardReactBridge(createDashboardDirectBridge());
-  window.addEventListener('storage', () => {
-    void applyMode();
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY || e.key === FEATURE_FLAG_KEY) void applyMode();
   });
 }
