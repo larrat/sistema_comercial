@@ -379,6 +379,14 @@ export function toggleClientesReactBridge() {
   void applyMode();
 }
 
+export function forceClientesReactMode() {
+  if (!isClientesReactFeatureEnabled()) return;
+  if (getMode() !== MODE_REACT) {
+    setMode(MODE_REACT);
+  }
+  void applyMode();
+}
+
 export function abrirNovoClienteReact() {
   postToReactFrame('clientes:novo');
 }
@@ -415,40 +423,45 @@ export function exportarClientesReactCsv() {
 }
 
 export function abrirResumoClienteReact(clienteId) {
-  if (clienteId) {
-    abrirDetalheClienteReact(clienteId, 'resumo');
+  const targetId = clienteId || currentBridgeState.selectedId;
+  if (targetId) {
+    abrirDetalheClienteReact(targetId, 'resumo');
     return;
   }
   postToReactFrame('clientes:abrir-resumo');
 }
 
 export function abrirAbertasClienteReact(clienteId) {
-  if (clienteId) {
-    abrirDetalheClienteReact(clienteId, 'abertas');
+  const targetId = clienteId || currentBridgeState.selectedId;
+  if (targetId) {
+    abrirDetalheClienteReact(targetId, 'abertas');
     return;
   }
   postToReactFrame('clientes:abrir-abertas');
 }
 
 export function abrirFechadasClienteReact(clienteId) {
-  if (clienteId) {
-    abrirDetalheClienteReact(clienteId, 'fechadas');
+  const targetId = clienteId || currentBridgeState.selectedId;
+  if (targetId) {
+    abrirDetalheClienteReact(targetId, 'fechadas');
     return;
   }
   postToReactFrame('clientes:abrir-fechadas');
 }
 
 export function abrirNotasClienteReact(clienteId) {
-  if (clienteId) {
-    abrirDetalheClienteReact(clienteId, 'notas');
+  const targetId = clienteId || currentBridgeState.selectedId;
+  if (targetId) {
+    abrirDetalheClienteReact(targetId, 'notas');
     return;
   }
   postToReactFrame('clientes:abrir-notas');
 }
 
 export function abrirFidelidadeClienteReact(clienteId) {
-  if (clienteId) {
-    abrirDetalheClienteReact(clienteId, 'fidelidade');
+  const targetId = clienteId || currentBridgeState.selectedId;
+  if (targetId) {
+    abrirDetalheClienteReact(targetId, 'fidelidade');
     return;
   }
   postToReactFrame('clientes:abrir-fidelidade');

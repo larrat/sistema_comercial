@@ -7,6 +7,7 @@ import {
   getClientesReactBridgeState,
   isClientesReactFeatureEnabled,
   isClientesReactPilotActive,
+  forceClientesReactMode,
   syncClientesReactBridge
 } from './clientes-react-bridge.js';
 
@@ -821,6 +822,7 @@ export function ir(page) {
   });
   setActivePageVisibility(nextPage);
   if (nextPage === 'clientes' && isClientesReactFeatureEnabled()) {
+    forceClientesReactMode();
     syncClientesReactBridge();
   }
   document
