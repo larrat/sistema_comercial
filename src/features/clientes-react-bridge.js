@@ -1,9 +1,19 @@
-const STORAGE_KEY = 'sc_clientes_ui_mode';
-const FEATURE_FLAG_KEY = 'sc_clientes_react_enabled';
-const MODE_LEGACY = 'legacy';
-const MODE_REACT = 'react';
+// @ts-check
+
+import { STORAGE_KEYS, UI_MODES } from '../legacy/bridges/storage-keys.js';
+import {
+  isPilotEnabled,
+  setPilotEnabled,
+  getPilotFlagStorageKey
+} from '../legacy/bridges/feature-flags.js';
+import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+
+/** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
+/** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeState} BridgeState */
+
 const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
+
 const DEFAULT_BRIDGE_STATE = {
   view: 'list',
   status: 'ready',
@@ -14,7 +24,7 @@ const DEFAULT_BRIDGE_STATE = {
   detailTab: 'resumo'
 };
 
-/** @type {{ mount?: (el: HTMLElement) => void | Promise<void>, unmount?: () => void } | null} */
+/** @type {BridgeInterface | null} */
 let bridge = null;
 let mounted = false;
 /** @type {MutationObserver | null} */
@@ -22,26 +32,23 @@ let pageObserver = null;
 let currentBridgeState = { ...DEFAULT_BRIDGE_STATE };
 
 function getMode() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === MODE_LEGACY || stored === MODE_REACT) return stored;
-  return isClientesReactFeatureEnabled() ? MODE_REACT : MODE_LEGACY;
+  const stored = localStorage.getItem(STORAGE_KEYS.CLIENTES_UI_MODE);
+  if (stored === UI_MODES.LEGACY || stored === UI_MODES.REACT) return stored;
+  return isClientesReactFeatureEnabled() ? UI_MODES.REACT : UI_MODES.LEGACY;
 }
 
 function setMode(mode) {
-  localStorage.setItem(STORAGE_KEY, mode);
+  localStorage.setItem(STORAGE_KEYS.CLIENTES_UI_MODE, mode);
 }
 
 export function isClientesReactFeatureEnabled() {
-  const stored = localStorage.getItem(FEATURE_FLAG_KEY);
-  if (stored === 'true') return true;
-  if (stored === 'false') return false;
-  return window.__SC_CLIENTES_REACT_ENABLED__ === true;
+  return isPilotEnabled('clientes');
 }
 
 export function setClientesReactFeatureEnabled(enabled) {
-  localStorage.setItem(FEATURE_FLAG_KEY, enabled ? 'true' : 'false');
-  if (!localStorage.getItem(STORAGE_KEY)) {
-    setMode(enabled ? MODE_REACT : MODE_LEGACY);
+  setPilotEnabled('clientes', enabled);
+  if (!localStorage.getItem(STORAGE_KEYS.CLIENTES_UI_MODE)) {
+    setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
   }
 }
 
@@ -98,7 +105,7 @@ function isClientesPageActive() {
 }
 
 function isReactModeActive() {
-  return !!(bridge?.mount && getMode() === MODE_REACT && isClientesPageActive());
+  return !!(bridge?.mount && getMode() === UI_MODES.REACT && isClientesPageActive());
 }
 
 function toViewLabel(view) {
@@ -317,7 +324,7 @@ function updateToggle() {
   }
 
   toggle.hidden = false;
-  toggle.textContent = getMode() === MODE_REACT ? 'Voltar legado' : 'Piloto React';
+  toggle.textContent = getMode() === UI_MODES.REACT ? 'Voltar legado' : 'Piloto React';
 }
 
 async function applyMode() {
@@ -375,14 +382,14 @@ export function syncClientesReactBridge() {
 
 export function toggleClientesReactBridge() {
   if (!bridge?.mount) return;
-  setMode(getMode() === MODE_REACT ? MODE_LEGACY : MODE_REACT);
+  setMode(getMode() === UI_MODES.REACT ? UI_MODES.LEGACY : UI_MODES.REACT);
   void applyMode();
 }
 
 export function forceClientesReactMode() {
   if (!isClientesReactFeatureEnabled()) return;
-  if (getMode() !== MODE_REACT) {
-    setMode(MODE_REACT);
+  if (getMode() !== UI_MODES.REACT) {
+    setMode(UI_MODES.REACT);
   }
   void applyMode();
 }
@@ -467,32 +474,6 @@ export function abrirFidelidadeClienteReact(clienteId) {
   postToReactFrame('clientes:abrir-fidelidade');
 }
 
-function createClientesDirectBridge() {
-  const directBridge = window.__SC_CLIENTES_DIRECT_BRIDGE__;
-  if (!directBridge) return null;
-
-  return {
-    mount(root) {
-      directBridge.mount(root);
-    },
-    unmount() {
-      directBridge.unmount();
-    }
-  };
-}
-
-function ensurePageObserver() {
-  if (pageObserver || typeof MutationObserver === 'undefined') return;
-
-  const clientesPage = getClientesPage();
-  if (!clientesPage) return;
-
-  pageObserver = new MutationObserver(() => {
-    void applyMode();
-  });
-  pageObserver.observe(clientesPage, { attributes: true, attributeFilter: ['class'] });
-}
-
 function handleBridgeMessage(event) {
   if (event.origin !== window.location.origin) return;
 
@@ -514,11 +495,24 @@ function handleBridgeMessage(event) {
   }
 }
 
+function ensurePageObserver() {
+  if (pageObserver || typeof MutationObserver === 'undefined') return;
+
+  const clientesPage = getClientesPage();
+  if (!clientesPage) return;
+
+  pageObserver = new MutationObserver(() => {
+    void applyMode();
+  });
+  pageObserver.observe(clientesPage, { attributes: true, attributeFilter: ['class'] });
+}
+
 if (typeof window !== 'undefined') {
   ensurePageObserver();
-  registerClientesReactBridge(createClientesDirectBridge());
+  registerClientesReactBridge(createDirectBridgeFromWindow('__SC_CLIENTES_DIRECT_BRIDGE__'));
   window.addEventListener('message', handleBridgeMessage);
   window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY || e.key === FEATURE_FLAG_KEY) void applyMode();
+    const flagKey = getPilotFlagStorageKey('clientes');
+    if (e.key === STORAGE_KEYS.CLIENTES_UI_MODE || e.key === flagKey) void applyMode();
   });
 }
