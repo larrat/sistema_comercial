@@ -749,7 +749,10 @@ function renderClientePedidosLista(pedidos, clienteId, tipo) {
  */
 export function switchCliDetTab(clienteId, tab) {
   syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) return;
+  if (!shouldRenderLegacyClientes()) {
+    abrirDetalheClienteReact(clienteId, tab);
+    return;
+  }
 
   const box = cliDom.get('cli-det-box');
   if (!box) return;
@@ -785,10 +788,11 @@ function renderNotasCliente(id) {
 }
 
 export function renderCliMet() {
+  syncClientesReactBridge();
+  if (!shouldRenderLegacyClientes()) return;
   return measureRender(
     'clientes',
     () => {
-      if (!shouldRenderLegacyClientes()) return;
       const clientes = getClientes();
       if (isRuntimeBootstrapping() && !clientes.length) {
         cliDom.html(
@@ -840,11 +844,11 @@ export function renderCliMet() {
 }
 
 export function renderClientes() {
+  syncClientesReactBridge();
+  if (!shouldRenderLegacyClientes()) return;
   return measureRender(
     'clientes',
     () => {
-      syncClientesReactBridge();
-      if (!shouldRenderLegacyClientes()) return;
       const filtrados = getFilteredClientes();
       if (isRuntimeBootstrapping() && !getClientes().length) {
         cliDom.html(
@@ -901,11 +905,11 @@ export function renderClientes() {
 }
 
 export function renderCliSegs() {
+  syncClientesReactBridge();
+  if (!shouldRenderLegacyClientes()) return;
   return measureRender(
     'clientes',
     () => {
-      syncClientesReactBridge();
-      if (!shouldRenderLegacyClientes()) return;
       const el = cliDom.get('cli-segs-lista');
       if (!el) return;
 

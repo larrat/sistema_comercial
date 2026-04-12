@@ -359,6 +359,8 @@ function queueRender(name) {
 }
 
 function callRender(name) {
+  const target = RENDER_TARGETS[name];
+  if (target?.page === 'clientes' && deps.isClientesReactPilotActive?.()) return;
   queueRender(name);
 }
 

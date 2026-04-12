@@ -414,23 +414,43 @@ export function exportarClientesReactCsv() {
   postToReactFrame('clientes:exportar-csv');
 }
 
-export function abrirResumoClienteReact() {
+export function abrirResumoClienteReact(clienteId) {
+  if (clienteId) {
+    abrirDetalheClienteReact(clienteId, 'resumo');
+    return;
+  }
   postToReactFrame('clientes:abrir-resumo');
 }
 
-export function abrirAbertasClienteReact() {
+export function abrirAbertasClienteReact(clienteId) {
+  if (clienteId) {
+    abrirDetalheClienteReact(clienteId, 'abertas');
+    return;
+  }
   postToReactFrame('clientes:abrir-abertas');
 }
 
-export function abrirFechadasClienteReact() {
+export function abrirFechadasClienteReact(clienteId) {
+  if (clienteId) {
+    abrirDetalheClienteReact(clienteId, 'fechadas');
+    return;
+  }
   postToReactFrame('clientes:abrir-fechadas');
 }
 
-export function abrirNotasClienteReact() {
+export function abrirNotasClienteReact(clienteId) {
+  if (clienteId) {
+    abrirDetalheClienteReact(clienteId, 'notas');
+    return;
+  }
   postToReactFrame('clientes:abrir-notas');
 }
 
-export function abrirFidelidadeClienteReact() {
+export function abrirFidelidadeClienteReact(clienteId) {
+  if (clienteId) {
+    abrirDetalheClienteReact(clienteId, 'fidelidade');
+    return;
+  }
   postToReactFrame('clientes:abrir-fidelidade');
 }
 
