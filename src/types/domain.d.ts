@@ -697,6 +697,7 @@ export type DomBindingsDeps = {
   abrirNotasClienteReact?: () => void;
   abrirFidelidadeClienteReact?: () => void;
   renderPedidos?: () => void;
+  switchPedTab?: (tab: string) => void;
   renderContasReceberMet?: () => void;
   renderContasReceber?: () => void;
   switchCrTab?: (tab: string) => void;
