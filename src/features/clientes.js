@@ -19,6 +19,18 @@ import { renderPedMet, renderPedidos } from './pedidos.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
 import { buildSkeletonLines } from './runtime-loading.js';
 import {
+  getContatoInfo,
+  normalizeDoc,
+  normalizeEmail,
+  normalizePhone,
+  parseTimes,
+  PRAZO_DETALHE_LABELS,
+  PRAZO_LABELS,
+  ST_B,
+  ST_PED,
+  TAB_LABELS
+} from './clientes/domain.js';
+import {
   checkClienteIdentity,
   filterClientesFromLegacy,
   getClienteSegmentosFromLegacy
@@ -86,42 +98,6 @@ const AVC = [
   { bg: '#FAF0D6', c: '#5C3900' },
   { bg: '#FAEBE9', c: '#731F18' }
 ];
-
-const ST_B = {
-  ativo: '<span class="bdg bg">Ativo</span>',
-  inativo: '<span class="bdg bk">Inativo</span>',
-  prospecto: '<span class="bdg bb">Prospecto</span>'
-};
-
-const ST_PED = {
-  orcamento: '<span class="bdg bk">Orcamento</span>',
-  confirmado: '<span class="bdg bb">Confirmado</span>',
-  em_separacao: '<span class="bdg ba">Em separação</span>',
-  entregue: '<span class="bdg bg">Entregue</span>',
-  cancelado: '<span class="bdg br">Cancelado</span>'
-};
-
-const TAB_LABELS = {
-  padrao: 'Padrao',
-  especial: '<span class="bdg ba">Especial</span>',
-  vip: '<span class="bdg br">VIP</span>'
-};
-
-const PRAZO_LABELS = {
-  a_vista: 'A vista',
-  '7d': '7d',
-  '15d': '15d',
-  '30d': '30d',
-  '60d': '60d'
-};
-
-const PRAZO_DETALHE_LABELS = {
-  a_vista: 'A vista',
-  '7d': '7 dias',
-  '15d': '15 dias',
-  '30d': '30 dias',
-  '60d': '60 dias'
-};
 
 /**
  * @param {ClientesModuleCallbacks} [callbacks]
@@ -213,103 +189,6 @@ function getBadgeAniversario(cliente) {
     return `<span class="bdg ba">Aniv ${dias}d</span>`;
   }
   return `<span class="bdg bb">Aniv ${esc(fmtAniv(cliente.data_aniversario))}</span>`;
-}
-
-/**
- * @param {Cliente | null | undefined} cliente
- */
-function getContatoInfo(cliente) {
-  const whatsapp = String(cliente?.whatsapp || '').trim();
-  const tel = String(cliente?.tel || '').trim();
-  const email = String(cliente?.email || '').trim();
-
-  if (whatsapp) {
-    return {
-      principal: `WhatsApp: ${whatsapp}`,
-      secundario: tel && tel !== whatsapp ? `Telefone: ${tel}` : '',
-      badge: '<span class="bdg bg">WhatsApp</span>'
-    };
-  }
-
-  if (tel) {
-    return {
-      principal: `Telefone: ${tel}`,
-      secundario: email,
-      badge: '<span class="bdg ba">Telefone</span>'
-    };
-  }
-
-  if (email) {
-    return {
-      principal: email,
-      secundario: '',
-      badge: '<span class="bdg bb">E-mail</span>'
-    };
-  }
-
-  return {
-    principal: 'Sem contato',
-    secundario: '',
-    badge: '<span class="bdg br">Sem contato</span>'
-  };
-}
-
-/**
- * @param {unknown} value
- */
-function normTxt(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
-/**
- * @param {string | string[] | null | undefined} value
- */
-function parseTimes(value) {
-  const raw = Array.isArray(value) ? value : String(value || '').split(/[,;\n]+/);
-
-  const seen = new Set();
-  const out = [];
-
-  raw.forEach((item) => {
-    const nome = String(item || '').trim();
-    if (!nome) return;
-    const key = normTxt(nome);
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push(nome);
-  });
-
-  return out;
-}
-
-/**
- * @param {unknown} value
- */
-function normalizePhone(value) {
-  return String(value || '').replace(/\D+/g, '');
-}
-
-/**
- * @param {unknown} value
- */
-function normalizeEmail(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
-/**
- * @param {unknown} value
- */
-function normalizeDoc(value) {
-  return String(value || '')
-    .replace(/[^0-9A-Za-z]+/g, '')
-    .trim()
-    .toLowerCase();
 }
 
 /**
