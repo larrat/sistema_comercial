@@ -9,7 +9,10 @@ export default defineConfig({
     outDir: 'dist-react',
     emptyOutDir: false,
     rollupOptions: {
-      input: { 'clientes-bridge': 'src/react/clientes-bridge.tsx' },
+      input: {
+        'clientes-bridge': 'src/react/clientes-bridge.tsx',
+        'dashboard-bridge': 'src/react/dashboard-bridge.tsx'
+      },
       output: {
         entryFileNames: '[name].js',
         chunkFileNames: '[name]-[hash].js',

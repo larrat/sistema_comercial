@@ -137,10 +137,13 @@ function E(e, t, n) {
       ? Error(t.message)
       : Error(n);
 }
-function ee(e, t) {
+function D(e, t) {
+  return `${e}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(t)}&order=nome`;
+}
+function O(e, t) {
   return `${e}/rest/v1/clientes?id=eq.${encodeURIComponent(t)}`;
 }
-function te(e, t) {
+function k(e, t) {
   return {
     id: e.id ?? void 0,
     filial_id: t,
@@ -168,8 +171,16 @@ function te(e, t) {
     optin_sms: !!e.optin_sms
   };
 }
-async function ne(e, t) {
-  let n = te(t, e.filialId),
+async function A(e) {
+  let t = await fetch(D(e.url, e.filialId), {
+      headers: w(e.key, e.token),
+      signal: AbortSignal.timeout(12e3)
+    }),
+    n = await T(t);
+  return (E(t, n, `Erro ${t.status} ao carregar clientes`), Array.isArray(n) ? n : []);
+}
+async function j(e, t) {
+  let n = k(t, e.filialId),
     r = await fetch(`${e.url}/rest/v1/clientes?on_conflict=id`, {
       method: `POST`,
       headers: w(e.key, e.token, `resolution=merge-duplicates,return=representation`),
@@ -182,15 +193,15 @@ async function ne(e, t) {
     Array.isArray(i) && i[0] ? i[0] : t.id ? { ...n, id: t.id } : null
   );
 }
-async function re(e, t) {
-  let n = await fetch(ee(e.url, t), {
+async function M(e, t) {
+  let n = await fetch(O(e.url, t), {
     method: `DELETE`,
     headers: w(e.key, e.token),
     signal: AbortSignal.timeout(12e3)
   });
   E(n, await T(n), `Erro ${n.status} ao remover cliente`);
 }
-function D() {
+function N() {
   let e = C((e) => e.upsertCliente),
     t = C((e) => e.removeCliente),
     i = a((e) => e.session),
@@ -209,7 +220,7 @@ function D() {
     let n = m();
     (c(!0), f(null));
     try {
-      let r = (await ne(n, t)) ?? { ...t, id: t.id ?? crypto.randomUUID(), filial_id: n.filialId };
+      let r = (await j(n, t)) ?? { ...t, id: t.id ?? crypto.randomUUID(), filial_id: n.filialId };
       return (e(r), r);
     } catch (e) {
       throw (f(e instanceof Error ? e.message : `Erro ao salvar cliente.`), e);
@@ -221,7 +232,7 @@ function D() {
     let n = m();
     (u(e), f(null));
     try {
-      (await re(n, e), t(e));
+      (await M(n, e), t(e));
     } catch (e) {
       throw (f(e instanceof Error ? e.message : `Erro ao remover cliente.`), e);
     } finally {
@@ -230,26 +241,26 @@ function D() {
   }
   return { submitCliente: h, deleteClienteById: g, saving: s, deletingId: l, error: d };
 }
-var O = s(),
-  k = [
+var P = s(),
+  F = [
     { bg: `#E6EEF9`, c: `#0F2F5E` },
     { bg: `#E6F4EC`, c: `#0D3D22` },
     { bg: `#FAF0D6`, c: `#5C3900` },
     { bg: `#FAEBE9`, c: `#731F18` }
   ],
-  A = {
+  ee = {
     ativo: { label: `Ativo`, cls: `bdg bg` },
     inativo: { label: `Inativo`, cls: `bdg bk` },
     prospecto: { label: `Prospecto`, cls: `bdg bb` }
   };
-function j(e) {
-  return k[e.charCodeAt(0) % k.length];
+function te(e) {
+  return F[e.charCodeAt(0) % F.length];
 }
-function M(e) {
+function ne(e) {
   let t = e.trim().split(/\s+/).filter(Boolean);
   return t.length ? (t[0][0] + (t[1] ? t[1][0] : ``)).toUpperCase() : `CL`;
 }
-function N(e) {
+function re(e) {
   let t = String(e.whatsapp || ``).trim(),
     n = String(e.tel || ``).trim(),
     r = String(e.email || ``).trim();
@@ -279,76 +290,76 @@ function N(e) {
             badgeLabel: `Sem contato`
           };
 }
-function P({ cliente: e, onDetalhe: t, onEditar: n, onExcluir: r }) {
-  let i = j(e.nome),
-    a = N(e),
-    o = A[e.status ?? ``];
-  return (0, O.jsxs)(`div`, {
+function ie({ cliente: e, onDetalhe: t, onEditar: n, onExcluir: r }) {
+  let i = te(e.nome),
+    a = re(e),
+    o = ee[e.status ?? ``];
+  return (0, P.jsxs)(`div`, {
     className: `cliente-card`,
     'data-testid': `cliente-card`,
     children: [
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `cliente-card__header`,
         children: [
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `cliente-card__hero`,
             children: [
-              (0, O.jsx)(`div`, {
+              (0, P.jsx)(`div`, {
                 className: `av`,
                 style: { background: i.bg, color: i.c },
                 'aria-hidden': `true`,
-                children: M(e.nome)
+                children: ne(e.nome)
               }),
-              (0, O.jsxs)(`div`, {
+              (0, P.jsxs)(`div`, {
                 className: `cliente-card__info`,
                 children: [
-                  (0, O.jsx)(`div`, { className: `cliente-card__nome`, children: e.nome }),
+                  (0, P.jsx)(`div`, { className: `cliente-card__nome`, children: e.nome }),
                   e.apelido &&
-                    (0, O.jsx)(`div`, { className: `cliente-card__apelido`, children: e.apelido })
+                    (0, P.jsx)(`div`, { className: `cliente-card__apelido`, children: e.apelido })
                 ]
               })
             ]
           }),
-          o && (0, O.jsx)(`span`, { className: o.cls, children: o.label })
+          o && (0, P.jsx)(`span`, { className: o.cls, children: o.label })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `cliente-card__contact`,
         children: [
-          (0, O.jsx)(`div`, { className: `cliente-card__contact-primary`, children: a.principal }),
+          (0, P.jsx)(`div`, { className: `cliente-card__contact-primary`, children: a.principal }),
           a.secundario &&
-            (0, O.jsx)(`div`, {
+            (0, P.jsx)(`div`, {
               className: `cliente-card__contact-secondary`,
               children: a.secundario
             })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `cliente-card__badges`,
         children: [
-          (0, O.jsx)(`span`, { className: a.badgeCls, children: a.badgeLabel }),
-          e.seg && (0, O.jsx)(`span`, { className: `bdg bk`, children: e.seg }),
-          e.optin_marketing && (0, O.jsx)(`span`, { className: `bdg bg`, children: `MKT` })
+          (0, P.jsx)(`span`, { className: a.badgeCls, children: a.badgeLabel }),
+          e.seg && (0, P.jsx)(`span`, { className: `bdg bk`, children: e.seg }),
+          e.optin_marketing && (0, P.jsx)(`span`, { className: `bdg bg`, children: `MKT` })
         ]
       }),
       (t || n || r) &&
-        (0, O.jsxs)(`div`, {
+        (0, P.jsxs)(`div`, {
           className: `mobile-card-actions`,
           children: [
             t &&
-              (0, O.jsx)(`button`, {
+              (0, P.jsx)(`button`, {
                 className: `btn btn-sm`,
                 onClick: () => t(String(e.id)),
                 children: `Detalhes`
               }),
             n &&
-              (0, O.jsx)(`button`, {
+              (0, P.jsx)(`button`, {
                 className: `btn btn-p btn-sm`,
                 onClick: () => n(String(e.id)),
                 children: `Editar`
               }),
             r &&
-              (0, O.jsx)(`button`, {
+              (0, P.jsx)(`button`, {
                 className: `btn btn-r btn-sm`,
                 onClick: () => r(String(e.id)),
                 children: `Excluir`
@@ -358,17 +369,17 @@ function P({ cliente: e, onDetalhe: t, onEditar: n, onExcluir: r }) {
     ]
   });
 }
-function ie({ onNovoCliente: e, onExportar: t }) {
+function ae({ onNovoCliente: e, onExportar: t }) {
   let n = C((e) => e.filtro),
     r = C((e) => e.setFiltro),
     i = C((e) => e.clearFiltro),
     a = C(m(x)),
     o = !!(n.q || n.seg || n.status);
-  return (0, O.jsxs)(`div`, {
+  return (0, P.jsxs)(`div`, {
     className: `toolbar-shell--section`,
     'data-testid': `cliente-toolbar`,
     children: [
-      (0, O.jsx)(`input`, {
+      (0, P.jsx)(`input`, {
         className: `inp`,
         type: `search`,
         placeholder: `Buscar...`,
@@ -377,46 +388,46 @@ function ie({ onNovoCliente: e, onExportar: t }) {
         'aria-label': `Buscar clientes`,
         'data-testid': `busca-input`
       }),
-      (0, O.jsxs)(`select`, {
+      (0, P.jsxs)(`select`, {
         className: `inp`,
         value: n.seg ?? ``,
         onChange: (e) => r({ seg: e.target.value }),
         'aria-label': `Filtrar por segmento`,
         'data-testid': `seg-select`,
         children: [
-          (0, O.jsx)(`option`, { value: ``, children: `Todos os segmentos` }),
-          a.map((e) => (0, O.jsx)(`option`, { value: e, children: e }, e))
+          (0, P.jsx)(`option`, { value: ``, children: `Todos os segmentos` }),
+          a.map((e) => (0, P.jsx)(`option`, { value: e, children: e }, e))
         ]
       }),
-      (0, O.jsxs)(`select`, {
+      (0, P.jsxs)(`select`, {
         className: `inp`,
         value: n.status ?? ``,
         onChange: (e) => r({ status: e.target.value }),
         'aria-label': `Filtrar por status`,
         'data-testid': `status-select`,
         children: [
-          (0, O.jsx)(`option`, { value: ``, children: `Todos os status` }),
-          (0, O.jsx)(`option`, { value: `ativo`, children: `Ativo` }),
-          (0, O.jsx)(`option`, { value: `inativo`, children: `Inativo` }),
-          (0, O.jsx)(`option`, { value: `prospecto`, children: `Prospecto` })
+          (0, P.jsx)(`option`, { value: ``, children: `Todos os status` }),
+          (0, P.jsx)(`option`, { value: `ativo`, children: `Ativo` }),
+          (0, P.jsx)(`option`, { value: `inativo`, children: `Inativo` }),
+          (0, P.jsx)(`option`, { value: `prospecto`, children: `Prospecto` })
         ]
       }),
       o &&
-        (0, O.jsx)(`button`, {
+        (0, P.jsx)(`button`, {
           className: `btn btn-sm`,
           onClick: i,
           'data-testid': `limpar-filtro`,
           children: `Limpar filtros`
         }),
       t &&
-        (0, O.jsx)(`button`, {
+        (0, P.jsx)(`button`, {
           className: `btn btn-sm`,
           onClick: t,
           'data-testid': `export-btn`,
           children: `Exportar CSV`
         }),
       e &&
-        (0, O.jsx)(`button`, {
+        (0, P.jsx)(`button`, {
           className: `btn btn-p btn-sm`,
           onClick: e,
           'data-testid': `novo-btn`,
@@ -425,53 +436,53 @@ function ie({ onNovoCliente: e, onExportar: t }) {
     ]
   });
 }
-function ae() {
+function oe() {
   let e = C(m((e) => e.clientes)),
     t = C(m(b)),
     n = e.filter((e) => e.status === `ativo`).length,
     r = e.filter((e) => e.status === `prospecto`).length;
-  return (0, O.jsxs)(`div`, {
+  return (0, P.jsxs)(`div`, {
     className: `bento-band`,
     'data-testid': `cliente-metrics`,
     children: [
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `met`,
         children: [
-          (0, O.jsx)(`div`, { className: `ml`, children: `Total` }),
-          (0, O.jsx)(`div`, { className: `mv`, children: e.length })
+          (0, P.jsx)(`div`, { className: `ml`, children: `Total` }),
+          (0, P.jsx)(`div`, { className: `mv`, children: e.length })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `met`,
         children: [
-          (0, O.jsx)(`div`, { className: `ml`, children: `Ativos` }),
-          (0, O.jsx)(`div`, { className: `mv`, children: n })
+          (0, P.jsx)(`div`, { className: `ml`, children: `Ativos` }),
+          (0, P.jsx)(`div`, { className: `mv`, children: n })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `met`,
         children: [
-          (0, O.jsx)(`div`, { className: `ml`, children: `Prospectos` }),
-          (0, O.jsx)(`div`, { className: `mv`, children: r })
+          (0, P.jsx)(`div`, { className: `ml`, children: `Prospectos` }),
+          (0, P.jsx)(`div`, { className: `mv`, children: r })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `met`,
         children: [
-          (0, O.jsx)(`div`, { className: `ml`, children: `Filtrados` }),
-          (0, O.jsx)(`div`, { className: `mv`, children: t.length })
+          (0, P.jsx)(`div`, { className: `ml`, children: `Filtrados` }),
+          (0, P.jsx)(`div`, { className: `mv`, children: t.length })
         ]
       })
     ]
   });
 }
-function oe({ hasData: e }) {
-  return (0, O.jsxs)(`div`, {
+function se({ hasData: e }) {
+  return (0, P.jsxs)(`div`, {
     className: `empty`,
     'data-testid': `empty-state`,
     children: [
-      (0, O.jsx)(`div`, { className: `ico`, children: `CL` }),
-      (0, O.jsx)(`p`, {
+      (0, P.jsx)(`div`, { className: `ico`, children: `CL` }),
+      (0, P.jsx)(`p`, {
         children: e
           ? `Nenhum cliente encontrado com os filtros atuais.`
           : `Clique em "Novo cliente" para cadastrar o primeiro.`
@@ -479,16 +490,16 @@ function oe({ hasData: e }) {
     ]
   });
 }
-function se() {
-  return (0, O.jsx)(`div`, {
+function ce() {
+  return (0, P.jsx)(`div`, {
     className: `sk-card`,
     'data-testid': `skeleton`,
     children: Array.from({ length: 4 }).map((e, t) =>
-      (0, O.jsx)(`div`, { className: `sk-line` }, t)
+      (0, P.jsx)(`div`, { className: `sk-line` }, t)
     )
   });
 }
-function ce({ onNovoCliente: e, onDetalhe: t, onEditar: n, onExcluir: r, onExportar: i }) {
+function le({ onNovoCliente: e, onDetalhe: t, onEditar: n, onExcluir: r, onExportar: i }) {
   let a = C((e) => e.status),
     o = C((e) => e.error),
     s = C(m((e) => e.clientes)),
@@ -498,38 +509,38 @@ function ce({ onNovoCliente: e, onDetalhe: t, onEditar: n, onExcluir: r, onExpor
     (0, p.useEffect)(() => {
       a === `idle` && l(`loading`);
     }, [a, l]),
-    (0, O.jsxs)(`div`, {
+    (0, P.jsxs)(`div`, {
       className: `screen-content`,
       'data-testid': `cliente-list-view`,
       children: [
-        (0, O.jsx)(`div`, {
+        (0, P.jsx)(`div`, {
           className: `fb form-gap-bottom-xs`,
-          children: (0, O.jsx)(`h2`, { className: `table-cell-strong`, children: `Clientes` })
+          children: (0, P.jsx)(`h2`, { className: `table-cell-strong`, children: `Clientes` })
         }),
-        a === `ready` && (0, O.jsx)(ae, {}),
-        a === `ready` && (0, O.jsx)(ie, { onNovoCliente: e, onExportar: i }),
-        a === `loading` && (0, O.jsx)(se, {}),
+        a === `ready` && (0, P.jsx)(oe, {}),
+        a === `ready` && (0, P.jsx)(ae, { onNovoCliente: e, onExportar: i }),
+        a === `loading` && (0, P.jsx)(ce, {}),
         a === `error` &&
-          (0, O.jsx)(`div`, {
+          (0, P.jsx)(`div`, {
             className: `empty`,
             'data-testid': `error-state`,
-            children: (0, O.jsx)(`p`, { children: o ?? `Erro ao carregar clientes.` })
+            children: (0, P.jsx)(`p`, { children: o ?? `Erro ao carregar clientes.` })
           }),
-        a === `ready` && c.length === 0 && (0, O.jsx)(oe, { hasData: s.length > 0 }),
+        a === `ready` && c.length === 0 && (0, P.jsx)(se, { hasData: s.length > 0 }),
         a === `ready` &&
           c.length > 0 &&
-          (0, O.jsx)(`div`, {
+          (0, P.jsx)(`div`, {
             className: `flex flex-col gap-3`,
             'data-testid': `cliente-list`,
             children: c.map((e) =>
-              (0, O.jsx)(P, { cliente: e, onDetalhe: t, onEditar: n, onExcluir: r }, e.id)
+              (0, P.jsx)(ie, { cliente: e, onDetalhe: t, onEditar: n, onExcluir: r }, e.id)
             )
           })
       ]
     })
   );
 }
-function le() {
+function I() {
   let e = a((e) => e.session),
     t = r((e) => e.filialId),
     [i, o] = (0, p.useState)([]),
@@ -557,7 +568,7 @@ function le() {
     i
   );
 }
-function F(e) {
+function L(e) {
   return e.whatsapp
     ? `WhatsApp: ${e.whatsapp}`
     : e.tel
@@ -566,7 +577,7 @@ function F(e) {
         ? e.email
         : `Sem contato principal`;
 }
-function I(e) {
+function R(e) {
   let t = [
     e.optin_marketing && (e.whatsapp || e.tel) ? `WhatsApp` : ``,
     e.optin_email && e.email ? `E-mail` : ``,
@@ -574,72 +585,72 @@ function I(e) {
   ].filter(Boolean);
   return t.length ? `Canais prontos: ${t.join(`, `)}` : `Sem canais de relacionamento prontos`;
 }
-function L({ cliente: e }) {
-  return (0, O.jsxs)(`div`, {
+function z({ cliente: e }) {
+  return (0, P.jsxs)(`div`, {
     className: `card-shell form-gap-bottom-xs`,
     'data-testid': `cliente-context-summary`,
     children: [
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `fb form-gap-bottom-xs`,
         children: [
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             children: [
-              (0, O.jsx)(`div`, {
+              (0, P.jsx)(`div`, {
                 className: `table-cell-caption table-cell-muted`,
                 children: `Resumo do cliente`
               }),
-              (0, O.jsx)(`h3`, { className: `table-cell-strong`, children: e.nome })
+              (0, P.jsx)(`h3`, { className: `table-cell-strong`, children: e.nome })
             ]
           }),
-          (0, O.jsx)(`span`, { className: `bdg bk`, children: e.status || `ativo` })
+          (0, P.jsx)(`span`, { className: `bdg bk`, children: e.status || `ativo` })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-2`,
         children: [
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `empty-inline`,
             children: [
-              (0, O.jsx)(`strong`, { children: `Contato` }),
-              (0, O.jsx)(`p`, { children: F(e) })
+              (0, P.jsx)(`strong`, { children: `Contato` }),
+              (0, P.jsx)(`p`, { children: L(e) })
             ]
           }),
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `empty-inline`,
             children: [
-              (0, O.jsx)(`strong`, { children: `Comercial` }),
-              (0, O.jsxs)(`p`, {
+              (0, P.jsx)(`strong`, { children: `Comercial` }),
+              (0, P.jsxs)(`p`, {
                 children: [
                   `Segmento: `,
                   e.seg || `Sem segmento`,
-                  (0, O.jsx)(`br`, {}),
+                  (0, P.jsx)(`br`, {}),
                   `Prazo: `,
                   e.prazo || `a_vista`,
-                  (0, O.jsx)(`br`, {}),
+                  (0, P.jsx)(`br`, {}),
                   `RCA: `,
                   e.rca_nome || `Sem RCA`
                 ]
               })
             ]
           }),
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `empty-inline`,
             children: [
-              (0, O.jsx)(`strong`, { children: `Relacionamento` }),
-              (0, O.jsxs)(`p`, {
-                children: [I(e), (0, O.jsx)(`br`, {}), `Tabela: `, e.tab || `padrao`]
+              (0, P.jsx)(`strong`, { children: `Relacionamento` }),
+              (0, P.jsxs)(`p`, {
+                children: [R(e), (0, P.jsx)(`br`, {}), `Tabela: `, e.tab || `padrao`]
               })
             ]
           }),
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `empty-inline`,
             children: [
-              (0, O.jsx)(`strong`, { children: `Cadastro` }),
-              (0, O.jsxs)(`p`, {
+              (0, P.jsx)(`strong`, { children: `Cadastro` }),
+              (0, P.jsxs)(`p`, {
                 children: [
                   `Cidade: `,
                   e.cidade || `Nao informada`,
-                  (0, O.jsx)(`br`, {}),
+                  (0, P.jsx)(`br`, {}),
                   `E-mail: `,
                   e.email || `Nao informado`
                 ]
@@ -651,7 +662,7 @@ function L({ cliente: e }) {
     ]
   });
 }
-function R(e) {
+function B(e) {
   return {
     nome: e?.nome ?? ``,
     apelido: e?.apelido ?? ``,
@@ -677,13 +688,13 @@ function R(e) {
     obs: e?.obs ?? ``
   };
 }
-function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
-  let [r, i] = (0, p.useState)(() => R(e)),
+function V({ initialCliente: e = null, onSaved: t, onCancel: n }) {
+  let [r, i] = (0, p.useState)(() => B(e)),
     [a, o] = (0, p.useState)(null),
-    { submitCliente: s, saving: c, error: l } = D(),
-    u = le();
+    { submitCliente: s, saving: c, error: l } = N(),
+    u = I();
   (0, p.useEffect)(() => {
-    (i(R(e)), o(null));
+    (i(B(e)), o(null));
   }, [e]);
   function d(e, t) {
     i((n) => ({ ...n, [e]: t }));
@@ -723,24 +734,24 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
       optin_sms: r.optin_sms,
       obs: r.obs
     });
-    (t?.(a), e || i(R(null)));
+    (t?.(a), e || i(B(null)));
   }
-  return (0, O.jsxs)(`form`, {
+  return (0, P.jsxs)(`form`, {
     className: `card-shell form-gap-lg`,
     onSubmit: m,
     'data-testid': `cliente-form`,
     children: [
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `fb form-gap-bottom-xs`,
         children: [
-          (0, O.jsx)(`div`, {
-            children: (0, O.jsx)(`h3`, {
+          (0, P.jsx)(`div`, {
+            children: (0, P.jsx)(`h3`, {
               className: `table-cell-strong`,
               children: e ? `Editar cliente` : `Novo cliente`
             })
           }),
           n &&
-            (0, O.jsx)(`button`, {
+            (0, P.jsx)(`button`, {
               type: `button`,
               className: `btn btn-sm`,
               onClick: n,
@@ -749,15 +760,15 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
             })
         ]
       }),
-      e && (0, O.jsx)(L, { cliente: e }),
-      (0, O.jsxs)(`div`, {
+      e && (0, P.jsx)(z, { cliente: e }),
+      (0, P.jsxs)(`div`, {
         className: `grid grid-2`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Nome / Razão social *` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Nome / Razão social *` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.nome,
                 onChange: (e) => d(`nome`, e.target.value),
@@ -765,11 +776,11 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Apelido / Fantasia` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Apelido / Fantasia` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.apelido,
                 onChange: (e) => d(`apelido`, e.target.value),
@@ -779,14 +790,14 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-3`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `CPF / CNPJ` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `CPF / CNPJ` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.doc,
                 onChange: (e) => d(`doc`, e.target.value),
@@ -794,49 +805,49 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Tipo` }),
-              (0, O.jsxs)(`select`, {
+              (0, P.jsx)(`span`, { children: `Tipo` }),
+              (0, P.jsxs)(`select`, {
                 className: `inp`,
                 value: r.tipo,
                 onChange: (e) => d(`tipo`, e.target.value),
                 'data-testid': `form-tipo`,
                 children: [
-                  (0, O.jsx)(`option`, { value: `PJ`, children: `PJ` }),
-                  (0, O.jsx)(`option`, { value: `PF`, children: `PF` })
+                  (0, P.jsx)(`option`, { value: `PJ`, children: `PJ` }),
+                  (0, P.jsx)(`option`, { value: `PF`, children: `PF` })
                 ]
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Status` }),
-              (0, O.jsxs)(`select`, {
+              (0, P.jsx)(`span`, { children: `Status` }),
+              (0, P.jsxs)(`select`, {
                 className: `inp`,
                 value: r.status,
                 onChange: (e) => d(`status`, e.target.value),
                 'data-testid': `form-status`,
                 children: [
-                  (0, O.jsx)(`option`, { value: `ativo`, children: `Ativo` }),
-                  (0, O.jsx)(`option`, { value: `prospecto`, children: `Prospecto` }),
-                  (0, O.jsx)(`option`, { value: `inativo`, children: `Inativo` })
+                  (0, P.jsx)(`option`, { value: `ativo`, children: `Ativo` }),
+                  (0, P.jsx)(`option`, { value: `prospecto`, children: `Prospecto` }),
+                  (0, P.jsx)(`option`, { value: `inativo`, children: `Inativo` })
                 ]
               })
             ]
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-3`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Telefone` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Telefone` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.tel,
                 onChange: (e) => d(`tel`, e.target.value),
@@ -844,11 +855,11 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `WhatsApp` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `WhatsApp` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.whatsapp,
                 onChange: (e) => d(`whatsapp`, e.target.value),
@@ -856,11 +867,11 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `E-mail` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `E-mail` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 type: `email`,
                 value: r.email,
@@ -871,14 +882,14 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-2`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Responsável / Comprador` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Responsável / Comprador` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.resp,
                 onChange: (e) => d(`resp`, e.target.value),
@@ -886,32 +897,32 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `RCA / Vendedor` }),
-              (0, O.jsxs)(`select`, {
+              (0, P.jsx)(`span`, { children: `RCA / Vendedor` }),
+              (0, P.jsxs)(`select`, {
                 className: `inp`,
                 value: r.rca_id,
                 onChange: (e) => f(e.target.value),
                 'data-testid': `form-rca`,
                 children: [
-                  (0, O.jsx)(`option`, { value: ``, children: `Sem RCA` }),
-                  u.map((e) => (0, O.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
+                  (0, P.jsx)(`option`, { value: ``, children: `Sem RCA` }),
+                  u.map((e) => (0, P.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
                 ]
               })
             ]
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-4`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Time(s)` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Time(s)` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.time,
                 placeholder: `Ex: Flamengo, Paysandu`,
@@ -920,11 +931,11 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Segmento` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Segmento` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.seg,
                 onChange: (e) => d(`seg`, e.target.value),
@@ -932,52 +943,52 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Tabela de preço` }),
-              (0, O.jsxs)(`select`, {
+              (0, P.jsx)(`span`, { children: `Tabela de preço` }),
+              (0, P.jsxs)(`select`, {
                 className: `inp`,
                 value: r.tab,
                 onChange: (e) => d(`tab`, e.target.value),
                 'data-testid': `form-tab`,
                 children: [
-                  (0, O.jsx)(`option`, { value: `padrao`, children: `Padrão` }),
-                  (0, O.jsx)(`option`, { value: `especial`, children: `Especial` }),
-                  (0, O.jsx)(`option`, { value: `vip`, children: `VIP` })
+                  (0, P.jsx)(`option`, { value: `padrao`, children: `Padrão` }),
+                  (0, P.jsx)(`option`, { value: `especial`, children: `Especial` }),
+                  (0, P.jsx)(`option`, { value: `vip`, children: `VIP` })
                 ]
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Prazo de pagamento` }),
-              (0, O.jsxs)(`select`, {
+              (0, P.jsx)(`span`, { children: `Prazo de pagamento` }),
+              (0, P.jsxs)(`select`, {
                 className: `inp`,
                 value: r.prazo,
                 onChange: (e) => d(`prazo`, e.target.value),
                 'data-testid': `form-prazo`,
                 children: [
-                  (0, O.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
-                  (0, O.jsx)(`option`, { value: `7d`, children: `7 dias` }),
-                  (0, O.jsx)(`option`, { value: `15d`, children: `15 dias` }),
-                  (0, O.jsx)(`option`, { value: `30d`, children: `30 dias` }),
-                  (0, O.jsx)(`option`, { value: `60d`, children: `60 dias` })
+                  (0, P.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
+                  (0, P.jsx)(`option`, { value: `7d`, children: `7 dias` }),
+                  (0, P.jsx)(`option`, { value: `15d`, children: `15 dias` }),
+                  (0, P.jsx)(`option`, { value: `30d`, children: `30 dias` }),
+                  (0, P.jsx)(`option`, { value: `60d`, children: `60 dias` })
                 ]
               })
             ]
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-2`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Cidade` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Cidade` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.cidade,
                 onChange: (e) => d(`cidade`, e.target.value),
@@ -985,11 +996,11 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Estado` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Estado` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 value: r.estado,
                 onChange: (e) => d(`estado`, e.target.value),
@@ -999,14 +1010,14 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `grid grid-2`,
         children: [
-          (0, O.jsxs)(`label`, {
+          (0, P.jsxs)(`label`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Data de aniversário` }),
-              (0, O.jsx)(`input`, {
+              (0, P.jsx)(`span`, { children: `Data de aniversário` }),
+              (0, P.jsx)(`input`, {
                 className: `inp`,
                 type: `date`,
                 value: r.data_aniversario,
@@ -1015,17 +1026,17 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
               })
             ]
           }),
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `form-field`,
             children: [
-              (0, O.jsx)(`span`, { children: `Opt-ins de marketing` }),
-              (0, O.jsxs)(`div`, {
+              (0, P.jsx)(`span`, { children: `Opt-ins de marketing` }),
+              (0, P.jsxs)(`div`, {
                 className: `fg2`,
                 children: [
-                  (0, O.jsxs)(`label`, {
+                  (0, P.jsxs)(`label`, {
                     className: `optin-choice`,
                     children: [
-                      (0, O.jsx)(`input`, {
+                      (0, P.jsx)(`input`, {
                         type: `checkbox`,
                         checked: r.optin_marketing,
                         onChange: (e) => d(`optin_marketing`, e.target.checked),
@@ -1035,10 +1046,10 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
                       `Marketing`
                     ]
                   }),
-                  (0, O.jsxs)(`label`, {
+                  (0, P.jsxs)(`label`, {
                     className: `optin-choice`,
                     children: [
-                      (0, O.jsx)(`input`, {
+                      (0, P.jsx)(`input`, {
                         type: `checkbox`,
                         checked: r.optin_email,
                         onChange: (e) => d(`optin_email`, e.target.checked),
@@ -1048,10 +1059,10 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
                       `E-mail`
                     ]
                   }),
-                  (0, O.jsxs)(`label`, {
+                  (0, P.jsxs)(`label`, {
                     className: `optin-choice`,
                     children: [
-                      (0, O.jsx)(`input`, {
+                      (0, P.jsx)(`input`, {
                         type: `checkbox`,
                         checked: r.optin_sms,
                         onChange: (e) => d(`optin_sms`, e.target.checked),
@@ -1067,11 +1078,11 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
           })
         ]
       }),
-      (0, O.jsxs)(`label`, {
+      (0, P.jsxs)(`label`, {
         className: `form-field`,
         children: [
-          (0, O.jsx)(`span`, { children: `Observações` }),
-          (0, O.jsx)(`textarea`, {
+          (0, P.jsx)(`span`, { children: `Observações` }),
+          (0, P.jsx)(`textarea`, {
             className: `inp`,
             rows: 3,
             value: r.obs,
@@ -1081,14 +1092,14 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
         ]
       }),
       (a || l) &&
-        (0, O.jsx)(`div`, {
+        (0, P.jsx)(`div`, {
           className: `empty`,
           'data-testid': `form-error`,
-          children: (0, O.jsx)(`p`, { children: a || l })
+          children: (0, P.jsx)(`p`, { children: a || l })
         }),
-      (0, O.jsx)(`div`, {
+      (0, P.jsx)(`div`, {
         className: `mobile-card-actions`,
-        children: (0, O.jsx)(`button`, {
+        children: (0, P.jsx)(`button`, {
           type: `submit`,
           className: `btn btn-p btn-sm`,
           disabled: c,
@@ -1099,10 +1110,10 @@ function z({ initialCliente: e = null, onSaved: t, onCancel: n }) {
     ]
   });
 }
-function B(e, t) {
+function H(e, t) {
   return { apikey: e, Authorization: `Bearer ${t}`, 'Content-Type': `application/json` };
 }
-async function V(e) {
+async function U(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -1111,34 +1122,34 @@ async function V(e) {
     return t;
   }
 }
-function H(e, t, n) {
+function W(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
       : Error(n);
 }
-function U(e, t) {
+function ue(e, t) {
   return `${e}/rest/v1/notas?cliente_id=eq.${encodeURIComponent(t)}&order=criado_em.desc`;
 }
-async function W(e, t) {
-  let n = await fetch(U(e.url, t), {
-      headers: B(e.key, e.token),
+async function de(e, t) {
+  let n = await fetch(ue(e.url, t), {
+      headers: H(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await V(n);
-  return (H(n, r, `Erro ${n.status} ao carregar notas`), Array.isArray(r) ? r : []);
+    r = await U(n);
+  return (W(n, r, `Erro ${n.status} ao carregar notas`), Array.isArray(r) ? r : []);
 }
-async function ue(e, t) {
+async function fe(e, t) {
   let n = await fetch(`${e.url}/rest/v1/notas`, {
       method: `POST`,
-      headers: B(e.key, e.token),
+      headers: H(e.key, e.token),
       body: JSON.stringify(t),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await V(n);
-  return (H(n, r, `Erro ${n.status} ao salvar nota`), Array.isArray(r) && r[0] ? r[0] : t);
+    r = await U(n);
+  return (W(n, r, `Erro ${n.status} ao salvar nota`), Array.isArray(r) && r[0] ? r[0] : t);
 }
-function de({ clienteId: e, skip: t = !1 }) {
+function pe({ clienteId: e, skip: t = !1 }) {
   let r = a((e) => e.session),
     [i, o] = (0, p.useState)([]),
     [s, c] = (0, p.useState)(!1),
@@ -1156,7 +1167,7 @@ function de({ clienteId: e, skip: t = !1 }) {
     return (
       c(!0),
       f(null),
-      W(m(), e)
+      de(m(), e)
         .then((e) => {
           n && o(e);
         })
@@ -1178,7 +1189,7 @@ function de({ clienteId: e, skip: t = !1 }) {
     (u(!0), f(null));
     let r = { cliente_id: e, texto: n, data: new Date().toLocaleString(`pt-BR`) };
     try {
-      let e = await ue(m(), r);
+      let e = await fe(m(), r);
       return (o((t) => [e, ...t]), e);
     } catch (e) {
       throw (f(e instanceof Error ? e.message : `Erro ao salvar nota.`), e);
@@ -1188,10 +1199,10 @@ function de({ clienteId: e, skip: t = !1 }) {
   }
   return { notas: i, loading: s, saving: l, error: d, submitNota: h };
 }
-function fe(e, t) {
+function me(e, t) {
   return { apikey: e, Authorization: `Bearer ${t}`, 'Content-Type': `application/json` };
 }
-async function pe(e) {
+async function he(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -1200,7 +1211,7 @@ async function pe(e) {
     return t;
   }
 }
-function me(e, t, n) {
+function ge(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
@@ -1213,16 +1224,16 @@ function G(e) {
     .trim()
     .toLowerCase();
 }
-function he(e, t) {
+function _e(e, t) {
   return `${e}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(t)}&order=num.desc`;
 }
-function ge(e, t) {
+function ve(e, t) {
   if (e.cliente_id && t.id && e.cliente_id === t.id) return !0;
   let n = G(e.cli),
     r = G(t.nome);
   return !!n && !!r && n === r;
 }
-function K(e) {
+function ye(e) {
   return e.reduce(
     (e, t) => (
       t.venda_fechada ? e.fechadas.push(t) : t.status !== `cancelado` && e.abertas.push(t),
@@ -1231,19 +1242,19 @@ function K(e) {
     { abertas: [], fechadas: [] }
   );
 }
-async function _e(e, t) {
+async function be(e, t) {
   if (!e.filialId) throw Error(`Filial ativa nao encontrada.`);
-  let n = await fetch(he(e.url, e.filialId), {
-      headers: fe(e.key, e.token),
+  let n = await fetch(_e(e.url, e.filialId), {
+      headers: me(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await pe(n);
+    r = await he(n);
   return (
-    me(n, r, `Erro ${n.status} ao carregar pedidos do cliente`),
-    (Array.isArray(r) ? r : []).filter((e) => ge(e, t))
+    ge(n, r, `Erro ${n.status} ao carregar pedidos do cliente`),
+    (Array.isArray(r) ? r : []).filter((e) => ve(e, t))
   );
 }
-function ve({ cliente: e, skip: t = !1 }) {
+function xe({ cliente: e, skip: t = !1 }) {
   let i = a((e) => e.session),
     o = r((e) => e.filialId),
     [s, c] = (0, p.useState)([]),
@@ -1260,7 +1271,7 @@ function ve({ cliente: e, skip: t = !1 }) {
       if (!(!e?.id || t)) {
         (f(!0), h(null));
         try {
-          let t = K(await _e(g(), e));
+          let t = ye(await be(g(), e));
           (c(t.abertas), u(t.fechadas));
         } catch (e) {
           (h(e instanceof Error ? e.message : `Erro ao carregar pedidos.`), c([]), u([]));
@@ -1276,7 +1287,7 @@ function ve({ cliente: e, skip: t = !1 }) {
     { pedidosAbertos: s, pedidosFechados: l, loading: d, error: m, reload: _ }
   );
 }
-function q(e, t, n) {
+function K(e, t, n) {
   return {
     apikey: e,
     Authorization: `Bearer ${t}`,
@@ -1284,7 +1295,7 @@ function q(e, t, n) {
     ...(n ? { Prefer: n } : {})
   };
 }
-async function J(e) {
+async function q(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -1293,41 +1304,41 @@ async function J(e) {
     return t;
   }
 }
-function Y(e, t, n) {
+function J(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
       : Error(n);
 }
-function ye(e, t) {
+function Se(e, t) {
   return `${e}/rest/v1/cliente_fidelidade_saldos?cliente_id=eq.${encodeURIComponent(t)}&limit=1`;
 }
-function be(e, t) {
+function Ce(e, t) {
   return `${e}/rest/v1/cliente_fidelidade_lancamentos?cliente_id=eq.${encodeURIComponent(t)}&order=criado_em.desc`;
 }
-async function xe(e, t) {
-  let n = await fetch(ye(e.url, t), {
-      headers: q(e.key, e.token),
+async function we(e, t) {
+  let n = await fetch(Se(e.url, t), {
+      headers: K(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await J(n);
+    r = await q(n);
   return (
-    Y(n, r, `Erro ${n.status} ao carregar saldo de fidelidade`),
+    J(n, r, `Erro ${n.status} ao carregar saldo de fidelidade`),
     Array.isArray(r) && r[0] ? r[0] : null
   );
 }
-async function Se(e, t) {
-  let n = await fetch(be(e.url, t), {
-      headers: q(e.key, e.token),
+async function Te(e, t) {
+  let n = await fetch(Ce(e.url, t), {
+      headers: K(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await J(n);
+    r = await q(n);
   return (
-    Y(n, r, `Erro ${n.status} ao carregar histórico de fidelidade`),
+    J(n, r, `Erro ${n.status} ao carregar histórico de fidelidade`),
     Array.isArray(r) ? r : []
   );
 }
-async function Ce(e, t) {
+async function Ee(e, t) {
   if (!e.filialId) throw Error(`Filial ativa não encontrada.`);
   let n = {
       cliente_id: t.clienteId,
@@ -1340,17 +1351,17 @@ async function Ce(e, t) {
     },
     r = await fetch(`${e.url}/rest/v1/cliente_fidelidade_lancamentos`, {
       method: `POST`,
-      headers: q(e.key, e.token, `return=representation`),
+      headers: K(e.key, e.token, `return=representation`),
       body: JSON.stringify(n),
       signal: AbortSignal.timeout(12e3)
     }),
-    i = await J(r);
+    i = await q(r);
   return (
-    Y(r, i, `Erro ${r.status} ao salvar lançamento de fidelidade`),
+    J(r, i, `Erro ${r.status} ao salvar lançamento de fidelidade`),
     Array.isArray(i) && i[0] ? i[0] : { ...n }
   );
 }
-function we({ clienteId: e, skip: t = !1 }) {
+function De({ clienteId: e, skip: t = !1 }) {
   let i = a((e) => e.session),
     o = r((e) => e.filialId),
     [s, c] = (0, p.useState)(null),
@@ -1369,7 +1380,7 @@ function we({ clienteId: e, skip: t = !1 }) {
         (f(!0), _(null));
         try {
           let t = v(),
-            [n, r] = await Promise.all([xe(t, e), Se(t, e)]);
+            [n, r] = await Promise.all([we(t, e), Te(t, e)]);
           (c(n), u(r));
         } catch (e) {
           _(e instanceof Error ? e.message : `Erro ao carregar fidelidade.`);
@@ -1388,7 +1399,7 @@ function we({ clienteId: e, skip: t = !1 }) {
     let r = t.tipo === `debito` ? -Math.abs(n) : n;
     (h(!0), _(null));
     try {
-      (await Ce(v(), { clienteId: e, tipo: t.tipo, pontos: r, observacao: t.observacao }),
+      (await Ee(v(), { clienteId: e, tipo: t.tipo, pontos: r, observacao: t.observacao }),
         await y());
     } catch (e) {
       throw (_(e instanceof Error ? e.message : `Erro ao lançar fidelidade.`), e);
@@ -1398,12 +1409,12 @@ function we({ clienteId: e, skip: t = !1 }) {
   }
   return { saldo: s, lancamentos: l, loading: d, saving: m, error: g, submitLancamento: b };
 }
-var Te = { credito: `Crédito`, debito: `Débito`, ajuste: `Ajuste`, estorno: `Estorno` },
-  Ee = { pendente: `Pendente`, confirmado: `Confirmado`, cancelado: `Cancelado` },
-  De = { pendente: `ba`, confirmado: `bg`, cancelado: `br` },
-  X = { tipo: `credito`, pontos: ``, observacao: `` };
-function Oe({ cliente: e }) {
-  let [t, n] = (0, p.useState)(X),
+var Oe = { credito: `Crédito`, debito: `Débito`, ajuste: `Ajuste`, estorno: `Estorno` },
+  ke = { pendente: `Pendente`, confirmado: `Confirmado`, cancelado: `Cancelado` },
+  Ae = { pendente: `ba`, confirmado: `bg`, cancelado: `br` },
+  Y = { tipo: `credito`, pontos: ``, observacao: `` };
+function X({ cliente: e }) {
+  let [t, n] = (0, p.useState)(Y),
     {
       saldo: r,
       lancamentos: i,
@@ -1411,44 +1422,44 @@ function Oe({ cliente: e }) {
       saving: o,
       error: s,
       submitLancamento: c
-    } = we({ clienteId: e.id });
+    } = De({ clienteId: e.id });
   async function l() {
-    (await c(t), n(X));
+    (await c(t), n(Y));
   }
-  return (0, O.jsxs)(`div`, {
+  return (0, P.jsxs)(`div`, {
     className: `fid-panel`,
     'data-testid': `cliente-detail-fidelidade`,
     children: [
-      (0, O.jsx)(`div`, {
+      (0, P.jsx)(`div`, {
         className: `cli-detail-label form-gap-bottom-xs`,
         children: `Saldo de fidelidade`
       }),
       a
-        ? (0, O.jsxs)(`div`, {
+        ? (0, P.jsxs)(`div`, {
             className: `sk-card`,
             'data-testid': `fid-loading`,
             children: [
-              (0, O.jsx)(`div`, { className: `sk-line` }),
-              (0, O.jsx)(`div`, { className: `sk-line` })
+              (0, P.jsx)(`div`, { className: `sk-line` }),
+              (0, P.jsx)(`div`, { className: `sk-line` })
             ]
           })
         : r
-          ? (0, O.jsxs)(`div`, {
+          ? (0, P.jsxs)(`div`, {
               className: `fid-saldo-grid`,
               'data-testid': `fid-saldo-grid`,
               children: [
-                (0, O.jsxs)(`div`, {
+                (0, P.jsxs)(`div`, {
                   className: `met fid-met`,
                   children: [
-                    (0, O.jsx)(`div`, { className: `ml`, children: `Saldo` }),
-                    (0, O.jsxs)(`div`, {
+                    (0, P.jsx)(`div`, { className: `ml`, children: `Saldo` }),
+                    (0, P.jsxs)(`div`, {
                       className: `mv ${r.bloqueado ? `tone-danger` : `tone-success`}`,
                       children: [
                         Number(r.saldo_pontos ?? 0),
-                        (0, O.jsx)(`span`, { className: `mv-unit`, children: ` pts` })
+                        (0, P.jsx)(`span`, { className: `mv-unit`, children: ` pts` })
                       ]
                     }),
-                    (0, O.jsx)(`div`, {
+                    (0, P.jsx)(`div`, {
                       className: `ms ${r.bloqueado ? `tone-danger` : `tone-success`}`,
                       children: r.bloqueado
                         ? `Bloqueado${r.motivo_bloqueio ? ` - ${r.motivo_bloqueio}` : ``}`
@@ -1456,64 +1467,64 @@ function Oe({ cliente: e }) {
                     })
                   ]
                 }),
-                (0, O.jsxs)(`div`, {
+                (0, P.jsxs)(`div`, {
                   className: `met fid-met`,
                   children: [
-                    (0, O.jsx)(`div`, { className: `ml`, children: `Acumulado` }),
-                    (0, O.jsxs)(`div`, {
+                    (0, P.jsx)(`div`, { className: `ml`, children: `Acumulado` }),
+                    (0, P.jsxs)(`div`, {
                       className: `mv`,
                       children: [
                         Number(r.total_acumulado ?? 0),
-                        (0, O.jsx)(`span`, { className: `mv-unit`, children: ` pts` })
+                        (0, P.jsx)(`span`, { className: `mv-unit`, children: ` pts` })
                       ]
                     }),
-                    (0, O.jsx)(`div`, { className: `ms`, children: `total creditado` })
+                    (0, P.jsx)(`div`, { className: `ms`, children: `total creditado` })
                   ]
                 }),
-                (0, O.jsxs)(`div`, {
+                (0, P.jsxs)(`div`, {
                   className: `met fid-met`,
                   children: [
-                    (0, O.jsx)(`div`, { className: `ml`, children: `Resgatado` }),
-                    (0, O.jsxs)(`div`, {
+                    (0, P.jsx)(`div`, { className: `ml`, children: `Resgatado` }),
+                    (0, P.jsxs)(`div`, {
                       className: `mv`,
                       children: [
                         Number(r.total_resgatado ?? 0),
-                        (0, O.jsx)(`span`, { className: `mv-unit`, children: ` pts` })
+                        (0, P.jsx)(`span`, { className: `mv-unit`, children: ` pts` })
                       ]
                     }),
-                    (0, O.jsx)(`div`, { className: `ms`, children: `total debitado` })
+                    (0, P.jsx)(`div`, { className: `ms`, children: `total debitado` })
                   ]
                 })
               ]
             })
-          : (0, O.jsx)(`div`, {
+          : (0, P.jsx)(`div`, {
               className: `empty-inline`,
               'data-testid': `fid-empty-balance`,
-              children: (0, O.jsx)(`p`, {
+              children: (0, P.jsx)(`p`, {
                 children: `Nenhum saldo de fidelidade registrado para este cliente.`
               })
             }),
-      (0, O.jsx)(`div`, {
+      (0, P.jsx)(`div`, {
         className: `cli-detail-label form-gap-bottom-xs`,
         style: { marginTop: 16 },
         children: `Adicionar lançamento manual`
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `fid-form fg2 form-gap-bottom-xs`,
         children: [
-          (0, O.jsxs)(`select`, {
+          (0, P.jsxs)(`select`, {
             className: `inp fid-tipo`,
             value: t.tipo,
             onChange: (e) => n((t) => ({ ...t, tipo: e.target.value })),
             'data-testid': `fid-tipo`,
             children: [
-              (0, O.jsx)(`option`, { value: `credito`, children: `Crédito` }),
-              (0, O.jsx)(`option`, { value: `debito`, children: `Débito` }),
-              (0, O.jsx)(`option`, { value: `ajuste`, children: `Ajuste` }),
-              (0, O.jsx)(`option`, { value: `estorno`, children: `Estorno` })
+              (0, P.jsx)(`option`, { value: `credito`, children: `Crédito` }),
+              (0, P.jsx)(`option`, { value: `debito`, children: `Débito` }),
+              (0, P.jsx)(`option`, { value: `ajuste`, children: `Ajuste` }),
+              (0, P.jsx)(`option`, { value: `estorno`, children: `Estorno` })
             ]
           }),
-          (0, O.jsx)(`input`, {
+          (0, P.jsx)(`input`, {
             type: `number`,
             className: `inp fid-pontos`,
             placeholder: `Pontos`,
@@ -1522,14 +1533,14 @@ function Oe({ cliente: e }) {
             onChange: (e) => n((t) => ({ ...t, pontos: e.target.value })),
             'data-testid': `fid-pontos`
           }),
-          (0, O.jsx)(`input`, {
+          (0, P.jsx)(`input`, {
             className: `inp fid-obs input-flex`,
             placeholder: `Observação (opcional)`,
             value: t.observacao,
             onChange: (e) => n((t) => ({ ...t, observacao: e.target.value })),
             'data-testid': `fid-obs`
           }),
-          (0, O.jsx)(`button`, {
+          (0, P.jsx)(`button`, {
             className: `btn btn-p btn-sm`,
             onClick: l,
             disabled: o,
@@ -1539,88 +1550,93 @@ function Oe({ cliente: e }) {
         ]
       }),
       s &&
-        (0, O.jsx)(`div`, {
+        (0, P.jsx)(`div`, {
           className: `empty-inline`,
           'data-testid': `fid-error`,
-          children: (0, O.jsx)(`p`, { children: s })
+          children: (0, P.jsx)(`p`, { children: s })
         }),
-      (0, O.jsx)(`div`, {
+      (0, P.jsx)(`div`, {
         className: `cli-detail-label form-gap-bottom-xs`,
         children: `Histórico (últimos 30)`
       }),
       i.length
-        ? (0, O.jsx)(`div`, {
+        ? (0, P.jsx)(`div`, {
             className: `tw fid-hist-table`,
             'data-testid': `fid-history`,
-            children: (0, O.jsxs)(`table`, {
+            children: (0, P.jsxs)(`table`, {
               className: `tbl`,
               children: [
-                (0, O.jsx)(`thead`, {
-                  children: (0, O.jsxs)(`tr`, {
+                (0, P.jsx)(`thead`, {
+                  children: (0, P.jsxs)(`tr`, {
                     children: [
-                      (0, O.jsx)(`th`, { children: `Data` }),
-                      (0, O.jsx)(`th`, { children: `Tipo` }),
-                      (0, O.jsx)(`th`, { children: `Pontos` }),
-                      (0, O.jsx)(`th`, { children: `Status` }),
-                      (0, O.jsx)(`th`, { children: `Origem` }),
-                      (0, O.jsx)(`th`, { children: `Obs` })
+                      (0, P.jsx)(`th`, { children: `Data` }),
+                      (0, P.jsx)(`th`, { children: `Tipo` }),
+                      (0, P.jsx)(`th`, { children: `Pontos` }),
+                      (0, P.jsx)(`th`, { children: `Status` }),
+                      (0, P.jsx)(`th`, { children: `Origem` }),
+                      (0, P.jsx)(`th`, { children: `Obs` })
                     ]
                   })
                 }),
-                (0, O.jsx)(`tbody`, {
-                  children: i.slice(0, 30).map((e) =>
-                    (0, O.jsxs)(
-                      `tr`,
-                      {
-                        children: [
-                          (0, O.jsx)(`td`, {
-                            className: `table-cell-muted`,
-                            children: e.criado_em
-                              ? new Date(e.criado_em).toLocaleDateString(`pt-BR`)
-                              : `-`
-                          }),
-                          (0, O.jsx)(`td`, {
-                            children: (0, O.jsx)(`span`, {
-                              className: `bdg ${Number(e.pontos ?? 0) > 0 ? `bg` : `br`}`,
-                              children: Te[e.tipo || ``] || e.tipo || `-`
+                (0, P.jsx)(`tbody`, {
+                  children: i
+                    .slice(0, 30)
+                    .map((e) =>
+                      (0, P.jsxs)(
+                        `tr`,
+                        {
+                          children: [
+                            (0, P.jsx)(`td`, {
+                              className: `table-cell-muted`,
+                              children: e.criado_em
+                                ? new Date(e.criado_em).toLocaleDateString(`pt-BR`)
+                                : `-`
+                            }),
+                            (0, P.jsx)(`td`, {
+                              children: (0, P.jsx)(`span`, {
+                                className: `bdg ${Number(e.pontos ?? 0) > 0 ? `bg` : `br`}`,
+                                children: Oe[e.tipo || ``] || e.tipo || `-`
+                              })
+                            }),
+                            (0, P.jsxs)(`td`, {
+                              className: `table-cell-strong ${Number(e.pontos ?? 0) > 0 ? `tone-success` : `tone-danger`}`,
+                              children: [
+                                Number(e.pontos ?? 0) > 0 ? `+` : ``,
+                                Number(e.pontos ?? 0)
+                              ]
+                            }),
+                            (0, P.jsx)(`td`, {
+                              children: (0, P.jsx)(`span`, {
+                                className: `bdg ${Ae[e.status || ``] || `bk`}`,
+                                children: ke[e.status || ``] || e.status || `-`
+                              })
+                            }),
+                            (0, P.jsx)(`td`, {
+                              className: `table-cell-muted`,
+                              children: e.origem || `-`
+                            }),
+                            (0, P.jsx)(`td`, {
+                              className: `table-cell-caption`,
+                              children: e.observacao || `-`
                             })
-                          }),
-                          (0, O.jsxs)(`td`, {
-                            className: `table-cell-strong ${Number(e.pontos ?? 0) > 0 ? `tone-success` : `tone-danger`}`,
-                            children: [Number(e.pontos ?? 0) > 0 ? `+` : ``, Number(e.pontos ?? 0)]
-                          }),
-                          (0, O.jsx)(`td`, {
-                            children: (0, O.jsx)(`span`, {
-                              className: `bdg ${De[e.status || ``] || `bk`}`,
-                              children: Ee[e.status || ``] || e.status || `-`
-                            })
-                          }),
-                          (0, O.jsx)(`td`, {
-                            className: `table-cell-muted`,
-                            children: e.origem || `-`
-                          }),
-                          (0, O.jsx)(`td`, {
-                            className: `table-cell-caption`,
-                            children: e.observacao || `-`
-                          })
-                        ]
-                      },
-                      e.id
+                          ]
+                        },
+                        e.id
+                      )
                     )
-                  )
                 })
               ]
             })
           })
-        : (0, O.jsx)(`div`, {
+        : (0, P.jsx)(`div`, {
             className: `empty-inline`,
             'data-testid': `fid-empty-history`,
-            children: (0, O.jsx)(`p`, { children: `Nenhum lançamento registrado.` })
+            children: (0, P.jsx)(`p`, { children: `Nenhum lançamento registrado.` })
           })
     ]
   });
 }
-function ke(e) {
+function je(e) {
   return Intl.NumberFormat(`pt-BR`, { style: `currency`, currency: `BRL` }).format(Number(e || 0));
 }
 function Z(e, t, n) {
@@ -1637,110 +1653,110 @@ function Z(e, t, n) {
 }
 function Q(e, t, n) {
   return n.loading
-    ? (0, O.jsxs)(`div`, {
+    ? (0, P.jsxs)(`div`, {
         className: `sk-card`,
         'data-testid': `pedidos-${t}-loading`,
         children: [
-          (0, O.jsx)(`div`, { className: `sk-line` }),
-          (0, O.jsx)(`div`, { className: `sk-line` })
+          (0, P.jsx)(`div`, { className: `sk-line` }),
+          (0, P.jsx)(`div`, { className: `sk-line` })
         ]
       })
     : n.error
-      ? (0, O.jsx)(`div`, {
+      ? (0, P.jsx)(`div`, {
           className: `empty`,
           'data-testid': `pedidos-${t}-error`,
-          children: (0, O.jsx)(`p`, { children: n.error })
+          children: (0, P.jsx)(`p`, { children: n.error })
         })
       : e.length
-        ? (0, O.jsx)(`div`, {
+        ? (0, P.jsx)(`div`, {
             className: `cli-sales-list`,
             'data-testid': `pedidos-${t}-list`,
             children: e.map((e) =>
-              (0, O.jsxs)(
+              (0, P.jsxs)(
                 `article`,
                 {
                   className: `card-shell form-gap-md`,
                   children: [
-                    (0, O.jsxs)(`div`, {
+                    (0, P.jsxs)(`div`, {
                       className: `fb`,
                       children: [
-                        (0, O.jsxs)(`div`, {
+                        (0, P.jsxs)(`div`, {
                           children: [
-                            (0, O.jsxs)(`div`, {
+                            (0, P.jsxs)(`div`, {
                               className: `table-cell-caption table-cell-muted`,
                               children: [`Pedido #`, e.num]
                             }),
-                            (0, O.jsx)(`div`, {
+                            (0, P.jsx)(`div`, {
                               className: `table-cell-strong`,
                               children: e.cli || n.clienteNome
                             })
                           ]
                         }),
-                        (0, O.jsx)(`span`, {
+                        (0, P.jsx)(`span`, {
                           className: `bdg ${e.venda_fechada ? `bb` : `ba`}`,
                           children: e.venda_fechada ? `Fechado` : e.status || `Em andamento`
                         })
                       ]
                     }),
-                    (0, O.jsxs)(`div`, {
+                    (0, P.jsxs)(`div`, {
                       className: `mobile-card-grid`,
                       children: [
-                        (0, O.jsxs)(`div`, {
+                        (0, P.jsxs)(`div`, {
                           className: `mobile-card-panel`,
                           children: [
-                            (0, O.jsx)(`div`, {
+                            (0, P.jsx)(`div`, {
                               className: `table-cell-caption table-cell-muted`,
                               children: `Status`
                             }),
-                            (0, O.jsx)(`div`, { children: e.status || `-` })
+                            (0, P.jsx)(`div`, { children: e.status || `-` })
                           ]
                         }),
-                        (0, O.jsxs)(`div`, {
+                        (0, P.jsxs)(`div`, {
                           className: `mobile-card-panel`,
                           children: [
-                            (0, O.jsx)(`div`, {
+                            (0, P.jsx)(`div`, {
                               className: `table-cell-caption table-cell-muted`,
                               children: `Pagamento`
                             }),
-                            (0, O.jsx)(`div`, { children: e.pgto || `-` })
+                            (0, P.jsx)(`div`, { children: e.pgto || `-` })
                           ]
                         }),
-                        (0, O.jsxs)(`div`, {
+                        (0, P.jsxs)(`div`, {
                           className: `mobile-card-panel`,
                           children: [
-                            (0, O.jsx)(`div`, {
+                            (0, P.jsx)(`div`, {
                               className: `table-cell-caption table-cell-muted`,
                               children: `Prazo`
                             }),
-                            (0, O.jsx)(`div`, { children: e.prazo || `-` })
+                            (0, P.jsx)(`div`, { children: e.prazo || `-` })
                           ]
                         }),
-                        (0, O.jsxs)(`div`, {
+                        (0, P.jsxs)(`div`, {
                           className: `mobile-card-panel`,
                           children: [
-                            (0, O.jsx)(`div`, {
+                            (0, P.jsx)(`div`, {
                               className: `table-cell-caption table-cell-muted`,
                               children: `Total`
                             }),
-                            (0, O.jsx)(`div`, {
+                            (0, P.jsx)(`div`, {
                               className: `table-cell-strong`,
-                              children: ke(Number(e.total || 0))
+                              children: je(Number(e.total || 0))
                             })
                           ]
                         })
                       ]
                     }),
-                    (0, O.jsxs)(`div`, {
+                    (0, P.jsxs)(`div`, {
                       className: `mobile-card-actions`,
                       children: [
-                        (0, O.jsx)(`button`, {
+                        (0, P.jsx)(`button`, {
                           className: `btn btn-sm`,
                           type: `button`,
                           onClick: () => Z(`ver`, e.id, e.cliente_id || ``),
                           'data-testid': `pedido-ver-${e.id}`,
                           children: `Ver pedido`
                         }),
-                        (0, O.jsx)(`button`, {
+                        (0, P.jsx)(`button`, {
                           className: `btn btn-sm`,
                           type: `button`,
                           onClick: () => Z(`editar`, e.id, e.cliente_id || ``),
@@ -1749,7 +1765,7 @@ function Q(e, t, n) {
                         }),
                         !e.venda_fechada &&
                           e.status === `entregue` &&
-                          (0, O.jsx)(`button`, {
+                          (0, P.jsx)(`button`, {
                             className: `btn btn-p btn-sm`,
                             type: `button`,
                             onClick: () => Z(`fechar-venda`, e.id, e.cliente_id || ``),
@@ -1764,7 +1780,7 @@ function Q(e, t, n) {
               )
             )
           })
-        : (0, O.jsx)(`div`, {
+        : (0, P.jsx)(`div`, {
             className: `empty-inline table-cell-muted`,
             'data-testid': `pedidos-${t}-empty`,
             children:
@@ -1773,17 +1789,17 @@ function Q(e, t, n) {
                 : `Nenhum pedido fechado para este cliente.`
           });
 }
-function Ae({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i }) {
+function Me({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i }) {
   let [a, o] = (0, p.useState)(`resumo`),
     [s, c] = (0, p.useState)(``),
-    { notas: l, loading: u, saving: d, error: f, submitNota: m } = de({ clienteId: e.id }),
+    { notas: l, loading: u, saving: d, error: f, submitNota: m } = pe({ clienteId: e.id }),
     h = r ?? a,
     {
       pedidosAbertos: g,
       pedidosFechados: _,
       loading: v,
       error: y
-    } = ve({ cliente: e, skip: h !== `abertas` && h !== `fechadas` }),
+    } = xe({ cliente: e, skip: h !== `abertas` && h !== `fechadas` }),
     b = (0, p.useMemo)(() => ({ loading: v, error: y, clienteNome: e.nome }), [e.nome, y, v]);
   function x(e) {
     if (i) {
@@ -1795,38 +1811,38 @@ function Ae({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
   async function S() {
     (await m(s), c(``));
   }
-  return (0, O.jsxs)(`div`, {
+  return (0, P.jsxs)(`div`, {
     className: `card-shell form-gap-lg`,
     'data-testid': `cliente-detail-panel`,
     children: [
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `fb form-gap-bottom-xs`,
         children: [
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             children: [
-              (0, O.jsx)(`div`, {
+              (0, P.jsx)(`div`, {
                 className: `table-cell-caption table-cell-muted`,
                 children: `Detalhe do cliente`
               }),
-              (0, O.jsx)(`h3`, { className: `table-cell-strong`, children: e.nome }),
-              (0, O.jsxs)(`div`, {
+              (0, P.jsx)(`h3`, { className: `table-cell-strong`, children: e.nome }),
+              (0, P.jsxs)(`div`, {
                 className: `table-cell-caption table-cell-muted`,
                 children: [e.seg || `Sem segmento`, ` - `, e.cidade || `Cidade nao informada`]
               })
             ]
           }),
-          (0, O.jsxs)(`div`, {
+          (0, P.jsxs)(`div`, {
             className: `mobile-card-actions`,
             children: [
               t &&
-                (0, O.jsx)(`button`, {
+                (0, P.jsx)(`button`, {
                   className: `btn btn-p btn-sm`,
                   onClick: () => t(e.id),
                   'data-testid': `detalhe-editar`,
                   children: `Editar`
                 }),
               n &&
-                (0, O.jsx)(`button`, {
+                (0, P.jsx)(`button`, {
                   className: `btn btn-sm`,
                   onClick: n,
                   'data-testid': `detalhe-fechar`,
@@ -1836,44 +1852,44 @@ function Ae({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
           })
         ]
       }),
-      (0, O.jsxs)(`div`, {
+      (0, P.jsxs)(`div`, {
         className: `tabs`,
         'data-testid': `cliente-detail-tabs`,
         children: [
-          (0, O.jsx)(`button`, {
+          (0, P.jsx)(`button`, {
             className: `tb ${h === `resumo` ? `on` : ``}`,
             onClick: () => x(`resumo`),
             children: `Resumo`
           }),
-          (0, O.jsx)(`button`, {
+          (0, P.jsx)(`button`, {
             className: `tb ${h === `abertas` ? `on` : ``}`,
             onClick: () => x(`abertas`),
             children: `Pedidos abertos`
           }),
-          (0, O.jsx)(`button`, {
+          (0, P.jsx)(`button`, {
             className: `tb ${h === `fechadas` ? `on` : ``}`,
             onClick: () => x(`fechadas`),
             children: `Pedidos fechados`
           }),
-          (0, O.jsx)(`button`, {
+          (0, P.jsx)(`button`, {
             className: `tb ${h === `notas` ? `on` : ``}`,
             onClick: () => x(`notas`),
             children: `Notas / historico`
           }),
-          (0, O.jsx)(`button`, {
+          (0, P.jsx)(`button`, {
             className: `tb ${h === `fidelidade` ? `on` : ``}`,
             onClick: () => x(`fidelidade`),
             children: `Fidelidade`
           })
         ]
       }),
-      h === `resumo` && (0, O.jsx)(L, { cliente: e }),
+      h === `resumo` && (0, P.jsx)(z, { cliente: e }),
       h === `abertas` &&
-        (0, O.jsxs)(`div`, {
+        (0, P.jsxs)(`div`, {
           className: `form-gap-lg`,
           'data-testid': `cliente-detail-pedidos-abertos`,
           children: [
-            (0, O.jsx)(`div`, {
+            (0, P.jsx)(`div`, {
               className: `cli-detail-label form-gap-bottom-xs`,
               children: `Pedidos em andamento`
             }),
@@ -1881,11 +1897,11 @@ function Ae({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
           ]
         }),
       h === `fechadas` &&
-        (0, O.jsxs)(`div`, {
+        (0, P.jsxs)(`div`, {
           className: `form-gap-lg`,
           'data-testid': `cliente-detail-pedidos-fechados`,
           children: [
-            (0, O.jsx)(`div`, {
+            (0, P.jsx)(`div`, {
               className: `cli-detail-label form-gap-bottom-xs`,
               children: `Pedidos fechados`
             }),
@@ -1893,25 +1909,25 @@ function Ae({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
           ]
         }),
       h === `notas` &&
-        (0, O.jsxs)(`div`, {
+        (0, P.jsxs)(`div`, {
           className: `form-gap-lg`,
           'data-testid': `cliente-detail-notas`,
           children: [
-            (0, O.jsx)(`div`, {
+            (0, P.jsx)(`div`, {
               className: `cli-detail-label form-gap-bottom-xs`,
               children: `Notas / historico`
             }),
-            (0, O.jsxs)(`div`, {
+            (0, P.jsxs)(`div`, {
               className: `fg2 cli-detail-notes-input form-gap-bottom-xs`,
               children: [
-                (0, O.jsx)(`input`, {
+                (0, P.jsx)(`input`, {
                   className: `inp input-flex`,
                   placeholder: `Adicionar nota...`,
                   value: s,
                   onChange: (e) => c(e.target.value),
                   'data-testid': `nota-input`
                 }),
-                (0, O.jsx)(`button`, {
+                (0, P.jsx)(`button`, {
                   className: `btn btn-sm`,
                   onClick: S,
                   disabled: d,
@@ -1921,59 +1937,59 @@ function Ae({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
               ]
             }),
             f &&
-              (0, O.jsx)(`div`, {
+              (0, P.jsx)(`div`, {
                 className: `empty`,
                 'data-testid': `nota-error`,
-                children: (0, O.jsx)(`p`, { children: f })
+                children: (0, P.jsx)(`p`, { children: f })
               }),
             u
-              ? (0, O.jsxs)(`div`, {
+              ? (0, P.jsxs)(`div`, {
                   className: `sk-card`,
                   'data-testid': `nota-loading`,
                   children: [
-                    (0, O.jsx)(`div`, { className: `sk-line` }),
-                    (0, O.jsx)(`div`, { className: `sk-line` })
+                    (0, P.jsx)(`div`, { className: `sk-line` }),
+                    (0, P.jsx)(`div`, { className: `sk-line` })
                   ]
                 })
               : l.length
-                ? (0, O.jsx)(`div`, {
+                ? (0, P.jsx)(`div`, {
                     className: `cli-detail-notes`,
                     'data-testid': `nota-list`,
                     children: l.map((e, t) =>
-                      (0, O.jsxs)(
+                      (0, P.jsxs)(
                         `div`,
                         {
                           className: `nota`,
                           children: [
-                            (0, O.jsx)(`p`, { children: e.texto }),
-                            (0, O.jsx)(`div`, { className: `nota-d`, children: e.data })
+                            (0, P.jsx)(`p`, { children: e.texto }),
+                            (0, P.jsx)(`div`, { className: `nota-d`, children: e.data })
                           ]
                         },
                         `${e.data}-${t}`
                       )
                     )
                   })
-                : (0, O.jsx)(`div`, {
+                : (0, P.jsx)(`div`, {
                     className: `empty-inline table-cell-muted`,
                     'data-testid': `nota-empty`,
                     children: `Nenhuma nota.`
                   })
           ]
         }),
-      h === `fidelidade` && (0, O.jsx)(Oe, { cliente: e })
+      h === `fidelidade` && (0, P.jsx)(X, { cliente: e })
     ]
   });
 }
-var je = `clientes-react-pilot`,
-  Me = `clientes-legacy-shell`;
-function Ne() {
+var Ne = `clientes-react-pilot`,
+  Pe = `clientes-legacy-shell`;
+function Fe() {
   let e = C(m((e) => e.clientes)),
     t = C((e) => e.filtro),
     n = C((e) => e.clearFiltro),
     [r, i] = (0, p.useState)(null),
     [a, o] = (0, p.useState)(null),
     [s, c] = (0, p.useState)(`resumo`),
-    { deleteClienteById: l, deletingId: u, error: d } = D(),
+    { deleteClienteById: l, deletingId: u, error: d } = N(),
     f = (0, p.useMemo)(() => e.find((e) => e.id === r) ?? null, [e, r]),
     h = (0, p.useMemo)(() => e.find((e) => e.id === a) ?? null, [e, a]),
     g = C(m(b));
@@ -2007,7 +2023,7 @@ function Ne() {
       function e(e) {
         if (e.origin !== window.location.origin) return;
         let t = e.data;
-        if (!(!t || t.source !== Me)) {
+        if (!(!t || t.source !== Pe)) {
           if (t.type === `clientes:novo`) {
             (o(null), i(`new`), c(`resumo`));
             return;
@@ -2070,7 +2086,7 @@ function Ne() {
     (0, p.useEffect)(() => {
       window.postMessage(
         {
-          source: je,
+          source: Ne,
           type: `clientes:state`,
           state: {
             view: r ? `form` : a ? `detail` : `list`,
@@ -2085,17 +2101,17 @@ function Ne() {
         window.location.origin
       );
     }, [e.length, u, a, r, d, t.q, t.seg, t.status, f?.nome, h?.nome, s]),
-    (0, O.jsxs)(`div`, {
+    (0, P.jsxs)(`div`, {
       className: `screen-content form-gap-lg`,
       'data-testid': `clientes-pilot-page`,
       children: [
         d &&
-          (0, O.jsx)(`div`, {
+          (0, P.jsx)(`div`, {
             className: `empty`,
             'data-testid': `cliente-pilot-error`,
-            children: (0, O.jsx)(`p`, { children: d })
+            children: (0, P.jsx)(`p`, { children: d })
           }),
-        (0, O.jsx)(ce, {
+        (0, P.jsx)(le, {
           onNovoCliente: () => {
             (o(null), i(`new`), c(`resumo`));
           },
@@ -2110,7 +2126,7 @@ function Ne() {
         }),
         h &&
           !r &&
-          (0, O.jsx)(Ae, {
+          (0, P.jsx)(Me, {
             cliente: h,
             activeTab: s,
             onTabChange: c,
@@ -2122,13 +2138,13 @@ function Ne() {
             }
           }),
         u &&
-          (0, O.jsx)(`div`, {
+          (0, P.jsx)(`div`, {
             className: `empty-inline`,
             'data-testid': `cliente-pilot-deleting`,
             children: `Removendo cliente...`
           }),
         r &&
-          (0, O.jsx)(z, {
+          (0, P.jsx)(V, {
             initialCliente: r === `new` ? null : f,
             onSaved: (e) => {
               (i(null), o(e.id), c(`resumo`));
@@ -2141,16 +2157,65 @@ function Ne() {
     })
   );
 }
-var $ = null;
-function Pe(e) {
-  (($ = (0, h.createRoot)(e)),
-    $.render((0, O.jsx)(p.StrictMode, { children: (0, O.jsx)(Ne, {}) })));
+function Ie(e = {}) {
+  let { skip: t = !1 } = e,
+    i = C((e) => e.setClientes),
+    o = C((e) => e.setStatus),
+    s = a((e) => e.session),
+    c = a((e) => e.status),
+    l = r((e) => e.filialId),
+    u = (0, p.useRef)(!1);
+  (0, p.useEffect)(() => {
+    if (t || c === `unknown`) return;
+    if (c === `unauthenticated` || !s?.access_token) {
+      o(`error`, `Sessão expirada. Faça login novamente.`);
+      return;
+    }
+    if (!l) {
+      o(`error`, `Nenhuma filial selecionada.`);
+      return;
+    }
+    let { url: e, key: r, ready: a } = n();
+    if (!a) {
+      o(`error`, `Configuração do Supabase ausente.`);
+      return;
+    }
+    u.current ||
+      ((u.current = !0),
+      o(`loading`),
+      A({ url: e, key: r, token: s.access_token, filialId: l })
+        .then((e) => i(e))
+        .catch((e) => {
+          ((u.current = !1),
+            o(`error`, e instanceof Error ? e.message : `Erro ao carregar clientes.`));
+        }));
+  }, [t, c, s, l, i, o]);
+  function d() {
+    if (((u.current = !1), o(`loading`), !s?.access_token || !l)) return;
+    let { url: e, key: t, ready: r } = n();
+    r &&
+      ((u.current = !0),
+      A({ url: e, key: t, token: s.access_token, filialId: l })
+        .then((e) => i(e))
+        .catch((e) => {
+          ((u.current = !1),
+            o(`error`, e instanceof Error ? e.message : `Erro ao recarregar clientes.`));
+        }));
+  }
+  return { reload: d };
 }
-function Fe() {
+var $ = null;
+function Le() {
+  return (Ie(), (0, P.jsx)(Fe, {}));
+}
+function Re(e) {
+  (($ = (0, h.createRoot)(e)),
+    $.render((0, P.jsx)(p.StrictMode, { children: (0, P.jsx)(Le, {}) })));
+}
+function ze() {
   $ &&= ($.unmount(), null);
 }
 (window.__SC_AUTH_SESSION__ &&
   a.setState({ session: window.__SC_AUTH_SESSION__, status: `authenticated` }),
   window.__SC_FILIAL_ID__ && r.setState({ filialId: window.__SC_FILIAL_ID__ }),
-  C.getState().fetchClientes(),
-  (window.__SC_CLIENTES_DIRECT_BRIDGE__ = { mount: Pe, unmount: Fe }));
+  (window.__SC_CLIENTES_DIRECT_BRIDGE__ = { mount: Re, unmount: ze }));

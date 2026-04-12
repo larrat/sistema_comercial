@@ -16,9 +16,10 @@
 
     <!-- Link para o seu novo arquivo CSS -->
     <link rel="stylesheet" href="./src/styles/style.css" />
-    <!-- Piloto React de clientes (direct mount, sem iframe) -->
-    <link rel="stylesheet" href="./dist-react/clientes-bridge.css" />
+    <!-- Pilotos React (CSS compartilhado extraído como jsx-runtime.css) -->
+    <link rel="stylesheet" href="./dist-react/jsx-runtime.css" />
     <script type="module" src="./dist-react/clientes-bridge.js" defer></script>
+    <script type="module" src="./dist-react/dashboard-bridge.js" defer></script>
   </head>
   <body>
     <!-- ══ SETUP SCREEN ══ -->
@@ -236,7 +237,7 @@
         <!-- ── DASHBOARD ── -->
         <div class="pg on dash-bento-page" id="pg-dashboard">
           <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
-            <div class="fg2">
+            <div class="fg2" id="dash-legacy-controls">
               <select
                 class="inp sel select-w-sm input-compact"
                 id="dash-fil"
@@ -250,6 +251,14 @@
               </div>
             </div>
             <div class="toolbar-actions">
+              <button
+                class="btn btn-sm"
+                id="dash-react-toggle"
+                hidden
+                onclick="window.__SC_TOGGLE_DASH_REACT?.()"
+              >
+                Piloto React
+              </button>
               <button
                 class="btn btn-sm"
                 id="dash-personalizar-btn"
@@ -275,124 +284,133 @@
             </button>
           </div>
 
-          <section
-            class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops"
-            data-dash-slot="operacao"
-          >
-            <div class="dash-section-head">
-              <h3>Operação rápida</h3>
-              <p>Ações que precisam de decisão agora</p>
-            </div>
-            <div id="dash-alerts"></div>
-            <div class="dash-grid-cards dash-grid-cards--operacao" data-dash-zone="ops">
-              <div
-                class="card card-shell dash-card dash-card--oportunidades dash-bento-card"
-                data-dash-slot="oportunidades"
-              >
-                <div class="dash-drag-handle" title="Arrastar card">⠿</div>
-                <div class="fb mb-10">
-                  <div class="ct ct-inline">Oportunidades por time</div>
-                  <select
-                    class="inp sel select-w-xs input-compact"
-                    id="dash-opp-camp"
-                    data-change="renderDash()"
-                  >
-                    <option value="todas">Todas</option>
-                    <option value="a">Série A</option>
-                    <option value="b">Série B</option>
-                    <option value="c">Série C</option>
-                  </select>
+          <!-- React shell (substituição controlada do dashboard legado) -->
+          <div id="dash-react-shell" hidden>
+            <div id="dash-react-root"></div>
+          </div>
+
+          <!-- Conteúdo legado do dashboard -->
+          <div id="dash-legacy-content">
+            <section
+              class="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops"
+              data-dash-slot="operacao"
+            >
+              <div class="dash-section-head">
+                <h3>Operação rápida</h3>
+                <p>Ações que precisam de decisão agora</p>
+              </div>
+              <div id="dash-alerts"></div>
+              <div class="dash-grid-cards dash-grid-cards--operacao" data-dash-zone="ops">
+                <div
+                  class="card card-shell dash-card dash-card--oportunidades dash-bento-card"
+                  data-dash-slot="oportunidades"
+                >
+                  <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+                  <div class="fb mb-10">
+                    <div class="ct ct-inline">Oportunidades por time</div>
+                    <select
+                      class="inp sel select-w-xs input-compact"
+                      id="dash-opp-camp"
+                      data-change="renderDash()"
+                    >
+                      <option value="todas">Todas</option>
+                      <option value="a">Série A</option>
+                      <option value="b">Série B</option>
+                      <option value="c">Série C</option>
+                    </select>
+                  </div>
+                  <div id="dash-oportunidades"></div>
                 </div>
-                <div id="dash-oportunidades"></div>
+                <div
+                  class="card card-shell dash-card dash-card--jogos dash-bento-card"
+                  data-dash-slot="jogos"
+                >
+                  <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+                  <div class="fb mb-10">
+                    <div class="ct ct-inline">Proximos jogos</div>
+                    <div class="fg2">
+                      <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
+                      <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
+                    </div>
+                  </div>
+                  <div id="dash-jogos"></div>
+                </div>
+                <div
+                  class="card card-shell dash-card dash-card--estoque dash-bento-card"
+                  data-dash-slot="estoque"
+                >
+                  <div class="dash-drag-handle" title="Arrastar card">⠿</div>
+                  <div class="ct">Estoque em alerta</div>
+                  <div id="dash-ea"></div>
+                </div>
+              </div>
+            </section>
+
+            <section
+              class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis"
+              data-dash-zone="analise"
+            >
+              <div class="dash-section-head">
+                <h3>Análise do negócio</h3>
+                <p>Leitura de desempenho e tendencia comercial</p>
               </div>
               <div
-                class="card card-shell dash-card dash-card--jogos dash-bento-card"
-                data-dash-slot="jogos"
+                class="mg dash-bento-band dash-bento-band--metrics"
+                id="dash-met"
+                data-dash-slot="metrics"
               >
-                <div class="dash-drag-handle" title="Arrastar card">⠿</div>
-                <div class="fb mb-10">
-                  <div class="ct ct-inline">Proximos jogos</div>
-                  <div class="fg2">
-                    <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
-                    <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
+                <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+              </div>
+              <div
+                class="dash-grid-main dash-bento-grid dash-bento-grid--primary"
+                data-dash-slot="chart-status"
+              >
+                <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+                <div
+                  class="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart"
+                >
+                  <div class="ct">Faturamento e lucro</div>
+                  <div class="barchart" id="dash-chart"></div>
+                  <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden">
+                    <p>Sem pedidos entregues no periodo</p>
+                  </div>
+                  <div class="dash-chart-legend">
+                    <span
+                      ><span class="dash-legend-swatch dash-legend-swatch--fat"></span
+                      >Faturamento</span
+                    >
+                    <span
+                      ><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span
+                    >
                   </div>
                 </div>
-                <div id="dash-jogos"></div>
-              </div>
-              <div
-                class="card card-shell dash-card dash-card--estoque dash-bento-card"
-                data-dash-slot="estoque"
-              >
-                <div class="dash-drag-handle" title="Arrastar card">⠿</div>
-                <div class="ct">Estoque em alerta</div>
-                <div id="dash-ea"></div>
-              </div>
-            </div>
-          </section>
-
-          <section
-            class="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis"
-            data-dash-zone="analise"
-          >
-            <div class="dash-section-head">
-              <h3>Análise do negócio</h3>
-              <p>Leitura de desempenho e tendencia comercial</p>
-            </div>
-            <div
-              class="mg dash-bento-band dash-bento-band--metrics"
-              id="dash-met"
-              data-dash-slot="metrics"
-            >
-              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-            </div>
-            <div
-              class="dash-grid-main dash-bento-grid dash-bento-grid--primary"
-              data-dash-slot="chart-status"
-            >
-              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-              <div
-                class="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart"
-              >
-                <div class="ct">Faturamento e lucro</div>
-                <div class="barchart" id="dash-chart"></div>
-                <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden">
-                  <p>Sem pedidos entregues no periodo</p>
-                </div>
-                <div class="dash-chart-legend">
-                  <span
-                    ><span class="dash-legend-swatch dash-legend-swatch--fat"></span
-                    >Faturamento</span
-                  >
-                  <span
-                    ><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span
-                  >
+                <div class="card card-shell dash-card dash-bento-card dash-bento-card--status">
+                  <div class="ct">Status dos pedidos</div>
+                  <div id="dash-status"></div>
                 </div>
               </div>
-              <div class="card card-shell dash-card dash-bento-card dash-bento-card--status">
-                <div class="ct">Status dos pedidos</div>
-                <div id="dash-status"></div>
+              <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
+                <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+                <div class="card card-shell dash-card dash-card--top dash-bento-card">
+                  <div class="ct">Top produtos</div>
+                  <div id="dash-tp"></div>
+                </div>
+                <div class="card card-shell dash-card dash-card--forn dash-bento-card">
+                  <div class="ct">Fornecedores</div>
+                  <div id="dash-forn"></div>
+                </div>
               </div>
-            </div>
-            <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
-              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-              <div class="card card-shell dash-card dash-card--top dash-bento-card">
-                <div class="ct">Top produtos</div>
-                <div id="dash-tp"></div>
+              <div
+                class="card card-shell dash-bento-card dash-bento-card--margin"
+                data-dash-slot="margem"
+              >
+                <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
+                <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
+                <div id="dash-margem"></div>
               </div>
-              <div class="card card-shell dash-card dash-card--forn dash-bento-card">
-                <div class="ct">Fornecedores</div>
-                <div id="dash-forn"></div>
-              </div>
-            </div>
-            <div
-              class="card card-shell dash-bento-card dash-bento-card--margin"
-              data-dash-slot="margem"
-            >
-              <div class="dash-drag-handle" title="Arrastar bloco">⠿</div>
-              <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
-              <div id="dash-margem"></div>
-            </div>
-          </section>
+            </section>
+          </div>
+          <!-- /dash-legacy-content -->
         </div>
 
         <!-- ── GERENCIAL ── -->

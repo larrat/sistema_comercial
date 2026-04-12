@@ -20,6 +20,16 @@ import {
   syncHistoricoOportunidadesJogos
 } from './oportunidades-jogos.js';
 import { buildSkeletonLines } from './runtime-loading.js';
+import {
+  isDashboardReactPilotActive,
+  syncDashboardReactBridge,
+  toggleDashboardReactBridge
+} from './dashboard-react-bridge.js';
+
+// Expor toggle no window para o botão inline do HTML
+if (typeof window !== 'undefined') {
+  window.__SC_TOGGLE_DASH_REACT__ = toggleDashboardReactBridge;
+}
 
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
 /** @typedef {import('../types/domain').DashboardModuleCallbacks} DashboardModuleCallbacks */
@@ -948,6 +958,10 @@ export function renderDashFilSel() {
 }
 
 export function renderDash() {
+  if (isDashboardReactPilotActive()) {
+    syncDashboardReactBridge();
+    return;
+  }
   return measureRender('dashboard', () => {
     const fsel = State.FIL || dashDom.get('dash-fil')?.value || '';
     const serieSel = dashDom.get('dash-opp-camp')?.value || 'todas';

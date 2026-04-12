@@ -44,6 +44,8 @@ declare global {
     __SC_SUPABASE_KEY__?: string;
     __SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__?: boolean;
     __SC_CLIENTES_REACT_ENABLED__?: boolean;
+    __SC_DASHBOARD_REACT_ENABLED__?: boolean;
+    __SC_TOGGLE_DASH_REACT__?: () => void;
     __SC_WARN_CONFIG__?: boolean;
     __SC_REQ_TIMEOUT_MS__?: number;
     __SC_RETRY_MAX__?: number;

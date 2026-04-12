@@ -1,28 +1,28 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
-import { ClientesPilotPage } from './features/clientes/components/ClientesPilotPage';
-import { useClienteData } from './features/clientes/hooks/useClienteData';
+import { DashboardPilotPage } from './features/dashboard/components/DashboardPilotPage';
+import { useDashboardData } from './features/dashboard/hooks/useDashboardData';
 import { useAuthStore } from './app/useAuthStore';
 import { useFilialStore } from './app/useFilialStore';
 
 let reactRoot: ReturnType<typeof createRoot> | null = null;
 
-function ClientesApp() {
-  useClienteData();
-  return <ClientesPilotPage />;
+function DashboardApp() {
+  useDashboardData();
+  return <DashboardPilotPage />;
 }
 
-function mountClientes(el: HTMLElement) {
+function mountDashboard(el: HTMLElement) {
   reactRoot = createRoot(el);
   reactRoot.render(
     <StrictMode>
-      <ClientesApp />
+      <DashboardApp />
     </StrictMode>
   );
 }
 
-function unmountClientes() {
+function unmountDashboard() {
   if (reactRoot) {
     reactRoot.unmount();
     reactRoot = null;
@@ -31,7 +31,7 @@ function unmountClientes() {
 
 declare global {
   interface Window {
-    __SC_CLIENTES_DIRECT_BRIDGE__?: {
+    __SC_DASHBOARD_DIRECT_BRIDGE__?: {
       mount: (el: HTMLElement) => void;
       unmount: () => void;
     };
@@ -54,7 +54,7 @@ if (window.__SC_FILIAL_ID__) {
   useFilialStore.setState({ filialId: window.__SC_FILIAL_ID__ });
 }
 
-window.__SC_CLIENTES_DIRECT_BRIDGE__ = {
-  mount: mountClientes,
-  unmount: unmountClientes
+window.__SC_DASHBOARD_DIRECT_BRIDGE__ = {
+  mount: mountDashboard,
+  unmount: unmountDashboard
 };

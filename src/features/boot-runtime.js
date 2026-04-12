@@ -118,6 +118,7 @@
  *   appRoles: string[]
  *   registerNotificationKpi: (metric: string, delta?: number) => void
  *   logStrategicAction: (context: string) => void
+ *   isClientesReactPilotActive: () => boolean
  * }} RegisterBootRuntimeDeps
  */
 
