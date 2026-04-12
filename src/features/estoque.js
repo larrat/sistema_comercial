@@ -524,15 +524,14 @@ export function renderEstHist() {
 export async function excluirMov(id) {
   if (!confirm('Excluir movimentação?')) return;
 
-  /** @type {HTMLButtonElement | null} */
   const btn = document.querySelector(`[data-click="excluirMov('${id}')"]`);
-  setButtonLoading(btn, true, 'Excluir');
+  setButtonLoading(btn instanceof HTMLButtonElement ? btn : null, true, 'Excluir');
 
   try {
     await SB.deleteMov(id);
   } catch (e) {
     toast('Erro: ' + e.message);
-    setButtonLoading(btn, false, 'Excluir');
+    setButtonLoading(btn instanceof HTMLButtonElement ? btn : null, false, 'Excluir');
     return;
   }
 
@@ -542,7 +541,7 @@ export async function excluirMov(id) {
   renderEstHist();
   renderEstAlerts();
 
-  setButtonLoading(btn, false, 'Excluir');
+  setButtonLoading(btn instanceof HTMLButtonElement ? btn : null, false, 'Excluir');
 }
 
 export function refreshMovSel() {
@@ -831,15 +830,14 @@ export async function salvarMov() {
     }
   }
 
-  /** @type {HTMLButtonElement | null} */
   const saveBtn = document.getElementById('mov-save-btn');
-  setButtonLoading(saveBtn, true, 'Confirmar');
+  setButtonLoading(saveBtn instanceof HTMLButtonElement ? saveBtn : null, true, 'Confirmar');
 
   try {
     await SB.insertMov(mov);
   } catch (e) {
     toast('Erro: ' + e.message);
-    setButtonLoading(saveBtn, false, 'Confirmar');
+    setButtonLoading(saveBtn instanceof HTMLButtonElement ? saveBtn : null, false, 'Confirmar');
     return;
   }
 
@@ -851,6 +849,6 @@ export async function salvarMov() {
   renderEstAlerts();
   renderEstHist();
 
-  setButtonLoading(saveBtn, false, 'Confirmar');
+  setButtonLoading(saveBtn instanceof HTMLButtonElement ? saveBtn : null, false, 'Confirmar');
   toast('Movimentação registrada!');
 }

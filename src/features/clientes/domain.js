@@ -1,6 +1,6 @@
 // @ts-check
 
-/** @typedef {import('../types/domain').Cliente} Cliente */
+/** @typedef {import('../../types/domain').Cliente} Cliente */
 
 export const ST_B = {
   ativo: '<span class="bdg bg">Ativo</span>',
@@ -11,7 +11,7 @@ export const ST_B = {
 export const ST_PED = {
   orcamento: '<span class="bdg bk">Orcamento</span>',
   confirmado: '<span class="bdg bb">Confirmado</span>',
-  em_separacao: '<span class="bdg ba">Em separaÃ§Ã£o</span>',
+  em_separacao: '<span class="bdg ba">Em separação</span>',
   entregue: '<span class="bdg bg">Entregue</span>',
   cancelado: '<span class="bdg br">Cancelado</span>'
 };
