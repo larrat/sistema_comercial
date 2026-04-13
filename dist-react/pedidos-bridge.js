@@ -145,6 +145,7 @@ async function D(e, t) {
     let e = await n.text().catch(() => ``);
     throw Error(`Falha ao salvar conta a receber: ${n.status} ${e}`);
   }
+  window.dispatchEvent(new CustomEvent(`sc:conta-receber-criada`, { detail: t }));
 }
 async function O(e, t) {
   let n = E(t.data, t.prazo);

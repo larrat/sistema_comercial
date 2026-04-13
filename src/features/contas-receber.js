@@ -270,3 +270,26 @@ export async function gerarContaManual(pedidoId) {
   renderContasReceber();
   notify('Conta a receber gerada para pedido #' + p.num, SEVERITY.SUCCESS);
 }
+
+// ── Bridge: React → Legado ────────────────────────────────────────────────────
+// Quando o React (pedidos-bridge) insere uma conta a receber no Supabase,
+// ele dispara este evento para que o legado atualize D.contasReceber sem
+// precisar de um novo fetch à API.
+window.addEventListener('sc:conta-receber-criada', (/** @type {CustomEvent} */ ev) => {
+  const conta = ev.detail;
+  if (!conta || !conta.filial_id) return;
+  if (!D.contasReceber) D.contasReceber = {};
+  if (!D.contasReceber[conta.filial_id]) D.contasReceber[conta.filial_id] = [];
+
+  // Evita duplicata se o evento disparar mais de uma vez para o mesmo ID
+  const jaExiste = D.contasReceber[conta.filial_id].some((c) => c.id === conta.id);
+  if (!jaExiste) {
+    D.contasReceber[conta.filial_id].push(conta);
+  }
+
+  // Atualiza UI somente se a filial da conta for a filial ativa
+  if (conta.filial_id === State.FIL) {
+    renderContasReceberMet();
+    renderContasReceber();
+  }
+});

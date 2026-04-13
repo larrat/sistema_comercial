@@ -46,6 +46,9 @@ async function inserirConta(
     const text = await res.text().catch(() => '');
     throw new Error(`Falha ao salvar conta a receber: ${res.status} ${text}`);
   }
+
+  // Notifica o legado para atualizar o cache D.contasReceber sem re-fetch
+  window.dispatchEvent(new CustomEvent('sc:conta-receber-criada', { detail: conta }));
 }
 
 /**

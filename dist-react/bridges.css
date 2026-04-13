@@ -8962,15 +8962,10 @@ body {
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
-#pg-dashboard.dash-bento-page.on {
-  gap: var(--space-5);
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: start;
-  display: grid;
-}
-#pg-dashboard.dash-bento-page > .page-controls-bar,
-#pg-dashboard.dash-bento-page > .mobile-home-shortcuts {
-  grid-column: 1/-1;
+#pg-dashboard > #dash-legacy-content {
+  gap: var(--space-4);
+  flex-direction: column;
+  display: flex;
 }
 #pg-dashboard .dash-bento-panel {
   min-width: 0;
