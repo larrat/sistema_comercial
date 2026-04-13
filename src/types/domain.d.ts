@@ -49,6 +49,7 @@ export type Fornecedor = {
 export type Produto = {
   id: Id;
   filial_id?: Id | null;
+  produto_pai_id?: Id | null;
   nome: string;
   descricao_padrao?: string;
   sku?: string;
@@ -758,6 +759,7 @@ export type DomBindingsDeps = {
   trocarFilial?: (id?: Id | null) => void | Promise<void>;
   setFlowStep?: (flow: string, step: number) => void;
   calcProdPreview?: () => void;
+  onPaiChange?: () => void;
   syncV?: (mode?: string) => void;
   syncA?: (mode?: string) => void;
   syncProdFromCost?: () => void;

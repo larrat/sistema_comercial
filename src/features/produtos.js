@@ -37,6 +37,7 @@ const prodDom = createScreenDom('produtos', [
   'prod-flow-save',
   'prod-det-box',
   'p-un',
+  'p-pai',
   'prod-preview',
   'p-hist-cot',
   'ppv-v',
@@ -135,7 +136,8 @@ export function renderProdutos() {
   const cat = catEl?.value || '';
   const saldos = calcSaldosSafe();
 
-  const filtrados = P().filter(
+  const todos = P();
+  const filtrados = todos.filter(
     (p) =>
       (!q || p.nome.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q)) &&
       (!cat || p.cat === cat)
@@ -145,19 +147,57 @@ export function renderProdutos() {
     prodDom.html(
       'list',
       'prod-lista',
-      `<div class="empty"><div class="ico">PR</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`,
+      `<div class="empty"><div class="ico">PR</div><p>${todos.length ? 'Nenhum encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p></div>`,
       'produtos:lista-vazia'
     );
     return;
   }
+
+  // Monta mapa pai → variantes (usando todos os produtos, não só os filtrados)
+  /** @type {Record<string, import('../types/domain').Produto[]>} */
+  const variantesMap = {};
+  todos.forEach((p) => {
+    if (p.produto_pai_id) {
+      if (!variantesMap[p.produto_pai_id]) variantesMap[p.produto_pai_id] = [];
+      variantesMap[p.produto_pai_id].push(p);
+    }
+  });
+
+  // Ordena: pais primeiro (sem produto_pai_id), depois variantes imediatamente após seu pai
+  /** @type {Array<{prod: import('../types/domain').Produto, isPai: boolean, isVariante: boolean}>} */
+  const ordenados = [];
+  const filtradosIds = new Set(filtrados.map((p) => p.id));
+
+  // Pais que aparecem nos filtrados ou cujas variantes aparecem nos filtrados
+  const paiIds = new Set(filtrados.filter((p) => p.produto_pai_id).map((p) => p.produto_pai_id));
+  const pais = todos
+    .filter((p) => !p.produto_pai_id && (filtradosIds.has(p.id) || paiIds.has(p.id)))
+    .sort((a, b) => a.nome.localeCompare(b.nome));
+
+  // Variantes sem pai encontrado nos dados carregados (orfas)
+  const paiIdsCarregados = new Set(todos.filter((p) => !p.produto_pai_id).map((p) => p.id));
+
+  pais.forEach((p) => {
+    const temFilhos = variantesMap[p.id]?.length > 0;
+    ordenados.push({ prod: p, isPai: temFilhos, isVariante: false });
+    (variantesMap[p.id] || [])
+      .filter((v) => filtradosIds.has(v.id) || !q)
+      .sort((a, b) => a.nome.localeCompare(b.nome))
+      .forEach((v) => ordenados.push({ prod: v, isPai: false, isVariante: true }));
+  });
+
+  // Adiciona variantes cujo pai não está carregado
+  filtrados
+    .filter((p) => p.produto_pai_id && !paiIdsCarregados.has(p.produto_pai_id))
+    .forEach((p) => ordenados.push({ prod: p, isPai: false, isVariante: true }));
 
   const isMobile = window.matchMedia('(max-width: 1280px)').matches;
   if (isMobile) {
     prodDom.html(
       'list',
       'prod-lista',
-      filtrados
-        .map((p) => {
+      ordenados
+        .map(({ prod: p, isPai, isVariante }) => {
           const pv = prV(p.custo, p.mkv);
           const pa = p.pfa > 0 ? p.pfa : p.mka > 0 ? prV(p.custo, p.mka) : 0;
           const s = saldos[p.id] || { saldo: 0, cm: 0 };
@@ -168,13 +208,20 @@ export function renderProdutos() {
             : baixo
               ? '<span class="bdg ba">Baixo</span>'
               : '<span class="bdg bg">OK</span>';
+          const paiNome =
+            isVariante && p.produto_pai_id
+              ? todos.find((x) => x.id === p.produto_pai_id)?.nome || ''
+              : '';
 
           return `
-        <div class="mobile-card">
+        <div class="mobile-card" style="${isVariante ? 'margin-left:16px;border-left:3px solid var(--b2)' : ''}">
           <div class="mobile-card-head">
             <div style="min-width:0">
-              <div class="mobile-card-title">${p.nome}</div>
-              <div class="mobile-card-sub">${p.sku || 'Sem SKU'}${p.cat ? ` - ${p.cat}` : ''}</div>
+              <div class="mobile-card-title">
+                ${isVariante ? '<span style="color:var(--tx3);font-size:11px">↳ </span>' : ''}${p.nome}
+                ${isPai ? '<span class="bdg bk" style="font-size:10px;margin-left:4px">Família</span>' : ''}
+              </div>
+              <div class="mobile-card-sub">${p.sku || 'Sem SKU'}${p.cat ? ` - ${p.cat}` : ''}${isVariante && paiNome ? ` · variante de ${paiNome}` : ''}</div>
             </div>
             <div>${st}</div>
           </div>
@@ -222,8 +269,8 @@ export function renderProdutos() {
           </tr>
         </thead>
         <tbody>
-          ${filtrados
-            .map((p) => {
+          ${ordenados
+            .map(({ prod: p, isPai, isVariante }) => {
               const pv = prV(p.custo, p.mkv);
               const pa = p.pfa > 0 ? p.pfa : p.mka > 0 ? prV(p.custo, p.mka) : 0;
               const s = saldos[p.id] || { saldo: 0, cm: 0 };
@@ -231,8 +278,11 @@ export function renderProdutos() {
               const baixo = p.emin > 0 && s.saldo > 0 && s.saldo < p.emin;
 
               return `
-              <tr>
-                <td style="font-weight:600">${p.nome}</td>
+              <tr style="${isVariante ? 'background:var(--bg2,rgba(0,0,0,0.02))' : ''}">
+                <td style="font-weight:${isPai ? '700' : '600'}">
+                  ${isVariante ? '<span style="color:var(--tx3);padding-right:4px">↳</span>' : ''}${p.nome}
+                  ${isPai ? '<span class="bdg bk" style="font-size:10px;margin-left:6px">Família</span>' : ''}
+                </td>
                 <td style="color:var(--tx3);font-size:12px">${p.sku || '-'}</td>
                 <td>${p.un}</td>
                 <td>${p.cat ? `<span class="bdg bk">${p.cat}</span>` : '-'}</td>
@@ -261,6 +311,22 @@ export function renderProdutos() {
   );
 }
 
+/**
+ * Popula o seletor de produto pai com produtos raiz (sem pai).
+ * @param {string | null} [excludeId] - ID do produto atual (excluído da lista para evitar self-reference)
+ */
+function renderPaiSel(excludeId = null) {
+  const sel = prodDom.get('p-pai');
+  if (!sel) return;
+  const pais = P().filter((p) => !p.produto_pai_id && p.id !== excludeId);
+  sel.innerHTML =
+    '<option value="">— produto independente —</option>' +
+    pais
+      .sort((a, b) => a.nome.localeCompare(b.nome))
+      .map((p) => `<option value="${p.id}">${p.nome}${p.sku ? ` [${p.sku}]` : ''}</option>`)
+      .join('');
+}
+
 export function limparFormProd() {
   State.editIds.prod = null;
 
@@ -273,6 +339,10 @@ export function limparFormProd() {
 
   const un = prodDom.get('p-un');
   if (un) un.value = 'un';
+
+  renderPaiSel(null);
+  const pai = prodDom.get('p-pai');
+  if (pai) pai.value = '';
 
   const preview = prodDom.get('prod-preview');
   if (preview) preview.style.display = 'none';
@@ -297,6 +367,10 @@ export function editarProd(id) {
   if (titulo) titulo.textContent = 'Editar produto';
   const saveBtn = prodDom.get('prod-flow-save');
   if (saveBtn) saveBtn.textContent = 'Atualizar produto';
+
+  renderPaiSel(id);
+  const paiSel = prodDom.get('p-pai');
+  if (paiSel) paiSel.value = p.produto_pai_id || '';
 
   prodDom.value('p-nome', p.nome);
   prodDom.value('p-sku', p.sku || '');
@@ -589,9 +663,12 @@ export async function salvarProduto() {
 
   const existing = State.editIds.prod ? P().find((x) => x.id === State.editIds.prod) : null;
 
+  const paiId = prodDom.get('p-pai')?.value || null;
+
   const p = {
     id: State.editIds.prod || uid(),
     filial_id: State.FIL,
+    produto_pai_id: paiId || null,
     nome,
     sku: prodDom.get('p-sku')?.value.trim() || '',
     un: prodDom.get('p-un')?.value || 'un',
@@ -682,4 +759,27 @@ export function refreshProdSel() {
     cur,
     'produtos:pedido-selector'
   );
+}
+
+/**
+ * Chamado quando o seletor de produto pai muda.
+ * Auto-sugere o SKU como {skuPai}- quando o campo SKU está vazio.
+ */
+export function onPaiChange() {
+  const paiId = prodDom.get('p-pai')?.value || '';
+  const skuEl = prodDom.get('p-sku');
+  if (!skuEl) return;
+
+  if (!paiId) return;
+
+  const pai = P().find((p) => p.id === paiId);
+  if (!pai?.sku) return;
+
+  if (!skuEl.value.trim()) {
+    skuEl.value = `${pai.sku}-`;
+    skuEl.focus();
+    // Posiciona cursor no fim
+    const len = skuEl.value.length;
+    skuEl.setSelectionRange(len, len);
+  }
 }

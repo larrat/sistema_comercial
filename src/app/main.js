@@ -51,6 +51,7 @@ import {
   syncA,
   syncProdFromCost,
   calcProdPreview,
+  onPaiChange,
   salvarProduto,
   removerProd,
   refreshProdSel
@@ -878,6 +879,7 @@ startApplicationRuntime({
         trocarFilial,
         setFlowStep,
         calcProdPreview,
+        onPaiChange,
         syncV,
         syncA,
         syncProdFromCost,

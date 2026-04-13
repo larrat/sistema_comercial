@@ -172,6 +172,7 @@ function getHandlerRegistry() {
       abrirModalRca: deps.abrirModalRca,
       salvarRca: deps.salvarRca,
       calcProdPreview: deps.calcProdPreview,
+      onPaiChange: deps.onPaiChange,
       syncV: deps.syncV,
       syncA: deps.syncA,
       syncProdFromCost: deps.syncProdFromCost
@@ -364,6 +365,7 @@ function callFieldHandler(name, el, event) {
     movCalc: () => deps.movCalc(),
     movCalcAjuste: () => deps.movCalcAjuste(),
     calcProdPreview: () => deps.calcProdPreview(),
+    onPaiChange: () => deps.onPaiChange?.(),
     syncV: () => deps.syncV?.(el.dataset.arg),
     syncA: () => deps.syncA?.(el.dataset.arg),
     syncProdFromCost: () => deps.syncProdFromCost?.(),
