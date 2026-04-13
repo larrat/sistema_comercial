@@ -10090,17 +10090,11 @@ body {
   backdrop-filter: blur(18px);
 }
 
-/* Phase 2: dashboard bento grid */
-#pg-dashboard.dash-bento-page.on {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--space-5);
-  align-items: start;
-}
-
-#pg-dashboard.dash-bento-page > .page-controls-bar,
-#pg-dashboard.dash-bento-page > .mobile-home-shortcuts {
-  grid-column: 1 / -1;
+/* Dashboard: layout padrão block — mesmo padrão dos outros pages */
+#pg-dashboard > #dash-legacy-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 #pg-dashboard .dash-bento-panel {
