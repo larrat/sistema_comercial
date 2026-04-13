@@ -122,7 +122,47 @@ async function w(e, t, n) {
   );
   x(r, await b(r), `Erro ${r.status} ao atualizar status do pedido`);
 }
-function T() {
+var T = { '7d': 7, '15d': 15, '30d': 30, '60d': 60 };
+function E(e, t) {
+  let n = T[t ?? ``];
+  if (!n) return null;
+  let r = e ? new Date(e + `T00:00:00`) : new Date();
+  return (r.setDate(r.getDate() + n), r.toISOString().split(`T`)[0]);
+}
+async function D(e, t, n, r) {
+  if (h(n) !== `entregue` || h(r) === `entregue`) return;
+  let i = E(t.data, t.prazo);
+  if (!i) return;
+  let a = {
+      id: globalThis.crypto.randomUUID(),
+      filial_id: e.filialId,
+      pedido_id: t.pedido_id,
+      pedido_num: t.pedido_num ?? null,
+      cliente_id: t.cliente_id ?? null,
+      cliente: t.cliente,
+      valor: t.valor,
+      vencimento: i,
+      status: `pendente`
+    },
+    o = await fetch(`${e.url}/rest/v1/contas_receber`, {
+      method: `POST`,
+      headers: {
+        apikey: e.key,
+        Authorization: `Bearer ${e.token}`,
+        'Content-Type': `application/json`,
+        Prefer: `resolution=merge-duplicates`
+      },
+      body: JSON.stringify(a),
+      signal: AbortSignal.timeout(12e3)
+    });
+  if (!o.ok) {
+    let e = await o.text().catch(() => ``);
+    console.error(
+      `[pedidos-react] Falha ao gerar conta a receber para pedido #${t.pedido_num}: ${o.status} ${e}`
+    );
+  }
+}
+function O() {
   let t = v((e) => e.upsertPedido),
     r = v((e) => e.setInFlight),
     i = v((e) => e.inFlight),
@@ -136,12 +176,29 @@ function T() {
     return { url: t, key: n, token: a.access_token, filialId: s };
   }
   async function l(e) {
-    let n = p[h(e.status)];
-    if (!n || i.has(e.id)) return;
-    let a = c();
+    let n = h(e.status),
+      a = p[n];
+    if (!a || i.has(e.id)) return;
+    let o = c();
     r(e.id, !0);
     try {
-      (await w(a, e.id, n), t({ ...e, status: n }));
+      (await w(o, e.id, a),
+        t({ ...e, status: a }),
+        a === `entregue` &&
+          D(
+            o,
+            {
+              pedido_id: e.id,
+              pedido_num: e.num ?? 0,
+              cliente_id: e.cliente_id ?? null,
+              cliente: e.cli ?? ``,
+              valor: e.total ?? 0,
+              data: e.data,
+              prazo: e.prazo
+            },
+            a,
+            n
+          ).catch(() => void 0));
     } finally {
       r(e.id, !1);
     }
@@ -169,59 +226,76 @@ function T() {
   }
   async function f(e) {
     let n = c(),
-      r = { ...e, filial_id: n.filialId };
-    (await C(n, r), t(r));
+      r = v.getState().pedidos.find((t) => t.id === e.id),
+      i = r ? h(r.status) : ``,
+      a = { ...e, filial_id: n.filialId };
+    (await C(n, a),
+      t(a),
+      D(
+        n,
+        {
+          pedido_id: a.id,
+          pedido_num: a.num,
+          cliente_id: a.cliente_id,
+          cliente: a.cli,
+          valor: a.total,
+          data: a.data,
+          prazo: a.prazo
+        },
+        a.status,
+        i
+      ).catch(() => void 0));
   }
   return { avancarStatus: l, cancelarPedido: u, reabrirPedido: d, submitPedido: f, inFlight: i };
 }
-var E = i(),
-  D = {
+var k = i(),
+  A = {
     orcamento: `bdg bk`,
     confirmado: `bdg bb`,
     em_separacao: `bdg ba`,
     entregue: `bdg bg`,
     cancelado: `bdg br`
   },
-  O = {
+  j = {
     orcamento: `Orçamento`,
     confirmado: `Confirmado`,
     em_separacao: `Em separação`,
     entregue: `Entregue`,
     cancelado: `Cancelado`
   };
-function k(e) {
+function M(e) {
   return (e ?? 0).toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function A({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, onDetalhe: a }) {
+function N({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, onDetalhe: a }) {
   let o = h(e.status),
-    s = D[o] ?? `bdg bk`,
-    c = O[o] ?? o,
+    s = A[o] ?? `bdg bk`,
+    c = j[o] ?? o,
     l = p[o],
     u = m[o];
-  return (0, E.jsxs)(`div`, {
+  return (0, k.jsxs)(`div`, {
     className: `list-row`,
     'data-testid': `pedido-row-${e.id}`,
     children: [
-      (0, E.jsxs)(`div`, {
+      (0, k.jsxs)(`div`, {
         className: `list-row-main`,
         children: [
-          (0, E.jsxs)(`button`, {
+          (0, k.jsxs)(`button`, {
             className: `btn-link list-row-title`,
             onClick: () => a(e.id),
             'data-testid': `pedido-row-title-${e.id}`,
             children: [`#`, e.num, ` — `, e.cli || `—`]
           }),
-          (0, E.jsx)(`span`, { className: s, children: c }),
-          e.data && (0, E.jsx)(`span`, { className: `list-row-meta`, children: e.data }),
-          (0, E.jsx)(`span`, { className: `list-row-meta`, children: k(e.total) })
+          (0, k.jsx)(`span`, { className: s, children: c }),
+          e.data && (0, k.jsx)(`span`, { className: `list-row-meta`, children: e.data }),
+          (0, k.jsx)(`span`, { className: `list-row-meta`, children: M(e.total) })
         ]
       }),
-      (0, E.jsxs)(`div`, {
+      (0, k.jsxs)(`div`, {
         className: `list-row-actions`,
         children: [
           l &&
             u &&
-            (0, E.jsx)(`button`, {
+            (0, k.jsx)(`button`, {
               className: `btn btn-sm`,
               disabled: t,
               onClick: n,
@@ -230,7 +304,7 @@ function A({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, 
             }),
           o !== `cancelado` &&
             o !== `entregue` &&
-            (0, E.jsx)(`button`, {
+            (0, k.jsx)(`button`, {
               className: `btn btn-sm btn-danger`,
               disabled: t,
               onClick: r,
@@ -238,7 +312,7 @@ function A({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, 
               children: `Cancelar`
             }),
           o === `cancelado` &&
-            (0, E.jsx)(`button`, {
+            (0, k.jsx)(`button`, {
               className: `btn btn-sm`,
               disabled: t,
               onClick: i,
@@ -250,18 +324,18 @@ function A({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, 
     ]
   });
 }
-var j = [
+var P = [
     { id: `emaberto`, label: `Em Aberto` },
     { id: `entregues`, label: `Entregues` },
     { id: `cancelados`, label: `Cancelados` }
   ],
-  M = [
+  F = [
     { value: ``, label: `Todos` },
     { value: `orcamento`, label: `Orçamento` },
     { value: `confirmado`, label: `Confirmado` },
     { value: `em_separacao`, label: `Em separação` }
   ];
-function N({ onNovoPedido: e, onDetalhe: t }) {
+function I({ onNovoPedido: e, onDetalhe: t }) {
   let n = v((e) => e.activeTab),
     r = v((e) => e.setActiveTab),
     i = v((e) => e.filtro),
@@ -269,15 +343,15 @@ function N({ onNovoPedido: e, onDetalhe: t }) {
     o = v((e) => e.status),
     s = v((e) => e.error),
     c = v(l(_)),
-    { avancarStatus: u, cancelarPedido: d, reabrirPedido: f, inFlight: p } = T();
-  return (0, E.jsxs)(`div`, {
+    { avancarStatus: u, cancelarPedido: d, reabrirPedido: f, inFlight: p } = O();
+  return (0, k.jsxs)(`div`, {
     className: `screen-content`,
     'data-testid': `pedido-list-view`,
     children: [
-      (0, E.jsx)(`div`, {
+      (0, k.jsx)(`div`, {
         className: `tabs`,
-        children: j.map((e) =>
-          (0, E.jsx)(
+        children: P.map((e) =>
+          (0, k.jsx)(
             `button`,
             {
               className: `tb${n === e.id ? ` on` : ``}`,
@@ -288,16 +362,16 @@ function N({ onNovoPedido: e, onDetalhe: t }) {
           )
         )
       }),
-      (0, E.jsxs)(`div`, {
+      (0, k.jsxs)(`div`, {
         className: `card card-shell`,
         children: [
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             className: `toolbar toolbar-shell toolbar-shell--section`,
             children: [
-              (0, E.jsxs)(`div`, {
+              (0, k.jsxs)(`div`, {
                 className: `toolbar-main`,
                 children: [
-                  (0, E.jsx)(`input`, {
+                  (0, k.jsx)(`input`, {
                     className: `inp input-w-sm`,
                     placeholder: `Cliente ou número...`,
                     value: i.q,
@@ -305,20 +379,20 @@ function N({ onNovoPedido: e, onDetalhe: t }) {
                     'data-testid': `pedido-busca`
                   }),
                   n === `emaberto` &&
-                    (0, E.jsx)(`select`, {
+                    (0, k.jsx)(`select`, {
                       className: `inp sel select-w-sm`,
                       value: i.status,
                       onChange: (e) => a({ status: e.target.value }),
                       'data-testid': `pedido-filtro-status`,
-                      children: M.map((e) =>
-                        (0, E.jsx)(`option`, { value: e.value, children: e.label }, e.value)
+                      children: F.map((e) =>
+                        (0, k.jsx)(`option`, { value: e.value, children: e.label }, e.value)
                       )
                     })
                 ]
               }),
-              (0, E.jsx)(`div`, {
+              (0, k.jsx)(`div`, {
                 className: `toolbar-actions`,
-                children: (0, E.jsx)(`button`, {
+                children: (0, k.jsx)(`button`, {
                   className: `btn btn-sm btn-p`,
                   onClick: e,
                   'data-testid': `pedido-novo-btn`,
@@ -328,32 +402,32 @@ function N({ onNovoPedido: e, onDetalhe: t }) {
             ]
           }),
           o === `loading` &&
-            (0, E.jsx)(`div`, {
+            (0, k.jsx)(`div`, {
               className: `empty`,
               'data-testid': `pedido-loading`,
-              children: (0, E.jsx)(`p`, { children: `Carregando pedidos...` })
+              children: (0, k.jsx)(`p`, { children: `Carregando pedidos...` })
             }),
           o === `error` &&
-            (0, E.jsx)(`div`, {
+            (0, k.jsx)(`div`, {
               className: `empty`,
               'data-testid': `pedido-error`,
-              children: (0, E.jsx)(`p`, { children: s })
+              children: (0, k.jsx)(`p`, { children: s })
             }),
           o === `ready` &&
             c.length === 0 &&
-            (0, E.jsx)(`div`, {
+            (0, k.jsx)(`div`, {
               className: `empty`,
               'data-testid': `pedido-empty`,
-              children: (0, E.jsx)(`p`, { children: `Nenhum pedido encontrado.` })
+              children: (0, k.jsx)(`p`, { children: `Nenhum pedido encontrado.` })
             }),
           o === `ready` &&
             c.length > 0 &&
-            (0, E.jsx)(`div`, {
+            (0, k.jsx)(`div`, {
               className: `list`,
               'data-testid': `pedido-list`,
               children: c.map((e) =>
-                (0, E.jsx)(
-                  A,
+                (0, k.jsx)(
+                  N,
                   {
                     pedido: e,
                     inFlight: p.has(e.id),
@@ -371,7 +445,7 @@ function N({ onNovoPedido: e, onDetalhe: t }) {
     ]
   });
 }
-async function P(e) {
+async function L(e) {
   let t = await fetch(
       `${e.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(e.filialId)}&select=id,nome,rca_id,rca_nome&order=nome`,
       {
@@ -388,11 +462,11 @@ async function P(e) {
   if (!t.ok) throw Error(`Erro ${t.status} ao carregar clientes`);
   return Array.isArray(r) ? r : [];
 }
-function F(e, t) {
+function R(e, t) {
   let n = t.trim().toLowerCase();
   return n ? (e.find((e) => e.id === t.trim() || e.nome.trim().toLowerCase() === n) ?? null) : null;
 }
-async function I(e) {
+async function z(e) {
   let t = await fetch(
       `${e.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(e.filialId)}&order=nome`,
       {
@@ -409,7 +483,7 @@ async function I(e) {
   if (!t.ok) throw Error(`Erro ${t.status} ao carregar produtos`);
   return Array.isArray(r) ? r : [];
 }
-async function L(e) {
+async function B(e) {
   let t = await fetch(
       `${e.url}/rest/v1/rcas?filial_id=eq.${encodeURIComponent(e.filialId)}&order=nome`,
       {
@@ -426,9 +500,9 @@ async function L(e) {
   if (!t.ok) throw Error(`Erro ${t.status} ao carregar RCAs`);
   return Array.isArray(r) ? r : [];
 }
-var R = { produtos: [], clientes: [], rcas: [], loading: !1, error: null };
-function z() {
-  let [t, r] = (0, u.useState)({ ...R, loading: !0 }),
+var V = { produtos: [], clientes: [], rcas: [], loading: !1, error: null };
+function ee() {
+  let [t, r] = (0, u.useState)({ ...V, loading: !0 }),
     i = (0, u.useRef)(!1),
     a = n((e) => e.session),
     s = o((e) => e.filialId);
@@ -436,24 +510,24 @@ function z() {
     (0, u.useEffect)(() => {
       if (i.current) return;
       if (!a?.access_token || !s) {
-        r({ ...R, error: `Sessão ou filial ausente.` });
+        r({ ...V, error: `Sessão ou filial ausente.` });
         return;
       }
       let { url: t, key: n, ready: o } = e();
       if (!o) {
-        r({ ...R, error: `Configuração do Supabase ausente.` });
+        r({ ...V, error: `Configuração do Supabase ausente.` });
         return;
       }
       i.current = !0;
       let c = { url: t, key: n, token: a.access_token, filialId: s };
-      Promise.all([I(c), P(c), L(c)])
+      Promise.all([z(c), L(c), B(c)])
         .then(([e, t, n]) => {
           r({ produtos: e, clientes: t, rcas: n, loading: !1, error: null });
         })
         .catch((e) => {
           ((i.current = !1),
             r({
-              ...R,
+              ...V,
               loading: !1,
               error: e instanceof Error ? e.message : `Erro ao carregar dados do formulário.`
             }));
@@ -462,7 +536,7 @@ function z() {
     t
   );
 }
-function B(e, t) {
+function H(e, t) {
   let n = e.mkv ?? 0,
     r = e.mka ?? 0,
     i = e.pfa ?? 0,
@@ -475,7 +549,7 @@ function B(e, t) {
       ? a * (1 + n / 100)
       : a;
 }
-function V({ produtos: e, tipo: t, onAdd: n }) {
+function U({ produtos: e, tipo: t, onAdd: n }) {
   let [r, i] = (0, u.useState)(``),
     [a, o] = (0, u.useState)(`1`),
     [s, c] = (0, u.useState)(``),
@@ -489,7 +563,7 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
     }
     let r = e.find((e) => e.id === n);
     if (!r) return;
-    let a = B(r, t);
+    let a = H(r, t);
     (s || c(String(a > 0 ? a.toFixed(2) : ``)),
       l || d(String(r.custo > 0 ? r.custo.toFixed(2) : ``)));
   }
@@ -501,7 +575,7 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
     let u = e.find((e) => e.id === r);
     if (!u) return;
     let m = parseFloat(a) || 1,
-      g = parseFloat(s) || B(u, t),
+      g = parseFloat(s) || H(u, t),
       _ = parseFloat(l) || u.custo || 0;
     (n({
       prodId: r,
@@ -511,7 +585,7 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
       preco: g,
       custo: _,
       custo_base: u.custo,
-      preco_base: B(u, t),
+      preco_base: H(u, t),
       orig: f
     }),
       i(``),
@@ -521,37 +595,37 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
       p(`estoque`),
       h(null));
   }
-  return (0, E.jsxs)(`div`, {
+  return (0, k.jsxs)(`div`, {
     'data-testid': `pedido-item-add`,
     children: [
       m &&
-        (0, E.jsx)(`div`, {
+        (0, k.jsx)(`div`, {
           className: `empty-inline`,
           style: { color: `var(--color-danger)` },
           children: m
         }),
-      (0, E.jsxs)(`div`, {
+      (0, k.jsxs)(`div`, {
         className: `fg c5 form-gap-bottom-xxs`,
         children: [
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             children: [
-              (0, E.jsx)(`div`, { className: `fl`, children: `Produto` }),
-              (0, E.jsxs)(`select`, {
+              (0, k.jsx)(`div`, { className: `fl`, children: `Produto` }),
+              (0, k.jsxs)(`select`, {
                 className: `inp sel`,
                 value: r,
                 onChange: (e) => g(e.target.value),
                 'data-testid': `pedido-item-prod`,
                 children: [
-                  (0, E.jsx)(`option`, { value: ``, children: `- selecione -` }),
-                  e.map((e) => (0, E.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
+                  (0, k.jsx)(`option`, { value: ``, children: `- selecione -` }),
+                  e.map((e) => (0, k.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
                 ]
               })
             ]
           }),
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             children: [
-              (0, E.jsx)(`div`, { className: `fl`, children: `Quantidade` }),
-              (0, E.jsx)(`input`, {
+              (0, k.jsx)(`div`, { className: `fl`, children: `Quantidade` }),
+              (0, k.jsx)(`input`, {
                 className: `inp`,
                 type: `number`,
                 min: `1`,
@@ -561,10 +635,10 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
               })
             ]
           }),
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             children: [
-              (0, E.jsx)(`div`, { className: `fl`, children: `Preço unit. (R$)` }),
-              (0, E.jsx)(`input`, {
+              (0, k.jsx)(`div`, { className: `fl`, children: `Preço unit. (R$)` }),
+              (0, k.jsx)(`input`, {
                 className: `inp`,
                 type: `number`,
                 step: `0.01`,
@@ -575,10 +649,10 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
               })
             ]
           }),
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             children: [
-              (0, E.jsx)(`div`, { className: `fl`, children: `Custo aplicado (R$)` }),
-              (0, E.jsx)(`input`, {
+              (0, k.jsx)(`div`, { className: `fl`, children: `Custo aplicado (R$)` }),
+              (0, k.jsx)(`input`, {
                 className: `inp`,
                 type: `number`,
                 step: `0.01`,
@@ -589,26 +663,26 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
               })
             ]
           }),
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             children: [
-              (0, E.jsx)(`div`, { className: `fl`, children: `Origem` }),
-              (0, E.jsxs)(`select`, {
+              (0, k.jsx)(`div`, { className: `fl`, children: `Origem` }),
+              (0, k.jsxs)(`select`, {
                 className: `inp sel`,
                 value: f,
                 onChange: (e) => p(e.target.value),
                 'data-testid': `pedido-item-orig`,
                 children: [
-                  (0, E.jsx)(`option`, { value: `estoque`, children: `Estoque` }),
-                  (0, E.jsx)(`option`, { value: `fornecedor`, children: `Fornecedor` })
+                  (0, k.jsx)(`option`, { value: `estoque`, children: `Estoque` }),
+                  (0, k.jsx)(`option`, { value: `fornecedor`, children: `Fornecedor` })
                 ]
               })
             ]
           })
         ]
       }),
-      (0, E.jsx)(`div`, {
+      (0, k.jsx)(`div`, {
         className: `modal-actions modal-actions-inline`,
-        children: (0, E.jsx)(`button`, {
+        children: (0, k.jsx)(`button`, {
           className: `btn btn-sm`,
           type: `button`,
           onClick: _,
@@ -619,35 +693,35 @@ function V({ produtos: e, tipo: t, onAdd: n }) {
     ]
   });
 }
-function H(e) {
+function W(e) {
   return e.toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function U({ item: e, index: t, readOnly: n, onRemove: r }) {
+function te({ item: e, index: t, readOnly: n, onRemove: r }) {
   let i = e.qty * e.preco,
     a = (e.preco - e.custo) * e.qty,
     o = e.preco > 0 ? ((e.preco - e.custo) / e.preco) * 100 : 0;
-  return (0, E.jsxs)(`tr`, {
+  return (0, k.jsxs)(`tr`, {
     'data-testid': `pedido-item-row-${t}`,
     children: [
-      (0, E.jsx)(`td`, { className: `table-cell-strong`, children: e.nome }),
-      (0, E.jsx)(`td`, {
-        children: (0, E.jsx)(`span`, {
+      (0, k.jsx)(`td`, { className: `table-cell-strong`, children: e.nome }),
+      (0, k.jsx)(`td`, {
+        children: (0, k.jsx)(`span`, {
           className: `bdg ${e.orig === `estoque` ? `bg` : `bb`}`,
           children: e.orig === `estoque` ? `Estoque` : `Fornecedor`
         })
       }),
-      (0, E.jsxs)(`td`, { children: [e.qty, ` `, e.un] }),
-      (0, E.jsx)(`td`, { className: `table-cell-muted`, children: H(e.custo) }),
-      (0, E.jsx)(`td`, { children: H(e.preco) }),
-      (0, E.jsx)(`td`, { className: `table-cell-strong`, children: H(i) }),
-      (0, E.jsx)(`td`, {
+      (0, k.jsxs)(`td`, { children: [e.qty, ` `, e.un] }),
+      (0, k.jsx)(`td`, { className: `table-cell-muted`, children: W(e.custo) }),
+      (0, k.jsx)(`td`, { children: W(e.preco) }),
+      (0, k.jsx)(`td`, { className: `table-cell-strong`, children: W(i) }),
+      (0, k.jsx)(`td`, {
         className: `table-cell-strong ${a >= 0 ? `table-cell-success` : `table-cell-danger`}`,
-        children: H(a)
+        children: W(a)
       }),
-      (0, E.jsxs)(`td`, { className: `table-cell-strong`, children: [o.toFixed(1), `%`] }),
+      (0, k.jsxs)(`td`, { className: `table-cell-strong`, children: [o.toFixed(1), `%`] }),
       !n &&
-        (0, E.jsx)(`td`, {
-          children: (0, E.jsx)(`button`, {
+        (0, k.jsx)(`td`, {
+          children: (0, k.jsx)(`button`, {
             className: `btn btn-sm`,
             type: `button`,
             onClick: () => r?.(t),
@@ -658,62 +732,62 @@ function U({ item: e, index: t, readOnly: n, onRemove: r }) {
     ]
   });
 }
-function W(e) {
+function G(e) {
   return e.toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function G({ itens: e, produtos: t, tipo: n, readOnly: r, onAdd: i, onRemove: a }) {
+function K({ itens: e, produtos: t, tipo: n, readOnly: r, onAdd: i, onRemove: a }) {
   let o = e.reduce((e, t) => e + t.qty * t.preco, 0),
     s = e.reduce((e, t) => e + (t.preco - t.custo) * t.qty, 0);
-  return (0, E.jsxs)(`div`, {
+  return (0, k.jsxs)(`div`, {
     'data-testid': `pedido-items-section`,
     children: [
-      (0, E.jsx)(`div`, { className: `div` }),
-      (0, E.jsx)(`div`, { className: `ct`, children: `Itens do pedido` }),
-      !r && i && (0, E.jsx)(V, { produtos: t, tipo: n, onAdd: i }),
+      (0, k.jsx)(`div`, { className: `div` }),
+      (0, k.jsx)(`div`, { className: `ct`, children: `Itens do pedido` }),
+      !r && i && (0, k.jsx)(U, { produtos: t, tipo: n, onAdd: i }),
       e.length === 0
-        ? (0, E.jsx)(`div`, { className: `empty-inline`, children: `Nenhum item.` })
-        : (0, E.jsxs)(E.Fragment, {
+        ? (0, k.jsx)(`div`, { className: `empty-inline`, children: `Nenhum item.` })
+        : (0, k.jsxs)(k.Fragment, {
             children: [
-              (0, E.jsx)(`div`, {
+              (0, k.jsx)(`div`, {
                 className: `tw ped-items-wrap`,
-                children: (0, E.jsxs)(`table`, {
+                children: (0, k.jsxs)(`table`, {
                   className: `tbl ped-items-table`,
                   children: [
-                    (0, E.jsx)(`thead`, {
-                      children: (0, E.jsxs)(`tr`, {
+                    (0, k.jsx)(`thead`, {
+                      children: (0, k.jsxs)(`tr`, {
                         children: [
-                          (0, E.jsx)(`th`, { children: `Produto` }),
-                          (0, E.jsx)(`th`, { children: `Origem` }),
-                          (0, E.jsx)(`th`, { children: `Qtd` }),
-                          (0, E.jsx)(`th`, { children: `Custo` }),
-                          (0, E.jsx)(`th`, { children: `Preço` }),
-                          (0, E.jsx)(`th`, { children: `Subtotal` }),
-                          (0, E.jsx)(`th`, { children: `Lucro` }),
-                          (0, E.jsx)(`th`, { children: `Margem` }),
-                          !r && (0, E.jsx)(`th`, {})
+                          (0, k.jsx)(`th`, { children: `Produto` }),
+                          (0, k.jsx)(`th`, { children: `Origem` }),
+                          (0, k.jsx)(`th`, { children: `Qtd` }),
+                          (0, k.jsx)(`th`, { children: `Custo` }),
+                          (0, k.jsx)(`th`, { children: `Preço` }),
+                          (0, k.jsx)(`th`, { children: `Subtotal` }),
+                          (0, k.jsx)(`th`, { children: `Lucro` }),
+                          (0, k.jsx)(`th`, { children: `Margem` }),
+                          !r && (0, k.jsx)(`th`, {})
                         ]
                       })
                     }),
-                    (0, E.jsx)(`tbody`, {
+                    (0, k.jsx)(`tbody`, {
                       children: e.map((e, t) =>
-                        (0, E.jsx)(U, { item: e, index: t, readOnly: r, onRemove: a }, t)
+                        (0, k.jsx)(te, { item: e, index: t, readOnly: r, onRemove: a }, t)
                       )
                     })
                   ]
                 })
               }),
-              (0, E.jsx)(`div`, {
+              (0, k.jsx)(`div`, {
                 className: `panel ped-total-panel`,
-                children: (0, E.jsxs)(`div`, {
+                children: (0, k.jsxs)(`div`, {
                   className: `fb`,
                   children: [
-                    (0, E.jsx)(`span`, {
+                    (0, k.jsx)(`span`, {
                       className: `ped-total-label`,
                       children: `Total do pedido`
                     }),
-                    (0, E.jsxs)(`span`, {
+                    (0, k.jsxs)(`span`, {
                       className: `ped-total-value`,
-                      children: [W(o), ` | Lucro `, W(s)]
+                      children: [G(o), ` | Lucro `, G(s)]
                     })
                   ]
                 })
@@ -723,17 +797,17 @@ function G({ itens: e, produtos: t, tipo: n, readOnly: r, onAdd: i, onRemove: a 
     ]
   });
 }
-function K() {
+function q() {
   return new Date().toISOString().split(`T`)[0];
 }
-function q(e) {
+function J(e) {
   let t = e.map((e) => e.num).filter((e) => typeof e == `number` && !isNaN(e));
   return t.length ? Math.max(...t) + 1 : 1;
 }
-function J({ initialPedido: e, onSaved: t, onCancel: n }) {
+function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
   let r = v((e) => e.pedidos),
-    { submitPedido: i } = T(),
-    { produtos: a, clientes: o, rcas: s, loading: c, error: l } = z(),
+    { submitPedido: i } = O(),
+    { produtos: a, clientes: o, rcas: s, loading: c, error: l } = ee(),
     d = e
       ? Array.isArray(e.itens)
         ? e.itens
@@ -747,42 +821,42 @@ function J({ initialPedido: e, onSaved: t, onCancel: n }) {
       : [],
     [f, p] = (0, u.useState)(e?.cli ?? ``),
     [m, g] = (0, u.useState)(e?.rca_id ?? ``),
-    [_, y] = (0, u.useState)(e?.data ?? K()),
+    [_, y] = (0, u.useState)(e?.data ?? q()),
     [b, x] = (0, u.useState)(h(e?.status) || `orcamento`),
     [S, C] = (0, u.useState)(e?.pgto ?? `a_vista`),
-    [w, D] = (0, u.useState)(e?.prazo ?? `imediato`),
-    [O, k] = (0, u.useState)(e?.tipo ?? `varejo`),
+    [w, T] = (0, u.useState)(e?.prazo ?? `imediato`),
+    [E, D] = (0, u.useState)(e?.tipo ?? `varejo`),
     [A, j] = (0, u.useState)(e?.obs ?? ``),
     [M, N] = (0, u.useState)(d),
-    [P, I] = (0, u.useState)(!1),
-    [L, R] = (0, u.useState)(null);
-  function B(e) {
+    [P, F] = (0, u.useState)(!1),
+    [I, L] = (0, u.useState)(null);
+  function z(e) {
     N((t) => [...t, e]);
   }
-  function V(e) {
+  function B(e) {
     N((t) => t.filter((t, n) => n !== e));
   }
-  async function H(n) {
-    (n.preventDefault(), R(null));
+  async function V(n) {
+    (n.preventDefault(), L(null));
     let a = f.trim();
     if (!a) {
-      R(`Cliente é obrigatório.`);
+      L(`Cliente é obrigatório.`);
       return;
     }
-    let c = F(o, a);
+    let c = R(o, a);
     if (!c) {
-      R(`Cliente inválido. Escolha um cliente cadastrado na lista.`);
+      L(`Cliente inválido. Escolha um cliente cadastrado na lista.`);
       return;
     }
     if (M.length === 0) {
-      R(`Adicione ao menos 1 item ao pedido.`);
+      L(`Adicione ao menos 1 item ao pedido.`);
       return;
     }
     let l = s.find((e) => e.id === m)?.nome ?? c.rca_nome ?? ``,
       u = M.reduce((e, t) => e + t.qty * t.preco, 0),
       d = {
         id: e?.id ?? globalThis.crypto.randomUUID(),
-        num: e?.num ?? q(r),
+        num: e?.num ?? J(r),
         cli: c.nome,
         cliente_id: c.id,
         rca_id: m || null,
@@ -791,58 +865,58 @@ function J({ initialPedido: e, onSaved: t, onCancel: n }) {
         status: b,
         pgto: S,
         prazo: w,
-        tipo: O,
+        tipo: E,
         obs: A.trim(),
         itens: M,
         total: u
       };
-    I(!0);
+    F(!0);
     try {
       (await i(d), t(d));
     } catch (e) {
-      R(e instanceof Error ? e.message : `Erro ao salvar pedido.`);
+      L(e instanceof Error ? e.message : `Erro ao salvar pedido.`);
     } finally {
-      I(!1);
+      F(!1);
     }
   }
-  return (0, E.jsxs)(`div`, {
+  return (0, k.jsxs)(`div`, {
     className: `card card-shell`,
     'data-testid': `pedido-form`,
     children: [
-      (0, E.jsx)(`div`, {
+      (0, k.jsx)(`div`, {
         className: `modal-shell-head`,
-        children: (0, E.jsx)(`div`, {
+        children: (0, k.jsx)(`div`, {
           className: `mt`,
           children: e ? `Editar pedido #${e.num}` : `Novo pedido`
         })
       }),
       c &&
-        (0, E.jsx)(`div`, {
+        (0, k.jsx)(`div`, {
           className: `empty`,
-          children: (0, E.jsx)(`p`, { children: `Carregando dados do formulário...` })
+          children: (0, k.jsx)(`p`, { children: `Carregando dados do formulário...` })
         }),
-      l && (0, E.jsx)(`div`, { className: `empty`, children: (0, E.jsx)(`p`, { children: l }) }),
+      l && (0, k.jsx)(`div`, { className: `empty`, children: (0, k.jsx)(`p`, { children: l }) }),
       !c &&
         !l &&
-        (0, E.jsxs)(`form`, {
-          onSubmit: (e) => void H(e),
+        (0, k.jsxs)(`form`, {
+          onSubmit: (e) => void V(e),
           children: [
-            (0, E.jsxs)(`div`, {
+            (0, k.jsxs)(`div`, {
               className: `modal-shell-body`,
               children: [
-                L &&
-                  (0, E.jsx)(`div`, {
+                I &&
+                  (0, k.jsx)(`div`, {
                     className: `empty-inline`,
                     style: { color: `var(--color-danger)`, marginBottom: `0.5rem` },
-                    children: L
+                    children: I
                   }),
-                (0, E.jsxs)(`div`, {
+                (0, k.jsxs)(`div`, {
                   className: `fg c3`,
                   children: [
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `Cliente *` }),
-                        (0, E.jsx)(`input`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `Cliente *` }),
+                        (0, k.jsx)(`input`, {
                           className: `inp`,
                           list: `ped-form-cli-dl`,
                           placeholder: `Nome do cliente`,
@@ -850,33 +924,33 @@ function J({ initialPedido: e, onSaved: t, onCancel: n }) {
                           onChange: (e) => p(e.target.value),
                           'data-testid': `pedido-form-cli`
                         }),
-                        (0, E.jsx)(`datalist`, {
+                        (0, k.jsx)(`datalist`, {
                           id: `ped-form-cli-dl`,
-                          children: o.map((e) => (0, E.jsx)(`option`, { value: e.nome }, e.id))
+                          children: o.map((e) => (0, k.jsx)(`option`, { value: e.nome }, e.id))
                         })
                       ]
                     }),
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `RCA / Vendedor` }),
-                        (0, E.jsxs)(`select`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `RCA / Vendedor` }),
+                        (0, k.jsxs)(`select`, {
                           className: `inp sel`,
                           value: m,
                           onChange: (e) => g(e.target.value),
                           'data-testid': `pedido-form-rca`,
                           children: [
-                            (0, E.jsx)(`option`, { value: ``, children: `Sem RCA` }),
+                            (0, k.jsx)(`option`, { value: ``, children: `Sem RCA` }),
                             s.map((e) =>
-                              (0, E.jsx)(`option`, { value: e.id, children: e.nome }, e.id)
+                              (0, k.jsx)(`option`, { value: e.id, children: e.nome }, e.id)
                             )
                           ]
                         })
                       ]
                     }),
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `Data` }),
-                        (0, E.jsx)(`input`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `Data` }),
+                        (0, k.jsx)(`input`, {
                           className: `inp`,
                           type: `date`,
                           value: _,
@@ -885,92 +959,92 @@ function J({ initialPedido: e, onSaved: t, onCancel: n }) {
                         })
                       ]
                     }),
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `Status` }),
-                        (0, E.jsxs)(`select`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `Status` }),
+                        (0, k.jsxs)(`select`, {
                           className: `inp sel`,
                           value: b,
                           onChange: (e) => x(e.target.value),
                           'data-testid': `pedido-form-status`,
                           children: [
-                            (0, E.jsx)(`option`, { value: `orcamento`, children: `Orçamento` }),
-                            (0, E.jsx)(`option`, { value: `confirmado`, children: `Confirmado` }),
-                            (0, E.jsx)(`option`, {
+                            (0, k.jsx)(`option`, { value: `orcamento`, children: `Orçamento` }),
+                            (0, k.jsx)(`option`, { value: `confirmado`, children: `Confirmado` }),
+                            (0, k.jsx)(`option`, {
                               value: `em_separacao`,
                               children: `Em separação`
                             }),
-                            (0, E.jsx)(`option`, { value: `entregue`, children: `Entregue` }),
-                            (0, E.jsx)(`option`, { value: `cancelado`, children: `Cancelado` })
+                            (0, k.jsx)(`option`, { value: `entregue`, children: `Entregue` }),
+                            (0, k.jsx)(`option`, { value: `cancelado`, children: `Cancelado` })
                           ]
                         })
                       ]
                     })
                   ]
                 }),
-                (0, E.jsxs)(`div`, {
+                (0, k.jsxs)(`div`, {
                   className: `fg c3`,
                   children: [
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
-                        (0, E.jsxs)(`select`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
+                        (0, k.jsxs)(`select`, {
                           className: `inp sel`,
                           value: S,
                           onChange: (e) => C(e.target.value),
                           'data-testid': `pedido-form-pgto`,
                           children: [
-                            (0, E.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
-                            (0, E.jsx)(`option`, { value: `pix`, children: `PIX` }),
-                            (0, E.jsx)(`option`, { value: `boleto`, children: `Boleto` }),
-                            (0, E.jsx)(`option`, { value: `cartao`, children: `Cartão` }),
-                            (0, E.jsx)(`option`, { value: `cheque`, children: `Cheque` })
+                            (0, k.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
+                            (0, k.jsx)(`option`, { value: `pix`, children: `PIX` }),
+                            (0, k.jsx)(`option`, { value: `boleto`, children: `Boleto` }),
+                            (0, k.jsx)(`option`, { value: `cartao`, children: `Cartão` }),
+                            (0, k.jsx)(`option`, { value: `cheque`, children: `Cheque` })
                           ]
                         })
                       ]
                     }),
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `Prazo` }),
-                        (0, E.jsxs)(`select`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `Prazo` }),
+                        (0, k.jsxs)(`select`, {
                           className: `inp sel`,
                           value: w,
-                          onChange: (e) => D(e.target.value),
+                          onChange: (e) => T(e.target.value),
                           'data-testid': `pedido-form-prazo`,
                           children: [
-                            (0, E.jsx)(`option`, { value: `imediato`, children: `Imediato` }),
-                            (0, E.jsx)(`option`, { value: `7d`, children: `7 dias` }),
-                            (0, E.jsx)(`option`, { value: `15d`, children: `15 dias` }),
-                            (0, E.jsx)(`option`, { value: `30d`, children: `30 dias` }),
-                            (0, E.jsx)(`option`, { value: `60d`, children: `60 dias` })
+                            (0, k.jsx)(`option`, { value: `imediato`, children: `Imediato` }),
+                            (0, k.jsx)(`option`, { value: `7d`, children: `7 dias` }),
+                            (0, k.jsx)(`option`, { value: `15d`, children: `15 dias` }),
+                            (0, k.jsx)(`option`, { value: `30d`, children: `30 dias` }),
+                            (0, k.jsx)(`option`, { value: `60d`, children: `60 dias` })
                           ]
                         })
                       ]
                     }),
-                    (0, E.jsxs)(`div`, {
+                    (0, k.jsxs)(`div`, {
                       children: [
-                        (0, E.jsx)(`div`, { className: `fl`, children: `Tipo de venda` }),
-                        (0, E.jsxs)(`select`, {
+                        (0, k.jsx)(`div`, { className: `fl`, children: `Tipo de venda` }),
+                        (0, k.jsxs)(`select`, {
                           className: `inp sel`,
-                          value: O,
-                          onChange: (e) => k(e.target.value),
+                          value: E,
+                          onChange: (e) => D(e.target.value),
                           'data-testid': `pedido-form-tipo`,
                           children: [
-                            (0, E.jsx)(`option`, { value: `varejo`, children: `Varejo` }),
-                            (0, E.jsx)(`option`, { value: `atacado`, children: `Atacado` })
+                            (0, k.jsx)(`option`, { value: `varejo`, children: `Varejo` }),
+                            (0, k.jsx)(`option`, { value: `atacado`, children: `Atacado` })
                           ]
                         })
                       ]
                     })
                   ]
                 }),
-                (0, E.jsx)(G, { itens: M, produtos: a, tipo: O, onAdd: B, onRemove: V }),
-                (0, E.jsx)(`div`, {
+                (0, k.jsx)(K, { itens: M, produtos: a, tipo: E, onAdd: z, onRemove: B }),
+                (0, k.jsx)(`div`, {
                   className: `fg form-gap-top`,
-                  children: (0, E.jsxs)(`div`, {
+                  children: (0, k.jsxs)(`div`, {
                     children: [
-                      (0, E.jsx)(`div`, { className: `fl`, children: `Observações` }),
-                      (0, E.jsx)(`textarea`, {
+                      (0, k.jsx)(`div`, { className: `fl`, children: `Observações` }),
+                      (0, k.jsx)(`textarea`, {
                         className: `inp`,
                         rows: 2,
                         value: A,
@@ -982,19 +1056,19 @@ function J({ initialPedido: e, onSaved: t, onCancel: n }) {
                 })
               ]
             }),
-            (0, E.jsx)(`div`, {
+            (0, k.jsx)(`div`, {
               className: `modal-shell-foot`,
-              children: (0, E.jsxs)(`div`, {
+              children: (0, k.jsxs)(`div`, {
                 className: `modal-actions`,
                 children: [
-                  (0, E.jsx)(`button`, {
+                  (0, k.jsx)(`button`, {
                     className: `btn`,
                     type: `button`,
                     onClick: n,
                     disabled: P,
                     children: `Cancelar`
                   }),
-                  (0, E.jsx)(`button`, {
+                  (0, k.jsx)(`button`, {
                     className: `btn btn-p`,
                     type: `submit`,
                     disabled: P,
@@ -1009,32 +1083,32 @@ function J({ initialPedido: e, onSaved: t, onCancel: n }) {
     ]
   });
 }
-var Y = {
+var X = {
     orcamento: `Orçamento`,
     confirmado: `Confirmado`,
     em_separacao: `Em separação`,
     entregue: `Entregue`,
     cancelado: `Cancelado`
   },
-  X = {
+  Z = {
     orcamento: `bdg bk`,
     confirmado: `bdg bb`,
     em_separacao: `bdg ba`,
     entregue: `bdg bg`,
     cancelado: `bdg br`
   },
-  Z = { a_vista: `À vista`, pix: `PIX`, boleto: `Boleto`, cartao: `Cartão`, cheque: `Cheque` },
-  Q = {
+  ne = { a_vista: `À vista`, pix: `PIX`, boleto: `Boleto`, cartao: `Cartão`, cheque: `Cheque` },
+  re = {
     imediato: `Imediato`,
     '7d': `7 dias`,
     '15d': `15 dias`,
     '30d': `30 dias`,
     '60d': `60 dias`
   };
-function ee(e) {
+function ie(e) {
   return (e ?? 0).toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function te(e) {
+function ae(e) {
   if (Array.isArray(e.itens)) return e.itens;
   try {
     let t = JSON.parse(e.itens);
@@ -1043,46 +1117,46 @@ function te(e) {
     return [];
   }
 }
-function ne({ pedido: e, onEditar: t, onClose: n }) {
-  let { avancarStatus: r, cancelarPedido: i, reabrirPedido: a, inFlight: o } = T(),
+function oe({ pedido: e, onEditar: t, onClose: n }) {
+  let { avancarStatus: r, cancelarPedido: i, reabrirPedido: a, inFlight: o } = O(),
     s = h(e.status),
-    c = X[s] ?? `bdg bk`,
-    l = Y[s] ?? s,
+    c = Z[s] ?? `bdg bk`,
+    l = X[s] ?? s,
     u = p[s],
     d = m[s],
     f = o.has(e.id),
-    g = te(e);
-  return (0, E.jsxs)(`div`, {
+    g = ae(e);
+  return (0, k.jsxs)(`div`, {
     className: `card card-shell`,
     'data-testid': `pedido-detail-panel`,
     children: [
-      (0, E.jsxs)(`div`, {
+      (0, k.jsxs)(`div`, {
         className: `modal-shell-head`,
         children: [
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             children: [
-              (0, E.jsxs)(`div`, { className: `mt`, children: [`Pedido #`, e.num] }),
-              (0, E.jsxs)(`div`, {
+              (0, k.jsxs)(`div`, { className: `mt`, children: [`Pedido #`, e.num] }),
+              (0, k.jsxs)(`div`, {
                 className: `cli-react-shell__chips`,
                 style: { marginTop: `0.25rem` },
                 children: [
-                  (0, E.jsx)(`span`, { className: c, children: l }),
-                  e.data && (0, E.jsx)(`span`, { className: `bdg bk`, children: e.data }),
-                  (0, E.jsx)(`span`, { className: `bdg bg`, children: ee(e.total) })
+                  (0, k.jsx)(`span`, { className: c, children: l }),
+                  e.data && (0, k.jsx)(`span`, { className: `bdg bk`, children: e.data }),
+                  (0, k.jsx)(`span`, { className: `bdg bg`, children: ie(e.total) })
                 ]
               })
             ]
           }),
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             style: { display: `flex`, gap: `0.5rem`, alignItems: `flex-start` },
             children: [
-              (0, E.jsx)(`button`, {
+              (0, k.jsx)(`button`, {
                 className: `btn btn-sm`,
                 onClick: () => t(e.id),
                 'data-testid': `pedido-detail-editar`,
                 children: `Editar`
               }),
-              (0, E.jsx)(`button`, {
+              (0, k.jsx)(`button`, {
                 className: `btn btn-sm`,
                 onClick: n,
                 'data-testid': `pedido-detail-close`,
@@ -1092,66 +1166,69 @@ function ne({ pedido: e, onEditar: t, onClose: n }) {
           })
         ]
       }),
-      (0, E.jsxs)(`div`, {
+      (0, k.jsxs)(`div`, {
         className: `modal-shell-body`,
         children: [
-          (0, E.jsxs)(`div`, {
+          (0, k.jsxs)(`div`, {
             className: `fg c3`,
             children: [
-              (0, E.jsxs)(`div`, {
+              (0, k.jsxs)(`div`, {
                 children: [
-                  (0, E.jsx)(`div`, { className: `fl`, children: `Cliente` }),
-                  (0, E.jsx)(`div`, { className: `fv`, children: e.cli || `—` })
+                  (0, k.jsx)(`div`, { className: `fl`, children: `Cliente` }),
+                  (0, k.jsx)(`div`, { className: `fv`, children: e.cli || `—` })
                 ]
               }),
               e.rca_nome &&
-                (0, E.jsxs)(`div`, {
+                (0, k.jsxs)(`div`, {
                   children: [
-                    (0, E.jsx)(`div`, { className: `fl`, children: `RCA` }),
-                    (0, E.jsx)(`div`, { className: `fv`, children: e.rca_nome })
+                    (0, k.jsx)(`div`, { className: `fl`, children: `RCA` }),
+                    (0, k.jsx)(`div`, { className: `fv`, children: e.rca_nome })
                   ]
                 }),
-              (0, E.jsxs)(`div`, {
+              (0, k.jsxs)(`div`, {
                 children: [
-                  (0, E.jsx)(`div`, { className: `fl`, children: `Tipo` }),
-                  (0, E.jsx)(`div`, {
+                  (0, k.jsx)(`div`, { className: `fl`, children: `Tipo` }),
+                  (0, k.jsx)(`div`, {
                     className: `fv`,
                     children: e.tipo === `atacado` ? `Atacado` : `Varejo`
                   })
                 ]
               }),
-              (0, E.jsxs)(`div`, {
+              (0, k.jsxs)(`div`, {
                 children: [
-                  (0, E.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
-                  (0, E.jsx)(`div`, { className: `fv`, children: Z[e.pgto ?? ``] ?? e.pgto ?? `—` })
+                  (0, k.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
+                  (0, k.jsx)(`div`, {
+                    className: `fv`,
+                    children: ne[e.pgto ?? ``] ?? e.pgto ?? `—`
+                  })
                 ]
               }),
-              (0, E.jsxs)(`div`, {
+              (0, k.jsxs)(`div`, {
                 children: [
-                  (0, E.jsx)(`div`, { className: `fl`, children: `Prazo` }),
-                  (0, E.jsx)(`div`, {
+                  (0, k.jsx)(`div`, { className: `fl`, children: `Prazo` }),
+                  (0, k.jsx)(`div`, {
                     className: `fv`,
-                    children: Q[e.prazo ?? ``] ?? e.prazo ?? `—`
+                    children: re[e.prazo ?? ``] ?? e.prazo ?? `—`
                   })
                 ]
               }),
               e.obs &&
-                (0, E.jsxs)(`div`, {
+                (0, k.jsxs)(`div`, {
                   children: [
-                    (0, E.jsx)(`div`, { className: `fl`, children: `Obs.` }),
-                    (0, E.jsx)(`div`, { className: `fv`, children: e.obs })
+                    (0, k.jsx)(`div`, { className: `fl`, children: `Obs.` }),
+                    (0, k.jsx)(`div`, { className: `fv`, children: e.obs })
                   ]
                 })
             ]
           }),
-          (0, E.jsx)(G, { itens: g, produtos: [], tipo: e.tipo ?? `varejo`, readOnly: !0 }),
-          (0, E.jsxs)(`div`, {
+          (0, k.jsx)(K, { itens: g, produtos: [], tipo: e.tipo ?? `varejo`, readOnly: !0 }),
+          (0, k.jsxs)(`div`, {
             className: `modal-actions`,
             style: { marginTop: `1rem` },
             children: [
               u &&
                 d &&
-                (0, E.jsx)(`button`, {
+                (0, k.jsx)(`button`, {
                   className: `btn btn-sm`,
                   disabled: f,
                   onClick: () => void r(e),
@@ -1160,7 +1237,7 @@ function ne({ pedido: e, onEditar: t, onClose: n }) {
                 }),
               s !== `cancelado` &&
                 s !== `entregue` &&
-                (0, E.jsx)(`button`, {
+                (0, k.jsx)(`button`, {
                   className: `btn btn-sm btn-danger`,
                   disabled: f,
                   onClick: () => void i(e),
@@ -1168,7 +1245,7 @@ function ne({ pedido: e, onEditar: t, onClose: n }) {
                   children: `Cancelar`
                 }),
               s === `cancelado` &&
-                (0, E.jsx)(`button`, {
+                (0, k.jsx)(`button`, {
                   className: `btn btn-sm`,
                   disabled: f,
                   onClick: () => void a(e),
@@ -1182,9 +1259,9 @@ function ne({ pedido: e, onEditar: t, onClose: n }) {
     ]
   });
 }
-var re = `pedidos-react-pilot`,
-  ie = `pedidos-legacy-shell`;
-function ae() {
+var se = `pedidos-react-pilot`,
+  ce = `pedidos-legacy-shell`;
+function Q() {
   let e = v(l((e) => e.pedidos)),
     t = v((e) => e.activeTab),
     n = v((e) => e.setActiveTab),
@@ -1205,7 +1282,7 @@ function ae() {
       function e(e) {
         if (e.origin !== window.location.origin) return;
         let t = e.data;
-        if (!(!t || t.source !== ie)) {
+        if (!(!t || t.source !== ce)) {
           if (t.type === `pedidos:set-tab` && t.tab) {
             n(t.tab);
             return;
@@ -1238,7 +1315,7 @@ function ae() {
         i = c ? `form` : f ? `detail` : `list`;
       window.postMessage(
         {
-          source: re,
+          source: se,
           type: `pedidos:state`,
           state: {
             tab: t,
@@ -1254,10 +1331,10 @@ function ae() {
         window.location.origin
       );
     }, [t, a, o, r.q, r.status, s.length, e.length, c, f, m?.num, h?.num]),
-    (0, E.jsxs)(`div`, {
+    (0, k.jsxs)(`div`, {
       'data-testid': `pedidos-pilot-page`,
       children: [
-        (0, E.jsx)(N, {
+        (0, k.jsx)(I, {
           onNovoPedido: () => {
             (p(null), d(`new`));
           },
@@ -1267,7 +1344,7 @@ function ae() {
         }),
         h &&
           !c &&
-          (0, E.jsx)(ne, {
+          (0, k.jsx)(oe, {
             pedido: h,
             onEditar: (e) => {
               (p(null), d(e));
@@ -1275,7 +1352,7 @@ function ae() {
             onClose: () => p(null)
           }),
         c &&
-          (0, E.jsx)(J, {
+          (0, k.jsx)(Y, {
             initialPedido: c === `new` ? null : m,
             onSaved: (e) => {
               (d(null), p(e.id));
@@ -1288,7 +1365,7 @@ function ae() {
     })
   );
 }
-function oe(t = {}) {
+function le(t = {}) {
   let { skip: r = !1 } = t,
     i = v((e) => e.setPedidos),
     a = v((e) => e.setStatus),
@@ -1337,14 +1414,14 @@ function oe(t = {}) {
 }
 c();
 var $ = null;
-function se() {
-  return (oe(), (0, E.jsx)(ae, {}));
+function ue() {
+  return (le(), (0, k.jsx)(Q, {}));
 }
-function ce(e) {
+function de(e) {
   (($ = (0, d.createRoot)(e)),
-    $.render((0, E.jsx)(u.StrictMode, { children: (0, E.jsx)(se, {}) })));
+    $.render((0, k.jsx)(u.StrictMode, { children: (0, k.jsx)(ue, {}) })));
 }
-function le() {
+function fe() {
   $ &&= ($.unmount(), null);
 }
-window.__SC_PEDIDOS_DIRECT_BRIDGE__ = { mount: ce, unmount: le };
+window.__SC_PEDIDOS_DIRECT_BRIDGE__ = { mount: de, unmount: fe };
