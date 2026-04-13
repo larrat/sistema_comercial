@@ -1,4 +1,22 @@
-import type { Pedido } from '../../../../types/domain';
+import type { Pedido, PedidoItem } from '../../../../types/domain';
+
+export type PedidoSaveInput = {
+  id: string;
+  filial_id: string;
+  num: number;
+  cli: string;
+  cliente_id: string | null;
+  rca_id: string | null;
+  rca_nome: string | null;
+  data: string;
+  status: string;
+  pgto: string;
+  prazo: string;
+  tipo: string;
+  obs: string;
+  itens: PedidoItem[];
+  total: number;
+};
 
 export type PedidoApiContext = {
   url: string;
@@ -44,6 +62,21 @@ export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> 
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
   return Array.isArray(body) ? (body as Pedido[]) : [];
+}
+
+export async function savePedido(context: PedidoApiContext, input: PedidoSaveInput): Promise<void> {
+  const payload = { ...input, itens: JSON.stringify(input.itens) };
+  const res = await fetch(`${context.url}/rest/v1/pedidos`, {
+    method: 'POST',
+    headers: {
+      ...createHeaders(context.key, context.token),
+      Prefer: 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao salvar pedido`);
 }
 
 export async function updatePedidoStatus(

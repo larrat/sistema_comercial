@@ -17,7 +17,12 @@ const STATUS_OPTIONS = [
   { value: 'em_separacao', label: 'Em separação' }
 ];
 
-export function PedidoListView() {
+type Props = {
+  onNovoPedido: () => void;
+  onDetalhe: (id: string) => void;
+};
+
+export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
   const activeTab = usePedidoStore((s) => s.activeTab);
   const setActiveTab = usePedidoStore((s) => s.setActiveTab);
   const filtro = usePedidoStore((s) => s.filtro);
@@ -66,6 +71,15 @@ export function PedidoListView() {
               </select>
             )}
           </div>
+          <div className="toolbar-actions">
+            <button
+              className="btn btn-sm btn-p"
+              onClick={onNovoPedido}
+              data-testid="pedido-novo-btn"
+            >
+              + Novo pedido
+            </button>
+          </div>
         </div>
 
         {storeStatus === 'loading' && (
@@ -96,6 +110,7 @@ export function PedidoListView() {
                 onAvancar={() => void avancarStatus(pedido)}
                 onCancelar={() => void cancelarPedido(pedido)}
                 onReabrir={() => void reabrirPedido(pedido)}
+                onDetalhe={onDetalhe}
               />
             ))}
           </div>

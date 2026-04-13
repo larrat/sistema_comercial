@@ -88,7 +88,10 @@ import {
 import {
   togglePedidosReactBridge,
   isPedidosReactPilotActive,
-  limparFiltrosPedidosReact
+  limparFiltrosPedidosReact,
+  abrirNovoPedidoReact,
+  editarPedidoReact,
+  abrirDetalhePedidoReact
 } from '../features/pedidos-react-bridge.js';
 
 import {
@@ -870,6 +873,9 @@ startApplicationRuntime({
         togglePedidosReactBridge,
         isPedidosReactPilotActive,
         limparFiltrosPedidosReact,
+        abrirNovoPedidoReact,
+        editarPedidoReact,
+        abrirDetalhePedidoReact,
         renderContasReceberMet,
         renderContasReceber,
         switchCrTab,

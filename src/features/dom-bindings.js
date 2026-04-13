@@ -227,7 +227,10 @@ function getHandlerRegistry() {
       cancelarStatusPed: deps.cancelarStatusPed,
       reabrirPed: deps.reabrirPed,
       togglePedidosReactBridge: deps.togglePedidosReactBridge,
-      limparFiltrosPedidosReact: deps.limparFiltrosPedidosReact
+      limparFiltrosPedidosReact: deps.limparFiltrosPedidosReact,
+      abrirNovoPedidoReact: deps.abrirNovoPedidoReact,
+      editarPedidoReact: deps.editarPedidoReact,
+      abrirDetalhePedidoReact: deps.abrirDetalhePedidoReact
     },
     cotacao: {
       renderCotForns: deps.renderCotForns,

@@ -21,10 +21,13 @@ let pageObserver = null;
 
 const DEFAULT_BRIDGE_STATE = {
   tab: 'emaberto',
+  view: 'list',
   status: 'ready',
   count: 0,
   filtersActive: 0,
-  totalPedidos: 0
+  totalPedidos: 0,
+  selectedId: '',
+  selectedNum: null
 };
 
 let currentBridgeState = { ...DEFAULT_BRIDGE_STATE };
@@ -117,10 +120,13 @@ function syncBridgeState(state) {
   const nextState = state && typeof state === 'object' ? state : {};
   currentBridgeState = {
     tab: String(nextState.tab || 'emaberto'),
+    view: String(nextState.view || 'list'),
     status: String(nextState.status || 'ready'),
     count: Number(nextState.count ?? 0) || 0,
     filtersActive: Number(nextState.filtersActive ?? 0) || 0,
-    totalPedidos: Number(nextState.totalPedidos ?? 0) || 0
+    totalPedidos: Number(nextState.totalPedidos ?? 0) || 0,
+    selectedId: String(nextState.selectedId || ''),
+    selectedNum: nextState.selectedNum ?? null
   };
   updateBridgeIndicators();
 }
@@ -217,6 +223,20 @@ export function setPedidosReactTab(tab) {
 
 export function limparFiltrosPedidosReact() {
   postToReactFrame('pedidos:limpar-filtros');
+}
+
+export function abrirNovoPedidoReact() {
+  postToReactFrame('pedidos:novo');
+}
+
+export function editarPedidoReact(pedidoId) {
+  if (!pedidoId) return;
+  postToReactFrame('pedidos:editar', { id: String(pedidoId) });
+}
+
+export function abrirDetalhePedidoReact(pedidoId) {
+  if (!pedidoId) return;
+  postToReactFrame('pedidos:detalhe', { id: String(pedidoId) });
 }
 
 function handleBridgeMessage(event) {

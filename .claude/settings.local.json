@@ -38,7 +38,18 @@
       "Bash(sed -n '11145,11175p' src/styles/style.css)",
       "Bash(awk '/prefers-color-scheme: dark/,/^}/' src/styles/style.css)",
       "Bash(sed -n '799,815p' src/styles/style.css)",
-      "Bash(sed -n '4000,4015p' src/styles/style.css)"
+      "Bash(sed -n '4000,4015p' src/styles/style.css)",
+      "Bash(grep -n \"TODO\\\\|FIXME\\\\|HACK\\\\|XXX\\\\|@deprecated\" src/features/*.js src/app/main.js)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const s=p.scripts; const keys=['build:bridge','dev:bridge']; keys.forEach\\(k=>console.log\\(k,':',s[k]||'not found'\\)\\)\")",
+      "Bash(npx vite:*)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(tsc --noEmit)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(grep -E \"\\\\.\\(json|ts|js\\)$|^d\")",
+      "Bash(./node_modules/.bin/vite build:*)",
+      "Bash(xargs grep:*)"
     ]
   }
 }

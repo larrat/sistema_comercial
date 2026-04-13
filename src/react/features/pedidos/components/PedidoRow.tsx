@@ -7,6 +7,7 @@ type Props = {
   onAvancar: () => void;
   onCancelar: () => void;
   onReabrir: () => void;
+  onDetalhe: (id: string) => void;
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -29,7 +30,7 @@ function fmt(value: number | null | undefined): string {
   return (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir }: Props) {
+export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, onDetalhe }: Props) {
   const status = normalizePedStatus(pedido.status);
   const badgeClass = STATUS_BADGE[status] ?? 'bdg bk';
   const statusLabel = STATUS_LABEL[status] ?? status;
@@ -39,9 +40,13 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir }
   return (
     <div className="list-row" data-testid={`pedido-row-${pedido.id}`}>
       <div className="list-row-main">
-        <span className="list-row-title">
+        <button
+          className="btn-link list-row-title"
+          onClick={() => onDetalhe(pedido.id)}
+          data-testid={`pedido-row-title-${pedido.id}`}
+        >
           #{pedido.num} — {pedido.cli || '—'}
-        </span>
+        </button>
         <span className={badgeClass}>{statusLabel}</span>
         {pedido.data && (
           <span className="list-row-meta">{pedido.data}</span>

@@ -2,7 +2,7 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { usePedidoStore } from '../store/usePedidoStore';
-import { updatePedidoStatus } from '../services/pedidosApi';
+import { savePedido, updatePedidoStatus, type PedidoSaveInput } from '../services/pedidosApi';
 import { NEXT_STATUS, normalizePedStatus } from '../types';
 
 export function usePedidoMutations() {
@@ -64,5 +64,12 @@ export function usePedidoMutations() {
     }
   }
 
-  return { avancarStatus, cancelarPedido, reabrirPedido, inFlight };
+  async function submitPedido(input: Omit<PedidoSaveInput, 'filial_id'>): Promise<void> {
+    const context = resolveContext();
+    const full: PedidoSaveInput = { ...input, filial_id: context.filialId };
+    await savePedido(context, full);
+    upsertPedido(full as Parameters<typeof upsertPedido>[0]);
+  }
+
+  return { avancarStatus, cancelarPedido, reabrirPedido, submitPedido, inFlight };
 }

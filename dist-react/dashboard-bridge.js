@@ -2,15 +2,16 @@ import {
   a as e,
   c as t,
   i as n,
-  n as r,
-  o as i,
-  r as a,
-  s as o,
-  t as s
-} from './jsx-runtime-CBjllbA9.js';
-var c = t(o(), 1),
-  l = i(),
-  u = e((e) => ({
+  l as r,
+  n as i,
+  o as a,
+  r as o,
+  s,
+  t as c
+} from './bridgeHydration-sFKrWIzA.js';
+var l = r(t(), 1),
+  u = s(),
+  d = a((e) => ({
     periodo: `mes`,
     pedidos: [],
     produtos: [],
@@ -22,16 +23,16 @@ var c = t(o(), 1),
       e({ pedidos: t, produtos: n, clientes: r, status: `ready`, error: null }),
     setStatus: (t, n) => e({ status: t, error: n ?? null })
   })),
-  d = s(),
-  f = new Intl.NumberFormat(`pt-BR`, { style: `currency`, currency: `BRL` }),
-  p = [`Jan`, `Fev`, `Mar`, `Abr`, `Mai`, `Jun`, `Jul`, `Ago`, `Set`, `Out`, `Nov`, `Dez`];
-function m(e) {
-  return f.format(Number(e || 0));
-}
+  f = i(),
+  p = new Intl.NumberFormat(`pt-BR`, { style: `currency`, currency: `BRL` }),
+  m = [`Jan`, `Fev`, `Mar`, `Abr`, `Mai`, `Jun`, `Jul`, `Ago`, `Set`, `Out`, `Nov`, `Dez`];
 function h(e) {
-  return e.toFixed(1) + `%`;
+  return p.format(Number(e || 0));
 }
 function g(e) {
+  return e.toFixed(1) + `%`;
+}
+function _(e) {
   let t = new Date(),
     n = t.getFullYear(),
     r = t.getMonth();
@@ -45,12 +46,12 @@ function g(e) {
       ? [new Date(n, 0, 1), t]
       : [new Date(2e3, 0, 1), t];
 }
-function _(e, t) {
+function v(e, t) {
   if (!e) return !1;
   let n = new Date(e + `T00:00:00`);
   return n >= t[0] && n <= t[1];
 }
-function v(e, t) {
+function y(e, t) {
   if (!e) return null;
   let n = e.split(`-`);
   if (n.length < 3) return null;
@@ -60,9 +61,9 @@ function v(e, t) {
   let a = new Date(t.getFullYear(), r, i);
   return (a < t && (a = new Date(t.getFullYear() + 1, r, i)), a);
 }
-function y(e, t, n, r) {
-  let i = g(r),
-    a = e.filter((e) => e.status === `entregue` && _(e.data, i)),
+function b(e, t, n, r) {
+  let i = _(r),
+    a = e.filter((e) => e.status === `entregue` && v(e.data, i)),
     o = a.reduce((e, t) => e + (t.total || 0), 0),
     s = a.reduce(
       (e, t) =>
@@ -78,13 +79,13 @@ function y(e, t, n, r) {
     u = e.filter((e) => [`orcamento`, `confirmado`, `em_separacao`].includes(e.status)).length,
     d = t.filter((e) => (e.emin ?? 0) > 0 && (e.esal ?? 0) <= 0),
     f = t.filter((e) => (e.emin ?? 0) > 0 && (e.esal ?? 0) > 0 && (e.esal ?? 0) < (e.emin ?? 0)),
-    m = new Date();
-  m.setHours(0, 0, 0, 0);
-  let h = new Date(m);
+    p = new Date();
+  p.setHours(0, 0, 0, 0);
+  let h = new Date(p);
   h.setDate(h.getDate() + 7);
-  let y = n
+  let g = n
       .map((e) => {
-        let t = v(e.data_aniversario, m);
+        let t = y(e.data_aniversario, p);
         return !t || t > h ? null : { ...e, _anivData: t };
       })
       .filter((e) => e !== null)
@@ -106,7 +107,7 @@ function y(e, t, n, r) {
     w = {};
   a.forEach((e) => {
     let t = new Date((e.data ?? ``) + `T00:00:00`),
-      n = r === `ano` ? p[t.getMonth()] + `/` + String(t.getFullYear()).slice(2) : (e.data ?? ``);
+      n = r === `ano` ? m[t.getMonth()] + `/` + String(t.getFullYear()).slice(2) : (e.data ?? ``);
     (w[n] || (w[n] = { fat: 0, lucro: 0 }), (w[n].fat += e.total || 0));
     let i = Array.isArray(e.itens) ? e.itens : [];
     w[n].lucro += i.reduce((e, t) => e + (t.preco - t.custo) * t.qty, 0);
@@ -121,18 +122,18 @@ function y(e, t, n, r) {
     abertos: u,
     crit: d,
     baixo: f,
-    anivProximos: y,
+    anivProximos: g,
     stMap: b,
     topProdutos: S,
     maxTopFat: C,
     grupos: w,
     chartKeys: T,
     maxChartFat: Math.max(...T.map((e) => w[e].fat), 1),
-    hoje: m
+    hoje: p
   };
 }
-function b({ periodo: e, onChange: t }) {
-  return (0, d.jsx)(`div`, {
+function x({ periodo: e, onChange: t }) {
+  return (0, f.jsx)(`div`, {
     className: `pseg`,
     'data-testid': `dash-period-selector`,
     children: [
@@ -141,7 +142,7 @@ function b({ periodo: e, onChange: t }) {
       { value: `ano`, label: `Ano` },
       { value: `tudo`, label: `Tudo` }
     ].map((n) =>
-      (0, d.jsx)(
+      (0, f.jsx)(
         `button`,
         {
           className: e === n.value ? `on` : ``,
@@ -154,83 +155,83 @@ function b({ periodo: e, onChange: t }) {
     )
   });
 }
-function x({ fat: e, lucro: t, mg: n, tk: r, abertos: i, entreguesCount: a, allPedsCount: o }) {
-  return (0, d.jsxs)(`div`, {
+function S({ fat: e, lucro: t, mg: n, tk: r, abertos: i, entreguesCount: a, allPedsCount: o }) {
+  return (0, f.jsxs)(`div`, {
     className: `mg dash-bento-band dash-bento-band--metrics`,
     'data-testid': `dash-kpis`,
     children: [
-      (0, d.jsxs)(`div`, {
+      (0, f.jsxs)(`div`, {
         className: `met metric-card`,
         children: [
-          (0, d.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Receita` }),
-          (0, d.jsx)(`div`, { className: `ml`, children: `Faturamento` }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Receita` }),
+          (0, f.jsx)(`div`, { className: `ml`, children: `Faturamento` }),
+          (0, f.jsx)(`div`, {
             className: `mv kpi-value-sm`,
             'data-testid': `kpi-fat`,
-            children: m(e)
+            children: h(e)
           }),
-          (0, d.jsxs)(`div`, { className: `ms metric-card__foot`, children: [a, ` entregue(s)`] })
+          (0, f.jsxs)(`div`, { className: `ms metric-card__foot`, children: [a, ` entregue(s)`] })
         ]
       }),
-      (0, d.jsxs)(`div`, {
+      (0, f.jsxs)(`div`, {
         className: `met metric-card`,
         children: [
-          (0, d.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Resultado` }),
-          (0, d.jsx)(`div`, { className: `ml`, children: `Lucro bruto` }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Resultado` }),
+          (0, f.jsx)(`div`, { className: `ml`, children: `Lucro bruto` }),
+          (0, f.jsx)(`div`, {
             className: `mv kpi-value-sm ${t >= 0 ? `tone-success` : `tone-critical`}`,
             'data-testid': `kpi-lucro`,
-            children: m(t)
+            children: h(t)
           }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, {
             className: `ms metric-card__foot`,
             children: t >= 0 ? `Operação saudável` : `Abaixo do esperado`
           })
         ]
       }),
-      (0, d.jsxs)(`div`, {
+      (0, f.jsxs)(`div`, {
         className: `met metric-card`,
         children: [
-          (0, d.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Eficiência` }),
-          (0, d.jsx)(`div`, { className: `ml`, children: `Margem` }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Eficiência` }),
+          (0, f.jsx)(`div`, { className: `ml`, children: `Margem` }),
+          (0, f.jsx)(`div`, {
             className: `mv ${n >= 15 ? `tone-success` : n >= 8 ? `tone-warning` : `tone-critical`}`,
             'data-testid': `kpi-mg`,
-            children: h(n)
+            children: g(n)
           }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, {
             className: `ms metric-card__foot`,
             children: n >= 15 ? `Boa zona de margem` : n >= 8 ? `Atenção` : `Revisar mix e preço`
           })
         ]
       }),
-      (0, d.jsxs)(`div`, {
+      (0, f.jsxs)(`div`, {
         className: `met metric-card`,
         children: [
-          (0, d.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Conversão` }),
-          (0, d.jsx)(`div`, { className: `ml`, children: `Ticket médio` }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Conversão` }),
+          (0, f.jsx)(`div`, { className: `ml`, children: `Ticket médio` }),
+          (0, f.jsx)(`div`, {
             className: `mv kpi-value-sm`,
             'data-testid': `kpi-tk`,
-            children: m(r)
+            children: h(r)
           }),
-          (0, d.jsxs)(`div`, {
+          (0, f.jsxs)(`div`, {
             className: `ms metric-card__foot`,
             children: [`Base `, o, ` pedido(s)`]
           })
         ]
       }),
-      (0, d.jsxs)(`div`, {
+      (0, f.jsxs)(`div`, {
         className: `met metric-card`,
         children: [
-          (0, d.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Pipeline` }),
-          (0, d.jsx)(`div`, { className: `ml`, children: `Em aberto` }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, { className: `metric-card__eyebrow`, children: `Pipeline` }),
+          (0, f.jsx)(`div`, { className: `ml`, children: `Em aberto` }),
+          (0, f.jsx)(`div`, {
             className: `mv tone-warning`,
             'data-testid': `kpi-abertos`,
             children: i
           }),
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, {
             className: `ms metric-card__foot`,
             children: `Orçamentos e confirmados`
           })
@@ -239,26 +240,26 @@ function x({ fat: e, lucro: t, mg: n, tk: r, abertos: i, entreguesCount: a, allP
     ]
   });
 }
-function S({ crit: e, baixo: t, anivProximos: n, hoje: r }) {
+function C({ crit: e, baixo: t, anivProximos: n, hoje: r }) {
   return !e.length && !t.length && !n.length
-    ? (0, d.jsx)(`div`, {
+    ? (0, f.jsx)(`div`, {
         className: `empty-inline table-cell-muted`,
         'data-testid': `dash-alerts-empty`,
         children: `Sem alertas no momento.`
       })
-    : (0, d.jsxs)(`div`, {
+    : (0, f.jsxs)(`div`, {
         'data-testid': `dash-alerts`,
         children: [
           e.length > 0 &&
-            (0, d.jsxs)(`div`, {
+            (0, f.jsxs)(`div`, {
               className: `alert al-r dash-alert-card`,
               'data-testid': `dash-alert-crit`,
               children: [
-                (0, d.jsx)(`div`, {
+                (0, f.jsx)(`div`, {
                   className: `dash-alert-card__title`,
-                  children: (0, d.jsx)(`b`, { children: `Estoque crítico` })
+                  children: (0, f.jsx)(`b`, { children: `Estoque crítico` })
                 }),
-                (0, d.jsxs)(`div`, {
+                (0, f.jsxs)(`div`, {
                   className: `dash-alert-card__copy`,
                   children: [
                     e.length,
@@ -278,15 +279,15 @@ function S({ crit: e, baixo: t, anivProximos: n, hoje: r }) {
               ]
             }),
           t.length > 0 &&
-            (0, d.jsxs)(`div`, {
+            (0, f.jsxs)(`div`, {
               className: `alert al-a dash-alert-card`,
               'data-testid': `dash-alert-baixo`,
               children: [
-                (0, d.jsx)(`div`, {
+                (0, f.jsx)(`div`, {
                   className: `dash-alert-card__title`,
-                  children: (0, d.jsx)(`b`, { children: `Estoque em atenção` })
+                  children: (0, f.jsx)(`b`, { children: `Estoque em atenção` })
                 }),
-                (0, d.jsxs)(`div`, {
+                (0, f.jsxs)(`div`, {
                   className: `dash-alert-card__copy`,
                   children: [
                     t.length,
@@ -304,11 +305,11 @@ function S({ crit: e, baixo: t, anivProximos: n, hoje: r }) {
               ]
             }),
           n.length > 0 &&
-            (0, d.jsxs)(`div`, {
+            (0, f.jsxs)(`div`, {
               className: `alert al-g`,
               'data-testid': `dash-alert-aniv`,
               children: [
-                (0, d.jsx)(`b`, { children: `Aniversários próximos:` }),
+                (0, f.jsx)(`b`, { children: `Aniversários próximos:` }),
                 ` `,
                 n
                   .slice(0, 3)
@@ -324,55 +325,55 @@ function S({ crit: e, baixo: t, anivProximos: n, hoje: r }) {
         ]
       });
 }
-function C({ chartKeys: e, grupos: t, maxFat: n }) {
+function w({ chartKeys: e, grupos: t, maxFat: n }) {
   return e.length
-    ? (0, d.jsxs)(`div`, {
+    ? (0, f.jsxs)(`div`, {
         'data-testid': `dash-chart`,
         children: [
-          (0, d.jsx)(`div`, {
+          (0, f.jsx)(`div`, {
             className: `barchart`,
             children: e.map((e) => {
               let r = t[e],
                 i = Math.max(2, (r.fat / n) * 100),
                 a = Math.max(0, (r.lucro / n) * 100);
-              return (0, d.jsxs)(
+              return (0, f.jsxs)(
                 `div`,
                 {
                   className: `barchart__group`,
-                  title: `${e}: ${m(r.fat)}`,
+                  title: `${e}: ${h(r.fat)}`,
                   children: [
-                    (0, d.jsxs)(`div`, {
+                    (0, f.jsxs)(`div`, {
                       className: `barchart__bars`,
                       children: [
-                        (0, d.jsx)(`span`, {
+                        (0, f.jsx)(`span`, {
                           className: `barchart__bar barchart__bar--fat`,
                           style: { height: `${i}%` }
                         }),
-                        (0, d.jsx)(`span`, {
+                        (0, f.jsx)(`span`, {
                           className: `barchart__bar barchart__bar--lucro`,
                           style: { height: `${a}%` }
                         })
                       ]
                     }),
-                    (0, d.jsx)(`div`, { className: `barchart__label`, children: e })
+                    (0, f.jsx)(`div`, { className: `barchart__label`, children: e })
                   ]
                 },
                 e
               );
             })
           }),
-          (0, d.jsxs)(`div`, {
+          (0, f.jsxs)(`div`, {
             className: `dash-chart-legend`,
             children: [
-              (0, d.jsxs)(`span`, {
+              (0, f.jsxs)(`span`, {
                 children: [
-                  (0, d.jsx)(`span`, { className: `dash-legend-swatch dash-legend-swatch--fat` }),
+                  (0, f.jsx)(`span`, { className: `dash-legend-swatch dash-legend-swatch--fat` }),
                   `Faturamento`
                 ]
               }),
-              (0, d.jsxs)(`span`, {
+              (0, f.jsxs)(`span`, {
                 children: [
-                  (0, d.jsx)(`span`, { className: `dash-legend-swatch dash-legend-swatch--lucro` }),
+                  (0, f.jsx)(`span`, { className: `dash-legend-swatch dash-legend-swatch--lucro` }),
                   `Lucro`
                 ]
               })
@@ -380,13 +381,13 @@ function C({ chartKeys: e, grupos: t, maxFat: n }) {
           })
         ]
       })
-    : (0, d.jsx)(`div`, {
+    : (0, f.jsx)(`div`, {
         className: `empty dash-empty-compact`,
         'data-testid': `dash-chart-empty`,
-        children: (0, d.jsx)(`p`, { children: `Sem pedidos entregues no período` })
+        children: (0, f.jsx)(`p`, { children: `Sem pedidos entregues no período` })
       });
 }
-function w({ stMap: e }) {
+function T({ stMap: e }) {
   let t = {
       orcamento: `Orçamento`,
       confirmado: `Confirmado`,
@@ -395,25 +396,25 @@ function w({ stMap: e }) {
       cancelado: `Cancelado`
     },
     n = Object.values(e).reduce((e, t) => e + t, 0);
-  return (0, d.jsx)(`div`, {
+  return (0, f.jsx)(`div`, {
     'data-testid': `dash-status-pedidos`,
     children: Object.entries(t).map(([t, r]) => {
       let i = e[t] ?? 0,
         a = n > 0 ? (i / n) * 100 : 0;
-      return (0, d.jsxs)(
+      return (0, f.jsxs)(
         `div`,
         {
           className: `dash-status-row`,
           children: [
-            (0, d.jsx)(`span`, { className: `dash-status-label`, children: r }),
-            (0, d.jsx)(`span`, {
+            (0, f.jsx)(`span`, { className: `dash-status-label`, children: r }),
+            (0, f.jsx)(`span`, {
               className: `dash-status-bar`,
-              children: (0, d.jsx)(`span`, {
+              children: (0, f.jsx)(`span`, {
                 className: `dash-status-fill dash-status-fill--${t}`,
                 style: { width: `${a}%` }
               })
             }),
-            (0, d.jsx)(`span`, { className: `dash-status-count`, children: i })
+            (0, f.jsx)(`span`, { className: `dash-status-count`, children: i })
           ]
         },
         t
@@ -421,65 +422,65 @@ function w({ stMap: e }) {
     })
   });
 }
-function T({ topProdutos: e, maxFat: t }) {
+function E({ topProdutos: e, maxFat: t }) {
   return e.length
-    ? (0, d.jsx)(`div`, {
+    ? (0, f.jsx)(`div`, {
         'data-testid': `dash-top-produtos`,
         children: e.map(([e, n]) =>
-          (0, d.jsxs)(
+          (0, f.jsxs)(
             `div`,
             {
               className: `dash-top-row`,
               children: [
-                (0, d.jsx)(`span`, {
+                (0, f.jsx)(`span`, {
                   className: `dash-top-label`,
                   title: e,
                   children: e.length > 28 ? e.slice(0, 28) + `…` : e
                 }),
-                (0, d.jsx)(`span`, {
+                (0, f.jsx)(`span`, {
                   className: `dash-top-bar`,
-                  children: (0, d.jsx)(`span`, {
+                  children: (0, f.jsx)(`span`, {
                     className: `dash-top-fill`,
                     style: { width: `${Math.max(4, (n / t) * 100)}%` }
                   })
                 }),
-                (0, d.jsx)(`span`, { className: `dash-top-value`, children: m(n) })
+                (0, f.jsx)(`span`, { className: `dash-top-value`, children: h(n) })
               ]
             },
             e
           )
         )
       })
-    : (0, d.jsx)(`div`, {
+    : (0, f.jsx)(`div`, {
         className: `empty-inline table-cell-muted`,
         'data-testid': `dash-top-empty`,
         children: `Sem dados no período.`
       });
 }
-function E() {
-  let e = u((e) => e.periodo),
-    t = u((e) => e.pedidos),
-    n = u((e) => e.produtos),
-    i = u((e) => e.clientes),
-    a = u((e) => e.status),
-    o = u((e) => e.error),
-    s = u((e) => e.setPeriodo),
-    l = r((e) => e.filialId),
-    f = (0, c.useMemo)(() => y(t, n, i, e), [t, n, i, e]);
-  return (0, d.jsxs)(`div`, {
+function D() {
+  let e = d((e) => e.periodo),
+    t = d((e) => e.pedidos),
+    n = d((e) => e.produtos),
+    r = d((e) => e.clientes),
+    i = d((e) => e.status),
+    a = d((e) => e.error),
+    s = d((e) => e.setPeriodo),
+    c = o((e) => e.filialId),
+    u = (0, l.useMemo)(() => b(t, n, r, e), [t, n, r, e]);
+  return (0, f.jsxs)(`div`, {
     className: `dash-bento-page`,
     'data-testid': `dashboard-pilot-page`,
     children: [
-      (0, d.jsx)(`div`, {
+      (0, f.jsx)(`div`, {
         className: `page-controls-bar toolbar toolbar-shell toolbar-shell--page`,
-        children: (0, d.jsxs)(`div`, {
+        children: (0, f.jsxs)(`div`, {
           className: `fg2`,
           children: [
-            (0, d.jsxs)(`span`, {
+            (0, f.jsxs)(`span`, {
               className: `table-cell-muted`,
               style: { fontSize: `0.85em` },
               children: [
-                l ?? `—`,
+                c ?? `—`,
                 ` — `,
                 {
                   semana: `Esta semana`,
@@ -489,96 +490,96 @@ function E() {
                 }[e]
               ]
             }),
-            (0, d.jsx)(b, { periodo: e, onChange: s })
+            (0, f.jsx)(x, { periodo: e, onChange: s })
           ]
         })
       }),
-      o &&
-        (0, d.jsx)(`div`, {
+      a &&
+        (0, f.jsx)(`div`, {
           className: `alert al-r`,
           'data-testid': `dash-pilot-error`,
-          children: o
+          children: a
         }),
-      a === `loading` &&
-        (0, d.jsxs)(`div`, {
+      i === `loading` &&
+        (0, f.jsxs)(`div`, {
           className: `sk-card`,
           'data-testid': `dash-pilot-loading`,
           children: [
-            (0, d.jsx)(`div`, { className: `sk-line` }),
-            (0, d.jsx)(`div`, { className: `sk-line` }),
-            (0, d.jsx)(`div`, { className: `sk-line` })
+            (0, f.jsx)(`div`, { className: `sk-line` }),
+            (0, f.jsx)(`div`, { className: `sk-line` }),
+            (0, f.jsx)(`div`, { className: `sk-line` })
           ]
         }),
-      a === `ready` &&
-        (0, d.jsxs)(d.Fragment, {
+      i === `ready` &&
+        (0, f.jsxs)(f.Fragment, {
           children: [
-            (0, d.jsx)(x, {
-              fat: f.fat,
-              lucro: f.lucro,
-              mg: f.mg,
-              tk: f.tk,
-              abertos: f.abertos,
-              entreguesCount: f.entregues.length,
+            (0, f.jsx)(S, {
+              fat: u.fat,
+              lucro: u.lucro,
+              mg: u.mg,
+              tk: u.tk,
+              abertos: u.abertos,
+              entreguesCount: u.entregues.length,
               allPedsCount: t.length
             }),
-            (0, d.jsxs)(`section`, {
+            (0, f.jsxs)(`section`, {
               className: `dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops`,
               children: [
-                (0, d.jsxs)(`div`, {
+                (0, f.jsxs)(`div`, {
                   className: `dash-section-head`,
                   children: [
-                    (0, d.jsx)(`h3`, { children: `Operação rápida` }),
-                    (0, d.jsx)(`p`, { children: `Ações que precisam de decisão agora` })
+                    (0, f.jsx)(`h3`, { children: `Operação rápida` }),
+                    (0, f.jsx)(`p`, { children: `Ações que precisam de decisão agora` })
                   ]
                 }),
-                (0, d.jsx)(S, {
-                  crit: f.crit,
-                  baixo: f.baixo,
-                  anivProximos: f.anivProximos,
-                  hoje: f.hoje
+                (0, f.jsx)(C, {
+                  crit: u.crit,
+                  baixo: u.baixo,
+                  anivProximos: u.anivProximos,
+                  hoje: u.hoje
                 })
               ]
             }),
-            (0, d.jsxs)(`section`, {
+            (0, f.jsxs)(`section`, {
               className: `dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis`,
               children: [
-                (0, d.jsxs)(`div`, {
+                (0, f.jsxs)(`div`, {
                   className: `dash-section-head`,
                   children: [
-                    (0, d.jsx)(`h3`, { children: `Análise do negócio` }),
-                    (0, d.jsx)(`p`, { children: `Leitura de desempenho e tendência comercial` })
+                    (0, f.jsx)(`h3`, { children: `Análise do negócio` }),
+                    (0, f.jsx)(`p`, { children: `Leitura de desempenho e tendência comercial` })
                   ]
                 }),
-                (0, d.jsxs)(`div`, {
+                (0, f.jsxs)(`div`, {
                   className: `dash-grid-main dash-bento-grid dash-bento-grid--primary`,
                   children: [
-                    (0, d.jsxs)(`div`, {
+                    (0, f.jsxs)(`div`, {
                       className: `card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart`,
                       children: [
-                        (0, d.jsx)(`div`, { className: `ct`, children: `Faturamento e lucro` }),
-                        (0, d.jsx)(C, {
-                          chartKeys: f.chartKeys,
-                          grupos: f.grupos,
-                          maxFat: f.maxChartFat
+                        (0, f.jsx)(`div`, { className: `ct`, children: `Faturamento e lucro` }),
+                        (0, f.jsx)(w, {
+                          chartKeys: u.chartKeys,
+                          grupos: u.grupos,
+                          maxFat: u.maxChartFat
                         })
                       ]
                     }),
-                    (0, d.jsxs)(`div`, {
+                    (0, f.jsxs)(`div`, {
                       className: `card card-shell dash-card dash-bento-card dash-bento-card--status`,
                       children: [
-                        (0, d.jsx)(`div`, { className: `ct`, children: `Status dos pedidos` }),
-                        (0, d.jsx)(w, { stMap: f.stMap })
+                        (0, f.jsx)(`div`, { className: `ct`, children: `Status dos pedidos` }),
+                        (0, f.jsx)(T, { stMap: u.stMap })
                       ]
                     })
                   ]
                 }),
-                (0, d.jsx)(`div`, {
+                (0, f.jsx)(`div`, {
                   className: `dash-grid-cards dash-grid-cards--analise`,
-                  children: (0, d.jsxs)(`div`, {
+                  children: (0, f.jsxs)(`div`, {
                     className: `card card-shell dash-card dash-card--top dash-bento-card`,
                     children: [
-                      (0, d.jsx)(`div`, { className: `ct`, children: `Top produtos` }),
-                      (0, d.jsx)(T, { topProdutos: f.topProdutos, maxFat: f.maxTopFat })
+                      (0, f.jsx)(`div`, { className: `ct`, children: `Top produtos` }),
+                      (0, f.jsx)(E, { topProdutos: u.topProdutos, maxFat: u.maxTopFat })
                     ]
                   })
                 })
@@ -589,10 +590,10 @@ function E() {
     ]
   });
 }
-function D(e, t) {
+function O(e, t) {
   return { apikey: e, Authorization: `Bearer ${t}`, 'Content-Type': `application/json` };
 }
-async function O(e) {
+async function k(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -601,95 +602,93 @@ async function O(e) {
     return t;
   }
 }
-function k(e, t, n) {
+function A(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
       : Error(n);
 }
-async function A(e, t) {
-  let n = await fetch(
-      `${e.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(t)}&order=data.desc`,
-      { headers: D(e.key, e.token), signal: AbortSignal.timeout(15e3) }
-    ),
-    r = await O(n);
-  return (k(n, r, `Erro ${n.status} ao carregar pedidos`), Array.isArray(r) ? r : []);
-}
 async function j(e, t) {
   let n = await fetch(
-      `${e.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(t)}&order=nome.asc`,
-      { headers: D(e.key, e.token), signal: AbortSignal.timeout(15e3) }
+      `${e.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(t)}&order=data.desc`,
+      { headers: O(e.key, e.token), signal: AbortSignal.timeout(15e3) }
     ),
-    r = await O(n);
-  return (k(n, r, `Erro ${n.status} ao carregar produtos`), Array.isArray(r) ? r : []);
+    r = await k(n);
+  return (A(n, r, `Erro ${n.status} ao carregar pedidos`), Array.isArray(r) ? r : []);
 }
 async function M(e, t) {
   let n = await fetch(
-      `${e.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(t)}&order=nome.asc`,
-      { headers: D(e.key, e.token), signal: AbortSignal.timeout(15e3) }
+      `${e.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(t)}&order=nome.asc`,
+      { headers: O(e.key, e.token), signal: AbortSignal.timeout(15e3) }
     ),
-    r = await O(n);
-  return (k(n, r, `Erro ${n.status} ao carregar clientes`), Array.isArray(r) ? r : []);
+    r = await k(n);
+  return (A(n, r, `Erro ${n.status} ao carregar produtos`), Array.isArray(r) ? r : []);
 }
-function N() {
-  let e = u((e) => e.setData),
-    t = u((e) => e.setStatus),
-    i = a((e) => e.session),
-    o = a((e) => e.status),
-    s = r((e) => e.filialId),
-    l = (0, c.useRef)(!1);
-  (0, c.useEffect)(() => {
-    if (o === `unknown`) return;
-    if (o === `unauthenticated` || !i?.access_token) {
-      t(`error`, `Sessão expirada. Faça login novamente.`);
+async function N(e, t) {
+  let n = await fetch(
+      `${e.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(t)}&order=nome.asc`,
+      { headers: O(e.key, e.token), signal: AbortSignal.timeout(15e3) }
+    ),
+    r = await k(n);
+  return (A(n, r, `Erro ${n.status} ao carregar clientes`), Array.isArray(r) ? r : []);
+}
+function P() {
+  let t = d((e) => e.setData),
+    r = d((e) => e.setStatus),
+    i = n((e) => e.session),
+    a = n((e) => e.status),
+    s = o((e) => e.filialId),
+    c = (0, l.useRef)(!1);
+  (0, l.useEffect)(() => {
+    if (a === `unknown`) return;
+    if (a === `unauthenticated` || !i?.access_token) {
+      r(`error`, `Sessão expirada. Faça login novamente.`);
       return;
     }
     if (!s) {
-      t(`error`, `Nenhuma filial selecionada.`);
+      r(`error`, `Nenhuma filial selecionada.`);
       return;
     }
-    let { url: r, key: a, ready: c } = n();
-    if (!c) {
-      t(`error`, `Configuração do Supabase ausente.`);
+    let { url: n, key: o, ready: l } = e();
+    if (!l) {
+      r(`error`, `Configuração do Supabase ausente.`);
       return;
     }
-    if (l.current) return;
-    ((l.current = !0), t(`loading`));
-    let u = { url: r, key: a, token: i.access_token };
-    Promise.all([A(u, s), j(u, s), M(u, s)])
-      .then(([t, n, r]) => {
-        e({ pedidos: t, produtos: n, clientes: r });
+    if (c.current) return;
+    ((c.current = !0), r(`loading`));
+    let u = { url: n, key: o, token: i.access_token };
+    Promise.all([j(u, s), M(u, s), N(u, s)])
+      .then(([e, n, r]) => {
+        t({ pedidos: e, produtos: n, clientes: r });
       })
       .catch((e) => {
-        ((l.current = !1), t(`error`, e instanceof Error ? e.message : `Erro ao carregar dados.`));
+        ((c.current = !1), r(`error`, e instanceof Error ? e.message : `Erro ao carregar dados.`));
       });
-  }, [o, i, s, e, t]);
-  function d() {
-    if (((l.current = !1), !i?.access_token || !s)) return;
-    let { url: r, key: a, ready: o } = n();
+  }, [a, i, s, t, r]);
+  function u() {
+    if (((c.current = !1), !i?.access_token || !s)) return;
+    let { url: n, key: a, ready: o } = e();
     if (!o) return;
-    (t(`loading`), (l.current = !0));
-    let c = { url: r, key: a, token: i.access_token };
-    Promise.all([A(c, s), j(c, s), M(c, s)])
-      .then(([t, n, r]) => e({ pedidos: t, produtos: n, clientes: r }))
+    (r(`loading`), (c.current = !0));
+    let l = { url: n, key: a, token: i.access_token };
+    Promise.all([j(l, s), M(l, s), N(l, s)])
+      .then(([e, n, r]) => t({ pedidos: e, produtos: n, clientes: r }))
       .catch((e) => {
-        ((l.current = !1),
-          t(`error`, e instanceof Error ? e.message : `Erro ao recarregar dados.`));
+        ((c.current = !1),
+          r(`error`, e instanceof Error ? e.message : `Erro ao recarregar dados.`));
       });
   }
-  return { reload: d };
+  return { reload: u };
 }
-var P = null;
-function F() {
-  return (N(), (0, d.jsx)(E, {}));
+c();
+var F = null;
+function I() {
+  return (P(), (0, f.jsx)(D, {}));
 }
-function I(e) {
-  ((P = (0, l.createRoot)(e)), P.render((0, d.jsx)(c.StrictMode, { children: (0, d.jsx)(F, {}) })));
+function L(e) {
+  ((F = (0, u.createRoot)(e)), F.render((0, f.jsx)(l.StrictMode, { children: (0, f.jsx)(I, {}) })));
 }
-function L() {
-  P &&= (P.unmount(), null);
+function R() {
+  F &&= (F.unmount(), null);
 }
-(window.__SC_AUTH_SESSION__ &&
-  a.setState({ session: window.__SC_AUTH_SESSION__, status: `authenticated` }),
-  window.__SC_FILIAL_ID__ && r.setState({ filialId: window.__SC_FILIAL_ID__ }),
-  (window.__SC_DASHBOARD_DIRECT_BRIDGE__ = { mount: I, unmount: L }));
+window.__SC_DASHBOARD_DIRECT_BRIDGE__ = { mount: L, unmount: R };
