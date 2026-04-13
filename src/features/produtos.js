@@ -767,19 +767,55 @@ export function refreshProdSel() {
  */
 export function onPaiChange() {
   const paiId = prodDom.get('p-pai')?.value || '';
-  const skuEl = prodDom.get('p-sku');
-  if (!skuEl) return;
-
   if (!paiId) return;
 
   const pai = P().find((p) => p.id === paiId);
-  if (!pai?.sku) return;
+  if (!pai) return;
 
-  if (!skuEl.value.trim()) {
-    skuEl.value = `${pai.sku}-`;
-    skuEl.focus();
-    // Posiciona cursor no fim
-    const len = skuEl.value.length;
-    skuEl.setSelectionRange(len, len);
+  // Nome: preenche "{pai.nome} - " como prefixo; usuário digita a variante no final
+  const nomeEl = prodDom.get('p-nome');
+  if (nomeEl && !nomeEl.value.trim()) {
+    nomeEl.value = `${pai.nome} - `;
+    nomeEl.focus();
+    const len = nomeEl.value.length;
+    nomeEl.setSelectionRange(len, len);
   }
+
+  // SKU: preenche "{pai.sku}-" como prefixo se estiver vazio
+  const skuEl = prodDom.get('p-sku');
+  if (skuEl && !skuEl.value.trim() && pai.sku) {
+    skuEl.value = `${pai.sku}-`;
+  }
+
+  // Dados básicos: herda do pai
+  if (pai.un) prodDom.value('p-un', pai.un);
+  if (pai.cat) prodDom.value('p-cat', pai.cat);
+  if (pai.custo != null && pai.custo !== '') prodDom.value('p-custo', pai.custo);
+
+  // Aba comercial — varejo
+  const custo = Number(pai.custo || 0);
+  const mkv = Number(pai.mkv || 0);
+  if (mkv > 0) {
+    prodDom.value('p-mkv', mkv.toFixed(1));
+    prodDom.value('p-mgv', mk2mg(mkv).toFixed(1));
+    if (custo > 0) prodDom.value('p-pvv', prV(custo, mkv).toFixed(2));
+  }
+  if (pai.dv) prodDom.value('p-dv', pai.dv);
+  if (pai.qtmin) prodDom.value('p-qtmin', pai.qtmin);
+
+  // Aba comercial — atacado
+  const mka = Number(pai.mka || 0);
+  if (mka > 0) {
+    prodDom.value('p-mka', mka.toFixed(1));
+    prodDom.value('p-mga', mk2mg(mka).toFixed(1));
+    if (custo > 0) prodDom.value('p-pfa', prV(custo, mka).toFixed(2));
+  } else if (pai.pfa) {
+    prodDom.value('p-pfa', pai.pfa);
+  }
+  if (pai.da) prodDom.value('p-da', pai.da);
+
+  // Estoque
+  if (pai.emin) prodDom.value('p-emin', pai.emin);
+  if (pai.esal) prodDom.value('p-esal', pai.esal);
+  if (pai.ecm) prodDom.value('p-ecm', pai.ecm);
 }
