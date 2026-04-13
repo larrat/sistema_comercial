@@ -26,6 +26,58 @@ export type ContaReceberInput = {
   prazo: string | undefined;
 };
 
+async function inserirConta(
+  context: PedidoApiContext,
+  conta: Record<string, unknown>
+): Promise<void> {
+  const res = await fetch(`${context.url}/rest/v1/contas_receber`, {
+    method: 'POST',
+    headers: {
+      apikey: context.key,
+      Authorization: `Bearer ${context.token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(conta),
+    signal: AbortSignal.timeout(12000)
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Falha ao salvar conta a receber: ${res.status} ${text}`);
+  }
+}
+
+/**
+ * Gera conta a receber manualmente para qualquer pedido entregue.
+ * Ao contrário de gerarContaSeNecessario, não verifica status anterior
+ * e lança erro visível se o prazo não tiver dias configurados.
+ */
+export async function gerarContaForcado(
+  context: PedidoApiContext,
+  input: ContaReceberInput
+): Promise<void> {
+  const vencimento = calcVencimento(input.data, input.prazo);
+  if (!vencimento) {
+    throw new Error(
+      `Prazo "${input.prazo || 'não definido'}" não gera conta a receber. ` +
+        'Use prazo de 7d, 15d, 30d ou 60d no pedido.'
+    );
+  }
+
+  await inserirConta(context, {
+    id: globalThis.crypto.randomUUID(),
+    filial_id: context.filialId,
+    pedido_id: input.pedido_id,
+    pedido_num: input.pedido_num ?? null,
+    cliente_id: input.cliente_id ?? null,
+    cliente: input.cliente,
+    valor: input.valor,
+    vencimento,
+    status: 'pendente'
+  });
+}
+
 /**
  * Gera conta a receber quando um pedido vira "entregue" pela primeira vez,
  * se o prazo tiver dias configurados (7d, 15d, 30d, 60d).
@@ -48,35 +100,23 @@ export async function gerarContaSeNecessario(
   const vencimento = calcVencimento(input.data, input.prazo);
   if (!vencimento) return;
 
-  const conta = {
-    id: globalThis.crypto.randomUUID(),
-    filial_id: context.filialId,
-    pedido_id: input.pedido_id,
-    pedido_num: input.pedido_num ?? null,
-    cliente_id: input.cliente_id ?? null,
-    cliente: input.cliente,
-    valor: input.valor,
-    vencimento,
-    status: 'pendente'
-  };
-
-  const res = await fetch(`${context.url}/rest/v1/contas_receber`, {
-    method: 'POST',
-    headers: {
-      apikey: context.key,
-      Authorization: `Bearer ${context.token}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates'
-    },
-    body: JSON.stringify(conta),
-    signal: AbortSignal.timeout(12000)
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
+  try {
+    await inserirConta(context, {
+      id: globalThis.crypto.randomUUID(),
+      filial_id: context.filialId,
+      pedido_id: input.pedido_id,
+      pedido_num: input.pedido_num ?? null,
+      cliente_id: input.cliente_id ?? null,
+      cliente: input.cliente,
+      valor: input.valor,
+      vencimento,
+      status: 'pendente'
+    });
+  } catch (err) {
+    // Falha silenciosa no automático — mesma política do legado
     console.error(
-      `[pedidos-react] Falha ao gerar conta a receber para pedido #${input.pedido_num}: ${res.status} ${text}`
+      `[pedidos-react] Falha ao gerar conta a receber para pedido #${input.pedido_num}:`,
+      err
     );
-    // Não lança erro — mesma política do legado (falha silenciosa no background)
   }
 }

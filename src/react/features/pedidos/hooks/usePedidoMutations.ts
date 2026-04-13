@@ -3,7 +3,11 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { savePedido, updatePedidoStatus, type PedidoSaveInput } from '../services/pedidosApi';
-import { gerarContaSeNecessario, type ContaReceberInput } from '../services/contasReceberApi';
+import {
+  gerarContaSeNecessario,
+  gerarContaForcado,
+  type ContaReceberInput
+} from '../services/contasReceberApi';
 import { NEXT_STATUS, normalizePedStatus } from '../types';
 
 export function usePedidoMutations() {
@@ -111,5 +115,42 @@ export function usePedidoMutations() {
     gerarContaSeNecessario(context, contaInput, full.status, statusAnterior).catch(() => undefined);
   }
 
-  return { avancarStatus, cancelarPedido, reabrirPedido, submitPedido, inFlight };
+  /**
+   * Gera conta a receber manualmente para pedido já entregue.
+   * Diferente do automático, lança erro visível se prazo não tiver dias configurados.
+   * Retorna mensagem de resultado para exibir ao usuário.
+   */
+  async function gerarContaManual(pedido: {
+    id: string;
+    num?: number;
+    cliente_id?: string | null;
+    cli?: string;
+    total?: number;
+    data?: string;
+    prazo?: string;
+    [key: string]: unknown;
+  }): Promise<string> {
+    const context = resolveContext();
+    if (inFlight.has(pedido.id)) return 'Operação em andamento...';
+    setInFlight(pedido.id, true);
+    try {
+      const contaInput: ContaReceberInput = {
+        pedido_id: pedido.id,
+        pedido_num: pedido.num ?? 0,
+        cliente_id: pedido.cliente_id ?? null,
+        cliente: pedido.cli ?? '',
+        valor: pedido.total ?? 0,
+        data: pedido.data as string | undefined,
+        prazo: pedido.prazo as string | undefined
+      };
+      await gerarContaForcado(context, contaInput);
+      return 'Conta a receber gerada com sucesso.';
+    } catch (err) {
+      return err instanceof Error ? err.message : 'Erro ao gerar conta a receber.';
+    } finally {
+      setInFlight(pedido.id, false);
+    }
+  }
+
+  return { avancarStatus, cancelarPedido, reabrirPedido, submitPedido, gerarContaManual, inFlight };
 }

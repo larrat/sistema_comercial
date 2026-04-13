@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { PedidoItemsSection } from './PedidoItemsSection';
@@ -56,7 +57,9 @@ function parseItens(pedido: Pedido): PedidoItem[] {
 }
 
 export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
-  const { avancarStatus, cancelarPedido, reabrirPedido, inFlight } = usePedidoMutations();
+  const { avancarStatus, cancelarPedido, reabrirPedido, gerarContaManual, inFlight } =
+    usePedidoMutations();
+  const [contaMsg, setContaMsg] = useState<string | null>(null);
   const status = normalizePedStatus(pedido.status);
   const badgeClass = STATUS_BADGE[status] ?? 'bdg bk';
   const statusLabel = STATUS_LABEL[status] ?? status;
@@ -151,7 +154,28 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
               Reabrir
             </button>
           )}
+          {status === 'entregue' && (
+            <button
+              className="btn btn-sm"
+              disabled={isInFlight}
+              onClick={() => {
+                setContaMsg(null);
+                void gerarContaManual(pedido).then((msg) => setContaMsg(msg));
+              }}
+              data-testid="pedido-detail-gerar-conta"
+            >
+              {isInFlight ? '...' : 'Gerar A Receber'}
+            </button>
+          )}
         </div>
+        {contaMsg && (
+          <div
+            className={`bdg ${contaMsg.startsWith('Conta') ? 'bg' : 'br'}`}
+            style={{ marginTop: '0.5rem', display: 'block', padding: '0.5rem' }}
+          >
+            {contaMsg}
+          </div>
+        )}
       </div>
     </div>
   );
