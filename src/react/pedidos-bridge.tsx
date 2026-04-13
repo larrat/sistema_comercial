@@ -29,6 +29,10 @@ function PedidosApp() {
 }
 
 function mountPedidos(el: HTMLElement) {
+  // Re-hidrata com os globais que entrar() setou nesta sessão (se disponíveis).
+  // Isso garante que filialId e sessão estejam prontos antes do primeiro render,
+  // mesmo que o usuário não tenha feito login após o localStorage ser escrito.
+  hydrateBridgeStores();
   reactRoot = createRoot(el);
   reactRoot.render(
     <StrictMode>

@@ -129,40 +129,65 @@ function E(e, t) {
   let r = e ? new Date(e + `T00:00:00`) : new Date();
   return (r.setDate(r.getDate() + n), r.toISOString().split(`T`)[0]);
 }
-async function D(e, t, n, r) {
-  if (h(n) !== `entregue` || h(r) === `entregue`) return;
-  let i = E(t.data, t.prazo);
-  if (!i) return;
-  let a = {
-      id: globalThis.crypto.randomUUID(),
-      filial_id: e.filialId,
-      pedido_id: t.pedido_id,
-      pedido_num: t.pedido_num ?? null,
-      cliente_id: t.cliente_id ?? null,
-      cliente: t.cliente,
-      valor: t.valor,
-      vencimento: i,
-      status: `pendente`
+async function D(e, t) {
+  let n = await fetch(`${e.url}/rest/v1/contas_receber`, {
+    method: `POST`,
+    headers: {
+      apikey: e.key,
+      Authorization: `Bearer ${e.token}`,
+      'Content-Type': `application/json`,
+      Prefer: `resolution=merge-duplicates`
     },
-    o = await fetch(`${e.url}/rest/v1/contas_receber`, {
-      method: `POST`,
-      headers: {
-        apikey: e.key,
-        Authorization: `Bearer ${e.token}`,
-        'Content-Type': `application/json`,
-        Prefer: `resolution=merge-duplicates`
-      },
-      body: JSON.stringify(a),
-      signal: AbortSignal.timeout(12e3)
-    });
-  if (!o.ok) {
-    let e = await o.text().catch(() => ``);
-    console.error(
-      `[pedidos-react] Falha ao gerar conta a receber para pedido #${t.pedido_num}: ${o.status} ${e}`
-    );
+    body: JSON.stringify(t),
+    signal: AbortSignal.timeout(12e3)
+  });
+  if (!n.ok) {
+    let e = await n.text().catch(() => ``);
+    throw Error(`Falha ao salvar conta a receber: ${n.status} ${e}`);
   }
 }
-function O() {
+async function O(e, t) {
+  let n = E(t.data, t.prazo);
+  if (!n)
+    throw Error(
+      `Prazo "${t.prazo || `não definido`}" não gera conta a receber. Use prazo de 7d, 15d, 30d ou 60d no pedido.`
+    );
+  await D(e, {
+    id: globalThis.crypto.randomUUID(),
+    filial_id: e.filialId,
+    pedido_id: t.pedido_id,
+    pedido_num: t.pedido_num ?? null,
+    cliente_id: t.cliente_id ?? null,
+    cliente: t.cliente,
+    valor: t.valor,
+    vencimento: n,
+    status: `pendente`
+  });
+}
+async function k(e, t, n, r) {
+  if (h(n) !== `entregue` || h(r) === `entregue`) return;
+  let i = E(t.data, t.prazo);
+  if (i)
+    try {
+      await D(e, {
+        id: globalThis.crypto.randomUUID(),
+        filial_id: e.filialId,
+        pedido_id: t.pedido_id,
+        pedido_num: t.pedido_num ?? null,
+        cliente_id: t.cliente_id ?? null,
+        cliente: t.cliente,
+        valor: t.valor,
+        vencimento: i,
+        status: `pendente`
+      });
+    } catch (e) {
+      console.error(
+        `[pedidos-react] Falha ao gerar conta a receber para pedido #${t.pedido_num}:`,
+        e
+      );
+    }
+}
+function A() {
   let t = v((e) => e.upsertPedido),
     r = v((e) => e.setInFlight),
     i = v((e) => e.inFlight),
@@ -185,7 +210,7 @@ function O() {
       (await w(o, e.id, a),
         t({ ...e, status: a }),
         a === `entregue` &&
-          D(
+          k(
             o,
             {
               pedido_id: e.id,
@@ -231,7 +256,7 @@ function O() {
       a = { ...e, filial_id: n.filialId };
     (await C(n, a),
       t(a),
-      D(
+      k(
         n,
         {
           pedido_id: a.id,
@@ -246,56 +271,86 @@ function O() {
         i
       ).catch(() => void 0));
   }
-  return { avancarStatus: l, cancelarPedido: u, reabrirPedido: d, submitPedido: f, inFlight: i };
+  async function m(e) {
+    let t = c();
+    if (i.has(e.id)) return `Operação em andamento...`;
+    r(e.id, !0);
+    try {
+      return (
+        await O(t, {
+          pedido_id: e.id,
+          pedido_num: e.num ?? 0,
+          cliente_id: e.cliente_id ?? null,
+          cliente: e.cli ?? ``,
+          valor: e.total ?? 0,
+          data: e.data,
+          prazo: e.prazo
+        }),
+        `Conta a receber gerada com sucesso.`
+      );
+    } catch (e) {
+      return e instanceof Error ? e.message : `Erro ao gerar conta a receber.`;
+    } finally {
+      r(e.id, !1);
+    }
+  }
+  return {
+    avancarStatus: l,
+    cancelarPedido: u,
+    reabrirPedido: d,
+    submitPedido: f,
+    gerarContaManual: m,
+    inFlight: i
+  };
 }
-var k = i(),
-  A = {
+var j = i(),
+  M = {
     orcamento: `bdg bk`,
     confirmado: `bdg bb`,
     em_separacao: `bdg ba`,
     entregue: `bdg bg`,
     cancelado: `bdg br`
   },
-  j = {
+  N = {
     orcamento: `Orçamento`,
     confirmado: `Confirmado`,
     em_separacao: `Em separação`,
     entregue: `Entregue`,
     cancelado: `Cancelado`
   };
-function M(e) {
+function P(e) {
   return (e ?? 0).toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function N({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, onDetalhe: a }) {
+function F({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, onDetalhe: a }) {
   let o = h(e.status),
-    s = A[o] ?? `bdg bk`,
-    c = j[o] ?? o,
+    s = M[o] ?? `bdg bk`,
+    c = N[o] ?? o,
     l = p[o],
     u = m[o];
-  return (0, k.jsxs)(`div`, {
+  return (0, j.jsxs)(`div`, {
     className: `list-row`,
     'data-testid': `pedido-row-${e.id}`,
     children: [
-      (0, k.jsxs)(`div`, {
+      (0, j.jsxs)(`div`, {
         className: `list-row-main`,
         children: [
-          (0, k.jsxs)(`button`, {
+          (0, j.jsxs)(`button`, {
             className: `btn-link list-row-title`,
             onClick: () => a(e.id),
             'data-testid': `pedido-row-title-${e.id}`,
             children: [`#`, e.num, ` — `, e.cli || `—`]
           }),
-          (0, k.jsx)(`span`, { className: s, children: c }),
-          e.data && (0, k.jsx)(`span`, { className: `list-row-meta`, children: e.data }),
-          (0, k.jsx)(`span`, { className: `list-row-meta`, children: M(e.total) })
+          (0, j.jsx)(`span`, { className: s, children: c }),
+          e.data && (0, j.jsx)(`span`, { className: `list-row-meta`, children: e.data }),
+          (0, j.jsx)(`span`, { className: `list-row-meta`, children: P(e.total) })
         ]
       }),
-      (0, k.jsxs)(`div`, {
+      (0, j.jsxs)(`div`, {
         className: `list-row-actions`,
         children: [
           l &&
             u &&
-            (0, k.jsx)(`button`, {
+            (0, j.jsx)(`button`, {
               className: `btn btn-sm`,
               disabled: t,
               onClick: n,
@@ -304,7 +359,7 @@ function N({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, 
             }),
           o !== `cancelado` &&
             o !== `entregue` &&
-            (0, k.jsx)(`button`, {
+            (0, j.jsx)(`button`, {
               className: `btn btn-sm btn-danger`,
               disabled: t,
               onClick: r,
@@ -312,7 +367,7 @@ function N({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, 
               children: `Cancelar`
             }),
           o === `cancelado` &&
-            (0, k.jsx)(`button`, {
+            (0, j.jsx)(`button`, {
               className: `btn btn-sm`,
               disabled: t,
               onClick: i,
@@ -324,18 +379,18 @@ function N({ pedido: e, inFlight: t, onAvancar: n, onCancelar: r, onReabrir: i, 
     ]
   });
 }
-var P = [
+var I = [
     { id: `emaberto`, label: `Em Aberto` },
     { id: `entregues`, label: `Entregues` },
     { id: `cancelados`, label: `Cancelados` }
   ],
-  F = [
+  L = [
     { value: ``, label: `Todos` },
     { value: `orcamento`, label: `Orçamento` },
     { value: `confirmado`, label: `Confirmado` },
     { value: `em_separacao`, label: `Em separação` }
   ];
-function I({ onNovoPedido: e, onDetalhe: t }) {
+function R({ onNovoPedido: e, onDetalhe: t }) {
   let n = v((e) => e.activeTab),
     r = v((e) => e.setActiveTab),
     i = v((e) => e.filtro),
@@ -343,15 +398,15 @@ function I({ onNovoPedido: e, onDetalhe: t }) {
     o = v((e) => e.status),
     s = v((e) => e.error),
     c = v(l(_)),
-    { avancarStatus: u, cancelarPedido: d, reabrirPedido: f, inFlight: p } = O();
-  return (0, k.jsxs)(`div`, {
+    { avancarStatus: u, cancelarPedido: d, reabrirPedido: f, inFlight: p } = A();
+  return (0, j.jsxs)(`div`, {
     className: `screen-content`,
     'data-testid': `pedido-list-view`,
     children: [
-      (0, k.jsx)(`div`, {
+      (0, j.jsx)(`div`, {
         className: `tabs`,
-        children: P.map((e) =>
-          (0, k.jsx)(
+        children: I.map((e) =>
+          (0, j.jsx)(
             `button`,
             {
               className: `tb${n === e.id ? ` on` : ``}`,
@@ -362,16 +417,16 @@ function I({ onNovoPedido: e, onDetalhe: t }) {
           )
         )
       }),
-      (0, k.jsxs)(`div`, {
+      (0, j.jsxs)(`div`, {
         className: `card card-shell`,
         children: [
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             className: `toolbar toolbar-shell toolbar-shell--section`,
             children: [
-              (0, k.jsxs)(`div`, {
+              (0, j.jsxs)(`div`, {
                 className: `toolbar-main`,
                 children: [
-                  (0, k.jsx)(`input`, {
+                  (0, j.jsx)(`input`, {
                     className: `inp input-w-sm`,
                     placeholder: `Cliente ou número...`,
                     value: i.q,
@@ -379,20 +434,20 @@ function I({ onNovoPedido: e, onDetalhe: t }) {
                     'data-testid': `pedido-busca`
                   }),
                   n === `emaberto` &&
-                    (0, k.jsx)(`select`, {
+                    (0, j.jsx)(`select`, {
                       className: `inp sel select-w-sm`,
                       value: i.status,
                       onChange: (e) => a({ status: e.target.value }),
                       'data-testid': `pedido-filtro-status`,
-                      children: F.map((e) =>
-                        (0, k.jsx)(`option`, { value: e.value, children: e.label }, e.value)
+                      children: L.map((e) =>
+                        (0, j.jsx)(`option`, { value: e.value, children: e.label }, e.value)
                       )
                     })
                 ]
               }),
-              (0, k.jsx)(`div`, {
+              (0, j.jsx)(`div`, {
                 className: `toolbar-actions`,
-                children: (0, k.jsx)(`button`, {
+                children: (0, j.jsx)(`button`, {
                   className: `btn btn-sm btn-p`,
                   onClick: e,
                   'data-testid': `pedido-novo-btn`,
@@ -402,32 +457,32 @@ function I({ onNovoPedido: e, onDetalhe: t }) {
             ]
           }),
           o === `loading` &&
-            (0, k.jsx)(`div`, {
+            (0, j.jsx)(`div`, {
               className: `empty`,
               'data-testid': `pedido-loading`,
-              children: (0, k.jsx)(`p`, { children: `Carregando pedidos...` })
+              children: (0, j.jsx)(`p`, { children: `Carregando pedidos...` })
             }),
           o === `error` &&
-            (0, k.jsx)(`div`, {
+            (0, j.jsx)(`div`, {
               className: `empty`,
               'data-testid': `pedido-error`,
-              children: (0, k.jsx)(`p`, { children: s })
+              children: (0, j.jsx)(`p`, { children: s })
             }),
           o === `ready` &&
             c.length === 0 &&
-            (0, k.jsx)(`div`, {
+            (0, j.jsx)(`div`, {
               className: `empty`,
               'data-testid': `pedido-empty`,
-              children: (0, k.jsx)(`p`, { children: `Nenhum pedido encontrado.` })
+              children: (0, j.jsx)(`p`, { children: `Nenhum pedido encontrado.` })
             }),
           o === `ready` &&
             c.length > 0 &&
-            (0, k.jsx)(`div`, {
+            (0, j.jsx)(`div`, {
               className: `list`,
               'data-testid': `pedido-list`,
               children: c.map((e) =>
-                (0, k.jsx)(
-                  N,
+                (0, j.jsx)(
+                  F,
                   {
                     pedido: e,
                     inFlight: p.has(e.id),
@@ -445,7 +500,7 @@ function I({ onNovoPedido: e, onDetalhe: t }) {
     ]
   });
 }
-async function L(e) {
+async function z(e) {
   let t = await fetch(
       `${e.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(e.filialId)}&select=id,nome,rca_id,rca_nome&order=nome`,
       {
@@ -462,11 +517,11 @@ async function L(e) {
   if (!t.ok) throw Error(`Erro ${t.status} ao carregar clientes`);
   return Array.isArray(r) ? r : [];
 }
-function R(e, t) {
+function B(e, t) {
   let n = t.trim().toLowerCase();
   return n ? (e.find((e) => e.id === t.trim() || e.nome.trim().toLowerCase() === n) ?? null) : null;
 }
-async function z(e) {
+async function V(e) {
   let t = await fetch(
       `${e.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(e.filialId)}&order=nome`,
       {
@@ -483,7 +538,7 @@ async function z(e) {
   if (!t.ok) throw Error(`Erro ${t.status} ao carregar produtos`);
   return Array.isArray(r) ? r : [];
 }
-async function B(e) {
+async function H(e) {
   let t = await fetch(
       `${e.url}/rest/v1/rcas?filial_id=eq.${encodeURIComponent(e.filialId)}&order=nome`,
       {
@@ -500,9 +555,9 @@ async function B(e) {
   if (!t.ok) throw Error(`Erro ${t.status} ao carregar RCAs`);
   return Array.isArray(r) ? r : [];
 }
-var V = { produtos: [], clientes: [], rcas: [], loading: !1, error: null };
-function ee() {
-  let [t, r] = (0, u.useState)({ ...V, loading: !0 }),
+var U = { produtos: [], clientes: [], rcas: [], loading: !1, error: null };
+function W() {
+  let [t, r] = (0, u.useState)({ ...U, loading: !0 }),
     i = (0, u.useRef)(!1),
     a = n((e) => e.session),
     s = o((e) => e.filialId);
@@ -510,24 +565,24 @@ function ee() {
     (0, u.useEffect)(() => {
       if (i.current) return;
       if (!a?.access_token || !s) {
-        r({ ...V, error: `Sessão ou filial ausente.` });
+        r({ ...U, error: `Sessão ou filial ausente.` });
         return;
       }
       let { url: t, key: n, ready: o } = e();
       if (!o) {
-        r({ ...V, error: `Configuração do Supabase ausente.` });
+        r({ ...U, error: `Configuração do Supabase ausente.` });
         return;
       }
       i.current = !0;
       let c = { url: t, key: n, token: a.access_token, filialId: s };
-      Promise.all([z(c), L(c), B(c)])
+      Promise.all([V(c), z(c), H(c)])
         .then(([e, t, n]) => {
           r({ produtos: e, clientes: t, rcas: n, loading: !1, error: null });
         })
         .catch((e) => {
           ((i.current = !1),
             r({
-              ...V,
+              ...U,
               loading: !1,
               error: e instanceof Error ? e.message : `Erro ao carregar dados do formulário.`
             }));
@@ -536,7 +591,7 @@ function ee() {
     t
   );
 }
-function H(e, t) {
+function G(e, t) {
   let n = e.mkv ?? 0,
     r = e.mka ?? 0,
     i = e.pfa ?? 0,
@@ -549,7 +604,7 @@ function H(e, t) {
       ? a * (1 + n / 100)
       : a;
 }
-function U({ produtos: e, tipo: t, onAdd: n }) {
+function K({ produtos: e, tipo: t, onAdd: n }) {
   let [r, i] = (0, u.useState)(``),
     [a, o] = (0, u.useState)(`1`),
     [s, c] = (0, u.useState)(``),
@@ -563,7 +618,7 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
     }
     let r = e.find((e) => e.id === n);
     if (!r) return;
-    let a = H(r, t);
+    let a = G(r, t);
     (s || c(String(a > 0 ? a.toFixed(2) : ``)),
       l || d(String(r.custo > 0 ? r.custo.toFixed(2) : ``)));
   }
@@ -575,7 +630,7 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
     let u = e.find((e) => e.id === r);
     if (!u) return;
     let m = parseFloat(a) || 1,
-      g = parseFloat(s) || H(u, t),
+      g = parseFloat(s) || G(u, t),
       _ = parseFloat(l) || u.custo || 0;
     (n({
       prodId: r,
@@ -585,7 +640,7 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
       preco: g,
       custo: _,
       custo_base: u.custo,
-      preco_base: H(u, t),
+      preco_base: G(u, t),
       orig: f
     }),
       i(``),
@@ -595,37 +650,37 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
       p(`estoque`),
       h(null));
   }
-  return (0, k.jsxs)(`div`, {
+  return (0, j.jsxs)(`div`, {
     'data-testid': `pedido-item-add`,
     children: [
       m &&
-        (0, k.jsx)(`div`, {
+        (0, j.jsx)(`div`, {
           className: `empty-inline`,
           style: { color: `var(--color-danger)` },
           children: m
         }),
-      (0, k.jsxs)(`div`, {
+      (0, j.jsxs)(`div`, {
         className: `fg c5 form-gap-bottom-xxs`,
         children: [
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             children: [
-              (0, k.jsx)(`div`, { className: `fl`, children: `Produto` }),
-              (0, k.jsxs)(`select`, {
+              (0, j.jsx)(`div`, { className: `fl`, children: `Produto` }),
+              (0, j.jsxs)(`select`, {
                 className: `inp sel`,
                 value: r,
                 onChange: (e) => g(e.target.value),
                 'data-testid': `pedido-item-prod`,
                 children: [
-                  (0, k.jsx)(`option`, { value: ``, children: `- selecione -` }),
-                  e.map((e) => (0, k.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
+                  (0, j.jsx)(`option`, { value: ``, children: `- selecione -` }),
+                  e.map((e) => (0, j.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
                 ]
               })
             ]
           }),
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             children: [
-              (0, k.jsx)(`div`, { className: `fl`, children: `Quantidade` }),
-              (0, k.jsx)(`input`, {
+              (0, j.jsx)(`div`, { className: `fl`, children: `Quantidade` }),
+              (0, j.jsx)(`input`, {
                 className: `inp`,
                 type: `number`,
                 min: `1`,
@@ -635,10 +690,10 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
               })
             ]
           }),
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             children: [
-              (0, k.jsx)(`div`, { className: `fl`, children: `Preço unit. (R$)` }),
-              (0, k.jsx)(`input`, {
+              (0, j.jsx)(`div`, { className: `fl`, children: `Preço unit. (R$)` }),
+              (0, j.jsx)(`input`, {
                 className: `inp`,
                 type: `number`,
                 step: `0.01`,
@@ -649,10 +704,10 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
               })
             ]
           }),
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             children: [
-              (0, k.jsx)(`div`, { className: `fl`, children: `Custo aplicado (R$)` }),
-              (0, k.jsx)(`input`, {
+              (0, j.jsx)(`div`, { className: `fl`, children: `Custo aplicado (R$)` }),
+              (0, j.jsx)(`input`, {
                 className: `inp`,
                 type: `number`,
                 step: `0.01`,
@@ -663,26 +718,26 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
               })
             ]
           }),
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             children: [
-              (0, k.jsx)(`div`, { className: `fl`, children: `Origem` }),
-              (0, k.jsxs)(`select`, {
+              (0, j.jsx)(`div`, { className: `fl`, children: `Origem` }),
+              (0, j.jsxs)(`select`, {
                 className: `inp sel`,
                 value: f,
                 onChange: (e) => p(e.target.value),
                 'data-testid': `pedido-item-orig`,
                 children: [
-                  (0, k.jsx)(`option`, { value: `estoque`, children: `Estoque` }),
-                  (0, k.jsx)(`option`, { value: `fornecedor`, children: `Fornecedor` })
+                  (0, j.jsx)(`option`, { value: `estoque`, children: `Estoque` }),
+                  (0, j.jsx)(`option`, { value: `fornecedor`, children: `Fornecedor` })
                 ]
               })
             ]
           })
         ]
       }),
-      (0, k.jsx)(`div`, {
+      (0, j.jsx)(`div`, {
         className: `modal-actions modal-actions-inline`,
-        children: (0, k.jsx)(`button`, {
+        children: (0, j.jsx)(`button`, {
           className: `btn btn-sm`,
           type: `button`,
           onClick: _,
@@ -693,35 +748,35 @@ function U({ produtos: e, tipo: t, onAdd: n }) {
     ]
   });
 }
-function W(e) {
+function q(e) {
   return e.toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function te({ item: e, index: t, readOnly: n, onRemove: r }) {
+function J({ item: e, index: t, readOnly: n, onRemove: r }) {
   let i = e.qty * e.preco,
     a = (e.preco - e.custo) * e.qty,
     o = e.preco > 0 ? ((e.preco - e.custo) / e.preco) * 100 : 0;
-  return (0, k.jsxs)(`tr`, {
+  return (0, j.jsxs)(`tr`, {
     'data-testid': `pedido-item-row-${t}`,
     children: [
-      (0, k.jsx)(`td`, { className: `table-cell-strong`, children: e.nome }),
-      (0, k.jsx)(`td`, {
-        children: (0, k.jsx)(`span`, {
+      (0, j.jsx)(`td`, { className: `table-cell-strong`, children: e.nome }),
+      (0, j.jsx)(`td`, {
+        children: (0, j.jsx)(`span`, {
           className: `bdg ${e.orig === `estoque` ? `bg` : `bb`}`,
           children: e.orig === `estoque` ? `Estoque` : `Fornecedor`
         })
       }),
-      (0, k.jsxs)(`td`, { children: [e.qty, ` `, e.un] }),
-      (0, k.jsx)(`td`, { className: `table-cell-muted`, children: W(e.custo) }),
-      (0, k.jsx)(`td`, { children: W(e.preco) }),
-      (0, k.jsx)(`td`, { className: `table-cell-strong`, children: W(i) }),
-      (0, k.jsx)(`td`, {
+      (0, j.jsxs)(`td`, { children: [e.qty, ` `, e.un] }),
+      (0, j.jsx)(`td`, { className: `table-cell-muted`, children: q(e.custo) }),
+      (0, j.jsx)(`td`, { children: q(e.preco) }),
+      (0, j.jsx)(`td`, { className: `table-cell-strong`, children: q(i) }),
+      (0, j.jsx)(`td`, {
         className: `table-cell-strong ${a >= 0 ? `table-cell-success` : `table-cell-danger`}`,
-        children: W(a)
+        children: q(a)
       }),
-      (0, k.jsxs)(`td`, { className: `table-cell-strong`, children: [o.toFixed(1), `%`] }),
+      (0, j.jsxs)(`td`, { className: `table-cell-strong`, children: [o.toFixed(1), `%`] }),
       !n &&
-        (0, k.jsx)(`td`, {
-          children: (0, k.jsx)(`button`, {
+        (0, j.jsx)(`td`, {
+          children: (0, j.jsx)(`button`, {
             className: `btn btn-sm`,
             type: `button`,
             onClick: () => r?.(t),
@@ -732,62 +787,62 @@ function te({ item: e, index: t, readOnly: n, onRemove: r }) {
     ]
   });
 }
-function G(e) {
+function Y(e) {
   return e.toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function K({ itens: e, produtos: t, tipo: n, readOnly: r, onAdd: i, onRemove: a }) {
+function X({ itens: e, produtos: t, tipo: n, readOnly: r, onAdd: i, onRemove: a }) {
   let o = e.reduce((e, t) => e + t.qty * t.preco, 0),
     s = e.reduce((e, t) => e + (t.preco - t.custo) * t.qty, 0);
-  return (0, k.jsxs)(`div`, {
+  return (0, j.jsxs)(`div`, {
     'data-testid': `pedido-items-section`,
     children: [
-      (0, k.jsx)(`div`, { className: `div` }),
-      (0, k.jsx)(`div`, { className: `ct`, children: `Itens do pedido` }),
-      !r && i && (0, k.jsx)(U, { produtos: t, tipo: n, onAdd: i }),
+      (0, j.jsx)(`div`, { className: `div` }),
+      (0, j.jsx)(`div`, { className: `ct`, children: `Itens do pedido` }),
+      !r && i && (0, j.jsx)(K, { produtos: t, tipo: n, onAdd: i }),
       e.length === 0
-        ? (0, k.jsx)(`div`, { className: `empty-inline`, children: `Nenhum item.` })
-        : (0, k.jsxs)(k.Fragment, {
+        ? (0, j.jsx)(`div`, { className: `empty-inline`, children: `Nenhum item.` })
+        : (0, j.jsxs)(j.Fragment, {
             children: [
-              (0, k.jsx)(`div`, {
+              (0, j.jsx)(`div`, {
                 className: `tw ped-items-wrap`,
-                children: (0, k.jsxs)(`table`, {
+                children: (0, j.jsxs)(`table`, {
                   className: `tbl ped-items-table`,
                   children: [
-                    (0, k.jsx)(`thead`, {
-                      children: (0, k.jsxs)(`tr`, {
+                    (0, j.jsx)(`thead`, {
+                      children: (0, j.jsxs)(`tr`, {
                         children: [
-                          (0, k.jsx)(`th`, { children: `Produto` }),
-                          (0, k.jsx)(`th`, { children: `Origem` }),
-                          (0, k.jsx)(`th`, { children: `Qtd` }),
-                          (0, k.jsx)(`th`, { children: `Custo` }),
-                          (0, k.jsx)(`th`, { children: `Preço` }),
-                          (0, k.jsx)(`th`, { children: `Subtotal` }),
-                          (0, k.jsx)(`th`, { children: `Lucro` }),
-                          (0, k.jsx)(`th`, { children: `Margem` }),
-                          !r && (0, k.jsx)(`th`, {})
+                          (0, j.jsx)(`th`, { children: `Produto` }),
+                          (0, j.jsx)(`th`, { children: `Origem` }),
+                          (0, j.jsx)(`th`, { children: `Qtd` }),
+                          (0, j.jsx)(`th`, { children: `Custo` }),
+                          (0, j.jsx)(`th`, { children: `Preço` }),
+                          (0, j.jsx)(`th`, { children: `Subtotal` }),
+                          (0, j.jsx)(`th`, { children: `Lucro` }),
+                          (0, j.jsx)(`th`, { children: `Margem` }),
+                          !r && (0, j.jsx)(`th`, {})
                         ]
                       })
                     }),
-                    (0, k.jsx)(`tbody`, {
+                    (0, j.jsx)(`tbody`, {
                       children: e.map((e, t) =>
-                        (0, k.jsx)(te, { item: e, index: t, readOnly: r, onRemove: a }, t)
+                        (0, j.jsx)(J, { item: e, index: t, readOnly: r, onRemove: a }, t)
                       )
                     })
                   ]
                 })
               }),
-              (0, k.jsx)(`div`, {
+              (0, j.jsx)(`div`, {
                 className: `panel ped-total-panel`,
-                children: (0, k.jsxs)(`div`, {
+                children: (0, j.jsxs)(`div`, {
                   className: `fb`,
                   children: [
-                    (0, k.jsx)(`span`, {
+                    (0, j.jsx)(`span`, {
                       className: `ped-total-label`,
                       children: `Total do pedido`
                     }),
-                    (0, k.jsxs)(`span`, {
+                    (0, j.jsxs)(`span`, {
                       className: `ped-total-value`,
-                      children: [G(o), ` | Lucro `, G(s)]
+                      children: [Y(o), ` | Lucro `, Y(s)]
                     })
                   ]
                 })
@@ -797,17 +852,17 @@ function K({ itens: e, produtos: t, tipo: n, readOnly: r, onAdd: i, onRemove: a 
     ]
   });
 }
-function q() {
+function Z() {
   return new Date().toISOString().split(`T`)[0];
 }
-function J(e) {
+function Q(e) {
   let t = e.map((e) => e.num).filter((e) => typeof e == `number` && !isNaN(e));
   return t.length ? Math.max(...t) + 1 : 1;
 }
-function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
+function ee({ initialPedido: e, onSaved: t, onCancel: n }) {
   let r = v((e) => e.pedidos),
-    { submitPedido: i } = O(),
-    { produtos: a, clientes: o, rcas: s, loading: c, error: l } = ee(),
+    { submitPedido: i } = A(),
+    { produtos: a, clientes: o, rcas: s, loading: c, error: l } = W(),
     d = e
       ? Array.isArray(e.itens)
         ? e.itens
@@ -821,19 +876,19 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
       : [],
     [f, p] = (0, u.useState)(e?.cli ?? ``),
     [m, g] = (0, u.useState)(e?.rca_id ?? ``),
-    [_, y] = (0, u.useState)(e?.data ?? q()),
+    [_, y] = (0, u.useState)(e?.data ?? Z()),
     [b, x] = (0, u.useState)(h(e?.status) || `orcamento`),
     [S, C] = (0, u.useState)(e?.pgto ?? `a_vista`),
     [w, T] = (0, u.useState)(e?.prazo ?? `imediato`),
     [E, D] = (0, u.useState)(e?.tipo ?? `varejo`),
-    [A, j] = (0, u.useState)(e?.obs ?? ``),
+    [O, k] = (0, u.useState)(e?.obs ?? ``),
     [M, N] = (0, u.useState)(d),
     [P, F] = (0, u.useState)(!1),
     [I, L] = (0, u.useState)(null);
-  function z(e) {
+  function R(e) {
     N((t) => [...t, e]);
   }
-  function B(e) {
+  function z(e) {
     N((t) => t.filter((t, n) => n !== e));
   }
   async function V(n) {
@@ -843,7 +898,7 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
       L(`Cliente é obrigatório.`);
       return;
     }
-    let c = R(o, a);
+    let c = B(o, a);
     if (!c) {
       L(`Cliente inválido. Escolha um cliente cadastrado na lista.`);
       return;
@@ -856,7 +911,7 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
       u = M.reduce((e, t) => e + t.qty * t.preco, 0),
       d = {
         id: e?.id ?? globalThis.crypto.randomUUID(),
-        num: e?.num ?? J(r),
+        num: e?.num ?? Q(r),
         cli: c.nome,
         cliente_id: c.id,
         rca_id: m || null,
@@ -866,7 +921,7 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
         pgto: S,
         prazo: w,
         tipo: E,
-        obs: A.trim(),
+        obs: O.trim(),
         itens: M,
         total: u
       };
@@ -879,44 +934,44 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
       F(!1);
     }
   }
-  return (0, k.jsxs)(`div`, {
+  return (0, j.jsxs)(`div`, {
     className: `card card-shell`,
     'data-testid': `pedido-form`,
     children: [
-      (0, k.jsx)(`div`, {
+      (0, j.jsx)(`div`, {
         className: `modal-shell-head`,
-        children: (0, k.jsx)(`div`, {
+        children: (0, j.jsx)(`div`, {
           className: `mt`,
           children: e ? `Editar pedido #${e.num}` : `Novo pedido`
         })
       }),
       c &&
-        (0, k.jsx)(`div`, {
+        (0, j.jsx)(`div`, {
           className: `empty`,
-          children: (0, k.jsx)(`p`, { children: `Carregando dados do formulário...` })
+          children: (0, j.jsx)(`p`, { children: `Carregando dados do formulário...` })
         }),
-      l && (0, k.jsx)(`div`, { className: `empty`, children: (0, k.jsx)(`p`, { children: l }) }),
+      l && (0, j.jsx)(`div`, { className: `empty`, children: (0, j.jsx)(`p`, { children: l }) }),
       !c &&
         !l &&
-        (0, k.jsxs)(`form`, {
+        (0, j.jsxs)(`form`, {
           onSubmit: (e) => void V(e),
           children: [
-            (0, k.jsxs)(`div`, {
+            (0, j.jsxs)(`div`, {
               className: `modal-shell-body`,
               children: [
                 I &&
-                  (0, k.jsx)(`div`, {
+                  (0, j.jsx)(`div`, {
                     className: `empty-inline`,
                     style: { color: `var(--color-danger)`, marginBottom: `0.5rem` },
                     children: I
                   }),
-                (0, k.jsxs)(`div`, {
+                (0, j.jsxs)(`div`, {
                   className: `fg c3`,
                   children: [
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `Cliente *` }),
-                        (0, k.jsx)(`input`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `Cliente *` }),
+                        (0, j.jsx)(`input`, {
                           className: `inp`,
                           list: `ped-form-cli-dl`,
                           placeholder: `Nome do cliente`,
@@ -924,33 +979,33 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
                           onChange: (e) => p(e.target.value),
                           'data-testid': `pedido-form-cli`
                         }),
-                        (0, k.jsx)(`datalist`, {
+                        (0, j.jsx)(`datalist`, {
                           id: `ped-form-cli-dl`,
-                          children: o.map((e) => (0, k.jsx)(`option`, { value: e.nome }, e.id))
+                          children: o.map((e) => (0, j.jsx)(`option`, { value: e.nome }, e.id))
                         })
                       ]
                     }),
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `RCA / Vendedor` }),
-                        (0, k.jsxs)(`select`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `RCA / Vendedor` }),
+                        (0, j.jsxs)(`select`, {
                           className: `inp sel`,
                           value: m,
                           onChange: (e) => g(e.target.value),
                           'data-testid': `pedido-form-rca`,
                           children: [
-                            (0, k.jsx)(`option`, { value: ``, children: `Sem RCA` }),
+                            (0, j.jsx)(`option`, { value: ``, children: `Sem RCA` }),
                             s.map((e) =>
-                              (0, k.jsx)(`option`, { value: e.id, children: e.nome }, e.id)
+                              (0, j.jsx)(`option`, { value: e.id, children: e.nome }, e.id)
                             )
                           ]
                         })
                       ]
                     }),
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `Data` }),
-                        (0, k.jsx)(`input`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `Data` }),
+                        (0, j.jsx)(`input`, {
                           className: `inp`,
                           type: `date`,
                           value: _,
@@ -959,96 +1014,96 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
                         })
                       ]
                     }),
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `Status` }),
-                        (0, k.jsxs)(`select`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `Status` }),
+                        (0, j.jsxs)(`select`, {
                           className: `inp sel`,
                           value: b,
                           onChange: (e) => x(e.target.value),
                           'data-testid': `pedido-form-status`,
                           children: [
-                            (0, k.jsx)(`option`, { value: `orcamento`, children: `Orçamento` }),
-                            (0, k.jsx)(`option`, { value: `confirmado`, children: `Confirmado` }),
-                            (0, k.jsx)(`option`, {
+                            (0, j.jsx)(`option`, { value: `orcamento`, children: `Orçamento` }),
+                            (0, j.jsx)(`option`, { value: `confirmado`, children: `Confirmado` }),
+                            (0, j.jsx)(`option`, {
                               value: `em_separacao`,
                               children: `Em separação`
                             }),
-                            (0, k.jsx)(`option`, { value: `entregue`, children: `Entregue` }),
-                            (0, k.jsx)(`option`, { value: `cancelado`, children: `Cancelado` })
+                            (0, j.jsx)(`option`, { value: `entregue`, children: `Entregue` }),
+                            (0, j.jsx)(`option`, { value: `cancelado`, children: `Cancelado` })
                           ]
                         })
                       ]
                     })
                   ]
                 }),
-                (0, k.jsxs)(`div`, {
+                (0, j.jsxs)(`div`, {
                   className: `fg c3`,
                   children: [
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
-                        (0, k.jsxs)(`select`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
+                        (0, j.jsxs)(`select`, {
                           className: `inp sel`,
                           value: S,
                           onChange: (e) => C(e.target.value),
                           'data-testid': `pedido-form-pgto`,
                           children: [
-                            (0, k.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
-                            (0, k.jsx)(`option`, { value: `pix`, children: `PIX` }),
-                            (0, k.jsx)(`option`, { value: `boleto`, children: `Boleto` }),
-                            (0, k.jsx)(`option`, { value: `cartao`, children: `Cartão` }),
-                            (0, k.jsx)(`option`, { value: `cheque`, children: `Cheque` })
+                            (0, j.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
+                            (0, j.jsx)(`option`, { value: `pix`, children: `PIX` }),
+                            (0, j.jsx)(`option`, { value: `boleto`, children: `Boleto` }),
+                            (0, j.jsx)(`option`, { value: `cartao`, children: `Cartão` }),
+                            (0, j.jsx)(`option`, { value: `cheque`, children: `Cheque` })
                           ]
                         })
                       ]
                     }),
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `Prazo` }),
-                        (0, k.jsxs)(`select`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `Prazo` }),
+                        (0, j.jsxs)(`select`, {
                           className: `inp sel`,
                           value: w,
                           onChange: (e) => T(e.target.value),
                           'data-testid': `pedido-form-prazo`,
                           children: [
-                            (0, k.jsx)(`option`, { value: `imediato`, children: `Imediato` }),
-                            (0, k.jsx)(`option`, { value: `7d`, children: `7 dias` }),
-                            (0, k.jsx)(`option`, { value: `15d`, children: `15 dias` }),
-                            (0, k.jsx)(`option`, { value: `30d`, children: `30 dias` }),
-                            (0, k.jsx)(`option`, { value: `60d`, children: `60 dias` })
+                            (0, j.jsx)(`option`, { value: `imediato`, children: `Imediato` }),
+                            (0, j.jsx)(`option`, { value: `7d`, children: `7 dias` }),
+                            (0, j.jsx)(`option`, { value: `15d`, children: `15 dias` }),
+                            (0, j.jsx)(`option`, { value: `30d`, children: `30 dias` }),
+                            (0, j.jsx)(`option`, { value: `60d`, children: `60 dias` })
                           ]
                         })
                       ]
                     }),
-                    (0, k.jsxs)(`div`, {
+                    (0, j.jsxs)(`div`, {
                       children: [
-                        (0, k.jsx)(`div`, { className: `fl`, children: `Tipo de venda` }),
-                        (0, k.jsxs)(`select`, {
+                        (0, j.jsx)(`div`, { className: `fl`, children: `Tipo de venda` }),
+                        (0, j.jsxs)(`select`, {
                           className: `inp sel`,
                           value: E,
                           onChange: (e) => D(e.target.value),
                           'data-testid': `pedido-form-tipo`,
                           children: [
-                            (0, k.jsx)(`option`, { value: `varejo`, children: `Varejo` }),
-                            (0, k.jsx)(`option`, { value: `atacado`, children: `Atacado` })
+                            (0, j.jsx)(`option`, { value: `varejo`, children: `Varejo` }),
+                            (0, j.jsx)(`option`, { value: `atacado`, children: `Atacado` })
                           ]
                         })
                       ]
                     })
                   ]
                 }),
-                (0, k.jsx)(K, { itens: M, produtos: a, tipo: E, onAdd: z, onRemove: B }),
-                (0, k.jsx)(`div`, {
+                (0, j.jsx)(X, { itens: M, produtos: a, tipo: E, onAdd: R, onRemove: z }),
+                (0, j.jsx)(`div`, {
                   className: `fg form-gap-top`,
-                  children: (0, k.jsxs)(`div`, {
+                  children: (0, j.jsxs)(`div`, {
                     children: [
-                      (0, k.jsx)(`div`, { className: `fl`, children: `Observações` }),
-                      (0, k.jsx)(`textarea`, {
+                      (0, j.jsx)(`div`, { className: `fl`, children: `Observações` }),
+                      (0, j.jsx)(`textarea`, {
                         className: `inp`,
                         rows: 2,
-                        value: A,
-                        onChange: (e) => j(e.target.value),
+                        value: O,
+                        onChange: (e) => k(e.target.value),
                         'data-testid': `pedido-form-obs`
                       })
                     ]
@@ -1056,19 +1111,19 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
                 })
               ]
             }),
-            (0, k.jsx)(`div`, {
+            (0, j.jsx)(`div`, {
               className: `modal-shell-foot`,
-              children: (0, k.jsxs)(`div`, {
+              children: (0, j.jsxs)(`div`, {
                 className: `modal-actions`,
                 children: [
-                  (0, k.jsx)(`button`, {
+                  (0, j.jsx)(`button`, {
                     className: `btn`,
                     type: `button`,
                     onClick: n,
                     disabled: P,
                     children: `Cancelar`
                   }),
-                  (0, k.jsx)(`button`, {
+                  (0, j.jsx)(`button`, {
                     className: `btn btn-p`,
                     type: `submit`,
                     disabled: P,
@@ -1083,32 +1138,32 @@ function Y({ initialPedido: e, onSaved: t, onCancel: n }) {
     ]
   });
 }
-var X = {
+var te = {
     orcamento: `Orçamento`,
     confirmado: `Confirmado`,
     em_separacao: `Em separação`,
     entregue: `Entregue`,
     cancelado: `Cancelado`
   },
-  Z = {
+  ne = {
     orcamento: `bdg bk`,
     confirmado: `bdg bb`,
     em_separacao: `bdg ba`,
     entregue: `bdg bg`,
     cancelado: `bdg br`
   },
-  ne = { a_vista: `À vista`, pix: `PIX`, boleto: `Boleto`, cartao: `Cartão`, cheque: `Cheque` },
-  re = {
+  re = { a_vista: `À vista`, pix: `PIX`, boleto: `Boleto`, cartao: `Cartão`, cheque: `Cheque` },
+  ie = {
     imediato: `Imediato`,
     '7d': `7 dias`,
     '15d': `15 dias`,
     '30d': `30 dias`,
     '60d': `60 dias`
   };
-function ie(e) {
+function ae(e) {
   return (e ?? 0).toLocaleString(`pt-BR`, { style: `currency`, currency: `BRL` });
 }
-function ae(e) {
+function oe(e) {
   if (Array.isArray(e.itens)) return e.itens;
   try {
     let t = JSON.parse(e.itens);
@@ -1117,46 +1172,53 @@ function ae(e) {
     return [];
   }
 }
-function oe({ pedido: e, onEditar: t, onClose: n }) {
-  let { avancarStatus: r, cancelarPedido: i, reabrirPedido: a, inFlight: o } = O(),
-    s = h(e.status),
-    c = Z[s] ?? `bdg bk`,
-    l = X[s] ?? s,
-    u = p[s],
-    d = m[s],
-    f = o.has(e.id),
-    g = ae(e);
-  return (0, k.jsxs)(`div`, {
+function se({ pedido: e, onEditar: t, onClose: n }) {
+  let {
+      avancarStatus: r,
+      cancelarPedido: i,
+      reabrirPedido: a,
+      gerarContaManual: o,
+      inFlight: s
+    } = A(),
+    [c, l] = (0, u.useState)(null),
+    d = h(e.status),
+    f = ne[d] ?? `bdg bk`,
+    g = te[d] ?? d,
+    _ = p[d],
+    v = m[d],
+    y = s.has(e.id),
+    b = oe(e);
+  return (0, j.jsxs)(`div`, {
     className: `card card-shell`,
     'data-testid': `pedido-detail-panel`,
     children: [
-      (0, k.jsxs)(`div`, {
+      (0, j.jsxs)(`div`, {
         className: `modal-shell-head`,
         children: [
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             children: [
-              (0, k.jsxs)(`div`, { className: `mt`, children: [`Pedido #`, e.num] }),
-              (0, k.jsxs)(`div`, {
+              (0, j.jsxs)(`div`, { className: `mt`, children: [`Pedido #`, e.num] }),
+              (0, j.jsxs)(`div`, {
                 className: `cli-react-shell__chips`,
                 style: { marginTop: `0.25rem` },
                 children: [
-                  (0, k.jsx)(`span`, { className: c, children: l }),
-                  e.data && (0, k.jsx)(`span`, { className: `bdg bk`, children: e.data }),
-                  (0, k.jsx)(`span`, { className: `bdg bg`, children: ie(e.total) })
+                  (0, j.jsx)(`span`, { className: f, children: g }),
+                  e.data && (0, j.jsx)(`span`, { className: `bdg bk`, children: e.data }),
+                  (0, j.jsx)(`span`, { className: `bdg bg`, children: ae(e.total) })
                 ]
               })
             ]
           }),
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             style: { display: `flex`, gap: `0.5rem`, alignItems: `flex-start` },
             children: [
-              (0, k.jsx)(`button`, {
+              (0, j.jsx)(`button`, {
                 className: `btn btn-sm`,
                 onClick: () => t(e.id),
                 'data-testid': `pedido-detail-editar`,
                 children: `Editar`
               }),
-              (0, k.jsx)(`button`, {
+              (0, j.jsx)(`button`, {
                 className: `btn btn-sm`,
                 onClick: n,
                 'data-testid': `pedido-detail-close`,
@@ -1166,102 +1228,118 @@ function oe({ pedido: e, onEditar: t, onClose: n }) {
           })
         ]
       }),
-      (0, k.jsxs)(`div`, {
+      (0, j.jsxs)(`div`, {
         className: `modal-shell-body`,
         children: [
-          (0, k.jsxs)(`div`, {
+          (0, j.jsxs)(`div`, {
             className: `fg c3`,
             children: [
-              (0, k.jsxs)(`div`, {
+              (0, j.jsxs)(`div`, {
                 children: [
-                  (0, k.jsx)(`div`, { className: `fl`, children: `Cliente` }),
-                  (0, k.jsx)(`div`, { className: `fv`, children: e.cli || `—` })
+                  (0, j.jsx)(`div`, { className: `fl`, children: `Cliente` }),
+                  (0, j.jsx)(`div`, { className: `fv`, children: e.cli || `—` })
                 ]
               }),
               e.rca_nome &&
-                (0, k.jsxs)(`div`, {
+                (0, j.jsxs)(`div`, {
                   children: [
-                    (0, k.jsx)(`div`, { className: `fl`, children: `RCA` }),
-                    (0, k.jsx)(`div`, { className: `fv`, children: e.rca_nome })
+                    (0, j.jsx)(`div`, { className: `fl`, children: `RCA` }),
+                    (0, j.jsx)(`div`, { className: `fv`, children: e.rca_nome })
                   ]
                 }),
-              (0, k.jsxs)(`div`, {
+              (0, j.jsxs)(`div`, {
                 children: [
-                  (0, k.jsx)(`div`, { className: `fl`, children: `Tipo` }),
-                  (0, k.jsx)(`div`, {
+                  (0, j.jsx)(`div`, { className: `fl`, children: `Tipo` }),
+                  (0, j.jsx)(`div`, {
                     className: `fv`,
                     children: e.tipo === `atacado` ? `Atacado` : `Varejo`
                   })
                 ]
               }),
-              (0, k.jsxs)(`div`, {
+              (0, j.jsxs)(`div`, {
                 children: [
-                  (0, k.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
-                  (0, k.jsx)(`div`, {
+                  (0, j.jsx)(`div`, { className: `fl`, children: `Pagamento` }),
+                  (0, j.jsx)(`div`, {
                     className: `fv`,
-                    children: ne[e.pgto ?? ``] ?? e.pgto ?? `—`
+                    children: re[e.pgto ?? ``] ?? e.pgto ?? `—`
                   })
                 ]
               }),
-              (0, k.jsxs)(`div`, {
+              (0, j.jsxs)(`div`, {
                 children: [
-                  (0, k.jsx)(`div`, { className: `fl`, children: `Prazo` }),
-                  (0, k.jsx)(`div`, {
+                  (0, j.jsx)(`div`, { className: `fl`, children: `Prazo` }),
+                  (0, j.jsx)(`div`, {
                     className: `fv`,
-                    children: re[e.prazo ?? ``] ?? e.prazo ?? `—`
+                    children: ie[e.prazo ?? ``] ?? e.prazo ?? `—`
                   })
                 ]
               }),
               e.obs &&
-                (0, k.jsxs)(`div`, {
+                (0, j.jsxs)(`div`, {
                   children: [
-                    (0, k.jsx)(`div`, { className: `fl`, children: `Obs.` }),
-                    (0, k.jsx)(`div`, { className: `fv`, children: e.obs })
+                    (0, j.jsx)(`div`, { className: `fl`, children: `Obs.` }),
+                    (0, j.jsx)(`div`, { className: `fv`, children: e.obs })
                   ]
                 })
             ]
           }),
-          (0, k.jsx)(K, { itens: g, produtos: [], tipo: e.tipo ?? `varejo`, readOnly: !0 }),
-          (0, k.jsxs)(`div`, {
+          (0, j.jsx)(X, { itens: b, produtos: [], tipo: e.tipo ?? `varejo`, readOnly: !0 }),
+          (0, j.jsxs)(`div`, {
             className: `modal-actions`,
             style: { marginTop: `1rem` },
             children: [
-              u &&
-                d &&
-                (0, k.jsx)(`button`, {
+              _ &&
+                v &&
+                (0, j.jsx)(`button`, {
                   className: `btn btn-sm`,
-                  disabled: f,
+                  disabled: y,
                   onClick: () => void r(e),
                   'data-testid': `pedido-detail-avancar`,
-                  children: f ? `...` : d
+                  children: y ? `...` : v
                 }),
-              s !== `cancelado` &&
-                s !== `entregue` &&
-                (0, k.jsx)(`button`, {
+              d !== `cancelado` &&
+                d !== `entregue` &&
+                (0, j.jsx)(`button`, {
                   className: `btn btn-sm btn-danger`,
-                  disabled: f,
+                  disabled: y,
                   onClick: () => void i(e),
                   'data-testid': `pedido-detail-cancelar`,
                   children: `Cancelar`
                 }),
-              s === `cancelado` &&
-                (0, k.jsx)(`button`, {
+              d === `cancelado` &&
+                (0, j.jsx)(`button`, {
                   className: `btn btn-sm`,
-                  disabled: f,
+                  disabled: y,
                   onClick: () => void a(e),
                   'data-testid': `pedido-detail-reabrir`,
                   children: `Reabrir`
+                }),
+              d === `entregue` &&
+                (0, j.jsx)(`button`, {
+                  className: `btn btn-sm`,
+                  disabled: y,
+                  onClick: () => {
+                    (l(null), o(e).then((e) => l(e)));
+                  },
+                  'data-testid': `pedido-detail-gerar-conta`,
+                  children: y ? `...` : `Gerar A Receber`
                 })
             ]
-          })
+          }),
+          c &&
+            (0, j.jsx)(`div`, {
+              className: `bdg ${c.startsWith(`Conta`) ? `bg` : `br`}`,
+              style: { marginTop: `0.5rem`, display: `block`, padding: `0.5rem` },
+              children: c
+            })
         ]
       })
     ]
   });
 }
-var se = `pedidos-react-pilot`,
-  ce = `pedidos-legacy-shell`;
-function Q() {
+var ce = `pedidos-react-pilot`,
+  le = `pedidos-legacy-shell`;
+function ue() {
   let e = v(l((e) => e.pedidos)),
     t = v((e) => e.activeTab),
     n = v((e) => e.setActiveTab),
@@ -1282,7 +1360,7 @@ function Q() {
       function e(e) {
         if (e.origin !== window.location.origin) return;
         let t = e.data;
-        if (!(!t || t.source !== ce)) {
+        if (!(!t || t.source !== le)) {
           if (t.type === `pedidos:set-tab` && t.tab) {
             n(t.tab);
             return;
@@ -1315,7 +1393,7 @@ function Q() {
         i = c ? `form` : f ? `detail` : `list`;
       window.postMessage(
         {
-          source: se,
+          source: ce,
           type: `pedidos:state`,
           state: {
             tab: t,
@@ -1331,10 +1409,10 @@ function Q() {
         window.location.origin
       );
     }, [t, a, o, r.q, r.status, s.length, e.length, c, f, m?.num, h?.num]),
-    (0, k.jsxs)(`div`, {
+    (0, j.jsxs)(`div`, {
       'data-testid': `pedidos-pilot-page`,
       children: [
-        (0, k.jsx)(I, {
+        (0, j.jsx)(R, {
           onNovoPedido: () => {
             (p(null), d(`new`));
           },
@@ -1344,7 +1422,7 @@ function Q() {
         }),
         h &&
           !c &&
-          (0, k.jsx)(oe, {
+          (0, j.jsx)(se, {
             pedido: h,
             onEditar: (e) => {
               (p(null), d(e));
@@ -1352,7 +1430,7 @@ function Q() {
             onClose: () => p(null)
           }),
         c &&
-          (0, k.jsx)(Y, {
+          (0, j.jsx)(ee, {
             initialPedido: c === `new` ? null : m,
             onSaved: (e) => {
               (d(null), p(e.id));
@@ -1365,7 +1443,7 @@ function Q() {
     })
   );
 }
-function le(t = {}) {
+function de(t = {}) {
   let { skip: r = !1 } = t,
     i = v((e) => e.setPedidos),
     a = v((e) => e.setStatus),
@@ -1414,14 +1492,23 @@ function le(t = {}) {
 }
 c();
 var $ = null;
-function ue() {
-  return (le(), (0, k.jsx)(Q, {}));
-}
-function de(e) {
-  (($ = (0, d.createRoot)(e)),
-    $.render((0, k.jsx)(u.StrictMode, { children: (0, k.jsx)(ue, {}) })));
-}
 function fe() {
+  let e = n((e) => e.hydrate),
+    t = o((e) => e.hydrate);
+  return (
+    (0, u.useEffect)(() => {
+      (t(), e());
+    }, [e, t]),
+    de(),
+    (0, j.jsx)(ue, {})
+  );
+}
+function pe(e) {
+  (c(),
+    ($ = (0, d.createRoot)(e)),
+    $.render((0, j.jsx)(u.StrictMode, { children: (0, j.jsx)(fe, {}) })));
+}
+function me() {
   $ &&= ($.unmount(), null);
 }
-window.__SC_PEDIDOS_DIRECT_BRIDGE__ = { mount: de, unmount: fe };
+window.__SC_PEDIDOS_DIRECT_BRIDGE__ = { mount: pe, unmount: me };

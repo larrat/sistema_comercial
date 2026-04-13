@@ -365,6 +365,10 @@ function resetRuntimeData() {
   State.pedItens = [];
 }
 
+function limparFormPedTracked() {
+  startCriticalTask('pedido');
+  return abrirNovoPedidoReact();
+}
 function limparFormProdTracked() {
   startCriticalTask('produto');
   return limparFormProd();
@@ -707,6 +711,7 @@ registerApplicationModules({
     abrirNovaCampanhaTracked,
     abrirModal,
     fmt,
+    limparFormPedTracked,
     limparFormCliTracked,
     limparFormProdTracked,
     resetMov,
