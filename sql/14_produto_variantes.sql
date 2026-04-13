@@ -6,8 +6,9 @@
 begin;
 
 -- Coluna de referência ao produto pai (self-referencial, nullable)
+-- Tipo text para bater com o campo id de produtos (que é text, não uuid)
 alter table public.produtos
-  add column if not exists produto_pai_id uuid
+  add column if not exists produto_pai_id text
     references public.produtos(id) on delete set null;
 
 -- Index para consulta de variantes por pai
