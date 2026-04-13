@@ -544,6 +544,24 @@ function renderOportunidadesContext(oportunidadesAtuais, pendentes, total, taxa)
     return;
   }
 
+  // total > 0, taxa < 70, sem jogos esta semana — pendentes sem janela de jogo próxima
+  if (pendentes > 0) {
+    el.innerHTML = `
+      <article class="context-card context-card--warning">
+        <div class="context-card__head">
+          <span class="bdg ba">Pendentes</span>
+          <span class="context-card__kicker">Oportunidades</span>
+        </div>
+        <div class="context-card__title">${pendentes} oportunidade${pendentes !== 1 ? 's' : ''} aguardando validação</div>
+        <div class="context-card__copy">Nenhum jogo nos próximos 7 dias — use este intervalo para validar os pedidos pendentes e elevar a taxa de conversão atual de ${pct(taxa)}.</div>
+        <div class="context-card__meta">${total} oportunidades no período · ${validadas(total, taxa)} já validadas</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="ir('relatorios')">Ver pendentes</button>
+        </div>
+      </article>`;
+    return;
+  }
+
   el.innerHTML = '';
 }
 

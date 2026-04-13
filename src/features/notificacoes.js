@@ -575,12 +575,41 @@ function renderNotiContextCard(ativos, resumo) {
     return;
   }
 
+  // Cross-signal: estoque zerado + campanha ativa ao mesmo tempo
+  const estoqueZerados = ativos.filter((n) => n.origem === 'estoque' && n.prioridade === 'critico');
+  const campanhasPendentes = ativos.filter((n) => n.origem === 'campanhas');
+  if (estoqueZerados.length && campanhasPendentes.length) {
+    const prods = estoqueZerados
+      .map((n) => String(n.titulo || '').replace('Estoque zerado: ', ''))
+      .slice(0, 2)
+      .join(', ');
+    const sufixo = estoqueZerados.length > 2 ? ` e mais ${estoqueZerados.length - 2}` : '';
+    el.innerHTML = `
+      <article class="context-card context-card--danger">
+        <div class="context-card__head">
+          <span class="bdg br">Risco</span>
+          <span class="context-card__kicker">Notificações</span>
+        </div>
+        <div class="context-card__title">Estoque zerado com campanha ativa — risco de ruptura</div>
+        <div class="context-card__copy">${prods}${sufixo} sem estoque enquanto há envios de campanha na fila. Clientes contactados podem não encontrar o produto disponível.</div>
+        <div class="context-card__meta">${resumo.total} notificações ativas · resolva estoque antes de disparar</div>
+        <div class="context-card__actions">
+          <button class="btn btn-sm" data-click="setFiltroNotificacoes('critico')">Ver críticos</button>
+        </div>
+      </article>`;
+    return;
+  }
+
   if (resumo.critico > 0) {
     const origens = [
       ...new Set(
         ativos.filter((n) => n.prioridade === 'critico').map((n) => getNotiOrigemLabel(n.origem))
       )
     ].join(', ');
+    const exemplo = ativos.find((n) => n.prioridade === 'critico');
+    const detalhe = exemplo
+      ? `"${exemplo.titulo}"${resumo.critico > 1 ? ` e mais ${resumo.critico - 1} em ${origens}` : ''}.`
+      : `Situações críticas em: ${origens}.`;
     el.innerHTML = `
       <article class="context-card context-card--danger">
         <div class="context-card__head">
@@ -588,7 +617,7 @@ function renderNotiContextCard(ativos, resumo) {
           <span class="context-card__kicker">Notificações</span>
         </div>
         <div class="context-card__title">${resumo.critico} alerta${resumo.critico > 1 ? 's' : ''} crítico${resumo.critico > 1 ? 's' : ''} exigem ação imediata</div>
-        <div class="context-card__copy">Situações críticas identificadas em: ${origens}. A central agora organiza os sinais por origem para evitar a sensação de dados misturados.</div>
+        <div class="context-card__copy">${detalhe}</div>
         <div class="context-card__meta">${resumo.total} notificações ativas no total</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="setFiltroNotificacoes('critico')">Ver críticos</button>
@@ -603,6 +632,10 @@ function renderNotiContextCard(ativos, resumo) {
         ativos.filter((n) => n.prioridade === 'atencao').map((n) => getNotiOrigemLabel(n.origem))
       )
     ].join(', ');
+    const exemplo = ativos.find((n) => n.prioridade === 'atencao');
+    const detalhe = exemplo
+      ? `"${exemplo.titulo}"${resumo.atencao > 1 ? ` — e mais ${resumo.atencao - 1} em ${origens}` : ''}. Endereçar agora evita escalada para crítico.`
+      : `Pontos de atenção em: ${origens}. Endereçar agora evita escalada para crítico.`;
     el.innerHTML = `
       <article class="context-card context-card--warning">
         <div class="context-card__head">
@@ -610,7 +643,7 @@ function renderNotiContextCard(ativos, resumo) {
           <span class="context-card__kicker">Notificações</span>
         </div>
         <div class="context-card__title">${resumo.atencao} item${resumo.atencao > 1 ? 'ns' : ''} pedindo atenção</div>
-        <div class="context-card__copy">Pontos de atenção em: ${origens}. Endereçar agora evita escalada para crítico.</div>
+        <div class="context-card__copy">${detalhe}</div>
         <div class="context-card__meta">${resumo.total} notificações ativas no total</div>
         <div class="context-card__actions">
           <button class="btn btn-sm" data-click="setFiltroNotificacoes('atencao')">Ver atenções</button>
@@ -619,6 +652,14 @@ function renderNotiContextCard(ativos, resumo) {
     return;
   }
 
+  // Apenas oportunidades — destacar a mais urgente
+  const maisUrgente =
+    ativos.find((n) => n.origem === 'clientes') ||
+    ativos.find((n) => n.origem === 'agenda') ||
+    ativos[0];
+  const dica = maisUrgente
+    ? `Destaque: "${maisUrgente.titulo}". Confira todas por origem: ${origensResumo}.`
+    : `Confira oportunidades organizadas por origem: ${origensResumo}.`;
   el.innerHTML = `
     <article class="context-card context-card--success">
       <div class="context-card__head">
@@ -626,7 +667,7 @@ function renderNotiContextCard(ativos, resumo) {
         <span class="context-card__kicker">Notificações</span>
       </div>
       <div class="context-card__title">${resumo.oportunidade} oportunidade${resumo.oportunidade > 1 ? 's' : ''} para aproveitar</div>
-      <div class="context-card__copy">Nenhum alerta crítico ou de atenção. Confira oportunidades organizadas por origem: ${origensResumo}.</div>
+      <div class="context-card__copy">${dica}</div>
       <div class="context-card__actions">
         <button class="btn btn-sm" data-click="setFiltroNotificacoes('oportunidade')">Ver oportunidades</button>
       </div>
