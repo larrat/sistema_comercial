@@ -11,7 +11,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         'clientes-bridge': 'src/react/clientes-bridge.tsx',
-        'dashboard-bridge': 'src/react/dashboard-bridge.tsx'
+        'dashboard-bridge': 'src/react/dashboard-bridge.tsx',
+        'pedidos-bridge': 'src/react/pedidos-bridge.tsx'
       },
       output: {
         entryFileNames: '[name].js',

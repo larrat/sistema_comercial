@@ -85,6 +85,11 @@ import {
   abrirNotasClienteReact,
   abrirFidelidadeClienteReact
 } from '../features/clientes-react-bridge.js';
+import {
+  togglePedidosReactBridge,
+  isPedidosReactPilotActive,
+  limparFiltrosPedidosReact
+} from '../features/pedidos-react-bridge.js';
 
 import {
   initPedidosModule,
@@ -862,6 +867,9 @@ startApplicationRuntime({
         avancarStatusPed,
         cancelarStatusPed,
         reabrirPed,
+        togglePedidosReactBridge,
+        isPedidosReactPilotActive,
+        limparFiltrosPedidosReact,
         renderContasReceberMet,
         renderContasReceber,
         switchCrTab,

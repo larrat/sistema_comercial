@@ -66,6 +66,7 @@ declare global {
     // ── Feature flags de pilots (legíveis pelos bridges legados) ─────────────
     __SC_CLIENTES_REACT_ENABLED__?: boolean;
     __SC_DASHBOARD_REACT_ENABLED__?: boolean;
+    __SC_PEDIDOS_REACT_ENABLED__?: boolean;
 
     // ── Direct bridge interfaces (publicadas pelos bundles React) ────────────
     __SC_CLIENTES_DIRECT_BRIDGE__?: {
@@ -73,6 +74,10 @@ declare global {
       unmount: () => void;
     };
     __SC_DASHBOARD_DIRECT_BRIDGE__?: {
+      mount: (el: HTMLElement) => void;
+      unmount: () => void;
+    };
+    __SC_PEDIDOS_DIRECT_BRIDGE__?: {
       mount: (el: HTMLElement) => void;
       unmount: () => void;
     };

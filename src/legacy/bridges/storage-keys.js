@@ -22,11 +22,13 @@ export const STORAGE_KEYS = Object.freeze({
   // Valor: 'legacy' | 'react'
   CLIENTES_UI_MODE: 'sc_clientes_ui_mode',
   DASHBOARD_UI_MODE: 'sc_dashboard_ui_mode',
+  PEDIDOS_UI_MODE: 'sc_pedidos_ui_mode',
 
   // ── Pilots — feature flags ────────────────────────────────────────────────
   // Valor: 'true' | 'false' | não definido (usa default do window global ou false)
   CLIENTES_REACT_ENABLED: 'sc_clientes_react_enabled',
-  DASHBOARD_REACT_ENABLED: 'sc_dashboard_react_enabled'
+  DASHBOARD_REACT_ENABLED: 'sc_dashboard_react_enabled',
+  PEDIDOS_REACT_ENABLED: 'sc_pedidos_react_enabled'
 });
 
 /**

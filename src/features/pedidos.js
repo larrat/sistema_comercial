@@ -15,6 +15,7 @@ import {
 import { esc } from '../shared/sanitize.js';
 import { MSG, SEVERITY } from '../shared/messages.js';
 import { getRcaNomeById, refreshRcaSelectors } from './rcas.js';
+import { shouldRenderLegacyPedidos } from './pedidos-react-bridge.js';
 
 /** @typedef {import('../types/domain').Pedido} Pedido */
 /** @typedef {import('../types/domain').PedidoItem} PedidoItem */
@@ -247,6 +248,7 @@ export function renderPedMet() {
 }
 
 export function renderPedidos() {
+  if (!shouldRenderLegacyPedidos()) return;
   renderPedList(
     'ped-busca',
     'ped-fil-st',

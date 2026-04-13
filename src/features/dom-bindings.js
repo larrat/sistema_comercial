@@ -213,6 +213,7 @@ function getHandlerRegistry() {
     },
     pedidos: {
       renderPedidos: deps.renderPedidos,
+      switchPedTab: deps.switchPedTab,
       salvarPedido: deps.salvarPedidoTracked,
       addItem: deps.addItem,
       syncPedidoRcaComCliente: deps.syncPedidoRcaComCliente,
@@ -221,7 +222,12 @@ function getHandlerRegistry() {
       removerPed: deps.removerPedGuard,
       verPed: deps.verPed,
       remItem: deps.remItem,
-      renderItens: deps.renderItens
+      renderItens: deps.renderItens,
+      avancarStatusPed: deps.avancarStatusPed,
+      cancelarStatusPed: deps.cancelarStatusPed,
+      reabrirPed: deps.reabrirPed,
+      togglePedidosReactBridge: deps.togglePedidosReactBridge,
+      limparFiltrosPedidosReact: deps.limparFiltrosPedidosReact
     },
     cotacao: {
       renderCotForns: deps.renderCotForns,
