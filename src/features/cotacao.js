@@ -4,7 +4,7 @@
 
 import { SB } from '../app/api.js';
 import { D, State, P, FORNS, CPRECOS, CCFG } from '../app/store.js';
-import { uid, fmt, toast } from '../shared/utils.js';
+import { uid, fmt, toast, setButtonLoading } from '../shared/utils.js';
 import {
   cotFile,
   confirmarMapa,
@@ -127,10 +127,16 @@ export async function salvarForn() {
     prazo: prazoEl?.value || ''
   };
 
+  const saveBtn = /** @type {HTMLButtonElement | null} */ (
+    document.querySelector('[data-click="salvarForn()"]')
+  );
+  setButtonLoading(saveBtn, true, 'Salvar');
+
   try {
     await SB.upsertFornecedor(forn);
   } catch (e) {
     toast('Erro ao salvar: ' + e.message);
+    setButtonLoading(saveBtn, false, 'Salvar');
     return;
   }
 
@@ -147,16 +153,23 @@ export async function salvarForn() {
   if (contatoEl) contatoEl.value = '';
   if (prazoEl) prazoEl.value = '';
 
+  setButtonLoading(saveBtn, false, 'Salvar');
   toast('Fornecedor salvo!');
 }
 
 export async function remForn(id) {
   if (!confirm('Remover fornecedor?')) return;
 
+  const deleteBtn = /** @type {HTMLButtonElement | null} */ (
+    document.querySelector(`[data-click="remForn('${id}')"]`)
+  );
+  setButtonLoading(deleteBtn, true, 'Excluir');
+
   try {
     await SB.deleteFornecedor(id);
   } catch (e) {
     toast('Erro ao remover: ' + e.message);
+    setButtonLoading(deleteBtn, false, 'Excluir');
     return;
   }
 
@@ -281,6 +294,7 @@ export function renderCotTabela() {
   `;
 
   el.innerHTML = html;
+  el.classList.toggle('cot-table--locked', Boolean(cot.locked));
 
   const pct2 =
     prods.length * forns.length ? Math.round((filled / (prods.length * forns.length)) * 100) : 0;

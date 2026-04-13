@@ -1129,6 +1129,12 @@ textarea.inp {
 .sbar-f {
   height: 100%;
   border-radius: 0;
+  animation: sbarEnter 0.5s var(--ease-standard, ease);
+}
+@keyframes sbarEnter {
+  from {
+    width: 0%;
+  }
 }
 
 /* ── MOV TIPO ── */
@@ -9097,6 +9103,35 @@ textarea.inp:focus {
 .cot-total-row {
   font-weight: 600;
   border-top: 1px solid var(--bd);
+}
+
+/* ── COT LOCK ── */
+.cot-table--locked .cot-table-wrap {
+  opacity: 0.82;
+}
+.cot-table--locked .cot-table-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--rad);
+  box-shadow: inset 0 0 0 1.5px var(--acc);
+  opacity: 0.45;
+}
+.cot-table--locked .cot-table-wrap {
+  position: relative;
+}
+
+/* ── PANEL ENTRY ── */
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.panel[style*='display: block'],
+.panel[style*='display:block'] {
+  animation: panelEnter 0.18s var(--ease-standard, ease);
 }
 
 .import-layout-banner {
