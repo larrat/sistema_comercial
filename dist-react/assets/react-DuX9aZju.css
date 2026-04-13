@@ -1457,8 +1457,14 @@ textarea.inp {
   overflow: hidden;
 }
 .sbar-f {
-  border-radius: 0;
   height: 100%;
+  animation: sbarEnter 0.5s var(--ease-standard, ease);
+  border-radius: 0;
+}
+@keyframes sbarEnter {
+  0% {
+    width: 0%;
+  }
 }
 .tc-grid {
   grid-template-columns: 1fr 1fr;
@@ -8085,6 +8091,31 @@ textarea.inp:focus {
 .cot-total-row {
   border-top: 1px solid var(--bd);
   font-weight: 600;
+}
+.cot-table--locked .cot-table-wrap {
+  opacity: 0.82;
+}
+.cot-table--locked .cot-table-wrap:after {
+  content: '';
+  pointer-events: none;
+  border-radius: var(--rad);
+  box-shadow: inset 0 0 0 1.5px var(--acc);
+  opacity: 0.45;
+  position: absolute;
+  inset: 0;
+}
+.cot-table--locked .cot-table-wrap {
+  position: relative;
+}
+@keyframes panelEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.panel[style*='display: block'],
+.panel[style*='display\:block'] {
+  animation: panelEnter 0.18s var(--ease-standard, ease);
 }
 .import-layout-banner {
   border: 1px solid var(--bd);
