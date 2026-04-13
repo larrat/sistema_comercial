@@ -354,6 +354,7 @@ function resetRuntimeData() {
   D.accessUsers = [];
 
   State.FIL = null;
+  localStorage.removeItem('sc_filial_id'); // Limpa filial dos bridges React ao sair
   State.selFil = null;
   State.user = null;
   State.userRole = 'operador';

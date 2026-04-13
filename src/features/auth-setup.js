@@ -494,6 +494,8 @@ export async function entrar() {
   }
 
   State.FIL = State.selFil;
+  // Persiste filial ativa no localStorage para que os bridges React a leiam
+  localStorage.setItem('sc_filial_id', State.FIL);
 
   const dot = document.getElementById('sb-dot');
   const fname = document.getElementById('sb-fname');
