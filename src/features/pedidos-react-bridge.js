@@ -1,12 +1,7 @@
 // @ts-check
 
-import { STORAGE_KEYS, UI_MODES } from '../legacy/bridges/storage-keys.js';
-import {
-  isPilotEnabled,
-  setPilotEnabled,
-  getPilotFlagStorageKey
-} from '../legacy/bridges/feature-flags.js';
 import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import { getPilotFlagStorageKey } from '../legacy/bridges/feature-flags.js';
 
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
 
@@ -32,43 +27,6 @@ const DEFAULT_BRIDGE_STATE = {
 
 let currentBridgeState = { ...DEFAULT_BRIDGE_STATE };
 
-function getMode() {
-  const stored = localStorage.getItem(STORAGE_KEYS.PEDIDOS_UI_MODE);
-  if (stored === UI_MODES.LEGACY || stored === UI_MODES.REACT) return stored;
-  return isPedidosReactFeatureEnabled() ? UI_MODES.REACT : UI_MODES.LEGACY;
-}
-
-function setMode(mode) {
-  localStorage.setItem(STORAGE_KEYS.PEDIDOS_UI_MODE, mode);
-}
-
-export function isPedidosReactFeatureEnabled() {
-  return isPilotEnabled('pedidos');
-}
-
-export function setPedidosReactFeatureEnabled(enabled) {
-  setPilotEnabled('pedidos', enabled);
-  if (!localStorage.getItem(STORAGE_KEYS.PEDIDOS_UI_MODE)) {
-    setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
-  }
-}
-
-function getToggle() {
-  return /** @type {HTMLButtonElement | null} */ (document.getElementById('ped-react-toggle'));
-}
-
-function getLegacyShell() {
-  return document.getElementById('ped-legacy-shell');
-}
-
-function getReactShell() {
-  return document.getElementById('ped-react-shell');
-}
-
-function getRoot() {
-  return /** @type {HTMLElement | null} */ (document.getElementById('ped-react-root'));
-}
-
 function getPedidosPage() {
   return /** @type {HTMLElement | null} */ (document.getElementById('pg-pedidos'));
 }
@@ -77,8 +35,8 @@ function isPedidosPageActive() {
   return getPedidosPage()?.classList.contains('on') || false;
 }
 
-function isReactModeActive() {
-  return !!(bridge?.mount && getMode() === UI_MODES.REACT && isPedidosPageActive());
+function getRoot() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('ped-react-root'));
 }
 
 function toStatusTone(status) {
@@ -132,48 +90,21 @@ function syncBridgeState(state) {
 }
 
 function postToReactFrame(type, payload = {}) {
-  if (!isReactModeActive()) return false;
+  if (!isPedidosPageActive()) return false;
   window.postMessage({ source: COMMAND_SOURCE, type, ...payload }, window.location.origin);
   return true;
 }
 
-function syncShellModeUi(reactActive) {
-  const legacyShell = getLegacyShell();
-  const reactShell = getReactShell();
-  if (legacyShell) legacyShell.hidden = !!reactActive;
-  if (reactShell) reactShell.hidden = !reactActive;
-}
-
-function updateToggle() {
-  const toggle = getToggle();
-  if (!toggle) return;
-
-  if (!bridge?.mount || !isPedidosPageActive()) {
-    toggle.hidden = true;
-    return;
-  }
-
-  toggle.hidden = false;
-  toggle.textContent = getMode() === UI_MODES.REACT ? 'Voltar legado' : 'Piloto React';
-}
-
 async function applyMode() {
-  const reactActive = isReactModeActive();
-  syncShellModeUi(reactActive);
-
-  if (!reactActive) {
+  if (!isPedidosPageActive()) {
     if (mounted && bridge?.unmount) bridge.unmount();
     mounted = false;
     syncBridgeState(null);
-    updateToggle();
     return;
   }
 
   const root = getRoot();
-  if (!root || !bridge?.mount) {
-    updateToggle();
-    return;
-  }
+  if (!root || !bridge?.mount) return;
 
   if (!mounted) {
     await bridge.mount(root);
@@ -181,7 +112,6 @@ async function applyMode() {
   }
 
   updateBridgeIndicators();
-  updateToggle();
 }
 
 export function registerPedidosReactBridge(nextBridge) {
@@ -189,12 +119,13 @@ export function registerPedidosReactBridge(nextBridge) {
   void applyMode();
 }
 
+/** Sempre false — legado de pedidos foi removido. */
 export function shouldRenderLegacyPedidos() {
-  return !isReactModeActive();
+  return false;
 }
 
 export function isPedidosReactPilotActive() {
-  return isReactModeActive();
+  return mounted && isPedidosPageActive();
 }
 
 export function getPedidosReactBridgeState() {
@@ -202,18 +133,6 @@ export function getPedidosReactBridgeState() {
 }
 
 export function syncPedidosReactBridge() {
-  void applyMode();
-}
-
-export function togglePedidosReactBridge() {
-  if (!bridge?.mount) return;
-  setMode(getMode() === UI_MODES.REACT ? UI_MODES.LEGACY : UI_MODES.REACT);
-  void applyMode();
-}
-
-export function forcePedidosReactMode() {
-  if (!isPedidosReactFeatureEnabled()) return;
-  if (getMode() !== UI_MODES.REACT) setMode(UI_MODES.REACT);
   void applyMode();
 }
 
@@ -267,6 +186,6 @@ if (typeof window !== 'undefined') {
   window.addEventListener('message', handleBridgeMessage);
   window.addEventListener('storage', (e) => {
     const flagKey = getPilotFlagStorageKey('pedidos');
-    if (e.key === STORAGE_KEYS.PEDIDOS_UI_MODE || e.key === flagKey) void applyMode();
+    if (e.key === flagKey) void applyMode();
   });
 }

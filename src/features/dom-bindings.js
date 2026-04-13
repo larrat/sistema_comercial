@@ -169,7 +169,6 @@ function getHandlerRegistry() {
       setFlowStep: deps.setFlowStep,
       limparFormProd: deps.limparFormProdTracked,
       limparFormCli: deps.limparFormCliTracked,
-      limparFormPed: deps.limparFormPedTracked,
       abrirModalRca: deps.abrirModalRca,
       salvarRca: deps.salvarRca,
       calcProdPreview: deps.calcProdPreview,
@@ -212,21 +211,6 @@ function getHandlerRegistry() {
       addNota: deps.addNota
     },
     pedidos: {
-      renderPedidos: deps.renderPedidos,
-      switchPedTab: deps.switchPedTab,
-      salvarPedido: deps.salvarPedidoTracked,
-      addItem: deps.addItem,
-      syncPedidoRcaComCliente: deps.syncPedidoRcaComCliente,
-      preencherValoresItemPedido: deps.preencherValoresItemPedido,
-      editarPed: deps.editarPed,
-      removerPed: deps.removerPedGuard,
-      verPed: deps.verPed,
-      remItem: deps.remItem,
-      renderItens: deps.renderItens,
-      avancarStatusPed: deps.avancarStatusPed,
-      cancelarStatusPed: deps.cancelarStatusPed,
-      reabrirPed: deps.reabrirPed,
-      togglePedidosReactBridge: deps.togglePedidosReactBridge,
       limparFiltrosPedidosReact: deps.limparFiltrosPedidosReact,
       abrirNovoPedidoReact: deps.abrirNovoPedidoReact,
       editarPedidoReact: deps.editarPedidoReact,
@@ -402,10 +386,7 @@ function runAction(action, el) {
     fecharSb: () => deps.fecharSb(),
     abrirSb: () => deps.abrirSb(),
     exportarTudo: () => deps.exportarTudo(),
-    novoPedido: () => {
-      deps.limparFormPedTracked();
-      deps.abrirModal('modal-pedido');
-    },
+    novoPedido: () => deps.abrirNovoPedidoReact(),
     abrirModalFilial: () => {
       deps.limparFormFilial();
       deps.abrirModal('modal-filial');
@@ -432,10 +413,7 @@ function runAction(action, el) {
     abrirFechadasClienteReact: () => deps.abrirFechadasClienteReact?.(),
     abrirNotasClienteReact: () => deps.abrirNotasClienteReact?.(),
     abrirFidelidadeClienteReact: () => deps.abrirFidelidadeClienteReact?.(),
-    abrirModalPedido: () => {
-      deps.limparFormPedTracked();
-      deps.abrirModal('modal-pedido');
-    },
+    abrirModalPedido: () => deps.abrirNovoPedidoReact(),
     abrirModalFornecedor: () => deps.abrirModal('modal-forn'),
     abrirModalMovimento: () => {
       deps.resetMov();
@@ -459,8 +437,6 @@ function runAction(action, el) {
     salvarFilial: () => deps.salvarFilial(),
     salvarProduto: () => deps.salvarProdutoTracked(),
     salvarCliente: () => deps.salvarClienteTracked(),
-    addItem: () => deps.addItem(),
-    salvarPedido: () => deps.salvarPedidoTracked(),
     salvarCampanha: () => deps.salvarCampanhaTracked(),
     salvarJogoDashboard: () => deps.salvarJogoDashboardGuard(),
     sincronizarJogosDashboard: () => deps.sincronizarJogosDashboardGuard(),
@@ -574,11 +550,11 @@ export function initDomBindings(nextDeps = {}) {
     );
     const action = detail.action || '';
     if (action === 'ver' && detail.pedidoId) {
-      deps.verPed?.(detail.pedidoId);
+      deps.abrirDetalhePedidoReact?.(detail.pedidoId);
       return;
     }
     if (action === 'editar' && detail.pedidoId) {
-      deps.editarPed?.(detail.pedidoId);
+      deps.editarPedidoReact?.(detail.pedidoId);
       return;
     }
   });

@@ -86,7 +86,6 @@ import {
   abrirFidelidadeClienteReact
 } from '../features/clientes-react-bridge.js';
 import {
-  togglePedidosReactBridge,
   isPedidosReactPilotActive,
   limparFiltrosPedidosReact,
   abrirNovoPedidoReact,
@@ -94,25 +93,7 @@ import {
   abrirDetalhePedidoReact
 } from '../features/pedidos-react-bridge.js';
 
-import {
-  initPedidosModule,
-  renderPedMet,
-  renderPedidos,
-  switchPedTab,
-  limparFormPed,
-  syncPedidoRcaComCliente,
-  preencherValoresItemPedido,
-  editarPed,
-  addItem,
-  remItem,
-  renderItens,
-  salvarPedido,
-  removerPed,
-  verPed,
-  avancarStatusPed,
-  cancelarStatusPed,
-  reabrirPed
-} from '../features/pedidos.js';
+import { initPedidosModule } from '../features/pedidos.js';
 
 import {
   renderContasReceberMet,
@@ -390,10 +371,6 @@ function limparFormCliTracked() {
   startCriticalTask('cliente');
   return limparFormCli();
 }
-function limparFormPedTracked() {
-  startCriticalTask('pedido');
-  return limparFormPed();
-}
 function abrirNovaCampanhaTracked() {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode criar campanha.')) return;
   startCriticalTask('campanha');
@@ -412,13 +389,6 @@ async function salvarClienteTracked() {
   await salvarCliente();
   const open = document.getElementById('modal-cliente')?.classList.contains('on');
   if (!open) completeCriticalTask('cliente');
-  renderMetasNegocio();
-}
-async function salvarPedidoTracked() {
-  if (State.editIds.ped) registerJourneyRework('pedido');
-  await salvarPedido();
-  const open = document.getElementById('modal-pedido')?.classList.contains('on');
-  if (!open) completeCriticalTask('pedido');
   renderMetasNegocio();
 }
 async function salvarCampanhaTracked() {
@@ -641,11 +611,6 @@ const removerCliGuard = buildRoleGuard(
   ROLE_MANAGER_PLUS,
   'Somente gerente/admin pode remover cliente.'
 );
-const removerPedGuard = buildRoleGuard(
-  removerPed,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode remover pedido.'
-);
 const remFornGuard = buildRoleGuard(
   remForn,
   ROLE_MANAGER_PLUS,
@@ -738,7 +703,6 @@ registerApplicationModules({
     getNotificacoesResumo,
     ir,
     abrirNovaCampanhaTracked,
-    limparFormPedTracked,
     abrirModal,
     fmt,
     limparFormCliTracked,
@@ -781,8 +745,6 @@ registerApplicationModules({
     abrirFechadasClienteReact,
     abrirNotasClienteReact,
     abrirFidelidadeClienteReact,
-    renderPedMet,
-    renderPedidos,
     renderContasReceberMet,
     renderContasReceber,
     renderCotForns,
@@ -815,8 +777,7 @@ registerApplicationModules({
     registerNotificationKpi,
     logStrategicAction,
     abrirModalRca,
-    salvarRca,
-    syncPedidoRcaComCliente
+    salvarRca
   }
 });
 
@@ -840,7 +801,6 @@ startApplicationRuntime({
         sairConta,
         renderDash,
         setP,
-        limparFormPedTracked,
         abrirSyncJogos,
         abrirNovoJogo,
         renderMetasNegocio,
@@ -865,12 +825,6 @@ startApplicationRuntime({
         abrirFechadasClienteReact,
         abrirNotasClienteReact,
         abrirFidelidadeClienteReact,
-        renderPedidos,
-        switchPedTab,
-        avancarStatusPed,
-        cancelarStatusPed,
-        reabrirPed,
-        togglePedidosReactBridge,
         isPedidosReactPilotActive,
         limparFiltrosPedidosReact,
         abrirNovoPedidoReact,
@@ -940,15 +894,6 @@ startApplicationRuntime({
         fecharVendaCliente,
         addNota,
         salvarClienteTracked,
-        addItem,
-        syncPedidoRcaComCliente,
-        preencherValoresItemPedido,
-        editarPed,
-        removerPedGuard,
-        verPed,
-        remItem,
-        renderItens,
-        salvarPedidoTracked,
         salvarCampanhaTracked,
         carregarCampanhas: () => {
           void carregarCampanhas();

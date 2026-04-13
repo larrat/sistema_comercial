@@ -38,7 +38,6 @@
  *   getNotificacoesResumo: () => unknown
  *   ir: (page: string) => void
  *   abrirNovaCampanhaTracked: () => void
- *   limparFormPedTracked: () => void
  *   abrirModal: (id: string) => void
  *   fmt: (value: unknown) => string
  *   limparFormCliTracked: () => void
@@ -81,9 +80,6 @@
  *   abrirFechadasClienteReact?: () => void
  *   abrirNotasClienteReact?: () => void
  *   abrirFidelidadeClienteReact?: () => void
- *   renderPedMet: () => void
- *   renderPedidos: () => void
- *   switchPedTab?: (tab: string) => void
  *   renderContasReceberMet?: () => void
  *   renderContasReceber?: () => void
  *   renderCotForns: () => void
@@ -101,7 +97,6 @@
  *   renderNotificacoes: () => void
  *   abrirModalRca: (targetId?: string | null) => void
  *   salvarRca: () => void | Promise<void>
- *   syncPedidoRcaComCliente: () => void
  *   gerarFilaCampanhaTracked: (id: string) => void | Promise<void>
  *   exportCSV: (tipo: string) => void
  *   cotLock: () => void

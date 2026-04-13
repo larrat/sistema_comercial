@@ -45,7 +45,7 @@ const FLAG_REGISTRY = {
   pedidos: {
     storageKey: STORAGE_KEYS.PEDIDOS_REACT_ENABLED,
     windowProp: '__SC_PEDIDOS_REACT_ENABLED__',
-    defaultValue: false
+    defaultValue: true
   }
 };
 
