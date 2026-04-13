@@ -468,6 +468,7 @@ export function limparFormPed() {
  * @param {string} id
  */
 export function editarPed(id) {
+  if (!shouldRenderLegacyPedidos()) return;
   /** @type {Pedido | undefined} */
   const p = PD().find((x) => x.id === id);
   if (!p) return;
@@ -742,6 +743,7 @@ export async function salvarPedido() {
  * @param {string} id
  */
 export async function removerPed(id) {
+  if (!shouldRenderLegacyPedidos()) return;
   if (!confirm('Remover pedido?')) return;
 
   try {
@@ -884,6 +886,7 @@ export async function reabrirPed(id) {
  * @param {string} id
  */
 export function verPed(id) {
+  if (!shouldRenderLegacyPedidos()) return;
   /** @type {Pedido | undefined} */
   const p = PD().find((x) => x.id === id);
   if (!p) return;
