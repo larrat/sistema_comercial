@@ -7,6 +7,7 @@ import {
   getPilotFlagStorageKey
 } from '../legacy/bridges/feature-flags.js';
 import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import { fecharModal } from '../shared/utils.js';
 
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeState} BridgeState */
@@ -98,6 +99,14 @@ function getSegmentosPanel() {
 
 function getClientesPage() {
   return /** @type {HTMLElement | null} */ (document.getElementById('pg-clientes'));
+}
+
+function getLegacyDetailModal() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('modal-cli-det'));
+}
+
+function getLegacyDetailBox() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('cli-det-box'));
 }
 
 function isClientesPageActive() {
@@ -314,6 +323,21 @@ function syncShellModeUi(reactActive) {
   if (reactActive) forceClientesListTab();
 }
 
+function syncLegacyDetailModal(reactActive) {
+  const modal = getLegacyDetailModal();
+  if (!modal) return;
+
+  if (reactActive) {
+    if (modal.classList.contains('on')) fecharModal('modal-cli-det');
+    const detailBox = getLegacyDetailBox();
+    if (detailBox) detailBox.innerHTML = '';
+    modal.hidden = true;
+    return;
+  }
+
+  modal.hidden = false;
+}
+
 function updateToggle() {
   const toggle = getToggle();
   if (!toggle) return;
@@ -336,6 +360,7 @@ async function applyMode() {
   if (legacyShell) legacyShell.hidden = !!reactActive;
   if (reactShell) reactShell.hidden = !reactActive;
   syncShellModeUi(reactActive);
+  syncLegacyDetailModal(reactActive);
 
   if (!reactActive) {
     if (mounted && bridge?.unmount) bridge.unmount();
