@@ -2,6 +2,7 @@
 
 /** @typedef {import('../types/domain').UxWorkflowsModuleDeps} UxWorkflowsModuleDeps */
 
+import { forceClientesReactMode, isClientesReactFeatureEnabled } from './clientes-react-bridge.js';
 import { toast, norm, fmt, prV } from '../shared/utils.js';
 
 /** @type {UxWorkflowsModuleDeps} */
@@ -133,7 +134,8 @@ function getQuickCommands() {
       cmd: '/ novo cliente',
       label: 'Novo Cliente',
       run: () => {
-        if (deps.isClientesReactPilotActive?.()) {
+        if (isClientesReactFeatureEnabled()) {
+          forceClientesReactMode();
           deps.abrirNovoClienteReact?.();
           return;
         }

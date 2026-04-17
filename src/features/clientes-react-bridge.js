@@ -481,83 +481,78 @@ export function forceClientesReactMode() {
 }
 
 export function abrirNovoClienteReact() {
-  postToReactFrame('clientes:novo');
+  return postToReactFrame('clientes:novo');
 }
 
 export function abrirDetalheClienteReact(clienteId, tab = 'resumo') {
-  if (!clienteId) return;
-  postToReactFrame('clientes:abrir-detalhe', { id: String(clienteId), tab });
+  if (!clienteId) return false;
+  return postToReactFrame('clientes:abrir-detalhe', { id: String(clienteId), tab });
 }
 
 export function editarClienteReact(clienteId) {
-  if (!clienteId) return;
-  postToReactFrame('clientes:editar', { id: String(clienteId) });
+  if (!clienteId) return false;
+  return postToReactFrame('clientes:editar', { id: String(clienteId) });
 }
 
 export function excluirClienteReact(clienteId) {
-  if (!clienteId) return;
-  postToReactFrame('clientes:excluir', { id: String(clienteId) });
+  if (!clienteId) return false;
+  return postToReactFrame('clientes:excluir', { id: String(clienteId) });
 }
 
 export function limparFiltrosClienteReact() {
-  postToReactFrame('clientes:limpar-filtros');
+  return postToReactFrame('clientes:limpar-filtros');
 }
 
 export function abrirListaClienteReact() {
-  postToReactFrame('clientes:abrir-lista');
+  return postToReactFrame('clientes:abrir-lista');
 }
 
 export function editarClienteReactAtual() {
-  postToReactFrame('clientes:editar-atual');
+  return postToReactFrame('clientes:editar-atual');
 }
 
 export function exportarClientesReactCsv() {
-  postToReactFrame('clientes:exportar-csv');
+  return postToReactFrame('clientes:exportar-csv');
 }
 
 export function abrirResumoClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'resumo');
-    return;
+    return abrirDetalheClienteReact(targetId, 'resumo');
   }
-  postToReactFrame('clientes:abrir-resumo');
+  return postToReactFrame('clientes:abrir-resumo');
 }
 
 export function abrirAbertasClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'abertas');
-    return;
+    return abrirDetalheClienteReact(targetId, 'abertas');
   }
-  postToReactFrame('clientes:abrir-abertas');
+  return postToReactFrame('clientes:abrir-abertas');
 }
 
 export function abrirFechadasClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'fechadas');
-    return;
+    return abrirDetalheClienteReact(targetId, 'fechadas');
   }
-  postToReactFrame('clientes:abrir-fechadas');
+  return postToReactFrame('clientes:abrir-fechadas');
 }
 
 export function abrirNotasClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'notas');
-    return;
+    return abrirDetalheClienteReact(targetId, 'notas');
   }
-  postToReactFrame('clientes:abrir-notas');
+  return postToReactFrame('clientes:abrir-notas');
 }
 
 export function abrirFidelidadeClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'fidelidade');
-    return;
+    return abrirDetalheClienteReact(targetId, 'fidelidade');
   }
-  postToReactFrame('clientes:abrir-fidelidade');
+  return postToReactFrame('clientes:abrir-fidelidade');
 }
 
 function handleBridgeMessage(event) {

@@ -10,6 +10,8 @@ import {
   abrirNotasClienteReact,
   editarClienteReact,
   excluirClienteReact,
+  forceClientesReactMode,
+  isClientesReactFeatureEnabled,
   shouldRenderLegacyClientes,
   syncClientesReactBridge
 } from './clientes-react-bridge.js';
@@ -21,6 +23,24 @@ let reactClienteSyncRegistered = false;
 function useLegacyClientes() {
   syncClientesReactBridge();
   return shouldRenderLegacyClientes();
+}
+
+/**
+ * @template T
+ * @param {() => T} reactAction
+ * @param {() => T} legacyAction
+ * @returns {T}
+ */
+function routeClientesAction(reactAction, legacyAction) {
+  syncClientesReactBridge();
+
+  if (isClientesReactFeatureEnabled()) {
+    forceClientesReactMode();
+    const reactResult = reactAction();
+    if (reactResult) return reactResult;
+  }
+
+  return legacyAction();
 }
 
 function ensureClientesReactSync() {
@@ -76,33 +96,30 @@ export function renderCliSegs() {
  * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'|'notas'} tab
  */
 export function switchCliDetTab(clienteId, tab) {
-  if (!useLegacyClientes()) {
-    abrirDetalheClienteReact(clienteId, tab);
-    return;
-  }
-  return legacy.switchCliDetTab(clienteId, tab);
+  return routeClientesAction(
+    () => abrirDetalheClienteReact(clienteId, tab),
+    () => legacy.switchCliDetTab(clienteId, tab)
+  );
 }
 
 /**
  * @param {string} clienteId
  */
 export async function adicionarLancamentoFidelidade(clienteId) {
-  if (!useLegacyClientes()) {
-    abrirFidelidadeClienteReact(clienteId);
-    return;
-  }
-  return legacy.adicionarLancamentoFidelidade(clienteId);
+  return routeClientesAction(
+    () => abrirFidelidadeClienteReact(clienteId),
+    () => legacy.adicionarLancamentoFidelidade(clienteId)
+  );
 }
 
 /**
  * @param {string} id
  */
 export async function abrirCliDet(id) {
-  if (!useLegacyClientes()) {
-    abrirDetalheClienteReact(id, 'resumo');
-    return;
-  }
-  return legacy.abrirCliDet(id);
+  return routeClientesAction(
+    () => abrirDetalheClienteReact(id, 'resumo'),
+    () => legacy.abrirCliDet(id)
+  );
 }
 
 /**
@@ -110,60 +127,54 @@ export async function abrirCliDet(id) {
  * @param {string} clienteId
  */
 export async function fecharVendaCliente(pedidoId, clienteId) {
-  if (!useLegacyClientes()) {
-    abrirDetalheClienteReact(clienteId, 'fechadas');
-    return;
-  }
-  return legacy.fecharVendaCliente(pedidoId, clienteId);
+  return routeClientesAction(
+    () => abrirDetalheClienteReact(clienteId, 'fechadas'),
+    () => legacy.fecharVendaCliente(pedidoId, clienteId)
+  );
 }
 
 /**
  * @param {string} id
  */
 export async function addNota(id) {
-  if (!useLegacyClientes()) {
-    abrirNotasClienteReact(id);
-    return;
-  }
-  return legacy.addNota(id);
+  return routeClientesAction(
+    () => abrirNotasClienteReact(id),
+    () => legacy.addNota(id)
+  );
 }
 
 export function limparFormCli() {
-  if (!useLegacyClientes()) {
-    abrirNovoClienteReact();
-    return;
-  }
-  return legacy.limparFormCli();
+  return routeClientesAction(
+    () => abrirNovoClienteReact(),
+    () => legacy.limparFormCli()
+  );
 }
 
 /**
  * @param {string} id
  */
 export function editarCli(id) {
-  if (!useLegacyClientes()) {
-    editarClienteReact(id);
-    return;
-  }
-  return legacy.editarCli(id);
+  return routeClientesAction(
+    () => editarClienteReact(id),
+    () => legacy.editarCli(id)
+  );
 }
 
 export async function salvarCliente() {
-  if (!useLegacyClientes()) {
-    abrirNovoClienteReact();
-    return;
-  }
-  return legacy.salvarCliente();
+  return routeClientesAction(
+    () => abrirNovoClienteReact(),
+    () => legacy.salvarCliente()
+  );
 }
 
 /**
  * @param {string} id
  */
 export async function removerCli(id) {
-  if (!useLegacyClientes()) {
-    excluirClienteReact(id);
-    return;
-  }
-  return legacy.removerCli(id);
+  return routeClientesAction(
+    () => excluirClienteReact(id),
+    () => legacy.removerCli(id)
+  );
 }
 
 export function refreshCliDL() {

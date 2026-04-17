@@ -215,6 +215,11 @@ const PAGE_META = {
     secondary: {
       label: 'Novo cliente',
       run: () => {
+        if (isClientesReactFeatureEnabled()) {
+          forceClientesReactMode();
+          deps.abrirNovoClienteReact();
+          return;
+        }
         deps.limparFormCliTracked();
         deps.abrirModal('modal-cliente');
       }
@@ -268,6 +273,11 @@ const PAGE_META = {
     primary: {
       label: 'Novo cliente',
       run: () => {
+        if (isClientesReactFeatureEnabled()) {
+          forceClientesReactMode();
+          deps.abrirNovoClienteReact();
+          return;
+        }
         deps.limparFormCliTracked();
         deps.abrirModal('modal-cliente');
       }
