@@ -735,6 +735,7 @@ export type DomBindingsDeps = {
   marcarPendente?: (id: string) => void | Promise<void>;
   estornarBaixaConta?: (contaId: string, baixaId: string) => void | Promise<void>;
   gerarContaManual?: (pedidoId: string) => void | Promise<void>;
+  setContasReceberReactTab?: (tab: string) => void;
   avancarStatusPed?: (id: string) => void | Promise<void>;
   cancelarStatusPed?: (id: string) => void | Promise<void>;
   reabrirPed?: (id: string) => void | Promise<void>;

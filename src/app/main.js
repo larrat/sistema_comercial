@@ -93,6 +93,11 @@ import {
   editarPedidoReact,
   abrirDetalhePedidoReact
 } from '../features/pedidos-react-bridge.js';
+import {
+  shouldRenderLegacyContasReceber,
+  syncContasReceberReactBridge,
+  setContasReceberReactTab
+} from '../features/contas-receber-react-bridge.js';
 
 import { initPedidosModule } from '../features/pedidos.js';
 
@@ -851,6 +856,7 @@ startApplicationRuntime({
         marcarPendente,
         estornarBaixaConta,
         gerarContaManual,
+        setContasReceberReactTab,
         renderCotForns,
         renderCotTabela,
         cotFile,

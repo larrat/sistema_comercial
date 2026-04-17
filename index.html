@@ -21,6 +21,7 @@
     <script type="module" src="./dist-react/clientes-bridge.js" defer></script>
     <script type="module" src="./dist-react/dashboard-bridge.js" defer></script>
     <script type="module" src="./dist-react/pedidos-bridge.js" defer></script>
+    <script type="module" src="./dist-react/contas-receber-bridge.js" defer></script>
   </head>
   <body>
     <!-- ══ SETUP SCREEN ══ -->
@@ -841,58 +842,64 @@
 
         <!-- A RECEBER -->
         <div class="pg" id="pg-receber">
-          <div class="mg bento-band" id="cr-met"></div>
-          <div class="tabs">
-            <button class="tb on" data-click="switchCrTab('pendentes')">Pendentes</button>
-            <button class="tb" data-click="switchCrTab('vencidos')">Vencidos</button>
-            <button class="tb" data-click="switchCrTab('recebidos')">Recebidos</button>
-          </div>
+          <!-- React pilot root -->
+          <div id="cr-react-root" hidden></div>
 
-          <div class="tc on" id="receber-tc-pendentes">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="toolbar-main">
-                  <input
-                    class="inp input-w-sm"
-                    id="cr-busca-pendentes"
-                    placeholder="Cliente ou pedido..."
-                    data-input="renderContasReceber()"
-                  />
-                </div>
-              </div>
-              <div id="cr-lista-pendentes"></div>
+          <!-- Legacy shell (hidden when React pilot is active) -->
+          <div id="cr-legacy-shell">
+            <div class="mg bento-band" id="cr-met"></div>
+            <div class="tabs">
+              <button class="tb on" data-click="switchCrTab('pendentes')">Pendentes</button>
+              <button class="tb" data-click="switchCrTab('vencidos')">Vencidos</button>
+              <button class="tb" data-click="switchCrTab('recebidos')">Recebidos</button>
             </div>
-          </div>
 
-          <div class="tc" id="receber-tc-vencidos">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="toolbar-main">
-                  <input
-                    class="inp input-w-sm"
-                    id="cr-busca-vencidos"
-                    placeholder="Cliente ou pedido..."
-                    data-input="renderContasReceber()"
-                  />
+            <div class="tc on" id="receber-tc-pendentes">
+              <div class="card card-shell">
+                <div class="toolbar toolbar-shell toolbar-shell--section">
+                  <div class="toolbar-main">
+                    <input
+                      class="inp input-w-sm"
+                      id="cr-busca-pendentes"
+                      placeholder="Cliente ou pedido..."
+                      data-input="renderContasReceber()"
+                    />
+                  </div>
                 </div>
+                <div id="cr-lista-pendentes"></div>
               </div>
-              <div id="cr-lista-vencidos"></div>
             </div>
-          </div>
 
-          <div class="tc" id="receber-tc-recebidos">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="toolbar-main">
-                  <input
-                    class="inp input-w-sm"
-                    id="cr-busca-recebidos"
-                    placeholder="Cliente ou pedido..."
-                    data-input="renderContasReceber()"
-                  />
+            <div class="tc" id="receber-tc-vencidos">
+              <div class="card card-shell">
+                <div class="toolbar toolbar-shell toolbar-shell--section">
+                  <div class="toolbar-main">
+                    <input
+                      class="inp input-w-sm"
+                      id="cr-busca-vencidos"
+                      placeholder="Cliente ou pedido..."
+                      data-input="renderContasReceber()"
+                    />
+                  </div>
                 </div>
+                <div id="cr-lista-vencidos"></div>
               </div>
-              <div id="cr-lista-recebidos"></div>
+            </div>
+
+            <div class="tc" id="receber-tc-recebidos">
+              <div class="card card-shell">
+                <div class="toolbar toolbar-shell toolbar-shell--section">
+                  <div class="toolbar-main">
+                    <input
+                      class="inp input-w-sm"
+                      id="cr-busca-recebidos"
+                      placeholder="Cliente ou pedido..."
+                      data-input="renderContasReceber()"
+                    />
+                  </div>
+                </div>
+                <div id="cr-lista-recebidos"></div>
+              </div>
             </div>
           </div>
         </div>

@@ -5,6 +5,10 @@ import { D, State, CR, CRB, PD } from '../app/store.js';
 import { abrirModal, fecharModal, fmt, notify, toast, uid } from '../shared/utils.js';
 import { esc } from '../shared/sanitize.js';
 import { SEVERITY } from '../shared/messages.js';
+import {
+  shouldRenderLegacyContasReceber,
+  setContasReceberReactTab
+} from './contas-receber-react-bridge.js';
 
 /** @typedef {import('../types/domain').ContaReceber} ContaReceber */
 /** @typedef {import('../types/domain').ContaReceberBaixa} ContaReceberBaixa */
@@ -317,6 +321,7 @@ function renderContaActions(cr) {
 }
 
 export function renderContasReceberMet() {
+  if (!shouldRenderLegacyContasReceber()) return;
   const el = document.getElementById('cr-met');
   if (!el) return;
 
@@ -341,6 +346,7 @@ export function renderContasReceberMet() {
 }
 
 export function renderContasReceber() {
+  if (!shouldRenderLegacyContasReceber()) return;
   renderCrList('cr-busca-pendentes', 'cr-lista-pendentes', 'pendente_ok');
   renderCrList('cr-busca-vencidos', 'cr-lista-vencidos', 'vencido');
   renderCrList('cr-busca-recebidos', 'cr-lista-recebidos', 'recebido');
@@ -456,10 +462,14 @@ function renderCrList(buscaId, listaId, statusEfetivo) {
  * @param {'pendentes' | 'vencidos' | 'recebidos'} tab
  */
 export function switchCrTab(tab) {
+  if (!shouldRenderLegacyContasReceber()) {
+    setContasReceberReactTab(tab);
+    return;
+  }
   Object.keys(TAB_CR).forEach((name) => {
     document.getElementById(`receber-tc-${name}`)?.classList.toggle('on', name === tab);
   });
-  const tabBtns = document.querySelectorAll('#pg-receber .tabs .tb');
+  const tabBtns = document.querySelectorAll('#cr-legacy-shell .tabs .tb');
   const names = ['pendentes', 'vencidos', 'recebidos'];
   tabBtns.forEach((btn, index) => btn.classList.toggle('on', names[index] === tab));
   renderContasReceber();

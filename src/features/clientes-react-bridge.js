@@ -125,8 +125,12 @@ function isClientesPageActive() {
   return getClientesPage()?.classList.contains('on') || false;
 }
 
-function isReactModeActive() {
+function isReactModeRequested() {
   return !!(bridge?.mount && getMode() === UI_MODES.REACT && isClientesPageActive());
+}
+
+function isReactModeActive() {
+  return !!(mounted && getMode() === UI_MODES.REACT && isClientesPageActive());
 }
 
 function toViewLabel(view) {
@@ -386,8 +390,45 @@ async function applyMode() {
   const legacyShell = getLegacyShell();
   const reactShell = getReactShell();
   const root = getRoot();
-  const reactActive = isReactModeActive();
+  const reactRequested = isReactModeRequested();
 
+  if (!reactRequested) {
+    if (mounted && bridge?.unmount) bridge.unmount();
+    mounted = false;
+    if (legacyShell) legacyShell.hidden = false;
+    if (reactShell) reactShell.hidden = true;
+    syncShellModeUi(false);
+    syncLegacyDetailModal(false);
+    syncLegacyFormModal(false);
+    syncBridgeState(null);
+    updateToggle();
+    return;
+  }
+
+  if (!root || !bridge?.mount) {
+    if (legacyShell) legacyShell.hidden = false;
+    if (reactShell) reactShell.hidden = true;
+    syncShellModeUi(false);
+    syncLegacyDetailModal(false);
+    syncLegacyFormModal(false);
+    updateToggle();
+    return;
+  }
+
+  if (!mounted) {
+    try {
+      await bridge.mount(root);
+      mounted = true;
+    } catch (error) {
+      mounted = false;
+      console.error(
+        '[clientes-react-bridge] falha ao montar piloto React; usando fallback legado.',
+        error
+      );
+    }
+  }
+
+  const reactActive = isReactModeActive();
   if (legacyShell) legacyShell.hidden = !!reactActive;
   if (reactShell) reactShell.hidden = !reactActive;
   syncShellModeUi(reactActive);
@@ -395,21 +436,9 @@ async function applyMode() {
   syncLegacyFormModal(reactActive);
 
   if (!reactActive) {
-    if (mounted && bridge?.unmount) bridge.unmount();
-    mounted = false;
     syncBridgeState(null);
     updateToggle();
     return;
-  }
-
-  if (!root || !bridge?.mount) {
-    updateToggle();
-    return;
-  }
-
-  if (!mounted) {
-    await bridge.mount(root);
-    mounted = true;
   }
 
   updateBridgeIndicators();
