@@ -30,7 +30,9 @@ export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
       <td className="table-cell-muted">{fmtCurrency(item.custo)}</td>
       <td>{fmtCurrency(item.preco)}</td>
       <td className="table-cell-strong">{fmtCurrency(subtotal)}</td>
-      <td className={`table-cell-strong ${lucro >= 0 ? 'table-cell-success' : 'table-cell-danger'}`}>
+      <td
+        className={`table-cell-strong ${lucro >= 0 ? 'table-cell-success' : 'table-cell-danger'}`}
+      >
         {fmtCurrency(lucro)}
       </td>
       <td className="table-cell-strong">{margem.toFixed(1)}%</td>

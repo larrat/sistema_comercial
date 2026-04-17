@@ -24,9 +24,7 @@ export function PedidoItemsSection({ itens, produtos, tipo, readOnly, onAdd, onR
       <div className="div" />
       <div className="ct">Itens do pedido</div>
 
-      {!readOnly && onAdd && (
-        <PedidoItemAdd produtos={produtos} tipo={tipo} onAdd={onAdd} />
-      )}
+      {!readOnly && onAdd && <PedidoItemAdd produtos={produtos} tipo={tipo} onAdd={onAdd} />}
 
       {itens.length === 0 ? (
         <div className="empty-inline">Nenhum item.</div>

@@ -1583,51 +1583,46 @@ function De({ cliente: e }) {
                   })
                 }),
                 (0, D.jsx)(`tbody`, {
-                  children: i
-                    .slice(0, 30)
-                    .map((e) =>
-                      (0, D.jsxs)(
-                        `tr`,
-                        {
-                          children: [
-                            (0, D.jsx)(`td`, {
-                              className: `table-cell-muted`,
-                              children: e.criado_em
-                                ? new Date(e.criado_em).toLocaleDateString(`pt-BR`)
-                                : `-`
-                            }),
-                            (0, D.jsx)(`td`, {
-                              children: (0, D.jsx)(`span`, {
-                                className: `bdg ${Number(e.pontos ?? 0) > 0 ? `bg` : `br`}`,
-                                children: we[e.tipo || ``] || e.tipo || `-`
-                              })
-                            }),
-                            (0, D.jsxs)(`td`, {
-                              className: `table-cell-strong ${Number(e.pontos ?? 0) > 0 ? `tone-success` : `tone-danger`}`,
-                              children: [
-                                Number(e.pontos ?? 0) > 0 ? `+` : ``,
-                                Number(e.pontos ?? 0)
-                              ]
-                            }),
-                            (0, D.jsx)(`td`, {
-                              children: (0, D.jsx)(`span`, {
-                                className: `bdg ${Ee[e.status || ``] || `bk`}`,
-                                children: Te[e.status || ``] || e.status || `-`
-                              })
-                            }),
-                            (0, D.jsx)(`td`, {
-                              className: `table-cell-muted`,
-                              children: e.origem || `-`
-                            }),
-                            (0, D.jsx)(`td`, {
-                              className: `table-cell-caption`,
-                              children: e.observacao || `-`
+                  children: i.slice(0, 30).map((e) =>
+                    (0, D.jsxs)(
+                      `tr`,
+                      {
+                        children: [
+                          (0, D.jsx)(`td`, {
+                            className: `table-cell-muted`,
+                            children: e.criado_em
+                              ? new Date(e.criado_em).toLocaleDateString(`pt-BR`)
+                              : `-`
+                          }),
+                          (0, D.jsx)(`td`, {
+                            children: (0, D.jsx)(`span`, {
+                              className: `bdg ${Number(e.pontos ?? 0) > 0 ? `bg` : `br`}`,
+                              children: we[e.tipo || ``] || e.tipo || `-`
                             })
-                          ]
-                        },
-                        e.id
-                      )
+                          }),
+                          (0, D.jsxs)(`td`, {
+                            className: `table-cell-strong ${Number(e.pontos ?? 0) > 0 ? `tone-success` : `tone-danger`}`,
+                            children: [Number(e.pontos ?? 0) > 0 ? `+` : ``, Number(e.pontos ?? 0)]
+                          }),
+                          (0, D.jsx)(`td`, {
+                            children: (0, D.jsx)(`span`, {
+                              className: `bdg ${Ee[e.status || ``] || `bk`}`,
+                              children: Te[e.status || ``] || e.status || `-`
+                            })
+                          }),
+                          (0, D.jsx)(`td`, {
+                            className: `table-cell-muted`,
+                            children: e.origem || `-`
+                          }),
+                          (0, D.jsx)(`td`, {
+                            className: `table-cell-caption`,
+                            children: e.observacao || `-`
+                          })
+                        ]
+                      },
+                      e.id
                     )
+                  )
                 })
               ]
             })

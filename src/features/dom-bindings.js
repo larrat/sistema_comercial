@@ -217,6 +217,15 @@ function getHandlerRegistry() {
       editarPedidoReact: deps.editarPedidoReact,
       abrirDetalhePedidoReact: deps.abrirDetalhePedidoReact
     },
+    receber: {
+      renderContasReceber: deps.renderContasReceber,
+      switchCrTab: deps.switchCrTab,
+      marcarRecebido: deps.marcarRecebido,
+      abrirBaixaParcial: deps.abrirBaixaParcial,
+      confirmarBaixaParcial: deps.confirmarBaixaParcial,
+      marcarPendente: deps.marcarPendente,
+      gerarContaManual: deps.gerarContaManual
+    },
     cotacao: {
       renderCotForns: deps.renderCotForns,
       renderCotTabela: deps.renderCotTabela,

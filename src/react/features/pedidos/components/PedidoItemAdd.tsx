@@ -77,7 +77,11 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
 
   return (
     <div data-testid="pedido-item-add">
-      {error && <div className="empty-inline" style={{ color: 'var(--color-danger)' }}>{error}</div>}
+      {error && (
+        <div className="empty-inline" style={{ color: 'var(--color-danger)' }}>
+          {error}
+        </div>
+      )}
       <div className="fg c5 form-gap-bottom-xxs">
         <div>
           <div className="fl">Produto</div>
@@ -144,7 +148,12 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
         </div>
       </div>
       <div className="modal-actions modal-actions-inline">
-        <button className="btn btn-sm" type="button" onClick={handleAdd} data-testid="pedido-item-add-btn">
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={handleAdd}
+          data-testid="pedido-item-add-btn"
+        >
           + Adicionar item
         </button>
       </div>

@@ -17,6 +17,7 @@ export const D = {
   movs: {},
   jogos: {},
   contasReceber: {},
+  contasReceberBaixas: {},
   userPerfis: [],
   userFiliais: [],
   acessosAudit: [],
@@ -129,4 +130,10 @@ export function CR() {
   const filialId = getFilialKey();
   if (!D.contasReceber) D.contasReceber = {};
   return D.contasReceber[filialId] || (D.contasReceber[filialId] = []);
+}
+
+export function CRB() {
+  const filialId = getFilialKey();
+  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
+  return D.contasReceberBaixas[filialId] || (D.contasReceberBaixas[filialId] = []);
 }

@@ -80,7 +80,11 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-          <button className="btn btn-sm" onClick={() => onEditar(pedido.id)} data-testid="pedido-detail-editar">
+          <button
+            className="btn btn-sm"
+            onClick={() => onEditar(pedido.id)}
+            data-testid="pedido-detail-editar"
+          >
             Editar
           </button>
           <button className="btn btn-sm" onClick={onClose} data-testid="pedido-detail-close">

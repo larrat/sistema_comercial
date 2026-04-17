@@ -25,9 +25,7 @@ export function PedidosPilotPage() {
 
   const editingPedido = useMemo<Pedido | null>(
     () =>
-      editingId && editingId !== 'new'
-        ? (pedidos.find((p) => p.id === editingId) ?? null)
-        : null,
+      editingId && editingId !== 'new' ? (pedidos.find((p) => p.id === editingId) ?? null) : null,
     [pedidos, editingId]
   );
 

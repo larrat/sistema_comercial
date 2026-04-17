@@ -83,7 +83,8 @@ export async function carregarDadosFilial(filId) {
       jogosResult,
       campanhasResult,
       campanhaEnviosResult,
-      contasReceberResult
+      contasReceberResult,
+      contasReceberBaixasResult
     ] = await Promise.all([
       SB.toResult(() => SB.getProdutos(filId)),
       SB.toResult(() => SB.getClientes(filId)),
@@ -96,7 +97,8 @@ export async function carregarDadosFilial(filId) {
       SB.toResult(() => SB.getJogosAgenda(filId)),
       SB.toResult(() => SB.getCampanhas(filId)),
       SB.toResult(() => SB.getCampanhaEnvios(filId)),
-      SB.toResult(() => SB.getContasReceber(filId))
+      SB.toResult(() => SB.getContasReceber(filId)),
+      SB.toResult(() => SB.getContasReceberBaixas(filId))
     ]);
 
     const baseFailures = [
@@ -192,6 +194,18 @@ export async function carregarDadosFilial(filId) {
     }
     if (!D.contasReceber) D.contasReceber = {};
     D.contasReceber[filId] = contasReceber || [];
+
+    const contasReceberBaixas = contasReceberBaixasResult.ok
+      ? contasReceberBaixasResult.data || []
+      : D.contasReceberBaixas?.[filId] || [];
+    if (!contasReceberBaixasResult.ok) {
+      console.error(
+        'Falha ao carregar baixas de contas a receber',
+        contasReceberBaixasResult.error
+      );
+    }
+    if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
+    D.contasReceberBaixas[filId] = contasReceberBaixas || [];
 
     document.body.dataset.runtimeBootstrap = 'ready';
   } catch (e) {

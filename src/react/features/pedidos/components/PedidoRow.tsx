@@ -31,7 +31,14 @@ function fmt(value: number | null | undefined): string {
   return (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, onDetalhe }: Props) {
+export function PedidoRow({
+  pedido,
+  inFlight,
+  onAvancar,
+  onCancelar,
+  onReabrir,
+  onDetalhe
+}: Props) {
   const [pendingCancel, setPendingCancel] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const prevStatusRef = useRef(pedido.status);
@@ -63,11 +70,11 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
         </button>
         <span className={badgeClass}>{statusLabel}</span>
         {showSuccess && (
-          <span className="bdg bg" style={{ transition: 'opacity 0.3s' }}>✓</span>
+          <span className="bdg bg" style={{ transition: 'opacity 0.3s' }}>
+            ✓
+          </span>
         )}
-        {pedido.data && (
-          <span className="list-row-meta">{pedido.data}</span>
-        )}
+        {pedido.data && <span className="list-row-meta">{pedido.data}</span>}
         <span className="list-row-meta">{fmt(pedido.total)}</span>
       </div>
 
@@ -102,7 +109,10 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
             <button
               className="btn btn-sm btn-danger"
               disabled={inFlight}
-              onClick={() => { setPendingCancel(false); onCancelar(); }}
+              onClick={() => {
+                setPendingCancel(false);
+                onCancelar();
+              }}
               data-testid={`pedido-acao-cancelar-confirm-${pedido.id}`}
             >
               Sim

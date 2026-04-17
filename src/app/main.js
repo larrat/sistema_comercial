@@ -101,6 +101,8 @@ import {
   renderContasReceber,
   switchCrTab,
   marcarRecebido,
+  abrirBaixaParcial,
+  confirmarBaixaParcial,
   marcarPendente,
   gerarContaManual
 } from '../features/contas-receber.js';
@@ -348,6 +350,8 @@ function resetRuntimeData() {
   D.campanhas = {};
   D.campanhaEnvios = {};
   D.notas = {};
+  D.contasReceber = {};
+  D.contasReceberBaixas = {};
   D.userPerfis = [];
   D.userFiliais = [];
   D.acessosAudit = [];
@@ -841,6 +845,8 @@ startApplicationRuntime({
         renderContasReceber,
         switchCrTab,
         marcarRecebido,
+        abrirBaixaParcial,
+        confirmarBaixaParcial,
         marcarPendente,
         gerarContaManual,
         renderCotForns,

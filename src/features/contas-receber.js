@@ -1,12 +1,13 @@
 // @ts-check
 
 import { SB } from '../app/api.js';
-import { D, State, CR, PD } from '../app/store.js';
-import { fmt, toast, notify, uid } from '../shared/utils.js';
+import { D, State, CR, CRB, PD } from '../app/store.js';
+import { abrirModal, fecharModal, fmt, notify, toast, uid } from '../shared/utils.js';
 import { esc } from '../shared/sanitize.js';
 import { SEVERITY } from '../shared/messages.js';
 
 /** @typedef {import('../types/domain').ContaReceber} ContaReceber */
+/** @typedef {import('../types/domain').ContaReceberBaixa} ContaReceberBaixa */
 
 const TAB_CR = {
   pendentes: 'pendentes',
@@ -14,9 +15,49 @@ const TAB_CR = {
   recebidos: 'recebidos'
 };
 
+const MODAL_BAIXA_PARCIAL_ID = 'modal-cr-parcial';
+let contaReceberSelecionadaId = '';
+
 /** @returns {string} YYYY-MM-DD */
 function hoje() {
   return new Date().toISOString().split('T')[0];
+}
+
+/**
+ * @param {number} value
+ * @returns {number}
+ */
+function roundMoney(value) {
+  return Number(Number(value || 0).toFixed(2));
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {number}
+ */
+function getValorRecebido(cr) {
+  if (Number.isFinite(Number(cr.valor_recebido))) return roundMoney(Number(cr.valor_recebido));
+  return cr.status === 'recebido' ? roundMoney(Number(cr.valor || 0)) : 0;
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {number}
+ */
+function getValorEmAberto(cr) {
+  if (Number.isFinite(Number(cr.valor_em_aberto))) return roundMoney(Number(cr.valor_em_aberto));
+  return roundMoney(Math.max(0, Number(cr.valor || 0) - getValorRecebido(cr)));
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {string}
+ */
+function getStatusLabel(cr) {
+  const aberto = getValorEmAberto(cr);
+  if (aberto <= 0 || cr.status === 'recebido') return 'Recebido';
+  if (getValorRecebido(cr) > 0 || cr.status === 'parcial') return 'Parcial';
+  return 'Pendente';
 }
 
 /**
@@ -24,9 +65,139 @@ function hoje() {
  * @returns {'pendente_ok' | 'vencido' | 'recebido'}
  */
 function getStatusEfetivo(cr) {
-  if (cr.status === 'recebido') return 'recebido';
+  if (getValorEmAberto(cr) <= 0 || cr.status === 'recebido') return 'recebido';
   if (cr.vencimento < hoje()) return 'vencido';
   return 'pendente_ok';
+}
+
+/**
+ * @param {string | null | undefined} iso
+ * @returns {string}
+ */
+function formatDateTimeLabel(iso) {
+  if (!iso) return '-';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return String(iso).slice(0, 16).replace('T', ' ');
+  return parsed.toLocaleString('pt-BR');
+}
+
+/**
+ * @param {Date} [date]
+ * @returns {string}
+ */
+function toDateTimeLocalValue(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, '0');
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hour = pad(date.getHours());
+  const minute = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hour}:${minute}`;
+}
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function fromDateTimeLocalValue(value) {
+  if (!value) return new Date().toISOString();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
+/**
+ * @param {string} contaId
+ * @returns {ContaReceberBaixa[]}
+ */
+function getBaixasConta(contaId) {
+  return CRB()
+    .filter((baixa) => baixa.conta_receber_id === contaId)
+    .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')));
+}
+
+/**
+ * @param {ContaReceber[]} contas
+ * @returns {number}
+ */
+function getRecebidoMes(contas) {
+  const mesAtual = hoje().slice(0, 7);
+  const baixasDoMes = CRB().filter(
+    (baixa) => String(baixa.recebido_em || '').slice(0, 7) === mesAtual
+  );
+  const contasComBaixaNoMes = new Set(baixasDoMes.map((baixa) => baixa.conta_receber_id));
+  const totalBaixas = baixasDoMes.reduce((acc, baixa) => acc + Number(baixa.valor || 0), 0);
+  const fallbackRecebidas = contas
+    .filter(
+      (conta) =>
+        getStatusEfetivo(conta) === 'recebido' &&
+        String(conta.recebido_em || '').slice(0, 7) === mesAtual &&
+        !contasComBaixaNoMes.has(conta.id)
+    )
+    .reduce((acc, conta) => acc + Number(conta.valor || 0), 0);
+  return roundMoney(totalBaixas + fallbackRecebidas);
+}
+
+/**
+ * @param {ContaReceber} conta
+ */
+function syncContaReceberAtualizada(conta) {
+  if (!D.contasReceber) D.contasReceber = {};
+  D.contasReceber[State.FIL] = CR().map((item) => (item.id === conta.id ? conta : item));
+}
+
+/**
+ * @param {ContaReceberBaixa} baixa
+ */
+function syncContaReceberBaixa(baixa) {
+  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
+  if (!D.contasReceberBaixas[State.FIL]) D.contasReceberBaixas[State.FIL] = [];
+  D.contasReceberBaixas[State.FIL] = [baixa, ...CRB().filter((item) => item.id !== baixa.id)];
+}
+
+function refreshContasReceberUi() {
+  renderContasReceberMet();
+  renderContasReceber();
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {string}
+ */
+function renderStatusBadge(cr) {
+  const label = getStatusLabel(cr);
+  const tone = label === 'Recebido' ? 'bg' : label === 'Parcial' ? 'ba' : 'bk';
+  return `<span class="bdg ${tone}">${label}</span>`;
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {string}
+ */
+function renderBaixasResumo(cr) {
+  const baixas = getBaixasConta(cr.id);
+  if (!baixas.length) return '<span class="table-cell-muted">Sem baixas</span>';
+  const ultima = baixas[0];
+  return `
+    <div class="table-cell-strong">${fmt(ultima.valor)}</div>
+    <div class="table-cell-caption table-cell-muted">${formatDateTimeLabel(ultima.recebido_em)}</div>
+  `;
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {string}
+ */
+function renderContaActions(cr) {
+  if (getStatusEfetivo(cr) === 'recebido') {
+    return `<button class="btn btn-sm" data-click="marcarPendente('${cr.id}')">Desfazer</button>`;
+  }
+
+  return `
+    <div class="fg2">
+      <button class="btn btn-sm" data-click="abrirBaixaParcial('${cr.id}')">Baixa parcial</button>
+      <button class="btn btn-sm btn-p" data-click="marcarRecebido('${cr.id}')">Receber tudo</button>
+    </div>
+  `;
 }
 
 export function renderContasReceberMet() {
@@ -37,22 +208,19 @@ export function renderContasReceberMet() {
   const hj = hoje();
 
   const totalPendente = contas
-    .filter((c) => c.status !== 'recebido')
-    .reduce((a, c) => a + (c.valor || 0), 0);
+    .filter((conta) => getStatusEfetivo(conta) !== 'recebido')
+    .reduce((acc, conta) => acc + getValorEmAberto(conta), 0);
 
   const totalVencido = contas
-    .filter((c) => c.status !== 'recebido' && c.vencimento < hj)
-    .reduce((a, c) => a + (c.valor || 0), 0);
+    .filter((conta) => getStatusEfetivo(conta) !== 'recebido' && conta.vencimento < hj)
+    .reduce((acc, conta) => acc + getValorEmAberto(conta), 0);
 
-  const mesAtual = hj.slice(0, 7); // YYYY-MM
-  const recebidoMes = contas
-    .filter((c) => c.status === 'recebido' && (c.recebido_em || '').slice(0, 7) === mesAtual)
-    .reduce((a, c) => a + (c.valor || 0), 0);
+  const recebidoMes = getRecebidoMes(contas);
 
   el.innerHTML = `
-    <div class="met"><div class="ml">A receber</div><div class="mv kpi-value-sm tone-warning">${fmt(totalPendente)}</div></div>
+    <div class="met"><div class="ml">Em aberto</div><div class="mv kpi-value-sm tone-warning">${fmt(totalPendente)}</div></div>
     <div class="met"><div class="ml">Vencido</div><div class="mv kpi-value-sm tone-danger">${fmt(totalVencido)}</div></div>
-    <div class="met"><div class="ml">Recebido no mês</div><div class="mv kpi-value-sm tone-success">${fmt(recebidoMes)}</div></div>
+    <div class="met"><div class="ml">Recebido no mes</div><div class="mv kpi-value-sm tone-success">${fmt(recebidoMes)}</div></div>
   `;
 }
 
@@ -71,44 +239,50 @@ function renderCrList(buscaId, listaId, statusEfetivo) {
   const el = document.getElementById(listaId);
   if (!el) return;
 
-  const q = (document.getElementById(buscaId)?.value || '').toLowerCase();
-
-  const f = [...CR()]
+  const q = String(document.getElementById(buscaId)?.value || '').toLowerCase();
+  const contas = [...CR()]
     .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
     .filter(
-      (c) =>
-        getStatusEfetivo(c) === statusEfetivo &&
-        (!q || c.cliente.toLowerCase().includes(q) || String(c.pedido_num || '').includes(q))
+      (conta) =>
+        getStatusEfetivo(conta) === statusEfetivo &&
+        (!q ||
+          conta.cliente.toLowerCase().includes(q) ||
+          String(conta.pedido_num || '').includes(q) ||
+          getStatusLabel(conta).toLowerCase().includes(q))
     );
 
-  if (!f.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">CR</div><p>Nenhum lançamento encontrado.</p></div>`;
+  if (!contas.length) {
+    el.innerHTML = `<div class="empty"><div class="ico">CR</div><p>Nenhum lancamento encontrado.</p></div>`;
     return;
   }
 
   const isMobile = window.matchMedia('(max-width: 1080px)').matches;
   if (isMobile) {
-    el.innerHTML = f
-      .map(
-        (c) => `
-      <div class="mobile-card">
-        <div class="mobile-card-head">
-          <div class="mobile-card-grow">
-            <div class="mobile-card-title">${esc(c.cliente)} ${c.pedido_num ? '— Ped. #' + c.pedido_num : ''}</div>
-            <div class="mobile-card-sub">Vencimento: ${c.vencimento}</div>
+    el.innerHTML = contas
+      .map((conta) => {
+        const recebido = getValorRecebido(conta);
+        const aberto = getValorEmAberto(conta);
+        return `
+          <div class="mobile-card">
+            <div class="mobile-card-head">
+              <div class="mobile-card-grow">
+                <div class="mobile-card-title">${esc(conta.cliente)} ${conta.pedido_num ? '- Ped. #' + conta.pedido_num : ''}</div>
+                <div class="mobile-card-sub">Vencimento: ${conta.vencimento}</div>
+              </div>
+              <div>${renderStatusBadge(conta)}</div>
+            </div>
+            <div class="mobile-card-meta mobile-card-meta-gap">
+              <div>Total: <b>${fmt(conta.valor)}</b></div>
+              <div>Recebido: <b>${fmt(recebido)}</b></div>
+              <div>Em aberto: <b>${fmt(aberto)}</b></div>
+              <div>Ultima baixa: <b>${formatDateTimeLabel(conta.ultimo_recebimento_em || conta.recebido_em)}</b></div>
+            </div>
+            <div class="mobile-card-actions">
+              ${renderContaActions(conta)}
+            </div>
           </div>
-          <div class="table-cell-strong">${fmt(c.valor)}</div>
-        </div>
-        <div class="mobile-card-actions">
-          ${
-            statusEfetivo !== 'recebido'
-              ? `<button class="btn btn-sm btn-p" data-click="marcarRecebido('${c.id}')">Marcar recebido</button>`
-              : `<button class="btn btn-sm" data-click="marcarPendente('${c.id}')">Desfazer</button>`
-          }
-        </div>
-      </div>
-    `
-      )
+        `;
+      })
       .join('');
     return;
   }
@@ -120,32 +294,35 @@ function renderCrList(buscaId, listaId, statusEfetivo) {
           <tr>
             <th>Cliente</th>
             <th>Pedido</th>
-            <th>Valor</th>
+            <th>Total</th>
+            <th>Recebido</th>
+            <th>Em aberto</th>
             <th>Vencimento</th>
-            ${statusEfetivo === 'recebido' ? '<th>Recebido em</th>' : ''}
+            <th>Ultima baixa</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          ${f
-            .map(
-              (c) => `
-            <tr>
-              <td class="table-cell-strong">${esc(c.cliente)}</td>
-              <td class="table-cell-muted">${c.pedido_num ? '#' + c.pedido_num : '-'}</td>
-              <td class="table-cell-strong">${fmt(c.valor)}</td>
-              <td class="${statusEfetivo === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'}">${c.vencimento}</td>
-              ${statusEfetivo === 'recebido' ? `<td class="table-cell-muted">${c.recebido_em ? c.recebido_em.slice(0, 10) : '-'}</td>` : ''}
-              <td>
-                ${
-                  statusEfetivo !== 'recebido'
-                    ? `<button class="btn btn-sm btn-p" data-click="marcarRecebido('${c.id}')">Marcar recebido</button>`
-                    : `<button class="btn btn-sm" data-click="marcarPendente('${c.id}')">Desfazer</button>`
-                }
-              </td>
-            </tr>
-          `
-            )
+          ${contas
+            .map((conta) => {
+              const recebido = getValorRecebido(conta);
+              const aberto = getValorEmAberto(conta);
+              return `
+                <tr>
+                  <td>
+                    <div class="table-cell-strong">${esc(conta.cliente)}</div>
+                    <div class="table-cell-caption">${renderStatusBadge(conta)}</div>
+                  </td>
+                  <td class="table-cell-muted">${conta.pedido_num ? '#' + conta.pedido_num : '-'}</td>
+                  <td class="table-cell-strong">${fmt(conta.valor)}</td>
+                  <td class="table-cell-strong tone-success">${fmt(recebido)}</td>
+                  <td class="table-cell-strong ${aberto > 0 ? 'tone-warning' : 'tone-success'}">${fmt(aberto)}</td>
+                  <td class="${statusEfetivo === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'}">${conta.vencimento}</td>
+                  <td>${renderBaixasResumo(conta)}</td>
+                  <td>${renderContaActions(conta)}</td>
+                </tr>
+              `;
+            })
             .join('')}
         </tbody>
       </table>
@@ -157,63 +334,219 @@ function renderCrList(buscaId, listaId, statusEfetivo) {
  * @param {'pendentes' | 'vencidos' | 'recebidos'} tab
  */
 export function switchCrTab(tab) {
-  Object.keys(TAB_CR).forEach((t) => {
-    document.getElementById(`receber-tc-${t}`)?.classList.toggle('on', t === tab);
+  Object.keys(TAB_CR).forEach((name) => {
+    document.getElementById(`receber-tc-${name}`)?.classList.toggle('on', name === tab);
   });
   const tabBtns = document.querySelectorAll('#pg-receber .tabs .tb');
   const names = ['pendentes', 'vencidos', 'recebidos'];
-  tabBtns.forEach((btn, i) => btn.classList.toggle('on', names[i] === tab));
+  tabBtns.forEach((btn, index) => btn.classList.toggle('on', names[index] === tab));
   renderContasReceber();
+}
+
+/**
+ * @param {string} contaId
+ * @param {number} valor
+ * @param {string} recebidoEmIso
+ * @param {string | null} observacao
+ */
+async function registrarBaixa(contaId, valor, recebidoEmIso, observacao) {
+  const conta = CR().find((item) => item.id === contaId);
+  if (!conta) return false;
+
+  const valorAberto = getValorEmAberto(conta);
+  const valorRecebidoAtual = getValorRecebido(conta);
+  const valorBaixa = roundMoney(valor);
+
+  if (valorBaixa <= 0) {
+    notify('Informe um valor de baixa maior que zero.', SEVERITY.WARNING);
+    return false;
+  }
+
+  if (valorBaixa > valorAberto) {
+    notify(`A baixa parcial nao pode ultrapassar ${fmt(valorAberto)}.`, SEVERITY.WARNING);
+    return false;
+  }
+
+  const novoValorRecebido = roundMoney(valorRecebidoAtual + valorBaixa);
+  const novoValorAberto = roundMoney(Math.max(0, Number(conta.valor || 0) - novoValorRecebido));
+  const quitado = novoValorAberto <= 0;
+
+  /** @type {ContaReceberBaixa} */
+  const baixa = {
+    id: uid(),
+    filial_id: /** @type {string} */ (State.FIL),
+    conta_receber_id: conta.id,
+    pedido_id: conta.pedido_id,
+    pedido_num: conta.pedido_num || null,
+    cliente_id: conta.cliente_id || null,
+    cliente: conta.cliente,
+    valor: valorBaixa,
+    recebido_em: recebidoEmIso,
+    observacao
+  };
+
+  /** @type {ContaReceber} */
+  const updated = {
+    ...conta,
+    valor_recebido: novoValorRecebido,
+    valor_em_aberto: novoValorAberto,
+    status: quitado ? 'recebido' : 'parcial',
+    recebido_em: quitado ? recebidoEmIso : null,
+    ultimo_recebimento_em: recebidoEmIso
+  };
+
+  try {
+    await Promise.all([SB.createContaReceberBaixa(baixa), SB.upsertContaReceber(updated)]);
+  } catch (error) {
+    notify(
+      `Erro ao registrar baixa: ${String(error?.message || 'erro desconhecido')}`,
+      SEVERITY.ERROR
+    );
+    return false;
+  }
+
+  syncContaReceberAtualizada(updated);
+  syncContaReceberBaixa(baixa);
+  refreshContasReceberUi();
+  notify(
+    quitado
+      ? `Recebimento concluido para ${conta.cliente}.`
+      : `Baixa parcial registrada: ${fmt(valorBaixa)} para ${conta.cliente}.`,
+    SEVERITY.SUCCESS
+  );
+  return true;
 }
 
 /**
  * @param {string} id
  */
 export async function marcarRecebido(id) {
-  const cr = CR().find((c) => c.id === id);
-  if (!cr) return;
-
-  const updated = { ...cr, status: 'recebido', recebido_em: new Date().toISOString() };
-  try {
-    await SB.upsertContaReceber(updated);
-  } catch (e) {
-    notify(
-      `Erro ao marcar como recebido: ${String(e?.message || 'erro desconhecido')}`,
-      SEVERITY.ERROR
-    );
+  const conta = CR().find((item) => item.id === id);
+  if (!conta) return;
+  const aberto = getValorEmAberto(conta);
+  if (aberto <= 0) {
+    notify('Esta conta ja esta quitada.', SEVERITY.INFO);
     return;
   }
+  await registrarBaixa(id, aberto, new Date().toISOString(), 'Recebimento total');
+}
 
-  if (!D.contasReceber) D.contasReceber = {};
-  D.contasReceber[State.FIL] = CR().map((c) => (c.id === id ? updated : c));
-  renderContasReceberMet();
-  renderContasReceber();
-  notify('Recebimento registrado.', SEVERITY.SUCCESS);
+/**
+ * @param {string} id
+ */
+export function abrirBaixaParcial(id) {
+  const conta = CR().find((item) => item.id === id);
+  if (!conta) return;
+
+  contaReceberSelecionadaId = id;
+  const aberto = getValorEmAberto(conta);
+  const historico = getBaixasConta(id)
+    .slice(0, 3)
+    .map(
+      (baixa) => `
+        <div class="table-cell-caption">
+          ${formatDateTimeLabel(baixa.recebido_em)} - <b>${fmt(baixa.valor)}</b>${baixa.observacao ? ` - ${esc(baixa.observacao)}` : ''}
+        </div>
+      `
+    )
+    .join('');
+
+  const title = document.getElementById('cr-parcial-titulo');
+  const resumo = document.getElementById('cr-parcial-resumo');
+  const valorInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('cr-parcial-valor')
+  );
+  const dataInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('cr-parcial-data')
+  );
+  const obsInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('cr-parcial-obs')
+  );
+  const historicoEl = document.getElementById('cr-parcial-historico');
+
+  if (title) {
+    title.textContent = `Baixa parcial - ${conta.cliente}${conta.pedido_num ? ` (#${conta.pedido_num})` : ''}`;
+  }
+  if (resumo) {
+    resumo.innerHTML = `
+      <div class="panel-inline-metrics">
+        <span>Total: <b>${fmt(conta.valor)}</b></span>
+        <span>Recebido: <b>${fmt(getValorRecebido(conta))}</b></span>
+        <span>Em aberto: <b>${fmt(aberto)}</b></span>
+      </div>
+    `;
+  }
+  if (valorInput) valorInput.value = String(aberto);
+  if (dataInput) dataInput.value = toDateTimeLocalValue();
+  if (obsInput) obsInput.value = '';
+  if (historicoEl) {
+    historicoEl.innerHTML =
+      historico || '<div class="table-cell-caption table-cell-muted">Sem baixas anteriores.</div>';
+  }
+
+  abrirModal(MODAL_BAIXA_PARCIAL_ID);
+  valorInput?.focus();
+  valorInput?.select();
+}
+
+export async function confirmarBaixaParcial() {
+  const conta = CR().find((item) => item.id === contaReceberSelecionadaId);
+  if (!conta) return;
+
+  const valorInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('cr-parcial-valor')
+  );
+  const dataInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('cr-parcial-data')
+  );
+  const obsInput = /** @type {HTMLInputElement | null} */ (
+    document.getElementById('cr-parcial-obs')
+  );
+
+  const valor = Number(valorInput?.value || 0);
+  const recebidoEmIso = fromDateTimeLocalValue(String(dataInput?.value || ''));
+  const observacao = String(obsInput?.value || '').trim() || null;
+
+  const ok = await registrarBaixa(conta.id, valor, recebidoEmIso, observacao);
+  if (!ok) return;
+
+  fecharModal(MODAL_BAIXA_PARCIAL_ID);
+  contaReceberSelecionadaId = '';
 }
 
 /**
  * @param {string} id
  */
 export async function marcarPendente(id) {
-  const cr = CR().find((c) => c.id === id);
-  if (!cr) return;
+  const conta = CR().find((item) => item.id === id);
+  if (!conta) return;
+  if (!confirm('Desfazer todas as baixas desta conta e voltar para pendente?')) return;
 
-  const updated = { ...cr, status: 'pendente', recebido_em: null };
+  /** @type {ContaReceber} */
+  const updated = {
+    ...conta,
+    status: 'pendente',
+    valor_recebido: 0,
+    valor_em_aberto: roundMoney(Number(conta.valor || 0)),
+    recebido_em: null,
+    ultimo_recebimento_em: null
+  };
+
   try {
-    await SB.upsertContaReceber(updated);
-  } catch (e) {
+    await Promise.all([SB.deleteContaReceberBaixasByConta(id), SB.upsertContaReceber(updated)]);
+  } catch (error) {
     notify(
-      `Erro ao desfazer recebimento: ${String(e?.message || 'erro desconhecido')}`,
+      `Erro ao desfazer recebimento: ${String(error?.message || 'erro desconhecido')}`,
       SEVERITY.ERROR
     );
     return;
   }
 
-  if (!D.contasReceber) D.contasReceber = {};
-  D.contasReceber[State.FIL] = CR().map((c) => (c.id === id ? updated : c));
-  renderContasReceberMet();
-  renderContasReceber();
-  toast('Recebimento desfeito.');
+  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
+  D.contasReceberBaixas[State.FIL] = CRB().filter((item) => item.conta_receber_id !== id);
+  syncContaReceberAtualizada(updated);
+  refreshContasReceberUi();
+  toast('Baixas removidas e conta reaberta.');
 }
 
 /** @type {Record<string, number>} */
@@ -225,71 +558,77 @@ const PRAZO_DIAS_CR = { '7d': 7, '15d': 15, '30d': 30, '60d': 60 };
  * @param {string} pedidoId
  */
 export async function gerarContaManual(pedidoId) {
-  const p = PD().find((x) => x.id === pedidoId);
-  if (!p) return;
+  const pedido = PD().find((item) => item.id === pedidoId);
+  if (!pedido) return;
 
-  if (CR().some((c) => c.pedido_id === pedidoId)) {
-    toast('Este pedido já tem uma conta a receber.');
+  if (CR().some((conta) => conta.pedido_id === pedidoId)) {
+    toast('Este pedido ja tem uma conta a receber.');
     return;
   }
 
-  const dias = PRAZO_DIAS_CR[p.prazo || ''];
+  const dias = PRAZO_DIAS_CR[pedido.prazo || ''];
   let vencimento;
-  if (dias && p.data) {
-    const base = new Date(p.data + 'T00:00:00');
+  if (dias && pedido.data) {
+    const base = new Date(pedido.data + 'T00:00:00');
     base.setDate(base.getDate() + dias);
     vencimento = base.toISOString().split('T')[0];
   } else {
-    vencimento = p.data || new Date().toISOString().split('T')[0];
+    vencimento = pedido.data || new Date().toISOString().split('T')[0];
   }
 
-  /** @type {import('../types/domain').ContaReceber} */
+  /** @type {ContaReceber} */
   const conta = {
     id: uid(),
     filial_id: /** @type {string} */ (State.FIL),
-    pedido_id: p.id,
-    pedido_num: p.num,
-    cliente_id: p.cliente_id || null,
-    cliente: p.cli,
-    valor: p.total,
+    pedido_id: pedido.id,
+    pedido_num: pedido.num,
+    cliente_id: pedido.cliente_id || null,
+    cliente: pedido.cli,
+    valor: pedido.total,
+    valor_recebido: 0,
+    valor_em_aberto: pedido.total,
     vencimento,
-    status: 'pendente'
+    status: 'pendente',
+    recebido_em: null,
+    ultimo_recebimento_em: null
   };
 
   try {
     await SB.upsertContaReceber(conta);
-  } catch (e) {
-    notify(`Erro ao gerar conta: ${String(e?.message || 'erro desconhecido')}`, SEVERITY.ERROR);
+  } catch (error) {
+    notify(`Erro ao gerar conta: ${String(error?.message || 'erro desconhecido')}`, SEVERITY.ERROR);
     return;
   }
 
   if (!D.contasReceber) D.contasReceber = {};
   if (!D.contasReceber[State.FIL]) D.contasReceber[State.FIL] = [];
   D.contasReceber[State.FIL].push(conta);
-  renderContasReceberMet();
-  renderContasReceber();
-  notify('Conta a receber gerada para pedido #' + p.num, SEVERITY.SUCCESS);
+  refreshContasReceberUi();
+  notify(`Conta a receber gerada para pedido #${pedido.num}`, SEVERITY.SUCCESS);
 }
 
-// ── Bridge: React → Legado ────────────────────────────────────────────────────
-// Quando o React (pedidos-bridge) insere uma conta a receber no Supabase,
-// ele dispara este evento para que o legado atualize D.contasReceber sem
-// precisar de um novo fetch à API.
 window.addEventListener('sc:conta-receber-criada', (/** @type {CustomEvent} */ ev) => {
   const conta = ev.detail;
   if (!conta || !conta.filial_id) return;
   if (!D.contasReceber) D.contasReceber = {};
   if (!D.contasReceber[conta.filial_id]) D.contasReceber[conta.filial_id] = [];
 
-  // Evita duplicata se o evento disparar mais de uma vez para o mesmo ID
-  const jaExiste = D.contasReceber[conta.filial_id].some((c) => c.id === conta.id);
+  /** @type {ContaReceber} */
+  const normalized = {
+    ...conta,
+    valor_recebido: Number(conta.valor_recebido || 0),
+    valor_em_aberto: Number(conta.valor_em_aberto ?? conta.valor ?? 0),
+    status: conta.status || 'pendente',
+    recebido_em: conta.recebido_em || null,
+    ultimo_recebimento_em: conta.ultimo_recebimento_em || null
+  };
+
+  const jaExiste = D.contasReceber[conta.filial_id].some((item) => item.id === conta.id);
   if (!jaExiste) {
-    D.contasReceber[conta.filial_id].push(conta);
+    D.contasReceber[conta.filial_id].push(normalized);
   }
 
-  // Atualiza UI somente se a filial da conta for a filial ativa
   if (conta.filial_id === State.FIL) {
-    renderContasReceberMet();
-    renderContasReceber();
+    refreshContasReceberUi();
   }
 });

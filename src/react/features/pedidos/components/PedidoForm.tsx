@@ -42,9 +42,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
   const [cli, setCli] = useState(initialPedido?.cli ?? '');
   const [rcaId, setRcaId] = useState(initialPedido?.rca_id ?? '');
   const [data, setData] = useState(initialPedido?.data ?? today());
-  const [status, setStatus] = useState(
-    normalizePedStatus(initialPedido?.status) || 'orcamento'
-  );
+  const [status, setStatus] = useState(normalizePedStatus(initialPedido?.status) || 'orcamento');
   const [pgto, setPgto] = useState(initialPedido?.pgto ?? 'a_vista');
   const [prazo, setPrazo] = useState(initialPedido?.prazo ?? 'imediato');
   const [tipo, setTipo] = useState(initialPedido?.tipo ?? 'varejo');
@@ -123,14 +121,25 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
         <div className="mt">{titulo}</div>
       </div>
 
-      {formLoading && <div className="empty"><p>Carregando dados do formulário...</p></div>}
-      {formError && <div className="empty"><p>{formError}</p></div>}
+      {formLoading && (
+        <div className="empty">
+          <p>Carregando dados do formulário...</p>
+        </div>
+      )}
+      {formError && (
+        <div className="empty">
+          <p>{formError}</p>
+        </div>
+      )}
 
       {!formLoading && !formError && (
         <form onSubmit={(e) => void handleSubmit(e)}>
           <div className="modal-shell-body">
             {error && (
-              <div className="empty-inline" style={{ color: 'var(--color-danger)', marginBottom: '0.5rem' }}>
+              <div
+                className="empty-inline"
+                style={{ color: 'var(--color-danger)', marginBottom: '0.5rem' }}
+              >
                 {error}
               </div>
             )}
@@ -264,12 +273,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
 
           <div className="modal-shell-foot">
             <div className="modal-actions">
-              <button
-                className="btn"
-                type="button"
-                onClick={onCancel}
-                disabled={saving}
-              >
+              <button className="btn" type="button" onClick={onCancel} disabled={saving}>
                 Cancelar
               </button>
               <button

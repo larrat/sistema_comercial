@@ -6,7 +6,20 @@ import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
 // ── Formatters ────────────────────────────────────────────────────────────────
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const MES_LABEL = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const MES_LABEL = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez'
+];
 
 function fmt(v: number) {
   return BRL.format(Number(v || 0));
@@ -155,7 +168,13 @@ function computeDerivedData(
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function PeriodSelector({ periodo, onChange }: { periodo: Periodo; onChange: (p: Periodo) => void }) {
+function PeriodSelector({
+  periodo,
+  onChange
+}: {
+  periodo: Periodo;
+  onChange: (p: Periodo) => void;
+}) {
   const PERIODS: { value: Periodo; label: string }[] = [
     { value: 'semana', label: 'Semana' },
     { value: 'mes', label: 'Mês' },
@@ -309,9 +328,7 @@ function DashAlerts({
           {anivProximos
             .slice(0, 3)
             .map((c) => {
-              const dias = Math.round(
-                (c._anivData.getTime() - hoje.getTime()) / 86400000
-              );
+              const dias = Math.round((c._anivData.getTime() - hoje.getTime()) / 86400000);
               const nome = c.apelido || c.nome;
               if (dias === 0) return `${nome} hoje`;
               if (dias === 1) return `${nome} amanhã`;
@@ -548,10 +565,7 @@ export function DashboardPilotPage() {
             <div className="dash-grid-cards dash-grid-cards--analise">
               <div className="card card-shell dash-card dash-card--top dash-bento-card">
                 <div className="ct">Top produtos</div>
-                <DashTopProdutos
-                  topProdutos={derived.topProdutos}
-                  maxFat={derived.maxTopFat}
-                />
+                <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
               </div>
             </div>
           </section>
