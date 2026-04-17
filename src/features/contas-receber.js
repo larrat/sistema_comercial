@@ -18,6 +18,11 @@ const TAB_CR = {
 const MODAL_BAIXA_PARCIAL_ID = 'modal-cr-parcial';
 let contaReceberSelecionadaId = '';
 
+/** @returns {string} */
+function getFilialAtual() {
+  return /** @type {string} */ (State.FIL || '');
+}
+
 /** @returns {string} YYYY-MM-DD */
 function hoje() {
   return new Date().toISOString().split('T')[0];
@@ -86,6 +91,7 @@ function formatDateTimeLabel(iso) {
  * @returns {string}
  */
 function toDateTimeLocalValue(date = new Date()) {
+  /** @param {number} value */
   const pad = (value) => String(value).padStart(2, '0');
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
@@ -142,7 +148,8 @@ function getRecebidoMes(contas) {
  */
 function syncContaReceberAtualizada(conta) {
   if (!D.contasReceber) D.contasReceber = {};
-  D.contasReceber[State.FIL] = CR().map((item) => (item.id === conta.id ? conta : item));
+  const filialId = getFilialAtual();
+  D.contasReceber[filialId] = CR().map((item) => (item.id === conta.id ? conta : item));
 }
 
 /**
@@ -150,13 +157,23 @@ function syncContaReceberAtualizada(conta) {
  */
 function syncContaReceberBaixa(baixa) {
   if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
-  if (!D.contasReceberBaixas[State.FIL]) D.contasReceberBaixas[State.FIL] = [];
-  D.contasReceberBaixas[State.FIL] = [baixa, ...CRB().filter((item) => item.id !== baixa.id)];
+  const filialId = getFilialAtual();
+  if (!D.contasReceberBaixas[filialId]) D.contasReceberBaixas[filialId] = [];
+  D.contasReceberBaixas[filialId] = [baixa, ...CRB().filter((item) => item.id !== baixa.id)];
 }
 
 function refreshContasReceberUi() {
   renderContasReceberMet();
   renderContasReceber();
+  window.dispatchEvent(
+    new CustomEvent('sc:contas-receber-sync', {
+      detail: {
+        filialId: State.FIL,
+        contas: CR().length,
+        baixas: CRB().length
+      }
+    })
+  );
 }
 
 /**
@@ -398,10 +415,11 @@ async function registrarBaixa(contaId, valor, recebidoEmIso, observacao) {
   try {
     await Promise.all([SB.createContaReceberBaixa(baixa), SB.upsertContaReceber(updated)]);
   } catch (error) {
-    notify(
-      `Erro ao registrar baixa: ${String(error?.message || 'erro desconhecido')}`,
-      SEVERITY.ERROR
-    );
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? String(error.message)
+        : 'erro desconhecido';
+    notify(`Erro ao registrar baixa: ${message}`, SEVERITY.ERROR);
     return false;
   }
 
@@ -535,15 +553,16 @@ export async function marcarPendente(id) {
   try {
     await Promise.all([SB.deleteContaReceberBaixasByConta(id), SB.upsertContaReceber(updated)]);
   } catch (error) {
-    notify(
-      `Erro ao desfazer recebimento: ${String(error?.message || 'erro desconhecido')}`,
-      SEVERITY.ERROR
-    );
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? String(error.message)
+        : 'erro desconhecido';
+    notify(`Erro ao desfazer recebimento: ${message}`, SEVERITY.ERROR);
     return;
   }
 
   if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
-  D.contasReceberBaixas[State.FIL] = CRB().filter((item) => item.conta_receber_id !== id);
+  D.contasReceberBaixas[getFilialAtual()] = CRB().filter((item) => item.conta_receber_id !== id);
   syncContaReceberAtualizada(updated);
   refreshContasReceberUi();
   toast('Baixas removidas e conta reaberta.');
@@ -596,39 +615,50 @@ export async function gerarContaManual(pedidoId) {
   try {
     await SB.upsertContaReceber(conta);
   } catch (error) {
-    notify(`Erro ao gerar conta: ${String(error?.message || 'erro desconhecido')}`, SEVERITY.ERROR);
+    const message =
+      error && typeof error === 'object' && 'message' in error
+        ? String(error.message)
+        : 'erro desconhecido';
+    notify(`Erro ao gerar conta: ${message}`, SEVERITY.ERROR);
     return;
   }
 
   if (!D.contasReceber) D.contasReceber = {};
-  if (!D.contasReceber[State.FIL]) D.contasReceber[State.FIL] = [];
-  D.contasReceber[State.FIL].push(conta);
+  const filialId = getFilialAtual();
+  if (!D.contasReceber[filialId]) D.contasReceber[filialId] = [];
+  D.contasReceber[filialId].push(conta);
   refreshContasReceberUi();
   notify(`Conta a receber gerada para pedido #${pedido.num}`, SEVERITY.SUCCESS);
 }
 
-window.addEventListener('sc:conta-receber-criada', (/** @type {CustomEvent} */ ev) => {
-  const conta = ev.detail;
-  if (!conta || !conta.filial_id) return;
-  if (!D.contasReceber) D.contasReceber = {};
-  if (!D.contasReceber[conta.filial_id]) D.contasReceber[conta.filial_id] = [];
+window.addEventListener(
+  'sc:conta-receber-criada',
+  /** @type {EventListener} */ (
+    (event) => {
+      const ev = /** @type {CustomEvent} */ (event);
+      const conta = ev.detail;
+      if (!conta || !conta.filial_id) return;
+      if (!D.contasReceber) D.contasReceber = {};
+      if (!D.contasReceber[conta.filial_id]) D.contasReceber[conta.filial_id] = [];
 
-  /** @type {ContaReceber} */
-  const normalized = {
-    ...conta,
-    valor_recebido: Number(conta.valor_recebido || 0),
-    valor_em_aberto: Number(conta.valor_em_aberto ?? conta.valor ?? 0),
-    status: conta.status || 'pendente',
-    recebido_em: conta.recebido_em || null,
-    ultimo_recebimento_em: conta.ultimo_recebimento_em || null
-  };
+      /** @type {ContaReceber} */
+      const normalized = {
+        ...conta,
+        valor_recebido: Number(conta.valor_recebido || 0),
+        valor_em_aberto: Number(conta.valor_em_aberto ?? conta.valor ?? 0),
+        status: conta.status || 'pendente',
+        recebido_em: conta.recebido_em || null,
+        ultimo_recebimento_em: conta.ultimo_recebimento_em || null
+      };
 
-  const jaExiste = D.contasReceber[conta.filial_id].some((item) => item.id === conta.id);
-  if (!jaExiste) {
-    D.contasReceber[conta.filial_id].push(normalized);
-  }
+      const jaExiste = D.contasReceber[conta.filial_id].some((item) => item.id === conta.id);
+      if (!jaExiste) {
+        D.contasReceber[conta.filial_id].push(normalized);
+      }
 
-  if (conta.filial_id === State.FIL) {
-    refreshContasReceberUi();
-  }
-});
+      if (conta.filial_id === State.FIL) {
+        refreshContasReceberUi();
+      }
+    }
+  )
+);
