@@ -46,6 +46,8 @@ export function useClienteMutations() {
         filial_id: context.filialId
       };
       upsertCliente(normalized as Cliente);
+      // Notifica o legado para manter D.clientes sincronizado
+      window.dispatchEvent(new CustomEvent('sc:cliente-salvo', { detail: normalized }));
       return normalized as Cliente;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar cliente.';
@@ -65,6 +67,8 @@ export function useClienteMutations() {
     try {
       await deleteCliente(context, clienteId);
       removeCliente(clienteId);
+      // Notifica o legado para manter D.clientes sincronizado
+      window.dispatchEvent(new CustomEvent('sc:cliente-removido', { detail: { id: clienteId } }));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao remover cliente.';
       setError(message);

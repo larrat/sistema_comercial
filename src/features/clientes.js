@@ -24,7 +24,12 @@ import {
   removerClienteAction,
   salvarClienteAction
 } from './clientes/actions.js';
-import { getClienteById, getClientes } from './clientes/repository.js';
+import {
+  getClienteById,
+  getClientes,
+  upsertClienteLocal,
+  removeClienteLocal
+} from './clientes/repository.js';
 import {
   getContatoInfo,
   normalizeDoc,
@@ -1491,3 +1496,27 @@ export function refreshCliDL() {
     'clientes:datalist'
   );
 }
+
+// ── Bridge: React → Legado ────────────────────────────────────────────────────
+// Quando o React (ClientesPilotPage) salva ou remove um cliente, dispara estes
+// eventos para que o legado atualize D.clientes sem precisar de novo fetch.
+// Isso mantém o datalist de autocompletar (formulário de pedidos) em sincronia.
+window.addEventListener('sc:cliente-salvo', (/** @type {CustomEvent} */ ev) => {
+  const cliente = ev.detail;
+  if (!cliente?.id || !cliente?.filial_id) return;
+
+  const editId = getClienteById(cliente.id)?.id ?? null;
+  upsertClienteLocal(cliente, editId);
+
+  if (cliente.filial_id === State.FIL) {
+    refreshCliDL();
+  }
+});
+
+window.addEventListener('sc:cliente-removido', (/** @type {CustomEvent} */ ev) => {
+  const { id } = ev.detail ?? {};
+  if (!id) return;
+
+  removeClienteLocal(id);
+  refreshCliDL();
+});
