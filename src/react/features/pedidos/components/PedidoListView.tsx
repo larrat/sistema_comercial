@@ -1,8 +1,12 @@
+import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { selectPedidosForTab, usePedidoStore } from '../store/usePedidoStore';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { PedidoRow } from './PedidoRow';
+import type { Pedido } from '../../../../types/domain';
 import type { PedidoTab } from '../types';
+
+const EXIT_DURATION = 400;
 
 const TABS: { id: PedidoTab; label: string }[] = [
   { id: 'emaberto', label: 'Em Aberto' },
@@ -31,6 +35,35 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
   const storeError = usePedidoStore((s) => s.error);
   const pedidos = usePedidoStore(useShallow(selectPedidosForTab));
   const { avancarStatus, cancelarPedido, reabrirPedido, inFlight } = usePedidoMutations();
+
+  // Animação de saída: guarda os pedidos que sumiram da tab atual
+  const snapshotRef = useRef<Map<string, Pedido>>(new Map());
+  const prevIdsRef = useRef<Set<string>>(new Set());
+  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // Atualiza o snapshot com os pedidos visíveis
+    pedidos.forEach((p) => snapshotRef.current.set(p.id, p));
+
+    const currentIds = new Set(pedidos.map((p) => p.id));
+    const removed = [...prevIdsRef.current].filter((id) => !currentIds.has(id));
+
+    if (removed.length > 0) {
+      setExitingIds((prev) => new Set([...prev, ...removed]));
+      setTimeout(() => {
+        setExitingIds((prev) => {
+          const next = new Set(prev);
+          removed.forEach((id) => {
+            next.delete(id);
+            snapshotRef.current.delete(id);
+          });
+          return next;
+        });
+      }, EXIT_DURATION);
+    }
+
+    prevIdsRef.current = currentIds;
+  }, [pedidos]);
 
   return (
     <div className="screen-content" data-testid="pedido-list-view">
@@ -94,13 +127,13 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
           </div>
         )}
 
-        {storeStatus === 'ready' && pedidos.length === 0 && (
+        {storeStatus === 'ready' && pedidos.length === 0 && exitingIds.size === 0 && (
           <div className="empty" data-testid="pedido-empty">
             <p>Nenhum pedido encontrado.</p>
           </div>
         )}
 
-        {storeStatus === 'ready' && pedidos.length > 0 && (
+        {storeStatus === 'ready' && (pedidos.length > 0 || exitingIds.size > 0) && (
           <div className="list" data-testid="pedido-list">
             {pedidos.map((pedido) => (
               <PedidoRow
@@ -113,6 +146,22 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
                 onDetalhe={onDetalhe}
               />
             ))}
+            {[...exitingIds].map((id) => {
+              const pedido = snapshotRef.current.get(id);
+              if (!pedido) return null;
+              return (
+                <div key={id} className="list-row--exiting">
+                  <PedidoRow
+                    pedido={pedido}
+                    inFlight={false}
+                    onAvancar={() => undefined}
+                    onCancelar={() => undefined}
+                    onReabrir={() => undefined}
+                    onDetalhe={() => undefined}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

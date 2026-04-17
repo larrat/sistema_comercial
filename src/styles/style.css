@@ -11869,3 +11869,32 @@ html[data-theme='dark'] .flow-chip.on {
     min-height: auto;
   }
 }
+
+/* ── Animação de saída de row da lista de pedidos ── */
+@keyframes list-row-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+    max-height: 120px;
+  }
+  60% {
+    opacity: 0;
+    transform: translateX(1.5rem);
+    max-height: 120px;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(1.5rem);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+  }
+}
+
+.list-row--exiting {
+  animation: list-row-exit 400ms var(--ease-standard, ease) forwards;
+  pointer-events: none;
+}
