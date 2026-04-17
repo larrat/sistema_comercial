@@ -204,6 +204,67 @@ function renderBaixasResumo(cr) {
  * @param {ContaReceber} cr
  * @returns {string}
  */
+function renderBaixasHistoricoConteudo(cr) {
+  const baixas = getBaixasConta(cr.id);
+  if (!baixas.length) {
+    return '<div class="empty-inline">Sem baixas registradas para esta conta.</div>';
+  }
+
+  return `
+    <div class="cr-baixas-list">
+      ${baixas
+        .map(
+          (baixa, index) => `
+            <div class="cr-baixas-item">
+              <div class="cr-baixas-item__head">
+                <span class="table-cell-strong">Baixa ${index + 1}</span>
+                <span class="tone-success table-cell-strong">${fmt(baixa.valor)}</span>
+              </div>
+              <div class="table-cell-caption table-cell-muted">
+                ${formatDateTimeLabel(baixa.recebido_em)}
+              </div>
+              ${
+                baixa.observacao
+                  ? `<div class="table-cell-caption">${esc(baixa.observacao)}</div>`
+                  : ''
+              }
+            </div>
+          `
+        )
+        .join('')}
+    </div>
+  `;
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @param {string} className
+ * @returns {string}
+ */
+function renderBaixasHistoricoExpansivel(cr, className = '') {
+  const baixas = getBaixasConta(cr.id);
+  const resumo = baixas.length
+    ? `${baixas.length} baixa${baixas.length > 1 ? 's' : ''} registrada${baixas.length > 1 ? 's' : ''}`
+    : 'Ver historico de baixas';
+  const classes = ['cr-baixas-details', className].filter(Boolean).join(' ');
+
+  return `
+    <details class="${classes}">
+      <summary class="cr-baixas-summary">
+        <span>${resumo}</span>
+        <span class="table-cell-caption table-cell-muted">Expandir</span>
+      </summary>
+      <div class="cr-baixas-body">
+        ${renderBaixasHistoricoConteudo(cr)}
+      </div>
+    </details>
+  `;
+}
+
+/**
+ * @param {ContaReceber} cr
+ * @returns {string}
+ */
 function renderContaActions(cr) {
   if (getStatusEfetivo(cr) === 'recebido') {
     return `<button class="btn btn-sm" data-click="marcarPendente('${cr.id}')">Desfazer</button>`;
@@ -297,6 +358,7 @@ function renderCrList(buscaId, listaId, statusEfetivo) {
             <div class="mobile-card-actions">
               ${renderContaActions(conta)}
             </div>
+            ${renderBaixasHistoricoExpansivel(conta, 'cr-baixas-details--mobile')}
           </div>
         `;
       })
@@ -337,6 +399,11 @@ function renderCrList(buscaId, listaId, statusEfetivo) {
                   <td class="${statusEfetivo === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'}">${conta.vencimento}</td>
                   <td>${renderBaixasResumo(conta)}</td>
                   <td>${renderContaActions(conta)}</td>
+                </tr>
+                <tr class="cr-baixas-row">
+                  <td colspan="8">
+                    ${renderBaixasHistoricoExpansivel(conta)}
+                  </td>
                 </tr>
               `;
             })
