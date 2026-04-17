@@ -105,6 +105,10 @@ function getLegacyDetailModal() {
   return /** @type {HTMLElement | null} */ (document.getElementById('modal-cli-det'));
 }
 
+function getLegacyFormModal() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('modal-cliente'));
+}
+
 function getLegacyDetailBox() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-det-box'));
 }
@@ -338,6 +342,19 @@ function syncLegacyDetailModal(reactActive) {
   modal.hidden = false;
 }
 
+function syncLegacyFormModal(reactActive) {
+  const modal = getLegacyFormModal();
+  if (!modal) return;
+
+  if (reactActive) {
+    if (modal.classList.contains('on')) fecharModal('modal-cliente');
+    modal.hidden = true;
+    return;
+  }
+
+  modal.hidden = false;
+}
+
 function updateToggle() {
   const toggle = getToggle();
   if (!toggle) return;
@@ -361,6 +378,7 @@ async function applyMode() {
   if (reactShell) reactShell.hidden = !reactActive;
   syncShellModeUi(reactActive);
   syncLegacyDetailModal(reactActive);
+  syncLegacyFormModal(reactActive);
 
   if (!reactActive) {
     if (mounted && bridge?.unmount) bridge.unmount();
