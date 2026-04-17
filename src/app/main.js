@@ -104,6 +104,7 @@ import {
   abrirBaixaParcial,
   confirmarBaixaParcial,
   marcarPendente,
+  estornarBaixaConta,
   gerarContaManual
 } from '../features/contas-receber.js';
 
@@ -848,6 +849,7 @@ startApplicationRuntime({
         abrirBaixaParcial,
         confirmarBaixaParcial,
         marcarPendente,
+        estornarBaixaConta,
         gerarContaManual,
         renderCotForns,
         renderCotTabela,

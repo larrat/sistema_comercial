@@ -781,6 +781,7 @@ export const SB = {
   upsertContaReceber: (cr) => sbReq('contas_receber', 'POST', cr, '?on_conflict=id'),
   deleteContaReceber: (id) => sbReq(`contas_receber?id=eq.${id}`, 'DELETE'),
   createContaReceberBaixa: (baixa) => sbReq('contas_receber_baixas', 'POST', baixa),
+  deleteContaReceberBaixa: (id) => sbReq(`contas_receber_baixas?id=eq.${id}`, 'DELETE'),
   deleteContaReceberBaixasByConta: (contaId) =>
     sbReq(`contas_receber_baixas?conta_receber_id=eq.${contaId}`, 'DELETE'),
 

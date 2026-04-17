@@ -224,6 +224,7 @@ function getHandlerRegistry() {
       abrirBaixaParcial: deps.abrirBaixaParcial,
       confirmarBaixaParcial: deps.confirmarBaixaParcial,
       marcarPendente: deps.marcarPendente,
+      estornarBaixaConta: deps.estornarBaixaConta,
       gerarContaManual: deps.gerarContaManual
     },
     cotacao: {

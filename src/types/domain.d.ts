@@ -733,6 +733,7 @@ export type DomBindingsDeps = {
   abrirBaixaParcial?: (id: string) => void;
   confirmarBaixaParcial?: () => void | Promise<void>;
   marcarPendente?: (id: string) => void | Promise<void>;
+  estornarBaixaConta?: (contaId: string, baixaId: string) => void | Promise<void>;
   gerarContaManual?: (pedidoId: string) => void | Promise<void>;
   avancarStatusPed?: (id: string) => void | Promise<void>;
   cancelarStatusPed?: (id: string) => void | Promise<void>;
