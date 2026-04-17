@@ -1,5 +1,7 @@
 // @ts-check
 
+import { createClientesLegacyDetailTabs } from './clientes-legacy-detail-tabs.js';
+
 /**
  * @param {{
  *   D: import('../app/store.js').D;
@@ -69,56 +71,6 @@ export function createClientesLegacyDetail(deps) {
   } = deps;
 
   /**
-   * @param {string} id
-   * @returns {{ input: HTMLInputElement | null; list: HTMLElement | null }}
-   */
-  function getDetailElements(id) {
-    return {
-      input: /** @type {HTMLInputElement | null} */ (document.getElementById(`nota-inp-${id}`)),
-      list: /** @type {HTMLElement | null} */ (document.getElementById(`notas-${id}`))
-    };
-  }
-
-  /**
-   * @param {string} id
-   * @param {Array<{ texto?: string; data?: string }>} notas
-   */
-  function syncNotasCache(id, notas) {
-    if (!D.notas) D.notas = {};
-    D.notas[id] = Array.isArray(notas) ? [...notas] : [];
-  }
-
-  /**
-   * @param {Array<{ texto?: string; data?: string }>} notas
-   * @returns {string}
-   */
-  function renderNotasHtml(notas) {
-    if (!notas.length) {
-      return '<div class="empty-inline table-cell-muted">Nenhuma nota.</div>';
-    }
-
-    return notas
-      .map(
-        (nota) => `
-      <div class="nota">
-        <div>${esc(nota.texto)}</div>
-        <div class="nota-d">${esc(nota.data)}</div>
-      </div>
-    `
-      )
-      .join('');
-  }
-
-  /**
-   * @param {string} id
-   */
-  function renderNotasCliente(id) {
-    const { list } = getDetailElements(id);
-    if (!list) return;
-    list.innerHTML = renderNotasHtml(D.notas?.[id] || []);
-  }
-
-  /**
    * @param {import('../types/domain').Cliente | null | undefined} cliente
    */
   function getClienteDuplicidadeSignals(cliente) {
@@ -147,13 +99,6 @@ export function createClientesLegacyDetail(deps) {
         return duplicado ? { ...check, cliente: duplicado } : null;
       })
       .filter(Boolean);
-  }
-
-  /**
-   * @param {import('../types/domain').Pedido} pedido
-   */
-  function isPedidoFechavel(pedido) {
-    return pedido.status === 'entregue' && !pedido.venda_fechada;
   }
 
   /**
@@ -193,59 +138,10 @@ export function createClientesLegacyDetail(deps) {
   }
 
   /**
-   * @param {import('../types/domain').Pedido[]} pedidos
+   * @param {import('../types/domain').Pedido} pedido
    */
-  function renderClientePedidosVazios(pedidos) {
-    if (pedidos.length) return '';
-    return '<div class="empty-inline table-cell-muted">Nenhuma venda neste grupo.</div>';
-  }
-
-  /**
-   * @param {import('../types/domain').Pedido[]} pedidos
-   * @param {string} clienteId
-   * @param {'abertas'|'fechadas'} tipo
-   */
-  function renderClientePedidosLista(pedidos, clienteId, tipo) {
-    if (!pedidos.length) return renderClientePedidosVazios(pedidos);
-
-    return pedidos
-      .map((pedido) => {
-        const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
-        const itensTxt = itens.length ? `${itens.length} item(ns)` : 'Sem itens';
-        const fechadoEm = pedido.venda_fechada_em
-          ? new Date(pedido.venda_fechada_em).toLocaleString('pt-BR')
-          : '';
-
-        return `
-        <div class="cli-sale-card">
-          <div class="cli-sale-card__head">
-            <div>
-              <div class="cli-sale-card__title">Pedido #${pedido.num}</div>
-              <div class="cli-sale-card__sub">${esc(pedido.data || '-')} | ${itensTxt}</div>
-            </div>
-            <div class="fg2">
-              ${ST_PED[pedido.status] || ''}
-              ${pedido.venda_fechada ? '<span class="bdg bb">Fechada</span>' : ''}
-            </div>
-          </div>
-          <div class="cli-sale-card__meta">
-            <span>Total: <b>${fmt(pedido.total || 0)}</b></span>
-            <span>Pagamento: <b>${esc(String(pedido.pgto || '-'))}</b></span>
-            <span>Prazo: <b>${esc(String(pedido.prazo || '-'))}</b></span>
-            ${fechadoEm ? `<span>Fechada em: <b>${esc(fechadoEm)}</b></span>` : ''}
-          </div>
-          <div class="cli-sale-card__actions">
-            <button class="btn btn-sm" data-click="verPed('${pedido.id}')">Ver pedido</button>
-            ${
-              tipo === 'abertas' && isPedidoFechavel(pedido)
-                ? `<button class="btn btn-p btn-sm" data-click="fecharVendaCliente('${pedido.id}','${clienteId}')">Fechar venda</button>`
-                : ''
-            }
-          </div>
-        </div>
-      `;
-      })
-      .join('');
+  function isPedidoFechavel(pedido) {
+    return pedido.status === 'entregue' && !pedido.venda_fechada;
   }
 
   /**
@@ -397,165 +293,27 @@ export function createClientesLegacyDetail(deps) {
     `;
   }
 
-  /**
-   * @param {string} clienteId
-   * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'} tab
-   */
-  function switchCliDetTab(clienteId, tab) {
-    const box = cliDom.get('cli-det-box');
-    if (!box) return;
-
-    box.querySelectorAll(`[data-cli-tab="${clienteId}"]`).forEach((el) => {
-      el.classList.toggle('on', el instanceof HTMLElement && el.dataset.tab === tab);
-    });
-    box.querySelectorAll(`[data-cli-panel="${clienteId}"]`).forEach((el) => {
-      el.classList.toggle('on', el instanceof HTMLElement && el.dataset.panel === tab);
-    });
-  }
-
-  /**
-   * @param {string} clienteId
-   * @param {import('../types/domain').ClienteFidelidadeSaldo | null} saldo
-   * @param {import('../types/domain').ClienteFidelidadeLancamento[]} lancamentos
-   * @returns {string}
-   */
-  function renderFidelidadeTab(clienteId, saldo, lancamentos) {
-    const TIPO_LABEL = {
-      credito: 'Crédito',
-      debito: 'Débito',
-      ajuste: 'Ajuste',
-      expiracao: 'Expiração',
-      estorno: 'Estorno'
-    };
-    const STATUS_LABEL = { pendente: 'Pendente', confirmado: 'Confirmado', cancelado: 'Cancelado' };
-    const STATUS_BADGE = { pendente: 'ba', confirmado: 'bg', cancelado: 'br' };
-
-    const saldoHtml = saldo
-      ? `
-        <div class="fid-saldo-grid">
-          <div class="met fid-met">
-            <div class="ml">Saldo</div>
-            <div class="mv ${saldo.bloqueado ? 'tone-danger' : 'tone-success'}">${Number(saldo.saldo_pontos ?? 0)}<span class="mv-unit"> pts</span></div>
-            ${saldo.bloqueado ? `<div class="ms tone-danger">Bloqueado${saldo.motivo_bloqueio ? ` - ${esc(saldo.motivo_bloqueio)}` : ''}</div>` : '<div class="ms tone-success">Ativo</div>'}
-          </div>
-          <div class="met fid-met">
-            <div class="ml">Acumulado</div>
-            <div class="mv">${Number(saldo.total_acumulado ?? 0)}<span class="mv-unit"> pts</span></div>
-            <div class="ms">total creditado</div>
-          </div>
-          <div class="met fid-met">
-            <div class="ml">Resgatado</div>
-            <div class="mv">${Number(saldo.total_resgatado ?? 0)}<span class="mv-unit"> pts</span></div>
-            <div class="ms">total debitado</div>
-          </div>
-        </div>
-      `
-      : `<div class="empty-inline"><p>Nenhum saldo de fidelidade registrado para este cliente.</p></div>`;
-
-    const lancsHtml = lancamentos.length
-      ? `
-        <div class="tw fid-hist-table">
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Tipo</th>
-                <th>Pontos</th>
-                <th>Status</th>
-                <th>Origem</th>
-                <th>Obs</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${lancamentos
-                .slice(0, 30)
-                .map(
-                  (l) => `
-                <tr>
-                  <td class="table-cell-muted">${l.criado_em ? new Date(l.criado_em).toLocaleDateString('pt-BR') : '-'}</td>
-                  <td><span class="bdg ${l.pontos > 0 ? 'bg' : 'br'}">${TIPO_LABEL[l.tipo] || esc(l.tipo || '')}</span></td>
-                  <td class="table-cell-strong ${l.pontos > 0 ? 'tone-success' : 'tone-danger'}">${l.pontos > 0 ? '+' : ''}${l.pontos}</td>
-                  <td><span class="bdg ${STATUS_BADGE[l.status] || 'bk'}">${STATUS_LABEL[l.status] || esc(l.status || '')}</span></td>
-                  <td class="table-cell-muted">${esc(l.origem || '') || '-'}</td>
-                  <td class="table-cell-caption">${esc(l.observacao || '') || '-'}</td>
-                </tr>
-              `
-                )
-                .join('')}
-            </tbody>
-          </table>
-        </div>
-      `
-      : `<div class="empty-inline"><p>Nenhum lançamento registrado.</p></div>`;
-
-    return `
-      <div class="fid-panel">
-        <div class="cli-detail-label form-gap-bottom-xs">Saldo de fidelidade</div>
-        ${saldoHtml}
-
-        <div class="cli-detail-label form-gap-bottom-xs" style="margin-top:16px">Adicionar lançamento manual</div>
-        <div class="fid-form fg2 form-gap-bottom-xs">
-          <select class="inp fid-tipo" id="fid-tipo-${clienteId}">
-            <option value="credito">Crédito</option>
-            <option value="debito">Débito</option>
-            <option value="ajuste">Ajuste</option>
-            <option value="estorno">Estorno</option>
-          </select>
-          <input type="number" class="inp fid-pontos" id="fid-pontos-${clienteId}" placeholder="Pontos (ex: 100 ou -50)" step="1">
-          <input class="inp fid-obs input-flex" id="fid-obs-${clienteId}" placeholder="Observação (opcional)">
-          <button class="btn btn-p btn-sm" data-click="adicionarLancamentoFidelidade('${clienteId}')">Lançar</button>
-        </div>
-
-        <div class="cli-detail-label form-gap-bottom-xs">Histórico (últimos 30)</div>
-        ${lancsHtml}
-      </div>
-    `;
-  }
-
-  /**
-   * @param {string} clienteId
-   */
-  async function adicionarLancamentoFidelidade(clienteId) {
-    const tipoEl = /** @type {HTMLSelectElement|null} */ (
-      document.getElementById(`fid-tipo-${clienteId}`)
-    );
-    const pontosEl = /** @type {HTMLInputElement|null} */ (
-      document.getElementById(`fid-pontos-${clienteId}`)
-    );
-    const obsEl = /** @type {HTMLInputElement|null} */ (
-      document.getElementById(`fid-obs-${clienteId}`)
-    );
-
-    const tipo = tipoEl?.value || 'credito';
-    const pontosRaw = Number(pontosEl?.value || 0);
-    const obs = obsEl?.value.trim() || null;
-
-    if (!pontosRaw || Number.isNaN(pontosRaw)) {
-      notify('Informe a quantidade de pontos para o lançamento.', SEVERITY.WARNING);
-      pontosEl?.focus();
-      return;
-    }
-
-    const pontos = tipo === 'debito' ? -Math.abs(pontosRaw) : pontosRaw;
-
-    const result = await adicionarLancamentoFidelidadeAction(clienteId, {
-      tipo,
-      pontos,
-      observacao: obs
-    });
-    if (!result.ok) {
-      console.error('Erro ao inserir lançamento de fidelidade', result.error);
-      notify(
-        `Erro ao lançar pontos: ${String(result.error?.message || 'tente novamente')}.`,
-        SEVERITY.ERROR
-      );
-      return;
-    }
-
-    notify(`Sucesso: ${pontos > 0 ? '+' : ''}${pontos} pontos lançados.`, SEVERITY.SUCCESS);
-    await abrirCliDet(clienteId);
-    switchCliDetTab(clienteId, 'fidelidade');
-  }
+  const detailTabs = createClientesLegacyDetailTabs({
+    D,
+    State,
+    cliDom,
+    esc,
+    fmt,
+    notify,
+    toast,
+    ST_PED,
+    adicionarLancamentoFidelidadeAction,
+    adicionarNotaAction,
+    fecharVendaClienteAction,
+    getClienteById,
+    getPedidoById: (pedidoId) =>
+      (D.pedidos?.[State.FIL] || []).find((item) => item.id === pedidoId),
+    isPedidoFechavel,
+    renderPedMet,
+    renderPedidos,
+    reopenDetail: async (clienteId) => abrirCliDet(clienteId),
+    SEVERITY
+  });
 
   /**
    * @param {string} id
@@ -573,7 +331,7 @@ export function createClientesLegacyDetail(deps) {
       console.error('Erro ao carregar notas do cliente', error);
     }
 
-    syncNotasCache(id, notas);
+    detailTabs.syncNotasCache(id, notas);
 
     const [fidelSaldo, fidelLancs] = await Promise.all([
       SB.toResult(() => SB.getClienteFidelidadeSaldo(id)),
@@ -663,25 +421,25 @@ export function createClientesLegacyDetail(deps) {
         <button class="btn btn-sm" data-click="addNota('${id}')">+</button>
       </div>
 
-        <div class="cli-detail-notes" id="notas-${id}">${renderNotasHtml(D.notas?.[id] || [])}</div>
+        <div class="cli-detail-notes" id="notas-${id}">${detailTabs.renderNotasHtml(D.notas?.[id] || [])}</div>
         </div>
 
         <div class="tc" data-cli-panel="${id}" data-panel="abertas">
           <div class="cli-detail-label form-gap-bottom-xs">Pedidos em andamento ou entregues aguardando fechamento</div>
           <div class="cli-sales-list">
-            ${renderClientePedidosLista(vendasAbertas, id, 'abertas')}
+            ${detailTabs.renderClientePedidosLista(vendasAbertas, id, 'abertas')}
           </div>
         </div>
 
         <div class="tc" data-cli-panel="${id}" data-panel="fechadas">
           <div class="cli-detail-label form-gap-bottom-xs">Vendas fechadas deste cliente</div>
           <div class="cli-sales-list">
-            ${renderClientePedidosLista(vendasFechadas, id, 'fechadas')}
+            ${detailTabs.renderClientePedidosLista(vendasFechadas, id, 'fechadas')}
           </div>
         </div>
 
         <div class="tc" data-cli-panel="${id}" data-panel="fidelidade">
-          ${renderFidelidadeTab(id, saldo, lancamentos)}
+          ${detailTabs.renderFidelidadeTab(id, saldo, lancamentos)}
         </div>
 
         <div class="cli-detail-actions">
@@ -700,64 +458,11 @@ export function createClientesLegacyDetail(deps) {
    * @param {string} pedidoId
    * @param {string} clienteId
    */
-  async function fecharVendaCliente(pedidoId, clienteId) {
-    const cliente = getClienteById(clienteId);
-    const pedido = (D.pedidos?.[State.FIL] || []).find((item) => item.id === pedidoId);
-    if (!cliente || !pedido) return;
-    if (!isPedidoFechavel(pedido)) {
-      toast('Somente pedidos entregues e ainda abertos podem ser fechados.');
-      return;
-    }
-    if (!confirm(`Fechar a venda do pedido #${pedido.num}?`)) return;
-
-    const result = await fecharVendaClienteAction(pedido, {
-      userEmail: String(State.user?.email || State.user?.id || '').trim() || null
-    });
-    if (!result.ok) {
-      notify(
-        `Erro ao fechar venda: ${String(result.error instanceof Error ? result.error.message : 'erro desconhecido')}.`,
-        SEVERITY.ERROR
-      );
-      return;
-    }
-
-    renderPedMet();
-    renderPedidos();
-    toast(`Venda do pedido #${pedido.num} fechada com sucesso.`);
-    await abrirCliDet(clienteId);
-    switchCliDetTab(clienteId, 'fechadas');
-  }
-
-  /**
-   * @param {string} id
-   */
-  async function addNota(id) {
-    const { input } = getDetailElements(id);
-    const texto = input?.value.trim() || '';
-    if (!texto) return;
-
-    const nota = {
-      cliente_id: id,
-      texto,
-      data: new Date().toLocaleString('pt-BR')
-    };
-
-    const result = await adicionarNotaAction(nota);
-    if (!result.ok) {
-      toast(`Erro: ${result.error instanceof Error ? result.error.message : 'erro desconhecido'}`);
-      return;
-    }
-
-    if (input) input.value = '';
-    renderNotasCliente(id);
-    toast('Nota adicionada!');
-  }
-
   return {
-    switchCliDetTab,
-    adicionarLancamentoFidelidade,
+    switchCliDetTab: detailTabs.switchCliDetTab,
+    adicionarLancamentoFidelidade: detailTabs.adicionarLancamentoFidelidade,
     abrirCliDet,
-    fecharVendaCliente,
-    addNota
+    fecharVendaCliente: detailTabs.fecharVendaCliente,
+    addNota: detailTabs.addNota
   };
 }
