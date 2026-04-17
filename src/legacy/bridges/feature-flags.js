@@ -40,7 +40,7 @@ const FLAG_REGISTRY = {
   dashboard: {
     storageKey: STORAGE_KEYS.DASHBOARD_REACT_ENABLED,
     windowProp: '__SC_DASHBOARD_REACT_ENABLED__',
-    defaultValue: false
+    defaultValue: true
   },
   pedidos: {
     storageKey: STORAGE_KEYS.PEDIDOS_REACT_ENABLED,
