@@ -56,6 +56,18 @@ alter table public.notas enable row level security;
 alter table public.filiais enable row level security;
 alter table public.user_filiais enable row level security;
 
+-- Limpeza de políticas abertas legadas com nomes campanhas_* / jogos_agenda_*
+-- (criadas antes de 02_rls_producao.sql, roles {anon,authenticated}, qual=true)
+drop policy if exists campanhas_select on public.campanhas;
+drop policy if exists campanhas_insert on public.campanhas;
+drop policy if exists campanhas_update on public.campanhas;
+drop policy if exists campanhas_delete on public.campanhas;
+
+drop policy if exists jogos_agenda_select on public.jogos_agenda;
+drop policy if exists jogos_agenda_insert on public.jogos_agenda;
+drop policy if exists jogos_agenda_update on public.jogos_agenda;
+drop policy if exists jogos_agenda_delete on public.jogos_agenda;
+
 -- Limpeza de políticas antigas (nomes padrão deste script)
 drop policy if exists p_filiais_select on public.filiais;
 drop policy if exists p_filiais_insert on public.filiais;
