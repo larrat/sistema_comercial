@@ -73,6 +73,14 @@ function getLegacyControls() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-legacy-controls'));
 }
 
+function getLegacyMetrics() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('cli-met'));
+}
+
+function getTabsBar() {
+  return /** @type {HTMLElement | null} */ (document.querySelector('#pg-clientes > .tabs'));
+}
+
 function getReactModebar() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-react-modebar'));
 }
@@ -315,14 +323,20 @@ function forceClientesListTab() {
 
 function syncShellModeUi(reactActive) {
   const legacyControls = getLegacyControls();
+  const legacyMetrics = getLegacyMetrics();
+  const tabsBar = getTabsBar();
   const reactModebar = getReactModebar();
   const exportButton = getExportButton();
   const segTab = getSegmentosTab();
+  const segPanel = getSegmentosPanel();
 
   if (legacyControls) legacyControls.hidden = !!reactActive;
+  if (legacyMetrics) legacyMetrics.hidden = !!reactActive;
+  if (tabsBar) tabsBar.hidden = !!reactActive;
   if (reactModebar) reactModebar.hidden = !reactActive;
   if (exportButton) exportButton.hidden = !!reactActive;
   if (segTab) segTab.hidden = !!reactActive;
+  if (segPanel) segPanel.hidden = !!reactActive;
 
   if (reactActive) forceClientesListTab();
 }
