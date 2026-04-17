@@ -24,12 +24,7 @@ import {
   removerClienteAction,
   salvarClienteAction
 } from './clientes/actions.js';
-import {
-  getClienteById,
-  getClientes,
-  upsertClienteLocal,
-  removeClienteLocal
-} from './clientes/repository.js';
+import { getClienteById, getClientes } from './clientes/repository.js';
 import {
   getContatoInfo,
   normalizeDoc,
@@ -47,14 +42,6 @@ import {
   filterClientesFromLegacy,
   getClienteSegmentosFromLegacy
 } from '../shared/clientes-pilot-bridge.js';
-import {
-  abrirDetalheClienteReact,
-  abrirNovoClienteReact,
-  editarClienteReact,
-  excluirClienteReact,
-  shouldRenderLegacyClientes,
-  syncClientesReactBridge
-} from './clientes-react-bridge.js';
 
 /** @typedef {import('../types/domain').Cliente} Cliente */
 /** @typedef {import('../types/domain').Pedido} Pedido */
@@ -123,7 +110,6 @@ const AVC = [
  */
 export function initClientesModule(callbacks = {}) {
   setFlowStepSafe = callbacks.setFlowStep || (() => {});
-  syncClientesReactBridge();
 }
 
 /**
@@ -753,12 +739,6 @@ function renderClientePedidosLista(pedidos, clienteId, tipo) {
  * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'} tab
  */
 export function switchCliDetTab(clienteId, tab) {
-  syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) {
-    abrirDetalheClienteReact(clienteId, tab);
-    return;
-  }
-
   const box = cliDom.get('cli-det-box');
   if (!box) return;
 
@@ -793,8 +773,6 @@ function renderNotasCliente(id) {
 }
 
 export function renderCliMet() {
-  syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) return;
   return measureRender(
     'clientes',
     () => {
@@ -849,8 +827,6 @@ export function renderCliMet() {
 }
 
 export function renderClientes() {
-  syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) return;
   return measureRender(
     'clientes',
     () => {
@@ -910,8 +886,6 @@ export function renderClientes() {
 }
 
 export function renderCliSegs() {
-  syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) return;
   return measureRender(
     'clientes',
     () => {
@@ -1071,7 +1045,6 @@ function renderFidelidadeTab(clienteId, saldo, lancamentos) {
  * @param {string} clienteId
  */
 export async function adicionarLancamentoFidelidade(clienteId) {
-  if (!shouldRenderLegacyClientes()) return;
   const tipoEl = /** @type {HTMLSelectElement|null} */ (
     document.getElementById(`fid-tipo-${clienteId}`)
   );
@@ -1116,12 +1089,6 @@ export async function adicionarLancamentoFidelidade(clienteId) {
 }
 
 export async function abrirCliDet(id) {
-  syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) {
-    abrirDetalheClienteReact(id, 'resumo');
-    return;
-  }
-
   const cliente = getClienteById(id);
   if (!cliente) return;
 
@@ -1291,7 +1258,6 @@ export async function fecharVendaCliente(pedidoId, clienteId) {
 }
 
 export async function addNota(id) {
-  if (!shouldRenderLegacyClientes()) return;
   const { input } = getDetailElements(id);
   const texto = input?.value.trim() || '';
   if (!texto) return;
@@ -1314,10 +1280,6 @@ export async function addNota(id) {
 }
 
 export function limparFormCli() {
-  if (!shouldRenderLegacyClientes()) {
-    abrirNovoClienteReact();
-    return;
-  }
   State.editIds.cli = null;
   refreshRcaSelectors();
 
@@ -1332,10 +1294,6 @@ export function limparFormCli() {
 }
 
 export function editarCli(id) {
-  if (!shouldRenderLegacyClientes()) {
-    editarClienteReact(id);
-    return;
-  }
   const cliente = getClienteById(id);
   if (!cliente) return;
 
@@ -1372,7 +1330,6 @@ export function editarCli(id) {
 }
 
 export async function salvarCliente() {
-  if (!shouldRenderLegacyClientes()) return;
   const nome = cliDom.get('c-nome')?.value.trim() || '';
   if (!nome) {
     notify(MSG.forms.required('Nome do cliente'), SEVERITY.WARNING);
@@ -1463,10 +1420,6 @@ export async function salvarCliente() {
 }
 
 export async function removerCli(id) {
-  if (!shouldRenderLegacyClientes()) {
-    excluirClienteReact(id);
-    return;
-  }
   if (!confirm('Remover cliente?')) return;
 
   const result = await removerClienteAction(id);
@@ -1484,9 +1437,6 @@ export async function removerCli(id) {
 }
 
 export function refreshCliDL() {
-  syncClientesReactBridge();
-  if (!shouldRenderLegacyClientes()) return;
-
   cliDom.html(
     'selectors',
     'cli-dl',
@@ -1496,27 +1446,3 @@ export function refreshCliDL() {
     'clientes:datalist'
   );
 }
-
-// ── Bridge: React → Legado ────────────────────────────────────────────────────
-// Quando o React (ClientesPilotPage) salva ou remove um cliente, dispara estes
-// eventos para que o legado atualize D.clientes sem precisar de novo fetch.
-// Isso mantém o datalist de autocompletar (formulário de pedidos) em sincronia.
-window.addEventListener('sc:cliente-salvo', (/** @type {CustomEvent} */ ev) => {
-  const cliente = ev.detail;
-  if (!cliente?.id || !cliente?.filial_id) return;
-
-  const editId = getClienteById(cliente.id)?.id ?? null;
-  upsertClienteLocal(cliente, editId);
-
-  if (cliente.filial_id === State.FIL) {
-    refreshCliDL();
-  }
-});
-
-window.addEventListener('sc:cliente-removido', (/** @type {CustomEvent} */ ev) => {
-  const { id } = ev.detail ?? {};
-  if (!id) return;
-
-  removeClienteLocal(id);
-  refreshCliDL();
-});
