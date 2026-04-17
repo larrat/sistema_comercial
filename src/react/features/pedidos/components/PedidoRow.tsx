@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Pedido } from '../../../../types/domain';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
 
@@ -31,6 +32,7 @@ function fmt(value: number | null | undefined): string {
 }
 
 export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, onDetalhe }: Props) {
+  const [pendingCancel, setPendingCancel] = useState(false);
   const status = normalizePedStatus(pedido.status);
   const badgeClass = STATUS_BADGE[status] ?? 'bdg bk';
   const statusLabel = STATUS_LABEL[status] ?? status;
@@ -66,15 +68,39 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
           </button>
         )}
 
-        {status !== 'cancelado' && status !== 'entregue' && (
+        {status !== 'cancelado' && status !== 'entregue' && !pendingCancel && (
           <button
             className="btn btn-sm btn-danger"
             disabled={inFlight}
-            onClick={onCancelar}
+            onClick={() => setPendingCancel(true)}
             data-testid={`pedido-acao-cancelar-${pedido.id}`}
           >
             Cancelar
           </button>
+        )}
+
+        {pendingCancel && (
+          <>
+            <span className="list-row-meta" style={{ color: 'var(--c-danger, #c0392b)' }}>
+              Cancelar pedido?
+            </span>
+            <button
+              className="btn btn-sm btn-danger"
+              disabled={inFlight}
+              onClick={() => { setPendingCancel(false); onCancelar(); }}
+              data-testid={`pedido-acao-cancelar-confirm-${pedido.id}`}
+            >
+              Sim
+            </button>
+            <button
+              className="btn btn-sm"
+              disabled={inFlight}
+              onClick={() => setPendingCancel(false)}
+              data-testid={`pedido-acao-cancelar-abort-${pedido.id}`}
+            >
+              Não
+            </button>
+          </>
         )}
 
         {status === 'cancelado' && (
