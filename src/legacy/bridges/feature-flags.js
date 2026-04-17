@@ -35,7 +35,7 @@ const FLAG_REGISTRY = {
   clientes: {
     storageKey: STORAGE_KEYS.CLIENTES_REACT_ENABLED,
     windowProp: '__SC_CLIENTES_REACT_ENABLED__',
-    defaultValue: false
+    defaultValue: true
   },
   dashboard: {
     storageKey: STORAGE_KEYS.DASHBOARD_REACT_ENABLED,
