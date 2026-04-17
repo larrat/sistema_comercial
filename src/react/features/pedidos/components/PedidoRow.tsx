@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Pedido } from '../../../../types/domain';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
 
@@ -33,6 +33,18 @@ function fmt(value: number | null | undefined): string {
 
 export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, onDetalhe }: Props) {
   const [pendingCancel, setPendingCancel] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const prevStatusRef = useRef(pedido.status);
+
+  useEffect(() => {
+    if (prevStatusRef.current !== pedido.status) {
+      prevStatusRef.current = pedido.status;
+      setShowSuccess(true);
+      const t = setTimeout(() => setShowSuccess(false), 1500);
+      return () => clearTimeout(t);
+    }
+  }, [pedido.status]);
+
   const status = normalizePedStatus(pedido.status);
   const badgeClass = STATUS_BADGE[status] ?? 'bdg bk';
   const statusLabel = STATUS_LABEL[status] ?? status;
@@ -50,6 +62,9 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
           #{pedido.num} — {pedido.cli || '—'}
         </button>
         <span className={badgeClass}>{statusLabel}</span>
+        {showSuccess && (
+          <span className="bdg bg" style={{ transition: 'opacity 0.3s' }}>✓</span>
+        )}
         {pedido.data && (
           <span className="list-row-meta">{pedido.data}</span>
         )}
