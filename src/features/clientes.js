@@ -3,6 +3,7 @@
 import { State } from '../app/store.js';
 import { getClienteById, removeClienteLocal, upsertClienteLocal } from './clientes/repository.js';
 import * as legacyList from './clientes-legacy.js';
+import { createClientesLegacyDetailFallback } from './clientes-legacy-detail-fallback.js';
 import { createClientesLegacyShell, initClientesLegacyShell } from './clientes-legacy-shell.js';
 import {
   abrirDetalheClienteReact,
@@ -26,6 +27,7 @@ const legacyShell = createClientesLegacyShell({
   renderCliSegs: () => legacyList.renderCliSegs(),
   refreshCliDL: () => legacyList.refreshCliDL()
 });
+const legacyDetailFallback = createClientesLegacyDetailFallback();
 
 function useLegacyClientes() {
   syncClientesReactBridge();
@@ -105,7 +107,7 @@ export function renderCliSegs() {
 export function switchCliDetTab(clienteId, tab) {
   return routeClientesAction(
     () => abrirDetalheClienteReact(clienteId, tab),
-    () => legacyShell.switchCliDetTab(clienteId, tab)
+    () => legacyDetailFallback.switchCliDetTab(clienteId, tab)
   );
 }
 
@@ -115,7 +117,7 @@ export function switchCliDetTab(clienteId, tab) {
 export async function adicionarLancamentoFidelidade(clienteId) {
   return routeClientesAction(
     () => abrirFidelidadeClienteReact(clienteId),
-    () => legacyShell.adicionarLancamentoFidelidade(clienteId)
+    () => legacyDetailFallback.adicionarLancamentoFidelidade(clienteId)
   );
 }
 
@@ -125,7 +127,7 @@ export async function adicionarLancamentoFidelidade(clienteId) {
 export async function abrirCliDet(id) {
   return routeClientesAction(
     () => abrirDetalheClienteReact(id, 'resumo'),
-    () => legacyShell.abrirCliDet(id)
+    () => legacyDetailFallback.abrirCliDet(id)
   );
 }
 
@@ -136,7 +138,7 @@ export async function abrirCliDet(id) {
 export async function fecharVendaCliente(pedidoId, clienteId) {
   return routeClientesAction(
     () => abrirDetalheClienteReact(clienteId, 'fechadas'),
-    () => legacyShell.fecharVendaCliente(pedidoId, clienteId)
+    () => legacyDetailFallback.fecharVendaCliente(pedidoId, clienteId)
   );
 }
 
@@ -146,7 +148,7 @@ export async function fecharVendaCliente(pedidoId, clienteId) {
 export async function addNota(id) {
   return routeClientesAction(
     () => abrirNotasClienteReact(id),
-    () => legacyShell.addNota(id)
+    () => legacyDetailFallback.addNota(id)
   );
 }
 
