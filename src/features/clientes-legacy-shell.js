@@ -69,81 +69,102 @@ export function initClientesLegacyShell(callbacks = {}) {
 export function createClientesLegacyShell(deps) {
   const { renderCliMet, renderClientes, renderCliSegs, refreshCliDL } = deps;
 
-  const clientesLegacyDetail = createClientesLegacyDetail({
-    D,
-    State,
-    SB,
-    cliDom,
-    esc,
-    avc,
-    ini,
-    fmtAniv,
-    fmt,
-    notify,
-    toast,
-    abrirModal,
-    getContatoInfo,
-    normalizeDoc,
-    normalizeEmail,
-    normalizePhone,
-    parseTimes,
-    PRAZO_DETALHE_LABELS,
-    ST_B,
-    ST_PED,
-    TAB_LABELS,
-    getClientes,
-    getClienteById,
-    getDiasParaAniversario,
-    adicionarLancamentoFidelidadeAction,
-    adicionarNotaAction,
-    fecharVendaClienteAction,
-    renderPedMet,
-    renderPedidos,
-    SEVERITY
-  });
+  /** @type {ReturnType<typeof createClientesLegacyDetail> | null} */
+  let clientesLegacyDetail = null;
+  /** @type {ReturnType<typeof createClientesLegacyForm> | null} */
+  let clientesLegacyForm = null;
+  /** @type {ReturnType<typeof createClientesLegacyOps> | null} */
+  let clientesLegacyOps = null;
 
-  const clientesLegacyForm = createClientesLegacyForm({
-    State,
-    cliDom,
-    MSG,
-    SEVERITY,
-    notify,
-    notifyGuided,
-    focusField,
-    abrirModal,
-    fecharModal,
-    refreshRcaSelectors,
-    getRcaNomeById,
-    parseTimes,
-    getClientes,
-    getClienteById,
-    checkClienteIdentity,
-    salvarClienteAction,
-    renderCliMet,
-    renderClientes,
-    renderCliSegs,
-    refreshCliDL,
-    setFlowStepSafe
-  });
+  function getLegacyDetail() {
+    if (clientesLegacyDetail) return clientesLegacyDetail;
+    clientesLegacyDetail = createClientesLegacyDetail({
+      D,
+      State,
+      SB,
+      cliDom,
+      esc,
+      avc,
+      ini,
+      fmtAniv,
+      fmt,
+      notify,
+      toast,
+      abrirModal,
+      getContatoInfo,
+      normalizeDoc,
+      normalizeEmail,
+      normalizePhone,
+      parseTimes,
+      PRAZO_DETALHE_LABELS,
+      ST_B,
+      ST_PED,
+      TAB_LABELS,
+      getClientes,
+      getClienteById,
+      getDiasParaAniversario,
+      adicionarLancamentoFidelidadeAction,
+      adicionarNotaAction,
+      fecharVendaClienteAction,
+      renderPedMet,
+      renderPedidos,
+      SEVERITY
+    });
+    return clientesLegacyDetail;
+  }
 
-  const clientesLegacyOps = createClientesLegacyOps({
-    removerClienteAction,
-    toast,
-    renderCliMet,
-    renderClientes,
-    renderCliSegs,
-    refreshCliDL
-  });
+  function getLegacyForm() {
+    if (clientesLegacyForm) return clientesLegacyForm;
+    clientesLegacyForm = createClientesLegacyForm({
+      State,
+      cliDom,
+      MSG,
+      SEVERITY,
+      notify,
+      notifyGuided,
+      focusField,
+      abrirModal,
+      fecharModal,
+      refreshRcaSelectors,
+      getRcaNomeById,
+      parseTimes,
+      getClientes,
+      getClienteById,
+      checkClienteIdentity,
+      salvarClienteAction,
+      renderCliMet,
+      renderClientes,
+      renderCliSegs,
+      refreshCliDL,
+      setFlowStepSafe
+    });
+    return clientesLegacyForm;
+  }
+
+  function getLegacyOps() {
+    if (clientesLegacyOps) return clientesLegacyOps;
+    clientesLegacyOps = createClientesLegacyOps({
+      removerClienteAction,
+      toast,
+      renderCliMet,
+      renderClientes,
+      renderCliSegs,
+      refreshCliDL
+    });
+    return clientesLegacyOps;
+  }
 
   return {
-    switchCliDetTab: clientesLegacyDetail.switchCliDetTab,
-    adicionarLancamentoFidelidade: clientesLegacyDetail.adicionarLancamentoFidelidade,
-    abrirCliDet: clientesLegacyDetail.abrirCliDet,
-    fecharVendaCliente: clientesLegacyDetail.fecharVendaCliente,
-    addNota: clientesLegacyDetail.addNota,
-    limparFormCli: clientesLegacyForm.limparFormCli,
-    editarCli: clientesLegacyForm.editarCli,
-    salvarCliente: clientesLegacyForm.salvarCliente,
-    removerCli: clientesLegacyOps.removerCli
+    switchCliDetTab: (clienteId, tab) => getLegacyDetail().switchCliDetTab(clienteId, tab),
+    adicionarLancamentoFidelidade: (clienteId) =>
+      getLegacyDetail().adicionarLancamentoFidelidade(clienteId),
+    abrirCliDet: (id) => getLegacyDetail().abrirCliDet(id),
+    fecharVendaCliente: (pedidoId, clienteId) =>
+      getLegacyDetail().fecharVendaCliente(pedidoId, clienteId),
+    addNota: (id) => getLegacyDetail().addNota(id),
+    limparFormCli: () => getLegacyForm().limparFormCli(),
+    editarCli: (id) => getLegacyForm().editarCli(id),
+    salvarCliente: () => getLegacyForm().salvarCliente(),
+    removerCli: (id) => getLegacyOps().removerCli(id)
   };
 }
