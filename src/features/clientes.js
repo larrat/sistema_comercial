@@ -25,6 +25,7 @@ import {
 /** @typedef {import('../types/domain').ClientesModuleCallbacks} ClientesModuleCallbacks */
 
 let reactClienteSyncRegistered = false;
+let legacyListFallbackEnabled = false;
 /** @type {ReturnType<typeof createClientesLegacyShell> | null} */
 let legacyShell = null;
 /** @type {ReturnType<typeof createClientesLegacyFormFallback> | null} */
@@ -60,15 +61,29 @@ function getLegacyDetailFallback() {
   return legacyDetailFallback;
 }
 
-function useLegacyClientes() {
+function shouldUseLegacyListFallback() {
   syncClientesReactBridge();
-  return shouldRenderLegacyClientes();
+
+  if (!isClientesReactFeatureEnabled()) {
+    legacyListFallbackEnabled = true;
+    return true;
+  }
+
+  if (!shouldRenderLegacyClientes()) {
+    legacyListFallbackEnabled = false;
+    return false;
+  }
+
+  return legacyListFallbackEnabled;
 }
 
 function useReactClientes() {
   syncClientesReactBridge();
   const reactEnabled = isClientesReactFeatureEnabled();
-  if (reactEnabled) forceClientesReactMode();
+  if (reactEnabled) {
+    legacyListFallbackEnabled = false;
+    forceClientesReactMode();
+  }
   return reactEnabled;
 }
 
@@ -97,6 +112,7 @@ function ensureClientesReactSync() {
   });
 
   window.addEventListener('sc:clientes-react-fallback', () => {
+    legacyListFallbackEnabled = true;
     legacyList.renderCliMet();
     legacyList.renderClientes();
     legacyList.renderCliSegs();
@@ -113,17 +129,17 @@ export function initClientesModule(callbacks = {}) {
 }
 
 export function renderCliMet() {
-  if (!useLegacyClientes()) return;
+  if (!shouldUseLegacyListFallback()) return;
   return legacyList.renderCliMet();
 }
 
 export function renderClientes() {
-  if (!useLegacyClientes()) return;
+  if (!shouldUseLegacyListFallback()) return;
   return legacyList.renderClientes();
 }
 
 export function renderCliSegs() {
-  if (!useLegacyClientes()) return;
+  if (!shouldUseLegacyListFallback()) return;
   return legacyList.renderCliSegs();
 }
 
@@ -196,6 +212,5 @@ export async function removerCli(id) {
 }
 
 export function refreshCliDL() {
-  if (!useLegacyClientes()) return;
   return legacyList.refreshCliDL();
 }
