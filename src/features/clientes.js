@@ -85,6 +85,13 @@ function ensureClientesReactSync() {
     removeClienteLocal(id);
     legacyList.refreshCliDL();
   });
+
+  window.addEventListener('sc:clientes-react-fallback', () => {
+    legacyList.renderCliMet();
+    legacyList.renderClientes();
+    legacyList.renderCliSegs();
+    legacyList.refreshCliDL();
+  });
 }
 
 /**

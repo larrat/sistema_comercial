@@ -7,6 +7,7 @@ import {
   getClientesReactBridgeState,
   isClientesReactFeatureEnabled,
   isClientesReactPilotActive,
+  isClientesReactPilotRequested,
   forceClientesReactMode,
   syncClientesReactBridge
 } from './clientes-react-bridge.js';
@@ -84,6 +85,7 @@ let deps = {
   abrirNovoClienteReact: () => {},
   limparFiltrosClienteReact: () => {},
   abrirListaClienteReact: () => {},
+  abrirSegmentosClienteReact: () => {},
   editarClienteReactAtual: () => {},
   exportarClientesReactCsv: () => {},
   abrirResumoClienteReact: () => {},
@@ -152,7 +154,7 @@ function getPageRenderers() {
     gerencial: [deps.renderMetasNegocio],
     relatorios: [deps.renderRelatorios],
     produtos: [deps.renderProdMet, deps.renderProdutos],
-    clientes: isClientesReactPilotActive() ? [] : [deps.renderCliMet, deps.renderClientes],
+    clientes: isClientesReactFeatureEnabled() ? [] : [deps.renderCliMet, deps.renderClientes],
     pedidos: [deps.renderPedMet, deps.renderPedidos],
     receber: [deps.renderContasReceberMet, deps.renderContasReceber],
     cotacao: [deps.renderFornSel, deps.renderCotForns, deps.renderCotLogs, deps.renderCotTabela],
@@ -425,7 +427,7 @@ export function getContextualPageMeta(page) {
   if (page === 'clientes') {
     const segTabAtiva = !!document.getElementById('cli-tc-segs')?.classList.contains('on');
     const reactState = getClientesReactBridgeState();
-    const reactAtivo = isClientesReactPilotActive();
+    const reactAtivo = isClientesReactPilotActive() || isClientesReactPilotRequested();
 
     if (reactAtivo) {
       meta.primary = { label: 'Novo cliente', run: () => deps.abrirNovoClienteReact() };
@@ -456,9 +458,11 @@ export function getContextualPageMeta(page) {
           roles: deps.roleManagerPlus
         };
         meta.tertiary =
-          reactState.filtersActive > 0
-            ? { label: 'Limpar filtros', run: () => deps.limparFiltrosClienteReact() }
-            : null;
+          reactState.surfaceTab === 'segmentos'
+            ? { label: 'Voltar lista', run: () => deps.abrirListaClienteReact() }
+            : reactState.filtersActive > 0
+              ? { label: 'Limpar filtros', run: () => deps.limparFiltrosClienteReact() }
+              : { label: 'Ver segmentos', run: () => deps.abrirSegmentosClienteReact() };
       }
     } else {
       meta.tertiary = segTabAtiva

@@ -322,6 +322,23 @@ describe('ClientesPilotPage', () => {
     });
   });
 
+  it('abre a superfície de segmentos quando recebe comando do shell legado', async () => {
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-segmentos' }
+        })
+      );
+    });
+
+    const segmentView = await screen.findByTestId('cliente-segment-view');
+    expect(segmentView).toBeInTheDocument();
+    expect(within(segmentView).getByText('Varejo')).toBeInTheDocument();
+  });
+
   it('abre edicao do cliente atual quando recebe comando do shell legado', async () => {
     render(<ClientesPilotPage />);
 

@@ -17,6 +17,7 @@ const COMMAND_SOURCE = 'clientes-legacy-shell';
 
 const DEFAULT_BRIDGE_STATE = {
   view: 'list',
+  surfaceTab: 'lista',
   status: 'ready',
   count: 0,
   filtersActive: 0,
@@ -133,6 +134,14 @@ function isReactModeActive() {
   return !!(mounted && getMode() === UI_MODES.REACT && isClientesPageActive());
 }
 
+function notifyLegacyFallback(reason) {
+  window.dispatchEvent(
+    new CustomEvent('sc:clientes-react-fallback', {
+      detail: { reason: String(reason || 'fallback') }
+    })
+  );
+}
+
 function toViewLabel(view) {
   return view === 'form' ? 'Formulario' : view === 'detail' ? 'Detalhe' : 'Lista';
 }
@@ -229,6 +238,7 @@ function syncBridgeState(state) {
   const nextState = state && typeof state === 'object' ? state : {};
   currentBridgeState = {
     view: String(nextState.view || 'list'),
+    surfaceTab: String(nextState.surfaceTab || 'lista'),
     status: String(nextState.status || 'ready'),
     count: Number(nextState.count ?? 0) || 0,
     filtersActive: Number(nextState.filtersActive ?? 0) || 0,
@@ -239,6 +249,7 @@ function syncBridgeState(state) {
 
   if (reactShell) {
     reactShell.dataset.reactView = currentBridgeState.view;
+    reactShell.dataset.reactSurfaceTab = currentBridgeState.surfaceTab;
     reactShell.dataset.reactStatus = currentBridgeState.status;
     reactShell.dataset.reactCount = String(currentBridgeState.count);
     reactShell.dataset.reactFiltersActive = String(currentBridgeState.filtersActive);
@@ -395,6 +406,7 @@ async function applyMode() {
   if (!reactRequested) {
     if (mounted && bridge?.unmount) bridge.unmount();
     mounted = false;
+    if (isClientesPageActive()) notifyLegacyFallback('legacy-mode');
     if (legacyShell) legacyShell.hidden = false;
     if (reactShell) reactShell.hidden = true;
     syncShellModeUi(false);
@@ -406,6 +418,7 @@ async function applyMode() {
   }
 
   if (!root || !bridge?.mount) {
+    if (isClientesPageActive()) notifyLegacyFallback('bridge-unavailable');
     if (legacyShell) legacyShell.hidden = false;
     if (reactShell) reactShell.hidden = true;
     syncShellModeUi(false);
@@ -425,6 +438,7 @@ async function applyMode() {
         '[clientes-react-bridge] falha ao montar piloto React; usando fallback legado.',
         error
       );
+      if (isClientesPageActive()) notifyLegacyFallback('mount-error');
     }
   }
 
@@ -436,6 +450,7 @@ async function applyMode() {
   syncLegacyFormModal(reactActive);
 
   if (!reactActive) {
+    if (isClientesPageActive()) notifyLegacyFallback('react-inactive');
     syncBridgeState(null);
     updateToggle();
     return;
@@ -456,6 +471,10 @@ export function shouldRenderLegacyClientes() {
 
 export function isClientesReactPilotActive() {
   return isReactModeActive();
+}
+
+export function isClientesReactPilotRequested() {
+  return isReactModeRequested();
 }
 
 export function getClientesReactBridgeState() {
@@ -505,6 +524,10 @@ export function limparFiltrosClienteReact() {
 
 export function abrirListaClienteReact() {
   return postToReactFrame('clientes:abrir-lista');
+}
+
+export function abrirSegmentosClienteReact() {
+  return postToReactFrame('clientes:abrir-segmentos');
 }
 
 export function editarClienteReactAtual() {
