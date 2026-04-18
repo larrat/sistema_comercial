@@ -4,7 +4,11 @@ import { State } from '../app/store.js';
 import { getClienteById, removeClienteLocal, upsertClienteLocal } from './clientes/repository.js';
 import * as legacyList from './clientes-legacy.js';
 import { createClientesLegacyDetailFallback } from './clientes-legacy-detail-fallback.js';
-import { createClientesLegacyShell, initClientesLegacyShell } from './clientes-legacy-shell.js';
+import {
+  createClientesLegacyFormFallback,
+  initClientesLegacyFormFallback
+} from './clientes-legacy-form-fallback.js';
+import { createClientesLegacyShell } from './clientes-legacy-shell.js';
 import {
   abrirDetalheClienteReact,
   abrirFidelidadeClienteReact,
@@ -22,6 +26,12 @@ import {
 
 let reactClienteSyncRegistered = false;
 const legacyShell = createClientesLegacyShell({
+  renderCliMet: () => legacyList.renderCliMet(),
+  renderClientes: () => legacyList.renderClientes(),
+  renderCliSegs: () => legacyList.renderCliSegs(),
+  refreshCliDL: () => legacyList.refreshCliDL()
+});
+const legacyFormFallback = createClientesLegacyFormFallback({
   renderCliMet: () => legacyList.renderCliMet(),
   renderClientes: () => legacyList.renderClientes(),
   renderCliSegs: () => legacyList.renderCliSegs(),
@@ -82,7 +92,7 @@ function ensureClientesReactSync() {
  */
 export function initClientesModule(callbacks = {}) {
   ensureClientesReactSync();
-  initClientesLegacyShell(callbacks);
+  initClientesLegacyFormFallback(callbacks);
 }
 
 export function renderCliMet() {
@@ -155,7 +165,7 @@ export async function addNota(id) {
 export function limparFormCli() {
   return routeClientesAction(
     () => abrirNovoClienteReact(),
-    () => legacyShell.limparFormCli()
+    () => legacyFormFallback.limparFormCli()
   );
 }
 
@@ -165,14 +175,14 @@ export function limparFormCli() {
 export function editarCli(id) {
   return routeClientesAction(
     () => editarClienteReact(id),
-    () => legacyShell.editarCli(id)
+    () => legacyFormFallback.editarCli(id)
   );
 }
 
 export async function salvarCliente() {
   return routeClientesAction(
     () => abrirNovoClienteReact(),
-    () => legacyShell.salvarCliente()
+    () => legacyFormFallback.salvarCliente()
   );
 }
 
