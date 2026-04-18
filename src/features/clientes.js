@@ -25,19 +25,40 @@ import {
 /** @typedef {import('../types/domain').ClientesModuleCallbacks} ClientesModuleCallbacks */
 
 let reactClienteSyncRegistered = false;
-const legacyShell = createClientesLegacyShell({
-  renderCliMet: () => legacyList.renderCliMet(),
-  renderClientes: () => legacyList.renderClientes(),
-  renderCliSegs: () => legacyList.renderCliSegs(),
-  refreshCliDL: () => legacyList.refreshCliDL()
-});
-const legacyFormFallback = createClientesLegacyFormFallback({
-  renderCliMet: () => legacyList.renderCliMet(),
-  renderClientes: () => legacyList.renderClientes(),
-  renderCliSegs: () => legacyList.renderCliSegs(),
-  refreshCliDL: () => legacyList.refreshCliDL()
-});
-const legacyDetailFallback = createClientesLegacyDetailFallback();
+/** @type {ReturnType<typeof createClientesLegacyShell> | null} */
+let legacyShell = null;
+/** @type {ReturnType<typeof createClientesLegacyFormFallback> | null} */
+let legacyFormFallback = null;
+/** @type {ReturnType<typeof createClientesLegacyDetailFallback> | null} */
+let legacyDetailFallback = null;
+
+function getLegacyShell() {
+  if (legacyShell) return legacyShell;
+  legacyShell = createClientesLegacyShell({
+    renderCliMet: () => legacyList.renderCliMet(),
+    renderClientes: () => legacyList.renderClientes(),
+    renderCliSegs: () => legacyList.renderCliSegs(),
+    refreshCliDL: () => legacyList.refreshCliDL()
+  });
+  return legacyShell;
+}
+
+function getLegacyFormFallback() {
+  if (legacyFormFallback) return legacyFormFallback;
+  legacyFormFallback = createClientesLegacyFormFallback({
+    renderCliMet: () => legacyList.renderCliMet(),
+    renderClientes: () => legacyList.renderClientes(),
+    renderCliSegs: () => legacyList.renderCliSegs(),
+    refreshCliDL: () => legacyList.refreshCliDL()
+  });
+  return legacyFormFallback;
+}
+
+function getLegacyDetailFallback() {
+  if (legacyDetailFallback) return legacyDetailFallback;
+  legacyDetailFallback = createClientesLegacyDetailFallback();
+  return legacyDetailFallback;
+}
 
 function useLegacyClientes() {
   syncClientesReactBridge();
@@ -55,8 +76,7 @@ function routeClientesAction(reactAction, legacyAction) {
 
   if (isClientesReactFeatureEnabled()) {
     forceClientesReactMode();
-    const reactResult = reactAction();
-    if (reactResult) return reactResult;
+    return reactAction();
   }
 
   return legacyAction();
@@ -124,7 +144,7 @@ export function renderCliSegs() {
 export function switchCliDetTab(clienteId, tab) {
   return routeClientesAction(
     () => abrirDetalheClienteReact(clienteId, tab),
-    () => legacyDetailFallback.switchCliDetTab(clienteId, tab)
+    () => getLegacyDetailFallback().switchCliDetTab(clienteId, tab)
   );
 }
 
@@ -134,7 +154,7 @@ export function switchCliDetTab(clienteId, tab) {
 export async function adicionarLancamentoFidelidade(clienteId) {
   return routeClientesAction(
     () => abrirFidelidadeClienteReact(clienteId),
-    () => legacyDetailFallback.adicionarLancamentoFidelidade(clienteId)
+    () => getLegacyDetailFallback().adicionarLancamentoFidelidade(clienteId)
   );
 }
 
@@ -144,7 +164,7 @@ export async function adicionarLancamentoFidelidade(clienteId) {
 export async function abrirCliDet(id) {
   return routeClientesAction(
     () => abrirDetalheClienteReact(id, 'resumo'),
-    () => legacyDetailFallback.abrirCliDet(id)
+    () => getLegacyDetailFallback().abrirCliDet(id)
   );
 }
 
@@ -155,7 +175,7 @@ export async function abrirCliDet(id) {
 export async function fecharVendaCliente(pedidoId, clienteId) {
   return routeClientesAction(
     () => abrirDetalheClienteReact(clienteId, 'fechadas'),
-    () => legacyDetailFallback.fecharVendaCliente(pedidoId, clienteId)
+    () => getLegacyDetailFallback().fecharVendaCliente(pedidoId, clienteId)
   );
 }
 
@@ -165,14 +185,14 @@ export async function fecharVendaCliente(pedidoId, clienteId) {
 export async function addNota(id) {
   return routeClientesAction(
     () => abrirNotasClienteReact(id),
-    () => legacyDetailFallback.addNota(id)
+    () => getLegacyDetailFallback().addNota(id)
   );
 }
 
 export function limparFormCli() {
   return routeClientesAction(
     () => abrirNovoClienteReact(),
-    () => legacyFormFallback.limparFormCli()
+    () => getLegacyFormFallback().limparFormCli()
   );
 }
 
@@ -182,14 +202,14 @@ export function limparFormCli() {
 export function editarCli(id) {
   return routeClientesAction(
     () => editarClienteReact(id),
-    () => legacyFormFallback.editarCli(id)
+    () => getLegacyFormFallback().editarCli(id)
   );
 }
 
 export async function salvarCliente() {
   return routeClientesAction(
     () => abrirNovoClienteReact(),
-    () => legacyFormFallback.salvarCliente()
+    () => getLegacyFormFallback().salvarCliente()
   );
 }
 
@@ -199,7 +219,7 @@ export async function salvarCliente() {
 export async function removerCli(id) {
   return routeClientesAction(
     () => excluirClienteReact(id),
-    () => legacyShell.removerCli(id)
+    () => getLegacyShell().removerCli(id)
   );
 }
 
