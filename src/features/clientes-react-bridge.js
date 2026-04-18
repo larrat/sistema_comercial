@@ -34,9 +34,10 @@ let pageObserver = null;
 let currentBridgeState = { ...DEFAULT_BRIDGE_STATE };
 
 function getMode() {
+  if (isClientesReactFeatureEnabled()) return UI_MODES.REACT;
   const stored = localStorage.getItem(STORAGE_KEYS.CLIENTES_UI_MODE);
   if (stored === UI_MODES.LEGACY || stored === UI_MODES.REACT) return stored;
-  return isClientesReactFeatureEnabled() ? UI_MODES.REACT : UI_MODES.LEGACY;
+  return UI_MODES.LEGACY;
 }
 
 function setMode(mode) {
@@ -49,9 +50,7 @@ export function isClientesReactFeatureEnabled() {
 
 export function setClientesReactFeatureEnabled(enabled) {
   setPilotEnabled('clientes', enabled);
-  if (!localStorage.getItem(STORAGE_KEYS.CLIENTES_UI_MODE)) {
-    setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
-  }
+  setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
 }
 
 function getToggle() {
@@ -387,14 +386,10 @@ function syncLegacyFormModal(reactActive) {
 function updateToggle() {
   const toggle = getToggle();
   if (!toggle) return;
-
-  if (!bridge?.mount || !isClientesPageActive()) {
-    toggle.hidden = true;
-    return;
-  }
-
   toggle.hidden = false;
-  toggle.textContent = getMode() === UI_MODES.REACT ? 'Voltar legado' : 'Piloto React';
+  toggle.disabled = true;
+  toggle.setAttribute('aria-disabled', 'true');
+  toggle.textContent = 'React ativo';
 }
 
 async function applyMode() {
@@ -486,9 +481,7 @@ export function syncClientesReactBridge() {
 }
 
 export function toggleClientesReactBridge() {
-  if (!bridge?.mount) return;
-  setMode(getMode() === UI_MODES.REACT ? UI_MODES.LEGACY : UI_MODES.REACT);
-  void applyMode();
+  forceClientesReactMode();
 }
 
 export function forceClientesReactMode() {

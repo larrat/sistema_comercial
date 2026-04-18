@@ -1,8 +1,12 @@
 // @ts-check
 
 import { State } from '../app/store.js';
-import { getClienteById, removeClienteLocal, upsertClienteLocal } from './clientes/repository.js';
-import * as legacyList from './clientes-legacy.js';
+import {
+  getClienteById,
+  getClientes,
+  removeClienteLocal,
+  upsertClienteLocal
+} from './clientes/repository.js';
 import {
   abrirDetalheClienteReact,
   abrirFidelidadeClienteReact,
@@ -13,36 +17,30 @@ import {
   forceClientesReactMode,
   isClientesReactFeatureEnabled,
   setClientesReactFeatureEnabled,
-  shouldRenderLegacyClientes,
   syncClientesReactBridge
 } from './clientes-react-bridge.js';
 
 let reactClienteSyncRegistered = false;
-let legacyListFallbackEnabled = false;
-
-function shouldUseLegacyListFallback() {
-  syncClientesReactBridge();
-
-  if (!isClientesReactFeatureEnabled()) {
-    legacyListFallbackEnabled = true;
-    return true;
-  }
-
-  if (!shouldRenderLegacyClientes()) {
-    legacyListFallbackEnabled = false;
-    return false;
-  }
-
-  return legacyListFallbackEnabled;
-}
 
 function ensureReactClientes() {
   if (!isClientesReactFeatureEnabled()) {
     setClientesReactFeatureEnabled(true);
   }
   syncClientesReactBridge();
-  legacyListFallbackEnabled = false;
   forceClientesReactMode();
+}
+
+function refreshClienteDatalist() {
+  const datalist = document.getElementById('cli-dl');
+  if (!(datalist instanceof HTMLElement)) return;
+
+  datalist.replaceChildren(
+    ...getClientes().map((cliente) => {
+      const option = document.createElement('option');
+      option.value = String(cliente?.nome || '');
+      return option;
+    })
+  );
 }
 
 function ensureClientesReactSync() {
@@ -57,7 +55,7 @@ function ensureClientesReactSync() {
     upsertClienteLocal(cliente, editId);
 
     if (cliente.filial_id === State.FIL) {
-      legacyList.refreshCliDL();
+      refreshClienteDatalist();
     }
   });
 
@@ -66,15 +64,13 @@ function ensureClientesReactSync() {
     if (!id) return;
 
     removeClienteLocal(id);
-    legacyList.refreshCliDL();
+    refreshClienteDatalist();
   });
 
   window.addEventListener('sc:clientes-react-fallback', () => {
-    legacyListFallbackEnabled = true;
-    legacyList.renderCliMet();
-    legacyList.renderClientes();
-    legacyList.renderCliSegs();
-    legacyList.refreshCliDL();
+    console.warn(
+      '[clientes] bridge React sinalizou fallback, mas a superfície legada foi desativada.'
+    );
   });
 }
 
@@ -84,18 +80,15 @@ export function initClientesModule() {
 }
 
 export function renderCliMet() {
-  if (!shouldUseLegacyListFallback()) return;
-  return legacyList.renderCliMet();
+  ensureReactClientes();
 }
 
 export function renderClientes() {
-  if (!shouldUseLegacyListFallback()) return;
-  return legacyList.renderClientes();
+  ensureReactClientes();
 }
 
 export function renderCliSegs() {
-  if (!shouldUseLegacyListFallback()) return;
-  return legacyList.renderCliSegs();
+  ensureReactClientes();
 }
 
 /**
@@ -168,5 +161,5 @@ export async function removerCli(id) {
 }
 
 export function refreshCliDL() {
-  return legacyList.refreshCliDL();
+  return refreshClienteDatalist();
 }
