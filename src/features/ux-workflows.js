@@ -35,7 +35,12 @@ export function executarAuditoriaVisual() {
   const add = (ok, item, detalhe = '') => checks.push({ ok, item, detalhe });
   const has = (id) => !!document.getElementById(id);
   add(has('app-title') && has('app-sub') && has('app-act-primary'), 'Topbar global');
-  add(has('pg-clientes') && has('cli-lista') && has('modal-cliente'), 'Fluxo Clientes');
+  add(
+    has('pg-clientes') &&
+      (has('cli-react-root') || has('cli-lista')) &&
+      (has('cli-react-shell') || has('modal-cliente')),
+    'Fluxo Clientes'
+  );
   add(
     has('pg-campanhas') && has('camp-lista') && has('camp-wa-fila') && has('modal-campanha'),
     'Fluxo Campanhas'
