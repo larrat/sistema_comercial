@@ -3,12 +3,6 @@
 import { State } from '../app/store.js';
 import { getClienteById, removeClienteLocal, upsertClienteLocal } from './clientes/repository.js';
 import * as legacyList from './clientes-legacy.js';
-import { createClientesLegacyDetailFallback } from './clientes-legacy-detail-fallback.js';
-import {
-  createClientesLegacyFormFallback,
-  initClientesLegacyFormFallback
-} from './clientes-legacy-form-fallback.js';
-import { createClientesLegacyShell } from './clientes-legacy-shell.js';
 import {
   abrirDetalheClienteReact,
   abrirFidelidadeClienteReact,
@@ -18,48 +12,13 @@ import {
   excluirClienteReact,
   forceClientesReactMode,
   isClientesReactFeatureEnabled,
+  setClientesReactFeatureEnabled,
   shouldRenderLegacyClientes,
   syncClientesReactBridge
 } from './clientes-react-bridge.js';
 
-/** @typedef {import('../types/domain').ClientesModuleCallbacks} ClientesModuleCallbacks */
-
 let reactClienteSyncRegistered = false;
 let legacyListFallbackEnabled = false;
-/** @type {ReturnType<typeof createClientesLegacyShell> | null} */
-let legacyShell = null;
-/** @type {ReturnType<typeof createClientesLegacyFormFallback> | null} */
-let legacyFormFallback = null;
-/** @type {ReturnType<typeof createClientesLegacyDetailFallback> | null} */
-let legacyDetailFallback = null;
-
-function getLegacyShell() {
-  if (legacyShell) return legacyShell;
-  legacyShell = createClientesLegacyShell({
-    renderCliMet: () => legacyList.renderCliMet(),
-    renderClientes: () => legacyList.renderClientes(),
-    renderCliSegs: () => legacyList.renderCliSegs(),
-    refreshCliDL: () => legacyList.refreshCliDL()
-  });
-  return legacyShell;
-}
-
-function getLegacyFormFallback() {
-  if (legacyFormFallback) return legacyFormFallback;
-  legacyFormFallback = createClientesLegacyFormFallback({
-    renderCliMet: () => legacyList.renderCliMet(),
-    renderClientes: () => legacyList.renderClientes(),
-    renderCliSegs: () => legacyList.renderCliSegs(),
-    refreshCliDL: () => legacyList.refreshCliDL()
-  });
-  return legacyFormFallback;
-}
-
-function getLegacyDetailFallback() {
-  if (legacyDetailFallback) return legacyDetailFallback;
-  legacyDetailFallback = createClientesLegacyDetailFallback();
-  return legacyDetailFallback;
-}
 
 function shouldUseLegacyListFallback() {
   syncClientesReactBridge();
@@ -77,14 +36,13 @@ function shouldUseLegacyListFallback() {
   return legacyListFallbackEnabled;
 }
 
-function useReactClientes() {
-  syncClientesReactBridge();
-  const reactEnabled = isClientesReactFeatureEnabled();
-  if (reactEnabled) {
-    legacyListFallbackEnabled = false;
-    forceClientesReactMode();
+function ensureReactClientes() {
+  if (!isClientesReactFeatureEnabled()) {
+    setClientesReactFeatureEnabled(true);
   }
-  return reactEnabled;
+  syncClientesReactBridge();
+  legacyListFallbackEnabled = false;
+  forceClientesReactMode();
 }
 
 function ensureClientesReactSync() {
@@ -120,12 +78,9 @@ function ensureClientesReactSync() {
   });
 }
 
-/**
- * @param {ClientesModuleCallbacks} [callbacks]
- */
-export function initClientesModule(callbacks = {}) {
+export function initClientesModule() {
   ensureClientesReactSync();
-  initClientesLegacyFormFallback(callbacks);
+  ensureReactClientes();
 }
 
 export function renderCliMet() {
@@ -148,24 +103,24 @@ export function renderCliSegs() {
  * @param {'resumo'|'abertas'|'fechadas'|'fidelidade'|'notas'} tab
  */
 export function switchCliDetTab(clienteId, tab) {
-  if (useReactClientes()) return abrirDetalheClienteReact(clienteId, tab);
-  return getLegacyDetailFallback().switchCliDetTab(clienteId, tab);
+  ensureReactClientes();
+  return abrirDetalheClienteReact(clienteId, tab);
 }
 
 /**
  * @param {string} clienteId
  */
 export async function adicionarLancamentoFidelidade(clienteId) {
-  if (useReactClientes()) return abrirFidelidadeClienteReact(clienteId);
-  return getLegacyDetailFallback().adicionarLancamentoFidelidade(clienteId);
+  ensureReactClientes();
+  return abrirFidelidadeClienteReact(clienteId);
 }
 
 /**
  * @param {string} id
  */
 export async function abrirCliDet(id) {
-  if (useReactClientes()) return abrirDetalheClienteReact(id, 'resumo');
-  return getLegacyDetailFallback().abrirCliDet(id);
+  ensureReactClientes();
+  return abrirDetalheClienteReact(id, 'resumo');
 }
 
 /**
@@ -173,42 +128,43 @@ export async function abrirCliDet(id) {
  * @param {string} clienteId
  */
 export async function fecharVendaCliente(pedidoId, clienteId) {
-  if (useReactClientes()) return abrirDetalheClienteReact(clienteId, 'fechadas');
-  return getLegacyDetailFallback().fecharVendaCliente(pedidoId, clienteId);
+  void pedidoId;
+  ensureReactClientes();
+  return abrirDetalheClienteReact(clienteId, 'fechadas');
 }
 
 /**
  * @param {string} id
  */
 export async function addNota(id) {
-  if (useReactClientes()) return abrirNotasClienteReact(id);
-  return getLegacyDetailFallback().addNota(id);
+  ensureReactClientes();
+  return abrirNotasClienteReact(id);
 }
 
 export function limparFormCli() {
-  if (useReactClientes()) return abrirNovoClienteReact();
-  return getLegacyFormFallback().limparFormCli();
+  ensureReactClientes();
+  return abrirNovoClienteReact();
 }
 
 /**
  * @param {string} id
  */
 export function editarCli(id) {
-  if (useReactClientes()) return editarClienteReact(id);
-  return getLegacyFormFallback().editarCli(id);
+  ensureReactClientes();
+  return editarClienteReact(id);
 }
 
 export async function salvarCliente() {
-  if (useReactClientes()) return abrirNovoClienteReact();
-  return getLegacyFormFallback().salvarCliente();
+  ensureReactClientes();
+  return abrirNovoClienteReact();
 }
 
 /**
  * @param {string} id
  */
 export async function removerCli(id) {
-  if (useReactClientes()) return excluirClienteReact(id);
-  return getLegacyShell().removerCli(id);
+  ensureReactClientes();
+  return excluirClienteReact(id);
 }
 
 export function refreshCliDL() {
