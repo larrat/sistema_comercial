@@ -415,6 +415,18 @@ function runAction(action, el) {
       deps.limparFormCliTracked?.();
       deps.abrirModal?.('modal-cliente');
     },
+    clienteDetalhe: () => {
+      const id = el?.dataset.id;
+      if (id) deps.abrirCliDet?.(id);
+    },
+    clienteEditar: () => {
+      const id = el?.dataset.id;
+      if (id) deps.editarCli?.(id);
+    },
+    clienteExcluir: () => {
+      const id = el?.dataset.id;
+      if (id) deps.removerCliGuard?.(id);
+    },
     abrirNovoClienteReact: () => deps.abrirNovoClienteReact?.(),
     limparFiltrosClienteReact: () => deps.limparFiltrosClienteReact?.(),
     abrirListaClienteReact: () => deps.abrirListaClienteReact?.(),

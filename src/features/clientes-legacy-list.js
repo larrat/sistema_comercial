@@ -149,9 +149,9 @@ export function createClientesLegacyList(deps) {
         </div>
 
         <div class="mobile-card-actions">
-          <button class="btn btn-sm" data-click="abrirCliDet('${cliente.id}')">Detalhes</button>
-          <button class="btn btn-p btn-sm" data-click="editarCli('${cliente.id}')">Editar</button>
-          <button class="btn btn-sm" data-click="removerCli('${cliente.id}')">Excluir</button>
+          <button class="btn btn-sm" data-action="clienteDetalhe" data-id="${esc(cliente.id)}">Detalhes</button>
+          <button class="btn btn-p btn-sm" data-action="clienteEditar" data-id="${esc(cliente.id)}">Editar</button>
+          <button class="btn btn-sm" data-action="clienteExcluir" data-id="${esc(cliente.id)}">Excluir</button>
         </div>
       </div>
     `;
@@ -198,9 +198,9 @@ export function createClientesLegacyList(deps) {
         <td>${ST_B[cliente.status] || ''}</td>
         <td>
           <div class="fg2 table-row-actions">
-            <button class="btn btn-sm" data-click="abrirCliDet('${cliente.id}')">Detalhes</button>
-            <button class="btn btn-p btn-sm" data-click="editarCli('${cliente.id}')">Editar</button>
-            <button class="btn btn-sm" data-click="removerCli('${cliente.id}')">Excluir</button>
+            <button class="btn btn-sm" data-action="clienteDetalhe" data-id="${esc(cliente.id)}">Detalhes</button>
+            <button class="btn btn-p btn-sm" data-action="clienteEditar" data-id="${esc(cliente.id)}">Editar</button>
+            <button class="btn btn-sm" data-action="clienteExcluir" data-id="${esc(cliente.id)}">Excluir</button>
           </div>
         </td>
       </tr>
@@ -353,7 +353,8 @@ export function createClientesLegacyList(deps) {
                   <button
                     class="btn btn-inline-card"
                     type="button"
-                    data-click="abrirCliDet('${cliente.id}')"
+                    data-action="clienteDetalhe"
+                    data-id="${esc(cliente.id)}"
                   >
                     <div class="av av-sm" style="background:${cor.bg};color:${cor.c}">
                       ${esc(ini(cliente.nome))}
