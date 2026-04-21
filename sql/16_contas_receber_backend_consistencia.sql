@@ -111,10 +111,57 @@ returns trigger
 language plpgsql
 as $$
 begin
+  if current_setting('app.cr_skip_sync', true) = '1' then
+    return coalesce(new, old);
+  end if;
+
   perform public.refresh_conta_receber_saldo(coalesce(new.conta_receber_id, old.conta_receber_id));
   return coalesce(new, old);
 end;
 $$;
+
+insert into public.contas_receber_baixas (
+  id,
+  filial_id,
+  conta_receber_id,
+  pedido_id,
+  pedido_num,
+  cliente_id,
+  cliente,
+  valor,
+  recebido_em,
+  observacao
+)
+select
+  'legacy-backfill-' || c.id,
+  c.filial_id,
+  c.id,
+  c.pedido_id,
+  c.pedido_num,
+  c.cliente_id,
+  c.cliente,
+  greatest(
+    coalesce(
+      nullif(c.valor_recebido, 0),
+      case when c.status = 'recebido' then c.valor else 0 end
+    ),
+    0
+  ),
+  coalesce(c.recebido_em, c.ultimo_recebimento_em, c.criado_em, now()),
+  'Backfill automatico da migracao 16 para preservar historico financeiro anterior.'
+from public.contas_receber c
+where greatest(
+    coalesce(
+      nullif(c.valor_recebido, 0),
+      case when c.status = 'recebido' then c.valor else 0 end
+    ),
+    0
+  ) > 0
+  and not exists (
+    select 1
+    from public.contas_receber_baixas b
+    where b.conta_receber_id = c.id
+  );
 
 drop trigger if exists trg_conta_receber_baixa_guard on public.contas_receber_baixas;
 create trigger trg_conta_receber_baixa_guard
@@ -238,9 +285,27 @@ as $$
 declare
   v_result public.contas_receber%rowtype;
 begin
+  select *
+    into v_result
+  from public.contas_receber
+  where id = p_conta_receber_id
+  limit 1
+  for update;
+
+  if not found then
+    raise exception using errcode = 'P0002', message = 'conta a receber nao encontrada';
+  end if;
+
+  if not public.can_access_filial(v_result.filial_id) then
+    raise exception using errcode = '42501', message = 'sem acesso a filial da conta';
+  end if;
+
+  perform set_config('app.cr_skip_sync', '1', true);
+
   delete from public.contas_receber_baixas
   where conta_receber_id = p_conta_receber_id;
 
+  perform set_config('app.cr_skip_sync', '0', true);
   perform public.refresh_conta_receber_saldo(p_conta_receber_id);
 
   select *
