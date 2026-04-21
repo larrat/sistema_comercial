@@ -75,6 +75,63 @@ function setHidden(el, hidden) {
   el.hidden = hidden;
 }
 
+/**
+ * @param {'login'|'primeira-filial'|'selecionar-filial'|'carregando'} state
+ */
+function renderSetupChecklist(state) {
+  const el = document.getElementById('setup-checklist');
+  if (!el) return;
+
+  const items = [
+    {
+      label: 'Acessar conta',
+      hint: 'Entre com seu e-mail e senha.',
+      state: state === 'login' ? 'current' : 'done'
+    },
+    {
+      label: 'Definir filial',
+      hint: 'Crie a primeira filial ou escolha uma existente.',
+      state:
+        state === 'primeira-filial'
+          ? 'current'
+          : state === 'selecionar-filial' || state === 'carregando'
+            ? 'done'
+            : 'next'
+    },
+    {
+      label: 'Entrar na operação',
+      hint: 'Ative a filial para carregar o ambiente.',
+      state: state === 'selecionar-filial' || state === 'carregando' ? 'current' : 'next'
+    },
+    {
+      label: 'Começar a base',
+      hint: 'Cadastre produtos, clientes e registre o primeiro pedido.',
+      state: 'next'
+    }
+  ];
+
+  el.innerHTML = `
+    <div class="checklist-card">
+      <div class="checklist-title">Primeiros passos</div>
+      <div class="checklist-list">
+        ${items
+          .map(
+            (item, index) => `
+          <div class="checklist-item checklist-item--${item.state}">
+            <div class="checklist-badge">${index + 1}</div>
+            <div>
+              <div class="checklist-label">${item.label}</div>
+              <div class="checklist-hint">${item.hint}</div>
+            </div>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
+    </div>
+  `;
+}
+
 /** @type {Required<AuthSetupModuleDeps>} */
 let deps = {
   pageAtual: () => 'dashboard',
@@ -310,6 +367,7 @@ export function renderAuthGate(session) {
     setHidden(setupActions, true);
     sub.textContent = 'Faça login para acessar sua operação.';
     helper.textContent = 'Entre com sua conta para escolher a filial ativa e começar a trabalhar.';
+    renderSetupChecklist('login');
     return false;
   }
 
@@ -369,6 +427,7 @@ export function renderSetupGrid() {
     sub.textContent = 'Crie sua primeira filial para começar.';
     helper.textContent =
       'Depois disso você poderá cadastrar produtos, clientes e registrar o primeiro pedido.';
+    renderSetupChecklist('primeira-filial');
     scheduleRoleUiGuards();
     return;
   }
@@ -377,6 +436,7 @@ export function renderSetupGrid() {
   setHidden(actions, false);
   sub.textContent = 'Escolha a filial para continuar.';
   helper.textContent = 'Você poderá trocar de filial depois, sem sair do sistema.';
+  renderSetupChecklist('selecionar-filial');
 
   grid.innerHTML = D.filiais
     .map(
@@ -419,6 +479,7 @@ export async function renderSetup() {
     setHidden(actions, true);
     sub.textContent = 'Carregando filiais...';
     helper.textContent = 'Buscando os contextos disponíveis para sua conta.';
+    renderSetupChecklist('carregando');
     grid.innerHTML = `
       <div class="sk-card metric-grid-fill">${deps.buildSkeletonLines(3)}</div>
       <div class="sk-card metric-grid-fill">${deps.buildSkeletonLines(3)}</div>

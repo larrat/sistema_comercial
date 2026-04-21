@@ -14,7 +14,8 @@ import {
   prV,
   toast,
   notify,
-  focusField
+  focusField,
+  setButtonLoading
 } from '../shared/utils.js';
 import { SEVERITY } from '../shared/messages.js';
 
@@ -643,6 +644,11 @@ export function calcProdPreview() {
 }
 
 export async function salvarProduto() {
+  setButtonLoading(
+    'prod-flow-save',
+    true,
+    State.editIds.prod ? 'Atualizar produto' : 'Salvar produto'
+  );
   const nome = prodDom.get('p-nome')?.value.trim() || '';
   const custo = parseFloat(prodDom.get('p-custo')?.value) || 0;
   const precoVarejo = parseFloat(prodDom.get('p-pvv')?.value) || 0;
@@ -658,6 +664,11 @@ export async function salvarProduto() {
     );
     if (!nome) focusField('p-nome', { markError: true });
     else focusField('p-custo', { markError: true });
+    setButtonLoading(
+      'prod-flow-save',
+      false,
+      State.editIds.prod ? 'Atualizar produto' : 'Salvar produto'
+    );
     return;
   }
 
@@ -689,6 +700,11 @@ export async function salvarProduto() {
   try {
     await SB.upsertProduto(p);
   } catch (e) {
+    setButtonLoading(
+      'prod-flow-save',
+      false,
+      State.editIds.prod ? 'Atualizar produto' : 'Salvar produto'
+    );
     notify(
       `Erro: falha ao salvar produto (${String(e?.message || 'erro desconhecido')}). Impacto: cadastro nao foi concluido. Acao: valide os campos e tente novamente.`,
       SEVERITY.ERROR
@@ -717,6 +733,11 @@ export async function salvarProduto() {
       ? `Produto atualizado: ${p.nome} - Varejo ${pv > 0 ? fmt(pv) : '-'} - Atacado ${pa > 0 ? fmt(pa) : '-'}`
       : `Produto salvo: ${p.nome} - Varejo ${pv > 0 ? fmt(pv) : '-'} - Atacado ${pa > 0 ? fmt(pa) : '-'}`,
     SEVERITY.SUCCESS
+  );
+  setButtonLoading(
+    'prod-flow-save',
+    false,
+    State.editIds.prod ? 'Atualizar produto' : 'Salvar produto'
   );
 }
 

@@ -44,6 +44,7 @@ const dashDom = createScreenDom('dashboard', [
   'dash-opp-camp',
   'dash-desc',
   'dash-met',
+  'dash-onboarding',
   'dash-alerts',
   'dash-chart',
   'dash-chart-empty',
@@ -102,6 +103,12 @@ function renderDashboardSkeleton() {
     'dashboard:skeleton-metrics'
   );
   dashDom.html(
+    'onboarding',
+    'dash-onboarding',
+    `<div class="sk-card">${buildSkeletonLines(3)}</div>`,
+    'dashboard:skeleton-onboarding'
+  );
+  dashDom.html(
     'alerts',
     'dash-alerts',
     `<div class="sk-card">${buildSkeletonLines(3)}</div>`,
@@ -155,6 +162,58 @@ function renderDashboardSkeleton() {
     `<div class="sk-card">${buildSkeletonLines(4)}</div>`,
     'dashboard:skeleton-games'
   );
+}
+
+function buildDashboardOnboardingChecklist({ produtos = [], clientes = [], pedidos = [] } = {}) {
+  const items = [
+    {
+      label: 'Cadastrar produtos',
+      done: produtos.length > 0,
+      action: "abrirModal('modal-produto')"
+    },
+    {
+      label: 'Cadastrar clientes',
+      done: clientes.length > 0,
+      action: "ir('clientes')"
+    },
+    {
+      label: 'Registrar primeiro pedido',
+      done: pedidos.length > 0,
+      action: "ir('pedidos')"
+    }
+  ];
+
+  const pending = items.filter((item) => !item.done);
+  if (!pending.length) return '';
+
+  return `
+    <div class="checklist-card checklist-card--dashboard">
+      <div class="checklist-title">Comece por aqui</div>
+      <div class="checklist-hint">
+        Use este checklist para tirar a filial do zero e chegar ao primeiro valor mais rápido.
+      </div>
+      <div class="checklist-list">
+        ${items
+          .map(
+            (item, index) => `
+          <div class="checklist-item checklist-item--${item.done ? 'done' : 'current'}">
+            <div class="checklist-badge">${index + 1}</div>
+            <div class="checklist-item-main">
+              <div class="checklist-label">${item.label}</div>
+              <div class="checklist-hint">${item.done ? 'Concluído nesta filial.' : 'Próxima ação recomendada.'}</div>
+            </div>
+            ${
+              item.done
+                ? '<span class="bdg bg">Feito</span>'
+                : `<button class="btn btn-sm" data-click="${item.action}">Abrir</button>`
+            }
+          </div>
+        `
+          )
+          .join('')}
+      </div>
+    </div>
+  `;
 }
 
 function getFilialCalendarioId() {
@@ -1130,6 +1189,16 @@ export function renderDash() {
       mg
     });
 
+    dashDom.html(
+      'onboarding',
+      'dash-onboarding',
+      buildDashboardOnboardingChecklist({
+        produtos: produtosFilial,
+        clientes: clientesFilial,
+        pedidos: pedidosFilial
+      }),
+      'dashboard:onboarding'
+    );
     dashDom.html('alerts', 'dash-alerts', contextHtml, 'dashboard:alerts');
 
     const chartEl = dashDom.get('dash-chart');

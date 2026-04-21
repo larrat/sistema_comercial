@@ -8,7 +8,8 @@ import {
   abrirModal,
   fecharModal,
   markFieldState,
-  focusField
+  focusField,
+  setButtonLoading
 } from '../shared/utils.js';
 import { esc } from '../shared/sanitize.js';
 
@@ -260,9 +261,26 @@ export function editarFilial(id) {
 }
 
 export async function salvarFilial() {
-  if (!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode salvar filial.')) return;
+  setButtonLoading(
+    'fil-save-btn',
+    true,
+    State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+  );
+  if (!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode salvar filial.')) {
+    setButtonLoading(
+      'fil-save-btn',
+      false,
+      State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+    );
+    return;
+  }
   const nome = document.getElementById('fil-nome')?.value.trim();
   if (!nome) {
+    setButtonLoading(
+      'fil-save-btn',
+      false,
+      State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+    );
     toast('Informe o nome.');
     return;
   }
@@ -279,6 +297,11 @@ export async function salvarFilial() {
   try {
     await SB.upsertFilial(f);
   } catch (e) {
+    setButtonLoading(
+      'fil-save-btn',
+      false,
+      State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+    );
     toast('Erro: ' + e.message);
     return;
   }
@@ -290,6 +313,11 @@ export async function salvarFilial() {
   renderDashFilSelSafe();
 
   toast(State.editIds.filial ? 'Filial atualizada!' : 'Filial criada!');
+  setButtonLoading(
+    'fil-save-btn',
+    false,
+    State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+  );
 }
 
 export async function removerFilial(id) {

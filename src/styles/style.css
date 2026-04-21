@@ -71,6 +71,74 @@ body {
   line-height: 1.5;
   margin-bottom: 24px;
 }
+.setup-checklist {
+  margin-top: 16px;
+}
+.checklist-card {
+  border: 1px solid var(--bd);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 249, 255, 0.98));
+  padding: 16px;
+  box-shadow: var(--sh-soft);
+}
+.checklist-card--dashboard {
+  margin-bottom: 12px;
+}
+.checklist-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tx3);
+}
+.checklist-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.checklist-item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+}
+.checklist-item-main {
+  min-width: 0;
+}
+.checklist-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--surf2);
+  color: var(--tx2);
+  border: 1px solid var(--bd);
+}
+.checklist-item--done .checklist-badge {
+  background: #dff7e9;
+  color: #1d7a46;
+  border-color: #8ed3a9;
+}
+.checklist-item--current .checklist-badge {
+  background: #e6efff;
+  color: #2453c3;
+  border-color: #9abaff;
+}
+.checklist-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tx);
+}
+.checklist-hint {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--tx3);
+  line-height: 1.45;
+}
 .fil-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -852,6 +920,33 @@ textarea.inp {
 }
 .empty p {
   font-size: 13px;
+}
+.modal-helper {
+  margin: 6px 0 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--tx3);
+}
+.form-advanced {
+  margin-top: 12px;
+  border: 1px dashed var(--bd);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.form-advanced > summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tx2);
+  list-style: none;
+}
+.form-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+.form-advanced[open] > summary {
+  margin-bottom: 10px;
+  color: var(--tx);
 }
 .dash-secondary-panels {
   margin-top: 16px;
