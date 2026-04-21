@@ -82,7 +82,13 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
 
   return (
     <details className="cr-baixas-details" open={open}>
-      <summary className="cr-baixas-summary" onClick={(e) => { e.preventDefault(); setOpen(!open); }}>
+      <summary
+        className="cr-baixas-summary"
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen(!open);
+        }}
+      >
         <span>{resumo}</span>
         <span className="table-cell-caption table-cell-muted">Expandir</span>
       </summary>
@@ -97,14 +103,9 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
               <div className="table-cell-caption table-cell-muted">
                 {formatDateTimeLabel(baixa.recebido_em)}
               </div>
-              {baixa.observacao && (
-                <div className="table-cell-caption">{baixa.observacao}</div>
-              )}
+              {baixa.observacao && <div className="table-cell-caption">{baixa.observacao}</div>}
               <div className="fg2">
-                <button
-                  className="btn btn-sm"
-                  onClick={() => onEstornar(contaId, baixa.id)}
-                >
+                <button className="btn btn-sm" onClick={() => onEstornar(contaId, baixa.id)}>
                   Estornar
                 </button>
               </div>
@@ -191,7 +192,11 @@ function ContaRowDesktop({
         <td className={`table-cell-strong ${aberto > 0 ? 'tone-warning' : 'tone-success'}`}>
           {fmt(aberto)}
         </td>
-        <td className={statusEfetivo === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'}>
+        <td
+          className={
+            statusEfetivo === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'
+          }
+        >
           {conta.vencimento}
         </td>
         <td>
@@ -289,11 +294,7 @@ function ContaCardMobile({
           onDesfazer={onDesfazer}
         />
       </div>
-      <BaixaHistorico
-        baixas={baixas}
-        contaId={conta.id}
-        onEstornar={onEstornar}
-      />
+      <BaixaHistorico baixas={baixas} contaId={conta.id} onEstornar={onEstornar} />
     </div>
   );
 }
@@ -418,7 +419,13 @@ function ContasList({
 // Metrics
 // ---------------------------------------------------------------------------
 
-function ContasReceberMetrics({ contas, baixas }: { contas: ContaReceber[]; baixas: ContaReceberBaixa[] }) {
+function ContasReceberMetrics({
+  contas,
+  baixas
+}: {
+  contas: ContaReceber[];
+  baixas: ContaReceberBaixa[];
+}) {
   const hj = hoje();
   const mesAtual = hj.slice(0, 7);
 
@@ -473,7 +480,13 @@ type BaixaParcialModalProps = {
   submitting: boolean;
 };
 
-function BaixaParcialModal({ conta, onConfirmar, onCancelar, error, submitting }: BaixaParcialModalProps) {
+function BaixaParcialModal({
+  conta,
+  onConfirmar,
+  onCancelar,
+  error,
+  submitting
+}: BaixaParcialModalProps) {
   const aberto = getValorEmAberto(conta);
   const [valor, setValor] = useState(String(aberto));
   const [data, setData] = useState(toDateTimeLocalValue());
@@ -492,29 +505,51 @@ function BaixaParcialModal({ conta, onConfirmar, onCancelar, error, submitting }
     onConfirmar(v, iso, observacao);
   }
 
+  function applySuggestedAmount(percent: number) {
+    const nextValue = percent >= 1 ? aberto : Number((aberto * percent).toFixed(2));
+    setValor(String(nextValue));
+  }
+
   return (
     <div className="modal-wrap" style={{ display: 'flex' }}>
       <div className="modal-bg" onClick={onCancelar} />
       <div className="modal">
         <div className="modal-head">
           <div className="modal-title" id="cr-parcial-titulo">
-            Baixa parcial - {conta.cliente}
+            Registrar baixa - {conta.cliente}
             {conta.pedido_num ? ` (#${conta.pedido_num})` : ''}
           </div>
         </div>
         <div className="modal-body">
-          <div className="panel-inline-metrics">
-            <span>
-              Total: <b>{fmt(conta.valor)}</b>
-            </span>
-            <span>
-              Recebido: <b>{fmt(getValorRecebido(conta))}</b>
-            </span>
-            <span>
-              Em aberto: <b>{fmt(aberto)}</b>
-            </span>
+          <div className="form-section-card form-gap-bottom-xs">
+            <div className="form-section-head">
+              <div>
+                <div className="form-section-title">Resumo da conta</div>
+                <p className="form-section-copy">
+                  Use o valor real recebido. O saldo restante continua aberto automaticamente.
+                </p>
+              </div>
+            </div>
+            <div className="form-summary-grid">
+              <div className="form-summary-item">
+                <span className="table-cell-caption table-cell-muted">Total</span>
+                <strong>{fmt(conta.valor)}</strong>
+              </div>
+              <div className="form-summary-item">
+                <span className="table-cell-caption table-cell-muted">Recebido</span>
+                <strong>{fmt(getValorRecebido(conta))}</strong>
+              </div>
+              <div className="form-summary-item">
+                <span className="table-cell-caption table-cell-muted">Em aberto</span>
+                <strong>{fmt(aberto)}</strong>
+              </div>
+            </div>
           </div>
-          {error && <div className="alert alert-danger" style={{ marginTop: '0.75rem' }}>{error}</div>}
+          {error && (
+            <div className="alert alert-danger" style={{ marginTop: '0.75rem' }}>
+              {error}
+            </div>
+          )}
           <div className="form-row">
             <label className="form-label">Valor recebido</label>
             <input
@@ -526,6 +561,25 @@ function BaixaParcialModal({ conta, onConfirmar, onCancelar, error, submitting }
               value={valor}
               onChange={(e) => setValor(e.target.value)}
             />
+            <div className="form-quick-actions">
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => applySuggestedAmount(0.25)}
+              >
+                25%
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => applySuggestedAmount(0.5)}
+              >
+                50%
+              </button>
+              <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(1)}>
+                Quitar saldo
+              </button>
+            </div>
           </div>
           <div className="form-row">
             <label className="form-label">Data / hora</label>
