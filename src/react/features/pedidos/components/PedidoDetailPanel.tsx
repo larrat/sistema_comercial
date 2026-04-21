@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { D } from '../../../../app/store.js';
-import { marcarRecebido, abrirBaixaParcial } from '../../../../features/contas-receber.js';
+import { registrarBaixaRpc } from '../../contas-receber/services/contasReceberApi';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
@@ -113,7 +115,13 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
   const { avancarStatus, cancelarPedido, reabrirPedido, gerarContaManual, inFlight } =
     usePedidoMutations();
   const filialId = useFilialStore((state) => state.filialId);
+  const session = useAuthStore((state) => state.session);
   const [contaMsg, setContaMsg] = useState<string | null>(null);
+  const [showBaixaForm, setShowBaixaForm] = useState(false);
+  const [baixaValor, setBaixaValor] = useState('');
+  const [baixaLoading, setBaixaLoading] = useState(false);
+  const [baixaError, setBaixaError] = useState<string | null>(null);
+  const baixaInputRef = useRef<HTMLInputElement>(null);
   const [contaState, setContaState] = useState<{
     conta: ContaReceber | null;
     baixas: ContaReceberBaixa[];
@@ -140,6 +148,57 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
       window.removeEventListener('sc:conta-receber-criada', sync);
     };
   }, [filialId, pedido.id]);
+
+  function buildCrCtx() {
+    const cfg = getSupabaseConfig();
+    return { url: cfg.url, key: cfg.key, token: session?.access_token ?? '', filialId: filialId ?? '' };
+  }
+
+  async function handleReceberTudo(contaId: string, valorEmAberto: number) {
+    setBaixaLoading(true);
+    setBaixaError(null);
+    try {
+      await registrarBaixaRpc(buildCrCtx(), {
+        baixaId: `ped-det-${Date.now()}`,
+        contaId,
+        valor: valorEmAberto,
+        recebidoEm: new Date().toISOString(),
+        observacao: null
+      });
+      window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
+    } catch (e) {
+      setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar recebimento');
+    } finally {
+      setBaixaLoading(false);
+    }
+  }
+
+  async function handleConfirmarBaixa(contaId: string) {
+    const valor = parseFloat(baixaValor.replace(',', '.'));
+    if (!valor || valor <= 0) {
+      setBaixaError('Informe um valor válido');
+      baixaInputRef.current?.focus();
+      return;
+    }
+    setBaixaLoading(true);
+    setBaixaError(null);
+    try {
+      await registrarBaixaRpc(buildCrCtx(), {
+        baixaId: `ped-det-${Date.now()}`,
+        contaId,
+        valor,
+        recebidoEm: new Date().toISOString(),
+        observacao: null
+      });
+      setShowBaixaForm(false);
+      setBaixaValor('');
+      window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
+    } catch (e) {
+      setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar baixa');
+    } finally {
+      setBaixaLoading(false);
+    }
+  }
 
   return (
     <div className="card card-shell" data-testid="pedido-detail-panel">
@@ -229,26 +288,77 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
                 </div>
               </div>
 
-              <div className="modal-actions" style={{ marginTop: '0.75rem' }}>
-                {valorEmAberto > 0 && (
-                  <>
-                    <button
-                      className="btn btn-sm"
-                      onClick={() => abrirBaixaParcial(conta.id)}
-                      data-testid="pedido-detail-baixa-parcial"
-                    >
-                      Baixa parcial
-                    </button>
-                    <button
-                      className="btn btn-sm btn-p"
-                      onClick={() => void marcarRecebido(conta.id)}
-                      data-testid="pedido-detail-receber-tudo"
-                    >
-                      Receber tudo
-                    </button>
-                  </>
-                )}
-              </div>
+              {valorEmAberto > 0 && (
+                <div style={{ marginTop: '0.75rem' }}>
+                  {showBaixaForm ? (
+                    <div className="panel" style={{ padding: '0.75rem' }}>
+                      <div className="fl" style={{ marginBottom: '0.35rem' }}>
+                        Valor da baixa
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <input
+                          ref={baixaInputRef}
+                          className="inp"
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          placeholder="0,00"
+                          value={baixaValor}
+                          onChange={(e) => setBaixaValor(e.target.value)}
+                          style={{ width: '120px' }}
+                        />
+                        <button
+                          className="btn btn-sm btn-p"
+                          disabled={baixaLoading}
+                          onClick={() => void handleConfirmarBaixa(conta.id)}
+                          data-testid="pedido-detail-confirmar-baixa"
+                        >
+                          {baixaLoading ? '...' : 'Confirmar'}
+                        </button>
+                        <button
+                          className="btn btn-sm"
+                          disabled={baixaLoading}
+                          onClick={() => {
+                            setShowBaixaForm(false);
+                            setBaixaValor('');
+                            setBaixaError(null);
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                      {baixaError && (
+                        <div className="bdg br" style={{ marginTop: '0.4rem', display: 'block' }}>
+                          {baixaError}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="modal-actions">
+                      <button
+                        className="btn btn-sm"
+                        disabled={baixaLoading}
+                        onClick={() => {
+                          setBaixaError(null);
+                          setShowBaixaForm(true);
+                          setTimeout(() => baixaInputRef.current?.focus(), 50);
+                        }}
+                        data-testid="pedido-detail-baixa-parcial"
+                      >
+                        Baixa parcial
+                      </button>
+                      <button
+                        className="btn btn-sm btn-p"
+                        disabled={baixaLoading}
+                        onClick={() => void handleReceberTudo(conta.id, valorEmAberto)}
+                        data-testid="pedido-detail-receber-tudo"
+                      >
+                        {baixaLoading ? '...' : 'Receber tudo'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div style={{ marginTop: '0.75rem' }}>
                 <div className="fl">Ultimas baixas</div>
