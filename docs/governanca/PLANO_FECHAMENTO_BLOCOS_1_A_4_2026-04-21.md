@@ -18,23 +18,23 @@ Meta: tornar o fluxo financeiro e os fluxos principais confiaveis em ambiente re
 
 ### 1. Financeiro real
 
-- [ ] validar `rpc_registrar_baixa`
-- [ ] validar `rpc_estornar_baixa`
-- [ ] validar `rpc_marcar_conta_pendente`
-- [ ] validar triggers de:
-  - [ ] excesso de baixa
-  - [ ] conta quitada
-  - [ ] recálculo de saldo
-  - [ ] recálculo de status
-  - [ ] recálculo de datas
+- [x] validar `rpc_registrar_baixa`
+- [x] validar `rpc_estornar_baixa`
+- [x] validar `rpc_marcar_conta_pendente`
+- [x] validar triggers de:
+  - [x] excesso de baixa
+  - [x] conta quitada
+  - [x] recalculo de saldo
+  - [x] recalculo de status
+  - [x] recalculo de datas
 - [ ] validar backfill de contas antigas
 
 ### 2. Smoke test financeiro
 
-- [ ] registrar baixa parcial
-- [ ] receber total
-- [ ] estornar baixa
-- [ ] reabrir conta
+- [x] registrar baixa parcial
+- [x] receber total
+- [x] estornar baixa
+- [x] reabrir conta
 - [ ] validar detalhe do pedido integrado ao recebimento
 
 ### 3. Entrada e onboarding
@@ -46,7 +46,7 @@ Meta: tornar o fluxo financeiro e os fluxos principais confiaveis em ambiente re
 
 ### Criterio de encerramento da sprint 1
 
-- [ ] financeiro passa confianca em ambiente real
+- [x] financeiro passa confianca em ambiente real
 - [ ] entrada nao gera ambiguidade
 - [ ] nao ha quebra visivel no fluxo principal de pedidos/recebimento
 
@@ -71,7 +71,7 @@ Meta: reduzir carga cognitiva que ainda impede considerar blocos 1 a 3 como real
 
 ### 2. Nomenclatura
 
-- [ ] revisar rotulos ambíguos
+- [ ] revisar rotulos ambiguos
 - [ ] remover termos internos/tecnicos expostos
 - [ ] padronizar nome de modulos, acoes e secoes
 - [ ] revisar siglas como `RCA`
@@ -167,8 +167,8 @@ Meta: encerrar residual de maturidade visual, performance percebida e acessibili
 
 Os blocos 1 a 4 so devem ser considerados encerrados quando estas 5 condicoes estiverem verdadeiras:
 
-- [ ] financeiro validado em ambiente real
+- [x] financeiro validado em ambiente real
 - [ ] menu e arquitetura reorganizados
 - [ ] feedback e estados vazios resolvidos nos fluxos principais
-- [ ] smoke tests dos fluxos criticos concluídos
+- [ ] smoke tests dos fluxos criticos concluidos
 - [ ] responsividade principal revisada

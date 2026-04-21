@@ -21,7 +21,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 0 - Base Tecnica e Seguranca de Dado
 
-> **Estado em 2026-04-21:** RPCs implementadas no codigo (commit fb172e8). SQL 16 aplicado em producao. Modulo `receber` ja opera em React-only, com shell legado removido. Pendente: validacao operacional no ambiente real.
+> **Estado em 2026-04-21:** RPCs implementadas no codigo (commit fb172e8). SQL 16 aplicado em producao. Modulo `receber` ja opera em React-only, com shell legado removido. Em 2026-04-21 foi validado em ambiente real um ciclo isolado de baixa parcial, quitacao, bloqueio por excesso, bloqueio em conta quitada, estorno e reabertura via RPC, com limpeza dos registros temporarios ao final. Pendente: backfill historico e validacao do fluxo React pela interface.
 
 ### 0.1 Migracao de contas a receber
 
@@ -29,24 +29,24 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 - [x] confirmar decisao de negocio: `vencido` deixa de ser status persistido e passa a ser classificacao visual
 - [x] aplicar a migration em ambiente controlado
 - [x] remover shell legado de contas a receber e deixar React como caminho padrao
-- [ ] validar RPCs:
-  - [ ] `rpc_registrar_baixa`
-  - [ ] `rpc_estornar_baixa`
-  - [ ] `rpc_marcar_conta_pendente`
-- [ ] validar triggers:
-  - [ ] bloqueio de baixa acima do valor da conta
-  - [ ] bloqueio de baixa em conta quitada
-  - [ ] recálculo correto de `valor_recebido`
-  - [ ] recálculo correto de `valor_em_aberto`
-  - [ ] recálculo correto de `status`
-  - [ ] recálculo correto de `recebido_em`
-  - [ ] recálculo correto de `ultimo_recebimento_em`
+- [x] validar RPCs:
+  - [x] `rpc_registrar_baixa`
+  - [x] `rpc_estornar_baixa`
+  - [x] `rpc_marcar_conta_pendente`
+- [x] validar triggers:
+  - [x] bloqueio de baixa acima do valor da conta
+  - [x] bloqueio de baixa em conta quitada
+  - [x] recalculo correto de `valor_recebido`
+  - [x] recalculo correto de `valor_em_aberto`
+  - [x] recalculo correto de `status`
+  - [x] recalculo correto de `recebido_em`
+  - [x] recalculo correto de `ultimo_recebimento_em`
 - [ ] validar backfill de contas antigas sem historico de baixas
-- [ ] executar smoke test manual de contas a receber:
-  - [ ] registrar baixa parcial
-  - [ ] receber total
-  - [ ] estornar baixa
-  - [ ] reabrir conta
+- [x] executar smoke test manual de contas a receber:
+  - [x] registrar baixa parcial
+  - [x] receber total
+  - [x] estornar baixa
+  - [x] reabrir conta
 
 ### 0.2 Front acoplado ao backend oficial
 
