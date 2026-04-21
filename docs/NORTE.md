@@ -15,7 +15,7 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 | Pedidos | React-only — legado é stub vazio | Nenhuma |
 | Clientes | React-only — fallbacks removidos (2026-04-18) | Remover `#cli-legacy-shell` do HTML + deletar `clientes.js` |
 | Dashboard | React ativo por padrão — shell legado presente | Remover `#dash-legacy-content` do HTML + deletar `dashboard.js` |
-| Contas Receber | RPCs prontas — SQL 16 aguardando apply | Aplicar SQL → flip flag → remover `#cr-legacy-shell` |
+| Contas Receber | SQL 16 aplicado — RPCs ativas | Validar no ambiente → flip flag → remover `#cr-legacy-shell` |
 | Estoque | Legado puro — sem React equivalente | Fase 2 da migração |
 | Produtos | Legado puro — sem React equivalente | Fase 2 da migração |
 | Cotação | Legado puro — sem React equivalente | Fase 2 da migração |
@@ -40,7 +40,7 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 
 ### Imediato (Bloco 1 do sprint)
 
-1. Aplicar `sql/16_contas_receber_backend_consistencia.sql` em produção
+1. ~~Aplicar `sql/16_contas_receber_backend_consistencia.sql` em produção~~ — feito 2026-04-21
 2. Validar RPCs no ambiente real: `rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`
 3. Flipar `receber.defaultValue: false → true` em `src/legacy/bridges/feature-flags.js`
 4. Remover `#cr-legacy-shell` do `index.html` + deletar `src/features/contas-receber.js`

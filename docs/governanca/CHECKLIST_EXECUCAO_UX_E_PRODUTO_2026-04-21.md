@@ -27,7 +27,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 - [x] revisar o arquivo [sql/16_contas_receber_backend_consistencia.sql](/e:/Programas/sistema_comercial/sql/16_contas_receber_backend_consistencia.sql:1) pela ultima vez antes do apply
 - [x] confirmar decisao de negocio: `vencido` deixa de ser status persistido e passa a ser classificacao visual
-- [ ] aplicar a migration em ambiente controlado
+- [x] aplicar a migration em ambiente controlado
 - [ ] validar RPCs:
   - [ ] `rpc_registrar_baixa`
   - [ ] `rpc_estornar_baixa`

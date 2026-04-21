@@ -5,7 +5,7 @@
 | Item | Situacao |
 |------|---------|
 | RPCs de contas a receber implementadas no codigo | Feito (commit fb172e8) |
-| SQL 16 preparado (`contas_receber_backend_consistencia`) | Preparado — pendente apply em producao |
+| SQL 16 preparado (`contas_receber_backend_consistencia`) | **Aplicado em producao (2026-04-21)** |
 | Validacao das RPCs no ambiente real | Pendente |
 | Dashboard React ativo por padrao | Feito (commit 3705559) |
 | Clientes react-only, legado removido | Feito (commits 2026-04-17/18) |

@@ -46,7 +46,7 @@
 - [x] Revisar SQL `16_contas_receber_backend_consistencia.sql`
 - [x] Confirmar decisão de negócio sobre `status vencido`
 - [x] Implementar RPCs no código (`rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`)
-- [ ] Aplicar SQL 16 em produção
+- [x] Aplicar SQL 16 em produção
 - [ ] Rodar smoke test manual: pendentes → baixa parcial → desfazer → estornar → receber tudo
 - [ ] Mudar `receber.defaultValue: false → true` em `src/legacy/bridges/feature-flags.js`
 - [ ] Observar 1–2 dias em produção com flag ativa
