@@ -58,25 +58,23 @@
 **Status atual:** shell legado removido, flag React ativada por padrão e detalhe de pedido já apontando para o fluxo RPC/React. Resta apenas a validação operacional em ambiente real.
 
 ### 1B — Remover shell Clientes
-> JS já é react-only (commits 2026-04-18) — restam só o stub `clientes.js` e o shell HTML.
+> Concluído em 2026-04-21 (commit e5d2063)
 
 - [x] Listagem migrada para React (react-first → react-only)
 - [x] Todos os fallbacks e bridges do legado removidos do JS
-- [ ] Confirmar que `#cli-legacy-shell` no HTML nunca é renderizado
-- [ ] Remover do `index.html`: bloco `#cli-legacy-shell`
-- [ ] Deletar `src/features/clientes.js` (stub de 3.7 KB) + submodules legados
-- [ ] Remover imports de clientes de `main.js`
+- [x] Remover do `index.html`: bloco `#cli-legacy-shell`
+- [x] Deletar `src/features/clientes.js` (stub de 3.7 KB)
+- [x] Remover imports de clientes de `main.js`
 
 ### 1C — Remover shell Dashboard
-> React já é default (commit 2026-04-17) — restam o shell HTML e o `dashboard.js` (57 KB).
+> Concluído em 2026-04-21 (commit e5d2063)
 
 - [x] Dashboard React ativado por padrão (defaultValue: true)
-- [ ] Confirmar que `#dash-legacy-content` nunca é renderizado
-- [ ] Remover do `index.html`: blocos `#dash-legacy-content` e `#dash-legacy-controls`
-- [ ] Deletar `src/features/dashboard.js`
-- [ ] Remover imports de dashboard de `main.js`
+- [x] Remover do `index.html`: blocos `#dash-legacy-content` e `#dash-legacy-controls`
+- [x] Deletar `src/features/dashboard.js`
+- [x] Remover imports de dashboard de `main.js`
 
-**Resultado parcial da Fase 1:** `Contas Receber` já saiu do modo híbrido e virou React-only. Restam `Clientes` e `Dashboard` para fechar a fase.
+**Fase 1 concluída em 2026-04-21.** Contas Receber, Clientes e Dashboard são React-only. Nenhum shell legado restante no HTML.
 
 ---
 
