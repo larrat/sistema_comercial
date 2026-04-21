@@ -1231,7 +1231,7 @@ export function renderDash() {
         `
             )
             .join('')
-        : `<div class="empty dash-empty-compact"><p>Sem vendas</p></div>`,
+        : `<div class="empty dash-empty-compact"><p>Sem vendas ainda. Crie um pedido para come?ar a alimentar este painel.</p></div>`,
       'dashboard:top-produtos'
     );
 
@@ -1251,7 +1251,7 @@ export function renderDash() {
           `;
             })
             .join('')
-        : `<div class="empty dash-empty-compact"><p>Sem alertas</p></div>`,
+        : `<div class="empty dash-empty-compact"><p>Sem alertas no momento. Estoque e opera??o est?o sem pend?ncias cr?ticas.</p></div>`,
       'dashboard:estoque-alerta'
     );
 
@@ -1274,7 +1274,7 @@ export function renderDash() {
         `
             )
             .join('')
-        : `<div class="empty dash-empty-compact"><p>Nenhuma importação</p></div>`,
+        : `<div class="empty dash-empty-compact"><p>Nenhuma importa??o recente. Use compras e cota??o para registrar novos fornecedores ou pre?os.</p></div>`,
       'dashboard:fornecedores'
     );
 
@@ -1315,7 +1315,7 @@ export function renderDash() {
           </table>
         </div>
       `
-        : `<div class="empty dash-empty-compact"><p>Sem vendas no período</p></div>`,
+        : `<div class="empty dash-empty-compact"><p>Sem vendas no per?odo. Revise pedidos em aberto ou ajuste o per?odo acima.</p></div>`,
       'dashboard:margem'
     );
 
@@ -1353,7 +1353,7 @@ export function renderDash() {
         `
               )
               .join('')
-          : `<div class="empty dash-empty-compact"><p>Sem oportunidades por jogos na semana</p></div>`
+          : `<div class="empty dash-empty-compact"><p>Sem oportunidades por jogos nesta semana. Aproveite para revisar campanhas e pedidos pendentes.</p></div>`
       }
     `,
       'dashboard:oportunidades'
@@ -1618,7 +1618,7 @@ export function renderDashJogos(fsel = 'todas') {
     dashDom.html(
       'games',
       'dash-jogos',
-      `<div class="empty dash-empty-compact"><p>Sem filial para agenda.</p></div>`,
+      `<div class="empty dash-empty-compact"><p>Sem filial dispon?vel para a agenda. Selecione uma unidade ativa para acompanhar os jogos.</p></div>`,
       'dashboard:jogos-sem-filial'
     );
     return;
@@ -1629,7 +1629,7 @@ export function renderDashJogos(fsel = 'todas') {
     dashDom.html(
       'games',
       'dash-jogos',
-      `<div class="empty dash-empty-compact"><p>Agenda disponivel em ${nome}.</p></div>`,
+      `<div class="empty dash-empty-compact"><p>A agenda est? vinculada a ${nome}. Troque para essa filial para acompanhar os jogos.</p></div>`,
       'dashboard:jogos-outra-filial'
     );
     return;
@@ -1656,7 +1656,7 @@ export function renderDashJogos(fsel = 'todas') {
     dashDom.html(
       'games',
       'dash-jogos',
-      `<div class="empty dash-empty-compact"><p>Sem jogos cadastrados.</p></div>`,
+      `<div class="empty dash-empty-compact"><p>Sem jogos cadastrados. Adicione um jogo ou sincronize a agenda para gerar oportunidades.</p></div>`,
       'dashboard:jogos-vazio'
     );
     return;

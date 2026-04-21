@@ -27,8 +27,12 @@
     <!-- ══ SETUP SCREEN ══ -->
     <div id="screen-setup" class="screen">
       <div class="setup-card">
+        <div class="setup-kicker">Acesso</div>
         <div class="setup-logo">Sistema Comercial</div>
-        <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
+        <div class="setup-sub" id="setup-sub">Faça login para acessar sua operação.</div>
+        <div class="setup-helper" id="setup-helper">
+          Entre com sua conta para escolher a filial ativa e começar a trabalhar.
+        </div>
 
         <!-- Login -->
         <div id="setup-auth" hidden>
@@ -49,7 +53,7 @@
             id="auth-login-btn"
             data-action="authEntrar"
           >
-            Entrar com conta
+            Entrar
           </button>
         </div>
 
@@ -81,7 +85,7 @@
             </div>
           </div>
           <button class="btn btn-p btn-block-center mt-4" data-click="criarPrimeiraFilial()">
-            Criar filial e entrar >
+            Criar primeira filial
           </button>
         </div>
 
@@ -91,9 +95,9 @@
             class="btn btn-gh btn-sm"
             data-click="abrirModal('modal-filial');limparFormFilial()"
           >
-            + Nova filial
+            Nova filial
           </button>
-          <button class="btn btn-p" data-click="entrar()">Entrar ></button>
+          <button class="btn btn-p" data-click="entrar()">Continuar</button>
         </div>
       </div>
     </div>
@@ -126,8 +130,8 @@
           </div>
         </div>
         <nav class="sb-nav">
-          <section class="sb-group" data-group="Principal">
-            <div class="nl">Principal</div>
+          <section class="sb-group" data-group="Inicio">
+            <div class="nl">Início</div>
             <button
               class="ni on"
               data-p="dashboard"
@@ -152,7 +156,7 @@
             <button
               class="ni"
               data-p="gerencial"
-              data-label="Gerencial"
+              data-label="Análises"
               data-click="ir('gerencial')"
             >
               <span class="ico"
@@ -167,7 +171,7 @@
                   <rect x="2" y="11" width="4" height="7" rx="1" />
                   <rect x="8" y="7" width="4" height="11" rx="1" />
                   <rect x="14" y="3" width="4" height="15" rx="1" /></svg></span
-              >Gerencial
+              >Análises
             </button>
             <button
               class="ni"
@@ -192,7 +196,7 @@
               >Relatórios
             </button>
           </section>
-          <section class="sb-group" data-group="Operação">
+          <section class="sb-group" data-group="Operacao">
             <div class="nl">Operação</div>
             <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')">
               <span class="ico"
@@ -244,7 +248,12 @@
                   <line x1="7" y1="15" x2="10" y2="15" /></svg></span
               >Pedidos
             </button>
-            <button class="ni" data-p="receber" data-label="A Receber" data-click="ir('receber')">
+            <button
+              class="ni"
+              data-p="receber"
+              data-label="Contas a receber"
+              data-click="ir('receber')"
+            >
               <span class="ico"
                 ><svg
                   viewBox="0 0 20 20"
@@ -258,9 +267,14 @@
                   <line x1="2" y1="9" x2="18" y2="9" />
                   <line x1="5" y1="13.5" x2="7" y2="13.5" />
                   <line x1="10" y1="13.5" x2="14" y2="13.5" /></svg></span
-              >A Receber
+              >Contas a receber
             </button>
-            <button class="ni" data-p="cotacao" data-label="Cotação" data-click="ir('cotacao')">
+            <button
+              class="ni"
+              data-p="cotacao"
+              data-label="Compras e cotação"
+              data-click="ir('cotacao')"
+            >
               <span class="ico"
                 ><svg
                   viewBox="0 0 20 20"
@@ -272,7 +286,7 @@
                 >
                   <path d="M3 3h6l8 8a2 2 0 0 1 0 2.8l-3.2 3.2a2 2 0 0 1-2.8 0L3 9V3z" />
                   <circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none" /></svg></span
-              >Cotação
+              >Compras e cotação
             </button>
             <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')">
               <span class="ico"
@@ -328,8 +342,8 @@
               >Alertas <span class="nb is-hidden" id="noti-badge">!</span>
             </button>
           </section>
-          <section class="sb-group" data-group="Sistema">
-            <div class="nl">Sistema</div>
+          <section class="sb-group" data-group="Administracao">
+            <div class="nl">Administração</div>
             <button class="ni" data-p="filiais" data-label="Filiais" data-click="ir('filiais')">
               <span class="ico"
                 ><svg
@@ -362,8 +376,10 @@
             </button>
           </section>
           <div class="sb-empty is-hidden" id="sb-empty">
-            <div class="sb-empty-title">Nenhuma tela encontrada</div>
-            <div class="sb-empty-sub">Tente buscar por nome.</div>
+            <div class="sb-empty-title">Nenhuma tela combina com a busca</div>
+            <div class="sb-empty-sub">
+              Tente buscar por pedidos, clientes, estoque ou financeiro.
+            </div>
           </div>
         </nav>
         <div class="sb-foot">
@@ -387,14 +403,16 @@
       <main class="main" id="main">
         <div class="app-topbar">
           <div>
-            <div class="app-topbar-kicker" id="app-kicker">Workspace</div>
-            <div class="app-topbar-title" id="app-title">Dashboard</div>
-            <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
+            <div class="app-topbar-kicker" id="app-kicker">Início</div>
+            <div class="app-topbar-title" id="app-title">Painel do dia</div>
+            <div class="app-topbar-sub" id="app-sub">
+              Prioridades, riscos e próximos passos da operação
+            </div>
           </div>
           <div class="app-topbar-actions">
-            <button class="btn btn-sm" id="app-act-secondary" type="button">Ação 2</button>
-            <button class="btn btn-sm" id="app-act-tertiary" type="button">Ação 3</button>
-            <button class="btn btn-p" id="app-act-primary" type="button">Ação principal</button>
+            <button class="btn btn-sm" id="app-act-secondary" type="button">Novo cliente</button>
+            <button class="btn btn-sm" id="app-act-tertiary" type="button">Novo produto</button>
+            <button class="btn btn-p" id="app-act-primary" type="button">Novo pedido</button>
           </div>
         </div>
 
@@ -421,7 +439,7 @@
                 hidden
                 onclick="window.__SC_TOGGLE_DASH_REACT?.()"
               >
-                Piloto React
+                Nova interface
               </button>
               <button
                 class="btn btn-sm"
@@ -434,11 +452,9 @@
           </div>
 
           <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
-            <button class="btn btn-sm" type="button" data-click="ir('gerencial')">Gerencial</button>
-            <button class="btn btn-sm" type="button" data-click="ir('campanhas')">Campanhas</button>
-            <button class="btn btn-sm" type="button" data-click="ir('notificacoes')">
-              Alertas
-            </button>
+            <button class="btn btn-sm" type="button" data-click="ir('clientes')">Clientes</button>
+            <button class="btn btn-sm" type="button" data-click="ir('receber')">Financeiro</button>
+            <button class="btn btn-sm" type="button" data-click="ir('estoque')">Estoque</button>
             <button class="btn btn-p btn-sm" type="button" data-click="abrirNovoPedidoReact()">
               Novo pedido
             </button>
@@ -500,7 +516,10 @@
                 <div class="ct">Faturamento e lucro</div>
                 <div class="barchart" id="dash-chart"></div>
                 <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden">
-                  <p>Sem pedidos entregues no periodo</p>
+                  <p>
+                    Sem pedidos entregues neste período. Registre um novo pedido ou revise os que
+                    ainda estão em aberto.
+                  </p>
                 </div>
                 <div class="dash-chart-legend">
                   <span
@@ -518,23 +537,24 @@
               </div>
             </div>
 
-            <!-- Top produtos e fornecedores -->
-            <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
-              <div class="card card-shell dash-card dash-card--top">
-                <div class="ct">Top produtos</div>
-                <div id="dash-tp"></div>
+            <details class="dash-secondary-panels">
+              <summary>Análises complementares</summary>
+              <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
+                <div class="card card-shell dash-card dash-card--top">
+                  <div class="ct">Top produtos</div>
+                  <div id="dash-tp"></div>
+                </div>
+                <div class="card card-shell dash-card dash-card--forn">
+                  <div class="ct">Fornecedores</div>
+                  <div id="dash-forn"></div>
+                </div>
               </div>
-              <div class="card card-shell dash-card dash-card--forn">
-                <div class="ct">Fornecedores</div>
-                <div id="dash-forn"></div>
-              </div>
-            </div>
 
-            <!-- Margem por produto -->
-            <div class="card card-shell dash-card" data-dash-slot="margem">
-              <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
-              <div id="dash-margem"></div>
-            </div>
+              <div class="card card-shell dash-card" data-dash-slot="margem">
+                <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
+                <div id="dash-margem"></div>
+              </div>
+            </details>
           </div>
           <!-- /dash-legacy-content -->
         </div>
@@ -686,28 +706,11 @@
           </div>
           <div class="tc on" id="cli-tc-lista">
             <div class="toolbar toolbar-shell">
-              <div class="toolbar-main" id="cli-legacy-controls">
-                <input
-                  class="inp input-w-sm"
-                  id="cli-busca"
-                  placeholder="Buscar..."
-                  data-input="renderClientes()"
-                />
-                <select class="inp sel select-w-sm" id="cli-fil-seg" data-change="renderClientes()">
-                  <option value="">Todos os segmentos</option>
-                </select>
-                <select class="inp sel select-w-xs" id="cli-fil-st" data-change="renderClientes()">
-                  <option value="">Todos os status</option>
-                  <option>ativo</option>
-                  <option>prospecto</option>
-                  <option>inativo</option>
-                </select>
-              </div>
-              <div class="toolbar-main cli-react-modebar" id="cli-react-modebar" hidden>
+              <div class="toolbar-main cli-react-modebar" id="cli-react-modebar">
                 <div class="cli-react-modebar__copy">
-                  <div class="cli-react-modebar__kicker">Piloto React ativo</div>
+                  <div class="cli-react-modebar__kicker">Nova experiência ativa</div>
                   <div class="cli-react-modebar__title" id="cli-react-modebar-title">
-                    Lista React em substituição controlada
+                    Lista de clientes com navegação mais rápida
                   </div>
                 </div>
                 <div class="cli-react-modebar__chips" id="cli-react-indicators">
@@ -807,7 +810,7 @@
                   data-click="toggleClientesReactBridge()"
                   hidden
                 >
-                  Piloto React
+                  Nova interface
                 </button>
               </div>
             </div>
@@ -817,9 +820,9 @@
             <div class="card card-shell" id="cli-react-shell" hidden>
               <div class="cli-react-shell__head">
                 <div>
-                  <div class="cli-react-shell__kicker">Clientes React</div>
+                  <div class="cli-react-shell__kicker">Clientes</div>
                   <div class="cli-react-shell__title" id="cli-react-shell-title">
-                    Lista em migração controlada
+                    Lista com filtros e atalhos aprimorados
                   </div>
                 </div>
                 <div class="cli-react-shell__chips">

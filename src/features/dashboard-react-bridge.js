@@ -78,7 +78,7 @@ function updateToggle() {
     return;
   }
   toggle.hidden = false;
-  toggle.textContent = getMode() === UI_MODES.REACT ? 'Voltar legado' : 'Piloto React';
+  toggle.textContent = getMode() === UI_MODES.REACT ? 'Visual clássico' : 'Nova interface';
 }
 
 async function applyMode() {

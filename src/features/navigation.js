@@ -204,9 +204,9 @@ function schedulePageRender(page) {
 /** @type {Record<string, NavigationPageMeta>} */
 const PAGE_META = {
   dashboard: {
-    kicker: 'Resumo',
-    title: 'Dashboard',
-    sub: 'Visão geral da filial',
+    kicker: 'Início',
+    title: 'Painel do dia',
+    sub: 'Prioridades, riscos e pr?ximos passos da opera??o',
     primary: {
       label: 'Novo pedido',
       run: () => {
@@ -235,17 +235,17 @@ const PAGE_META = {
     }
   },
   gerencial: {
-    kicker: 'Indicadores',
-    title: 'Gerencial',
-    sub: 'Metas e desempenho',
+    kicker: 'Análises',
+    title: 'Análises',
+    sub: 'Metas, sinais e desempenho da opera??o',
     primary: { label: 'Atualizar KPIs', run: () => deps.renderMetasNegocio() },
     secondary: { label: 'Auditoria visual', run: () => deps.executarAuditoriaVisual() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   relatorios: {
-    kicker: 'Analitico',
-    title: 'Relatórios',
-    sub: 'Oportunidades por jogos e conversão comercial',
+    kicker: 'Relat?rios',
+    title: 'Relat?rios',
+    sub: 'Leituras detalhadas do desempenho comercial',
     primary: { label: 'Atualizar relatório', run: () => deps.renderRelatorios() },
     secondary: { label: 'Ir dashboard', run: () => ir('dashboard') },
     tertiary: { label: 'Ir pedidos', run: () => ir('pedidos') }
@@ -253,7 +253,7 @@ const PAGE_META = {
   produtos: {
     kicker: 'Cadastros',
     title: 'Produtos',
-    sub: 'Catalogo e precos',
+    sub: 'Catálogo, preços e cadastro',
     primary: {
       label: 'Novo produto',
       run: () => {
@@ -271,7 +271,7 @@ const PAGE_META = {
   clientes: {
     kicker: 'Cadastros',
     title: 'Clientes',
-    sub: 'Relacionamento e segmentos',
+    sub: 'Base, relacionamento e histórico',
     primary: {
       label: 'Novo cliente',
       run: () => {
@@ -294,7 +294,7 @@ const PAGE_META = {
   pedidos: {
     kicker: 'Vendas',
     title: 'Pedidos',
-    sub: 'Orcamentos e vendas',
+    sub: 'Orçamentos, vendas e acompanhamento',
     primary: {
       label: 'Novo pedido',
       run: () => {
@@ -311,7 +311,7 @@ const PAGE_META = {
   },
   receber: {
     kicker: 'Financeiro',
-    title: 'A Receber',
+    title: 'Contas a receber',
     sub: 'Contas a receber e recebimentos',
     primary: { label: 'Ir pedidos', run: () => ir('pedidos') },
     secondary: null,
@@ -319,8 +319,8 @@ const PAGE_META = {
   },
   cotacao: {
     kicker: 'Compras',
-    title: 'Cotação',
-    sub: 'Fornecedores e precos',
+    title: 'Compras e cota??o',
+    sub: 'Fornecedores, pre?os e negocia??es',
     primary: { label: 'Novo fornecedor', run: () => deps.abrirModal('modal-forn') },
     secondary: {
       label: 'Exportar CSV',
@@ -330,9 +330,9 @@ const PAGE_META = {
     tertiary: { label: 'Travar/Destravar', run: () => deps.cotLock() }
   },
   estoque: {
-    kicker: 'Operação',
+    kicker: 'Opera??o',
     title: 'Estoque',
-    sub: 'Saldo e movimentações',
+    sub: 'Saldo, alertas e movimenta??es',
     primary: {
       label: 'Nova movimentação',
       run: () => {
@@ -350,7 +350,7 @@ const PAGE_META = {
   campanhas: {
     kicker: 'Marketing',
     title: 'Campanhas',
-    sub: 'Acoes e envios',
+    sub: 'Ações, públicos e envios',
     primary: {
       label: 'Nova campanha',
       run: () => deps.abrirNovaCampanhaTracked(),
@@ -364,9 +364,9 @@ const PAGE_META = {
     }
   },
   filiais: {
-    kicker: 'Sistema',
+    kicker: 'Administração',
     title: 'Filiais',
-    sub: 'Unidades e contexto',
+    sub: 'Unidades, contexto e operação ativa',
     primary: {
       label: 'Nova filial',
       run: () => {
@@ -379,9 +379,9 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   acessos: {
-    kicker: 'Sistema',
+    kicker: 'Administração',
     title: 'Acessos',
-    sub: 'Perfis e permissões',
+    sub: 'Perfis, usu?rios e permiss?es',
     primary: {
       label: 'Atualizar',
       run: () => deps.renderAcessosAdmin(),
@@ -551,9 +551,9 @@ export function syncSidebarContext(meta) {
   const kicker = document.getElementById('sb-context-kicker');
   const title = document.getElementById('sb-context-title');
   const sub = document.getElementById('sb-context-sub');
-  if (kicker) kicker.textContent = meta?.kicker || 'Resumo';
-  if (title) title.textContent = meta?.title || 'Dashboard';
-  if (sub) sub.textContent = meta?.sub || 'Visão geral';
+  if (kicker) kicker.textContent = meta?.kicker || 'In?cio';
+  if (title) title.textContent = meta?.title || 'Painel do dia';
+  if (sub) sub.textContent = meta?.sub || 'Prioridades da opera??o';
 }
 
 export function filterSidebarNav(raw = '') {

@@ -209,10 +209,10 @@ function updateBridgeIndicators() {
   if (modebarTitle) {
     const baseTitle =
       currentBridgeState.view === 'form'
-        ? 'Formulario React no fluxo principal'
+        ? 'Cadastro de cliente em edição rápida'
         : currentBridgeState.view === 'detail'
-          ? 'Detalhe React aberto no piloto'
-          : 'Lista React em substituicao controlada';
+          ? 'Cliente em foco'
+          : 'Lista de clientes com navegação mais rápida';
     modebarTitle.textContent = currentBridgeState.selectedName
       ? `${baseTitle} - ${currentBridgeState.selectedName}`
       : baseTitle;
@@ -222,10 +222,10 @@ function updateBridgeIndicators() {
   if (shellTitle) {
     const baseTitle =
       currentBridgeState.view === 'form'
-        ? 'Edicao e cadastro rodando no piloto'
+        ? 'Cadastro e edição de cliente'
         : currentBridgeState.view === 'detail'
           ? 'Detalhe do cliente em foco'
-          : 'Lista em migracao controlada';
+          : 'Lista com filtros e atalhos aprimorados';
     shellTitle.textContent = currentBridgeState.selectedName
       ? `${baseTitle} - ${currentBridgeState.selectedName}`
       : baseTitle;

@@ -298,8 +298,9 @@ export function renderAuthGate(session) {
   const setupForm = document.getElementById('setup-form');
   const setupActions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
+  const helper = document.getElementById('setup-helper');
 
-  if (!authBox || !filGrid || !setupForm || !setupActions || !sub) return false;
+  if (!authBox || !filGrid || !setupForm || !setupActions || !sub || !helper) return false;
 
   if (!session?.access_token) {
     document.body.dataset.authGate = 'login';
@@ -307,7 +308,8 @@ export function renderAuthGate(session) {
     filGrid.innerHTML = '';
     setHidden(setupForm, true);
     setHidden(setupActions, true);
-    sub.textContent = 'Faca login para acessar suas filiais';
+    sub.textContent = 'Faça login para acessar sua operação.';
+    helper.textContent = 'Entre com sua conta para escolher a filial ativa e começar a trabalhar.';
     return false;
   }
 
@@ -356,21 +358,25 @@ export function renderSetupGrid() {
   const form = document.getElementById('setup-form');
   const actions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
+  const helper = document.getElementById('setup-helper');
 
-  if (!grid || !form || !actions || !sub) return;
+  if (!grid || !form || !actions || !sub || !helper) return;
 
   if (!D.filiais.length) {
     grid.innerHTML = '';
     setHidden(form, false);
     setHidden(actions, true);
-    sub.textContent = 'Crie sua primeira filial para comecar';
+    sub.textContent = 'Crie sua primeira filial para começar.';
+    helper.textContent =
+      'Depois disso você poderá cadastrar produtos, clientes e registrar o primeiro pedido.';
     scheduleRoleUiGuards();
     return;
   }
 
   setHidden(form, true);
   setHidden(actions, false);
-  sub.textContent = 'Selecione a filial para continuar';
+  sub.textContent = 'Escolha a filial para continuar.';
+  helper.textContent = 'Você poderá trocar de filial depois, sem sair do sistema.';
 
   grid.innerHTML = D.filiais
     .map(
@@ -406,11 +412,13 @@ export async function renderSetup() {
   const form = document.getElementById('setup-form');
   const actions = document.getElementById('setup-actions');
   const sub = document.getElementById('setup-sub');
-  if (grid && form && actions && sub) {
+  const helper = document.getElementById('setup-helper');
+  if (grid && form && actions && sub && helper) {
     document.body.dataset.setupState = 'loading-filiais';
     setHidden(form, true);
     setHidden(actions, true);
     sub.textContent = 'Carregando filiais...';
+    helper.textContent = 'Buscando os contextos disponíveis para sua conta.';
     grid.innerHTML = `
       <div class="sk-card metric-grid-fill">${deps.buildSkeletonLines(3)}</div>
       <div class="sk-card metric-grid-fill">${deps.buildSkeletonLines(3)}</div>
