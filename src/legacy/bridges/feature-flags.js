@@ -50,7 +50,7 @@ const FLAG_REGISTRY = {
   receber: {
     storageKey: STORAGE_KEYS.RECEBER_REACT_ENABLED,
     windowProp: '__SC_RECEBER_REACT_ENABLED__',
-    defaultValue: false
+    defaultValue: true
   }
 };
 

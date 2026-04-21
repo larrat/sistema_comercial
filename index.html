@@ -862,66 +862,7 @@
 
         <!-- A RECEBER -->
         <div class="pg" id="pg-receber">
-          <!-- React pilot root -->
-          <div id="cr-react-root" hidden></div>
-
-          <!-- Legacy shell (hidden when React pilot is active) -->
-          <div id="cr-legacy-shell">
-            <div class="mg bento-band" id="cr-met"></div>
-            <div class="tabs">
-              <button class="tb on" data-click="switchCrTab('pendentes')">Pendentes</button>
-              <button class="tb" data-click="switchCrTab('vencidos')">Vencidos</button>
-              <button class="tb" data-click="switchCrTab('recebidos')">Recebidos</button>
-            </div>
-
-            <div class="tc on" id="receber-tc-pendentes">
-              <div class="card card-shell">
-                <div class="toolbar toolbar-shell toolbar-shell--section">
-                  <div class="toolbar-main">
-                    <input
-                      class="inp input-w-sm"
-                      id="cr-busca-pendentes"
-                      placeholder="Cliente ou pedido..."
-                      data-input="renderContasReceber()"
-                    />
-                  </div>
-                </div>
-                <div id="cr-lista-pendentes"></div>
-              </div>
-            </div>
-
-            <div class="tc" id="receber-tc-vencidos">
-              <div class="card card-shell">
-                <div class="toolbar toolbar-shell toolbar-shell--section">
-                  <div class="toolbar-main">
-                    <input
-                      class="inp input-w-sm"
-                      id="cr-busca-vencidos"
-                      placeholder="Cliente ou pedido..."
-                      data-input="renderContasReceber()"
-                    />
-                  </div>
-                </div>
-                <div id="cr-lista-vencidos"></div>
-              </div>
-            </div>
-
-            <div class="tc" id="receber-tc-recebidos">
-              <div class="card card-shell">
-                <div class="toolbar toolbar-shell toolbar-shell--section">
-                  <div class="toolbar-main">
-                    <input
-                      class="inp input-w-sm"
-                      id="cr-busca-recebidos"
-                      placeholder="Cliente ou pedido..."
-                      data-input="renderContasReceber()"
-                    />
-                  </div>
-                </div>
-                <div id="cr-lista-recebidos"></div>
-              </div>
-            </div>
-          </div>
+          <div id="cr-react-root"></div>
         </div>
 
         <!-- COTACAO -->
@@ -2249,46 +2190,6 @@
           <button class="btn btn-p" data-click="sincronizarJogosDashboard()">
             Sincronizar agora
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Baixa parcial de contas a receber -->
-    <div class="modal-wrap" id="modal-cr-parcial">
-      <div class="modal-bg" data-click="fecharModal('modal-cr-parcial')"></div>
-      <div class="modal-box">
-        <div class="mt" id="cr-parcial-titulo">Baixa parcial</div>
-        <div class="panel">
-          <div class="pt">Resumo da conta</div>
-          <div id="cr-parcial-resumo"></div>
-        </div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Valor recebido *</div>
-            <input class="inp" id="cr-parcial-valor" type="number" min="0.01" step="0.01" />
-          </div>
-          <div>
-            <div class="fl">Data/hora da baixa *</div>
-            <input class="inp" id="cr-parcial-data" type="datetime-local" />
-          </div>
-        </div>
-        <div class="fg">
-          <div>
-            <div class="fl">Observação</div>
-            <input
-              class="inp"
-              id="cr-parcial-obs"
-              placeholder="Ex: Pix parcial, adiantamento, combinado com cliente..."
-            />
-          </div>
-        </div>
-        <div class="panel">
-          <div class="pt">Últimas baixas</div>
-          <div id="cr-parcial-historico"></div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-cr-parcial')">Cancelar</button>
-          <button class="btn btn-p" data-click="confirmarBaixaParcial()">Registrar baixa</button>
         </div>
       </div>
     </div>

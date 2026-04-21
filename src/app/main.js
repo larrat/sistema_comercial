@@ -94,25 +94,9 @@ import {
   editarPedidoReact,
   abrirDetalhePedidoReact
 } from '../features/pedidos-react-bridge.js';
-import {
-  shouldRenderLegacyContasReceber,
-  syncContasReceberReactBridge,
-  setContasReceberReactTab
-} from '../features/contas-receber-react-bridge.js';
+import { setContasReceberReactTab } from '../features/contas-receber-react-bridge.js';
 
 import { initPedidosModule } from '../features/pedidos.js';
-
-import {
-  renderContasReceberMet,
-  renderContasReceber,
-  switchCrTab,
-  marcarRecebido,
-  abrirBaixaParcial,
-  confirmarBaixaParcial,
-  marcarPendente,
-  estornarBaixaConta,
-  gerarContaManual
-} from '../features/contas-receber.js';
 
 import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
 
@@ -764,8 +748,6 @@ registerApplicationModules({
     abrirFechadasClienteReact,
     abrirNotasClienteReact,
     abrirFidelidadeClienteReact,
-    renderContasReceberMet,
-    renderContasReceber,
     renderCotForns,
     renderCotTabela,
     renderEstAlerts,
@@ -850,15 +832,6 @@ startApplicationRuntime({
         abrirNovoPedidoReact,
         editarPedidoReact,
         abrirDetalhePedidoReact,
-        renderContasReceberMet,
-        renderContasReceber,
-        switchCrTab,
-        marcarRecebido,
-        abrirBaixaParcial,
-        confirmarBaixaParcial,
-        marcarPendente,
-        estornarBaixaConta,
-        gerarContaManual,
         setContasReceberReactTab,
         renderCotForns,
         renderCotTabela,
