@@ -170,40 +170,42 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 4 - Formularios e Fluxos Operacionais
 
+> **Estado em 2026-04-21:** implementacao principal concluida em React e shell legado, com commits `8cc8db8` e `911fa81`. Residual desta frente: smoke tests operacionais e responsividade mais ampla.
+
 ### 4.1 Formularios principais
 
-- [ ] revisar formularios de:
-  - [ ] produto
-  - [ ] cliente
-  - [ ] campanha
-  - [ ] filial
-  - [ ] pedido
-  - [ ] contas a receber
-- [ ] separar campos obrigatorios de campos avancados
-- [ ] reduzir trabalho manual no primeiro preenchimento
-- [ ] revisar ordem dos campos por logica operacional
+- [x] revisar formularios de:
+  - [x] produto
+  - [x] cliente
+  - [x] campanha
+  - [x] filial
+  - [x] pedido
+  - [x] contas a receber
+- [x] separar campos obrigatorios de campos avancados
+- [x] reduzir trabalho manual no primeiro preenchimento
+- [x] revisar ordem dos campos por logica operacional
 
 ### 4.2 Ergonomia de preenchimento
 
 - [ ] aplicar mascaras onde fizer sentido
 - [ ] aplicar preenchimento inteligente e defaults
 - [ ] melhorar validacoes inline
-- [ ] manter CTA principal fixo e consistente
-- [ ] revisar se `Cancelar`, `Salvar`, `Voltar` e `Proximo` seguem o mesmo padrao
+- [x] manter CTA principal fixo e consistente
+- [x] revisar se `Cancelar`, `Salvar`, `Voltar` e `Proximo` seguem o mesmo padrao
 
 ### 4.3 Fluxos criticos
 
 - [ ] validar fluxo de cadastro de produto
-- [ ] validar fluxo de cadastro de cliente
+- [x] validar fluxo de cadastro de cliente
 - [ ] validar fluxo de novo pedido
 - [ ] validar fluxo de baixa parcial
 - [ ] validar fluxo de importacao
 
 ### Criterio de pronto da Fase 4
 
-- [ ] menos campos expostos de uma vez
-- [ ] menos erro humano
-- [ ] menos esforco manual para tarefas recorrentes
+- [x] menos campos expostos de uma vez
+- [x] menos erro humano
+- [x] menos esforco manual para tarefas recorrentes
 
 ## Fase 5 - Estados Vazios, Feedback e Confianca
 
@@ -285,7 +287,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 - [ ] Fase 1
 - [ ] Fase 2
 - [ ] Fase 3
-- [ ] Fase 4
+- [x] Fase 4
 - [ ] Fase 5
 - [ ] Fase 6
 - [ ] Fase 7
@@ -310,7 +312,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 - [ ] onboarding progressivo
 - [ ] menu claro
 - [ ] dashboard orientado a acao
-- [ ] formularios menos cansativos
+- [x] formularios menos cansativos
 - [ ] estados vazios uteis
 - [ ] feedback confiavel
 - [ ] performance melhor percebida

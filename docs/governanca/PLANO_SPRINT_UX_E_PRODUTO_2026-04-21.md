@@ -12,6 +12,7 @@
 | Clientes react-only, legado removido | Feito (commits 2026-04-17/18) |
 | Sidebar Fluig | Feita (commit 46f7404) |
 | Bloco 3 de UX (home por perfil, favoritos e atalhos) | Feito (commit 79f8165) |
+| Bloco 4 de UX (formularios e fluxos operacionais) | Feito (commits 8cc8db8 e 911fa81) |
 
 ---
 
@@ -83,26 +84,26 @@ Reduzir carga cognitiva e tornar os fluxos principais mais rapidos e previsiveis
 - [ ] criar onboarding progressivo com checklist inicial
 - [ ] reorganizar arquitetura da informacao por objetivo do usuario
 - [ ] revisar nomenclatura dos modulos e acoes
-- [ ] simplificar formularios principais:
-  - [ ] produto
-  - [ ] cliente
-  - [ ] campanha
-  - [ ] filial
-  - [ ] pedido
-- [ ] introduzir campos avancados sob demanda
-- [ ] padronizar CTAs:
-  - [ ] salvar
-  - [ ] cancelar
-  - [ ] voltar
-  - [ ] proximo
+- [x] simplificar formularios principais:
+  - [x] produto
+  - [x] cliente
+  - [x] campanha
+  - [x] filial
+  - [x] pedido
+- [x] introduzir campos avancados sob demanda
+- [x] padronizar CTAs:
+  - [x] salvar
+  - [x] cancelar
+  - [x] voltar
+  - [x] proximo
 - [ ] melhorar feedbacks de sucesso, erro e loading
 - [ ] revisar responsividade das telas operacionais mais usadas
 
 ### Criterio de sucesso
 
-- [ ] menos informacao exposta de uma vez
-- [ ] menos esforco manual para cadastrar e operar
-- [ ] maior consistencia entre modulos
+- [x] menos informacao exposta de uma vez
+- [x] menos esforco manual para cadastrar e operar
+- [x] maior consistencia entre modulos
 - [ ] onboarding orientado a time to value
 
 ### Nao entra nesta etapa
@@ -152,7 +153,7 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 ### Prioridade media
 
 - [ ] onboarding guiado
-- [ ] formularios mais inteligentes
+- [x] formularios mais inteligentes
 - [ ] estados vazios melhores
 - [ ] feedback operacional
 - [ ] responsividade
@@ -188,7 +189,7 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 - [ ] implementar separacao da entrada
 - [ ] reorganizar menu
 - [ ] simplificar home
-- [ ] refatorar formularios prioritarios
+- [x] refatorar formularios prioritarios
 
 ### Backend
 
@@ -208,6 +209,6 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 - [ ] entrada clara
 - [ ] navegacao mais leve
 - [ ] dashboard com foco
-- [ ] formularios menos cansativos
+- [x] formularios menos cansativos
 - [ ] financeiro confiavel
 - [ ] produto com menos sinais de improviso e migracao exposta
