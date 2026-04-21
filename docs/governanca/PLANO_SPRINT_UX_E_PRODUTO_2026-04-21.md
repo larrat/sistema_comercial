@@ -6,11 +6,12 @@
 |------|---------|
 | RPCs de contas a receber implementadas no codigo | Feito (commit fb172e8) |
 | SQL 16 preparado (`contas_receber_backend_consistencia`) | **Aplicado em producao (2026-04-21)** |
-| Validacao das RPCs no ambiente real | Pendente |
+| Contas a receber react-only, shell legado removido | Feito (commits 42d7b15 e 5976676) |
+| Validacao das RPCs e do fluxo real de receber no ambiente real | Pendente |
 | Dashboard React ativo por padrao | Feito (commit 3705559) |
 | Clientes react-only, legado removido | Feito (commits 2026-04-17/18) |
 | Sidebar Fluig | Feita (commit 46f7404) |
-| Demais itens do Bloco 1 | Pendentes |
+| Bloco 3 de UX (home por perfil, favoritos e atalhos) | Feito (commit 79f8165) |
 
 ---
 
@@ -34,8 +35,9 @@ Corrigir o que mais atrapalha entendimento basico, confianca e uso diario.
 
 ### Entregas
 
-- [ ] aplicar e validar a migration de contas a receber
-- [ ] validar as RPCs de contas a receber no ambiente real
+- [x] aplicar e validar estruturalmente a migration de contas a receber
+- [x] virar contas a receber para React por padrao e remover o shell legado
+- [ ] validar as RPCs e o fluxo real de contas a receber no ambiente real
 - [ ] limpar linguagem interna exposta na interface
 - [ ] remover placeholders e blocos experimentais visiveis
 - [ ] separar fluxo de entrada:
@@ -58,7 +60,7 @@ Corrigir o que mais atrapalha entendimento basico, confianca e uso diario.
 
 - [ ] o usuario entende o proximo passo logo na entrada
 - [ ] o dashboard deixa de parecer mural generico
-- [ ] as operacoes financeiras criticas passam confianca
+- [ ] as operacoes financeiras criticas passam confianca no ambiente real
 - [ ] a interface perde sinais evidentes de produto em transicao
 
 ### Nao entra neste bloco
@@ -164,7 +166,7 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 
 ## Sequencia recomendada de trabalho
 
-1. estabilizar contas a receber e validar confianca operacional
+1. validar em ambiente real o fluxo React de contas a receber e a confianca operacional
 2. redesenhar entrada e fluxo inicial
 3. reorganizar menu e arquitetura da informacao
 4. reduzir densidade e ruído da home
@@ -190,14 +192,14 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 
 ### Backend
 
-- [ ] aplicar migration
-- [ ] validar RPCs
+- [x] aplicar migration
+- [ ] validar RPCs no ambiente real
 - [ ] garantir consistencia das operacoes criticas
 
 ### QA e validacao
 
 - [ ] smoke test da entrada
-- [ ] smoke test de contas a receber
+- [ ] smoke test do fluxo React de contas a receber
 - [ ] smoke test de navegacao principal
 - [ ] smoke test dos fluxos de cadastro prioritarios
 

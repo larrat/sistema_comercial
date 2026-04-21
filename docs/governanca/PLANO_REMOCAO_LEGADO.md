@@ -11,13 +11,13 @@
 | Módulo | Status |
 |--------|--------|
 | Pedidos | React-only, legado é stub vazio |
+| Contas Receber | React-only (commits `42d7b15` e `5976676`) |
 
 ### Híbridos (React pronto, shell legado ainda presente)
 | Módulo | Flag | Default | Shell legado | Situação JS |
 |--------|------|---------|--------------|-------------|
 | Clientes | `sc_clientes_react_enabled` | true | `#cli-legacy-shell` (HTML) | JS react-only desde 2026-04-18; stub `clientes.js` pode ser deletado |
 | Dashboard | `sc_dashboard_react_enabled` | true | `#dash-legacy-content` (HTML) | `dashboard.js` (57 KB) ainda presente |
-| Contas Receber | `sc_receber_react_enabled` | **false** | `#cr-legacy-shell` (HTML) | RPCs prontas; SQL 16 pendente de apply |
 
 ### Legado puro (sem React equivalente)
 | Módulo | Arquivo(s) | Complexidade |
@@ -48,11 +48,14 @@
 - [x] Implementar RPCs no código (`rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`)
 - [x] Aplicar SQL 16 em produção
 - [ ] Rodar smoke test manual: pendentes → baixa parcial → desfazer → estornar → receber tudo
-- [ ] Mudar `receber.defaultValue: false → true` em `src/legacy/bridges/feature-flags.js`
+- [x] Mudar `receber.defaultValue: false → true` em `src/legacy/bridges/feature-flags.js`
 - [ ] Observar 1–2 dias em produção com flag ativa
-- [ ] Remover do `index.html`: bloco `#cr-legacy-shell` e todo seu conteúdo
-- [ ] Deletar `src/features/contas-receber.js`
-- [ ] Remover import/referência de `contas-receber` de `main.js`
+- [x] Remover do `index.html`: bloco `#cr-legacy-shell` e todo seu conteúdo
+- [x] Deletar `src/features/contas-receber.js`
+- [x] Remover import/referência de `contas-receber` de `main.js`
+- [x] Adaptar `PedidoDetailPanel` para não depender do fluxo legado
+
+**Status atual:** shell legado removido, flag React ativada por padrão e detalhe de pedido já apontando para o fluxo RPC/React. Resta apenas a validação operacional em ambiente real.
 
 ### 1B — Remover shell Clientes
 > JS já é react-only (commits 2026-04-18) — restam só o stub `clientes.js` e o shell HTML.
@@ -73,7 +76,7 @@
 - [ ] Deletar `src/features/dashboard.js`
 - [ ] Remover imports de dashboard de `main.js`
 
-**Resultado da Fase 1:** ~3 arquivos JS deletados (~84 KB de código morto), 3 shells removidos do HTML, zero features novas escritas.
+**Resultado parcial da Fase 1:** `Contas Receber` já saiu do modo híbrido e virou React-only. Restam `Clientes` e `Dashboard` para fechar a fase.
 
 ---
 
@@ -152,7 +155,7 @@ Cada item é uma sprint independente: criar feature React → validar pilot → 
 ## Ordem executiva recomendada
 
 ```
-[Agora]       1A — validar SQL → flipar receber → remover shell
+[Agora]       1A — validar fluxo real de receber já virado para React
 [Semana 1-2]  1B, 1C — remover shells clientes e dashboard
 [Mês 1]       2A — Produtos React
 [Mês 1-2]     2B — Estoque | 2C — Cotação (paralelo após Produtos)

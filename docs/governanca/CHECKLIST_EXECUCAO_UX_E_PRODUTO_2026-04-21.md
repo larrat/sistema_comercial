@@ -21,13 +21,14 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 0 - Base Tecnica e Seguranca de Dado
 
-> **Estado em 2026-04-21:** RPCs implementadas no codigo (commit fb172e8). SQL 16 preparado e revisado. Pendente: apply em producao e validacao no ambiente real.
+> **Estado em 2026-04-21:** RPCs implementadas no codigo (commit fb172e8). SQL 16 aplicado em producao. Modulo `receber` ja opera em React-only, com shell legado removido. Pendente: validacao operacional no ambiente real.
 
 ### 0.1 Migracao de contas a receber
 
 - [x] revisar o arquivo [sql/16_contas_receber_backend_consistencia.sql](/e:/Programas/sistema_comercial/sql/16_contas_receber_backend_consistencia.sql:1) pela ultima vez antes do apply
 - [x] confirmar decisao de negocio: `vencido` deixa de ser status persistido e passa a ser classificacao visual
 - [x] aplicar a migration em ambiente controlado
+- [x] remover shell legado de contas a receber e deixar React como caminho padrao
 - [ ] validar RPCs:
   - [ ] `rpc_registrar_baixa`
   - [ ] `rpc_estornar_baixa`
@@ -49,8 +50,8 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ### 0.2 Front acoplado ao backend oficial
 
-- [ ] validar no ambiente real o fluxo legado de contas a receber
 - [ ] validar no ambiente real o fluxo React de contas a receber
+- [ ] validar integracao do detalhe de pedido com o fluxo React de recebimento
 - [ ] confirmar que a UI esta recarregando dados oficiais apos cada mutacao
 - [ ] revisar mensagens de erro vindas das RPCs
 - [ ] revisar se o modulo tolera latencia sem parecer quebrado
@@ -59,7 +60,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 - [ ] nenhuma regra financeira oficial depende de calculo primario no front
 - [ ] operacoes criticas passam a usar backend transacional
-- [ ] modulo de contas a receber transmite confianca operacional
+- [ ] modulo React de contas a receber transmite confianca operacional
 
 ## Fase 1 - Entrada, Login e Onboarding
 
