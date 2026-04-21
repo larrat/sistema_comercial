@@ -96,3 +96,51 @@ export async function deleteBaixasByConta(ctx: CrApiContext, contaId: string): P
   );
   if (!res.ok) throw new Error(`Erro ao remover baixas: ${res.status}`);
 }
+
+export async function registrarBaixaRpc(
+  ctx: CrApiContext,
+  params: {
+    baixaId: string;
+    contaId: string;
+    valor: number;
+    recebidoEm: string;
+    observacao: string | null;
+  }
+): Promise<void> {
+  const res = await fetch(`${ctx.url}/rest/v1/rpc/rpc_registrar_baixa`, {
+    method: 'POST',
+    headers: headers(ctx.key, ctx.token),
+    body: JSON.stringify({
+      p_baixa_id: params.baixaId,
+      p_conta_receber_id: params.contaId,
+      p_valor: params.valor,
+      p_recebido_em: params.recebidoEm,
+      p_observacao: params.observacao
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, 'Erro ao registrar baixa');
+}
+
+export async function estornarBaixaRpc(ctx: CrApiContext, baixaId: string): Promise<void> {
+  const res = await fetch(`${ctx.url}/rest/v1/rpc/rpc_estornar_baixa`, {
+    method: 'POST',
+    headers: headers(ctx.key, ctx.token),
+    body: JSON.stringify({ p_baixa_id: baixaId }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, 'Erro ao estornar baixa');
+}
+
+export async function marcarContaPendenteRpc(ctx: CrApiContext, contaId: string): Promise<void> {
+  const res = await fetch(`${ctx.url}/rest/v1/rpc/rpc_marcar_conta_pendente`, {
+    method: 'POST',
+    headers: headers(ctx.key, ctx.token),
+    body: JSON.stringify({ p_conta_receber_id: contaId }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, 'Erro ao desfazer recebimento');
+}

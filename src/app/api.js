@@ -784,6 +784,9 @@ export const SB = {
   deleteContaReceberBaixa: (id) => sbReq(`contas_receber_baixas?id=eq.${id}`, 'DELETE'),
   deleteContaReceberBaixasByConta: (contaId) =>
     sbReq(`contas_receber_baixas?conta_receber_id=eq.${contaId}`, 'DELETE'),
+  registrarContaReceberBaixaRpc: (payload) => sbRpc('rpc_registrar_baixa', payload),
+  estornarContaReceberBaixaRpc: (payload) => sbRpc('rpc_estornar_baixa', payload),
+  marcarContaReceberPendenteRpc: (payload) => sbRpc('rpc_marcar_conta_pendente', payload),
 
   /** @param {string} fid @returns {Promise<Fornecedor[]>} */
   getFornecedores: (fid) => sbReq('fornecedores', 'GET', null, `?filial_id=eq.${fid}&order=nome`),

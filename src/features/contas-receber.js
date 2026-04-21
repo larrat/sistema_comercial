@@ -147,60 +147,6 @@ function getRecebidoMes(contas) {
   return roundMoney(totalBaixas + fallbackRecebidas);
 }
 
-/**
- * @param {ContaReceber} conta
- */
-function syncContaReceberAtualizada(conta) {
-  if (!D.contasReceber) D.contasReceber = {};
-  const filialId = getFilialAtual();
-  D.contasReceber[filialId] = CR().map((item) => (item.id === conta.id ? conta : item));
-}
-
-/**
- * @param {ContaReceberBaixa} baixa
- */
-function syncContaReceberBaixa(baixa) {
-  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
-  const filialId = getFilialAtual();
-  if (!D.contasReceberBaixas[filialId]) D.contasReceberBaixas[filialId] = [];
-  D.contasReceberBaixas[filialId] = [baixa, ...CRB().filter((item) => item.id !== baixa.id)];
-}
-
-/**
- * @param {string} baixaId
- */
-function removeContaReceberBaixaSync(baixaId) {
-  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
-  const filialId = getFilialAtual();
-  D.contasReceberBaixas[filialId] = CRB().filter((item) => item.id !== baixaId);
-}
-
-/**
- * @param {ContaReceber} conta
- * @param {ContaReceberBaixa[]} baixas
- * @returns {ContaReceber}
- */
-function buildContaFromBaixas(conta, baixas) {
-  const baixasOrdenadas = [...baixas].sort((a, b) =>
-    String(b.recebido_em || '').localeCompare(String(a.recebido_em || ''))
-  );
-  const valorRecebido = roundMoney(
-    baixasOrdenadas.reduce((acc, baixa) => acc + Number(baixa.valor || 0), 0)
-  );
-  const valorEmAberto = roundMoney(Math.max(0, Number(conta.valor || 0) - valorRecebido));
-  const ultimaBaixa = baixasOrdenadas[0] || null;
-  const quitado = valorEmAberto <= 0;
-
-  return {
-    ...conta,
-    valor_recebido: valorRecebido,
-    valor_em_aberto: valorEmAberto,
-    status: quitado ? 'recebido' : valorRecebido > 0 ? 'parcial' : 'pendente',
-    recebido_em: quitado ? (ultimaBaixa?.recebido_em ?? null) : null,
-    ultimo_recebimento_em: ultimaBaixa?.recebido_em ?? null
-  };
-}
-
 function refreshContasReceberUi() {
   renderContasReceberMet();
   renderContasReceber();
@@ -213,6 +159,19 @@ function refreshContasReceberUi() {
       }
     })
   );
+}
+
+async function reloadContasReceberState() {
+  const filialId = getFilialAtual();
+  if (!filialId) return;
+  const [contas, baixas] = await Promise.all([
+    SB.getContasReceber(filialId),
+    SB.getContasReceberBaixas(filialId)
+  ]);
+  if (!D.contasReceber) D.contasReceber = {};
+  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
+  D.contasReceber[filialId] = contas || [];
+  D.contasReceberBaixas[filialId] = baixas || [];
 }
 
 /**
@@ -486,7 +445,6 @@ async function registrarBaixa(contaId, valor, recebidoEmIso, observacao) {
   if (!conta) return false;
 
   const valorAberto = getValorEmAberto(conta);
-  const valorRecebidoAtual = getValorRecebido(conta);
   const valorBaixa = roundMoney(valor);
 
   if (valorBaixa <= 0) {
@@ -499,36 +457,15 @@ async function registrarBaixa(contaId, valor, recebidoEmIso, observacao) {
     return false;
   }
 
-  const novoValorRecebido = roundMoney(valorRecebidoAtual + valorBaixa);
-  const novoValorAberto = roundMoney(Math.max(0, Number(conta.valor || 0) - novoValorRecebido));
-  const quitado = novoValorAberto <= 0;
-
-  /** @type {ContaReceberBaixa} */
-  const baixa = {
-    id: uid(),
-    filial_id: /** @type {string} */ (State.FIL),
-    conta_receber_id: conta.id,
-    pedido_id: conta.pedido_id,
-    pedido_num: conta.pedido_num || null,
-    cliente_id: conta.cliente_id || null,
-    cliente: conta.cliente,
-    valor: valorBaixa,
-    recebido_em: recebidoEmIso,
-    observacao
-  };
-
-  /** @type {ContaReceber} */
-  const updated = {
-    ...conta,
-    valor_recebido: novoValorRecebido,
-    valor_em_aberto: novoValorAberto,
-    status: quitado ? 'recebido' : 'parcial',
-    recebido_em: quitado ? recebidoEmIso : null,
-    ultimo_recebimento_em: recebidoEmIso
-  };
-
   try {
-    await Promise.all([SB.createContaReceberBaixa(baixa), SB.upsertContaReceber(updated)]);
+    await SB.registrarContaReceberBaixaRpc({
+      p_baixa_id: uid(),
+      p_conta_receber_id: conta.id,
+      p_valor: valorBaixa,
+      p_recebido_em: recebidoEmIso,
+      p_observacao: observacao
+    });
+    await reloadContasReceberState();
   } catch (error) {
     const message =
       error && typeof error === 'object' && 'message' in error
@@ -538,11 +475,10 @@ async function registrarBaixa(contaId, valor, recebidoEmIso, observacao) {
     return false;
   }
 
-  syncContaReceberAtualizada(updated);
-  syncContaReceberBaixa(baixa);
   refreshContasReceberUi();
+  const contaAtualizada = CR().find((item) => item.id === contaId) || conta;
   notify(
-    quitado
+    getValorEmAberto(contaAtualizada) <= 0
       ? `Recebimento concluido para ${conta.cliente}.`
       : `Baixa parcial registrada: ${fmt(valorBaixa)} para ${conta.cliente}.`,
     SEVERITY.SUCCESS
@@ -655,18 +591,9 @@ export async function marcarPendente(id) {
   if (!conta) return;
   if (!confirm('Desfazer todas as baixas desta conta e voltar para pendente?')) return;
 
-  /** @type {ContaReceber} */
-  const updated = {
-    ...conta,
-    status: 'pendente',
-    valor_recebido: 0,
-    valor_em_aberto: roundMoney(Number(conta.valor || 0)),
-    recebido_em: null,
-    ultimo_recebimento_em: null
-  };
-
   try {
-    await Promise.all([SB.deleteContaReceberBaixasByConta(id), SB.upsertContaReceber(updated)]);
+    await SB.marcarContaReceberPendenteRpc({ p_conta_receber_id: id });
+    await reloadContasReceberState();
   } catch (error) {
     const message =
       error && typeof error === 'object' && 'message' in error
@@ -676,9 +603,6 @@ export async function marcarPendente(id) {
     return;
   }
 
-  if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
-  D.contasReceberBaixas[getFilialAtual()] = CRB().filter((item) => item.conta_receber_id !== id);
-  syncContaReceberAtualizada(updated);
   refreshContasReceberUi();
   toast('Baixas removidas e conta reaberta.');
 }
@@ -697,11 +621,9 @@ export async function estornarBaixaConta(contaId, baixaId) {
 
   if (!confirm(`Estornar a baixa de ${fmt(baixa.valor)} para ${conta.cliente}?`)) return;
 
-  const baixasRestantes = getBaixasConta(contaId).filter((item) => item.id !== baixaId);
-  const updated = buildContaFromBaixas(conta, baixasRestantes);
-
   try {
-    await Promise.all([SB.deleteContaReceberBaixa(baixaId), SB.upsertContaReceber(updated)]);
+    await SB.estornarContaReceberBaixaRpc({ p_baixa_id: baixaId });
+    await reloadContasReceberState();
   } catch (error) {
     const message =
       error && typeof error === 'object' && 'message' in error
@@ -711,8 +633,6 @@ export async function estornarBaixaConta(contaId, baixaId) {
     return;
   }
 
-  removeContaReceberBaixaSync(baixaId);
-  syncContaReceberAtualizada(updated);
   refreshContasReceberUi();
   notify(`Baixa estornada para ${conta.cliente}.`, SEVERITY.SUCCESS);
 }
