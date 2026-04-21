@@ -240,6 +240,9 @@ export function renderRoleBadge() {
   if (!el) return;
   const role = currentUserRole();
   el.textContent = ROLE_LABEL[role] || 'Operador';
+  if (typeof window !== 'undefined') {
+    window.__SC_USER_ROLE__ = role;
+  }
 }
 
 function setRoleUiLock(el, locked) {
@@ -463,6 +466,9 @@ export async function renderSetup() {
     State.user = null;
     State.userRole = 'operador';
     renderRoleBadge();
+    if (typeof window !== 'undefined') {
+      window.__SC_USER_ROLE__ = 'operador';
+    }
     document.body.dataset.setupState = 'auth-required';
     return;
   }

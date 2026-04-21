@@ -118,9 +118,11 @@ function getQuickCommands() {
   return [
     { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => deps.ir?.('dashboard') },
     { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ relatorios', label: 'Abrir Relatórios', run: () => deps.ir?.('relatorios') },
     { cmd: '/ produtos', label: 'Abrir Produtos', run: () => deps.ir?.('produtos') },
     { cmd: '/ clientes', label: 'Abrir Clientes', run: () => deps.ir?.('clientes') },
     { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => deps.ir?.('pedidos') },
+    { cmd: '/ receber', label: 'Abrir Contas a Receber', run: () => deps.ir?.('receber') },
     { cmd: '/ cotacao', label: 'Abrir Cotação', run: () => deps.ir?.('cotacao') },
     { cmd: '/ estoque', label: 'Abrir Estoque', run: () => deps.ir?.('estoque') },
     { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => deps.ir?.('campanhas') },
@@ -206,7 +208,9 @@ export function initQuickCommand() {
   if (!document.body.dataset.boundQuickGlobal) {
     document.body.dataset.boundQuickGlobal = '1';
     document.addEventListener('keydown', (e) => {
-      if (e.key !== '/') return;
+      const wantsQuickCommand =
+        e.key === '/' || ((e.ctrlKey || e.metaKey) && String(e.key || '').toLowerCase() === 'k');
+      if (!wantsQuickCommand) return;
       const target = /** @type {HTMLElement | null} */ (
         e.target instanceof HTMLElement ? e.target : null
       );

@@ -125,12 +125,25 @@
               class="inp sb-search-input"
               id="sb-search"
               type="search"
-              placeholder="Buscar tela..."
+              placeholder="Buscar tela ou ação..."
               aria-label="Buscar no menu lateral"
             />
+            <div class="sb-search-hint">
+              Enter abre o melhor resultado. Ctrl+K abre a busca rápida.
+            </div>
+            <div class="sb-search-results is-hidden" id="sb-search-results"></div>
+          </div>
+          <div class="sb-context" aria-live="polite">
+            <div class="sb-context-kicker" id="sb-context-kicker">Início</div>
+            <div class="sb-context-title" id="sb-context-title">Painel do dia</div>
+            <div class="sb-context-sub" id="sb-context-sub">Prioridades da operação</div>
           </div>
         </div>
         <nav class="sb-nav">
+          <section class="sb-group sb-group--favorites is-hidden" id="sb-favorites-group">
+            <div class="nl">Favoritos</div>
+            <div id="sb-favorites"></div>
+          </section>
           <section class="sb-group" data-group="Inicio">
             <div class="nl">Início</div>
             <button
@@ -410,7 +423,9 @@
               Prioridades, riscos e próximos passos da operação
             </div>
           </div>
+          <div class="quick-links" id="quick-links" aria-label="Ações rápidas da tela"></div>
           <div class="app-topbar-actions">
+            <button class="btn btn-sm" id="app-act-favorite" type="button">Fixar</button>
             <button class="btn btn-sm" id="app-act-secondary" type="button">Novo cliente</button>
             <button class="btn btn-sm" id="app-act-tertiary" type="button">Novo produto</button>
             <button class="btn btn-p" id="app-act-primary" type="button">Novo pedido</button>

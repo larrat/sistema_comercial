@@ -20,11 +20,158 @@ const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_COR
 const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
 const MOBILE_MENU_FAB_IDLE_MS = 1600;
 const THEME_KEY = 'sc_theme_v1';
+const NAV_FAVORITES_KEY = 'sc_nav_favorites_v1';
+const SEARCH_RESULT_LIMIT = 5;
 
 /** @type {readonly ('auto'|'light'|'dark')[]} */
 const THEME_CYCLE = /** @type {const} */ (['auto', 'light', 'dark']);
 
 const THEME_LABELS = { auto: 'Auto', light: 'Claro', dark: 'Escuro' };
+
+function getFavoriteStorageKey() {
+  const userId = State.user?.id || State.user?.email || 'anon';
+  return `${NAV_FAVORITES_KEY}:${userId}`;
+}
+
+function readFavoritePages() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(getFavoriteStorageKey()) || '[]');
+    return Array.isArray(raw) ? raw.filter((page) => typeof page === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFavoritePages(pages) {
+  localStorage.setItem(getFavoriteStorageKey(), JSON.stringify(Array.from(new Set(pages))));
+}
+
+function getBaseNavButtons() {
+  return Array.from(document.querySelectorAll('.sb-group:not(.sb-group--favorites) .ni')).filter(
+    (el) => el instanceof HTMLButtonElement
+  );
+}
+
+function getNavPageLabel(page) {
+  const btn = getBaseNavButtons().find((item) => item.dataset.p === page);
+  return btn?.dataset.label || btn?.textContent?.trim() || page;
+}
+
+function isFavoritePage(page) {
+  return readFavoritePages().includes(page);
+}
+
+function renderFavoriteNav(query = '') {
+  const group = document.getElementById('sb-favorites-group');
+  const slot = document.getElementById('sb-favorites');
+  if (!group || !slot) return;
+
+  const favorites = readFavoritePages()
+    .filter((page) => deps.canAccessPage(page))
+    .map((page) => ({ page, label: getNavPageLabel(page) }))
+    .filter((item) => !query || norm(item.label).includes(query));
+
+  group.classList.toggle('is-hidden', favorites.length === 0);
+  group.hidden = favorites.length === 0;
+
+  if (!favorites.length) {
+    slot.innerHTML = '';
+    return;
+  }
+
+  slot.innerHTML = favorites
+    .map(
+      ({ page, label }) => `
+        <button class="ni ni-favorite" type="button" data-p="${page}" data-label="${label}">
+          <span class="ni-favorite-star" aria-hidden="true">&#9733;</span>${label}
+        </button>
+      `
+    )
+    .join('');
+
+  Array.from(slot.querySelectorAll('.ni')).forEach((btn) => {
+    if (!(btn instanceof HTMLButtonElement)) return;
+    btn.onclick = () => ir(btn.dataset.p || 'dashboard');
+    btn.classList.toggle('on', btn.dataset.p === pageAtual());
+  });
+}
+
+function renderSearchResults(raw = '') {
+  const host = document.getElementById('sb-search-results');
+  if (!host) return;
+
+  const query = norm(raw || '');
+  if (!query) {
+    host.innerHTML = '';
+    host.classList.add('is-hidden');
+    return;
+  }
+
+  const matches = getBaseNavButtons()
+    .map((btn) => ({
+      page: btn.dataset.p || '',
+      label: btn.dataset.label || btn.textContent?.trim() || ''
+    }))
+    .filter((item) => item.page && norm(item.label).includes(query))
+    .slice(0, SEARCH_RESULT_LIMIT);
+
+  if (!matches.length) {
+    host.innerHTML = `
+      <div class="sb-search-empty">
+        Nenhuma tela encontrada. Use Ctrl+K para buscar ações rápidas.
+      </div>
+    `;
+    host.classList.remove('is-hidden');
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="sb-search-title">Ir direto para</div>
+    <div class="sb-search-list">
+      ${matches
+        .map(
+          (item, index) => `
+            <button
+              class="sb-search-result${index === 0 ? ' is-primary' : ''}"
+              type="button"
+              data-page="${item.page}"
+            >
+              <span>${item.label}</span>
+              <span class="sb-search-result-hint">${index === 0 ? 'Enter' : 'Abrir'}</span>
+            </button>
+          `
+        )
+        .join('')}
+    </div>
+  `;
+  host.classList.remove('is-hidden');
+
+  Array.from(host.querySelectorAll('[data-page]')).forEach((btn) => {
+    if (!(btn instanceof HTMLButtonElement)) return;
+    btn.onclick = () => ir(btn.dataset.page || 'dashboard');
+  });
+}
+
+function getBestSidebarSearchMatch() {
+  const explicit = document.querySelector('#sb-search-results [data-page]');
+  if (explicit instanceof HTMLButtonElement) return explicit.dataset.page || null;
+
+  const visible = Array.from(document.querySelectorAll('.sb-nav .ni')).find((item) => {
+    if (!(item instanceof HTMLButtonElement)) return false;
+    return !item.hidden && item.style.display !== 'none';
+  });
+  return visible instanceof HTMLButtonElement ? visible.dataset.p || null : null;
+}
+
+function syncFavoriteButton(page) {
+  const btn = document.getElementById('app-act-favorite');
+  if (!(btn instanceof HTMLButtonElement)) return;
+  const active = isFavoritePage(page);
+  btn.textContent = active ? 'Desfixar' : 'Fixar';
+  btn.classList.toggle('btn-gh', active);
+  btn.title = active ? 'Remover dos favoritos' : 'Salvar esta tela nos favoritos';
+  btn.onclick = () => toggleCurrentPageFavorite();
+}
 
 /**
  * Lê o tema salvo no localStorage.
@@ -540,6 +687,7 @@ export function syncTopbar(page) {
   bindTopbarAction('app-act-primary', meta.primary);
   bindTopbarAction('app-act-secondary', meta.secondary);
   bindTopbarAction('app-act-tertiary', meta.tertiary);
+  syncFavoriteButton(page);
   renderQuickLinks(meta);
   syncSidebarContext(meta);
 }
@@ -580,6 +728,8 @@ export function filterSidebarNav(raw = '') {
 
   const empty = document.getElementById('sb-empty');
   if (empty) empty.style.display = visibleItems ? 'none' : 'block';
+  renderFavoriteNav(query);
+  renderSearchResults(raw);
 }
 
 export function initSidebarEnhancements() {
@@ -597,6 +747,14 @@ export function initSidebarEnhancements() {
       }, 120);
     });
     input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const nextPage = getBestSidebarSearchMatch();
+        if (nextPage) {
+          e.preventDefault();
+          ir(nextPage);
+        }
+        return;
+      }
       if (e.key === 'Escape') {
         if (sidebarFilterTimer) clearTimeout(sidebarFilterTimer);
         input.value = '';
@@ -606,9 +764,11 @@ export function initSidebarEnhancements() {
     });
   }
   filterSidebarNav(input?.value || '');
+  renderFavoriteNav(norm(input?.value || ''));
   const current = pageAtual();
   setActivePageVisibility(current);
   syncSidebarContext(getContextualPageMeta(current));
+  syncFavoriteButton(current);
   initMobileMenuFab();
 }
 
@@ -789,6 +949,17 @@ export function renderQuickLinks(meta) {
     if (!(btn instanceof HTMLButtonElement)) return;
     btn.onclick = actions[idx].run;
   });
+}
+
+export function toggleCurrentPageFavorite() {
+  const page = pageAtual();
+  const favorites = readFavoritePages();
+  const next = favorites.includes(page)
+    ? favorites.filter((item) => item !== page)
+    : [...favorites, page];
+  writeFavoritePages(next);
+  syncFavoriteButton(page);
+  renderFavoriteNav(norm(document.getElementById('sb-search')?.value || ''));
 }
 
 /** @type {string} */

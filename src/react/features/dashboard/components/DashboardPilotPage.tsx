@@ -1,9 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
 import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
-
-// ── Formatters ────────────────────────────────────────────────────────────────
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
@@ -21,14 +19,28 @@ const MES_LABEL = [
   'Dez'
 ];
 
+type DashboardView = 'operacional' | 'gerencial' | 'analitico';
+type DashboardRole = 'operador' | 'gerente' | 'admin';
+
+const DASHBOARD_VIEW_LABELS: Record<DashboardView, string> = {
+  operacional: 'Operacional',
+  gerencial: 'Gerencial',
+  analitico: 'Analítico'
+};
+
+const ROLE_LABELS: Record<DashboardRole, string> = {
+  operador: 'Operação',
+  gerente: 'Gestão',
+  admin: 'Administração'
+};
+
 function fmt(v: number) {
   return BRL.format(Number(v || 0));
 }
-function pct(v: number) {
-  return v.toFixed(1) + '%';
-}
 
-// ── Date helpers ──────────────────────────────────────────────────────────────
+function pct(v: number) {
+  return `${v.toFixed(1)}%`;
+}
 
 function getRange(periodo: Periodo): [Date, Date] {
   const now = new Date();
@@ -47,7 +59,7 @@ function getRange(periodo: Periodo): [Date, Date] {
 
 function inRange(ds: string | undefined, range: [Date, Date]): boolean {
   if (!ds) return false;
-  const d = new Date(ds + 'T00:00:00');
+  const d = new Date(`${ds}T00:00:00`);
   return d >= range[0] && d <= range[1];
 }
 
@@ -57,13 +69,11 @@ function getProxAnivDate(dataAniversario: string | undefined, baseDate: Date): D
   if (parts.length < 3) return null;
   const month = parseInt(parts[1], 10) - 1;
   const day = parseInt(parts[2], 10);
-  if (isNaN(month) || isNaN(day)) return null;
+  if (Number.isNaN(month) || Number.isNaN(day)) return null;
   let aniv = new Date(baseDate.getFullYear(), month, day);
   if (aniv < baseDate) aniv = new Date(baseDate.getFullYear() + 1, month, day);
   return aniv;
 }
-
-// ── Derived data computation ──────────────────────────────────────────────────
 
 function computeDerivedData(
   pedidos: Pedido[],
@@ -85,13 +95,11 @@ function computeDerivedData(
     ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)
   ).length;
 
-  // Stock alerts — use esal (stored on-hand qty) + emin
   const crit = produtos.filter((p) => (p.emin ?? 0) > 0 && (p.esal ?? 0) <= 0);
   const baixo = produtos.filter(
     (p) => (p.emin ?? 0) > 0 && (p.esal ?? 0) > 0 && (p.esal ?? 0) < (p.emin ?? 0)
   );
 
-  // Birthday alerts (next 7 days)
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   const limite = new Date(hoje);
@@ -106,7 +114,6 @@ function computeDerivedData(
     .filter((c): c is Cliente & { _anivData: Date } => c !== null)
     .sort((a, b) => a._anivData.getTime() - b._anivData.getTime());
 
-  // Status counts
   const stMap: Record<string, number> = {
     orcamento: 0,
     confirmado: 0,
@@ -118,7 +125,22 @@ function computeDerivedData(
     if (p.status in stMap) stMap[p.status]++;
   });
 
-  // Top 5 produtos by revenue
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const entreguesHoje = entregues.filter((p) => p.data === todayIso).length;
+  const pipelineValue = pedidos
+    .filter((p) => ['orcamento', 'confirmado', 'em_separacao'].includes(p.status))
+    .reduce((sum, pedido) => sum + (pedido.total || 0), 0);
+  const clientesComContato = clientes.filter((c) => c.tel || c.whatsapp || c.email).length;
+  const produtosComSaldo = produtos.filter((p) => (p.esal ?? 0) > 0).length;
+  const estoqueSaudavel = Math.max(produtos.length - crit.length - baixo.length, 0);
+  const estoqueSaudavelPct = produtos.length > 0 ? (estoqueSaudavel / produtos.length) * 100 : 100;
+  const taxaEntrega =
+    pedidos.length > 0 ? ((stMap.entregue ?? 0) / Math.max(pedidos.length, 1)) * 100 : 0;
+  const coberturaContatoPct =
+    clientes.length > 0 ? (clientesComContato / Math.max(clientes.length, 1)) * 100 : 0;
+  const mixAtivoPct =
+    produtos.length > 0 ? (produtosComSaldo / Math.max(produtos.length, 1)) * 100 : 0;
+
   const pq: Record<string, number> = {};
   entregues.forEach((p) => {
     (Array.isArray(p.itens) ? p.itens : []).forEach((i) => {
@@ -130,13 +152,12 @@ function computeDerivedData(
     .slice(0, 5);
   const maxTopFat = topProdutos[0]?.[1] || 1;
 
-  // Chart groups (last 10 data points)
   const grupos: Record<string, { fat: number; lucro: number }> = {};
   entregues.forEach((p) => {
-    const d = new Date((p.data ?? '') + 'T00:00:00');
+    const d = new Date(`${p.data ?? ''}T00:00:00`);
     const k =
       periodo === 'ano'
-        ? MES_LABEL[d.getMonth()] + '/' + String(d.getFullYear()).slice(2)
+        ? `${MES_LABEL[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`
         : (p.data ?? '');
     if (!grupos[k]) grupos[k] = { fat: 0, lucro: 0 };
     grupos[k].fat += p.total || 0;
@@ -162,11 +183,48 @@ function computeDerivedData(
     grupos,
     chartKeys,
     maxChartFat,
-    hoje
+    hoje,
+    entreguesHoje,
+    pipelineValue,
+    clientesComContato,
+    estoqueSaudavelPct,
+    taxaEntrega,
+    coberturaContatoPct,
+    mixAtivoPct
   };
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+function readUserRole(): DashboardRole {
+  const raw = String(window.__SC_USER_ROLE__ || 'operador').toLowerCase();
+  if (raw === 'admin') return 'admin';
+  if (raw === 'gerente') return 'gerente';
+  return 'operador';
+}
+
+function getPreferredDashboardView(role: DashboardRole): DashboardView {
+  if (role === 'admin') return 'analitico';
+  if (role === 'gerente') return 'gerencial';
+  return 'operacional';
+}
+
+function getDashboardViewStorageKey(role: DashboardRole, filialId: string | null): string {
+  return `sc_dashboard_view_v1:${role}:${filialId || 'sem-filial'}`;
+}
+
+function readStoredDashboardView(key: string, fallback: DashboardView): DashboardView {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === 'operacional' || raw === 'gerencial' || raw === 'analitico') return raw;
+  } catch {
+    // ignore invalid storage
+  }
+  return fallback;
+}
+
+function goToPage(page: string) {
+  const button = document.querySelector(`.ni[data-p="${page}"]`);
+  if (button instanceof HTMLButtonElement) button.click();
+}
 
 function PeriodSelector({
   periodo,
@@ -175,7 +233,7 @@ function PeriodSelector({
   periodo: Periodo;
   onChange: (p: Periodo) => void;
 }) {
-  const PERIODS: { value: Periodo; label: string }[] = [
+  const periods: { value: Periodo; label: string }[] = [
     { value: 'semana', label: 'Semana' },
     { value: 'mes', label: 'Mês' },
     { value: 'ano', label: 'Ano' },
@@ -183,7 +241,7 @@ function PeriodSelector({
   ];
   return (
     <div className="pseg" data-testid="dash-period-selector">
-      {PERIODS.map((p) => (
+      {periods.map((p) => (
         <button
           key={p.value}
           className={periodo === p.value ? 'on' : ''}
@@ -193,6 +251,31 @@ function PeriodSelector({
           {p.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function DashboardViewSelector({
+  view,
+  onChange
+}: {
+  view: DashboardView;
+  onChange: (view: DashboardView) => void;
+}) {
+  return (
+    <div className="dash-view-selector" aria-label="Mudar objetivo do painel">
+      {(Object.entries(DASHBOARD_VIEW_LABELS) as Array<[DashboardView, string]>).map(
+        ([value, label]) => (
+          <button
+            key={value}
+            className={view === value ? 'on' : ''}
+            onClick={() => onChange(value)}
+            type="button"
+          >
+            {label}
+          </button>
+        )
+      )}
     </div>
   );
 }
@@ -219,18 +302,13 @@ function DashKpis({
       <div className="met metric-card">
         <div className="metric-card__eyebrow">Receita</div>
         <div className="ml">Faturamento</div>
-        <div className="mv kpi-value-sm" data-testid="kpi-fat">
-          {fmt(fat)}
-        </div>
+        <div className="mv kpi-value-sm">{fmt(fat)}</div>
         <div className="ms metric-card__foot">{entreguesCount} entregue(s)</div>
       </div>
       <div className="met metric-card">
         <div className="metric-card__eyebrow">Resultado</div>
         <div className="ml">Lucro bruto</div>
-        <div
-          className={`mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}`}
-          data-testid="kpi-lucro"
-        >
+        <div className={`mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}`}>
           {fmt(lucro)}
         </div>
         <div className="ms metric-card__foot">
@@ -242,7 +320,6 @@ function DashKpis({
         <div className="ml">Margem</div>
         <div
           className={`mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}`}
-          data-testid="kpi-mg"
         >
           {pct(mg)}
         </div>
@@ -253,17 +330,13 @@ function DashKpis({
       <div className="met metric-card">
         <div className="metric-card__eyebrow">Conversão</div>
         <div className="ml">Ticket médio</div>
-        <div className="mv kpi-value-sm" data-testid="kpi-tk">
-          {fmt(tk)}
-        </div>
+        <div className="mv kpi-value-sm">{fmt(tk)}</div>
         <div className="ms metric-card__foot">Base {allPedsCount} pedido(s)</div>
       </div>
       <div className="met metric-card">
         <div className="metric-card__eyebrow">Pipeline</div>
         <div className="ml">Em aberto</div>
-        <div className="mv tone-warning" data-testid="kpi-abertos">
-          {abertos}
-        </div>
+        <div className="mv tone-warning">{abertos}</div>
         <div className="ms metric-card__foot">Orçamentos e confirmados</div>
       </div>
     </div>
@@ -282,17 +355,13 @@ function DashAlerts({
   hoje: Date;
 }) {
   if (!crit.length && !baixo.length && !anivProximos.length) {
-    return (
-      <div className="empty-inline table-cell-muted" data-testid="dash-alerts-empty">
-        Sem alertas no momento.
-      </div>
-    );
+    return <div className="empty-inline table-cell-muted">Sem alertas no momento.</div>;
   }
 
   return (
     <div data-testid="dash-alerts">
       {crit.length > 0 && (
-        <div className="alert al-r dash-alert-card" data-testid="dash-alert-crit">
+        <div className="alert al-r dash-alert-card">
           <div className="dash-alert-card__title">
             <b>Estoque crítico</b>
           </div>
@@ -308,7 +377,7 @@ function DashAlerts({
         </div>
       )}
       {baixo.length > 0 && (
-        <div className="alert al-a dash-alert-card" data-testid="dash-alert-baixo">
+        <div className="alert al-a dash-alert-card">
           <div className="dash-alert-card__title">
             <b>Estoque em atenção</b>
           </div>
@@ -323,7 +392,7 @@ function DashAlerts({
         </div>
       )}
       {anivProximos.length > 0 && (
-        <div className="alert al-g" data-testid="dash-alert-aniv">
+        <div className="alert al-g">
           <b>Aniversários próximos:</b>{' '}
           {anivProximos
             .slice(0, 3)
@@ -353,8 +422,8 @@ function DashChart({
 }) {
   if (!chartKeys.length) {
     return (
-      <div className="empty dash-empty-compact" data-testid="dash-chart-empty">
-        <p>Sem pedidos entregues no período</p>
+      <div className="empty dash-empty-compact">
+        <p>Sem pedidos entregues no período.</p>
       </div>
     );
   }
@@ -397,7 +466,7 @@ function DashChart({
 }
 
 function DashStatusPedidos({ stMap }: { stMap: Record<string, number> }) {
-  const STATUS_LABELS: Record<string, string> = {
+  const labels: Record<string, string> = {
     orcamento: 'Orçamento',
     confirmado: 'Confirmado',
     em_separacao: 'Em separação',
@@ -407,7 +476,7 @@ function DashStatusPedidos({ stMap }: { stMap: Record<string, number> }) {
   const total = Object.values(stMap).reduce((a, v) => a + v, 0);
   return (
     <div data-testid="dash-status-pedidos">
-      {Object.entries(STATUS_LABELS).map(([key, label]) => {
+      {Object.entries(labels).map(([key, label]) => {
         const count = stMap[key] ?? 0;
         const pctVal = total > 0 ? (count / total) * 100 : 0;
         return (
@@ -435,18 +504,14 @@ function DashTopProdutos({
   maxFat: number;
 }) {
   if (!topProdutos.length) {
-    return (
-      <div className="empty-inline table-cell-muted" data-testid="dash-top-empty">
-        Sem dados no período.
-      </div>
-    );
+    return <div className="empty-inline table-cell-muted">Sem dados no período.</div>;
   }
   return (
     <div data-testid="dash-top-produtos">
       {topProdutos.map(([nome, fat]) => (
         <div key={nome} className="dash-top-row">
           <span className="dash-top-label" title={nome}>
-            {nome.length > 28 ? nome.slice(0, 28) + '…' : nome}
+            {nome.length > 28 ? `${nome.slice(0, 28)}…` : nome}
           </span>
           <span className="dash-top-bar">
             <span
@@ -461,7 +526,190 @@ function DashTopProdutos({
   );
 }
 
-// ── Main page component ───────────────────────────────────────────────────────
+function DashboardRoleSummary({
+  role,
+  view,
+  derived,
+  pedidosCount,
+  produtosCount,
+  clientesCount
+}: {
+  role: DashboardRole;
+  view: DashboardView;
+  derived: ReturnType<typeof computeDerivedData>;
+  pedidosCount: number;
+  produtosCount: number;
+  clientesCount: number;
+}) {
+  const focusByRole: Record<
+    DashboardRole,
+    {
+      title: string;
+      copy: string;
+      items: Array<{ label: string; value: string; hint: string; cta: string; page: string }>;
+    }
+  > = {
+    operador: {
+      title: 'Seu foco hoje',
+      copy: 'Leitura direta para agir mais rápido na operação do dia.',
+      items: [
+        {
+          label: 'Fila em aberto',
+          value: String(derived.abertos),
+          hint:
+            derived.abertos > 0
+              ? `${fmt(derived.pipelineValue)} aguardando avanço.`
+              : 'Sem fila pendente agora.',
+          cta: 'Abrir pedidos',
+          page: 'pedidos'
+        },
+        {
+          label: 'Estoque crítico',
+          value: String(derived.crit.length),
+          hint:
+            derived.crit.length > 0
+              ? 'Há itens zerados pedindo reposição.'
+              : 'Sem ruptura crítica neste momento.',
+          cta: 'Ver estoque',
+          page: 'estoque'
+        },
+        {
+          label: 'Base ativa',
+          value: `${produtosCount} / ${clientesCount}`,
+          hint: 'Produtos e clientes já prontos para vender.',
+          cta: 'Ver clientes',
+          page: 'clientes'
+        }
+      ]
+    },
+    gerente: {
+      title: 'Resumo para gestão',
+      copy: 'O que mais influencia ritmo, resultado e acompanhamento da filial.',
+      items: [
+        {
+          label: 'Faturamento',
+          value: fmt(derived.fat),
+          hint: `${derived.entreguesHoje} entrega(s) concluída(s) hoje.`,
+          cta: 'Ver relatórios',
+          page: 'relatorios'
+        },
+        {
+          label: 'Margem',
+          value: pct(derived.mg),
+          hint:
+            derived.mg >= 15 ? 'Margem em zona confortável.' : 'Vale revisar mix, preço e custo.',
+          cta: 'Ver análises',
+          page: 'gerencial'
+        },
+        {
+          label: 'Pipeline',
+          value: fmt(derived.pipelineValue),
+          hint: `${derived.abertos} pedido(s) ainda em aberto.`,
+          cta: 'Acompanhar pedidos',
+          page: 'pedidos'
+        }
+      ]
+    },
+    admin: {
+      title: 'Visão de escala e controle',
+      copy: 'Sinais de maturidade da base e pontos que pedem padronização.',
+      items: [
+        {
+          label: 'Contato da base',
+          value: pct(derived.coberturaContatoPct),
+          hint: `${derived.clientesComContato} de ${clientesCount} clientes com canal preenchido.`,
+          cta: 'Revisar clientes',
+          page: 'clientes'
+        },
+        {
+          label: 'Estoque saudável',
+          value: pct(derived.estoqueSaudavelPct),
+          hint: 'Percentual do catálogo fora da zona de risco.',
+          cta: 'Revisar estoque',
+          page: 'estoque'
+        },
+        {
+          label: 'Mix ativo',
+          value: pct(derived.mixAtivoPct),
+          hint: `${pedidosCount} pedido(s) alimentando a leitura atual.`,
+          cta: 'Ajustar acessos',
+          page: 'acessos'
+        }
+      ]
+    }
+  };
+
+  const focus = focusByRole[role];
+
+  return (
+    <section className="dash-role-summary card card-shell dash-bento-card">
+      <div className="dash-role-summary__head">
+        <div>
+          <div className="dash-role-summary__eyebrow">
+            {ROLE_LABELS[role]} · modo {DASHBOARD_VIEW_LABELS[view]}
+          </div>
+          <h3>{focus.title}</h3>
+          <p>{focus.copy}</p>
+        </div>
+        <span className={`bdg ${role === 'admin' ? 'br' : role === 'gerente' ? 'ba' : 'bg'}`}>
+          {ROLE_LABELS[role]}
+        </span>
+      </div>
+      <div className="dash-role-summary__grid">
+        {focus.items.map((item) => (
+          <div key={item.label} className="dash-role-summary__item">
+            <div className="dash-role-summary__label">{item.label}</div>
+            <div className="dash-role-summary__value">{item.value}</div>
+            <div className="dash-role-summary__hint">{item.hint}</div>
+            <button className="btn btn-sm" type="button" onClick={() => goToPage(item.page)}>
+              {item.cta}
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DashboardInsightGrid({
+  derived,
+  clientesCount,
+  produtosCount
+}: {
+  derived: ReturnType<typeof computeDerivedData>;
+  clientesCount: number;
+  produtosCount: number;
+}) {
+  const cards = [
+    {
+      title: 'Cobertura de contato',
+      value: pct(derived.coberturaContatoPct),
+      hint: `${derived.clientesComContato} de ${clientesCount} clientes com telefone, WhatsApp ou e-mail.`
+    },
+    {
+      title: 'Taxa de entrega',
+      value: pct(derived.taxaEntrega),
+      hint: 'Participação de pedidos entregues dentro da base observada.'
+    },
+    {
+      title: 'Catálogo ativo',
+      value: pct(derived.mixAtivoPct),
+      hint: `${produtosCount} produtos no catálogo e ${derived.crit.length + derived.baixo.length} em atenção.`
+    }
+  ];
+
+  return (
+    <div className="dash-insight-grid">
+      {cards.map((card) => (
+        <div key={card.title} className="card card-shell dash-bento-card dash-insight-card">
+          <div className="ct">{card.title}</div>
+          <div className="dash-insight-card__value">{card.value}</div>
+          <div className="dash-insight-card__hint">{card.hint}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function DashboardPilotPage() {
   const periodo = useDashboardStore((s) => s.periodo);
@@ -472,6 +720,19 @@ export function DashboardPilotPage() {
   const error = useDashboardStore((s) => s.error);
   const setPeriodo = useDashboardStore((s) => s.setPeriodo);
   const filialId = useFilialStore((s) => s.filialId);
+  const userRole = readUserRole();
+  const viewStorageKey = getDashboardViewStorageKey(userRole, filialId);
+  const [view, setView] = useState<DashboardView>(() =>
+    readStoredDashboardView(viewStorageKey, getPreferredDashboardView(userRole))
+  );
+
+  useEffect(() => {
+    setView(readStoredDashboardView(viewStorageKey, getPreferredDashboardView(userRole)));
+  }, [userRole, viewStorageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(viewStorageKey, view);
+  }, [view, viewStorageKey]);
 
   const derived = useMemo(
     () => computeDerivedData(pedidos, produtos, clientes, periodo),
@@ -485,23 +746,23 @@ export function DashboardPilotPage() {
     tudo: 'Todos os períodos'
   };
 
+  const showOperational = view === 'operacional';
+  const showManagerial = view === 'gerencial';
+  const showAnalytical = view === 'analitico';
+
   return (
     <div className="dash-bento-page" data-testid="dashboard-pilot-page">
-      {/* Toolbar */}
       <div className="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
-        <div className="fg2">
-          <span className="table-cell-muted" style={{ fontSize: '0.85em' }}>
-            {filialId ?? '—'} — {periodoLabels[periodo]}
+        <div className="fg2 dash-page-toolbar">
+          <span className="table-cell-muted dash-page-toolbar__meta">
+            {filialId ?? '—'} · {periodoLabels[periodo]}
           </span>
           <PeriodSelector periodo={periodo} onChange={setPeriodo} />
         </div>
+        <DashboardViewSelector view={view} onChange={setView} />
       </div>
 
-      {error && (
-        <div className="alert al-r" data-testid="dash-pilot-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="alert al-r">{error}</div>}
 
       {status === 'loading' && (
         <div className="sk-card" data-testid="dash-pilot-loading">
@@ -513,7 +774,15 @@ export function DashboardPilotPage() {
 
       {status === 'ready' && (
         <>
-          {/* KPI band */}
+          <DashboardRoleSummary
+            role={userRole}
+            view={view}
+            derived={derived}
+            pedidosCount={pedidos.length}
+            produtosCount={produtos.length}
+            clientesCount={clientes.length}
+          />
+
           <DashKpis
             fat={derived.fat}
             lucro={derived.lucro}
@@ -524,51 +793,91 @@ export function DashboardPilotPage() {
             allPedsCount={pedidos.length}
           />
 
-          {/* Operação rápida */}
-          <section className="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
-            <div className="dash-section-head">
-              <h3>Operação rápida</h3>
-              <p>Ações que precisam de decisão agora</p>
-            </div>
-            <DashAlerts
-              crit={derived.crit}
-              baixo={derived.baixo}
-              anivProximos={derived.anivProximos}
-              hoje={derived.hoje}
-            />
-          </section>
-
-          {/* Análise */}
-          <section className="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis">
-            <div className="dash-section-head">
-              <h3>Análise do negócio</h3>
-              <p>Leitura de desempenho e tendência comercial</p>
-            </div>
-
-            {/* Chart + Status */}
-            <div className="dash-grid-main dash-bento-grid dash-bento-grid--primary">
-              <div className="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart">
-                <div className="ct">Faturamento e lucro</div>
-                <DashChart
-                  chartKeys={derived.chartKeys}
-                  grupos={derived.grupos}
-                  maxFat={derived.maxChartFat}
+          {showOperational && (
+            <>
+              <section className="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
+                <div className="dash-section-head">
+                  <h3>Decisões de hoje</h3>
+                  <p>Fila, ruptura e sinais que pedem ação imediata.</p>
+                </div>
+                <DashAlerts
+                  crit={derived.crit}
+                  baixo={derived.baixo}
+                  anivProximos={derived.anivProximos}
+                  hoje={derived.hoje}
                 />
-              </div>
-              <div className="card card-shell dash-card dash-bento-card dash-bento-card--status">
-                <div className="ct">Status dos pedidos</div>
-                <DashStatusPedidos stMap={derived.stMap} />
-              </div>
-            </div>
+              </section>
 
-            {/* Top produtos */}
-            <div className="dash-grid-cards dash-grid-cards--analise">
-              <div className="card card-shell dash-card dash-card--top dash-bento-card">
-                <div className="ct">Top produtos</div>
-                <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+              <div className="dash-grid-main dash-bento-grid dash-bento-grid--primary">
+                <div className="card card-shell dash-card dash-bento-card dash-bento-card--status">
+                  <div className="ct">Status dos pedidos</div>
+                  <DashStatusPedidos stMap={derived.stMap} />
+                </div>
+                <div className="card card-shell dash-card dash-card--top dash-bento-card">
+                  <div className="ct">Top produtos</div>
+                  <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+                </div>
               </div>
-            </div>
-          </section>
+            </>
+          )}
+
+          {(showManagerial || showAnalytical) && (
+            <section className="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis">
+              <div className="dash-section-head">
+                <h3>{showAnalytical ? 'Leitura analítica' : 'Leitura gerencial'}</h3>
+                <p>
+                  {showAnalytical
+                    ? 'Profundidade para identificar padrão, cobertura e consistência operacional.'
+                    : 'Resultado, tendência e distribuição do desempenho comercial.'}
+                </p>
+              </div>
+
+              {showAnalytical && (
+                <DashboardInsightGrid
+                  derived={derived}
+                  clientesCount={clientes.length}
+                  produtosCount={produtos.length}
+                />
+              )}
+
+              <div className="dash-grid-main dash-bento-grid dash-bento-grid--primary">
+                <div className="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart">
+                  <div className="ct">Faturamento e lucro</div>
+                  <DashChart
+                    chartKeys={derived.chartKeys}
+                    grupos={derived.grupos}
+                    maxFat={derived.maxChartFat}
+                  />
+                </div>
+                <div className="card card-shell dash-card dash-bento-card dash-bento-card--status">
+                  <div className="ct">Status dos pedidos</div>
+                  <DashStatusPedidos stMap={derived.stMap} />
+                </div>
+              </div>
+
+              <div className="dash-grid-cards dash-grid-cards--analise">
+                <div className="card card-shell dash-card dash-card--top dash-bento-card">
+                  <div className="ct">Top produtos</div>
+                  <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {showAnalytical && (
+            <section className="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
+              <div className="dash-section-head">
+                <h3>Sinais operacionais de apoio</h3>
+                <p>Contexto que ajuda a explicar resultado e orientar ajuste fino.</p>
+              </div>
+              <DashAlerts
+                crit={derived.crit}
+                baixo={derived.baixo}
+                anivProximos={derived.anivProximos}
+                hoje={derived.hoje}
+              />
+            </section>
+          )}
         </>
       )}
     </div>
