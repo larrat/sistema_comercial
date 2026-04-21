@@ -1171,14 +1171,25 @@
         <p class="modal-helper">
           Comece pelo essencial da unidade. Endere?o e cor ficam dispon?veis nas op??es avan?adas.
         </p>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Nome *</div>
-            <input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza" />
+        <div class="form-section-card">
+          <div class="form-section-head">
+            <div>
+              <div class="form-section-title">Essencial</div>
+              <div class="form-section-copy">
+                Identifique a unidade e a cidade antes de preencher os detalhes administrativos.
+              </div>
+            </div>
+            <span class="bdg bb">Primeiro</span>
           </div>
-          <div>
-            <div class="fl">Cidade</div>
-            <input class="inp" id="fil-cidade" placeholder="Fortaleza" />
+          <div class="fg c2">
+            <div>
+              <div class="fl">Nome *</div>
+              <input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza" />
+            </div>
+            <div>
+              <div class="fl">Cidade</div>
+              <input class="inp" id="fil-cidade" placeholder="Fortaleza" />
+            </div>
           </div>
         </div>
         <details class="form-advanced">
@@ -1259,57 +1270,69 @@
         </div>
 
         <div class="flow-step on" data-flow-id="prod" data-step="1">
-          <div class="fg">
-            <div>
-              <div class="fl">
-                Produto Pai
-                <span style="color: var(--tx3); font-size: 11px; font-weight: 400"
-                  >(opcional — para variantes de cor, time, modelo...)</span
-                >
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <div>
+                <div class="form-section-title">Dados principais</div>
+                <div class="form-section-copy">
+                  Cadastre identificacao e custo primeiro. Regras comerciais entram na proxima
+                  etapa.
+                </div>
               </div>
-              <select class="inp sel" id="p-pai" data-input="onPaiChange()">
-                <option value="">— produto independente —</option>
-              </select>
+              <span class="bdg bb">Essencial</span>
             </div>
-          </div>
-          <div class="fg c2">
-            <div>
-              <div class="fl">Nome *</div>
-              <input class="inp" id="p-nome" placeholder="Nome do produto" />
+            <div class="fg">
+              <div>
+                <div class="fl">
+                  Produto Pai
+                  <span style="color: var(--tx3); font-size: 11px; font-weight: 400"
+                    >(opcional — para variantes de cor, time, modelo...)</span
+                  >
+                </div>
+                <select class="inp sel" id="p-pai" data-input="onPaiChange()">
+                  <option value="">— produto independente —</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <div class="fl">SKU / Codigo</div>
-              <input class="inp" id="p-sku" placeholder="PRD-001" />
+            <div class="fg c2">
+              <div>
+                <div class="fl">Nome *</div>
+                <input class="inp" id="p-nome" placeholder="Nome do produto" />
+              </div>
+              <div>
+                <div class="fl">SKU / Codigo</div>
+                <input class="inp" id="p-sku" placeholder="PRD-001" />
+              </div>
             </div>
-          </div>
-          <div class="fg c3">
-            <div>
-              <div class="fl">Unidade</div>
-              <select class="inp sel" id="p-un">
-                <option>un</option>
-                <option>kg</option>
-                <option>m</option>
-                <option>m2</option>
-                <option>L</option>
-                <option>cx</option>
-                <option>pc</option>
-                <option>t</option>
-              </select>
-            </div>
-            <div>
-              <div class="fl">Categoria</div>
-              <input class="inp" id="p-cat" placeholder="Ex: aco, eletrico" />
-            </div>
-            <div>
-              <div class="fl">Custo (R$) *</div>
-              <input
-                class="inp"
-                id="p-custo"
-                type="number"
-                step="0.01"
-                min="0"
-                data-input="syncProdFromCost()"
-              />
+            <div class="fg c3">
+              <div>
+                <div class="fl">Unidade</div>
+                <select class="inp sel" id="p-un">
+                  <option>un</option>
+                  <option>kg</option>
+                  <option>m</option>
+                  <option>m2</option>
+                  <option>L</option>
+                  <option>cx</option>
+                  <option>pc</option>
+                  <option>t</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Categoria</div>
+                <input class="inp" id="p-cat" placeholder="Ex: aco, eletrico" />
+              </div>
+              <div>
+                <div class="fl">Custo (R$) *</div>
+                <input
+                  class="inp"
+                  id="p-custo"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  data-input="syncProdFromCost()"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1417,25 +1440,36 @@
         </div>
 
         <div class="flow-step" data-flow-id="prod" data-step="3">
-          <div class="fg c3">
-            <div>
-              <div class="fl">Estoque minimo</div>
-              <input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0" />
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <div>
+                <div class="form-section-title">Estoque inicial</div>
+                <div class="form-section-copy">
+                  Preencha somente se o item ja entrar com saldo. Se ainda nao houver estoque, pode
+                  deixar zerado.
+                </div>
+              </div>
             </div>
-            <div>
-              <div class="fl">Saldo inicial</div>
-              <input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0" />
-            </div>
-            <div>
-              <div class="fl">Custo medio inicial</div>
-              <input
-                class="inp"
-                id="p-ecm"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="= custo"
-              />
+            <div class="fg c3">
+              <div>
+                <div class="fl">Estoque minimo</div>
+                <input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0" />
+              </div>
+              <div>
+                <div class="fl">Saldo inicial</div>
+                <input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0" />
+              </div>
+              <div>
+                <div class="fl">Custo medio inicial</div>
+                <input
+                  class="inp"
+                  id="p-ecm"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="= custo"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1530,50 +1564,62 @@
           </div>
 
           <div class="modal-shell-body">
-            <div class="fg c2">
-              <div>
-                <div class="fl">Nome *</div>
-                <input
-                  class="inp"
-                  id="camp-nome"
-                  placeholder="Ex: Aniversariantes do mes"
-                  data-input="renderCampanhaPreview()"
-                />
+            <div class="form-section-card">
+              <div class="form-section-head">
+                <div>
+                  <div class="form-section-title">Essencial</div>
+                  <div class="form-section-copy">
+                    Defina nome, canal e mensagem primeiro. Regras promocionais podem ficar para
+                    depois.
+                  </div>
+                </div>
+                <span class="bdg bb">Primeiro</span>
               </div>
-              <div>
-                <div class="fl">Tipo</div>
-                <select class="inp sel" id="camp-tipo">
-                  <option value="aniversario">Aniversário</option>
-                </select>
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Nome *</div>
+                  <input
+                    class="inp"
+                    id="camp-nome"
+                    placeholder="Ex: Aniversariantes do mes"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
+                <div>
+                  <div class="fl">Tipo</div>
+                  <select class="inp sel" id="camp-tipo">
+                    <option value="aniversario">Aniversário</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <div class="fg c3">
-              <div>
-                <div class="fl">Canal</div>
-                <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
-                  <option value="whatsapp_manual">WhatsApp manual</option>
-                  <option value="email">E-mail</option>
-                  <option value="sms">SMS</option>
-                </select>
-              </div>
-              <div>
-                <div class="fl">Dias de antecedencia</div>
-                <input
-                  class="inp"
-                  id="camp-dias"
-                  type="number"
-                  min="0"
-                  step="1"
-                  data-input="renderCampanhaPreview()"
-                />
-              </div>
-              <div>
-                <div class="fl">Ativa</div>
-                <label class="inline-choice inline-choice--tall"
-                  ><input id="camp-ativo" type="checkbox" checked />
-                  <span class="inline-choice__text">Campanha habilitada</span></label
-                >
+              <div class="fg c3">
+                <div>
+                  <div class="fl">Canal</div>
+                  <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
+                    <option value="whatsapp_manual">WhatsApp manual</option>
+                    <option value="email">E-mail</option>
+                    <option value="sms">SMS</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="fl">Dias de antecedencia</div>
+                  <input
+                    class="inp"
+                    id="camp-dias"
+                    type="number"
+                    min="0"
+                    step="1"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
+                <div>
+                  <div class="fl">Ativa</div>
+                  <label class="inline-choice inline-choice--tall"
+                    ><input id="camp-ativo" type="checkbox" checked />
+                    <span class="inline-choice__text">Campanha habilitada</span></label
+                  >
+                </div>
               </div>
             </div>
 
@@ -1614,24 +1660,34 @@
                 </div>
               </div>
             </details>
-            <div class="fg">
-              <div>
-                <div class="fl">Mensagem *</div>
-                <textarea
-                  class="inp"
-                  id="camp-mensagem"
-                  rows="6"
-                  placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"
-                  data-input="renderCampanhaPreview()"
-                ></textarea>
+            <div class="form-section-card">
+              <div class="form-section-head">
+                <div>
+                  <div class="form-section-title">Mensagem e preview</div>
+                  <div class="form-section-copy">
+                    Escreva o texto principal e valide logo abaixo como o cliente vai receber.
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="panel camp-preview-panel">
-              <div class="pt">Preview vivo da mensagem</div>
-              <div class="camp-preview-hint">
-                Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.
+              <div class="fg">
+                <div>
+                  <div class="fl">Mensagem *</div>
+                  <textarea
+                    class="inp"
+                    id="camp-mensagem"
+                    rows="6"
+                    placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"
+                    data-input="renderCampanhaPreview()"
+                  ></textarea>
+                </div>
               </div>
-              <div class="camp-preview" id="camp-preview"></div>
+              <div class="panel camp-preview-panel">
+                <div class="pt">Preview vivo da mensagem</div>
+                <div class="camp-preview-hint">
+                  Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.
+                </div>
+                <div class="camp-preview" id="camp-preview"></div>
+              </div>
             </div>
           </div>
 
