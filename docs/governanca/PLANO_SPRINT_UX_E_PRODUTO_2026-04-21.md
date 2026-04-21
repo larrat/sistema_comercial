@@ -11,6 +11,8 @@
 | Dashboard React ativo por padrao | Feito (commit 3705559) |
 | Clientes react-only, legado removido | Feito (commits 2026-04-17/18) |
 | Sidebar Fluig | Feita (commit 46f7404) |
+| Bloco 1 de UX (entrada, foco inicial e home) | Feito em implementacao, com validacao operacional ainda pendente |
+| Bloco 2 de UX (onboarding progressivo e formularios graduais) | Feito em implementacao, com responsividade e feedback operacional ainda pendentes |
 | Bloco 3 de UX (home por perfil, favoritos e atalhos) | Feito (commit 79f8165) |
 | Bloco 4 de UX (formularios e fluxos operacionais) | Feito (commits 8cc8db8 e 911fa81) |
 
@@ -41,12 +43,12 @@ Corrigir o que mais atrapalha entendimento basico, confianca e uso diario.
 - [ ] validar as RPCs e o fluxo real de contas a receber no ambiente real
 - [ ] limpar linguagem interna exposta na interface
 - [ ] remover placeholders e blocos experimentais visiveis
-- [ ] separar fluxo de entrada:
-  - [ ] entrar com conta
-  - [ ] criar empresa/filial
-  - [ ] escolher filial depois do login
+- [x] separar fluxo de entrada:
+  - [x] entrar com conta
+  - [x] criar empresa/filial
+  - [x] escolher filial depois do login
 - [ ] reduzir o menu principal para grupos mais claros
-- [ ] redesenhar a primeira dobra da home/dashboard
+- [x] redesenhar a primeira dobra da home/dashboard
 - [ ] criar estados vazios acionaveis nos modulos mais importantes
 
 ### Escopo alvo
@@ -59,8 +61,8 @@ Corrigir o que mais atrapalha entendimento basico, confianca e uso diario.
 
 ### Criterio de sucesso
 
-- [ ] o usuario entende o proximo passo logo na entrada
-- [ ] o dashboard deixa de parecer mural generico
+- [x] o usuario entende o proximo passo logo na entrada
+- [x] o dashboard deixa de parecer mural generico
 - [ ] as operacoes financeiras criticas passam confianca no ambiente real
 - [ ] a interface perde sinais evidentes de produto em transicao
 
@@ -81,7 +83,7 @@ Reduzir carga cognitiva e tornar os fluxos principais mais rapidos e previsiveis
 
 ### Entregas
 
-- [ ] criar onboarding progressivo com checklist inicial
+- [x] criar onboarding progressivo com checklist inicial
 - [ ] reorganizar arquitetura da informacao por objetivo do usuario
 - [ ] revisar nomenclatura dos modulos e acoes
 - [x] simplificar formularios principais:
@@ -104,7 +106,7 @@ Reduzir carga cognitiva e tornar os fluxos principais mais rapidos e previsiveis
 - [x] menos informacao exposta de uma vez
 - [x] menos esforco manual para cadastrar e operar
 - [x] maior consistencia entre modulos
-- [ ] onboarding orientado a time to value
+- [x] onboarding orientado a time to value
 
 ### Nao entra nesta etapa
 
@@ -122,13 +124,13 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 
 ### Entregas
 
-- [ ] home personalizada por perfil
-- [ ] dashboards separados por objetivo:
-  - [ ] operacional
-  - [ ] gerencial
-  - [ ] analitico
-- [ ] atalhos e favoritos por usuario
-- [ ] busca global de telas e acoes
+- [x] home personalizada por perfil
+- [x] dashboards separados por objetivo:
+  - [x] operacional
+  - [x] gerencial
+  - [x] analitico
+- [x] atalhos e favoritos por usuario
+- [x] busca global de telas e acoes
 - [ ] formularios com preenchimento inteligente mais forte
 - [ ] lazy-load mais agressivo e otimizacao de performance percebida
 - [ ] padronizacao visual mais ampla entre todos os modulos
@@ -136,8 +138,8 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 
 ### Criterio de sucesso
 
-- [ ] o sistema fica mais rapido para usuarios recorrentes
-- [ ] a navegacao depende menos de memoria
+- [x] o sistema fica mais rapido para usuarios recorrentes
+- [x] a navegacao depende menos de memoria
 - [ ] o produto parece maduro, consistente e escalavel
 
 ## Priorizacao executiva
@@ -145,14 +147,14 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 ### Prioridade maxima
 
 - [ ] confianca do financeiro
-- [ ] clareza da entrada
+- [x] clareza da entrada
 - [ ] simplificacao do menu
-- [ ] foco da home
+- [x] foco da home
 - [ ] remocao de ruido interno
 
 ### Prioridade media
 
-- [ ] onboarding guiado
+- [x] onboarding guiado
 - [x] formularios mais inteligentes
 - [ ] estados vazios melhores
 - [ ] feedback operacional
@@ -162,33 +164,33 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 
 - [ ] personalizacao
 - [ ] automacao
-- [ ] busca global
+- [x] busca global
 - [ ] refinamento avancado de performance e acessibilidade
 
 ## Sequencia recomendada de trabalho
 
 1. validar em ambiente real o fluxo React de contas a receber e a confianca operacional
-2. redesenhar entrada e fluxo inicial
+2. fechar validacao operacional da entrada e do onboarding
 3. reorganizar menu e arquitetura da informacao
 4. reduzir densidade e ruído da home
-5. atacar formularios criticos
-6. melhorar feedback, estados vazios e consistencia
-7. otimizar performance e mobile
+5. validar fluxos criticos de cadastro e operacao
+6. otimizar performance e mobile
+7. atacar acessibilidade e padronizacao fina
 
 ## Owners sugeridos
 
 ### Produto e UX
 
 - [ ] definir hierarquia de navegacao
-- [ ] definir onboarding
+- [x] definir onboarding
 - [ ] revisar nomenclatura
-- [ ] revisar dashboard
+- [x] revisar dashboard
 
 ### Frontend
 
-- [ ] implementar separacao da entrada
+- [x] implementar separacao da entrada
 - [ ] reorganizar menu
-- [ ] simplificar home
+- [x] simplificar home
 - [x] refatorar formularios prioritarios
 
 ### Backend
@@ -206,9 +208,9 @@ Refinar a experiencia para escala, maturidade e uso repetitivo.
 
 ## Definicao de pronto do plano
 
-- [ ] entrada clara
+- [x] entrada clara
 - [ ] navegacao mais leve
-- [ ] dashboard com foco
+- [x] dashboard com foco
 - [x] formularios menos cansativos
 - [ ] financeiro confiavel
 - [ ] produto com menos sinais de improviso e migracao exposta

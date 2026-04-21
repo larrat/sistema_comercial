@@ -64,41 +64,45 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 1 - Entrada, Login e Onboarding
 
+> **Estado em 2026-04-21:** entrada, escolha/criacao de filial e checklist inicial ja implementados no fluxo principal. Residual desta frente: validacao operacional mais ampla, esconder modulos avancados por maturidade da base e reduzir ainda mais ruido visual do primeiro contato.
+
 ### 1.1 Entrada do sistema
 
-- [ ] separar claramente:
-  - [ ] entrar com conta
-  - [ ] criar empresa/filial
-  - [ ] escolher filial apos login
-- [ ] remover a mistura de formularios concorrentes na primeira tela
-- [ ] definir CTA principal unico por estado
-- [ ] reduzir texto e elementos visuais do primeiro contato
+- [x] separar claramente:
+  - [x] entrar com conta
+  - [x] criar empresa/filial
+  - [x] escolher filial apos login
+- [x] remover a mistura de formularios concorrentes na primeira tela
+- [x] definir CTA principal unico por estado
+- [x] reduzir texto e elementos visuais do primeiro contato
 
 ### 1.2 Onboarding inicial
 
-- [ ] criar fluxo guiado de primeiro uso
-- [ ] definir checklist inicial do sistema:
-  - [ ] cadastrar filial
-  - [ ] cadastrar ou importar produtos
-  - [ ] cadastrar ou importar clientes
-  - [ ] criar primeiro pedido
+- [x] criar fluxo guiado de primeiro uso
+- [x] definir checklist inicial do sistema:
+  - [x] cadastrar filial
+  - [x] cadastrar ou importar produtos
+  - [x] cadastrar ou importar clientes
+  - [x] criar primeiro pedido
   - [ ] configurar acessos basicos
-- [ ] mostrar progresso do onboarding
+- [x] mostrar progresso do onboarding
 - [ ] esconder modulos avancados ate a base minima estar pronta
 
 ### 1.3 Time to value
 
 - [ ] definir qual eh a primeira entrega de valor esperada em menos de 10 minutos
-- [ ] criar CTA contextual para levar o usuario a essa entrega
+- [x] criar CTA contextual para levar o usuario a essa entrega
 - [ ] eliminar etapas que atrasem o primeiro resultado util
 
 ### Criterio de pronto da Fase 1
 
-- [ ] novo usuario entende em poucos segundos o que fazer primeiro
-- [ ] usuario recorrente entra sem competir com o fluxo de criacao
+- [x] novo usuario entende em poucos segundos o que fazer primeiro
+- [x] usuario recorrente entra sem competir com o fluxo de criacao
 - [ ] o sistema entrega utilidade concreta rapido
 
 ## Fase 2 - Arquitetura da Informacao e Navegacao
+
+> **Estado em 2026-04-21:** busca lateral, favoritos por usuario e busca rapida com `Ctrl+K` ja estao implementados. Residual desta frente: reorganizacao estrutural do menu, nomenclatura global e separacao mais forte entre operacao e administracao.
 
 ### 2.1 Reorganizacao do menu
 
@@ -124,9 +128,9 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ### 2.3 Busca e descoberta
 
-- [ ] revisar a busca de telas
-- [ ] evitar estado vazio frio como primeira resposta
-- [ ] oferecer atalhos ou sugestoes de destino frequente
+- [x] revisar a busca de telas
+- [x] evitar estado vazio frio como primeira resposta
+- [x] oferecer atalhos ou sugestoes de destino frequente
 
 ### Criterio de pronto da Fase 2
 
@@ -136,37 +140,39 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 3 - Dashboard e Home Operacional
 
+> **Estado em 2026-04-21:** dashboard React com modos `operacional`, `gerencial` e `analitico`, home por perfil e atalhos principais ja implementados. Residual desta frente: limpar o que ainda sobra de ruido interno, aprofundar estados vazios e seguir na reducao de densidade fora do dashboard React.
+
 ### 3.1 Redesenho da home
 
-- [ ] reduzir o numero de blocos na primeira dobra
+- [x] reduzir o numero de blocos na primeira dobra
 - [ ] priorizar 4 areas:
-  - [ ] o que exige atencao hoje
-  - [ ] o que esta vencendo ou em risco
-  - [ ] o que gera acao imediata
-  - [ ] indicadores resumidos
-- [ ] remover blocos secundarios da home principal
+  - [x] o que exige atencao hoje
+  - [x] o que esta vencendo ou em risco
+  - [x] o que gera acao imediata
+  - [x] indicadores resumidos
+- [x] remover blocos secundarios da home principal
 
 ### 3.2 Separacao de contextos
 
-- [ ] separar dashboard operacional de dashboard analitico
-- [ ] mover telemetria e itens de rollout para camadas internas
-- [ ] mover cards que nao levam a acao para visao secundaria
+- [x] separar dashboard operacional de dashboard analitico
+- [x] mover telemetria e itens de rollout para camadas internas
+- [x] mover cards que nao levam a acao para visao secundaria
 
 ### 3.3 Acoes rapidas
 
-- [ ] substituir placeholders por acoes reais
+- [x] substituir placeholders por acoes reais
 - [ ] definir atalhos principais:
-  - [ ] novo pedido
-  - [ ] novo cliente
+  - [x] novo pedido
+  - [x] novo cliente
   - [ ] registrar baixa
   - [ ] importar planilha
-- [ ] revisar ordem dos atalhos pelo uso esperado do operador
+- [x] revisar ordem dos atalhos pelo uso esperado do operador
 
 ### Criterio de pronto da Fase 3
 
-- [ ] a home ajuda a decidir e agir
-- [ ] a leitura fica rapida
-- [ ] blocos de baixo valor deixam de ocupar o topo da experiencia
+- [x] a home ajuda a decidir e agir
+- [x] a leitura fica rapida
+- [x] blocos de baixo valor deixam de ocupar o topo da experiencia
 
 ## Fase 4 - Formularios e Fluxos Operacionais
 
@@ -284,9 +290,9 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ## Ordem recomendada de execucao
 
 - [ ] Fase 0
-- [ ] Fase 1
+- [x] Fase 1
 - [ ] Fase 2
-- [ ] Fase 3
+- [x] Fase 3
 - [x] Fase 4
 - [ ] Fase 5
 - [ ] Fase 6
