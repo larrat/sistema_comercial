@@ -549,10 +549,14 @@ const PAGE_META = {
 };
 
 PAGE_META.relatorios.kicker = 'An\u00e1lises';
+PAGE_META.relatorios.title = 'Relat\u00f3rios';
+PAGE_META.relatorios.sub = 'An\u00e1lises detalhadas do desempenho comercial';
 PAGE_META.cotacao.kicker = 'Financeiro';
 PAGE_META.cotacao.title = 'Compras';
 PAGE_META.cotacao.sub = 'Fornecedores, pre\u00e7os e negocia\u00e7\u00f5es de compra';
 PAGE_META.estoque.kicker = 'Estoque';
+PAGE_META.acessos.title = 'Acessos e permiss\u00f5es';
+PAGE_META.acessos.sub = 'Perfis, usu\u00e1rios, convites e permiss\u00f5es por filial';
 PAGE_META.notificacoes.kicker = 'Marketing';
 PAGE_META.notificacoes.title = 'Alertas e pend\u00eancias';
 PAGE_META.notificacoes.sub = 'Pend\u00eancias, aten\u00e7\u00e3o e oportunidades para agir';

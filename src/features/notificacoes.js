@@ -1,7 +1,8 @@
 // @ts-check
 
 import { D, State, P, C } from '../app/store.js';
-import { fmtQ, toast } from '../shared/utils.js';
+import { fmtQ, notifyGuided } from '../shared/utils.js';
+import { SEVERITY } from '../shared/messages.js';
 import { measureRender } from '../shared/render-metrics.js';
 import { buildSkeletonLines } from './runtime-loading.js';
 
@@ -482,7 +483,12 @@ export function resolverNotificacao(id) {
   }
   renderNotificacoes();
   updateNotiBadge();
-  toast('Notificação movida para histórico.');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'alerta movido para o histórico',
+    impact: 'ele sai da fila ativa e não compete mais com pendências atuais',
+    next: 'reabra depois se precisar acompanhar novamente'
+  });
 }
 
 /**
@@ -501,7 +507,12 @@ export function reabrirNotificacao(id) {
 export function resolverTodasNotificacoes() {
   const ativos = [...notiCache];
   if (!ativos.length) {
-    toast('Inbox ja esta vazia.');
+    notifyGuided({
+      severity: SEVERITY.INFO,
+      what: 'não há alertas ativos para resolver',
+      impact: 'a fila já está em dia',
+      next: 'acompanhe novas entradas na central quando surgirem'
+    });
     return;
   }
   ativos.forEach((n) => notiPendingResolve.add(n.id));
@@ -531,7 +542,12 @@ export function resolverTodasNotificacoes() {
   ativos.forEach((n) => notiPendingResolve.delete(n.id));
   renderNotificacoes();
   updateNotiBadge();
-  toast('Todas notificacoes ativas foram resolvidas.');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'todos os alertas ativos foram resolvidos',
+    impact: 'a central ficou limpa para novas pendências',
+    next: 'use os filtros para revisar o histórico se precisar validar algo'
+  });
 }
 
 /**
@@ -567,7 +583,7 @@ function renderNotiContextCard(ativos, resumo) {
       <article class="context-card context-card--success">
         <div class="context-card__head">
           <span class="bdg bb">IA</span>
-          <span class="context-card__kicker">Notificações</span>
+          <span class="context-card__kicker">Alertas e pendências</span>
         </div>
         <div class="context-card__title">Inbox zerada — tudo em ordem</div>
         <div class="context-card__copy">Nenhuma notificação ativa no momento. A central continua pronta para reunir sinais de campanhas, estoque, clientes e agenda quando algo exigir ação.</div>
@@ -588,7 +604,7 @@ function renderNotiContextCard(ativos, resumo) {
       <article class="context-card context-card--danger">
         <div class="context-card__head">
           <span class="bdg br">Risco</span>
-          <span class="context-card__kicker">Notificações</span>
+          <span class="context-card__kicker">Alertas e pendências</span>
         </div>
         <div class="context-card__title">Estoque zerado com campanha ativa — risco de ruptura</div>
         <div class="context-card__copy">${prods}${sufixo} sem estoque enquanto há envios de campanha na fila. Clientes contactados podem não encontrar o produto disponível.</div>
@@ -614,7 +630,7 @@ function renderNotiContextCard(ativos, resumo) {
       <article class="context-card context-card--danger">
         <div class="context-card__head">
           <span class="bdg br">Crítico</span>
-          <span class="context-card__kicker">Notificações</span>
+          <span class="context-card__kicker">Alertas e pendências</span>
         </div>
         <div class="context-card__title">${resumo.critico} alerta${resumo.critico > 1 ? 's' : ''} crítico${resumo.critico > 1 ? 's' : ''} exigem ação imediata</div>
         <div class="context-card__copy">${detalhe}</div>
@@ -640,7 +656,7 @@ function renderNotiContextCard(ativos, resumo) {
       <article class="context-card context-card--warning">
         <div class="context-card__head">
           <span class="bdg ba">Atenção</span>
-          <span class="context-card__kicker">Notificações</span>
+          <span class="context-card__kicker">Alertas e pendências</span>
         </div>
         <div class="context-card__title">${resumo.atencao} item${resumo.atencao > 1 ? 'ns' : ''} pedindo atenção</div>
         <div class="context-card__copy">${detalhe}</div>
@@ -664,7 +680,7 @@ function renderNotiContextCard(ativos, resumo) {
     <article class="context-card context-card--success">
       <div class="context-card__head">
         <span class="bdg bb">Oportunidade</span>
-        <span class="context-card__kicker">Notificações</span>
+        <span class="context-card__kicker">Alertas e pendências</span>
       </div>
       <div class="context-card__title">${resumo.oportunidade} oportunidade${resumo.oportunidade > 1 ? 's' : ''} para aproveitar</div>
       <div class="context-card__copy">${dica}</div>
@@ -812,7 +828,7 @@ export function renderNotificacoes() {
 
       notiCache = ativos;
       if (!ativos.length) {
-        lista.innerHTML = `<div class="empty"><div class="ico">Inbox</div><p>Nenhuma notificação ativa para o filtro selecionado.</p></div>`;
+        lista.innerHTML = `<div class="empty"><div class="ico">Inbox</div><p>Nenhum alerta ativo para o filtro selecionado.</p><p class="table-cell-caption table-cell-muted">Troque o filtro ou acompanhe o histórico para revisar itens já tratados.</p></div>`;
       } else {
         lista.innerHTML = renderNotificacoesAtivasAgrupadas(ativos);
       }
