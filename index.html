@@ -149,7 +149,7 @@
             <button
               class="ni on"
               data-p="dashboard"
-              data-label="Dashboard"
+              data-label="Início"
               data-click="ir('dashboard')"
             >
               <span class="ico"
@@ -165,7 +165,7 @@
                   <rect x="11" y="2" width="7" height="7" rx="1.5" />
                   <rect x="2" y="11" width="7" height="7" rx="1.5" />
                   <rect x="11" y="11" width="7" height="7" rx="1.5" /></svg></span
-              >Dashboard
+              >Início
             </button>
             <button
               class="ni"
@@ -210,8 +210,8 @@
               >Relatórios
             </button>
           </section>
-          <section class="sb-group" data-group="Operacao">
-            <div class="nl">Operação</div>
+          <section class="sb-group" data-group="Cadastros">
+            <div class="nl">Cadastros</div>
             <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')">
               <span class="ico"
                 ><svg
@@ -243,6 +243,9 @@
                   <path d="M11 18c0-2.8 1.6-5.2 3.5-5.8" /></svg></span
               >Clientes
             </button>
+          </section>
+          <section class="sb-group" data-group="Vendas">
+            <div class="nl">Vendas</div>
             <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')">
               <span class="ico"
                 ><svg
@@ -262,6 +265,9 @@
                   <line x1="7" y1="15" x2="10" y2="15" /></svg></span
               >Pedidos
             </button>
+          </section>
+          <section class="sb-group" data-group="Financeiro">
+            <div class="nl">Financeiro</div>
             <button
               class="ni"
               data-p="receber"
@@ -283,12 +289,7 @@
                   <line x1="10" y1="13.5" x2="14" y2="13.5" /></svg></span
               >Contas a receber
             </button>
-            <button
-              class="ni"
-              data-p="cotacao"
-              data-label="Compras e cotação"
-              data-click="ir('cotacao')"
-            >
+            <button class="ni" data-p="cotacao" data-label="Compras" data-click="ir('cotacao')">
               <span class="ico"
                 ><svg
                   viewBox="0 0 20 20"
@@ -300,8 +301,11 @@
                 >
                   <path d="M3 3h6l8 8a2 2 0 0 1 0 2.8l-3.2 3.2a2 2 0 0 1-2.8 0L3 9V3z" />
                   <circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none" /></svg></span
-              >Compras e cotação
+              >Compras
             </button>
+          </section>
+          <section class="sb-group" data-group="Estoque">
+            <div class="nl">Estoque</div>
             <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')">
               <span class="ico"
                 ><svg
@@ -317,6 +321,9 @@
                   <polyline points="2 8.5 10 13 18 8.5" /></svg></span
               >Estoque <span class="nb is-hidden" id="est-badge">!</span>
             </button>
+          </section>
+          <section class="sb-group" data-group="Marketing">
+            <div class="nl">Marketing</div>
             <button
               class="ni"
               data-p="campanhas"
@@ -339,7 +346,7 @@
             <button
               class="ni"
               data-p="notificacoes"
-              data-label="Alertas"
+              data-label="Alertas e pendências"
               data-click="ir('notificacoes')"
             >
               <span class="ico"
@@ -353,7 +360,7 @@
                 >
                   <path d="M10 2a5 5 0 0 0-5 5v4l-2 2v1h14v-1l-2-2V7a5 5 0 0 0-5-5z" />
                   <path d="M8 16a2 2 0 0 0 4 0" /></svg></span
-              >Alertas <span class="nb is-hidden" id="noti-badge">!</span>
+              >Alertas e pendências <span class="nb is-hidden" id="noti-badge">!</span>
             </button>
           </section>
           <section class="sb-group" data-group="Administracao">
@@ -392,7 +399,7 @@
           <div class="sb-empty is-hidden" id="sb-empty">
             <div class="sb-empty-title">Nenhuma tela combina com a busca</div>
             <div class="sb-empty-sub">
-              Tente buscar por pedidos, clientes, estoque ou financeiro.
+              Tente buscar por vendas, cadastros, financeiro ou estoque.
             </div>
           </div>
         </nav>
@@ -1130,13 +1137,13 @@
             <span class="mico">DS</span>Início
           </button>
           <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')">
-            <span class="mico">GR</span>Gestão
+            <span class="mico">GR</span>Análises
           </button>
           <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')">
             <span class="mico">PD</span>Pedidos
           </button>
           <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')">
-            <span class="mico">CP</span>Camp.
+            <span class="mico">CP</span>Marketing
           </button>
           <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')">
             <span class="mico">NT</span>Alertas

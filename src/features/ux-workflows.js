@@ -116,18 +116,26 @@ export function executarAuditoriaAceite() {
 
 function getQuickCommands() {
   return [
-    { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => deps.ir?.('dashboard') },
-    { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ inicio', label: 'Abrir Início', run: () => deps.ir?.('dashboard') },
+    { cmd: '/ dashboard', label: 'Abrir Início', run: () => deps.ir?.('dashboard') },
+    { cmd: '/ analises', label: 'Abrir Análises', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ gerencial', label: 'Abrir Análises', run: () => deps.ir?.('gerencial') },
     { cmd: '/ relatorios', label: 'Abrir Relatórios', run: () => deps.ir?.('relatorios') },
     { cmd: '/ produtos', label: 'Abrir Produtos', run: () => deps.ir?.('produtos') },
     { cmd: '/ clientes', label: 'Abrir Clientes', run: () => deps.ir?.('clientes') },
     { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => deps.ir?.('pedidos') },
-    { cmd: '/ receber', label: 'Abrir Contas a Receber', run: () => deps.ir?.('receber') },
-    { cmd: '/ cotacao', label: 'Abrir Cotação', run: () => deps.ir?.('cotacao') },
+    { cmd: '/ receber', label: 'Abrir Contas a receber', run: () => deps.ir?.('receber') },
+    { cmd: '/ compras', label: 'Abrir Compras', run: () => deps.ir?.('cotacao') },
+    { cmd: '/ cotacao', label: 'Abrir Compras', run: () => deps.ir?.('cotacao') },
     { cmd: '/ estoque', label: 'Abrir Estoque', run: () => deps.ir?.('estoque') },
     { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => deps.ir?.('campanhas') },
+    { cmd: '/ alertas', label: 'Abrir Alertas e pendências', run: () => deps.ir?.('notificacoes') },
     { cmd: '/ acessos', label: 'Abrir Acessos', run: () => deps.ir?.('acessos') },
-    { cmd: '/ notificacoes', label: 'Abrir Notificações', run: () => deps.ir?.('notificacoes') },
+    {
+      cmd: '/ notificacoes',
+      label: 'Abrir Alertas e pendências',
+      run: () => deps.ir?.('notificacoes')
+    },
     { cmd: '/ filiais', label: 'Abrir Filiais', run: () => deps.ir?.('filiais') },
     {
       cmd: '/ novo pedido',

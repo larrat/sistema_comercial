@@ -276,6 +276,7 @@ let deps = {
   roleManagerPlus: ['admin', 'gerente'],
   roleAdminOnly: ['admin']
 };
+
 let pendingPageRender = 0;
 let pendingPageName = '';
 
@@ -390,7 +391,7 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   relatorios: {
-    kicker: 'Relat?rios',
+    kicker: 'AnÃ¡lises',
     title: 'Relat?rios',
     sub: 'Leituras detalhadas do desempenho comercial',
     primary: { label: 'Atualizar relatório', run: () => deps.renderRelatorios() },
@@ -465,9 +466,9 @@ const PAGE_META = {
     tertiary: null
   },
   cotacao: {
-    kicker: 'Compras',
-    title: 'Compras e cota??o',
-    sub: 'Fornecedores, pre?os e negocia??es',
+    kicker: 'Financeiro',
+    title: 'Compras',
+    sub: 'Fornecedores, pre?os e negocia??es de compra',
     primary: { label: 'Novo fornecedor', run: () => deps.abrirModal('modal-forn') },
     secondary: {
       label: 'Exportar CSV',
@@ -477,7 +478,7 @@ const PAGE_META = {
     tertiary: { label: 'Travar/Destravar', run: () => deps.cotLock() }
   },
   estoque: {
-    kicker: 'Opera??o',
+    kicker: 'Estoque',
     title: 'Estoque',
     sub: 'Saldo, alertas e movimenta??es',
     primary: {
@@ -538,7 +539,7 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   notificacoes: {
-    kicker: 'Alertas',
+    kicker: 'Marketing',
     title: 'Notificações',
     sub: 'Críticos, atenção e oportunidade',
     primary: { label: 'Resolver todas', run: () => deps.resolverTodasNotificacoesTracked() },
@@ -546,6 +547,15 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   }
 };
+
+PAGE_META.relatorios.kicker = 'An\u00e1lises';
+PAGE_META.cotacao.kicker = 'Financeiro';
+PAGE_META.cotacao.title = 'Compras';
+PAGE_META.cotacao.sub = 'Fornecedores, pre\u00e7os e negocia\u00e7\u00f5es de compra';
+PAGE_META.estoque.kicker = 'Estoque';
+PAGE_META.notificacoes.kicker = 'Marketing';
+PAGE_META.notificacoes.title = 'Alertas e pend\u00eancias';
+PAGE_META.notificacoes.sub = 'Pend\u00eancias, aten\u00e7\u00e3o e oportunidades para agir';
 
 export function pageAtual() {
   const on = document.querySelector('.pg.on');
