@@ -116,27 +116,19 @@ export async function gerarContaSeNecessario(
   const vencimento = calcVencimento(input.data, input.prazo);
   if (!vencimento) return;
 
-  try {
-    await inserirConta(context, {
-      id: globalThis.crypto.randomUUID(),
-      filial_id: context.filialId,
-      pedido_id: input.pedido_id,
-      pedido_num: input.pedido_num ?? null,
-      cliente_id: input.cliente_id ?? null,
-      cliente: input.cliente,
-      valor: input.valor,
-      valor_recebido: 0,
-      valor_em_aberto: input.valor,
-      vencimento,
-      status: 'pendente',
-      recebido_em: null,
-      ultimo_recebimento_em: null
-    });
-  } catch (err) {
-    // Falha silenciosa no automático — mesma política do legado
-    console.error(
-      `[pedidos-react] Falha ao gerar conta a receber para pedido #${input.pedido_num}:`,
-      err
-    );
-  }
+  await inserirConta(context, {
+    id: globalThis.crypto.randomUUID(),
+    filial_id: context.filialId,
+    pedido_id: input.pedido_id,
+    pedido_num: input.pedido_num ?? null,
+    cliente_id: input.cliente_id ?? null,
+    cliente: input.cliente,
+    valor: input.valor,
+    valor_recebido: 0,
+    valor_em_aberto: input.valor,
+    vencimento,
+    status: 'pendente',
+    recebido_em: null,
+    ultimo_recebimento_em: null
+  });
 }

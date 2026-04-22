@@ -123,8 +123,12 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
 
     setSaving(true);
     try {
-      await submitPedido(pedidoInput);
-      onSaved(pedidoInput as unknown as Pedido);
+      const aviso = await submitPedido(pedidoInput);
+      if (aviso) {
+        setError(aviso);
+      } else {
+        onSaved(pedidoInput as unknown as Pedido);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar pedido.');
     } finally {
@@ -165,6 +169,13 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
             {error && (
               <div className="empty-inline form-error-inline" data-testid="pedido-form-error">
                 {error}
+              </div>
+            )}
+
+            {status === 'entregue' && prazo === 'imediato' && (
+              <div className="empty-inline form-warn-inline" data-testid="pedido-form-warn-prazo">
+                Prazo imediato nao gera conta a receber automaticamente. Altere o prazo para 7,
+                15, 30 ou 60 dias para geracao automatica.
               </div>
             )}
 

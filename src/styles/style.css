@@ -9210,6 +9210,11 @@ textarea.inp:focus {
   color: var(--color-danger);
 }
 
+.form-warn-inline {
+  margin-bottom: 12px;
+  color: var(--color-warning);
+}
+
 .form-quick-actions {
   display: flex;
   gap: 8px;
