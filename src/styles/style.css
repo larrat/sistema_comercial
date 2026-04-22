@@ -71,6 +71,30 @@ body {
   line-height: 1.5;
   margin-bottom: 24px;
 }
+.setup-alert {
+  display: none;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--bd);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.setup-alert.is-hidden {
+  display: none;
+}
+.setup-alert--warning {
+  display: block;
+  background: var(--color-warning-soft);
+  border-color: var(--state-warning-bd);
+  color: var(--color-warning);
+}
+.setup-alert--error {
+  display: block;
+  background: #fef0f0;
+  border-color: rgba(187, 59, 59, 0.24);
+  color: #8f2020;
+}
 .setup-checklist {
   margin-top: 16px;
 }
@@ -192,6 +216,36 @@ body {
 #screen-app.on {
   display: flex;
   min-height: 100vh;
+}
+.app-runtime-banner {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  width: min(720px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--bd);
+  box-shadow: var(--sh-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.app-runtime-banner.is-hidden {
+  display: none;
+}
+.app-runtime-banner--warning {
+  display: block;
+  background: var(--color-warning-soft);
+  border-color: var(--state-warning-bd);
+  color: var(--color-warning);
+}
+.app-runtime-banner--error {
+  display: block;
+  background: #fef0f0;
+  border-color: rgba(187, 59, 59, 0.24);
+  color: #8f2020;
 }
 
 /* ── SIDEBAR ── */

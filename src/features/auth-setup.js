@@ -66,6 +66,53 @@ export const ROLE_UI_ADMIN_SELECTORS = [
 let roleUiGuardTimer = null;
 let roleUiObserver = null;
 
+function ensureSetupAlert() {
+  const card = document.querySelector('#screen-setup .setup-card');
+  if (!(card instanceof HTMLElement)) return null;
+  let el = document.getElementById('setup-alert');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'setup-alert';
+  el.className = 'setup-alert is-hidden';
+  const checklist = document.getElementById('setup-checklist');
+  if (checklist?.parentElement === card) {
+    card.insertBefore(el, checklist);
+  } else {
+    card.appendChild(el);
+  }
+  return el;
+}
+
+function clearSetupAlert() {
+  const el = ensureSetupAlert();
+  if (!el) return;
+  el.className = 'setup-alert is-hidden';
+  el.textContent = '';
+}
+
+/**
+ * @param {string} message
+ * @param {'warning' | 'error'} [tone='warning']
+ */
+function setSetupAlert(message, tone = 'warning') {
+  const el = ensureSetupAlert();
+  if (!el) return;
+  el.className = `setup-alert setup-alert--${tone}`;
+  el.textContent = message;
+}
+
+/**
+ * @param {unknown} err
+ * @param {string} fallbackMessage
+ */
+function describeBackendIssue(err, fallbackMessage) {
+  const normalized = SB.normalizeError(err);
+  if (SB.isBackendUnavailableError(normalized)) {
+    return 'O backend esta indisponivel no momento. O app vai tentar continuar com dados locais recentes.';
+  }
+  return normalized.message || fallbackMessage;
+}
+
 /**
  * @param {Element | null | undefined} el
  * @param {boolean} hidden
@@ -130,6 +177,44 @@ function renderSetupChecklist(state) {
       </div>
     </div>
   `;
+}
+
+/**
+ * @template T
+ * @param {Promise<T>} promise
+ * @param {number} timeoutMs
+ * @returns {Promise<T | null>}
+ */
+function withTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve(null), timeoutMs))
+  ]);
+}
+
+function getPersistedFilialId() {
+  try {
+    return localStorage.getItem('sc_filial_id') || '';
+  } catch {
+    return '';
+  }
+}
+
+function buildFallbackFiliais() {
+  const persistedId = getPersistedFilialId();
+  if (!persistedId) return [];
+  const existing = (D.filiais || []).find((filial) => filial.id === persistedId);
+  if (existing) return [existing];
+  return [
+    {
+      id: persistedId,
+      nome: 'Filial ativa',
+      cidade: '',
+      estado: '',
+      cor: deps.cores[0],
+      endereco: ''
+    }
+  ];
 }
 
 /** @type {Required<AuthSetupModuleDeps>} */
@@ -334,12 +419,18 @@ export function startRoleUiObserver() {
 export async function carregarContextoUsuario(session) {
   State.user = session?.user || null;
   let role = 'operador';
-  const perfilResult = await SB.toResult(() => SB.getMeuPerfil(session?.user?.id || null));
-  if (perfilResult.ok) {
+  const perfilResult = await withTimeout(
+    SB.toResult(() => SB.getMeuPerfil(session?.user?.id || null)),
+    4000
+  );
+  if (perfilResult?.ok) {
     const perfil = perfilResult.data;
     role = normalizeUserRole(perfil?.papel || '');
   } else {
-    console.warn('Perfil nao encontrado em user_perfis. Assumindo operador.', perfilResult.error);
+    console.warn(
+      'Perfil nao encontrado ou lookup demorou alem do limite. Assumindo operador.',
+      perfilResult?.error || null
+    );
   }
   State.userRole = role;
   renderRoleBadge();
@@ -459,9 +550,16 @@ export function renderSetupGrid() {
 
 export async function renderSetup() {
   document.body.dataset.setupState = 'starting';
+  clearSetupAlert();
   deps.mostrarTela('screen-setup');
   const sessionResult = await SB.toResult(() => SB.getSession());
   const session = sessionResult.ok ? sessionResult.data : null;
+  if (!sessionResult.ok && SB.isBackendUnavailableError(sessionResult.error)) {
+    setSetupAlert(
+      'Nao foi possivel validar a sessao agora porque o backend esta indisponivel. Se houver sessao local valida, ela sera reaproveitada automaticamente.',
+      'warning'
+    );
+  }
   if (!renderAuthGate(session)) {
     State.user = null;
     State.userRole = 'operador';
@@ -492,13 +590,33 @@ export async function renderSetup() {
     `;
   }
   deps.showLoading(true);
-  const filiaisResult = await SB.toResult(() => SB.getFiliais());
-  if (filiaisResult.ok) {
+  const filiaisResult = await withTimeout(
+    SB.toResult(() => SB.getFiliais()),
+    4000
+  );
+  if (filiaisResult?.ok) {
     D.filiais = filiaisResult.data || [];
   } else {
-    toast('Erro ao buscar filiais: ' + filiaisResult.error.message);
+    D.filiais = buildFallbackFiliais();
+    if (!D.filiais.length) {
+      const message = describeBackendIssue(filiaisResult?.error, 'Erro ao buscar filiais.');
+      toast(message);
+      setSetupAlert(
+        message,
+        SB.isBackendUnavailableError(filiaisResult?.error) ? 'warning' : 'error'
+      );
+    } else if (!IS_E2E_UI_CORE) {
+      toast('Nao foi possivel atualizar filiais agora. Usando a filial ativa recente.');
+      setSetupAlert(
+        'Filiais do banco nao responderam agora. Continuando com a filial usada mais recentemente.',
+        'warning'
+      );
+    }
   }
   deps.showLoading(false);
+  if (!State.selFil && D.filiais.length === 1) {
+    State.selFil = D.filiais[0].id;
+  }
   renderSetupGrid();
   document.body.dataset.setupState = D.filiais.length ? 'filiais-ready' : 'primeira-filial';
 }
@@ -538,10 +656,20 @@ export async function criarPrimeiraFilial() {
 
 export async function entrar() {
   document.body.dataset.bootstrapState = 'starting';
+  clearSetupAlert();
   const sessionResult = await SB.toResult(() => SB.getSession());
   const session = sessionResult.ok ? sessionResult.data : null;
   if (!session?.access_token) {
-    toast('Faca login para continuar.');
+    const message = sessionResult.ok
+      ? 'Faca login para continuar.'
+      : describeBackendIssue(sessionResult.error, 'Faca login para continuar.');
+    toast(message);
+    if (!sessionResult.ok) {
+      setSetupAlert(
+        message,
+        SB.isBackendUnavailableError(sessionResult.error) ? 'warning' : 'error'
+      );
+    }
     document.body.dataset.bootstrapState = 'auth-required';
     await renderSetup();
     return;
@@ -549,16 +677,36 @@ export async function entrar() {
   await carregarContextoUsuario(session);
 
   if (!State.selFil) {
+    const persistedFilialId = getPersistedFilialId();
+    if (persistedFilialId) {
+      State.selFil = persistedFilialId;
+    }
+  }
+
+  if (!State.selFil) {
     toast('Selecione uma filial.');
     document.body.dataset.bootstrapState = 'filial-required';
     return;
   }
 
-  const filiaisResult = await SB.toResult(() => SB.getFiliais());
-  if (filiaisResult.ok) {
+  const filiaisResult = await withTimeout(
+    SB.toResult(() => SB.getFiliais()),
+    4000
+  );
+  if (filiaisResult?.ok) {
     D.filiais = filiaisResult.data || [];
   } else {
-    console.error('Falha ao recarregar filiais na entrada', filiaisResult.error);
+    const fallbackFiliais = buildFallbackFiliais();
+    if (fallbackFiliais.length) {
+      D.filiais = fallbackFiliais;
+    }
+    console.error('Falha ao recarregar filiais na entrada', filiaisResult?.error || null);
+    if (fallbackFiliais.length) {
+      setSetupAlert(
+        'A validacao online das filiais falhou. O sistema vai continuar com a filial ativa salva localmente.',
+        'warning'
+      );
+    }
   }
 
   const f = D.filiais.find((x) => x.id === State.selFil);
@@ -596,7 +744,13 @@ export async function entrar() {
   deps.updateNotiBadge();
 
   deps.ir('dashboard');
-  document.body.dataset.bootstrapState = 'ready';
+  const runtimeBootstrap = document.body.dataset.runtimeBootstrap || 'ready';
+  document.body.dataset.bootstrapState =
+    runtimeBootstrap === 'ready'
+      ? 'ready'
+      : runtimeBootstrap === 'degraded'
+        ? 'degraded'
+        : 'runtime-error';
 }
 
 export function voltarSetup() {

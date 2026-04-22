@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { D } from '../../../../app/store.js';
-import { registrarBaixaRpc } from '../../contas-receber/services/contasReceberApi';
+import {
+  listBaixas,
+  listContas,
+  registrarBaixaRpc
+} from '../../contas-receber/services/contasReceberApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
@@ -138,16 +142,37 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
   const valorRecebido = getValorRecebido(conta);
   const valorEmAberto = getValorEmAberto(conta);
 
+  async function refreshContaFinanceira() {
+    if (!filialId || !session?.access_token) {
+      setContaState(readContaFinanceira(filialId, pedido.id));
+      return;
+    }
+
+    try {
+      const ctx = buildCrCtx();
+      const [contas, baixas] = await Promise.all([listContas(ctx), listBaixas(ctx)]);
+      if (!D.contasReceber) D.contasReceber = {};
+      if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
+      D.contasReceber[filialId] = contas;
+      D.contasReceberBaixas[filialId] = baixas;
+      setContaState(readContaFinanceira(filialId, pedido.id));
+    } catch {
+      setContaState(readContaFinanceira(filialId, pedido.id));
+    }
+  }
+
   useEffect(() => {
-    const sync = () => setContaState(readContaFinanceira(filialId, pedido.id));
-    sync();
+    const sync = () => {
+      void refreshContaFinanceira();
+    };
+    void refreshContaFinanceira();
     window.addEventListener('sc:contas-receber-sync', sync);
     window.addEventListener('sc:conta-receber-criada', sync);
     return () => {
       window.removeEventListener('sc:contas-receber-sync', sync);
       window.removeEventListener('sc:conta-receber-criada', sync);
     };
-  }, [filialId, pedido.id]);
+  }, [filialId, pedido.id, session?.access_token]);
 
   function buildCrCtx() {
     const cfg = getSupabaseConfig();
@@ -165,6 +190,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
         recebidoEm: new Date().toISOString(),
         observacao: null
       });
+      await refreshContaFinanceira();
       window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar recebimento');
@@ -192,6 +218,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
       });
       setShowBaixaForm(false);
       setBaixaValor('');
+      await refreshContaFinanceira();
       window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar baixa');
@@ -334,28 +361,39 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
                       )}
                     </div>
                   ) : (
-                    <div className="modal-actions">
-                      <button
-                        className="btn btn-sm"
-                        disabled={baixaLoading}
-                        onClick={() => {
-                          setBaixaError(null);
-                          setShowBaixaForm(true);
-                          setTimeout(() => baixaInputRef.current?.focus(), 50);
-                        }}
-                        data-testid="pedido-detail-baixa-parcial"
-                      >
-                        Baixa parcial
-                      </button>
-                      <button
-                        className="btn btn-sm btn-p"
-                        disabled={baixaLoading}
-                        onClick={() => void handleReceberTudo(conta.id, valorEmAberto)}
-                        data-testid="pedido-detail-receber-tudo"
-                      >
-                        {baixaLoading ? '...' : 'Receber tudo'}
-                      </button>
-                    </div>
+                    <>
+                      <div className="modal-actions">
+                        <button
+                          className="btn btn-sm"
+                          disabled={baixaLoading}
+                          onClick={() => {
+                            setBaixaError(null);
+                            setShowBaixaForm(true);
+                            setTimeout(() => baixaInputRef.current?.focus(), 50);
+                          }}
+                          data-testid="pedido-detail-baixa-parcial"
+                        >
+                          Baixa parcial
+                        </button>
+                        <button
+                          className="btn btn-sm btn-p"
+                          disabled={baixaLoading}
+                          onClick={() => void handleReceberTudo(conta.id, valorEmAberto)}
+                          data-testid="pedido-detail-receber-tudo"
+                        >
+                          {baixaLoading ? '...' : 'Receber tudo'}
+                        </button>
+                      </div>
+                      {baixaError && (
+                        <div
+                          className="bdg br"
+                          style={{ marginTop: '0.4rem', display: 'block' }}
+                          data-testid="pedido-detail-baixa-error"
+                        >
+                          {baixaError}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}

@@ -12,6 +12,68 @@ export function initRuntimeLoadingModule() {
   return true;
 }
 
+function ensureRuntimeBanner() {
+  const screen = document.getElementById('screen-app');
+  if (!(screen instanceof HTMLElement)) return null;
+  let el = document.getElementById('app-runtime-banner');
+  if (el) return el;
+  el = document.createElement('div');
+  el.id = 'app-runtime-banner';
+  el.className = 'app-runtime-banner is-hidden';
+  screen.insertBefore(el, screen.firstChild);
+  return el;
+}
+
+export function clearRuntimeBanner() {
+  const el = ensureRuntimeBanner();
+  if (!el) return;
+  el.className = 'app-runtime-banner is-hidden';
+  el.textContent = '';
+}
+
+/**
+ * @param {string} message
+ * @param {'warning' | 'error'} [tone='warning']
+ */
+export function setRuntimeBanner(message, tone = 'warning') {
+  const el = ensureRuntimeBanner();
+  if (!el) return;
+  el.className = `app-runtime-banner app-runtime-banner--${tone}`;
+  el.textContent = message;
+}
+
+/**
+ * @param {unknown} err
+ */
+function isBackendUnavailable(err) {
+  return SB.isBackendUnavailableError(err);
+}
+
+/**
+ * @template T
+ * @param {string} label
+ * @param {() => Promise<T>} loader
+ * @returns {Promise<{ label: string, ok: boolean, data: T | null, error: import('../types/domain').SbApiError | null, elapsedMs: number }>}
+ */
+async function timedSbResult(label, loader) {
+  const started = performance.now();
+  const result = await SB.toResult(loader);
+  const elapsedMs = Math.round(performance.now() - started);
+  const payload = {
+    label,
+    ok: result.ok,
+    data: result.ok ? result.data : null,
+    error: result.ok ? null : result.error,
+    elapsedMs
+  };
+  if (result.ok) {
+    console.info(`[runtime-loading] ${label} carregado em ${elapsedMs}ms`);
+  } else {
+    console.error(`[runtime-loading] ${label} falhou em ${elapsedMs}ms`, result.error);
+  }
+  return payload;
+}
+
 /**
  * @param {number} [lines]
  */
@@ -68,6 +130,7 @@ export function showLoading(on) {
  */
 export async function carregarDadosFilial(filId) {
   document.body.dataset.runtimeBootstrap = 'starting';
+  clearRuntimeBanner();
   renderSkeletonState();
   showLoading(true);
   try {
@@ -86,44 +149,94 @@ export async function carregarDadosFilial(filId) {
       contasReceberResult,
       contasReceberBaixasResult
     ] = await Promise.all([
-      SB.toResult(() => SB.getProdutos(filId)),
-      SB.toResult(() => SB.getClientes(filId)),
-      SB.toResult(() => SB.getPedidos(filId)),
-      SB.toResult(() => SB.getRcas(filId)),
-      SB.toResult(() => SB.getFornecedores(filId)),
-      SB.toResult(() => SB.getCotPrecos(filId)),
-      SB.toResult(() => SB.getCotConfig(filId)),
-      SB.toResult(() => SB.getMovs(filId)),
-      SB.toResult(() => SB.getJogosAgenda(filId)),
-      SB.toResult(() => SB.getCampanhas(filId)),
-      SB.toResult(() => SB.getCampanhaEnvios(filId)),
-      SB.toResult(() => SB.getContasReceber(filId)),
-      SB.toResult(() => SB.getContasReceberBaixas(filId))
+      timedSbResult('produtos', () => SB.getProdutos(filId)),
+      timedSbResult('clientes', () => SB.getClientes(filId)),
+      timedSbResult('pedidos', () => SB.getPedidos(filId)),
+      timedSbResult('rcas', () => SB.getRcas(filId)),
+      timedSbResult('fornecedores', () => SB.getFornecedores(filId)),
+      timedSbResult('cotacao_precos', () => SB.getCotPrecos(filId)),
+      timedSbResult('cotacao_config', () => SB.getCotConfig(filId)),
+      timedSbResult('movimentacoes', () => SB.getMovs(filId)),
+      timedSbResult('jogos_agenda', () => SB.getJogosAgenda(filId)),
+      timedSbResult('campanhas', () => SB.getCampanhas(filId)),
+      timedSbResult('campanha_envios', () => SB.getCampanhaEnvios(filId)),
+      timedSbResult('contas_receber', () => SB.getContasReceber(filId)),
+      timedSbResult('contas_receber_baixas', () => SB.getContasReceberBaixas(filId))
     ]);
+
+    console.info(
+      '[runtime-loading] resumo da filial',
+      [
+        prodsResult,
+        clisResult,
+        pedsResult,
+        rcasResult,
+        fornsResult,
+        precosResult,
+        cfgResult,
+        movsResult,
+        jogosResult,
+        campanhasResult,
+        campanhaEnviosResult,
+        contasReceberResult,
+        contasReceberBaixasResult
+      ].map((item) => ({
+        recurso: item.label,
+        ok: item.ok,
+        ms: item.elapsedMs
+      }))
+    );
+
+    const coreFallbacks = {
+      produtos: { hasCache: Array.isArray(D.produtos?.[filId]), data: D.produtos?.[filId] || [] },
+      clientes: { hasCache: Array.isArray(D.clientes?.[filId]), data: D.clientes?.[filId] || [] },
+      pedidos: { hasCache: Array.isArray(D.pedidos?.[filId]), data: D.pedidos?.[filId] || [] },
+      fornecedores: {
+        hasCache: Array.isArray(D.fornecedores?.[filId]),
+        data: D.fornecedores?.[filId] || []
+      },
+      cotacao_precos: {
+        hasCache: !!D.cotPrecos?.[filId],
+        data: D.cotPrecos?.[filId] || {}
+      },
+      cotacao_config: {
+        hasCache: !!D.cotConfig?.[filId],
+        data: D.cotConfig?.[filId] || { filial_id: filId, locked: false, logs: [] }
+      },
+      movimentacoes: { hasCache: Array.isArray(D.movs?.[filId]), data: D.movs?.[filId] || [] }
+    };
 
     const baseFailures = [
       prodsResult,
       clisResult,
       pedsResult,
-      rcasResult,
       fornsResult,
       precosResult,
       cfgResult,
       movsResult
     ].filter((r) => !r.ok);
 
-    if (baseFailures.length) {
+    const canRunWithFallback =
+      baseFailures.length > 0 &&
+      baseFailures.every((failure) => coreFallbacks[failure.label]?.hasCache === true);
+
+    if (baseFailures.length && !canRunWithFallback) {
       throw baseFailures[0].error;
     }
 
-    const prods = prodsResult.data;
-    const clis = clisResult.data;
-    const peds = pedsResult.data;
-    const rcas = rcasResult.data;
-    const forns = fornsResult.data;
-    const precos = precosResult.data;
-    const cfg = cfgResult.data;
-    const movs = movsResult.data;
+    const prods = prodsResult.ok ? prodsResult.data : coreFallbacks.produtos.data;
+    const clis = clisResult.ok ? clisResult.data : coreFallbacks.clientes.data;
+    const peds = pedsResult.ok ? pedsResult.data : coreFallbacks.pedidos.data;
+    const forns = fornsResult.ok ? fornsResult.data : coreFallbacks.fornecedores.data;
+    const precos = precosResult.ok ? precosResult.data : [];
+    const cfg = cfgResult.ok ? cfgResult.data : coreFallbacks.cotacao_config.data;
+    const movs = movsResult.ok ? movsResult.data : coreFallbacks.movimentacoes.data;
+
+    const rcas = rcasResult.ok ? rcasResult.data || [] : D.rcas?.[filId] || [];
+    if (!rcasResult.ok) {
+      console.error('Falha ao carregar RCAs na entrada da filial', rcasResult.error);
+      if (!IS_E2E_UI_CORE) toast('Nao foi possivel carregar RCAs do banco. Usando cache local.');
+    }
 
     const jogos = jogosResult.ok ? jogosResult.data || [] : [];
     if (!jogosResult.ok) {
@@ -207,11 +320,35 @@ export async function carregarDadosFilial(filId) {
     if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
     D.contasReceberBaixas[filId] = contasReceberBaixas || [];
 
-    document.body.dataset.runtimeBootstrap = 'ready';
+    const hasFailures =
+      baseFailures.length > 0 ||
+      !rcasResult.ok ||
+      !jogosResult.ok ||
+      !campanhasResult.ok ||
+      !campanhaEnviosResult.ok ||
+      !contasReceberResult.ok ||
+      !contasReceberBaixasResult.ok;
+
+    document.body.dataset.runtimeBootstrap = hasFailures ? 'degraded' : 'ready';
+    if (hasFailures) {
+      setRuntimeBanner(
+        'Alguns dados do banco nao responderam agora. O sistema abriu em modo degradado usando cache local quando possivel.',
+        'warning'
+      );
+    }
   } catch (e) {
     const err = SB.normalizeError(e);
-    document.body.dataset.runtimeBootstrap = 'error';
-    toast('Erro ao carregar: ' + err.message);
+    document.body.dataset.runtimeBootstrap = isBackendUnavailable(err) ? 'degraded' : 'error';
+    if (isBackendUnavailable(err)) {
+      setRuntimeBanner(
+        'O backend esta indisponivel no momento. A operacao foi aberta com os dados locais disponiveis, mas algumas acoes online podem falhar.',
+        'warning'
+      );
+      toast('Backend indisponivel no momento. Operando com dados locais quando possivel.');
+    } else {
+      setRuntimeBanner('Nao foi possivel carregar os dados principais da filial.', 'error');
+      toast('Erro ao carregar: ' + err.message);
+    }
     console.error(err);
   }
   showLoading(false);

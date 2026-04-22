@@ -1,5 +1,6 @@
 import type { PedidoApiContext } from './pedidosApi';
 import { normalizePedStatus } from '../types';
+import { D } from '../../../../app/store.js';
 
 const PRAZO_DIAS: Record<string, number> = {
   '7d': 7,
@@ -47,8 +48,16 @@ async function inserirConta(
     throw new Error(`Falha ao salvar conta a receber: ${res.status} ${text}`);
   }
 
-  // Notifica o legado para atualizar o cache D.contasReceber sem re-fetch
+  if (!D.contasReceber) D.contasReceber = {};
+  const contasFilial = D.contasReceber[context.filialId] || [];
+  const nextConta = conta as Record<string, unknown>;
+  D.contasReceber[context.filialId] = contasFilial.some((item) => item.id === nextConta.id)
+    ? contasFilial.map((item) => (item.id === nextConta.id ? { ...item, ...nextConta } : item))
+    : [nextConta, ...contasFilial];
+
+  // Notifica a aplicação para atualizar a visão local imediatamente.
   window.dispatchEvent(new CustomEvent('sc:conta-receber-criada', { detail: conta }));
+  window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
 }
 
 /**
@@ -76,8 +85,12 @@ export async function gerarContaForcado(
     cliente_id: input.cliente_id ?? null,
     cliente: input.cliente,
     valor: input.valor,
+    valor_recebido: 0,
+    valor_em_aberto: input.valor,
     vencimento,
-    status: 'pendente'
+    status: 'pendente',
+    recebido_em: null,
+    ultimo_recebimento_em: null
   });
 }
 
@@ -112,8 +125,12 @@ export async function gerarContaSeNecessario(
       cliente_id: input.cliente_id ?? null,
       cliente: input.cliente,
       valor: input.valor,
+      valor_recebido: 0,
+      valor_em_aberto: input.valor,
       vencimento,
-      status: 'pendente'
+      status: 'pendente',
+      recebido_em: null,
+      ultimo_recebimento_em: null
     });
   } catch (err) {
     // Falha silenciosa no automático — mesma política do legado
