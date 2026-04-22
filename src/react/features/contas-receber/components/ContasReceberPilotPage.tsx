@@ -45,6 +45,10 @@ function fromDateTimeLocalValue(value: string): string {
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 }
 
+function emitToast(message: string, severity: 'info' | 'warning' | 'error' | 'success' = 'info') {
+  window.dispatchEvent(new CustomEvent('sc:toast', { detail: { message, severity } }));
+}
+
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -676,7 +680,11 @@ export function ContasReceberPilotPage() {
 
   async function handleReceber(contaId: string) {
     const result = await marcarRecebido(contaId);
-    if (!result.ok) alert(result.error ?? 'Erro ao registrar recebimento.');
+    if (!result.ok) {
+      emitToast(result.error ?? 'Não foi possível registrar o recebimento agora.', 'error');
+      return;
+    }
+    emitToast('Recebimento concluído. A conta já foi atualizada.', 'success');
   }
 
   function handleAbrirBaixaParcial(contaId: string) {
@@ -704,7 +712,11 @@ export function ContasReceberPilotPage() {
   async function handleDesfazer(contaId: string) {
     if (!confirm('Desfazer todas as baixas desta conta e voltar para pendente?')) return;
     const result = await marcarPendente(contaId);
-    if (!result.ok) alert(result.error ?? 'Erro ao desfazer recebimento.');
+    if (!result.ok) {
+      emitToast(result.error ?? 'Não foi possível reabrir a conta agora.', 'error');
+      return;
+    }
+    emitToast('Conta reaberta com sucesso. Ela voltou para pendente.', 'success');
   }
 
   async function handleEstornar(contaId: string, baixaId: string) {
@@ -713,7 +725,11 @@ export function ContasReceberPilotPage() {
     if (!conta || !baixa) return;
     if (!confirm(`Estornar a baixa de ${fmt(baixa.valor)} para ${conta.cliente}?`)) return;
     const result = await estornarBaixa(contaId, baixaId);
-    if (!result.ok) alert(result.error ?? 'Erro ao estornar baixa.');
+    if (!result.ok) {
+      emitToast(result.error ?? 'Não foi possível estornar a baixa agora.', 'error');
+      return;
+    }
+    emitToast('Baixa estornada. Os totais da conta já foram recalculados.', 'success');
   }
 
   const activeTabConfig = TABS.find((t) => t.key === activeTab) ?? TABS[0];
@@ -722,6 +738,9 @@ export function ContasReceberPilotPage() {
     return (
       <div className="empty">
         <p>Carregando contas a receber...</p>
+        <p className="table-cell-caption table-cell-muted">
+          Estamos preparando saldos, baixas e pendências da filial ativa.
+        </p>
       </div>
     );
   }
@@ -730,6 +749,9 @@ export function ContasReceberPilotPage() {
     return (
       <div className="empty">
         <p className="tone-danger">{error ?? 'Erro ao carregar dados.'}</p>
+        <p className="table-cell-caption table-cell-muted">
+          Atualize a tela ou confirme a filial ativa antes de tentar novamente.
+        </p>
       </div>
     );
   }

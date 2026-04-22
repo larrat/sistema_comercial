@@ -4,7 +4,8 @@
 
 import { SB } from '../app/api.js';
 import { D, State, P, FORNS, CPRECOS, CCFG } from '../app/store.js';
-import { uid, fmt, toast, setButtonLoading } from '../shared/utils.js';
+import { uid, fmt, toast, notifyGuided, setButtonLoading } from '../shared/utils.js';
+import { SEVERITY } from '../shared/messages.js';
 import {
   cotFile,
   confirmarMapa,
@@ -33,6 +34,12 @@ export function renderCotLogs() {
   if (!el) return;
 
   const logs = /** @type {CotacaoLog[]} */ (CCFG().logs || []);
+
+  if (!logs.length) {
+    el.innerHTML =
+      '<div class="empty empty-inline"><p>Nenhuma importação registrada ainda.</p><p class="table-cell-caption table-cell-muted">Importe a primeira planilha para acompanhar histórico, itens novos e falhas.</p></div>';
+    return;
+  }
 
   if (!logs.length) {
     el.innerHTML = '<div class="empty empty-inline"><p>Nenhuma importação ainda.</p></div>';
@@ -65,6 +72,11 @@ export function renderCotForns() {
   if (!el) return;
 
   const cfors = FORNS();
+
+  if (!cfors.length) {
+    el.innerHTML = `<div class="empty"><div class="ico">FORN</div><p>Nenhum fornecedor cadastrado.</p><p class="table-cell-caption table-cell-muted">Cadastre o primeiro fornecedor para começar as comparações de compra.</p></div>`;
+    return;
+  }
 
   if (!cfors.length) {
     el.innerHTML = `<div class="empty"><div class="ico">FORN</div><p>Nenhum fornecedor cadastrado.</p></div>`;
@@ -115,7 +127,12 @@ export async function salvarForn() {
 
   const nome = (nomeEl?.value || '').trim();
   if (!nome) {
-    toast('Informe o nome.');
+    notifyGuided({
+      severity: SEVERITY.WARNING,
+      what: 'nome do fornecedor não foi informado',
+      impact: 'o cadastro não pode ser salvo',
+      next: 'preencha o nome e tente novamente'
+    });
     return;
   }
 
@@ -135,7 +152,12 @@ export async function salvarForn() {
   try {
     await SB.upsertFornecedor(forn);
   } catch (e) {
-    toast('Erro ao salvar: ' + e.message);
+    notifyGuided({
+      severity: SEVERITY.ERROR,
+      what: `falha ao salvar fornecedor (${e.message})`,
+      impact: 'o fornecedor não entrou na base de compras',
+      next: 'tente novamente em alguns segundos'
+    });
     setButtonLoading(saveBtn, false, 'Salvar');
     return;
   }
@@ -154,7 +176,12 @@ export async function salvarForn() {
   if (prazoEl) prazoEl.value = '';
 
   setButtonLoading(saveBtn, false, 'Salvar');
-  toast('Fornecedor salvo!');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'fornecedor salvo com sucesso',
+    impact: 'ele já pode ser usado nas comparações de compra',
+    next: 'importe uma planilha ou preencha os preços manualmente'
+  });
 }
 
 export async function remForn(id) {
@@ -168,7 +195,12 @@ export async function remForn(id) {
   try {
     await SB.deleteFornecedor(id);
   } catch (e) {
-    toast('Erro ao remover: ' + e.message);
+    notifyGuided({
+      severity: SEVERITY.ERROR,
+      what: `falha ao remover fornecedor (${e.message})`,
+      impact: 'o cadastro continua ativo',
+      next: 'atualize a tela e tente novamente'
+    });
     setButtonLoading(deleteBtn, false, 'Excluir');
     return;
   }
@@ -183,7 +215,12 @@ export async function remForn(id) {
   renderFornSel();
   renderCotTabela();
 
-  toast('Fornecedor removido!');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'fornecedor removido',
+    impact: 'ele não aparece mais nas próximas comparações',
+    next: 'revise a tabela de compras se esse fornecedor ainda tinha preços ativos'
+  });
 }
 
 export function cotLock() {
@@ -195,6 +232,17 @@ export function cotLock() {
 
   if (btn) btn.textContent = cot.locked ? 'Destravar' : 'Travar';
   if (alert) alert.style.display = cot.locked ? 'flex' : 'none';
+
+  notifyGuided({
+    severity: SEVERITY.INFO,
+    what: cot.locked ? 'comparação de compras travada' : 'comparação de compras liberada',
+    impact: cot.locked
+      ? 'os valores ficam protegidos contra edição acidental'
+      : 'os valores podem voltar a ser ajustados',
+    next: cot.locked
+      ? 'destrave quando precisar revisar preços'
+      : 'revise os fornecedores e ajuste os preços necessários'
+  });
 
   renderCotTabela();
   toast(cot.locked ? 'Cotação travada!' : 'Cotação destravada.');
@@ -210,6 +258,12 @@ export function renderCotTabela() {
   const mc = document.getElementById('cot-met');
 
   if (!el || !mc) return;
+
+  if (!prods.length || !forns.length) {
+    el.innerHTML = `<div class="empty"><div class="ico">COT</div><p>Faltam dados para começar as compras.</p><p class="table-cell-caption table-cell-muted">Cadastre produtos e fornecedores para comparar preços, prazos e melhor oferta.</p></div>`;
+    mc.innerHTML = '';
+    return;
+  }
 
   if (!prods.length || !forns.length) {
     el.innerHTML = `<div class="empty"><div class="ico">COT</div><p>Adicione produtos e fornecedores para iniciar a cotação.</p></div>`;
