@@ -460,6 +460,21 @@ async function getAuthBearerForRequest() {
   return s?.access_token ? 'Bearer ' + s.access_token : 'Bearer ' + SB_KEY;
 }
 
+/**
+ * @param {string | null | undefined} userId
+ * @returns {Promise<string[]>}
+ */
+async function listAccessibleFilialIds(userId) {
+  const uid = String(userId || '').trim();
+  if (!uid) return [];
+  const rows = /** @type {{ filial_id?: string | null }[] | null} */ (
+    await sbReq('user_filiais', 'GET', null, `?user_id=eq.${uid}&select=filial_id`)
+  );
+  return [
+    ...new Set((rows || []).map((row) => String(row?.filial_id || '').trim()).filter(Boolean))
+  ];
+}
+
 async function sbReq(table, method = 'GET', body = null, params = '') {
   ensureSupabaseConfig();
   const operation = `${method} ${table}`;
@@ -808,7 +823,16 @@ export const SB = {
   },
   invokeEdgeFunction,
   /** @returns {Promise<Filial[]>} */
-  getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
+  getFiliais: async () => {
+    const session = await getActiveAuthSession();
+    const accessibleIds = await listAccessibleFilialIds(session?.user?.id);
+    if (!accessibleIds.length) return [];
+    const allFiliais = /** @type {Filial[] | null} */ (
+      await sbReq('filiais', 'GET', null, '?order=criado_em')
+    );
+    const allowed = new Set(accessibleIds);
+    return (allFiliais || []).filter((filial) => allowed.has(String(filial?.id || '').trim()));
+  },
   upsertFilial: (f) => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: (id) => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
 

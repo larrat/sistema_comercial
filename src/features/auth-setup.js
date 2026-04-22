@@ -649,6 +649,26 @@ export async function criarPrimeiraFilial() {
     return;
   }
 
+  const session = await SB.getSession();
+  const actorUserId = session?.user?.id || State.user?.id || null;
+  if (actorUserId) {
+    const vinculoResult = await SB.toResult(() =>
+      SB.upsertUserFilialEdge({
+        user_id: actorUserId,
+        filial_id: f.id,
+        user_nome: session?.user?.email || State.user?.email || null,
+        user_email: session?.user?.email || State.user?.email || null,
+        detalhes: {
+          origem: 'primeira_filial_setup'
+        }
+      })
+    );
+    if (!vinculoResult.ok) {
+      toast('Filial criada, mas falhou ao vincular seu acesso: ' + vinculoResult.error.message);
+      return;
+    }
+  }
+
   D.filiais.push(f);
   State.selFil = f.id;
   await entrar();

@@ -21,7 +21,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 0 - Base Tecnica e Seguranca de Dado
 
-> **Estado em 2026-04-21:** RPCs implementadas no codigo (commit fb172e8). SQL 16 aplicado em producao. Modulo `receber` ja opera em React-only, com shell legado removido. Em 2026-04-21 foi validado em ambiente real um ciclo isolado de baixa parcial, quitacao, bloqueio por excesso, bloqueio em conta quitada, estorno e reabertura via RPC, com limpeza dos registros temporarios ao final. Pendente: backfill historico e validacao do fluxo React pela interface.
+> **Estado em 2026-04-22:** RPCs implementadas no codigo (commit fb172e8). SQL 16 aplicado em producao. Modulo `receber` ja opera em React-only, com shell legado removido. Em 2026-04-21 foi validado em ambiente real um ciclo isolado de baixa parcial, quitacao, bloqueio por excesso, bloqueio em conta quitada, estorno e reabertura via RPC, com limpeza dos registros temporarios ao final. Em 2026-04-22 o fluxo `Pedidos -> detalhe -> Receber tudo` foi validado pela UI com persistencia correta da baixa, e o dataset atual nao mostrou contas antigas com historico financeiro sem baixa vinculada.
 
 ### 0.1 Migracao de contas a receber
 
@@ -41,7 +41,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
   - [x] recalculo correto de `status`
   - [x] recalculo correto de `recebido_em`
   - [x] recalculo correto de `ultimo_recebimento_em`
-- [ ] validar backfill de contas antigas sem historico de baixas
+- [x] validar backfill de contas antigas sem historico de baixas
 - [x] executar smoke test manual de contas a receber:
   - [x] registrar baixa parcial
   - [x] receber total
@@ -50,21 +50,21 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ### 0.2 Front acoplado ao backend oficial
 
-- [ ] validar no ambiente real o fluxo React de contas a receber
-- [ ] validar integracao do detalhe de pedido com o fluxo React de recebimento
-- [ ] confirmar que a UI esta recarregando dados oficiais apos cada mutacao
-- [ ] revisar mensagens de erro vindas das RPCs
-- [ ] revisar se o modulo tolera latencia sem parecer quebrado
+- [x] validar no ambiente real o fluxo React de contas a receber
+- [x] validar integracao do detalhe de pedido com o fluxo React de recebimento
+- [x] confirmar que a UI esta recarregando dados oficiais apos cada mutacao
+- [x] revisar mensagens de erro vindas das RPCs
+- [x] revisar se o modulo tolera latencia sem parecer quebrado
 
 ### Criterio de pronto da Fase 0
 
-- [ ] nenhuma regra financeira oficial depende de calculo primario no front
-- [ ] operacoes criticas passam a usar backend transacional
-- [ ] modulo React de contas a receber transmite confianca operacional
+- [x] nenhuma regra financeira oficial depende de calculo primario no front
+- [x] operacoes criticas passam a usar backend transacional
+- [x] modulo React de contas a receber transmite confianca operacional
 
 ## Fase 1 - Entrada, Login e Onboarding
 
-> **Estado em 2026-04-21:** entrada, escolha/criacao de filial e checklist inicial ja implementados no fluxo principal. Residual desta frente: validacao operacional mais ampla, esconder modulos avancados por maturidade da base e reduzir ainda mais ruido visual do primeiro contato.
+> **Estado em 2026-04-22:** entrada, escolha/criacao de filial e checklist inicial ja foram validados no fluxo principal. O setup passou a listar apenas filiais acessiveis por vinculo, e o caso `usuario autenticado sem filial` caiu corretamente em `primeira-filial`, permitiu criar a filial inicial e entrou no app com bootstrap `ready`. Residual desta frente agora e evolucao de maturidade, nao quebra critica do fluxo.
 
 ### 1.1 Entrada do sistema
 
@@ -98,7 +98,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 - [x] novo usuario entende em poucos segundos o que fazer primeiro
 - [x] usuario recorrente entra sem competir com o fluxo de criacao
-- [ ] o sistema entrega utilidade concreta rapido
+- [x] o sistema entrega utilidade concreta rapido
 
 ## Fase 2 - Arquitetura da Informacao e Navegacao
 
@@ -289,7 +289,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Ordem recomendada de execucao
 
-- [ ] Fase 0
+- [x] Fase 0
 - [x] Fase 1
 - [ ] Fase 2
 - [x] Fase 3

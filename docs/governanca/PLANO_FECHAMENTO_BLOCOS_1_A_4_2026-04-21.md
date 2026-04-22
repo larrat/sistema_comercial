@@ -27,7 +27,11 @@ Meta: tornar o fluxo financeiro e os fluxos principais confiaveis em ambiente re
   - [x] recalculo de saldo
   - [x] recalculo de status
   - [x] recalculo de datas
-- [ ] validar backfill de contas antigas
+- [x] validar backfill de contas antigas
+  Observacao em 2026-04-22:
+  o dataset atual nao apresentou contas com historico financeiro sem baixa associada.
+  Foram identificadas 2 contas com historico de recebimento e 0 casos residuais sem baixa.
+  Nao houve ocorrencia de backfill pendente no ambiente validado.
 
 ### 2. Smoke test financeiro
 
@@ -35,20 +39,30 @@ Meta: tornar o fluxo financeiro e os fluxos principais confiaveis em ambiente re
 - [x] receber total
 - [x] estornar baixa
 - [x] reabrir conta
-- [ ] validar detalhe do pedido integrado ao recebimento
+- [x] validar detalhe do pedido integrado ao recebimento
+  Observacao em 2026-04-22:
+  `Pedidos -> detalhe -> Receber tudo` concluiu a baixa pela UI, recarregou a conta do backend e persistiu `status=recebido`, `valor_recebido`, `valor_em_aberto=0` e a baixa vinculada.
 
 ### 3. Entrada e onboarding
 
-- [ ] smoke test da entrada
-- [ ] smoke test de escolha/criacao de filial
-- [ ] validar checklist inicial no primeiro uso
-- [ ] revisar se o usuario entende o proximo passo sem apoio interno
+- [x] smoke test da entrada
+- [x] smoke test de escolha/criacao de filial
+- [x] validar checklist inicial no primeiro uso
+- [x] revisar se o usuario entende o proximo passo sem apoio interno
+  Observacao em 2026-04-22:
+  o setup passou a listar apenas filiais acessiveis por vinculo.
+  O caso de usuario autenticado sem vinculo caiu corretamente em `primeira-filial`, permitiu criar a filial inicial e entrou no app com bootstrap `ready`.
+  O checklist e os textos de apoio deixaram claro o proximo passo sem apoio interno.
 
 ### Criterio de encerramento da sprint 1
 
 - [x] financeiro passa confianca em ambiente real
-- [ ] entrada nao gera ambiguidade
-- [ ] nao ha quebra visivel no fluxo principal de pedidos/recebimento
+- [x] entrada nao gera ambiguidade
+- [x] nao ha quebra visivel no fluxo principal de pedidos/recebimento
+
+### Resultado
+
+- [x] sprint 1 concluida em 2026-04-22
 
 ---
 
