@@ -102,28 +102,28 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 2 - Arquitetura da Informacao e Navegacao
 
-> **Estado em 2026-04-21:** busca lateral, favoritos por usuario e busca rapida com `Ctrl+K` ja estao implementados. Residual desta frente: reorganizacao estrutural do menu, nomenclatura global e separacao mais forte entre operacao e administracao.
+> **Estado em 2026-04-22:** busca lateral, favoritos por usuario e busca rapida com `Ctrl+K` seguem implementados, e a base estrutural da fase avancou com os commits `4aa7687`, `768d9ed` e `34dbb0d`. O menu principal foi reorganizado por contexto, `Filiais` e `Acessos` foram consolidados em administracao, e a linguagem principal ficou mais coerente em menu, alertas, relatorios e administracao. Residual desta frente: validar se a navegacao realmente reduziu memoria de uso e revisar nomenclatura residual fora dos fluxos principais.
 
 ### 2.1 Reorganizacao do menu
 
-- [ ] substituir o menu inchado por grupos principais mais claros
+- [x] substituir o menu inchado por grupos principais mais claros
 - [ ] proposta base:
-  - [ ] Inicio
-  - [ ] Vendas
-  - [ ] Cadastros
-  - [ ] Financeiro
-  - [ ] Estoque
-  - [ ] Marketing
-  - [ ] Administracao
-- [ ] mover `Filiais` e `Acessos` para area administrativa
-- [ ] revisar se `Gerencial` continua como modulo ou vira camada analitica do dashboard
-- [ ] revisar se `Relatorios` continua como area separada ou agrupada dentro de analise
+  - [x] Inicio
+  - [x] Vendas
+  - [x] Cadastros
+  - [x] Financeiro
+  - [x] Estoque
+  - [x] Marketing
+  - [x] Administracao
+- [x] mover `Filiais` e `Acessos` para area administrativa
+- [x] revisar se `Gerencial` continua como modulo ou vira camada analitica do dashboard
+- [x] revisar se `Relatorios` continua como area separada ou agrupada dentro de analise
 
 ### 2.2 Nomenclatura estrutural
 
-- [ ] revisar nomes tecnicos ou internos
+- [x] revisar nomes tecnicos ou internos
 - [ ] padronizar singular/plural entre modulos e telas
-- [ ] trocar rotulos ambiguos por rotulos orientados ao trabalho real
+- [x] trocar rotulos ambiguos por rotulos orientados ao trabalho real
 - [ ] decidir se siglas como `RCA` precisam de nome expandido na UI
 
 ### 2.3 Busca e descoberta
@@ -135,8 +135,8 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ### Criterio de pronto da Fase 2
 
 - [ ] a navegacao reduz memorizacao
-- [ ] o usuario entende onde esta cada tipo de tarefa
-- [ ] modulos administrativos deixam de competir com modulos operacionais
+- [x] o usuario entende onde esta cada tipo de tarefa
+- [x] modulos administrativos deixam de competir com modulos operacionais
 
 ## Fase 3 - Dashboard e Home Operacional
 
@@ -217,17 +217,17 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ### 5.1 Estados vazios
 
-- [ ] revisar listas sem dados
+- [x] revisar listas sem dados
 - [ ] revisar resultados vazios de busca
 - [ ] revisar modulos sem configuracao inicial
-- [ ] incluir proximo passo util em cada vazio
+- [x] incluir proximo passo util em cada vazio
 
 ### 5.2 Feedback operacional
 
 - [ ] reforcar loading em operacoes sensiveis
-- [ ] reforcar sucesso apos salvar ou confirmar
-- [ ] reforcar mensagens de erro com causa e acao sugerida
-- [ ] revisar confirmacoes em acoes irreversiveis ou sensiveis
+- [x] reforcar sucesso apos salvar ou confirmar
+- [x] reforcar mensagens de erro com causa e acao sugerida
+- [x] revisar confirmacoes em acoes irreversiveis ou sensiveis
 
 ### 5.3 Confianca do produto
 
@@ -316,10 +316,10 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 - [ ] entrada simples
 - [ ] onboarding progressivo
-- [ ] menu claro
+- [x] menu claro
 - [ ] dashboard orientado a acao
 - [x] formularios menos cansativos
-- [ ] estados vazios uteis
-- [ ] feedback confiavel
+- [x] estados vazios uteis
+- [x] feedback confiavel
 - [ ] performance melhor percebida
 - [ ] sistema com cara de produto maduro e operacional
