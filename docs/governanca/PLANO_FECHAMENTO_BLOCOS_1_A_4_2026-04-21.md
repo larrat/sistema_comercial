@@ -129,6 +129,12 @@ Status em 2026-04-22:
 
 Meta: validar se a experiencia do dia a dia realmente sustenta o que ja foi implementado.
 
+Status em 2026-04-22:
+- suite Playwright da Sprint 3 criada em `tests/e2e/sprint-3-critical-flows.spec.js`
+- cobertura inicial preparada para `produto`, `cliente`, `pedido`, `baixa parcial` e `importacao`
+- infraestrutura local ainda bloqueia a execucao real: o Chromium do Playwright nao esta instalado nesta maquina e o download automatico falhou por timeout no CDN
+- proximo passo desta sprint: instalar o browser ou reaproveitar um binario local e rodar a suite com as variaveis `E2E_*`
+
 ### 1. Smoke test dos fluxos criticos
 
 - [ ] cadastro de produto

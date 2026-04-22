@@ -176,7 +176,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ## Fase 4 - Formularios e Fluxos Operacionais
 
-> **Estado em 2026-04-21:** implementacao principal concluida em React e shell legado, com commits `8cc8db8` e `911fa81`. Residual desta frente: smoke tests operacionais e responsividade mais ampla.
+> **Estado em 2026-04-22:** implementacao principal concluida em React e shell legado, com commits `8cc8db8` e `911fa81`. A suite Playwright da Sprint 3 foi iniciada em `tests/e2e/sprint-3-critical-flows.spec.js`, cobrindo `produto`, `cliente`, `pedido`, `baixa parcial` e `importacao`. Residual desta frente: executar a suite em ambiente com browser do Playwright disponivel e seguir com responsividade mais ampla.
 
 ### 4.1 Formularios principais
 
