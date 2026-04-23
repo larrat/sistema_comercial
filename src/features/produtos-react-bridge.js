@@ -82,6 +82,10 @@ export function syncProdutosReactBridge() {
   void applyMode();
 }
 
+export function abrirNovoProdutoReact() {
+  window.dispatchEvent(new CustomEvent('sc:abrir-novo-produto'));
+}
+
 function ensurePageObserver() {
   if (pageObserver || typeof MutationObserver === 'undefined') return;
 

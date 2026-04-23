@@ -405,7 +405,6 @@ function runAction(action, el) {
     },
     abrirModalProduto: () => {
       deps.limparFormProdTracked();
-      deps.abrirModal('modal-produto');
     },
     abrirModalCliente: () => {
       if (deps.isClientesReactPilotActive?.()) {

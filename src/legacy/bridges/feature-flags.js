@@ -55,7 +55,7 @@ const FLAG_REGISTRY = {
   produtos: {
     storageKey: STORAGE_KEYS.PRODUTOS_REACT_ENABLED,
     windowProp: '__SC_PRODUTOS_REACT_ENABLED__',
-    defaultValue: false
+    defaultValue: true
   }
 };
 
