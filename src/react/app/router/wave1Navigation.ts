@@ -1,4 +1,4 @@
-export type Wave1LegacyPage = 'dashboard' | 'clientes' | 'estoque' | 'cotacao' | 'pedidos' | 'receber' | 'produtos';
+export type Wave1LegacyPage = 'dashboard' | 'clientes' | 'estoque' | 'cotacao' | 'pedidos' | 'receber' | 'produtos' | 'rcas' | 'relatorios';
 
 export type PedidoRouteIntent = {
   pedidoId?: string | null;
@@ -12,7 +12,9 @@ const WAVE1_ROUTE_BY_PAGE: Record<Wave1LegacyPage, string> = {
   cotacao: '/app/cotacao',
   pedidos: '/app/pedidos',
   receber: '/app/receber',
-  produtos: '/app/produtos'
+  produtos: '/app/produtos',
+  rcas: '/app/rcas',
+  relatorios: '/app/relatorios'
 };
 
 export function getWave1RouteByLegacyPage(page: string): string | null {

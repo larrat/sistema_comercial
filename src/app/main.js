@@ -73,7 +73,10 @@ import { setContasReceberReactTab } from '../features/contas-receber-react-bridg
 
 import { initPedidosModule } from '../features/pedidos.js';
 
-import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
+// RCAs legado removido — Fase 2D
+const refreshRcaSelectors = () => {};
+const abrirModalRca = () => {};
+const salvarRca = () => {};
 
 // Estoque legado removido — Fase 2B
 const calcSaldos = () => ({});
@@ -93,11 +96,10 @@ const movCalcAjuste = () => {};
 const salvarMov = () => {};
 const excluirMov = () => {};
 
-import {
-  renderRelatorios,
-  abrirValidacaoOportunidade,
-  salvarValidacaoOportunidade
-} from '../features/relatorios.js';
+// Relatórios legado removido — Fase 2E
+const renderRelatorios = () => {};
+const abrirValidacaoOportunidade = () => {};
+const salvarValidacaoOportunidade = () => {};
 
 import {
   carregarCampanhas,

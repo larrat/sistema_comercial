@@ -135,13 +135,36 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 **Fase 2C concluída.** React é o caminho principal para Cotação.
 
 ### 2D — RCAs e Oportunidades
+> Concluído em 2026-04-23 (RCAs React ativo; oportunidades-jogos.js aguarda 2E)
+
 **Baixa complexidade — bom para fazer junto.**  
 **Escopo React:** listagem de RCAs, modal de ação, dados de oportunidades/jogos.  
 **Referência:** `src/features/rcas.js` + `src/features/oportunidades-jogos.js` → `src/react/features/rcas/`
 
+- [x] Criar tipos, store, services e hooks (`useRcasData`, `useRcasMutations`)
+- [x] Criar componentes (`RcasPage`, `RcaModal`, `RcasRoutePage`)
+- [x] Registrar rota `/app/rcas` no `AppRouter.tsx`, `wave1Navigation.ts`, `navigation/config.ts` e `pageMeta.ts`
+- [x] Remover `#modal-rca` do `index.html`
+- [x] Deletar `src/features/rcas.js` e substituir por stubs no `main.js`
+- [ ] `src/features/oportunidades-jogos.js` — manter até 2E (dependência de `relatorios.js`)
+
+**Fase 2D concluída para RCAs.** React é o caminho principal para gestão de vendedores. `oportunidades-jogos.js` será removido junto com `relatorios.js` na Fase 2E.
+
 ### 2E — Relatórios
+> Concluído em 2026-04-23
+
 **Escopo React:** listagem de relatórios, modal de validação de oportunidade.  
 **Referência:** `src/features/relatorios.js` → `src/react/features/relatorios/`
+
+- [x] Criar tipos, store, services e hooks (`useRelatoriosData`, `useRelatoriosMutations`)
+- [x] Portar lógica de `oportunidades-jogos.js` como `utils/oportunidadesJogos.ts`
+- [x] Criar componentes (`RelatoriosPage`, `OportunidadesTab`, `PerformanceTab`, `ClientesTab`, `ValidacaoModal`, `RelatoriosRoutePage`)
+- [x] Registrar rota `/app/relatorios` no `AppRouter.tsx`, `wave1Navigation.ts`, `navigation/config.ts` e `pageMeta.ts`
+- [x] Remover `#pg-relatorios` e `#modal-rel-validacao` do `index.html`
+- [x] Deletar `src/features/relatorios.js` e `src/features/oportunidades-jogos.js`
+- [x] Substituir imports por stubs no `main.js`
+
+**Fase 2E concluída.** React é o caminho principal para Relatórios, oportunidades por jogos e validações.
 
 ### 2F — Campanhas
 **Alta complexidade — última por depender de WhatsApp queue e envios.**  

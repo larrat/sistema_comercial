@@ -96,5 +96,23 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
       { label: 'Dashboard', to: '/app/dashboard' },
       { label: 'Clientes', to: '/app/clientes' }
     ]
+  },
+  rcas: {
+    kicker: 'Cadastros',
+    title: 'Vendedores',
+    description: 'Cadastro e gestão de vendedores (RCAs) da filial.',
+    actions: [
+      { label: 'Clientes', to: '/app/clientes' },
+      { label: 'Pedidos', to: '/app/pedidos' }
+    ]
+  },
+  relatorios: {
+    kicker: 'Análise',
+    title: 'Relatórios',
+    description: 'Oportunidades por jogos, performance comercial e análise da base de clientes.',
+    actions: [
+      { label: 'Pedidos', to: '/app/pedidos' },
+      { label: 'Clientes', to: '/app/clientes' }
+    ]
   }
 };

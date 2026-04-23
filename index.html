@@ -490,77 +490,6 @@
           </div>
         </div>
 
-        <div class="pg rel-bento-page" id="pg-relatorios">
-          <div class="tabs rel-tabs">
-            <button class="tb on" data-tab-group="relatorios" data-tab="oportunidades">
-              Oportunidades por jogos
-            </button>
-            <button class="tb" data-tab-group="relatorios" data-tab="performance">
-              Performance comercial
-            </button>
-            <button class="tb" data-tab-group="relatorios" data-tab="clientes">
-              Base de clientes
-            </button>
-          </div>
-
-          <div class="tc on rel-bento-tab" id="relatorios-tc-oportunidades">
-            <div class="mg bento-band" id="rel-met"></div>
-            <div id="rel-context"></div>
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="ct ct-inline">Resumo por mês</div>
-                <div class="toolbar-main">
-                  <select class="inp sel select-w-sm" id="rel-ano" data-change="renderRelatorios()">
-                    <option value="">Todos os anos</option>
-                  </select>
-                  <select class="inp sel select-w-md" id="rel-mes" data-change="renderRelatorios()">
-                    <option value="">Todos os meses</option>
-                  </select>
-                </div>
-              </div>
-              <div id="rel-resumo"></div>
-            </div>
-            <div class="rel-bento-grid">
-              <div class="card card-shell">
-                <div class="ct">Oportunidades abertas</div>
-                <div id="rel-oportunidades"></div>
-              </div>
-              <div class="card card-shell">
-                <div class="ct">Validações realizadas</div>
-                <div id="rel-validacoes"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="tc rel-bento-tab" id="relatorios-tc-performance">
-            <div class="mg bento-band" id="rel-perf-met"></div>
-            <div class="rel-bento-grid">
-              <div class="card card-shell">
-                <div class="ct">Status dos pedidos</div>
-                <div id="rel-perf-status"></div>
-              </div>
-              <div class="card card-shell">
-                <div class="ct">Top clientes por faturamento</div>
-                <div id="rel-perf-clientes"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="tc rel-bento-tab" id="relatorios-tc-clientes">
-            <div class="mg bento-band" id="rel-cli-met"></div>
-            <div class="rel-bento-grid">
-              <div class="card card-shell">
-                <div class="ct">Status da base</div>
-                <div id="rel-cli-status"></div>
-              </div>
-              <div class="card card-shell">
-                <div class="ct">Segmentos e opt-ins</div>
-                <div id="rel-cli-segmentos"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- ── PRODUTOS ── -->
         <div class="pg prod-bento-page" id="pg-produtos">
           <div id="prod-react-root"></div>
@@ -1084,35 +1013,6 @@
       <div class="modal-box" id="ped-det-box"></div>
     </div>
 
-    <div class="modal-wrap" id="modal-rca">
-      <div class="modal-bg" data-click="fecharModal('modal-rca')"></div>
-      <div class="modal-box">
-        <div class="modal-shell">
-          <div class="modal-shell-head">
-            <div class="mt" id="rca-modal-titulo">Novo vendedor</div>
-          </div>
-          <div class="modal-shell-body">
-            <div class="fg">
-              <div>
-                <div class="fl">Nome do vendedor *</div>
-                <input class="inp" id="rca-nome" placeholder="Ex: Joao Silva" />
-              </div>
-            </div>
-          </div>
-          <div class="modal-shell-foot">
-            <div class="modal-actions">
-              <button class="btn" type="button" data-click="fecharModal('modal-rca')">
-                Cancelar
-              </button>
-              <button class="btn btn-p" type="button" data-click="salvarRca()">
-                Salvar vendedor
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Campanha -->
     <div class="modal-wrap" id="modal-campanha">
       <div class="modal-bg" data-click="fecharModal('modal-campanha')"></div>
@@ -1298,47 +1198,6 @@
         </div>
       </div>
     </div>
-
-    <div class="modal-wrap" id="modal-rel-validacao">
-      <div class="modal-bg" data-click="fecharModal('modal-rel-validacao')"></div>
-      <div class="modal-box">
-        <div class="mt">Validar oportunidade</div>
-        <input type="hidden" id="rel-val-id" />
-        <div class="fg">
-          <div>
-            <div class="fl">Contexto da oportunidade</div>
-            <div class="panel rel-val-context" id="rel-val-context"></div>
-          </div>
-        </div>
-        <div class="fg">
-          <div>
-            <div class="fl">Pedido vinculado (opcional)</div>
-            <select class="inp sel" id="rel-val-pedido">
-              <option value="">Sem vincular pedido</option>
-            </select>
-          </div>
-        </div>
-        <div class="fg">
-          <div>
-            <div class="fl">Observação</div>
-            <textarea
-              class="inp"
-              id="rel-val-obs"
-              rows="3"
-              placeholder="Ex: oportunidade convertida em venda apos o jogo"
-            ></textarea>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-rel-validacao')">Cancelar</button>
-          <button class="btn btn-p" data-click="salvarValidacaoOportunidade()">
-            Validar venda
-          </button>
-        </div>
-      </div>
-    </div>
-
-
 
     <!-- Quick Command Palette -->
     <div class="qcmd-overlay" id="qcmd-overlay">

@@ -8,6 +8,8 @@ import { CotacaoRoutePage } from '../../features/cotacao/pages/CotacaoRoutePage'
 import { EstoqueRoutePage } from '../../features/estoque/pages/EstoqueRoutePage';
 import { PedidosRoutePage } from '../../features/pedidos/pages/PedidosRoutePage';
 import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePage';
+import { RcasRoutePage } from '../../features/rcas/pages/RcasRoutePage';
+import { RelatoriosRoutePage } from '../../features/relatorios/pages/RelatoriosRoutePage';
 import { AppContent } from '../layout/AppContent';
 import { AppShell } from '../layout/AppShell';
 import { LoginRouteAccess, ProtectedAppRoute, SetupRouteAccess } from './routeAccess';
@@ -63,6 +65,8 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="pedidos" element={<PedidosRoutePage />} />
             <Route path="receber" element={<ContasReceberRoutePage />} />
             <Route path="produtos" element={<ProdutosRoutePage />} />
+            <Route path="rcas" element={<RcasRoutePage />} />
+            <Route path="relatorios" element={<RelatoriosRoutePage />} />
           </Route>
         </Route>
 
