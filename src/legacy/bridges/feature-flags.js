@@ -18,7 +18,7 @@ import { STORAGE_KEYS } from './storage-keys.js';
 /**
  * Nome canônico de um pilot React.
  * Adicionar aqui quando um novo domínio for pilotado.
- * @typedef {'clientes' | 'dashboard' | 'pedidos' | 'receber'} PilotName
+ * @typedef {'clientes' | 'dashboard' | 'pedidos' | 'receber' | 'produtos'} PilotName
  */
 
 /**
@@ -51,6 +51,11 @@ const FLAG_REGISTRY = {
     storageKey: STORAGE_KEYS.RECEBER_REACT_ENABLED,
     windowProp: '__SC_RECEBER_REACT_ENABLED__',
     defaultValue: true
+  },
+  produtos: {
+    storageKey: STORAGE_KEYS.PRODUTOS_REACT_ENABLED,
+    windowProp: '__SC_PRODUTOS_REACT_ENABLED__',
+    defaultValue: false
   }
 };
 

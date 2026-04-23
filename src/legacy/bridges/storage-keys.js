@@ -29,7 +29,8 @@ export const STORAGE_KEYS = Object.freeze({
   CLIENTES_REACT_ENABLED: 'sc_clientes_react_enabled',
   DASHBOARD_REACT_ENABLED: 'sc_dashboard_react_enabled',
   PEDIDOS_REACT_ENABLED: 'sc_pedidos_react_enabled',
-  RECEBER_REACT_ENABLED: 'sc_receber_react_enabled'
+  RECEBER_REACT_ENABLED: 'sc_receber_react_enabled',
+  PRODUTOS_REACT_ENABLED: 'sc_produtos_react_enabled'
 });
 
 /**

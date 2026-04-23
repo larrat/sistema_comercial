@@ -13,7 +13,8 @@ export default defineConfig({
         'clientes-bridge': 'src/react/clientes-bridge.tsx',
         'dashboard-bridge': 'src/react/dashboard-bridge.tsx',
         'pedidos-bridge': 'src/react/pedidos-bridge.tsx',
-        'contas-receber-bridge': 'src/react/contas-receber-bridge.tsx'
+        'contas-receber-bridge': 'src/react/contas-receber-bridge.tsx',
+        'produtos-bridge': 'src/react/produtos-bridge.tsx'
       },
       output: {
         entryFileNames: '[name].js',

@@ -69,6 +69,7 @@ declare global {
     __SC_DASHBOARD_REACT_ENABLED__?: boolean;
     __SC_PEDIDOS_REACT_ENABLED__?: boolean;
     __SC_RECEBER_REACT_ENABLED__?: boolean;
+    __SC_PRODUTOS_REACT_ENABLED__?: boolean;
 
     // ── Direct bridge interfaces (publicadas pelos bundles React) ────────────
     __SC_CLIENTES_DIRECT_BRIDGE__?: {
@@ -84,6 +85,10 @@ declare global {
       unmount: () => void;
     };
     __SC_RECEBER_DIRECT_BRIDGE__?: {
+      mount: (el: HTMLElement) => void;
+      unmount: () => void;
+    };
+    __SC_PRODUTOS_DIRECT_BRIDGE__?: {
       mount: (el: HTMLElement) => void;
       unmount: () => void;
     };

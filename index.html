@@ -563,29 +563,34 @@
 
         <!-- ── PRODUTOS ── -->
         <div class="pg prod-bento-page" id="pg-produtos">
-          <div class="mg bento-band" id="prod-met"></div>
-          <div class="card card-shell">
-            <div class="toolbar toolbar-shell toolbar-shell--section">
-              <div class="toolbar-main">
-                <input
-                  class="inp input-w-md"
-                  id="prod-busca"
-                  placeholder="Buscar produto..."
-                  data-input="renderProdutos()"
-                />
-                <select
-                  class="inp sel select-w-md"
-                  id="prod-cat-fil"
-                  data-change="renderProdutos()"
-                >
-                  <option value="">Todas as categorias</option>
-                </select>
+          <!-- React pilot (oculto até flag sc_produtos_react_enabled = true) -->
+          <div id="prod-react-root" hidden></div>
+          <!-- Shell legado (visível por padrão enquanto pilot está desabilitado) -->
+          <div id="prod-legacy-shell">
+            <div class="mg bento-band" id="prod-met"></div>
+            <div class="card card-shell">
+              <div class="toolbar toolbar-shell toolbar-shell--section">
+                <div class="toolbar-main">
+                  <input
+                    class="inp input-w-md"
+                    id="prod-busca"
+                    placeholder="Buscar produto..."
+                    data-input="renderProdutos()"
+                  />
+                  <select
+                    class="inp sel select-w-md"
+                    id="prod-cat-fil"
+                    data-change="renderProdutos()"
+                  >
+                    <option value="">Todas as categorias</option>
+                  </select>
+                </div>
+                <div class="toolbar-actions">
+                  <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
+                </div>
               </div>
-              <div class="toolbar-actions">
-                <button class="btn btn-sm" data-click="exportCSV('produtos')">Exportar CSV</button>
-              </div>
+              <div id="prod-lista"></div>
             </div>
-            <div id="prod-lista"></div>
           </div>
         </div>
 
