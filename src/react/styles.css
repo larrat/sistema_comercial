@@ -6,3 +6,332 @@
   O arquivo canônico continua sendo src/styles/style.css.
 */
 @import '../styles/style.css';
+
+.rf-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  background: var(--bg);
+  color: var(--text);
+  isolation: isolate;
+}
+
+.rf-shell__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+}
+
+.rf-shell__viewport {
+  min-width: 0;
+  flex: 1;
+}
+
+.rf-sidebar {
+  border-right: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rf-sidebar__brand,
+.rf-topbar,
+.rf-panel,
+.rf-overlay__card,
+.rf-toast {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+}
+
+.rf-sidebar__brand {
+  padding: 16px;
+}
+
+.rf-sidebar__sub {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rf-sidebar__kicker,
+.rf-topbar__kicker,
+.rf-panel__kicker {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rf-sidebar__title,
+.rf-topbar__title,
+.rf-panel__title {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.rf-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.rf-sidebar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rf-sidebar__group-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 2px;
+}
+
+.rf-sidebar__group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rf-sidebar__item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.rf-sidebar__item.is-active {
+  background: color-mix(in srgb, var(--panel) 74%, var(--brand) 26%);
+  border-color: color-mix(in srgb, var(--line) 45%, var(--brand) 55%);
+}
+
+.rf-sidebar__footer {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.rf-sidebar__footer-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rf-sidebar__footer-copy {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.rf-topbar {
+  margin: 24px 24px 0;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.rf-topbar__copy {
+  min-width: 0;
+}
+
+.rf-topbar__sub,
+.rf-panel__copy {
+  margin: 8px 0 0;
+  color: var(--muted);
+  max-width: 72ch;
+}
+
+.rf-topbar__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rf-topbar__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rf-topbar__action {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.rf-topbar__action.is-primary {
+  background: color-mix(in srgb, var(--panel) 74%, var(--brand) 26%);
+  border-color: color-mix(in srgb, var(--line) 45%, var(--brand) 55%);
+}
+
+.rf-topbar__switcher-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.rf-topbar__switcher-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rf-topbar__switcher {
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  color: inherit;
+  border-radius: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  text-align: left;
+  opacity: 0.92;
+}
+
+.rf-content {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.rf-content__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.rf-panel {
+  padding: 20px 24px;
+}
+
+.rf-panel--hero {
+  min-height: 180px;
+}
+
+.rf-shell-state {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--text);
+  padding: 24px;
+}
+
+.rf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(11 18 32 / 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 90;
+  padding: 24px;
+}
+
+.rf-overlay__card {
+  width: min(360px, 100%);
+  padding: 20px;
+}
+
+.rf-overlay__card p {
+  margin: 12px 0 0;
+}
+
+.rf-toast-host {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 95;
+}
+
+.rf-toast {
+  padding: 12px 14px;
+  max-width: 320px;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 0.18);
+}
+
+.rf-toast--success {
+  border-color: color-mix(in srgb, var(--ok) 55%, var(--line) 45%);
+}
+
+.rf-toast--warning {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--line) 45%);
+}
+
+.rf-toast--error {
+  border-color: color-mix(in srgb, var(--err) 55%, var(--line) 45%);
+}
+
+@media (max-width: 980px) {
+  .rf-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .rf-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .rf-topbar {
+    margin: 16px 16px 0;
+    padding: 16px;
+    flex-direction: column;
+  }
+
+  .rf-topbar__meta {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .rf-topbar__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .rf-topbar__switcher-slot {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .rf-content {
+    padding: 16px;
+  }
+
+  .rf-content__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rf-panel {
+    padding: 16px;
+  }
+}
