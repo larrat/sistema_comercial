@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Produto } from '../../../../types/domain';
+import { emitLegacyEvent } from '../../../app/legacy/events';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
@@ -43,7 +44,7 @@ export function useProdutoMutations() {
         filial_id: context.filialId
       } as Produto);
       upsertProduto(normalized);
-      window.dispatchEvent(new CustomEvent('sc:produto-salvo', { detail: normalized }));
+      emitLegacyEvent('sc:produto-salvo', normalized);
       return normalized;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar produto.';
@@ -62,7 +63,7 @@ export function useProdutoMutations() {
     try {
       await deleteProduto(context, produtoId);
       removeProduto(produtoId);
-      window.dispatchEvent(new CustomEvent('sc:produto-removido', { detail: { id: produtoId } }));
+      emitLegacyEvent('sc:produto-removido', { id: produtoId });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao remover produto.';
       setError(message);

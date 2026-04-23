@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { emitLegacyEvent, subscribeLegacyEvent } from '../../../app/legacy/events';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
 import { useProdutoStore, selectFilteredProdutos, selectCategorias } from '../store/useProdutoStore';
@@ -63,6 +64,13 @@ export function ProdutosPilotPage() {
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
 
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    function handleAbrirNovo() {
+      setModal({ tipo: 'form', produto: null });
+    }
+    return subscribeLegacyEvent('sc:abrir-novo-produto', handleAbrirNovo);
+  }, []);
   const paisSemSelf = (modal.tipo === 'form' && modal.produto)
     ? todos.filter((p) => !p.produto_pai_id && p.id !== modal.produto!.id)
     : todos.filter((p) => !p.produto_pai_id);
@@ -89,7 +97,7 @@ export function ProdutosPilotPage() {
 
   function handleMovimentar(id: string) {
     // Notifica o legado para abrir o modal de movimentação de estoque
-    window.dispatchEvent(new CustomEvent('sc:abrir-mov-produto', { detail: { id } }));
+    emitLegacyEvent('sc:abrir-mov-produto', { id });
   }
 
   if (status === 'loading') {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { D } from '../../../../app/store.js';
+import { emitLegacyEvent, subscribeLegacyEvent } from '../../../app/legacy/events';
 import {
   listBaixas,
   listContas,
@@ -166,11 +167,11 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
       void refreshContaFinanceira();
     };
     void refreshContaFinanceira();
-    window.addEventListener('sc:contas-receber-sync', sync);
-    window.addEventListener('sc:conta-receber-criada', sync);
+    const unsubscribeSync = subscribeLegacyEvent('sc:contas-receber-sync', sync);
+    const unsubscribeCreated = subscribeLegacyEvent('sc:conta-receber-criada', sync);
     return () => {
-      window.removeEventListener('sc:contas-receber-sync', sync);
-      window.removeEventListener('sc:conta-receber-criada', sync);
+      unsubscribeSync();
+      unsubscribeCreated();
     };
   }, [filialId, pedido.id, session?.access_token]);
 
@@ -191,7 +192,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
         observacao: null
       });
       await refreshContaFinanceira();
-      window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
+      emitLegacyEvent('sc:contas-receber-sync');
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar recebimento');
     } finally {
@@ -219,7 +220,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
       setShowBaixaForm(false);
       setBaixaValor('');
       await refreshContaFinanceira();
-      window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
+      emitLegacyEvent('sc:contas-receber-sync');
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar baixa');
     } finally {

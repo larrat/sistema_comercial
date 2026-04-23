@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { postLegacyBridgeMessage } from '../../../app/legacy/bridgeMessaging';
 
 import type { Cliente, Pedido } from '../../../../types/domain';
 import { useClienteNotes } from '../hooks/useClienteNotes';
@@ -14,6 +15,7 @@ type Props = {
   onClose?: () => void;
   activeTab?: DetailTab;
   onTabChange?: (tab: DetailTab) => void;
+  onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void;
 };
 
 function formatCurrency(value: number): string {
@@ -23,17 +25,23 @@ function formatCurrency(value: number): string {
   }).format(Number(value || 0));
 }
 
-function sendPedidoAction(action: 'ver' | 'editar', pedidoId: string, clienteId: string) {
-  window.postMessage(
-    {
-      source: 'clientes-react-pilot',
-      type: 'clientes:pedido-acao',
-      action,
-      pedidoId,
-      clienteId
-    },
-    window.location.origin
-  );
+function sendPedidoAction(
+  action: 'ver' | 'editar',
+  pedidoId: string,
+  clienteId: string,
+  onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void
+) {
+  if (onPedidoAction) {
+    onPedidoAction(action, pedidoId, clienteId);
+    return;
+  }
+  postLegacyBridgeMessage({
+    source: 'clientes-react-pilot',
+    type: 'clientes:pedido-acao',
+    action,
+    pedidoId,
+    clienteId
+  });
 }
 
 function renderPedidosList(
@@ -45,6 +53,7 @@ function renderPedidosList(
     clienteNome: string;
     onFecharVenda?: (pedido: Pedido) => void;
     fechandoId?: string | null;
+    onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void;
   }
 ) {
   if (options.loading) {
@@ -111,7 +120,9 @@ function renderPedidosList(
             <button
               className="btn btn-sm"
               type="button"
-              onClick={() => sendPedidoAction('ver', pedido.id, pedido.cliente_id || '')}
+              onClick={() =>
+                sendPedidoAction('ver', pedido.id, pedido.cliente_id || '', options.onPedidoAction)
+              }
               data-testid={`pedido-ver-${pedido.id}`}
             >
               Ver pedido
@@ -119,7 +130,14 @@ function renderPedidosList(
             <button
               className="btn btn-sm"
               type="button"
-              onClick={() => sendPedidoAction('editar', pedido.id, pedido.cliente_id || '')}
+              onClick={() =>
+                sendPedidoAction(
+                  'editar',
+                  pedido.id,
+                  pedido.cliente_id || '',
+                  options.onPedidoAction
+                )
+              }
               data-testid={`pedido-editar-${pedido.id}`}
             >
               Editar
@@ -142,7 +160,14 @@ function renderPedidosList(
   );
 }
 
-export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTabChange }: Props) {
+export function ClienteDetailPanel({
+  cliente,
+  onEditar,
+  onClose,
+  activeTab,
+  onTabChange,
+  onPedidoAction
+}: Props) {
   const [internalTab, setInternalTab] = useState<DetailTab>('resumo');
   const [notaDraft, setNotaDraft] = useState('');
   const { notas, loading, saving, error, submitNota } = useClienteNotes({ clienteId: cliente.id });
@@ -165,9 +190,10 @@ export function ClienteDetailPanel({ cliente, onEditar, onClose, activeTab, onTa
       error: pedidosError,
       clienteNome: cliente.nome,
       onFecharVenda: fecharVenda,
-      fechandoId
+      fechandoId,
+      onPedidoAction
     }),
-    [cliente.nome, fechandoId, fecharVenda, pedidosError, pedidosLoading]
+    [cliente.nome, fechandoId, fecharVenda, onPedidoAction, pedidosError, pedidosLoading]
   );
 
   function setTab(nextTab: DetailTab) {

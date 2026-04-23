@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useCurrentUserRole } from '../../../app/hooks/useCurrentUserRole';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
 import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
@@ -194,13 +195,6 @@ function computeDerivedData(
   };
 }
 
-function readUserRole(): DashboardRole {
-  const raw = String(window.__SC_USER_ROLE__ || 'operador').toLowerCase();
-  if (raw === 'admin') return 'admin';
-  if (raw === 'gerente') return 'gerente';
-  return 'operador';
-}
-
 function getPreferredDashboardView(role: DashboardRole): DashboardView {
   if (role === 'admin') return 'analitico';
   if (role === 'gerente') return 'gerencial';
@@ -221,9 +215,10 @@ function readStoredDashboardView(key: string, fallback: DashboardView): Dashboar
   return fallback;
 }
 
-function goToPage(page: string) {
-  const button = document.querySelector(`.ni[data-p="${page}"]`);
-  if (button instanceof HTMLButtonElement) button.click();
+function goToPage(page: string, onNavigatePage?: (page: string) => void) {
+  if (onNavigatePage) {
+    onNavigatePage(page);
+  }
 }
 
 function PeriodSelector({
@@ -532,7 +527,8 @@ function DashboardRoleSummary({
   derived,
   pedidosCount,
   produtosCount,
-  clientesCount
+  clientesCount,
+  onNavigatePage
 }: {
   role: DashboardRole;
   view: DashboardView;
@@ -540,6 +536,7 @@ function DashboardRoleSummary({
   pedidosCount: number;
   produtosCount: number;
   clientesCount: number;
+  onNavigatePage?: (page: string) => void;
 }) {
   const focusByRole: Record<
     DashboardRole,
@@ -661,7 +658,11 @@ function DashboardRoleSummary({
             <div className="dash-role-summary__label">{item.label}</div>
             <div className="dash-role-summary__value">{item.value}</div>
             <div className="dash-role-summary__hint">{item.hint}</div>
-            <button className="btn btn-sm" type="button" onClick={() => goToPage(item.page)}>
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => goToPage(item.page, onNavigatePage)}
+            >
               {item.cta}
             </button>
           </div>
@@ -711,7 +712,11 @@ function DashboardInsightGrid({
   );
 }
 
-export function DashboardPilotPage() {
+export function DashboardPilotPage({
+  onNavigatePage
+}: {
+  onNavigatePage?: (page: string) => void;
+}) {
   const periodo = useDashboardStore((s) => s.periodo);
   const pedidos = useDashboardStore((s) => s.pedidos);
   const produtos = useDashboardStore((s) => s.produtos);
@@ -720,7 +725,7 @@ export function DashboardPilotPage() {
   const error = useDashboardStore((s) => s.error);
   const setPeriodo = useDashboardStore((s) => s.setPeriodo);
   const filialId = useFilialStore((s) => s.filialId);
-  const userRole = readUserRole();
+  const userRole = useCurrentUserRole();
   const viewStorageKey = getDashboardViewStorageKey(userRole, filialId);
   const [view, setView] = useState<DashboardView>(() =>
     readStoredDashboardView(viewStorageKey, getPreferredDashboardView(userRole))
@@ -781,6 +786,7 @@ export function DashboardPilotPage() {
             pedidosCount={pedidos.length}
             produtosCount={produtos.length}
             clientesCount={clientes.length}
+            onNavigatePage={onNavigatePage}
           />
 
           <DashKpis

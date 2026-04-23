@@ -1,6 +1,11 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import type { AppBootstrapState } from '../hooks/useAppBootstrap';
+import { ClientesRoutePage } from '../../features/clientes/pages/ClientesRoutePage';
+import { ContasReceberRoutePage } from '../../features/contas-receber/pages/ContasReceberRoutePage';
+import { DashboardRoutePage } from '../../features/dashboard/pages/DashboardRoutePage';
+import { PedidosRoutePage } from '../../features/pedidos/pages/PedidosRoutePage';
+import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePage';
 import { AppContent } from '../layout/AppContent';
 import { AppShell } from '../layout/AppShell';
 import { LoginRouteAccess, ProtectedAppRoute, SetupRouteAccess } from './routeAccess';
@@ -60,11 +65,11 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
         <Route element={<ProtectedAppRoute bootstrap={bootstrap} />}>
           <Route path="/app" element={<AppShell />}>
             <Route index element={<AppRootRedirect />} />
-            <Route path="dashboard" element={<PlaceholderPage routeId="dashboard" />} />
-            <Route path="clientes" element={<PlaceholderPage routeId="clientes" />} />
-            <Route path="pedidos" element={<PlaceholderPage routeId="pedidos" />} />
-            <Route path="receber" element={<PlaceholderPage routeId="receber" />} />
-            <Route path="produtos" element={<PlaceholderPage routeId="produtos" />} />
+            <Route path="dashboard" element={<DashboardRoutePage />} />
+            <Route path="clientes" element={<ClientesRoutePage />} />
+            <Route path="pedidos" element={<PedidosRoutePage />} />
+            <Route path="receber" element={<ContasReceberRoutePage />} />
+            <Route path="produtos" element={<ProdutosRoutePage />} />
           </Route>
         </Route>
 

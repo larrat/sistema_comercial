@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
 import { selectPedidosForTab, usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
 import { PedidoForm } from './PedidoForm';
@@ -10,7 +11,16 @@ import type { PedidoTab } from '../types';
 const MESSAGE_SOURCE = 'pedidos-react-pilot';
 const COMMAND_SOURCE = 'pedidos-legacy-shell';
 
-export function PedidosPilotPage() {
+type PedidosRouteIntent = {
+  pedidoId?: string | null;
+  view?: 'detail' | 'edit' | 'new' | null;
+};
+
+type PedidosPilotPageProps = {
+  routeIntent?: PedidosRouteIntent;
+};
+
+export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
   const activeTab = usePedidoStore((s) => s.activeTab);
   const setActiveTab = usePedidoStore((s) => s.setActiveTab);
@@ -36,11 +46,7 @@ export function PedidosPilotPage() {
 
   // Comandos do shell legado
   useEffect(() => {
-    function handleCommand(event: MessageEvent) {
-      if (event.origin !== window.location.origin) return;
-      const data = event.data;
-      if (!data || data.source !== COMMAND_SOURCE) return;
-
+    return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
       if (data.type === 'pedidos:set-tab' && data.tab) {
         setActiveTab(data.tab as PedidoTab);
         return;
@@ -64,33 +70,48 @@ export function PedidosPilotPage() {
         setDetailId(String(data.id));
         return;
       }
+    });
+  }, [setActiveTab, clearFiltro]);
+
+  useEffect(() => {
+    if (!routeIntent) return;
+
+    if (routeIntent.view === 'new') {
+      setDetailId(null);
+      setEditingId('new');
+      return;
     }
 
-    window.addEventListener('message', handleCommand);
-    return () => window.removeEventListener('message', handleCommand);
-  }, [setActiveTab, clearFiltro]);
+    if (!routeIntent.pedidoId) return;
+
+    if (routeIntent.view === 'edit') {
+      setDetailId(null);
+      setEditingId(routeIntent.pedidoId);
+      return;
+    }
+
+    setEditingId(null);
+    setDetailId(routeIntent.pedidoId);
+  }, [routeIntent?.pedidoId, routeIntent?.view]);
 
   // Publica estado ao bridge legado
   useEffect(() => {
     const filtersActive = [filtro.q, filtro.status].filter(Boolean).length;
     const view = editingId ? 'form' : detailId ? 'detail' : 'list';
-    window.postMessage(
-      {
-        source: MESSAGE_SOURCE,
-        type: 'pedidos:state',
-        state: {
-          tab: activeTab,
-          view,
-          status: storeStatus === 'loading' ? 'loading' : storeError ? 'error' : 'ready',
-          count: visiblePedidos.length,
-          filtersActive,
-          totalPedidos: pedidos.length,
-          selectedId: editingId === 'new' ? '' : editingId || detailId || '',
-          selectedNum: editingPedido?.num ?? detailPedido?.num ?? null
-        }
-      },
-      window.location.origin
-    );
+    postLegacyBridgeMessage({
+      source: MESSAGE_SOURCE,
+      type: 'pedidos:state',
+      state: {
+        tab: activeTab,
+        view,
+        status: storeStatus === 'loading' ? 'loading' : storeError ? 'error' : 'ready',
+        count: visiblePedidos.length,
+        filtersActive,
+        totalPedidos: pedidos.length,
+        selectedId: editingId === 'new' ? '' : editingId || detailId || '',
+        selectedNum: editingPedido?.num ?? detailPedido?.num ?? null
+      }
+    });
   }, [
     activeTab,
     storeStatus,

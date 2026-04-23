@@ -16,6 +16,7 @@
 
 import { useAuthStore } from './useAuthStore';
 import { useFilialStore } from './useFilialStore';
+import { getLegacyAuthSessionGlobal, getLegacyFilialIdGlobal } from './legacy/globals';
 
 /**
  * Lê as credenciais e filial ativa dos globais injetados pelo shell legado
@@ -27,14 +28,16 @@ import { useFilialStore } from './useFilialStore';
  * que precisa aguardar autenticação.
  */
 export function hydrateBridgeStores(): void {
-  if (window.__SC_AUTH_SESSION__) {
+  const authSession = getLegacyAuthSessionGlobal();
+  if (authSession) {
     useAuthStore.setState({
-      session: window.__SC_AUTH_SESSION__,
+      session: authSession,
       status: 'authenticated'
     });
   }
 
-  if (window.__SC_FILIAL_ID__) {
-    useFilialStore.setState({ filialId: window.__SC_FILIAL_ID__ });
+  const filialId = getLegacyFilialIdGlobal();
+  if (filialId) {
+    useFilialStore.setState({ filialId });
   }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
+import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
 import type { Cliente } from '../../../../types/domain';
 import { selectFilteredClientes, useClienteStore } from '../store/useClienteStore';
 import { useClienteMutations } from '../hooks/useClienteMutations';
@@ -13,7 +14,11 @@ const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
 type SurfaceTab = 'lista' | 'segmentos';
 
-export function ClientesPilotPage() {
+type ClientesPilotPageProps = {
+  onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void;
+};
+
+export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   const clientes = useClienteStore(useShallow((s) => s.clientes));
   const filtro = useClienteStore((s) => s.filtro);
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
@@ -71,12 +76,7 @@ export function ClientesPilotPage() {
   }
 
   useEffect(() => {
-    function handleParentCommand(event: MessageEvent) {
-      if (event.origin !== window.location.origin) return;
-
-      const data = event.data;
-      if (!data || data.source !== COMMAND_SOURCE) return;
-
+    return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
       if (data.type === 'clientes:novo') {
         setSurfaceTab('lista');
         setDetailId(null);
@@ -167,17 +167,11 @@ export function ClientesPilotPage() {
         if (!detailId && data.id) setDetailId(String(data.id));
         if (detailId || data.id) setDetailTab('fidelidade');
       }
-    }
-
-    window.addEventListener('message', handleParentCommand);
-    return () => {
-      window.removeEventListener('message', handleParentCommand);
-    };
+    });
   }, [clearFiltro, detailId, filteredClientes]);
 
   useEffect(() => {
-    window.postMessage(
-      {
+    postLegacyBridgeMessage({
         source: MESSAGE_SOURCE,
         type: 'clientes:state',
         state: {
@@ -190,9 +184,7 @@ export function ClientesPilotPage() {
           detailTab,
           surfaceTab
         }
-      },
-      window.location.origin
-    );
+      });
   }, [
     clientes.length,
     deletingId,
@@ -273,6 +265,7 @@ export function ClientesPilotPage() {
           cliente={detailCliente}
           activeTab={detailTab}
           onTabChange={setDetailTab}
+          onPedidoAction={onPedidoAction}
           onEditar={(id) => {
             setDetailId(null);
             setEditingId(id);

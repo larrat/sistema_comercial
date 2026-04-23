@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { getLegacyUserRoleGlobal } from '../legacy/globals';
 
 export type AppUserRole = 'operador' | 'gerente' | 'admin';
 
@@ -10,5 +11,5 @@ export function normalizeUserRole(role: unknown): AppUserRole {
 }
 
 export function useCurrentUserRole(): AppUserRole {
-  return useMemo(() => normalizeUserRole(window.__SC_USER_ROLE__), []);
+  return useMemo(() => normalizeUserRole(getLegacyUserRoleGlobal()), []);
 }

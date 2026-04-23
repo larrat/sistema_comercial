@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-
-type ToastSeverity = 'info' | 'success' | 'warning' | 'error';
+import { subscribeToast, type ToastSeverity } from '../legacy/events';
 
 type ToastItem = {
   id: number;
@@ -14,8 +13,7 @@ export function GlobalToastHost() {
   const [items, setItems] = useState<ToastItem[]>([]);
 
   useEffect(() => {
-    function handleToast(event: Event) {
-      const detail = (event as CustomEvent<{ message?: string; severity?: ToastSeverity }>).detail;
+    return subscribeToast((detail) => {
       const message = String(detail?.message || '').trim();
       if (!message) return;
 
@@ -30,12 +28,7 @@ export function GlobalToastHost() {
       window.setTimeout(() => {
         setItems((current) => current.filter((item) => item.id !== id));
       }, TOAST_LIFETIME_MS);
-    }
-
-    window.addEventListener('sc:toast', handleToast as EventListener);
-    return () => {
-      window.removeEventListener('sc:toast', handleToast as EventListener);
-    };
+    });
   }, []);
 
   if (!items.length) return null;

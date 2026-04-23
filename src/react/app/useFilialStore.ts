@@ -6,11 +6,10 @@
  */
 
 import { create } from 'zustand';
-
-const FILIAL_STORAGE_KEY = 'sc_filial_id';
+import { LEGACY_STORAGE_KEYS, readStorageString, removeStorageKey, writeStorageString } from './legacy/storage';
 
 function readFilialId(): string | null {
-  return localStorage.getItem(FILIAL_STORAGE_KEY) || null;
+  return readStorageString(LEGACY_STORAGE_KEYS.filialId);
 }
 
 export type FilialStoreState = {
@@ -31,12 +30,12 @@ export const useFilialStore = create<FilialStoreState & FilialStoreActions>((set
   },
 
   setFilial: (filialId) => {
-    localStorage.setItem(FILIAL_STORAGE_KEY, filialId);
+    writeStorageString(LEGACY_STORAGE_KEYS.filialId, filialId);
     set({ filialId });
   },
 
   clearFilial: () => {
-    localStorage.removeItem(FILIAL_STORAGE_KEY);
+    removeStorageKey(LEGACY_STORAGE_KEYS.filialId);
     set({ filialId: null });
   }
 }));

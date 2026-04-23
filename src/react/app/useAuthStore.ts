@@ -7,23 +7,18 @@
 
 import { create } from 'zustand';
 import type { AuthSession } from '../../types/domain';
+import { LEGACY_STORAGE_KEYS, readStorageJson, removeStorageKey, writeStorageJson } from './legacy/storage';
 import { getSupabaseConfig } from './supabaseConfig';
 
-const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
-
 function readSession(): AuthSession | null {
-  try {
-    return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
-  } catch {
-    return null;
-  }
+  return readStorageJson<AuthSession>(LEGACY_STORAGE_KEYS.authSession);
 }
 
 function writeSession(session: AuthSession | null): void {
   if (!session) {
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    removeStorageKey(LEGACY_STORAGE_KEYS.authSession);
   } else {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+    writeStorageJson(LEGACY_STORAGE_KEYS.authSession, session);
   }
 }
 

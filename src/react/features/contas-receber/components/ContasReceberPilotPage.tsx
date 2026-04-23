@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
+import { emitToast } from '../../../app/legacy/events';
 import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
 import {
@@ -43,10 +45,6 @@ function fromDateTimeLocalValue(value: string): string {
   if (!value) return new Date().toISOString();
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
-}
-
-function emitToast(message: string, severity: 'info' | 'warning' | 'error' | 'success' = 'info') {
-  window.dispatchEvent(new CustomEvent('sc:toast', { detail: { message, severity } }));
 }
 
 // ---------------------------------------------------------------------------
@@ -653,29 +651,21 @@ export function ContasReceberPilotPage() {
 
   // Comandos do shell legado
   useEffect(() => {
-    function handleCommand(event: MessageEvent) {
-      if (event.origin !== window.location.origin) return;
-      const data = event.data;
-      if (!data || data.source !== COMMAND_SOURCE) return;
+    return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
       if (data.type === 'receber:set-tab' && data.tab) {
         setActiveTab(data.tab as CrTab);
       }
-    }
-    window.addEventListener('message', handleCommand);
-    return () => window.removeEventListener('message', handleCommand);
+    });
   }, [setActiveTab]);
 
   // Emite estado para o bridge
   useEffect(() => {
     const count = contas.filter((c) => getStatusEfetivo(c) !== 'recebido').length;
-    window.postMessage(
-      {
+    postLegacyBridgeMessage({
         source: MESSAGE_SOURCE,
         type: 'receber:state',
         state: { tab: activeTab, status, count }
-      },
-      window.location.origin
-    );
+      });
   }, [activeTab, status, contas]);
 
   async function handleReceber(contaId: string) {

@@ -1,6 +1,7 @@
 import type { PedidoApiContext } from './pedidosApi';
 import { normalizePedStatus } from '../types';
 import { D } from '../../../../app/store.js';
+import { emitLegacyEvent } from '../../../app/legacy/events';
 
 const PRAZO_DIAS: Record<string, number> = {
   '7d': 7,
@@ -56,8 +57,8 @@ async function inserirConta(
     : [nextConta, ...contasFilial];
 
   // Notifica a aplicação para atualizar a visão local imediatamente.
-  window.dispatchEvent(new CustomEvent('sc:conta-receber-criada', { detail: conta }));
-  window.dispatchEvent(new CustomEvent('sc:contas-receber-sync'));
+  emitLegacyEvent('sc:conta-receber-criada', conta);
+  emitLegacyEvent('sc:contas-receber-sync');
 }
 
 /**

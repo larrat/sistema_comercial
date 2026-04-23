@@ -37,7 +37,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   dashboard: {
     kicker: 'Operação',
     title: 'Dashboard',
-    description: 'Placeholder do shell novo. O dashboard real ainda não foi conectado.',
+    description: 'Dashboard real conectado ao shell novo, ainda com algumas dependências transitórias do legado.',
     actions: [
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Pedidos', to: '/app/pedidos', tone: 'primary' }
@@ -46,7 +46,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   clientes: {
     kicker: 'Cadastros',
     title: 'Clientes',
-    description: 'Placeholder da rota React. O módulo atual continua fora do shell novo.',
+    description: 'Módulo real de clientes conectado ao shell novo, preservando integrações transitórias necessárias.',
     actions: [
       { label: 'Dashboard', to: '/app/dashboard' },
       { label: 'Pedidos', to: '/app/pedidos' }
@@ -55,7 +55,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   pedidos: {
     kicker: 'Vendas',
     title: 'Pedidos',
-    description: 'Placeholder da rota React. Sem ligação ainda com o módulo de pedidos.',
+    description: 'Módulo real de pedidos conectado ao shell novo, ainda preservando integrações transitórias com o legado.',
     actions: [
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Receber', to: '/app/receber', tone: 'primary' }
@@ -64,7 +64,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   receber: {
     kicker: 'Financeiro',
     title: 'Contas a receber',
-    description: 'Placeholder da rota React. Fluxos financeiros permanecem no caminho atual.',
+    description: 'Módulo real de contas a receber conectado ao shell novo, preservando integrações transitórias necessárias.',
     actions: [
       { label: 'Pedidos', to: '/app/pedidos' },
       { label: 'Produtos', to: '/app/produtos' }
@@ -73,7 +73,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   produtos: {
     kicker: 'Catálogo',
     title: 'Produtos',
-    description: 'Placeholder da rota React. O módulo real ainda não foi encaixado aqui.',
+    description: 'Módulo real de produtos conectado ao shell novo, preservando integrações transitórias com estoque e bridge legado.',
     actions: [
       { label: 'Dashboard', to: '/app/dashboard' },
       { label: 'Clientes', to: '/app/clientes' }
