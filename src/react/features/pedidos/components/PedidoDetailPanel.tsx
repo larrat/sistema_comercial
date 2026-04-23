@@ -260,7 +260,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
           </div>
           {pedido.rca_nome && (
             <div>
-              <div className="fl">RCA</div>
+              <div className="fl">Vendedor</div>
               <div className="fv">{pedido.rca_nome}</div>
             </div>
           )}

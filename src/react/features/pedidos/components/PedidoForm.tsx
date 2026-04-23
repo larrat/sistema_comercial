@@ -248,14 +248,14 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                   />
                 </label>
                 <label className="form-field">
-                  <span>RCA / Vendedor</span>
+                  <span>Vendedor</span>
                   <select
                     className="inp sel"
                     value={rcaId}
                     onChange={(e) => setRcaId(e.target.value)}
                     data-testid="pedido-form-rca"
                   >
-                    <option value="">Sem RCA</option>
+                    <option value="">Sem vendedor</option>
                     {rcas.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.nome}

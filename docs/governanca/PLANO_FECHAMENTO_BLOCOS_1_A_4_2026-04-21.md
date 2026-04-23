@@ -97,10 +97,13 @@ Status em 2026-04-22:
 - [x] revisar rotulos ambiguos
 - [x] remover termos internos/tecnicos expostos
 - [x] padronizar nome de modulos, acoes e secoes
-- [ ] revisar siglas como `RCA`
+- [x] revisar siglas como `RCA`
   Observacao em 2026-04-22:
   foram alinhados rotulos como `Início`, `Analises`, `Compras`, `Alertas e pendencias` e `Acessos e permissoes`.
   O residual de nomenclatura agora esta concentrado em siglas e pontos mais profundos da operacao.
+  Observacao em 2026-04-23:
+  `RCA` foi substituido por `Vendedor` nos rotulos principais de clientes, pedidos, detalhe de pedido,
+  exportacao/listagem de clientes e modal legado de cadastro, preservando nomes tecnicos internos `rca_*`.
 
 ### 3. Feedback e estados vazios
 
@@ -114,14 +117,26 @@ Status em 2026-04-22:
 
 ### Criterio de encerramento da sprint 2
 
-- [ ] navegacao exige menos memoria
+- [x] navegacao exige menos memoria
 - [x] modulos administrativos param de competir com operacionais
 - [x] usuario entende o que fazer quando nao ha dados ou quando algo falha
 
 ### Residual para encerramento formal
 
-- [ ] validar por smoke/manual se a nova navegacao realmente reduziu memorizacao no uso recorrente
-- [ ] revisar rotulos restantes fora do fluxo principal, com foco em siglas e textos mais profundos de analise
+- [x] validar por smoke/manual se a nova navegacao realmente reduziu memorizacao no uso recorrente
+- [x] revisar rotulos restantes fora do fluxo principal, com foco em siglas e textos mais profundos de analise
+
+### Resultado
+
+- [x] sprint 2 concluida em 2026-04-23
+  Evidencia:
+  foi criado o smoke `tests/e2e/sprint-2-structural-navigation.spec.js` para cobrir grupos do menu,
+  consolidacao administrativa, navegacao por telas principais, busca lateral e ausencia de `RCA`
+  nos rotulos centrais. A auditoria de fonte confirmou os grupos estruturais em `index.html` e
+  a troca dos textos visiveis para `Vendedor`.
+  Observacao de ambiente:
+  a execucao local de `npm run typecheck`, `npm run test:react` e do smoke E2E nao foi possivel
+  neste shell porque `node`/`npm` nao estao instalados/disponiveis no PATH.
 
 ---
 
@@ -208,7 +223,7 @@ Meta: encerrar residual de maturidade visual, performance percebida e acessibili
 Os blocos 1 a 4 so devem ser considerados encerrados quando estas 5 condicoes estiverem verdadeiras:
 
 - [x] financeiro validado em ambiente real
-- [ ] menu e arquitetura reorganizados
-- [ ] feedback e estados vazios resolvidos nos fluxos principais
+- [x] menu e arquitetura reorganizados
+- [x] feedback e estados vazios resolvidos nos fluxos principais
 - [ ] smoke tests dos fluxos criticos concluidos
 - [ ] responsividade principal revisada

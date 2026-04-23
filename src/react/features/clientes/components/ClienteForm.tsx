@@ -293,14 +293,14 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
             />
           </label>
           <label className="form-field">
-            <span>RCA / Vendedor</span>
+            <span>Vendedor</span>
             <select
               className="inp"
               value={values.rca_id}
               onChange={(e) => handleRcaChange(e.target.value)}
               data-testid="form-rca"
             >
-              <option value="">Sem RCA</option>
+              <option value="">Sem vendedor</option>
               {rcas.map((rca) => (
                 <option key={rca.id} value={rca.id}>
                   {rca.nome}

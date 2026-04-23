@@ -15,6 +15,6 @@ export async function listRcas(context: PedidoApiContext): Promise<Rca[]> {
   );
   const text = await res.text().catch(() => '');
   const body = text ? JSON.parse(text) : null;
-  if (!res.ok) throw new Error(`Erro ${res.status} ao carregar RCAs`);
+  if (!res.ok) throw new Error(`Erro ${res.status} ao carregar vendedores`);
   return Array.isArray(body) ? (body as Rca[]) : [];
 }

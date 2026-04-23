@@ -234,8 +234,8 @@ export async function carregarDadosFilial(filId) {
 
     const rcas = rcasResult.ok ? rcasResult.data || [] : D.rcas?.[filId] || [];
     if (!rcasResult.ok) {
-      console.error('Falha ao carregar RCAs na entrada da filial', rcasResult.error);
-      if (!IS_E2E_UI_CORE) toast('Nao foi possivel carregar RCAs do banco. Usando cache local.');
+      console.error('Falha ao carregar vendedores na entrada da filial', rcasResult.error);
+      if (!IS_E2E_UI_CORE) toast('Nao foi possivel carregar vendedores do banco. Usando cache local.');
     }
 
     const jogos = jogosResult.ok ? jogosResult.data || [] : [];

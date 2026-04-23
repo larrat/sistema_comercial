@@ -45,7 +45,7 @@ export function ClientesPilotPage() {
 
   function exportarCsvAtual() {
     const rows = [
-      ['Nome', 'E-mail', 'Telefone', 'WhatsApp', 'Segmento', 'Status', 'Cidade', 'RCA'],
+      ['Nome', 'E-mail', 'Telefone', 'WhatsApp', 'Segmento', 'Status', 'Cidade', 'Vendedor'],
       ...filteredClientes.map((cliente) => [
         cliente.nome || '',
         cliente.email || '',

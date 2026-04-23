@@ -45,7 +45,7 @@ export function ClienteContextSummary({ cliente }: Props) {
             <br />
             Prazo: {cliente.prazo || 'a_vista'}
             <br />
-            RCA: {cliente.rca_nome || 'Sem RCA'}
+            Vendedor: {cliente.rca_nome || 'Sem vendedor'}
           </p>
         </div>
         <div className="empty-inline">

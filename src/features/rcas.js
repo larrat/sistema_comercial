@@ -45,7 +45,7 @@ function buildRcaInicial(nome) {
 
 export function refreshRcaSelectors() {
   const options = [
-    '<option value="">Sem RCA</option>',
+    '<option value="">Sem vendedor</option>',
     ...RCAS()
       .filter((rca) => rca.ativo !== false)
       .sort((a, b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'))
@@ -77,7 +77,7 @@ export function abrirModalRca(targetId = null) {
   rcaTargetFieldId = targetId ? String(targetId) : null;
   const titulo = document.getElementById('rca-modal-titulo');
   const nome = /** @type {HTMLInputElement | null} */ (document.getElementById('rca-nome'));
-  if (titulo) titulo.textContent = 'Novo RCA';
+  if (titulo) titulo.textContent = 'Novo vendedor';
   if (nome) nome.value = '';
   abrirModal('modal-rca');
   focusField('rca-nome');
@@ -87,7 +87,7 @@ export async function salvarRca() {
   const nomeEl = /** @type {HTMLInputElement | null} */ (document.getElementById('rca-nome'));
   const nome = String(nomeEl?.value || '').trim();
   if (!nome) {
-    notify('Informe o nome do RCA para salvar.', SEVERITY.WARNING);
+    notify('Informe o nome do vendedor para salvar.', SEVERITY.WARNING);
     focusField('rca-nome', { markError: true });
     return;
   }
@@ -99,7 +99,7 @@ export async function salvarRca() {
         .toLowerCase() === nome.toLowerCase()
   );
   if (duplicado) {
-    notify(`Este RCA já existe: ${duplicado.nome}.`, SEVERITY.INFO);
+    notify(`Este vendedor já existe: ${duplicado.nome}.`, SEVERITY.INFO);
     if (rcaTargetFieldId) {
       refreshRcaSelectors();
       const target = /** @type {HTMLSelectElement | null} */ (
@@ -124,7 +124,7 @@ export async function salvarRca() {
     await SB.upsertRca(rca);
   } catch (error) {
     notify(
-      `Erro ao salvar RCA: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
+      `Erro ao salvar vendedor: ${String(error instanceof Error ? error.message : 'erro desconhecido')}.`,
       SEVERITY.ERROR
     );
     return;
@@ -146,5 +146,5 @@ export async function salvarRca() {
   }
 
   fecharModal('modal-rca');
-  notify(`RCA cadastrado: ${rca.nome}.`, SEVERITY.SUCCESS);
+  notify(`Vendedor cadastrado: ${rca.nome}.`, SEVERITY.SUCCESS);
 }
