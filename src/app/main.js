@@ -9,7 +9,7 @@
 /** @typedef {import('../types/domain').AppCache} AppCache */
 
 import { SB } from './api.js';
-import { D, State, P, C, PD, FORNS, CPRECOS } from './store.js';
+import { D, State, P, C, PD } from './store.js';
 import { createAppContext } from '../shared/app-context.js';
 import { createModuleRegistry } from '../shared/module-registry.js';
 import { getRenderMetrics, resetRenderMetrics } from '../shared/render-metrics.js';
@@ -25,20 +25,19 @@ import {
   prV
 } from '../shared/utils.js';
 
-import {
-  initCotacaoModule,
-  renderFornSel,
-  renderCotLogs,
-  renderCotForns,
-  renderCotTabela,
-  salvarForn,
-  remForn,
-  cotLock,
-  updPreco,
-  cotFile,
-  confirmarMapa,
-  renderMapaBody
-} from '../features/cotacao.js';
+// Cotação legado removido — Fase 2C
+const initCotacaoModule = () => {};
+const renderFornSel = () => {};
+const renderCotLogs = () => {};
+const renderCotForns = () => {};
+const renderCotTabela = () => {};
+const salvarForn = () => {};
+const remForn = () => {};
+const cotLock = () => {};
+const updPreco = () => {};
+const cotFile = () => {};
+const confirmarMapa = () => {};
+const renderMapaBody = () => {};
 
 import {
   abrirNovoProdutoReact,
@@ -461,33 +460,6 @@ function exportCSV(tipo) {
         ];
       })
     ];
-  } else if (tipo === 'cotacao') {
-    name = 'cotacao';
-    const forns = FORNS();
-    if (!P().length || !forns.length) {
-      toast('Sem dados para exportar.');
-      return;
-    }
-
-    rows = [
-      ['Produto', 'Un', ...forns.map((f) => f.nome), 'Melhor preço', 'Melhor fornecedor'],
-      ...P().map((p) => {
-        const prices = forns.map((f) => {
-          const k = p.id + '_' + f.id;
-          return CPRECOS()[k] !== undefined ? Number(CPRECOS()[k]) : null;
-        });
-        const valid = prices.filter((v) => typeof v === 'number' && v > 0);
-        const mp = valid.length ? Math.min(...valid) : null;
-        const bi = prices.findIndex((v) => v === mp);
-        return [
-          p.nome,
-          p.un,
-          ...prices.map((v) => (v == null ? '' : v)),
-          mp != null ? fmtN(mp) : '',
-          bi >= 0 ? forns[bi].nome : ''
-        ];
-      })
-    ];
   } else if (tipo === 'campanhas') {
     name = 'campanhas';
     const campanhas = D.campanhas?.[State.FIL] || [];
@@ -523,17 +495,13 @@ function exportCSV(tipo) {
 }
 
 function exportarTudo() {
-  ['produtos', 'clientes', 'pedidos', 'cotacao', 'campanhas'].forEach((t, i) =>
+  ['produtos', 'clientes', 'pedidos', 'campanhas'].forEach((t, i) =>
     setTimeout(() => exportCSV(t), i * 200)
   );
 }
 
 const removerProdGuard = () => {};
-const remFornGuard = buildRoleGuard(
-  remForn,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode remover fornecedor.'
-);
+const remFornGuard = () => {};
 const excluirMovGuard = buildRoleGuard(
   excluirMov,
   ROLE_MANAGER_PLUS,

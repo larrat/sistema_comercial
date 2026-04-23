@@ -55,7 +55,13 @@
       "mcp__claude_ai_Supabase__list_edge_functions",
       "mcp__claude_ai_Supabase__execute_sql",
       "mcp__claude_ai_Supabase__apply_migration",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(grep -E '\\\\.\\(json|ts|js|md|html|config\\)$')",
+      "Bash(/usr/local/bin/node /Users/larrat/sistema_comercial/sistema_comercial/node_modules/.bin/tsc --project tsconfig.json --noEmit)",
+      "Bash(command -v node)",
+      "Read(//Applications/Cursor.app/Contents/Resources/app/node_modules/.bin/**)",
+      "Bash(awk 'NR==1212,NR==1505' /Users/larrat/sistema_comercial/sistema_comercial/index.html)",
+      "Bash(/usr/local/bin/npm run *)"
     ]
   }
 }

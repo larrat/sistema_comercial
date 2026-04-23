@@ -119,9 +119,20 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 **Fase 2B concluída.** React é o caminho principal para Estoque.
 
 ### 2C — Cotação
+> Concluído em 2026-04-23 (commits 1fd473f + limpeza)
+
 **Dependência:** Produtos (2A).  
-**Escopo React:** seleção de fornecedores, tabela de cotação, atualização de preços, lock de cotação.  
+**Escopo React:** seleção de fornecedores, tabela de cotação, atualização de preços, lock de cotação, importação de planilhas.  
 **Referência:** `src/features/cotacao.js` + `src/features/cotacao/` → `src/react/features/cotacao/`
+
+- [x] Criar tipos, store, services e hooks (`useCotacaoData`, `useCotacaoMutations`, `useCotacaoImport`)
+- [x] Criar componentes (`CotacaoPage`, `CotacaoMetrics`, `FornecedorList`, `FornecedorForm`, `CotacaoTable`, `CotacaoImport`, `CotacaoLogs`, `ImportMapModal`)
+- [x] Registrar rota `/app/cotacao` no `AppRouter.tsx`, `wave1Navigation.ts` e `navigation/config.ts`
+- [x] Importação de .xlsx/.xls/.csv com detecção automática de colunas e barra de progresso
+- [x] Remover `#pg-cotacao`, `#modal-forn` e `#modal-mapa` do `index.html`
+- [x] Deletar `src/features/cotacao.js` + `src/features/cotacao/` e substituir por stubs no `main.js`
+
+**Fase 2C concluída.** React é o caminho principal para Cotação.
 
 ### 2D — RCAs e Oportunidades
 **Baixa complexidade — bom para fazer junto.**  

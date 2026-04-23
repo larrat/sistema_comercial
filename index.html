@@ -714,79 +714,6 @@
           <div id="cr-react-root"></div>
         </div>
 
-        <!-- COTACAO -->
-        <div class="pg cot-bento-page" id="pg-cotacao">
-          <div class="tabs">
-            <button class="tb on" data-click="switchTab('cot','importar')">Importar</button>
-            <button class="tb" data-click="switchTab('cot','fornecedores');renderCotForns()">
-              Fornecedores
-            </button>
-            <button class="tb" data-click="switchTab('cot','cotacao');renderCotTabela()">
-              Cotação
-            </button>
-          </div>
-          <div class="tc on cot-bento-tab" id="cot-tc-importar">
-            <div class="cot-bento-grid">
-              <div class="card card-shell">
-                <div class="ct">Importar planilha de fornecedor</div>
-                <div class="fg c2 form-gap-bottom">
-                  <div>
-                    <div class="fl">Fornecedor</div>
-                    <select class="inp sel" id="cot-forn-sel">
-                      <option value="">- selecione -</option>
-                    </select>
-                  </div>
-                  <div class="toolbar-inline-end">
-                    <button class="btn" data-click="abrirModal('modal-forn')">
-                      + Novo fornecedor
-                    </button>
-                  </div>
-                </div>
-                <div class="upz">
-                  <input type="file" accept=".xlsx,.xls,.csv" data-change="cotFile(event)" />
-                  <div class="upload-drop-icon">ARQ</div>
-                  <strong class="upload-drop-title">Clique ou arraste o arquivo</strong>
-                  <p class="upload-drop-copy">.xlsx .xls .csv - qualquer layout</p>
-                </div>
-              </div>
-              <div class="card card-shell">
-                <div class="ct">Histórico de importações</div>
-                <div id="cot-logs"></div>
-              </div>
-            </div>
-          </div>
-          <div class="tc cot-bento-tab" id="cot-tc-fornecedores">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="ct ct-inline">Fornecedores</div>
-                <div class="toolbar-actions">
-                  <button class="btn btn-p btn-sm" data-click="abrirModal('modal-forn')">
-                    + Novo fornecedor
-                  </button>
-                </div>
-              </div>
-              <div id="cot-forns-lista"></div>
-            </div>
-          </div>
-          <div class="tc cot-bento-tab" id="cot-tc-cotacao">
-            <div class="mg bento-band" id="cot-met"></div>
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="ct ct-inline">Tabela de cotação</div>
-                <div class="toolbar-actions">
-                  <button class="btn btn-sm" data-click="exportCSV('cotacao')">Exportar CSV</button>
-                  <button class="btn btn-sm" id="cot-lock-btn" data-click="cotLock()">
-                    Travar
-                  </button>
-                </div>
-              </div>
-              <div id="cot-lock-alert" class="alert al-a is-hidden">
-                Cotação travada | valores protegidos
-              </div>
-              <div id="cot-tabela"></div>
-            </div>
-          </div>
-        </div>
 
 
         <!-- ── CAMPANHAS ── -->
@@ -1411,42 +1338,6 @@
       </div>
     </div>
 
-    <!-- Fornecedor cotação -->
-    <div class="modal-wrap" id="modal-forn">
-      <div class="modal-bg" data-click="fecharModal('modal-forn')"></div>
-      <div class="modal-box">
-        <div class="mt">Novo fornecedor</div>
-        <div class="fg">
-          <div>
-            <div class="fl">Nome *</div>
-            <input class="inp" id="fn-nome" />
-          </div>
-        </div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Contato</div>
-            <input class="inp" id="fn-contato" />
-          </div>
-          <div>
-            <div class="fl">Prazo entrega (dias)</div>
-            <input class="inp" id="fn-prazo" type="number" min="0" />
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-forn')">Cancelar</button
-          ><button class="btn btn-p" data-click="salvarForn()">Salvar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mapeamento de colunas -->
-    <div class="modal-wrap" id="modal-mapa">
-      <div class="modal-bg" data-click="fecharModal('modal-mapa')"></div>
-      <div class="modal-box modal-box-wide">
-        <div class="mt" id="mapa-titulo">Mapear colunas</div>
-        <div id="mapa-body"></div>
-      </div>
-    </div>
 
 
     <!-- Quick Command Palette -->
