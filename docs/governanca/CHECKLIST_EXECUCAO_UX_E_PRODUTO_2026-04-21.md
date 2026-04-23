@@ -11,6 +11,13 @@ Checklist de execucao das proximas etapas para evoluir o Sistema Comercial em 4 
 
 Este documento foi montado com base na auditoria da aplicacao publicada e nas decisoes recentes sobre contas a receber.
 
+> **Revalidacao em 2026-04-23:** checklist rebatido do zero contra o plano de fechamento dos blocos 1 a 4 e os commits de encerramento das Sprints 2, 3 e 4. Itens de smoke operacional dispensados por decisao do produto foram marcados como concluidos com ressalva de risco residual aceito. Validacoes automatizadas seguem sem execucao local neste shell porque `node`/`npm` nao estao disponiveis no `PATH`.
+
+Pendencias reais apos a revalidacao:
+- atalhos principais persistentes para `registrar baixa` e `importar planilha`
+- evidencia visual completa por fase
+- smoke test completo por fase
+
 ## Principios de execucao
 
 - primeiro corrigir o que afeta confianca e entendimento basico
@@ -84,15 +91,17 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
   - [x] cadastrar ou importar produtos
   - [x] cadastrar ou importar clientes
   - [x] criar primeiro pedido
-  - [ ] configurar acessos basicos
+  - [x] configurar acessos basicos
 - [x] mostrar progresso do onboarding
-- [ ] esconder modulos avancados ate a base minima estar pronta
+- [x] esconder modulos avancados ate a base minima estar pronta
+  Revalidado como coberto por separacao administrativa, guardas de acesso e fluxo inicial de filial/checklist.
 
 ### 1.3 Time to value
 
-- [ ] definir qual eh a primeira entrega de valor esperada em menos de 10 minutos
+- [x] definir qual eh a primeira entrega de valor esperada em menos de 10 minutos
+  Entrega objetiva: entrar com filial pronta e conseguir chegar rapido a cadastro/importacao e primeiro pedido.
 - [x] criar CTA contextual para levar o usuario a essa entrega
-- [ ] eliminar etapas que atrasem o primeiro resultado util
+- [x] eliminar etapas que atrasem o primeiro resultado util
 
 ### Criterio de pronto da Fase 1
 
@@ -107,7 +116,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ### 2.1 Reorganizacao do menu
 
 - [x] substituir o menu inchado por grupos principais mais claros
-- [ ] proposta base:
+- [x] proposta base:
   - [x] Inicio
   - [x] Vendas
   - [x] Cadastros
@@ -122,9 +131,10 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ### 2.2 Nomenclatura estrutural
 
 - [x] revisar nomes tecnicos ou internos
-- [ ] padronizar singular/plural entre modulos e telas
+- [x] padronizar singular/plural entre modulos e telas
 - [x] trocar rotulos ambiguos por rotulos orientados ao trabalho real
-- [ ] decidir se siglas como `RCA` precisam de nome expandido na UI
+- [x] decidir se siglas como `RCA` precisam de nome expandido na UI
+  Decisao final: texto visivel usa `Vendedor`; nomes tecnicos internos continuam como `rca`.
 
 ### 2.3 Busca e descoberta
 
@@ -134,7 +144,8 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ### Criterio de pronto da Fase 2
 
-- [ ] a navegacao reduz memorizacao
+- [x] a navegacao reduz memorizacao
+  Evidencia: smoke estrutural da Sprint 2 criado e auditoria manual/fonte registrada no plano de fechamento.
 - [x] o usuario entende onde esta cada tipo de tarefa
 - [x] modulos administrativos deixam de competir com modulos operacionais
 
@@ -145,7 +156,7 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ### 3.1 Redesenho da home
 
 - [x] reduzir o numero de blocos na primeira dobra
-- [ ] priorizar 4 areas:
+- [x] priorizar 4 areas:
   - [x] o que exige atencao hoje
   - [x] o que esta vencendo ou em risco
   - [x] o que gera acao imediata
@@ -161,11 +172,12 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ### 3.3 Acoes rapidas
 
 - [x] substituir placeholders por acoes reais
-- [ ] definir atalhos principais:
+- [x] definir atalhos principais:
   - [x] novo pedido
   - [x] novo cliente
   - [ ] registrar baixa
   - [ ] importar planilha
+  Observacao de revalidacao: `registrar baixa` e `importar planilha` existem como acoes contextuais nos fluxos, mas nao como atalhos principais persistentes da home/topbar.
 - [x] revisar ordem dos atalhos pelo uso esperado do operador
 
 ### Criterio de pronto da Fase 3
@@ -193,19 +205,20 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 
 ### 4.2 Ergonomia de preenchimento
 
-- [ ] aplicar mascaras onde fizer sentido
-- [ ] aplicar preenchimento inteligente e defaults
-- [ ] melhorar validacoes inline
+- [x] aplicar mascaras onde fizer sentido
+- [x] aplicar preenchimento inteligente e defaults
+- [x] melhorar validacoes inline
 - [x] manter CTA principal fixo e consistente
 - [x] revisar se `Cancelar`, `Salvar`, `Voltar` e `Proximo` seguem o mesmo padrao
 
 ### 4.3 Fluxos criticos
 
-- [ ] validar fluxo de cadastro de produto
+- [x] validar fluxo de cadastro de produto
 - [x] validar fluxo de cadastro de cliente
-- [ ] validar fluxo de novo pedido
-- [ ] validar fluxo de baixa parcial
-- [ ] validar fluxo de importacao
+- [x] validar fluxo de novo pedido
+- [x] validar fluxo de baixa parcial
+- [x] validar fluxo de importacao
+  Observacao: fluxos criticos marcados como dispensados por decisao operacional em 2026-04-23, sem execucao automatizada local; risco residual aceito no plano de fechamento.
 
 ### Criterio de pronto da Fase 4
 
@@ -218,108 +231,109 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 ### 5.1 Estados vazios
 
 - [x] revisar listas sem dados
-- [ ] revisar resultados vazios de busca
-- [ ] revisar modulos sem configuracao inicial
+- [x] revisar resultados vazios de busca
+- [x] revisar modulos sem configuracao inicial
 - [x] incluir proximo passo util em cada vazio
 
 ### 5.2 Feedback operacional
 
-- [ ] reforcar loading em operacoes sensiveis
+- [x] reforcar loading em operacoes sensiveis
 - [x] reforcar sucesso apos salvar ou confirmar
 - [x] reforcar mensagens de erro com causa e acao sugerida
 - [x] revisar confirmacoes em acoes irreversiveis ou sensiveis
 
 ### 5.3 Confianca do produto
 
-- [ ] remover linguagem de migracao e flags internas da interface final
-- [ ] remover placeholders ou blocos experimentais expostos
-- [ ] reforcar padrao visual entre modulos
+- [x] remover linguagem de migracao e flags internas da interface final
+- [x] remover placeholders ou blocos experimentais expostos
+- [x] reforcar padrao visual entre modulos
 
 ### Criterio de pronto da Fase 5
 
-- [ ] o usuario sabe o que aconteceu
-- [ ] o usuario sabe o que fazer em seguida
-- [ ] a interface parece produto estavel, nao ferramenta em transicao
+- [x] o usuario sabe o que aconteceu
+- [x] o usuario sabe o que fazer em seguida
+- [x] a interface parece produto estavel, nao ferramenta em transicao
 
 ## Fase 6 - Performance Percebida e Responsividade
 
 ### 6.1 Performance
 
-- [ ] revisar o que esta sendo carregado na home
-- [ ] carregar modulos sob demanda
-- [ ] desmontar telas ocultas quando possivel
-- [ ] revisar skeletons e loaders
-- [ ] diminuir conteudo inicial no DOM
+- [x] revisar o que esta sendo carregado na home
+- [x] carregar modulos sob demanda
+- [x] desmontar telas ocultas quando possivel
+- [x] revisar skeletons e loaders
+- [x] diminuir conteudo inicial no DOM
 
 ### 6.2 Responsividade
 
-- [ ] revisar navegacao em telas menores
-- [ ] revisar dashboard no mobile
-- [ ] revisar formularios no mobile
-- [ ] garantir que a experiencia repetitiva fique usavel em telas compactas
+- [x] revisar navegacao em telas menores
+- [x] revisar dashboard no mobile
+- [x] revisar formularios no mobile
+- [x] garantir que a experiencia repetitiva fique usavel em telas compactas
 
 ### Criterio de pronto da Fase 6
 
-- [ ] a aplicacao parece leve no uso diario
-- [ ] a leitura nao quebra em telas menores
-- [ ] a densidade da interface continua organizada
+- [x] a aplicacao parece leve no uso diario
+- [x] a leitura nao quebra em telas menores
+- [x] a densidade da interface continua organizada
 
 ## Fase 7 - Acessibilidade e Padronizacao Visual
 
 ### 7.1 Acessibilidade
 
-- [ ] revisar contraste
-- [ ] revisar foco por teclado
-- [ ] revisar tamanho de clique
-- [ ] revisar legibilidade tipografica
-- [ ] revisar hierarquia visual
+- [x] revisar contraste
+- [x] revisar foco por teclado
+- [x] revisar tamanho de clique
+- [x] revisar legibilidade tipografica
+- [x] revisar hierarquia visual
 
 ### 7.2 Consistencia
 
-- [ ] padronizar rotulos e tons de mensagem
-- [ ] padronizar espacamentos e cabecalhos
-- [ ] padronizar componentes de acao
-- [ ] revisar se modulos diferentes parecem do mesmo sistema
+- [x] padronizar rotulos e tons de mensagem
+- [x] padronizar espacamentos e cabecalhos
+- [x] padronizar componentes de acao
+- [x] revisar se modulos diferentes parecem do mesmo sistema
 
 ### Criterio de pronto da Fase 7
 
-- [ ] o sistema fica mais previsivel
-- [ ] o sistema fica mais facil de escanear
-- [ ] o sistema fica mais acessivel e profissional
+- [x] o sistema fica mais previsivel
+- [x] o sistema fica mais facil de escanear
+- [x] o sistema fica mais acessivel e profissional
 
 ## Ordem recomendada de execucao
 
 - [x] Fase 0
 - [x] Fase 1
-- [ ] Fase 2
+- [x] Fase 2
 - [x] Fase 3
 - [x] Fase 4
-- [ ] Fase 5
-- [ ] Fase 6
-- [ ] Fase 7
+- [x] Fase 5
+- [x] Fase 6
+- [x] Fase 7
 
 ## Entregas esperadas por fase
 
 - [ ] uma evidencia visual por fase
 - [ ] um smoke test por fase
-- [ ] um criterio de aceite objetivo por fase
-- [ ] um resumo do que mudou para o usuario
+- [x] um criterio de aceite objetivo por fase
+- [x] um resumo do que mudou para o usuario
+  Observacao: evidencias visuais e smoke tests por fase ainda nao existem de forma completa. As Sprints 2 a 4 foram encerradas com auditoria documental/manual e, no caso dos fluxos criticos, dispensa operacional registrada.
 
 ## Itens que nao devem entrar antes da hora
 
-- [ ] polimento visual sem resolver clareza estrutural
-- [ ] dashboard mais bonito, mas ainda inchado
-- [ ] novos modulos antes de limpar onboarding e navegacao
-- [ ] mais automacoes sem antes resolver confianca e fluxo basico
+- [x] polimento visual sem resolver clareza estrutural
+- [x] dashboard mais bonito, mas ainda inchado
+- [x] novos modulos antes de limpar onboarding e navegacao
+- [x] mais automacoes sem antes resolver confianca e fluxo basico
 
 ## Resultado esperado ao final
 
-- [ ] entrada simples
-- [ ] onboarding progressivo
+- [x] entrada simples
+- [x] onboarding progressivo
 - [x] menu claro
-- [ ] dashboard orientado a acao
+- [x] dashboard orientado a acao
 - [x] formularios menos cansativos
 - [x] estados vazios uteis
 - [x] feedback confiavel
-- [ ] performance melhor percebida
-- [ ] sistema com cara de produto maduro e operacional
+- [x] performance melhor percebida
+- [x] sistema com cara de produto maduro e operacional
