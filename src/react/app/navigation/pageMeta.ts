@@ -55,10 +55,19 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   estoque: {
     kicker: 'Operação',
     title: 'Estoque',
-    description: 'Esqueleto React do módulo criado. A migração seguirá em partes, começando por posição e histórico.',
+    description: 'Módulo React de estoque ativo: posição, histórico e movimentações.',
     actions: [
       { label: 'Produtos', to: '/app/produtos' },
       { label: 'Dashboard', to: '/app/dashboard' }
+    ]
+  },
+  cotacao: {
+    kicker: 'Compras',
+    title: 'Cotação',
+    description: 'Comparação de preços entre fornecedores, importação de planilhas e tabela de decisão de compra.',
+    actions: [
+      { label: 'Produtos', to: '/app/produtos' },
+      { label: 'Estoque', to: '/app/estoque' }
     ]
   },
   pedidos: {

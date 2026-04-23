@@ -5,6 +5,7 @@ export type AppRouteId =
   | 'dashboard'
   | 'clientes'
   | 'estoque'
+  | 'cotacao'
   | 'pedidos'
   | 'receber'
   | 'produtos';
@@ -22,6 +23,7 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'dashboard', path: '/app/dashboard', label: 'Dashboard' },
   { id: 'clientes', path: '/app/clientes', label: 'Clientes' },
   { id: 'estoque', path: '/app/estoque', label: 'Estoque' },
+  { id: 'cotacao', path: '/app/cotacao', label: 'Cotação' },
   { id: 'pedidos', path: '/app/pedidos', label: 'Pedidos' },
   { id: 'receber', path: '/app/receber', label: 'Contas a receber' },
   { id: 'produtos', path: '/app/produtos', label: 'Produtos' }

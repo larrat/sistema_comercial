@@ -4,6 +4,7 @@ import type { AppBootstrapState } from '../hooks/useAppBootstrap';
 import { ClientesRoutePage } from '../../features/clientes/pages/ClientesRoutePage';
 import { ContasReceberRoutePage } from '../../features/contas-receber/pages/ContasReceberRoutePage';
 import { DashboardRoutePage } from '../../features/dashboard/pages/DashboardRoutePage';
+import { CotacaoRoutePage } from '../../features/cotacao/pages/CotacaoRoutePage';
 import { EstoqueRoutePage } from '../../features/estoque/pages/EstoqueRoutePage';
 import { PedidosRoutePage } from '../../features/pedidos/pages/PedidosRoutePage';
 import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePage';
@@ -58,6 +59,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="dashboard" element={<DashboardRoutePage />} />
             <Route path="clientes" element={<ClientesRoutePage />} />
             <Route path="estoque" element={<EstoqueRoutePage />} />
+            <Route path="cotacao" element={<CotacaoRoutePage />} />
             <Route path="pedidos" element={<PedidosRoutePage />} />
             <Route path="receber" element={<ContasReceberRoutePage />} />
             <Route path="produtos" element={<ProdutosRoutePage />} />
