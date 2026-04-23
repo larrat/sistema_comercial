@@ -1,5 +1,5 @@
 // @ts-check
-// Legado de pedidos removido — módulo substituído pelo React pilot (pedidos-bridge.tsx).
+// Modulo de pedidos substituido pela experiencia principal em pedidos-bridge.tsx.
 // initPedidosModule mantido como stub para não quebrar referências enquanto main.js é limpo.
 
 /**
@@ -7,8 +7,8 @@
  */
 export function initPedidosModule(_callbacks = {}) {}
 
-/** @deprecated React pilot gerencia pedidos — stub mantido para não quebrar clientes.js */
+/** @deprecated Experiencia principal gerencia pedidos — stub mantido para nao quebrar clientes.js */
 export function renderPedMet() {}
 
-/** @deprecated React pilot gerencia pedidos — stub mantido para não quebrar clientes.js */
+/** @deprecated Experiencia principal gerencia pedidos — stub mantido para nao quebrar clientes.js */
 export function renderPedidos() {}

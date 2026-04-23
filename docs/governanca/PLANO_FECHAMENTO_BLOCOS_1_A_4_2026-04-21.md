@@ -209,9 +209,14 @@ Status em 2026-04-23, fechamento:
 
 Meta: encerrar residual de maturidade visual, performance percebida e acessibilidade.
 
+Status em 2026-04-23:
+- sprint 4 iniciada apos fechamento formal da Sprint 3 no commit `d0678bf`
+- primeira frente escolhida: remover linguagem visivel de transicao e iniciar maturidade de produto
+- ajuste inicial aplicado em clientes/pedidos para trocar indicacoes de experiencia temporaria por linguagem de produto estavel
+
 ### 1. Ruido e maturidade
 
-- [ ] remover linguagem restante de transicao
+- [x] remover linguagem restante de transicao
 - [ ] remover blocos experimentais ainda expostos
 - [ ] reforcar consistencia visual entre modulos
 

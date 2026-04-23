@@ -389,7 +389,7 @@ function updateToggle() {
   toggle.hidden = false;
   toggle.disabled = true;
   toggle.setAttribute('aria-disabled', 'true');
-  toggle.textContent = 'React ativo';
+  toggle.textContent = 'Clientes ativo';
 }
 
 async function applyMode() {
@@ -430,7 +430,7 @@ async function applyMode() {
     } catch (error) {
       mounted = false;
       console.error(
-        '[clientes-react-bridge] falha ao montar piloto React; usando fallback legado.',
+        '[clientes-react-bridge] falha ao montar experiencia de clientes; usando tela alternativa.',
         error
       );
       if (isClientesPageActive()) notifyLegacyFallback('mount-error');
