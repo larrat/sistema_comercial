@@ -150,6 +150,12 @@ Status em 2026-04-22:
 - infraestrutura local ainda bloqueia a execucao real: o Chromium do Playwright nao esta instalado nesta maquina e o download automatico falhou por timeout no CDN
 - proximo passo desta sprint: instalar o browser ou reaproveitar um binario local e rodar a suite com as variaveis `E2E_*`
 
+Status em 2026-04-23:
+- sprint 3 iniciada apos fechamento formal da Sprint 2 no commit `721789e`
+- escopo operacional mantido: validar fluxos criticos, responsividade principal e ergonomia final dos formularios
+- primeira acao da sprint: rodar `tests/e2e/sprint-3-critical-flows.spec.js` com ambiente E2E real e registrar o resultado por fluxo
+- bloqueio local atual: este shell nao tem `node`/`npm` disponiveis no PATH, entao a execucao automatizada precisa ocorrer em ambiente com Node, Playwright e browser configurados
+
 ### 1. Smoke test dos fluxos criticos
 
 - [ ] cadastro de produto
