@@ -20,6 +20,11 @@ function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function normalizePedidoPrazo(value?: string | null): string {
+  if (value === '7d' || value === '15d' || value === '30d' || value === '60d') return value;
+  return 'imediato';
+}
+
 type Props = {
   initialPedido: Pedido | null;
   onSaved: (pedido: Pedido) => void;
@@ -75,6 +80,16 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
     const clienteFound = findClienteByInput(clientes, value.trim());
     if (clienteFound?.rca_id && !rcaId) {
       setRcaId(clienteFound.rca_id);
+    }
+    if (clienteFound?.prazo && prazo === 'imediato') {
+      setPrazo(normalizePedidoPrazo(clienteFound.prazo));
+    }
+  }
+
+  function handlePagamentoChange(value: string) {
+    setPgto(value);
+    if (value === 'boleto' && prazo === 'imediato') {
+      setPrazo('30d');
     }
   }
 
@@ -229,6 +244,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                     placeholder="Nome do cliente"
                     value={cli}
                     onChange={(e) => handleClienteChange(e.target.value)}
+                    autoComplete="off"
                     data-testid="pedido-form-cli"
                   />
                   <datalist id="ped-form-cli-dl">
@@ -306,7 +322,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                   <select
                     className="inp sel"
                     value={pgto}
-                    onChange={(e) => setPgto(e.target.value)}
+                    onChange={(e) => handlePagamentoChange(e.target.value)}
                     data-testid="pedido-form-pgto"
                   >
                     <option value="a_vista">A vista</option>
@@ -330,6 +346,9 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                     <option value="30d">30 dias</option>
                     <option value="60d">60 dias</option>
                   </select>
+                  <small className="field-help">
+                    Cliente ou boleto preenchem um prazo seguro quando ainda estiver imediato.
+                  </small>
                 </label>
                 <label className="form-field">
                   <span>Tipo de venda</span>

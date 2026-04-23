@@ -803,6 +803,31 @@ textarea.inp {
 .fg.c5 {
   grid-template-columns: 1.4fr 0.8fr 1fr 1fr 1fr;
 }
+.grid.grid-2,
+.grid.grid-3,
+.grid.grid-4 {
+  display: grid;
+  gap: 12px;
+}
+.grid.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grid.grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.grid.grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.form-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.form-field .inp,
+.form-field .sel {
+  width: 100%;
+  min-width: 0;
+}
 
 /* ── TABLES ── */
 .tw {
@@ -1652,6 +1677,13 @@ textarea.inp {
   .fg.c2 {
     grid-template-columns: 1fr 1fr;
   }
+  .grid.grid-3,
+  .grid.grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .form-section-head {
+    flex-direction: column;
+  }
   .card {
     padding: 14px;
     box-shadow: none;
@@ -1754,6 +1786,16 @@ textarea.inp {
   .fg.c4,
   .fg.c5 {
     grid-template-columns: 1fr;
+  }
+  .grid.grid-2,
+  .grid.grid-3,
+  .grid.grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .form-section-card,
+  .form-advanced-summary,
+  .form-advanced-body {
+    padding-inline: 12px;
   }
   .mg {
     grid-template-columns: 1fr 1fr;
@@ -9605,6 +9647,35 @@ textarea.inp:focus {
   .ped-stat-value {
     font-size: 1rem;
   }
+  .ped-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ped-col-num,
+  .ped-col-client,
+  .ped-col-status,
+  .ped-col-value,
+  .ped-col-actions {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
+    text-align: left;
+  }
+  .ped-col-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .ped-col-actions,
+  .ped-confirm-cancel {
+    justify-content: stretch;
+  }
+  .ped-col-actions .btn,
+  .ped-confirm-cancel .btn {
+    flex: 1 1 120px;
+    justify-content: center;
+  }
 }
 
 .inline-choice__text {
@@ -11025,13 +11096,22 @@ body {
 
 @media (max-width: 760px) {
   #pg-dashboard .metric-card {
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
   }
 
   #pg-dashboard .dash-status-row {
-    grid-template-columns: minmax(92px, auto) minmax(96px, 1fr) 24px 38px !important;
+    grid-template-columns: minmax(0, 1fr) 44px !important;
     gap: 10px;
+  }
+
+  #pg-dashboard .dash-status-row .rbar,
+  #pg-dashboard .dash-status-row .dash-status-share {
+    grid-column: 1 / -1;
+  }
+
+  #pg-dashboard .dash-status-share {
+    text-align: left;
   }
 
   #pg-dashboard .dash-summary-strip {

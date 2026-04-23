@@ -156,6 +156,12 @@ Status em 2026-04-23:
 - primeira acao da sprint: rodar `tests/e2e/sprint-3-critical-flows.spec.js` com ambiente E2E real e registrar o resultado por fluxo
 - bloqueio local atual: este shell nao tem `node`/`npm` disponiveis no PATH, entao a execucao automatizada precisa ocorrer em ambiente com Node, Playwright e browser configurados
 
+Status em 2026-04-23, continuidade:
+- por decisao operacional, a checagem E2E automatizada foi pulada temporariamente para iniciar responsividade e ergonomia
+- responsividade iniciada com ajuste de grids de formulario, dashboard em telas menores e linhas de pedidos em mobile estreito
+- ergonomia iniciada com mascaras leves em cliente (`CPF/CNPJ`, telefone, WhatsApp e UF) e preenchimento de prazo do pedido a partir do cliente/boleto
+- validacoes inline ampliadas no cadastro de cliente para e-mail e opt-ins dependentes de contato
+
 ### 1. Smoke test dos fluxos criticos
 
 - [ ] cadastro de produto
@@ -166,15 +172,15 @@ Status em 2026-04-23:
 
 ### 2. Responsividade
 
-- [ ] revisar dashboard em telas menores
-- [ ] revisar formularios principais em telas menores
+- [x] revisar dashboard em telas menores
+- [x] revisar formularios principais em telas menores
 - [ ] revisar navegacao compacta
 
 ### 3. Ergonomia final de formularios
 
-- [ ] aplicar mascaras onde faltar
-- [ ] aplicar defaults/preenchimento inteligente onde for seguro
-- [ ] melhorar validacoes inline dos fluxos mais usados
+- [x] aplicar mascaras onde faltar
+- [x] aplicar defaults/preenchimento inteligente onde for seguro
+- [x] melhorar validacoes inline dos fluxos mais usados
 
 ### Criterio de encerramento da sprint 3
 

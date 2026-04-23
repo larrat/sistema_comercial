@@ -63,6 +63,44 @@ function toFormValues(cliente?: Cliente | null): ClienteFormValues {
   };
 }
 
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, '');
+}
+
+function formatCpfCnpj(value: string): string {
+  const digits = onlyDigits(value).slice(0, 14);
+  if (digits.length <= 11) {
+    return digits
+      .replace(/^(\d{3})(\d)/, '$1.$2')
+      .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1-$2');
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+function formatPhone(value: string): string {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (digits.length <= 10) {
+    return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+  }
+  return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
+}
+
+function normalizeUf(value: string): string {
+  return value
+    .replace(/[^a-z]/gi, '')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props) {
   const [values, setValues] = useState<ClienteFormValues>(() => toFormValues(initialCliente));
   const [localError, setLocalError] = useState<string | null>(null);
@@ -105,6 +143,18 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
     if (!values.nome.trim()) {
       setLocalError('Nome do cliente e obrigatorio.');
+      return;
+    }
+    if (values.email.trim() && !isValidEmail(values.email.trim())) {
+      setLocalError('Informe um e-mail valido ou deixe o campo vazio.');
+      return;
+    }
+    if (values.optin_email && !values.email.trim()) {
+      setLocalError('Para liberar opt-in de e-mail, informe o e-mail do cliente.');
+      return;
+    }
+    if (values.optin_sms && !values.tel.trim() && !values.whatsapp.trim()) {
+      setLocalError('Para liberar opt-in de SMS, informe telefone ou WhatsApp.');
       return;
     }
 
@@ -204,9 +254,13 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               inputMode="numeric"
               value={values.doc}
               onChange={(e) => update('doc', e.target.value)}
+              onBlur={(e) => update('doc', formatCpfCnpj(e.target.value))}
               placeholder="Somente numeros ou documento completo"
               data-testid="form-doc"
             />
+            <small className="field-help">
+              Aceita CPF ou CNPJ; a formatacao entra ao sair do campo.
+            </small>
           </label>
           <label className="form-field">
             <span>Tipo</span>
@@ -244,6 +298,9 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               inputMode="tel"
               value={values.tel}
               onChange={(e) => update('tel', e.target.value)}
+              onBlur={(e) => update('tel', formatPhone(e.target.value))}
+              placeholder="(11) 3333-4444"
+              autoComplete="tel"
               data-testid="form-tel"
             />
           </label>
@@ -255,6 +312,9 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               inputMode="tel"
               value={values.whatsapp}
               onChange={(e) => update('whatsapp', e.target.value)}
+              onBlur={(e) => update('whatsapp', formatPhone(e.target.value))}
+              placeholder="(11) 99999-0000"
+              autoComplete="tel"
               data-testid="form-whatsapp"
             />
           </label>
@@ -266,6 +326,7 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               value={values.email}
               onChange={(e) => update('email', e.target.value)}
               placeholder="exemplo@cliente.com.br"
+              autoComplete="email"
               data-testid="form-email"
             />
           </label>
@@ -391,6 +452,9 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
                 className="inp"
                 value={values.estado}
                 onChange={(e) => update('estado', e.target.value)}
+                onBlur={(e) => update('estado', normalizeUf(e.target.value))}
+                maxLength={2}
+                placeholder="UF"
                 data-testid="form-estado"
               />
             </label>
