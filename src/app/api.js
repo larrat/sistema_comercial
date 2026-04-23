@@ -56,6 +56,7 @@ const REQ_TIMEOUT_MS = Number(window.__SC_REQ_TIMEOUT_MS__ || 12000);
 const RETRY_MAX = Number(window.__SC_RETRY_MAX__ || 2);
 const RETRY_BASE_MS = Number(window.__SC_RETRY_BASE_MS__ || 250);
 const AUTH_STORAGE_KEY = 'sc_auth_session_v1';
+const BACKEND_MODE_DATASET = 'backendMode';
 
 function ensureSupabaseConfig() {
   if (SB_URL && SB_KEY) return;
@@ -67,6 +68,23 @@ function ensureSupabaseConfig() {
     operation: 'bootstrap',
     retryable: false
   });
+}
+
+/**
+ * @param {'online' | 'degraded'} mode
+ * @param {string | null} [reason=null]
+ */
+function markBackendMode(mode, reason = null) {
+  if (typeof document !== 'undefined') {
+    document.body.dataset[BACKEND_MODE_DATASET] = mode;
+    if (reason) document.body.dataset.backendReason = reason;
+    else delete document.body.dataset.backendReason;
+  }
+  if (typeof window !== 'undefined') {
+    window.__SC_BACKEND_MODE__ = mode;
+    if (reason) window.__SC_BACKEND_REASON__ = reason;
+    else delete window.__SC_BACKEND_REASON__;
+  }
 }
 
 /**
@@ -84,6 +102,14 @@ function shouldRetry(status, err) {
   if (err instanceof Error && err.name === 'AbortError') return true;
   if (status == null) return true;
   return status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
+}
+
+/**
+ * @param {number | null | undefined} status
+ */
+function isBackendUnavailableStatus(status) {
+  if (status == null) return true;
+  return status === 521 || status === 522 || status === 523 || status === 524 || status >= 500;
 }
 
 /**
@@ -179,6 +205,16 @@ function normalizeSbError(err, fallback = {}) {
         : !!fallback.retryable,
     cause: err
   });
+}
+
+/**
+ * @param {unknown} err
+ */
+function isBackendUnavailableError(err) {
+  const normalized = normalizeSbError(err);
+  if (isBackendUnavailableStatus(normalized.status)) return true;
+  if (normalized.source === 'network') return true;
+  return normalized.code === 'SB_NETWORK_ERROR' || normalized.retryable === true;
 }
 
 /**
@@ -369,22 +405,42 @@ function normalizeSessionPayload(payload) {
 async function refreshAuthSession(current) {
   if (!current?.refresh_token) return current;
   ensureSupabaseConfig();
-  const res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
-    method: 'POST',
-    headers: {
-      apikey: SB_KEY,
-      Authorization: 'Bearer ' + SB_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ refresh_token: current.refresh_token })
-  });
+  let res;
+  try {
+    res = await resilientFetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: {
+        apikey: SB_KEY,
+        Authorization: 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh_token: current.refresh_token })
+    });
+  } catch (err) {
+    if (isBackendUnavailableError(err)) {
+      markBackendMode('degraded', 'auth-refresh');
+      return current;
+    }
+    throw normalizeSbError(err, {
+      code: 'SB_AUTH_REFRESH_FAILED',
+      source: 'auth',
+      operation: 'refreshAuthSession',
+      resource: 'auth_session',
+      retryable: true
+    });
+  }
   if (!res.ok) {
+    if (isBackendUnavailableStatus(res.status)) {
+      markBackendMode('degraded', 'auth-refresh');
+      return current;
+    }
     writeAuthSession(null);
     return null;
   }
   const raw = await res.json();
   const next = normalizeSessionPayload(raw);
   writeAuthSession(next);
+  markBackendMode('online');
   return next;
 }
 
@@ -392,13 +448,31 @@ async function getActiveAuthSession() {
   const s = readAuthSession();
   if (!s?.access_token) return null;
   const now = Math.floor(Date.now() / 1000);
-  if (Number(s.expires_at || 0) > now + 45) return s;
+  if (Number(s.expires_at || 0) > now + 45) {
+    markBackendMode('online');
+    return s;
+  }
   return refreshAuthSession(s);
 }
 
 async function getAuthBearerForRequest() {
   const s = await getActiveAuthSession();
   return s?.access_token ? 'Bearer ' + s.access_token : 'Bearer ' + SB_KEY;
+}
+
+/**
+ * @param {string | null | undefined} userId
+ * @returns {Promise<string[]>}
+ */
+async function listAccessibleFilialIds(userId) {
+  const uid = String(userId || '').trim();
+  if (!uid) return [];
+  const rows = /** @type {{ filial_id?: string | null }[] | null} */ (
+    await sbReq('user_filiais', 'GET', null, `?user_id=eq.${uid}&select=filial_id`)
+  );
+  return [
+    ...new Set((rows || []).map((row) => String(row?.filial_id || '').trim()).filter(Boolean))
+  ];
 }
 
 async function sbReq(table, method = 'GET', body = null, params = '') {
@@ -574,6 +648,8 @@ export const SB = {
   normalizeError: normalizeSbError,
   toResult: toSbResult,
   isSbError: (err) => err?.name === 'SbApiError',
+  isBackendUnavailableError,
+  isBackendUnavailableStatus,
   signInWithPassword: async ({ email, password }) => {
     ensureSupabaseConfig();
     let res;
@@ -747,7 +823,16 @@ export const SB = {
   },
   invokeEdgeFunction,
   /** @returns {Promise<Filial[]>} */
-  getFiliais: () => sbReq('filiais', 'GET', null, '?order=criado_em'),
+  getFiliais: async () => {
+    const session = await getActiveAuthSession();
+    const accessibleIds = await listAccessibleFilialIds(session?.user?.id);
+    if (!accessibleIds.length) return [];
+    const allFiliais = /** @type {Filial[] | null} */ (
+      await sbReq('filiais', 'GET', null, '?order=criado_em')
+    );
+    const allowed = new Set(accessibleIds);
+    return (allFiliais || []).filter((filial) => allowed.has(String(filial?.id || '').trim()));
+  },
   upsertFilial: (f) => sbReq('filiais', 'POST', f, '?on_conflict=id'),
   deleteFilial: (id) => sbReq(`filiais?id=eq.${id}`, 'DELETE'),
 
@@ -775,8 +860,18 @@ export const SB = {
   /** @param {string} fid @returns {Promise<import('../types/domain').ContaReceber[]>} */
   getContasReceber: (fid) =>
     sbReq('contas_receber', 'GET', null, `?filial_id=eq.${fid}&order=vencimento`),
+  /** @param {string} fid @returns {Promise<import('../types/domain').ContaReceberBaixa[]>} */
+  getContasReceberBaixas: (fid) =>
+    sbReq('contas_receber_baixas', 'GET', null, `?filial_id=eq.${fid}&order=recebido_em.desc`),
   upsertContaReceber: (cr) => sbReq('contas_receber', 'POST', cr, '?on_conflict=id'),
   deleteContaReceber: (id) => sbReq(`contas_receber?id=eq.${id}`, 'DELETE'),
+  createContaReceberBaixa: (baixa) => sbReq('contas_receber_baixas', 'POST', baixa),
+  deleteContaReceberBaixa: (id) => sbReq(`contas_receber_baixas?id=eq.${id}`, 'DELETE'),
+  deleteContaReceberBaixasByConta: (contaId) =>
+    sbReq(`contas_receber_baixas?conta_receber_id=eq.${contaId}`, 'DELETE'),
+  registrarContaReceberBaixaRpc: (payload) => sbRpc('rpc_registrar_baixa', payload),
+  estornarContaReceberBaixaRpc: (payload) => sbRpc('rpc_estornar_baixa', payload),
+  marcarContaReceberPendenteRpc: (payload) => sbRpc('rpc_marcar_conta_pendente', payload),
 
   /** @param {string} fid @returns {Promise<Fornecedor[]>} */
   getFornecedores: (fid) => sbReq('fornecedores', 'GET', null, `?filial_id=eq.${fid}&order=nome`),

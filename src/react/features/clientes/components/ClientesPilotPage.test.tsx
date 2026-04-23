@@ -1,7 +1,7 @@
 import { act } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Cliente } from '../../../../types/domain';
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -320,6 +320,23 @@ describe('ClientesPilotPage', () => {
       expect(screen.getByTestId('busca-input')).toHaveValue('');
       expect(screen.queryByTestId('limpar-filtro')).not.toBeInTheDocument();
     });
+  });
+
+  it('abre a superfície de segmentos quando recebe comando do shell legado', async () => {
+    render(<ClientesPilotPage />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          origin: window.location.origin,
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-segmentos' }
+        })
+      );
+    });
+
+    const segmentView = await screen.findByTestId('cliente-segment-view');
+    expect(segmentView).toBeInTheDocument();
+    expect(within(segmentView).getByText('Varejo')).toBeInTheDocument();
   });
 
   it('abre edicao do cliente atual quando recebe comando do shell legado', async () => {

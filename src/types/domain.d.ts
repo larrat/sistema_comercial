@@ -190,10 +190,27 @@ export type ContaReceber = {
   cliente_id?: Id | null;
   cliente: string;
   valor: number;
+  valor_recebido?: number;
+  valor_em_aberto?: number;
   vencimento: string; // YYYY-MM-DD
-  status: 'pendente' | 'recebido' | 'vencido' | string;
+  status: 'pendente' | 'parcial' | 'recebido' | 'vencido' | string;
   recebido_em?: string | null;
+  ultimo_recebimento_em?: string | null;
   obs?: string | null;
+  criado_em?: string;
+};
+
+export type ContaReceberBaixa = {
+  id: Id;
+  filial_id: Id;
+  conta_receber_id: Id;
+  pedido_id?: Id | null;
+  pedido_num?: number | null;
+  cliente_id?: Id | null;
+  cliente: string;
+  valor: number;
+  recebido_em?: string;
+  observacao?: string | null;
   criado_em?: string;
 };
 
@@ -521,6 +538,7 @@ export type NavigationModuleDeps = {
   abrirNovoClienteReact?: () => void;
   limparFiltrosClienteReact?: () => void;
   abrirListaClienteReact?: () => void;
+  abrirSegmentosClienteReact?: () => void;
   editarClienteReactAtual?: () => void;
   exportarClientesReactCsv?: () => void;
   abrirResumoClienteReact?: (id?: string) => void;
@@ -610,6 +628,7 @@ export type AppCache = {
   campanhaEnvios?: Record<string, CampanhaEnvio[]>;
   notas?: Record<string, unknown[]>;
   contasReceber?: Record<string, ContaReceber[]>;
+  contasReceberBaixas?: Record<string, ContaReceberBaixa[]>;
   userPerfis: UserPerfil[];
   userFiliais: UserFilial[];
   acessosAudit: AcessoAuditoria[];
@@ -699,6 +718,7 @@ export type DomBindingsDeps = {
   abrirNovoClienteReact?: () => void;
   limparFiltrosClienteReact?: () => void;
   abrirListaClienteReact?: () => void;
+  abrirSegmentosClienteReact?: () => void;
   editarClienteReactAtual?: () => void;
   exportarClientesReactCsv?: () => void;
   abrirResumoClienteReact?: (id?: string) => void;
@@ -712,8 +732,12 @@ export type DomBindingsDeps = {
   renderContasReceber?: () => void;
   switchCrTab?: (tab: string) => void;
   marcarRecebido?: (id: string) => void | Promise<void>;
+  abrirBaixaParcial?: (id: string) => void;
+  confirmarBaixaParcial?: () => void | Promise<void>;
   marcarPendente?: (id: string) => void | Promise<void>;
+  estornarBaixaConta?: (contaId: string, baixaId: string) => void | Promise<void>;
   gerarContaManual?: (pedidoId: string) => void | Promise<void>;
+  setContasReceberReactTab?: (tab: string) => void;
   avancarStatusPed?: (id: string) => void | Promise<void>;
   cancelarStatusPed?: (id: string) => void | Promise<void>;
   reabrirPed?: (id: string) => void | Promise<void>;

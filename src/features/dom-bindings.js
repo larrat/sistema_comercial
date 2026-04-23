@@ -217,6 +217,16 @@ function getHandlerRegistry() {
       editarPedidoReact: deps.editarPedidoReact,
       abrirDetalhePedidoReact: deps.abrirDetalhePedidoReact
     },
+    receber: {
+      renderContasReceber: deps.renderContasReceber,
+      switchCrTab: deps.switchCrTab,
+      marcarRecebido: deps.marcarRecebido,
+      abrirBaixaParcial: deps.abrirBaixaParcial,
+      confirmarBaixaParcial: deps.confirmarBaixaParcial,
+      marcarPendente: deps.marcarPendente,
+      estornarBaixaConta: deps.estornarBaixaConta,
+      gerarContaManual: deps.gerarContaManual
+    },
     cotacao: {
       renderCotForns: deps.renderCotForns,
       renderCotTabela: deps.renderCotTabela,
@@ -404,6 +414,18 @@ function runAction(action, el) {
       }
       deps.limparFormCliTracked?.();
       deps.abrirModal?.('modal-cliente');
+    },
+    clienteDetalhe: () => {
+      const id = el?.dataset.id;
+      if (id) deps.abrirCliDet?.(id);
+    },
+    clienteEditar: () => {
+      const id = el?.dataset.id;
+      if (id) deps.editarCli?.(id);
+    },
+    clienteExcluir: () => {
+      const id = el?.dataset.id;
+      if (id) deps.removerCliGuard?.(id);
     },
     abrirNovoClienteReact: () => deps.abrirNovoClienteReact?.(),
     limparFiltrosClienteReact: () => deps.limparFiltrosClienteReact?.(),

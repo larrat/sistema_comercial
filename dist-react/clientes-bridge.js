@@ -181,7 +181,7 @@ function E() {
     (c(!0), p(null));
     try {
       let r = (await te(n, e)) ?? { ...e, id: e.id ?? crypto.randomUUID(), filial_id: n.filialId };
-      return (t(r), r);
+      return (t(r), window.dispatchEvent(new CustomEvent(`sc:cliente-salvo`, { detail: r })), r);
     } catch (e) {
       throw (p(e instanceof Error ? e.message : `Erro ao salvar cliente.`), e);
     } finally {
@@ -192,7 +192,9 @@ function E() {
     let t = m();
     (d(e), p(null));
     try {
-      (await ne(t, e), r(e));
+      (await ne(t, e),
+        r(e),
+        window.dispatchEvent(new CustomEvent(`sc:cliente-removido`, { detail: { id: e } })));
     } catch (e) {
       throw (p(e instanceof Error ? e.message : `Erro ao remover cliente.`), e);
     } finally {
@@ -459,40 +461,48 @@ function ce() {
     )
   });
 }
-function M({ onNovoCliente: e, onDetalhe: t, onEditar: n, onExcluir: r, onExportar: i }) {
-  let a = y((e) => e.status),
-    o = y((e) => e.error),
-    s = y(l((e) => e.clientes)),
-    c = y(l(g)),
-    d = y((e) => e.setStatus);
+function le({
+  onNovoCliente: e,
+  onDetalhe: t,
+  onEditar: n,
+  onExcluir: r,
+  onExportar: i,
+  hidden: a = !1
+}) {
+  let o = y((e) => e.status),
+    s = y((e) => e.error),
+    c = y(l((e) => e.clientes)),
+    d = y(l(g)),
+    f = y((e) => e.setStatus);
   return (
     (0, u.useEffect)(() => {
-      a === `idle` && d(`loading`);
-    }, [a, d]),
+      o === `idle` && f(`loading`);
+    }, [o, f]),
     (0, D.jsxs)(`div`, {
       className: `screen-content`,
       'data-testid': `cliente-list-view`,
+      hidden: a,
       children: [
         (0, D.jsx)(`div`, {
           className: `fb form-gap-bottom-xs`,
           children: (0, D.jsx)(`h2`, { className: `table-cell-strong`, children: `Clientes` })
         }),
-        a === `ready` && (0, D.jsx)(oe, {}),
-        a === `ready` && (0, D.jsx)(ae, { onNovoCliente: e, onExportar: i }),
-        a === `loading` && (0, D.jsx)(ce, {}),
-        a === `error` &&
+        o === `ready` && (0, D.jsx)(oe, {}),
+        o === `ready` && (0, D.jsx)(ae, { onNovoCliente: e, onExportar: i }),
+        o === `loading` && (0, D.jsx)(ce, {}),
+        o === `error` &&
           (0, D.jsx)(`div`, {
             className: `empty`,
             'data-testid': `error-state`,
-            children: (0, D.jsx)(`p`, { children: o ?? `Erro ao carregar clientes.` })
+            children: (0, D.jsx)(`p`, { children: s ?? `Erro ao carregar clientes.` })
           }),
-        a === `ready` && c.length === 0 && (0, D.jsx)(se, { hasData: s.length > 0 }),
-        a === `ready` &&
-          c.length > 0 &&
+        o === `ready` && d.length === 0 && (0, D.jsx)(se, { hasData: c.length > 0 }),
+        o === `ready` &&
+          d.length > 0 &&
           (0, D.jsx)(`div`, {
             className: `flex flex-col gap-3`,
             'data-testid': `cliente-list`,
-            children: c.map((e) =>
+            children: d.map((e) =>
               (0, D.jsx)(j, { cliente: e, onDetalhe: t, onEditar: n, onExcluir: r }, e.id)
             )
           })
@@ -500,7 +510,7 @@ function M({ onNovoCliente: e, onDetalhe: t, onEditar: n, onExcluir: r, onExport
     })
   );
 }
-function le() {
+function ue() {
   let t = n((e) => e.session),
     r = o((e) => e.filialId),
     [i, a] = (0, u.useState)([]),
@@ -528,7 +538,7 @@ function le() {
     i
   );
 }
-function ue(e) {
+function de(e) {
   return e.whatsapp
     ? `WhatsApp: ${e.whatsapp}`
     : e.tel
@@ -537,7 +547,7 @@ function ue(e) {
         ? e.email
         : `Sem contato principal`;
 }
-function de(e) {
+function fe(e) {
   let t = [
     e.optin_marketing && (e.whatsapp || e.tel) ? `WhatsApp` : ``,
     e.optin_email && e.email ? `E-mail` : ``,
@@ -545,7 +555,7 @@ function de(e) {
   ].filter(Boolean);
   return t.length ? `Canais prontos: ${t.join(`, `)}` : `Sem canais de relacionamento prontos`;
 }
-function N({ cliente: e }) {
+function M({ cliente: e }) {
   return (0, D.jsxs)(`div`, {
     className: `card-shell form-gap-bottom-xs`,
     'data-testid': `cliente-context-summary`,
@@ -572,7 +582,7 @@ function N({ cliente: e }) {
             className: `empty-inline`,
             children: [
               (0, D.jsx)(`strong`, { children: `Contato` }),
-              (0, D.jsx)(`p`, { children: ue(e) })
+              (0, D.jsx)(`p`, { children: de(e) })
             ]
           }),
           (0, D.jsxs)(`div`, {
@@ -598,7 +608,7 @@ function N({ cliente: e }) {
             children: [
               (0, D.jsx)(`strong`, { children: `Relacionamento` }),
               (0, D.jsxs)(`p`, {
-                children: [de(e), (0, D.jsx)(`br`, {}), `Tabela: `, e.tab || `padrao`]
+                children: [fe(e), (0, D.jsx)(`br`, {}), `Tabela: `, e.tab || `padrao`]
               })
             ]
           }),
@@ -622,7 +632,7 @@ function N({ cliente: e }) {
     ]
   });
 }
-function P(e) {
+function N(e) {
   return {
     nome: e?.nome ?? ``,
     apelido: e?.apelido ?? ``,
@@ -648,28 +658,42 @@ function P(e) {
     obs: e?.obs ?? ``
   };
 }
-function F({ initialCliente: e = null, onSaved: t, onCancel: n }) {
-  let [r, i] = (0, u.useState)(() => P(e)),
+function P({ initialCliente: e = null, onSaved: t, onCancel: n }) {
+  let [r, i] = (0, u.useState)(() => N(e)),
     [a, o] = (0, u.useState)(null),
-    { submitCliente: s, saving: c, error: l } = E(),
-    d = le();
+    [s, c] = (0, u.useState)(!1),
+    { submitCliente: l, saving: d, error: f } = E(),
+    p = ue();
   (0, u.useEffect)(() => {
-    (i(P(e)), o(null));
+    (i(N(e)),
+      o(null),
+      c(
+        !!(
+          e?.cidade ||
+          e?.estado ||
+          e?.data_aniversario ||
+          e?.time ||
+          e?.obs ||
+          e?.optin_marketing ||
+          e?.optin_email ||
+          e?.optin_sms
+        )
+      ));
   }, [e]);
-  function f(e, t) {
+  function m(e, t) {
     i((n) => ({ ...n, [e]: t }));
   }
-  function p(e) {
-    let t = d.find((t) => t.id === e);
+  function h(e) {
+    let t = p.find((t) => t.id === e);
     i((n) => ({ ...n, rca_id: e, rca_nome: t?.nome ?? `` }));
   }
-  async function m(n) {
+  async function g(n) {
     if ((n.preventDefault(), !r.nome.trim())) {
-      o(`Nome do cliente é obrigatório.`);
+      o(`Nome do cliente e obrigatorio.`);
       return;
     }
     o(null);
-    let a = await s({
+    let a = await l({
       id: e?.id,
       nome: r.nome,
       apelido: r.apelido,
@@ -694,343 +718,179 @@ function F({ initialCliente: e = null, onSaved: t, onCancel: n }) {
       optin_sms: r.optin_sms,
       obs: r.obs
     });
-    (t?.(a), e || i(P(null)));
+    (t?.(a), e || (i(N(null)), c(!1)));
   }
   return (0, D.jsxs)(`form`, {
     className: `card-shell form-gap-lg`,
-    onSubmit: m,
+    onSubmit: g,
     'data-testid': `cliente-form`,
     children: [
       (0, D.jsxs)(`div`, {
-        className: `fb form-gap-bottom-xs`,
+        className: `form-shell-head`,
         children: [
+          (0, D.jsx)(`div`, { className: `form-shell-kicker`, children: `Cadastro` }),
           (0, D.jsx)(`div`, {
-            children: (0, D.jsx)(`h3`, {
-              className: `table-cell-strong`,
-              children: e ? `Editar cliente` : `Novo cliente`
+            className: `fb form-gap-bottom-xs`,
+            children: (0, D.jsxs)(`div`, {
+              children: [
+                (0, D.jsx)(`h3`, {
+                  className: `table-cell-strong`,
+                  children: e ? `Editar cliente` : `Novo cliente`
+                }),
+                (0, D.jsx)(`p`, {
+                  className: `form-shell-copy`,
+                  children: e
+                    ? `Revise os dados essenciais e deixe os detalhes complementares agrupados no avancado.`
+                    : `Comece pelo contato principal e pelos dados comerciais. O restante pode ficar para depois.`
+                })
+              ]
             })
-          }),
-          n &&
-            (0, D.jsx)(`button`, {
-              type: `button`,
-              className: `btn btn-sm`,
-              onClick: n,
-              'data-testid': `cancelar-btn`,
-              children: `Cancelar`
-            })
-        ]
-      }),
-      e && (0, D.jsx)(N, { cliente: e }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-2`,
-        children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Nome / Razão social *` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.nome,
-                onChange: (e) => f(`nome`, e.target.value),
-                'data-testid': `form-nome`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Apelido / Fantasia` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.apelido,
-                onChange: (e) => f(`apelido`, e.target.value),
-                'data-testid': `form-apelido`
-              })
-            ]
           })
         ]
       }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-3`,
+      e && (0, D.jsx)(M, { cliente: e }),
+      (0, D.jsxs)(`section`, {
+        className: `form-section-card`,
         children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
+          (0, D.jsxs)(`div`, {
+            className: `form-section-head`,
             children: [
-              (0, D.jsx)(`span`, { children: `CPF / CNPJ` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.doc,
-                onChange: (e) => f(`doc`, e.target.value),
-                'data-testid': `form-doc`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Tipo` }),
-              (0, D.jsxs)(`select`, {
-                className: `inp`,
-                value: r.tipo,
-                onChange: (e) => f(`tipo`, e.target.value),
-                'data-testid': `form-tipo`,
+              (0, D.jsxs)(`div`, {
                 children: [
-                  (0, D.jsx)(`option`, { value: `PJ`, children: `PJ` }),
-                  (0, D.jsx)(`option`, { value: `PF`, children: `PF` })
+                  (0, D.jsx)(`div`, { className: `form-section-title`, children: `Essencial` }),
+                  (0, D.jsx)(`p`, {
+                    className: `form-section-copy`,
+                    children: `Identificacao e contato para o time conseguir atender e vender.`
+                  })
                 ]
-              })
+              }),
+              (0, D.jsx)(`span`, { className: `bdg bb`, children: `Obrigatorio primeiro` })
             ]
           }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
+          (0, D.jsxs)(`div`, {
+            className: `grid grid-2`,
             children: [
-              (0, D.jsx)(`span`, { children: `Status` }),
-              (0, D.jsxs)(`select`, {
-                className: `inp`,
-                value: r.status,
-                onChange: (e) => f(`status`, e.target.value),
-                'data-testid': `form-status`,
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
                 children: [
-                  (0, D.jsx)(`option`, { value: `ativo`, children: `Ativo` }),
-                  (0, D.jsx)(`option`, { value: `prospecto`, children: `Prospecto` }),
-                  (0, D.jsx)(`option`, { value: `inativo`, children: `Inativo` })
+                  (0, D.jsx)(`span`, { children: `Nome / Razao social *` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    value: r.nome,
+                    onChange: (e) => m(`nome`, e.target.value),
+                    'data-testid': `form-nome`
+                  })
                 ]
-              })
-            ]
-          })
-        ]
-      }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-3`,
-        children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Telefone` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.tel,
-                onChange: (e) => f(`tel`, e.target.value),
-                'data-testid': `form-tel`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `WhatsApp` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.whatsapp,
-                onChange: (e) => f(`whatsapp`, e.target.value),
-                'data-testid': `form-whatsapp`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `E-mail` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                type: `email`,
-                value: r.email,
-                onChange: (e) => f(`email`, e.target.value),
-                'data-testid': `form-email`
-              })
-            ]
-          })
-        ]
-      }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-2`,
-        children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Responsável / Comprador` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.resp,
-                onChange: (e) => f(`resp`, e.target.value),
-                'data-testid': `form-resp`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `RCA / Vendedor` }),
-              (0, D.jsxs)(`select`, {
-                className: `inp`,
-                value: r.rca_id,
-                onChange: (e) => p(e.target.value),
-                'data-testid': `form-rca`,
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
                 children: [
-                  (0, D.jsx)(`option`, { value: ``, children: `Sem RCA` }),
-                  d.map((e) => (0, D.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
+                  (0, D.jsx)(`span`, { children: `Apelido / Fantasia` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    value: r.apelido,
+                    onChange: (e) => m(`apelido`, e.target.value),
+                    placeholder: `Como a equipe identifica esse cliente no dia a dia`,
+                    'data-testid': `form-apelido`
+                  })
                 ]
-              })
-            ]
-          })
-        ]
-      }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-4`,
-        children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Time(s)` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.time,
-                placeholder: `Ex: Flamengo, Paysandu`,
-                onChange: (e) => f(`time`, e.target.value),
-                'data-testid': `form-time`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Segmento` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.seg,
-                onChange: (e) => f(`seg`, e.target.value),
-                'data-testid': `form-seg`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Tabela de preço` }),
-              (0, D.jsxs)(`select`, {
-                className: `inp`,
-                value: r.tab,
-                onChange: (e) => f(`tab`, e.target.value),
-                'data-testid': `form-tab`,
-                children: [
-                  (0, D.jsx)(`option`, { value: `padrao`, children: `Padrão` }),
-                  (0, D.jsx)(`option`, { value: `especial`, children: `Especial` }),
-                  (0, D.jsx)(`option`, { value: `vip`, children: `VIP` })
-                ]
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Prazo de pagamento` }),
-              (0, D.jsxs)(`select`, {
-                className: `inp`,
-                value: r.prazo,
-                onChange: (e) => f(`prazo`, e.target.value),
-                'data-testid': `form-prazo`,
-                children: [
-                  (0, D.jsx)(`option`, { value: `a_vista`, children: `À vista` }),
-                  (0, D.jsx)(`option`, { value: `7d`, children: `7 dias` }),
-                  (0, D.jsx)(`option`, { value: `15d`, children: `15 dias` }),
-                  (0, D.jsx)(`option`, { value: `30d`, children: `30 dias` }),
-                  (0, D.jsx)(`option`, { value: `60d`, children: `60 dias` })
-                ]
-              })
-            ]
-          })
-        ]
-      }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-2`,
-        children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Cidade` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.cidade,
-                onChange: (e) => f(`cidade`, e.target.value),
-                'data-testid': `form-cidade`
-              })
-            ]
-          }),
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Estado` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                value: r.estado,
-                onChange: (e) => f(`estado`, e.target.value),
-                'data-testid': `form-estado`
-              })
-            ]
-          })
-        ]
-      }),
-      (0, D.jsxs)(`div`, {
-        className: `grid grid-2`,
-        children: [
-          (0, D.jsxs)(`label`, {
-            className: `form-field`,
-            children: [
-              (0, D.jsx)(`span`, { children: `Data de aniversário` }),
-              (0, D.jsx)(`input`, {
-                className: `inp`,
-                type: `date`,
-                value: r.data_aniversario,
-                onChange: (e) => f(`data_aniversario`, e.target.value),
-                'data-testid': `form-aniv`
               })
             ]
           }),
           (0, D.jsxs)(`div`, {
-            className: `form-field`,
+            className: `grid grid-3`,
             children: [
-              (0, D.jsx)(`span`, { children: `Opt-ins de marketing` }),
-              (0, D.jsxs)(`div`, {
-                className: `fg2`,
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
                 children: [
-                  (0, D.jsxs)(`label`, {
-                    className: `optin-choice`,
+                  (0, D.jsx)(`span`, { children: `CPF / CNPJ` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    inputMode: `numeric`,
+                    value: r.doc,
+                    onChange: (e) => m(`doc`, e.target.value),
+                    placeholder: `Somente numeros ou documento completo`,
+                    'data-testid': `form-doc`
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Tipo` }),
+                  (0, D.jsxs)(`select`, {
+                    className: `inp`,
+                    value: r.tipo,
+                    onChange: (e) => m(`tipo`, e.target.value),
+                    'data-testid': `form-tipo`,
                     children: [
-                      (0, D.jsx)(`input`, {
-                        type: `checkbox`,
-                        checked: r.optin_marketing,
-                        onChange: (e) => f(`optin_marketing`, e.target.checked),
-                        'data-testid': `form-optin-marketing`
-                      }),
-                      ` `,
-                      `Marketing`
+                      (0, D.jsx)(`option`, { value: `PJ`, children: `PJ` }),
+                      (0, D.jsx)(`option`, { value: `PF`, children: `PF` })
                     ]
-                  }),
-                  (0, D.jsxs)(`label`, {
-                    className: `optin-choice`,
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Status` }),
+                  (0, D.jsxs)(`select`, {
+                    className: `inp`,
+                    value: r.status,
+                    onChange: (e) => m(`status`, e.target.value),
+                    'data-testid': `form-status`,
                     children: [
-                      (0, D.jsx)(`input`, {
-                        type: `checkbox`,
-                        checked: r.optin_email,
-                        onChange: (e) => f(`optin_email`, e.target.checked),
-                        'data-testid': `form-optin-email`
-                      }),
-                      ` `,
-                      `E-mail`
+                      (0, D.jsx)(`option`, { value: `ativo`, children: `Ativo` }),
+                      (0, D.jsx)(`option`, { value: `prospecto`, children: `Prospecto` }),
+                      (0, D.jsx)(`option`, { value: `inativo`, children: `Inativo` })
                     ]
-                  }),
-                  (0, D.jsxs)(`label`, {
-                    className: `optin-choice`,
-                    children: [
-                      (0, D.jsx)(`input`, {
-                        type: `checkbox`,
-                        checked: r.optin_sms,
-                        onChange: (e) => f(`optin_sms`, e.target.checked),
-                        'data-testid': `form-optin-sms`
-                      }),
-                      ` `,
-                      `SMS`
-                    ]
+                  })
+                ]
+              })
+            ]
+          }),
+          (0, D.jsxs)(`div`, {
+            className: `grid grid-3`,
+            children: [
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Telefone` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    type: `tel`,
+                    inputMode: `tel`,
+                    value: r.tel,
+                    onChange: (e) => m(`tel`, e.target.value),
+                    'data-testid': `form-tel`
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `WhatsApp` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    type: `tel`,
+                    inputMode: `tel`,
+                    value: r.whatsapp,
+                    onChange: (e) => m(`whatsapp`, e.target.value),
+                    'data-testid': `form-whatsapp`
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `E-mail` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    type: `email`,
+                    value: r.email,
+                    onChange: (e) => m(`email`, e.target.value),
+                    placeholder: `exemplo@cliente.com.br`,
+                    'data-testid': `form-email`
                   })
                 ]
               })
@@ -1038,42 +898,288 @@ function F({ initialCliente: e = null, onSaved: t, onCancel: n }) {
           })
         ]
       }),
-      (0, D.jsxs)(`label`, {
-        className: `form-field`,
+      (0, D.jsxs)(`section`, {
+        className: `form-section-card`,
         children: [
-          (0, D.jsx)(`span`, { children: `Observações` }),
-          (0, D.jsx)(`textarea`, {
-            className: `inp`,
-            rows: 3,
-            value: r.obs,
-            onChange: (e) => f(`obs`, e.target.value),
-            'data-testid': `form-obs`
+          (0, D.jsx)(`div`, {
+            className: `form-section-head`,
+            children: (0, D.jsxs)(`div`, {
+              children: [
+                (0, D.jsx)(`div`, { className: `form-section-title`, children: `Comercial` }),
+                (0, D.jsx)(`p`, {
+                  className: `form-section-copy`,
+                  children: `Organize quem atende, qual segmento e quais condicoes basicas valem para esse cliente.`
+                })
+              ]
+            })
+          }),
+          (0, D.jsxs)(`div`, {
+            className: `grid grid-2`,
+            children: [
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Responsavel / Comprador` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    value: r.resp,
+                    onChange: (e) => m(`resp`, e.target.value),
+                    'data-testid': `form-resp`
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `RCA / Vendedor` }),
+                  (0, D.jsxs)(`select`, {
+                    className: `inp`,
+                    value: r.rca_id,
+                    onChange: (e) => h(e.target.value),
+                    'data-testid': `form-rca`,
+                    children: [
+                      (0, D.jsx)(`option`, { value: ``, children: `Sem RCA` }),
+                      p.map((e) => (0, D.jsx)(`option`, { value: e.id, children: e.nome }, e.id))
+                    ]
+                  })
+                ]
+              })
+            ]
+          }),
+          (0, D.jsxs)(`div`, {
+            className: `grid grid-4`,
+            children: [
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Segmento` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    value: r.seg,
+                    onChange: (e) => m(`seg`, e.target.value),
+                    placeholder: `Ex: Atacado, Farmacia, Revenda`,
+                    'data-testid': `form-seg`
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Tabela de preco` }),
+                  (0, D.jsxs)(`select`, {
+                    className: `inp`,
+                    value: r.tab,
+                    onChange: (e) => m(`tab`, e.target.value),
+                    'data-testid': `form-tab`,
+                    children: [
+                      (0, D.jsx)(`option`, { value: `padrao`, children: `Padrao` }),
+                      (0, D.jsx)(`option`, { value: `especial`, children: `Especial` }),
+                      (0, D.jsx)(`option`, { value: `vip`, children: `VIP` })
+                    ]
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Prazo de pagamento` }),
+                  (0, D.jsxs)(`select`, {
+                    className: `inp`,
+                    value: r.prazo,
+                    onChange: (e) => m(`prazo`, e.target.value),
+                    'data-testid': `form-prazo`,
+                    children: [
+                      (0, D.jsx)(`option`, { value: `a_vista`, children: `A vista` }),
+                      (0, D.jsx)(`option`, { value: `7d`, children: `7 dias` }),
+                      (0, D.jsx)(`option`, { value: `15d`, children: `15 dias` }),
+                      (0, D.jsx)(`option`, { value: `30d`, children: `30 dias` }),
+                      (0, D.jsx)(`option`, { value: `60d`, children: `60 dias` })
+                    ]
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Time(s)` }),
+                  (0, D.jsx)(`input`, {
+                    className: `inp`,
+                    value: r.time,
+                    placeholder: `Ex: Flamengo, Paysandu`,
+                    onChange: (e) => m(`time`, e.target.value),
+                    'data-testid': `form-time`
+                  })
+                ]
+              })
+            ]
           })
         ]
       }),
-      (a || l) &&
+      (0, D.jsxs)(`details`, {
+        className: `form-advanced-block`,
+        open: s,
+        onToggle: (e) => c(e.currentTarget.open),
+        children: [
+          (0, D.jsxs)(`summary`, {
+            className: `form-advanced-summary`,
+            children: [
+              (0, D.jsx)(`span`, { children: `Detalhes avancados` }),
+              (0, D.jsx)(`span`, {
+                className: `table-cell-caption table-cell-muted`,
+                children: `Localizacao, marketing e observacoes`
+              })
+            ]
+          }),
+          (0, D.jsxs)(`div`, {
+            className: `form-advanced-body`,
+            children: [
+              (0, D.jsxs)(`div`, {
+                className: `grid grid-2`,
+                children: [
+                  (0, D.jsxs)(`label`, {
+                    className: `form-field`,
+                    children: [
+                      (0, D.jsx)(`span`, { children: `Cidade` }),
+                      (0, D.jsx)(`input`, {
+                        className: `inp`,
+                        value: r.cidade,
+                        onChange: (e) => m(`cidade`, e.target.value),
+                        'data-testid': `form-cidade`
+                      })
+                    ]
+                  }),
+                  (0, D.jsxs)(`label`, {
+                    className: `form-field`,
+                    children: [
+                      (0, D.jsx)(`span`, { children: `Estado` }),
+                      (0, D.jsx)(`input`, {
+                        className: `inp`,
+                        value: r.estado,
+                        onChange: (e) => m(`estado`, e.target.value),
+                        'data-testid': `form-estado`
+                      })
+                    ]
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`div`, {
+                className: `grid grid-2`,
+                children: [
+                  (0, D.jsxs)(`label`, {
+                    className: `form-field`,
+                    children: [
+                      (0, D.jsx)(`span`, { children: `Data de aniversario` }),
+                      (0, D.jsx)(`input`, {
+                        className: `inp`,
+                        type: `date`,
+                        value: r.data_aniversario,
+                        onChange: (e) => m(`data_aniversario`, e.target.value),
+                        'data-testid': `form-aniv`
+                      })
+                    ]
+                  }),
+                  (0, D.jsxs)(`div`, {
+                    className: `form-field`,
+                    children: [
+                      (0, D.jsx)(`span`, { children: `Opt-ins de marketing` }),
+                      (0, D.jsxs)(`div`, {
+                        className: `fg2`,
+                        children: [
+                          (0, D.jsxs)(`label`, {
+                            className: `optin-choice`,
+                            children: [
+                              (0, D.jsx)(`input`, {
+                                type: `checkbox`,
+                                checked: r.optin_marketing,
+                                onChange: (e) => m(`optin_marketing`, e.target.checked),
+                                'data-testid': `form-optin-marketing`
+                              }),
+                              `Marketing`
+                            ]
+                          }),
+                          (0, D.jsxs)(`label`, {
+                            className: `optin-choice`,
+                            children: [
+                              (0, D.jsx)(`input`, {
+                                type: `checkbox`,
+                                checked: r.optin_email,
+                                onChange: (e) => m(`optin_email`, e.target.checked),
+                                'data-testid': `form-optin-email`
+                              }),
+                              `E-mail`
+                            ]
+                          }),
+                          (0, D.jsxs)(`label`, {
+                            className: `optin-choice`,
+                            children: [
+                              (0, D.jsx)(`input`, {
+                                type: `checkbox`,
+                                checked: r.optin_sms,
+                                onChange: (e) => m(`optin_sms`, e.target.checked),
+                                'data-testid': `form-optin-sms`
+                              }),
+                              `SMS`
+                            ]
+                          })
+                        ]
+                      })
+                    ]
+                  })
+                ]
+              }),
+              (0, D.jsxs)(`label`, {
+                className: `form-field`,
+                children: [
+                  (0, D.jsx)(`span`, { children: `Observacoes` }),
+                  (0, D.jsx)(`textarea`, {
+                    className: `inp`,
+                    rows: 3,
+                    value: r.obs,
+                    onChange: (e) => m(`obs`, e.target.value),
+                    'data-testid': `form-obs`
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      (a || f) &&
         (0, D.jsx)(`div`, {
           className: `empty`,
           'data-testid': `form-error`,
-          children: (0, D.jsx)(`p`, { children: a || l })
+          children: (0, D.jsx)(`p`, { children: a || f })
         }),
       (0, D.jsx)(`div`, {
-        className: `mobile-card-actions`,
-        children: (0, D.jsx)(`button`, {
-          type: `submit`,
-          className: `btn btn-p btn-sm`,
-          disabled: c,
-          'data-testid': `salvar-btn`,
-          children: c ? `Salvando...` : e ? `Salvar alterações` : `Salvar cliente`
+        className: `form-sticky-actions`,
+        children: (0, D.jsxs)(`div`, {
+          className: `modal-actions`,
+          children: [
+            n &&
+              (0, D.jsx)(`button`, {
+                type: `button`,
+                className: `btn btn-sm`,
+                onClick: n,
+                'data-testid': `cancelar-btn`,
+                children: `Cancelar`
+              }),
+            (0, D.jsx)(`button`, {
+              type: `submit`,
+              className: `btn btn-p btn-sm`,
+              disabled: d,
+              'data-testid': `salvar-btn`,
+              children: d ? `Salvando...` : e ? `Salvar alteracoes` : `Salvar cliente`
+            })
+          ]
         })
       })
     ]
   });
 }
-function I(e, t) {
+function F(e, t) {
   return { apikey: e, Authorization: `Bearer ${t}`, 'Content-Type': `application/json` };
 }
-async function L(e) {
+async function I(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -1082,34 +1188,34 @@ async function L(e) {
     return t;
   }
 }
-function R(e, t, n) {
+function L(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
       : Error(n);
 }
-function z(e, t) {
+function R(e, t) {
   return `${e}/rest/v1/notas?cliente_id=eq.${encodeURIComponent(t)}&order=criado_em.desc`;
 }
-async function B(e, t) {
-  let n = await fetch(z(e.url, t), {
-      headers: I(e.key, e.token),
+async function z(e, t) {
+  let n = await fetch(R(e.url, t), {
+      headers: F(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await L(n);
-  return (R(n, r, `Erro ${n.status} ao carregar notas`), Array.isArray(r) ? r : []);
+    r = await I(n);
+  return (L(n, r, `Erro ${n.status} ao carregar notas`), Array.isArray(r) ? r : []);
 }
-async function V(e, t) {
+async function B(e, t) {
   let n = await fetch(`${e.url}/rest/v1/notas`, {
       method: `POST`,
-      headers: I(e.key, e.token),
+      headers: F(e.key, e.token),
       body: JSON.stringify(t),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await L(n);
-  return (R(n, r, `Erro ${n.status} ao salvar nota`), Array.isArray(r) && r[0] ? r[0] : t);
+    r = await I(n);
+  return (L(n, r, `Erro ${n.status} ao salvar nota`), Array.isArray(r) && r[0] ? r[0] : t);
 }
-function H({ clienteId: t, skip: r = !1 }) {
+function V({ clienteId: t, skip: r = !1 }) {
   let i = n((e) => e.session),
     [a, o] = (0, u.useState)([]),
     [s, c] = (0, u.useState)(!1),
@@ -1127,7 +1233,7 @@ function H({ clienteId: t, skip: r = !1 }) {
     return (
       c(!0),
       p(null),
-      B(m(), t)
+      z(m(), t)
         .then((t) => {
           e && o(t);
         })
@@ -1149,7 +1255,7 @@ function H({ clienteId: t, skip: r = !1 }) {
     (d(!0), p(null));
     let r = { cliente_id: t, texto: n, data: new Date().toLocaleString(`pt-BR`) };
     try {
-      let e = await V(m(), r);
+      let e = await B(m(), r);
       return (o((t) => [e, ...t]), e);
     } catch (e) {
       throw (p(e instanceof Error ? e.message : `Erro ao salvar nota.`), e);
@@ -1159,10 +1265,10 @@ function H({ clienteId: t, skip: r = !1 }) {
   }
   return { notas: a, loading: s, saving: l, error: f, submitNota: h };
 }
-function U(e, t) {
+function H(e, t) {
   return { apikey: e, Authorization: `Bearer ${t}`, 'Content-Type': `application/json` };
 }
-async function W(e) {
+async function U(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -1171,29 +1277,29 @@ async function W(e) {
     return t;
   }
 }
-function G(e, t, n) {
+function W(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
       : Error(n);
 }
-function K(e) {
+function G(e) {
   return String(e ?? ``)
     .normalize(`NFD`)
     .replace(/[\u0300-\u036f]/g, ``)
     .trim()
     .toLowerCase();
 }
-function fe(e, t) {
+function pe(e, t) {
   return `${e}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(t)}&order=num.desc`;
 }
-function pe(e, t) {
+function me(e, t) {
   if (e.cliente_id && t.id && e.cliente_id === t.id) return !0;
-  let n = K(e.cli),
-    r = K(t.nome);
+  let n = G(e.cli),
+    r = G(t.nome);
   return !!n && !!r && n === r;
 }
-function me(e) {
+function he(e) {
   return e.reduce(
     (e, t) => (
       t.venda_fechada ? e.fechadas.push(t) : t.status !== `cancelado` && e.abertas.push(t),
@@ -1202,7 +1308,7 @@ function me(e) {
     { abertas: [], fechadas: [] }
   );
 }
-async function he(e, t, n) {
+async function ge(e, t, n) {
   let r = {
       ...t,
       venda_fechada: !0,
@@ -1211,7 +1317,7 @@ async function he(e, t, n) {
     },
     i = await fetch(`${e.url}/rest/v1/pedidos?id=eq.${encodeURIComponent(t.id)}`, {
       method: `PATCH`,
-      headers: U(e.key, e.token),
+      headers: H(e.key, e.token),
       body: JSON.stringify({
         venda_fechada: !0,
         venda_fechada_em: r.venda_fechada_em,
@@ -1219,21 +1325,21 @@ async function he(e, t, n) {
       }),
       signal: AbortSignal.timeout(12e3)
     });
-  return (G(i, await W(i), `Erro ${i.status} ao fechar venda`), r);
+  return (W(i, await U(i), `Erro ${i.status} ao fechar venda`), r);
 }
-async function ge(e, t) {
+async function _e(e, t) {
   if (!e.filialId) throw Error(`Filial ativa nao encontrada.`);
-  let n = await fetch(fe(e.url, e.filialId), {
-      headers: U(e.key, e.token),
+  let n = await fetch(pe(e.url, e.filialId), {
+      headers: H(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await W(n);
+    r = await U(n);
   return (
-    G(n, r, `Erro ${n.status} ao carregar pedidos do cliente`),
-    (Array.isArray(r) ? r : []).filter((e) => pe(e, t))
+    W(n, r, `Erro ${n.status} ao carregar pedidos do cliente`),
+    (Array.isArray(r) ? r : []).filter((e) => me(e, t))
   );
 }
-function _e({ cliente: t, skip: r = !1 }) {
+function ve({ cliente: t, skip: r = !1 }) {
   let i = n((e) => e.session),
     a = o((e) => e.filialId),
     [s, c] = (0, u.useState)([]),
@@ -1253,7 +1359,7 @@ function _e({ cliente: t, skip: r = !1 }) {
       if (!(!t?.id || r)) {
         (p(!0), h(null));
         try {
-          let e = me(await ge(y(), t));
+          let e = he(await _e(y(), t));
           (c(e.abertas), d(e.fechadas));
         } catch (e) {
           (h(e instanceof Error ? e.message : `Erro ao carregar pedidos.`), c([]), d([]));
@@ -1277,7 +1383,7 @@ function _e({ cliente: t, skip: r = !1 }) {
           if (g) return !1;
           _(e.id);
           try {
-            let t = await he(y(), e, v.current);
+            let t = await ge(y(), e, v.current);
             return (c((e) => e.filter((e) => e.id !== t.id)), d((e) => [t, ...e]), !0);
           } catch (e) {
             return (h(e instanceof Error ? e.message : `Erro ao fechar venda.`), !1);
@@ -1291,7 +1397,7 @@ function _e({ cliente: t, skip: r = !1 }) {
     }
   );
 }
-function q(e, t, n) {
+function K(e, t, n) {
   return {
     apikey: e,
     Authorization: `Bearer ${t}`,
@@ -1299,7 +1405,7 @@ function q(e, t, n) {
     ...(n ? { Prefer: n } : {})
   };
 }
-async function J(e) {
+async function q(e) {
   let t = await e.text().catch(() => ``);
   if (!t) return null;
   try {
@@ -1308,37 +1414,37 @@ async function J(e) {
     return t;
   }
 }
-function Y(e, t, n) {
+function J(e, t, n) {
   if (!e.ok)
     throw t && typeof t == `object` && `message` in t && typeof t.message == `string`
       ? Error(t.message)
       : Error(n);
 }
-function ve(e, t) {
+function ye(e, t) {
   return `${e}/rest/v1/cliente_fidelidade_saldos?cliente_id=eq.${encodeURIComponent(t)}&limit=1`;
 }
-function ye(e, t) {
+function Y(e, t) {
   return `${e}/rest/v1/cliente_fidelidade_lancamentos?cliente_id=eq.${encodeURIComponent(t)}&order=criado_em.desc`;
 }
 async function be(e, t) {
-  let n = await fetch(ve(e.url, t), {
-      headers: q(e.key, e.token),
+  let n = await fetch(ye(e.url, t), {
+      headers: K(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await J(n);
+    r = await q(n);
   return (
-    Y(n, r, `Erro ${n.status} ao carregar saldo de fidelidade`),
+    J(n, r, `Erro ${n.status} ao carregar saldo de fidelidade`),
     Array.isArray(r) && r[0] ? r[0] : null
   );
 }
 async function xe(e, t) {
-  let n = await fetch(ye(e.url, t), {
-      headers: q(e.key, e.token),
+  let n = await fetch(Y(e.url, t), {
+      headers: K(e.key, e.token),
       signal: AbortSignal.timeout(12e3)
     }),
-    r = await J(n);
+    r = await q(n);
   return (
-    Y(n, r, `Erro ${n.status} ao carregar histórico de fidelidade`),
+    J(n, r, `Erro ${n.status} ao carregar histórico de fidelidade`),
     Array.isArray(r) ? r : []
   );
 }
@@ -1355,13 +1461,13 @@ async function Se(e, t) {
     },
     r = await fetch(`${e.url}/rest/v1/cliente_fidelidade_lancamentos`, {
       method: `POST`,
-      headers: q(e.key, e.token, `return=representation`),
+      headers: K(e.key, e.token, `return=representation`),
       body: JSON.stringify(n),
       signal: AbortSignal.timeout(12e3)
     }),
-    i = await J(r);
+    i = await q(r);
   return (
-    Y(r, i, `Erro ${r.status} ao salvar lançamento de fidelidade`),
+    J(r, i, `Erro ${r.status} ao salvar lançamento de fidelidade`),
     Array.isArray(i) && i[0] ? i[0] : { ...n }
   );
 }
@@ -1798,7 +1904,7 @@ function Q(e, t, n) {
 function ke({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i }) {
   let [a, o] = (0, u.useState)(`resumo`),
     [s, c] = (0, u.useState)(``),
-    { notas: l, loading: d, saving: f, error: p, submitNota: m } = H({ clienteId: e.id }),
+    { notas: l, loading: d, saving: f, error: p, submitNota: m } = V({ clienteId: e.id }),
     h = r ?? a,
     {
       pedidosAbertos: g,
@@ -1807,7 +1913,7 @@ function ke({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
       error: y,
       fecharVenda: b,
       fechandoId: x
-    } = _e({ cliente: e, skip: h !== `abertas` && h !== `fechadas` }),
+    } = ve({ cliente: e, skip: h !== `abertas` && h !== `fechadas` }),
     S = (0, u.useMemo)(
       () => ({ loading: v, error: y, clienteNome: e.nome, onFecharVenda: b, fechandoId: x }),
       [e.nome, x, b, y, v]
@@ -1894,7 +2000,7 @@ function ke({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
           })
         ]
       }),
-      h === `resumo` && (0, D.jsx)(N, { cliente: e }),
+      h === `resumo` && (0, D.jsx)(M, { cliente: e }),
       h === `abertas` &&
         (0, D.jsxs)(`div`, {
           className: `form-gap-lg`,
@@ -1991,26 +2097,118 @@ function ke({ cliente: e, onEditar: t, onClose: n, activeTab: r, onTabChange: i 
     ]
   });
 }
-var Ae = `clientes-react-pilot`,
-  je = `clientes-legacy-shell`;
-function Me() {
+function Ae(e) {
+  let t = e.trim().split(/\s+/).filter(Boolean);
+  return t.length ? (t[0][0] + (t[1] ? t[1][0] : ``)).toUpperCase() : `CL`;
+}
+function je(e) {
+  let t = [
+    { bg: `#E6EEF9`, c: `#0F2F5E` },
+    { bg: `#E6F4EC`, c: `#0D3D22` },
+    { bg: `#FAF0D6`, c: `#5C3900` },
+    { bg: `#FAEBE9`, c: `#731F18` }
+  ];
+  return t[e.charCodeAt(0) % t.length];
+}
+function Me({ onDetalhe: e }) {
+  let t = y(l(g)),
+    n = (0, u.useMemo)(() => {
+      let e = new Map();
+      return (
+        t.forEach((t) => {
+          let n = String(t.seg || `Sem segmento`),
+            r = e.get(n) || [];
+          (r.push(t), e.set(n, r));
+        }),
+        Array.from(e.entries())
+          .sort(([e], [t]) => e.localeCompare(t))
+          .map(([e, t]) => ({
+            segmento: e,
+            clientes: [...t].sort((e, t) => e.nome.localeCompare(t.nome))
+          }))
+      );
+    }, [t]);
+  return n.length
+    ? (0, D.jsx)(`div`, {
+        className: `flex flex-col gap-3`,
+        'data-testid': `cliente-segment-view`,
+        children: n.map((t) =>
+          (0, D.jsxs)(
+            `div`,
+            {
+              className: `card-shell form-gap-md`,
+              children: [
+                (0, D.jsxs)(`div`, {
+                  className: `fb form-gap-bottom-xs`,
+                  children: [
+                    (0, D.jsx)(`div`, { className: `table-cell-strong`, children: t.segmento }),
+                    (0, D.jsx)(`span`, { className: `bdg bb`, children: t.clientes.length })
+                  ]
+                }),
+                (0, D.jsx)(`div`, {
+                  className: `fg2`,
+                  children: t.clientes.map((t) => {
+                    let n = je(t.nome);
+                    return (0, D.jsxs)(
+                      `button`,
+                      {
+                        className: `btn btn-inline-card`,
+                        type: `button`,
+                        onClick: () => e?.(String(t.id)),
+                        'data-testid': `segment-cliente-${t.id}`,
+                        children: [
+                          (0, D.jsx)(`div`, {
+                            className: `av av-sm`,
+                            style: { background: n.bg, color: n.c },
+                            'aria-hidden': `true`,
+                            children: Ae(t.nome)
+                          }),
+                          (0, D.jsx)(`span`, {
+                            className: `btn-inline-card__label`,
+                            children: t.apelido || t.nome
+                          })
+                        ]
+                      },
+                      t.id
+                    );
+                  })
+                })
+              ]
+            },
+            t.segmento
+          )
+        )
+      })
+    : (0, D.jsxs)(`div`, {
+        className: `empty`,
+        'data-testid': `cliente-segment-empty`,
+        children: [
+          (0, D.jsx)(`div`, { className: `ico`, children: `SG` }),
+          (0, D.jsx)(`p`, { children: `Nenhum cliente encontrado para agrupar por segmento.` })
+        ]
+      });
+}
+var Ne = `clientes-react-pilot`,
+  Pe = `clientes-legacy-shell`;
+function Fe() {
   let e = y(l((e) => e.clientes)),
     t = y((e) => e.filtro),
     n = y((e) => e.clearFiltro),
-    [r, i] = (0, u.useState)(null),
+    [r, i] = (0, u.useState)(`lista`),
     [a, o] = (0, u.useState)(null),
-    [s, c] = (0, u.useState)(`resumo`),
-    { deleteClienteById: d, deletingId: f, error: p } = E(),
-    m = (0, u.useMemo)(() => e.find((e) => e.id === r) ?? null, [e, r]),
-    h = (0, u.useMemo)(() => e.find((e) => e.id === a) ?? null, [e, a]),
-    _ = y(l(g));
-  async function v(e) {
-    (await d(e), r === e && i(null), a === e && o(null));
+    [s, c] = (0, u.useState)(null),
+    [d, f] = (0, u.useState)(`resumo`),
+    { deleteClienteById: p, deletingId: m, error: h } = E(),
+    _ = (0, u.useMemo)(() => e.find((e) => e.id === a) ?? null, [e, a]),
+    v = (0, u.useMemo)(() => e.find((e) => e.id === s) ?? null, [e, s]),
+    b = y(l(g));
+  async function x(e) {
+    (await p(e), a === e && o(null), s === e && c(null));
   }
-  function b() {
+  function S() {
     let e = [
         [`Nome`, `E-mail`, `Telefone`, `WhatsApp`, `Segmento`, `Status`, `Cidade`, `RCA`],
-        ..._.map((e) => [
+        ...b.map((e) => [
           e.nome || ``,
           e.email || ``,
           e.tel || ``,
@@ -2034,57 +2232,61 @@ function Me() {
       function e(e) {
         if (e.origin !== window.location.origin) return;
         let t = e.data;
-        if (!(!t || t.source !== je)) {
+        if (!(!t || t.source !== Pe)) {
           if (t.type === `clientes:novo`) {
-            (o(null), i(`new`), c(`resumo`));
+            (i(`lista`), c(null), o(`new`), f(`resumo`));
+            return;
+          }
+          if (t.type === `clientes:abrir-segmentos`) {
+            (o(null), c(null), f(`resumo`), i(`segmentos`));
             return;
           }
           if (t.type === `clientes:abrir-detalhe` && t.id) {
-            (i(null), o(String(t.id)), c(t.tab || `resumo`));
+            (i(`lista`), o(null), c(String(t.id)), f(t.tab || `resumo`));
             return;
           }
           if (t.type === `clientes:editar` && t.id) {
-            (o(null), i(String(t.id)), c(`resumo`));
+            (i(`lista`), c(null), o(String(t.id)), f(`resumo`));
             return;
           }
           if (t.type === `clientes:excluir` && t.id) {
-            v(String(t.id));
+            x(String(t.id));
             return;
           }
           if (t.type === `clientes:limpar-filtros`) {
             n();
             return;
           }
-          if (t.type === `clientes:editar-atual` && a) {
-            (i(a), o(null), c(`resumo`));
+          if (t.type === `clientes:editar-atual` && s) {
+            (o(s), c(null), f(`resumo`));
             return;
           }
           if (t.type === `clientes:abrir-lista`) {
-            (i(null), o(null), c(`resumo`));
+            (o(null), c(null), f(`resumo`), i(`lista`));
             return;
           }
           if (t.type === `clientes:exportar-csv`) {
-            b();
+            S();
             return;
           }
           if (t.type === `clientes:abrir-resumo`) {
-            (!a && t.id && o(String(t.id)), c(`resumo`));
+            (!s && t.id && c(String(t.id)), f(`resumo`));
             return;
           }
           if (t.type === `clientes:abrir-abertas`) {
-            (!a && t.id && o(String(t.id)), (a || t.id) && c(`abertas`));
+            (!s && t.id && c(String(t.id)), (s || t.id) && f(`abertas`));
             return;
           }
           if (t.type === `clientes:abrir-fechadas`) {
-            (!a && t.id && o(String(t.id)), (a || t.id) && c(`fechadas`));
+            (!s && t.id && c(String(t.id)), (s || t.id) && f(`fechadas`));
             return;
           }
           if (t.type === `clientes:abrir-notas`) {
-            (!a && t.id && o(String(t.id)), (a || t.id) && c(`notas`));
+            (!s && t.id && c(String(t.id)), (s || t.id) && f(`notas`));
             return;
           }
           t.type === `clientes:abrir-fidelidade` &&
-            (!a && t.id && o(String(t.id)), (a || t.id) && c(`fidelidade`));
+            (!s && t.id && c(String(t.id)), (s || t.id) && f(`fidelidade`));
         }
       }
       return (
@@ -2093,82 +2295,111 @@ function Me() {
           window.removeEventListener(`message`, e);
         }
       );
-    }, [n, a, _]),
+    }, [n, s, b]),
     (0, u.useEffect)(() => {
       window.postMessage(
         {
-          source: Ae,
+          source: Ne,
           type: `clientes:state`,
           state: {
-            view: r ? `form` : a ? `detail` : `list`,
-            status: f ? `deleting` : p ? `error` : `ready`,
+            view: a ? `form` : s ? `detail` : `list`,
+            status: m ? `deleting` : h ? `error` : `ready`,
             count: e.length,
             filtersActive: [t.q, t.seg, t.status].filter(Boolean).length,
-            selectedId: r === `new` ? `` : r || a || ``,
-            selectedName: m?.nome || h?.nome || ``,
-            detailTab: s
+            selectedId: a === `new` ? `` : a || s || ``,
+            selectedName: _?.nome || v?.nome || ``,
+            detailTab: d,
+            surfaceTab: r
           }
         },
         window.location.origin
       );
-    }, [e.length, f, a, r, p, t.q, t.seg, t.status, m?.nome, h?.nome, s]),
+    }, [e.length, m, s, a, h, t.q, t.seg, t.status, _?.nome, v?.nome, d, r]),
     (0, D.jsxs)(`div`, {
       className: `screen-content form-gap-lg`,
       'data-testid': `clientes-pilot-page`,
       children: [
-        p &&
+        h &&
           (0, D.jsx)(`div`, {
             className: `empty`,
             'data-testid': `cliente-pilot-error`,
-            children: (0, D.jsx)(`p`, { children: p })
+            children: (0, D.jsx)(`p`, { children: h })
           }),
-        (0, D.jsx)(M, {
+        (0, D.jsxs)(`div`, {
+          className: `tabs`,
+          'data-testid': `cliente-surface-tabs`,
+          children: [
+            (0, D.jsx)(`button`, {
+              className: `tb ${r === `lista` ? `on` : ``}`,
+              type: `button`,
+              onClick: () => i(`lista`),
+              children: `Lista`
+            }),
+            (0, D.jsx)(`button`, {
+              className: `tb ${r === `segmentos` ? `on` : ``}`,
+              type: `button`,
+              onClick: () => i(`segmentos`),
+              children: `Segmentos`
+            })
+          ]
+        }),
+        (0, D.jsx)(le, {
+          hidden: r !== `lista`,
           onNovoCliente: () => {
-            (o(null), i(`new`), c(`resumo`));
+            (i(`lista`), c(null), o(`new`), f(`resumo`));
           },
-          onExportar: b,
+          onExportar: S,
           onEditar: (e) => {
-            (o(null), i(e), c(`resumo`));
+            (i(`lista`), c(null), o(e), f(`resumo`));
           },
           onDetalhe: (e) => {
-            (i(null), o(e), c(`resumo`));
+            (i(`lista`), o(null), c(e), f(`resumo`));
           },
-          onExcluir: v
+          onExcluir: x
         }),
-        h &&
-          !r &&
-          (0, D.jsx)(ke, {
-            cliente: h,
-            activeTab: s,
-            onTabChange: c,
-            onEditar: (e) => {
-              (o(null), i(e), c(`resumo`));
-            },
-            onClose: () => {
-              (o(null), c(`resumo`));
+        r === `segmentos` &&
+          !v &&
+          !a &&
+          (0, D.jsx)(Me, {
+            onDetalhe: (e) => {
+              (i(`lista`), o(null), c(e), f(`resumo`));
             }
           }),
-        f &&
+        v &&
+          !a &&
+          r === `lista` &&
+          (0, D.jsx)(ke, {
+            cliente: v,
+            activeTab: d,
+            onTabChange: f,
+            onEditar: (e) => {
+              (c(null), o(e), f(`resumo`));
+            },
+            onClose: () => {
+              (c(null), f(`resumo`));
+            }
+          }),
+        m &&
           (0, D.jsx)(`div`, {
             className: `empty-inline`,
             'data-testid': `cliente-pilot-deleting`,
             children: `Removendo cliente...`
           }),
-        r &&
-          (0, D.jsx)(F, {
-            initialCliente: r === `new` ? null : m,
+        a &&
+          (0, D.jsx)(P, {
+            initialCliente: a === `new` ? null : _,
             onSaved: (e) => {
-              (i(null), o(e.id), c(`resumo`));
+              (i(`lista`), o(null), c(e.id), f(`resumo`));
             },
             onCancel: () => {
-              i(null);
+              o(null);
             }
           })
       ]
     })
   );
 }
-function Ne(t = {}) {
+function Ie(t = {}) {
   let { skip: r = !1 } = t,
     i = y((e) => e.setClientes),
     a = y((e) => e.setStatus),
@@ -2217,14 +2448,14 @@ function Ne(t = {}) {
 }
 c();
 var $ = null;
-function Pe() {
-  return (Ne(), (0, D.jsx)(Me, {}));
+function Le() {
+  return (Ie(), (0, D.jsx)(Fe, {}));
 }
-function Fe(e) {
+function Re(e) {
   (($ = (0, d.createRoot)(e)),
-    $.render((0, D.jsx)(u.StrictMode, { children: (0, D.jsx)(Pe, {}) })));
+    $.render((0, D.jsx)(u.StrictMode, { children: (0, D.jsx)(Le, {}) })));
 }
-function Ie() {
+function ze() {
   $ &&= ($.unmount(), null);
 }
-window.__SC_CLIENTES_DIRECT_BRIDGE__ = { mount: Fe, unmount: Ie };
+window.__SC_CLIENTES_DIRECT_BRIDGE__ = { mount: Re, unmount: ze };

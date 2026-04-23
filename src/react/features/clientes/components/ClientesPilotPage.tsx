@@ -7,14 +7,17 @@ import { useClienteMutations } from '../hooks/useClienteMutations';
 import { ClienteListView } from './ClienteListView';
 import { ClienteForm } from './ClienteForm';
 import { ClienteDetailPanel, type DetailTab } from './ClienteDetailPanel';
+import { ClienteSegmentView } from './ClienteSegmentView';
 
 const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
+type SurfaceTab = 'lista' | 'segmentos';
 
 export function ClientesPilotPage() {
   const clientes = useClienteStore(useShallow((s) => s.clientes));
   const filtro = useClienteStore((s) => s.filtro);
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
+  const [surfaceTab, setSurfaceTab] = useState<SurfaceTab>('lista');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>('resumo');
@@ -75,13 +78,23 @@ export function ClientesPilotPage() {
       if (!data || data.source !== COMMAND_SOURCE) return;
 
       if (data.type === 'clientes:novo') {
+        setSurfaceTab('lista');
         setDetailId(null);
         setEditingId('new');
         setDetailTab('resumo');
         return;
       }
 
+      if (data.type === 'clientes:abrir-segmentos') {
+        setEditingId(null);
+        setDetailId(null);
+        setDetailTab('resumo');
+        setSurfaceTab('segmentos');
+        return;
+      }
+
       if (data.type === 'clientes:abrir-detalhe' && data.id) {
+        setSurfaceTab('lista');
         setEditingId(null);
         setDetailId(String(data.id));
         setDetailTab((data.tab as DetailTab) || 'resumo');
@@ -89,6 +102,7 @@ export function ClientesPilotPage() {
       }
 
       if (data.type === 'clientes:editar' && data.id) {
+        setSurfaceTab('lista');
         setDetailId(null);
         setEditingId(String(data.id));
         setDetailTab('resumo');
@@ -116,6 +130,7 @@ export function ClientesPilotPage() {
         setEditingId(null);
         setDetailId(null);
         setDetailTab('resumo');
+        setSurfaceTab('lista');
         return;
       }
 
@@ -172,7 +187,8 @@ export function ClientesPilotPage() {
           filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length,
           selectedId: editingId === 'new' ? '' : editingId || detailId || '',
           selectedName: editingCliente?.nome || detailCliente?.nome || '',
-          detailTab
+          detailTab,
+          surfaceTab
         }
       },
       window.location.origin
@@ -188,7 +204,8 @@ export function ClientesPilotPage() {
     filtro.status,
     editingCliente?.nome,
     detailCliente?.nome,
-    detailTab
+    detailTab,
+    surfaceTab
   ]);
 
   return (
@@ -199,19 +216,40 @@ export function ClientesPilotPage() {
         </div>
       )}
 
+      <div className="tabs" data-testid="cliente-surface-tabs">
+        <button
+          className={`tb ${surfaceTab === 'lista' ? 'on' : ''}`}
+          type="button"
+          onClick={() => setSurfaceTab('lista')}
+        >
+          Lista
+        </button>
+        <button
+          className={`tb ${surfaceTab === 'segmentos' ? 'on' : ''}`}
+          type="button"
+          onClick={() => setSurfaceTab('segmentos')}
+        >
+          Segmentos
+        </button>
+      </div>
+
       <ClienteListView
+        hidden={surfaceTab !== 'lista'}
         onNovoCliente={() => {
+          setSurfaceTab('lista');
           setDetailId(null);
           setEditingId('new');
           setDetailTab('resumo');
         }}
         onExportar={exportarCsvAtual}
         onEditar={(id) => {
+          setSurfaceTab('lista');
           setDetailId(null);
           setEditingId(id);
           setDetailTab('resumo');
         }}
         onDetalhe={(id) => {
+          setSurfaceTab('lista');
           setEditingId(null);
           setDetailId(id);
           setDetailTab('resumo');
@@ -219,7 +257,18 @@ export function ClientesPilotPage() {
         onExcluir={handleExcluir}
       />
 
-      {detailCliente && !editingId && (
+      {surfaceTab === 'segmentos' && !detailCliente && !editingId && (
+        <ClienteSegmentView
+          onDetalhe={(id) => {
+            setSurfaceTab('lista');
+            setEditingId(null);
+            setDetailId(id);
+            setDetailTab('resumo');
+          }}
+        />
+      )}
+
+      {detailCliente && !editingId && surfaceTab === 'lista' && (
         <ClienteDetailPanel
           cliente={detailCliente}
           activeTab={detailTab}
@@ -246,6 +295,7 @@ export function ClientesPilotPage() {
         <ClienteForm
           initialCliente={editingId === 'new' ? null : editingCliente}
           onSaved={(cliente) => {
+            setSurfaceTab('lista');
             setEditingId(null);
             setDetailId(cliente.id);
             setDetailTab('resumo');

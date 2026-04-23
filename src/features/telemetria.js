@@ -4,6 +4,7 @@
 
 import { D, State } from '../app/store.js';
 import { uid, norm, toast } from '../shared/utils.js';
+import { isClientesReactFeatureEnabled } from './clientes-react-bridge.js';
 
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const UX_EVENTS_KEY = 'sc_ux_events_v1';
@@ -77,6 +78,13 @@ function buildDefaultGoalMetrics() {
       notifications: { executadas: 0, resolvidas: 0, reabertas: 0 }
     }
   };
+}
+
+function resolveJourneyKey(modalId) {
+  if (modalId === 'modal-cliente' && isClientesReactFeatureEnabled()) {
+    return 'cliente';
+  }
+  return JOURNEY_MODAL_MAP[modalId] || null;
 }
 
 function getDefaultJourneyShape() {
@@ -652,12 +660,12 @@ export function initGoalTracking() {
   });
   window.addEventListener('sc:modal-open', (e) => {
     const id = /** @type {CustomEvent<{ id?: string }>} */ (e).detail?.id;
-    const journey = JOURNEY_MODAL_MAP[id];
+    const journey = resolveJourneyKey(id);
     if (journey) pushUxEvent('modal_open', { modal_id: id, journey });
   });
   window.addEventListener('sc:modal-close', (e) => {
     const id = /** @type {CustomEvent<{ id?: string }>} */ (e).detail?.id;
-    const journey = JOURNEY_MODAL_MAP[id];
+    const journey = resolveJourneyKey(id);
     if (!journey) return;
     pushUxEvent('modal_close', { modal_id: id, journey });
     const m = getGoalMetrics();

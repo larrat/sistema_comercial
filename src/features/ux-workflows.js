@@ -2,6 +2,7 @@
 
 /** @typedef {import('../types/domain').UxWorkflowsModuleDeps} UxWorkflowsModuleDeps */
 
+import { forceClientesReactMode, isClientesReactFeatureEnabled } from './clientes-react-bridge.js';
 import { toast, norm, fmt, prV } from '../shared/utils.js';
 
 /** @type {UxWorkflowsModuleDeps} */
@@ -34,7 +35,12 @@ export function executarAuditoriaVisual() {
   const add = (ok, item, detalhe = '') => checks.push({ ok, item, detalhe });
   const has = (id) => !!document.getElementById(id);
   add(has('app-title') && has('app-sub') && has('app-act-primary'), 'Topbar global');
-  add(has('pg-clientes') && has('cli-lista') && has('modal-cliente'), 'Fluxo Clientes');
+  add(
+    has('pg-clientes') &&
+      (has('cli-react-root') || has('cli-lista')) &&
+      (has('cli-react-shell') || has('modal-cliente')),
+    'Fluxo Clientes'
+  );
   add(
     has('pg-campanhas') && has('camp-lista') && has('camp-wa-fila') && has('modal-campanha'),
     'Fluxo Campanhas'
@@ -110,16 +116,26 @@ export function executarAuditoriaAceite() {
 
 function getQuickCommands() {
   return [
-    { cmd: '/ dashboard', label: 'Abrir Dashboard', run: () => deps.ir?.('dashboard') },
-    { cmd: '/ gerencial', label: 'Abrir Gerencial', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ inicio', label: 'Abrir Início', run: () => deps.ir?.('dashboard') },
+    { cmd: '/ dashboard', label: 'Abrir Início', run: () => deps.ir?.('dashboard') },
+    { cmd: '/ analises', label: 'Abrir Análises', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ gerencial', label: 'Abrir Análises', run: () => deps.ir?.('gerencial') },
+    { cmd: '/ relatorios', label: 'Abrir Relatórios', run: () => deps.ir?.('relatorios') },
     { cmd: '/ produtos', label: 'Abrir Produtos', run: () => deps.ir?.('produtos') },
     { cmd: '/ clientes', label: 'Abrir Clientes', run: () => deps.ir?.('clientes') },
     { cmd: '/ pedidos', label: 'Abrir Pedidos', run: () => deps.ir?.('pedidos') },
-    { cmd: '/ cotacao', label: 'Abrir Cotação', run: () => deps.ir?.('cotacao') },
+    { cmd: '/ receber', label: 'Abrir Contas a receber', run: () => deps.ir?.('receber') },
+    { cmd: '/ compras', label: 'Abrir Compras', run: () => deps.ir?.('cotacao') },
+    { cmd: '/ cotacao', label: 'Abrir Compras', run: () => deps.ir?.('cotacao') },
     { cmd: '/ estoque', label: 'Abrir Estoque', run: () => deps.ir?.('estoque') },
     { cmd: '/ campanhas', label: 'Abrir Campanhas', run: () => deps.ir?.('campanhas') },
+    { cmd: '/ alertas', label: 'Abrir Alertas e pendências', run: () => deps.ir?.('notificacoes') },
     { cmd: '/ acessos', label: 'Abrir Acessos', run: () => deps.ir?.('acessos') },
-    { cmd: '/ notificacoes', label: 'Abrir Notificações', run: () => deps.ir?.('notificacoes') },
+    {
+      cmd: '/ notificacoes',
+      label: 'Abrir Alertas e pendências',
+      run: () => deps.ir?.('notificacoes')
+    },
     { cmd: '/ filiais', label: 'Abrir Filiais', run: () => deps.ir?.('filiais') },
     {
       cmd: '/ novo pedido',
@@ -133,7 +149,8 @@ function getQuickCommands() {
       cmd: '/ novo cliente',
       label: 'Novo Cliente',
       run: () => {
-        if (deps.isClientesReactPilotActive?.()) {
+        if (isClientesReactFeatureEnabled()) {
+          forceClientesReactMode();
           deps.abrirNovoClienteReact?.();
           return;
         }
@@ -199,7 +216,9 @@ export function initQuickCommand() {
   if (!document.body.dataset.boundQuickGlobal) {
     document.body.dataset.boundQuickGlobal = '1';
     document.addEventListener('keydown', (e) => {
-      if (e.key !== '/') return;
+      const wantsQuickCommand =
+        e.key === '/' || ((e.ctrlKey || e.metaKey) && String(e.key || '').toLowerCase() === 'k');
+      if (!wantsQuickCommand) return;
       const target = /** @type {HTMLElement | null} */ (
         e.target instanceof HTMLElement ? e.target : null
       );

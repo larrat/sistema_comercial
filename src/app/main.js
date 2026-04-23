@@ -58,26 +58,10 @@ import {
 } from '../features/produtos.js';
 
 import {
-  initClientesModule,
-  renderCliMet,
-  renderClientes,
-  renderCliSegs,
-  abrirCliDet,
-  switchCliDetTab,
-  fecharVendaCliente,
-  addNota,
-  limparFormCli,
-  editarCli,
-  salvarCliente,
-  removerCli,
-  refreshCliDL
-} from '../features/clientes.js';
-import {
-  toggleClientesReactBridge,
   abrirNovoClienteReact,
-  isClientesReactPilotActive,
   limparFiltrosClienteReact,
   abrirListaClienteReact,
+  abrirSegmentosClienteReact,
   editarClienteReactAtual,
   exportarClientesReactCsv,
   abrirResumoClienteReact,
@@ -93,17 +77,9 @@ import {
   editarPedidoReact,
   abrirDetalhePedidoReact
 } from '../features/pedidos-react-bridge.js';
+import { setContasReceberReactTab } from '../features/contas-receber-react-bridge.js';
 
 import { initPedidosModule } from '../features/pedidos.js';
-
-import {
-  renderContasReceberMet,
-  renderContasReceber,
-  switchCrTab,
-  marcarRecebido,
-  marcarPendente,
-  gerarContaManual
-} from '../features/contas-receber.js';
 
 import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
 
@@ -125,21 +101,6 @@ import {
   salvarMov,
   excluirMov
 } from '../features/estoque.js';
-
-import {
-  initDashboardModule,
-  renderDashFilSel,
-  renderDash,
-  setP,
-  abrirNovoJogo,
-  salvarJogoDashboard,
-  removerJogoDashboard,
-  abrirSyncJogos,
-  sincronizarJogosDashboard,
-  usarExemploSyncJogos,
-  togglePersonalizarDash,
-  applyDashSavedLayout
-} from '../features/dashboard.js';
 
 import {
   renderRelatorios,
@@ -348,6 +309,8 @@ function resetRuntimeData() {
   D.campanhas = {};
   D.campanhaEnvios = {};
   D.notas = {};
+  D.contasReceber = {};
+  D.contasReceberBaixas = {};
   D.userPerfis = [];
   D.userFiliais = [];
   D.acessosAudit = [];
@@ -373,10 +336,6 @@ function limparFormProdTracked() {
   startCriticalTask('produto');
   return limparFormProd();
 }
-function limparFormCliTracked() {
-  startCriticalTask('cliente');
-  return limparFormCli();
-}
 function abrirNovaCampanhaTracked() {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode criar campanha.')) return;
   startCriticalTask('campanha');
@@ -388,13 +347,6 @@ async function salvarProdutoTracked() {
   await salvarProduto();
   const open = document.getElementById('modal-produto')?.classList.contains('on');
   if (!open) completeCriticalTask('produto');
-  renderMetasNegocio();
-}
-async function salvarClienteTracked() {
-  if (State.editIds.cli) registerJourneyRework('cliente');
-  await salvarCliente();
-  const open = document.getElementById('modal-cliente')?.classList.contains('on');
-  if (!open) completeCriticalTask('cliente');
   renderMetasNegocio();
 }
 async function salvarCampanhaTracked() {
@@ -612,11 +564,6 @@ const removerProdGuard = buildRoleGuard(
   ROLE_MANAGER_PLUS,
   'Somente gerente/admin pode remover produto.'
 );
-const removerCliGuard = buildRoleGuard(
-  removerCli,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode remover cliente.'
-);
 const remFornGuard = buildRoleGuard(
   remForn,
   ROLE_MANAGER_PLUS,
@@ -626,21 +573,6 @@ const excluirMovGuard = buildRoleGuard(
   excluirMov,
   ROLE_MANAGER_PLUS,
   'Somente gerente/admin pode excluir movimentação.'
-);
-const removerJogoDashboardGuard = buildRoleGuard(
-  removerJogoDashboard,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode remover jogo.'
-);
-const salvarJogoDashboardGuard = buildRoleGuard(
-  salvarJogoDashboard,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode salvar jogo.'
-);
-const sincronizarJogosDashboardGuard = buildRoleGuard(
-  sincronizarJogosDashboard,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode sincronizar jogos.'
 );
 const removerCampanhaGuard = buildRoleGuard(
   removerCampanha,
@@ -676,17 +608,12 @@ const desfazerStatusEnvioGuard = buildRoleGuard(
 // ── Centralised error handling ────────────────────────────────────────────────
 configureErrorHandler({ notify });
 
-// ── Restaura ordem dos cards do dashboard salva pelo usuário ─────────────────
-applyDashSavedLayout();
-
 registerApplicationModules({
   registry: AppModules,
   modules: {
     initCotacaoModule,
     initProdutosModule,
-    initClientesModule,
     initPedidosModule,
-    initDashboardModule,
     initTelemetriaModule,
     initRuntimeLoadingModule,
     initUxWorkflowsModule,
@@ -703,7 +630,6 @@ registerApplicationModules({
     setFlowStep,
     refreshProdSel,
     refreshRcaSelectors,
-    refreshCliDL,
     calcSaldosMulti,
     pageAtual,
     getNotificacoesResumo,
@@ -712,10 +638,8 @@ registerApplicationModules({
     abrirModal,
     fmt,
     limparFormPedTracked,
-    limparFormCliTracked,
     limparFormProdTracked,
     resetMov,
-    abrirSyncJogos,
     filterSidebarNav,
     resetRuntimeData,
     showLoading,
@@ -725,8 +649,6 @@ registerApplicationModules({
     renderFornSel,
     refreshMovSel,
     refreshDestSel,
-    renderDashFilSel,
-    renderDash,
     atualizarBadgeEst,
     updateNotiBadge,
     cores: CORES,
@@ -739,12 +661,10 @@ registerApplicationModules({
     markConsistencyPage,
     renderMetasNegocio,
     renderRelatorios,
-    renderCliMet,
-    renderClientes,
     abrirNovoClienteReact,
-    isClientesReactPilotActive,
     limparFiltrosClienteReact,
     abrirListaClienteReact,
+    abrirSegmentosClienteReact,
     editarClienteReactAtual,
     exportarClientesReactCsv,
     abrirResumoClienteReact,
@@ -752,8 +672,6 @@ registerApplicationModules({
     abrirFechadasClienteReact,
     abrirNotasClienteReact,
     abrirFidelidadeClienteReact,
-    renderContasReceberMet,
-    renderContasReceber,
     renderCotForns,
     renderCotTabela,
     renderEstAlerts,
@@ -806,25 +724,17 @@ startApplicationRuntime({
         ir,
         exportarTudo,
         sairConta,
-        renderDash,
-        setP,
-        abrirSyncJogos,
-        abrirNovoJogo,
         renderMetasNegocio,
         renderRelatorios,
         resetUxKpis,
         limparFormProdTracked,
         renderProdutos,
         exportCSV,
-        limparFormCliTracked,
         switchTab,
-        renderCliSegs,
-        renderClientes,
-        toggleClientesReactBridge,
-        isClientesReactPilotActive,
         abrirNovoClienteReact,
         limparFiltrosClienteReact,
         abrirListaClienteReact,
+        abrirSegmentosClienteReact,
         editarClienteReactAtual,
         exportarClientesReactCsv,
         abrirResumoClienteReact,
@@ -837,12 +747,7 @@ startApplicationRuntime({
         abrirNovoPedidoReact,
         editarPedidoReact,
         abrirDetalhePedidoReact,
-        renderContasReceberMet,
-        renderContasReceber,
-        switchCrTab,
-        marcarRecebido,
-        marcarPendente,
-        gerarContaManual,
+        setContasReceberReactTab,
         renderCotForns,
         renderCotTabela,
         cotFile,
@@ -851,7 +756,6 @@ startApplicationRuntime({
         renderEstPosicao,
         renderEstHist,
         abrirNovaCampanhaTracked,
-        removerJogoDashboardGuard,
         abrirMovProd,
         editarProd,
         removerProdGuard,
@@ -895,13 +799,6 @@ startApplicationRuntime({
         refreshRcaSelectors,
         abrirModalRca,
         salvarRca,
-        editarCli,
-        removerCliGuard,
-        abrirCliDet,
-        switchCliDetTab,
-        fecharVendaCliente,
-        addNota,
-        salvarClienteTracked,
         salvarCampanhaTracked,
         carregarCampanhas: () => {
           void carregarCampanhas();
@@ -934,10 +831,6 @@ startApplicationRuntime({
         marcarSelecionadosEnviadosGuard,
         marcarSelecionadosFalhouGuard,
         desfazerStatusEnvio: desfazerStatusEnvioGuard,
-        salvarJogoDashboardGuard,
-        usarExemploSyncJogos,
-        togglePersonalizarDash,
-        sincronizarJogosDashboardGuard,
         abrirValidacaoOportunidade,
         salvarValidacaoOportunidade,
         salvarForn,

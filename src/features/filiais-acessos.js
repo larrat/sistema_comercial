@@ -5,11 +5,14 @@ import { D, State } from '../app/store.js';
 import {
   uid,
   toast,
+  notifyGuided,
   abrirModal,
   fecharModal,
   markFieldState,
-  focusField
+  focusField,
+  setButtonLoading
 } from '../shared/utils.js';
+import { SEVERITY } from '../shared/messages.js';
 import { esc } from '../shared/sanitize.js';
 
 /** @typedef {import('../types/domain').FiliaisAcessosModuleDeps} FiliaisAcessosModuleDeps */
@@ -260,9 +263,26 @@ export function editarFilial(id) {
 }
 
 export async function salvarFilial() {
-  if (!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode salvar filial.')) return;
+  setButtonLoading(
+    'fil-save-btn',
+    true,
+    State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+  );
+  if (!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode salvar filial.')) {
+    setButtonLoading(
+      'fil-save-btn',
+      false,
+      State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+    );
+    return;
+  }
   const nome = document.getElementById('fil-nome')?.value.trim();
   if (!nome) {
+    setButtonLoading(
+      'fil-save-btn',
+      false,
+      State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+    );
     toast('Informe o nome.');
     return;
   }
@@ -279,6 +299,11 @@ export async function salvarFilial() {
   try {
     await SB.upsertFilial(f);
   } catch (e) {
+    setButtonLoading(
+      'fil-save-btn',
+      false,
+      State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+    );
     toast('Erro: ' + e.message);
     return;
   }
@@ -290,16 +315,31 @@ export async function salvarFilial() {
   renderDashFilSelSafe();
 
   toast(State.editIds.filial ? 'Filial atualizada!' : 'Filial criada!');
+  setButtonLoading(
+    'fil-save-btn',
+    false,
+    State.editIds.filial ? 'Atualizar filial' : 'Salvar filial'
+  );
 }
 
 export async function removerFilial(id) {
   if (!requireRoleSafe(roleAdminOnlySafe, 'Somente admin pode remover filial.')) return;
-  if (!confirm('Remover filial e dados?')) return;
+  if (
+    !confirm(
+      'Remover esta filial e seus dados operacionais? Esta ação afeta cadastros, pedidos, financeiro e acessos vinculados a ela.'
+    )
+  )
+    return;
 
   try {
     await SB.deleteFilial(id);
   } catch (e) {
-    toast('Erro: ' + e.message);
+    notifyGuided({
+      severity: SEVERITY.ERROR,
+      what: `falha ao remover filial (${e.message})`,
+      impact: 'a estrutura administrativa continua ativa',
+      next: 'atualize a tela e tente novamente'
+    });
     return;
   }
 
@@ -308,7 +348,12 @@ export async function removerFilial(id) {
   renderFilMet();
   await renderSetupSafe();
   renderDashFilSelSafe();
-  toast('Filial removida.');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'filial removida',
+    impact: 'o contexto administrativo foi atualizado',
+    next: 'revise os acessos vinculados se essa filial ainda aparecia em permissões'
+  });
 }
 
 export function renderFilMet() {
@@ -437,7 +482,7 @@ export function renderAcessosPerfis() {
   if (papel !== 'todos') items = items.filter((x) => String(x.papel) === papel);
 
   if (!items.length) {
-    el.innerHTML = `<div class="empty"><div class="ico">🔐</div><p>Nenhum perfil encontrado.</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="ico">🔐</div><p>Nenhum perfil encontrado.</p><p class="table-cell-caption table-cell-muted">Crie o primeiro perfil para começar a distribuir permissões por usuário.</p></div>`;
     renderPager('ac-perfis-pager', 1, 1, '', '');
     return;
   }
@@ -528,7 +573,7 @@ export function renderAcessosVinculos() {
                 <div class="table-cell-strong">${esc(String(userMap.get(v.user_id)?.nome || '').trim()) || '-'}</div>
                 <div class="table-cell-caption table-cell-muted">${esc(userMap.get(v.user_id)?.email || '') || '-'}</div>
               </td>
-              <td><span class="bdg bk">${esc(perfMap.get(v.user_id) || 'sem_perfil')}</span></td>
+              <td><span class="bdg bk">${esc(perfMap.get(v.user_id) || 'Sem perfil')}</span></td>
               <td>${esc(filMap.get(v.filial_id) || v.filial_id)}</td>
               <td class="table-align-right">
                 <button class="btn btn-sm" data-click="preencherVinculoAcesso('${v.user_id}','${v.filial_id}')">Editar</button>
@@ -824,7 +869,12 @@ export async function removerPerfilAcesso() {
     toast('Não é permitido remover o próprio perfil.');
     return;
   }
-  if (!confirm('Remover perfil deste usuário?')) return;
+  if (
+    !confirm(
+      `Remover o perfil de acesso deste usuário? Ele pode perder acesso imediato às áreas administrativas e operacionais vinculadas ao papel atual.`
+    )
+  )
+    return;
   const deleteResult = await SB.toResult(() =>
     SB.deleteUserPerfilEdge(userId, {
       origem: 'ui_acessos',
@@ -891,7 +941,12 @@ export async function desvincularUsuarioFilial() {
     toast('Selecione a filial.');
     return;
   }
-  if (!confirm('Desvincular usuário desta filial?')) return;
+  if (
+    !confirm(
+      `Desvincular este usuário da filial selecionada? Ele deixará de acessar os dados e operações desta unidade.`
+    )
+  )
+    return;
   const deleteResult = await SB.toResult(() =>
     SB.deleteUserFilialEdge(userId, filialId, {
       origem: 'ui_acessos',
@@ -1015,7 +1070,12 @@ export async function reenviarConviteUsuarioAcesso() {
     toast('Papel inválido.');
     return;
   }
-  if (!confirm(`Reenviar o convite de acesso para ${email}?`)) return;
+  if (
+    !confirm(
+      `Reenviar o convite de acesso para ${email}? O link novo substitui a orientação anterior para esse usuário.`
+    )
+  )
+    return;
 
   const resendResult = await SB.toResult(() =>
     SB.reenviarConviteUsuarioAcessoEdge({

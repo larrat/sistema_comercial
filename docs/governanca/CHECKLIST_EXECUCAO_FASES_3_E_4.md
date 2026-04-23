@@ -13,7 +13,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Roadmap de sprints definido
 - [x] Plano de rollback por camada definido
 - [x] Modulo piloto escolhido oficialmente
-- [ ] Feature flags por modulo definidas
+- [x] Feature flags por modulo definidas
 - [ ] Criterios de aceite por sprint formalizados no board
 
 ### Fase 4 - Politica de engenharia
@@ -97,3 +97,24 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Falhas intermediarias de `format:check` no shell React e componentes do piloto corrigidas antes da estabilizacao final
 - [x] Shell legado passou a espelhar acoes reais do piloto React de `clientes`
 - [x] Renderizacao do legado foi reduzida adicionalmente quando `Clientes React` esta ativo
+
+### 2026-04-17
+
+- [x] Sidebar sempre escuro com icones SVG estilo Fluig ativada (opt-out nao necessario)
+- [x] Pedidos: exibicao do financeiro no painel de detalhe
+- [x] Contas-receber: estorno unitario de baixa implementado
+- [x] Contas-receber: historico de baixas expandido com mais dados
+- [x] Dashboard React pilot ativado por padrao (defaultValue: true), operador pode desativar via flag
+- [x] Inicio da remocao progressiva do legado de `clientes`: shell isolado, modal retirado do fluxo React, formulario extraido, detalhe extraido, tabs extraidas, fallbacks separados por camada
+
+### 2026-04-18
+
+- [x] Listagem principal de `clientes` migrada para React (react-first)
+- [x] Fallback padrao da listagem de `clientes` desligado
+- [x] Todos os fallbacks legados residuais de `clientes` removidos
+- [x] Modulo `clientes` declarado react-only: legado e codigo morto
+
+### 2026-04-21
+
+- [x] Contas-receber: baixas migradas para RPCs com consistencia de backend (`rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`)
+- [x] SQL `16_contas_receber_backend_consistencia.sql` preparado (pendente apply em producao)

@@ -136,6 +136,7 @@ type Props = {
   onEditar?: (id: string) => void;
   onExcluir?: (id: string) => void;
   onExportar?: () => void;
+  hidden?: boolean;
 };
 
 export function ClienteListView({
@@ -143,7 +144,8 @@ export function ClienteListView({
   onDetalhe,
   onEditar,
   onExcluir,
-  onExportar
+  onExportar,
+  hidden = false
 }: Props) {
   const status = useClienteStore((s) => s.status);
   const error = useClienteStore((s) => s.error);
@@ -156,7 +158,7 @@ export function ClienteListView({
   }, [status, setStatus]);
 
   return (
-    <div className="screen-content" data-testid="cliente-list-view">
+    <div className="screen-content" data-testid="cliente-list-view" hidden={hidden}>
       <div className="fb form-gap-bottom-xs">
         <h2 className="table-cell-strong">Clientes</h2>
       </div>

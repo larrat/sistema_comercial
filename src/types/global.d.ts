@@ -59,14 +59,16 @@ declare global {
       token_type: string;
       expires_in: number;
       expires_at: number;
-      user: null;
+      user: Record<string, unknown> | null;
     };
     __SC_FILIAL_ID__?: string;
+    __SC_USER_ROLE__?: 'operador' | 'gerente' | 'admin' | string;
 
     // ── Feature flags de pilots (legíveis pelos bridges legados) ─────────────
     __SC_CLIENTES_REACT_ENABLED__?: boolean;
     __SC_DASHBOARD_REACT_ENABLED__?: boolean;
     __SC_PEDIDOS_REACT_ENABLED__?: boolean;
+    __SC_RECEBER_REACT_ENABLED__?: boolean;
 
     // ── Direct bridge interfaces (publicadas pelos bundles React) ────────────
     __SC_CLIENTES_DIRECT_BRIDGE__?: {
@@ -78,6 +80,10 @@ declare global {
       unmount: () => void;
     };
     __SC_PEDIDOS_DIRECT_BRIDGE__?: {
+      mount: (el: HTMLElement) => void;
+      unmount: () => void;
+    };
+    __SC_RECEBER_DIRECT_BRIDGE__?: {
       mount: (el: HTMLElement) => void;
       unmount: () => void;
     };

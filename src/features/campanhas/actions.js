@@ -244,6 +244,11 @@ export function editarCampanha(id) {
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 
 export async function salvarCampanha() {
+  setButtonLoading(
+    'camp-save-btn',
+    true,
+    State.editIds?.campanha ? 'Atualizar campanha' : 'Salvar campanha'
+  );
   const nome = getInputValue('camp-nome').trim();
   const tipo = getInputValue('camp-tipo') || 'aniversario';
   const canal = getInputValue('camp-canal') || 'whatsapp_manual';
@@ -255,11 +260,21 @@ export async function salvarCampanha() {
   const ativo = !!document.getElementById('camp-ativo')?.checked;
 
   if (!nome) {
+    setButtonLoading(
+      'camp-save-btn',
+      false,
+      State.editIds?.campanha ? 'Atualizar campanha' : 'Salvar campanha'
+    );
     notify(MSG.forms.required('Nome da campanha'), SEVERITY.WARNING);
     focusField('camp-nome', { markError: true });
     return;
   }
   if (!mensagem) {
+    setButtonLoading(
+      'camp-save-btn',
+      false,
+      State.editIds?.campanha ? 'Atualizar campanha' : 'Salvar campanha'
+    );
     notify(MSG.forms.required('Mensagem da campanha'), SEVERITY.WARNING);
     focusField('camp-mensagem', { markError: true });
     return;
@@ -281,6 +296,11 @@ export async function salvarCampanha() {
 
   const saveResult = await SB.toResult(() => SB.upsertCampanha(item));
   if (!saveResult.ok) {
+    setButtonLoading(
+      'camp-save-btn',
+      false,
+      State.editIds?.campanha ? 'Atualizar campanha' : 'Salvar campanha'
+    );
     console.error('Erro ao salvar campanha no banco', saveResult.error);
     notify(MSG.campanhas.saveFailed(saveResult.error?.message), SEVERITY.ERROR);
     return;
@@ -299,6 +319,11 @@ export async function salvarCampanha() {
       ? 'Sucesso: campanha atualizada e pronta para uso.'
       : 'Sucesso: campanha criada e pronta para uso.',
     SEVERITY.SUCCESS
+  );
+  setButtonLoading(
+    'camp-save-btn',
+    false,
+    State.editIds?.campanha ? 'Atualizar campanha' : 'Salvar campanha'
   );
 }
 

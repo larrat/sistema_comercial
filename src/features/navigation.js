@@ -7,6 +7,7 @@ import {
   getClientesReactBridgeState,
   isClientesReactFeatureEnabled,
   isClientesReactPilotActive,
+  isClientesReactPilotRequested,
   forceClientesReactMode,
   syncClientesReactBridge
 } from './clientes-react-bridge.js';
@@ -19,11 +20,158 @@ const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_COR
 const MOBILE_MENU_FAB_POS_KEY = 'sc_mobile_menu_fab_pos_v1';
 const MOBILE_MENU_FAB_IDLE_MS = 1600;
 const THEME_KEY = 'sc_theme_v1';
+const NAV_FAVORITES_KEY = 'sc_nav_favorites_v1';
+const SEARCH_RESULT_LIMIT = 5;
 
 /** @type {readonly ('auto'|'light'|'dark')[]} */
 const THEME_CYCLE = /** @type {const} */ (['auto', 'light', 'dark']);
 
 const THEME_LABELS = { auto: 'Auto', light: 'Claro', dark: 'Escuro' };
+
+function getFavoriteStorageKey() {
+  const userId = State.user?.id || State.user?.email || 'anon';
+  return `${NAV_FAVORITES_KEY}:${userId}`;
+}
+
+function readFavoritePages() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(getFavoriteStorageKey()) || '[]');
+    return Array.isArray(raw) ? raw.filter((page) => typeof page === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeFavoritePages(pages) {
+  localStorage.setItem(getFavoriteStorageKey(), JSON.stringify(Array.from(new Set(pages))));
+}
+
+function getBaseNavButtons() {
+  return Array.from(document.querySelectorAll('.sb-group:not(.sb-group--favorites) .ni')).filter(
+    (el) => el instanceof HTMLButtonElement
+  );
+}
+
+function getNavPageLabel(page) {
+  const btn = getBaseNavButtons().find((item) => item.dataset.p === page);
+  return btn?.dataset.label || btn?.textContent?.trim() || page;
+}
+
+function isFavoritePage(page) {
+  return readFavoritePages().includes(page);
+}
+
+function renderFavoriteNav(query = '') {
+  const group = document.getElementById('sb-favorites-group');
+  const slot = document.getElementById('sb-favorites');
+  if (!group || !slot) return;
+
+  const favorites = readFavoritePages()
+    .filter((page) => deps.canAccessPage(page))
+    .map((page) => ({ page, label: getNavPageLabel(page) }))
+    .filter((item) => !query || norm(item.label).includes(query));
+
+  group.classList.toggle('is-hidden', favorites.length === 0);
+  group.hidden = favorites.length === 0;
+
+  if (!favorites.length) {
+    slot.innerHTML = '';
+    return;
+  }
+
+  slot.innerHTML = favorites
+    .map(
+      ({ page, label }) => `
+        <button class="ni ni-favorite" type="button" data-p="${page}" data-label="${label}">
+          <span class="ni-favorite-star" aria-hidden="true">&#9733;</span>${label}
+        </button>
+      `
+    )
+    .join('');
+
+  Array.from(slot.querySelectorAll('.ni')).forEach((btn) => {
+    if (!(btn instanceof HTMLButtonElement)) return;
+    btn.onclick = () => ir(btn.dataset.p || 'dashboard');
+    btn.classList.toggle('on', btn.dataset.p === pageAtual());
+  });
+}
+
+function renderSearchResults(raw = '') {
+  const host = document.getElementById('sb-search-results');
+  if (!host) return;
+
+  const query = norm(raw || '');
+  if (!query) {
+    host.innerHTML = '';
+    host.classList.add('is-hidden');
+    return;
+  }
+
+  const matches = getBaseNavButtons()
+    .map((btn) => ({
+      page: btn.dataset.p || '',
+      label: btn.dataset.label || btn.textContent?.trim() || ''
+    }))
+    .filter((item) => item.page && norm(item.label).includes(query))
+    .slice(0, SEARCH_RESULT_LIMIT);
+
+  if (!matches.length) {
+    host.innerHTML = `
+      <div class="sb-search-empty">
+        Nenhuma tela encontrada. Use Ctrl+K para buscar ações rápidas.
+      </div>
+    `;
+    host.classList.remove('is-hidden');
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="sb-search-title">Ir direto para</div>
+    <div class="sb-search-list">
+      ${matches
+        .map(
+          (item, index) => `
+            <button
+              class="sb-search-result${index === 0 ? ' is-primary' : ''}"
+              type="button"
+              data-page="${item.page}"
+            >
+              <span>${item.label}</span>
+              <span class="sb-search-result-hint">${index === 0 ? 'Enter' : 'Abrir'}</span>
+            </button>
+          `
+        )
+        .join('')}
+    </div>
+  `;
+  host.classList.remove('is-hidden');
+
+  Array.from(host.querySelectorAll('[data-page]')).forEach((btn) => {
+    if (!(btn instanceof HTMLButtonElement)) return;
+    btn.onclick = () => ir(btn.dataset.page || 'dashboard');
+  });
+}
+
+function getBestSidebarSearchMatch() {
+  const explicit = document.querySelector('#sb-search-results [data-page]');
+  if (explicit instanceof HTMLButtonElement) return explicit.dataset.page || null;
+
+  const visible = Array.from(document.querySelectorAll('.sb-nav .ni')).find((item) => {
+    if (!(item instanceof HTMLButtonElement)) return false;
+    return !item.hidden && item.style.display !== 'none';
+  });
+  return visible instanceof HTMLButtonElement ? visible.dataset.p || null : null;
+}
+
+function syncFavoriteButton(page) {
+  const btn = document.getElementById('app-act-favorite');
+  if (!(btn instanceof HTMLButtonElement)) return;
+  const active = isFavoritePage(page);
+  btn.textContent = active ? 'Desfixar' : 'Fixar';
+  btn.classList.toggle('btn-gh', active);
+  btn.title = active ? 'Remover dos favoritos' : 'Salvar esta tela nos favoritos';
+  btn.onclick = () => toggleCurrentPageFavorite();
+}
 
 /**
  * Lê o tema salvo no localStorage.
@@ -84,6 +232,7 @@ let deps = {
   abrirNovoClienteReact: () => {},
   limparFiltrosClienteReact: () => {},
   abrirListaClienteReact: () => {},
+  abrirSegmentosClienteReact: () => {},
   editarClienteReactAtual: () => {},
   exportarClientesReactCsv: () => {},
   abrirResumoClienteReact: () => {},
@@ -127,6 +276,7 @@ let deps = {
   roleManagerPlus: ['admin', 'gerente'],
   roleAdminOnly: ['admin']
 };
+
 let pendingPageRender = 0;
 let pendingPageName = '';
 
@@ -152,7 +302,7 @@ function getPageRenderers() {
     gerencial: [deps.renderMetasNegocio],
     relatorios: [deps.renderRelatorios],
     produtos: [deps.renderProdMet, deps.renderProdutos],
-    clientes: isClientesReactPilotActive() ? [] : [deps.renderCliMet, deps.renderClientes],
+    clientes: isClientesReactFeatureEnabled() ? [] : [deps.renderCliMet, deps.renderClientes],
     pedidos: [deps.renderPedMet, deps.renderPedidos],
     receber: [deps.renderContasReceberMet, deps.renderContasReceber],
     cotacao: [deps.renderFornSel, deps.renderCotForns, deps.renderCotLogs, deps.renderCotTabela],
@@ -202,9 +352,9 @@ function schedulePageRender(page) {
 /** @type {Record<string, NavigationPageMeta>} */
 const PAGE_META = {
   dashboard: {
-    kicker: 'Resumo',
-    title: 'Dashboard',
-    sub: 'Visão geral da filial',
+    kicker: 'Início',
+    title: 'Painel do dia',
+    sub: 'Prioridades, riscos e pr?ximos passos da opera??o',
     primary: {
       label: 'Novo pedido',
       run: () => {
@@ -215,6 +365,11 @@ const PAGE_META = {
     secondary: {
       label: 'Novo cliente',
       run: () => {
+        if (isClientesReactFeatureEnabled()) {
+          forceClientesReactMode();
+          deps.abrirNovoClienteReact();
+          return;
+        }
         deps.limparFormCliTracked();
         deps.abrirModal('modal-cliente');
       }
@@ -228,17 +383,17 @@ const PAGE_META = {
     }
   },
   gerencial: {
-    kicker: 'Indicadores',
-    title: 'Gerencial',
-    sub: 'Metas e desempenho',
+    kicker: 'Análises',
+    title: 'Análises',
+    sub: 'Metas, sinais e desempenho da opera??o',
     primary: { label: 'Atualizar KPIs', run: () => deps.renderMetasNegocio() },
     secondary: { label: 'Auditoria visual', run: () => deps.executarAuditoriaVisual() },
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   relatorios: {
-    kicker: 'Analitico',
-    title: 'Relatórios',
-    sub: 'Oportunidades por jogos e conversão comercial',
+    kicker: 'AnÃ¡lises',
+    title: 'Relat?rios',
+    sub: 'Leituras detalhadas do desempenho comercial',
     primary: { label: 'Atualizar relatório', run: () => deps.renderRelatorios() },
     secondary: { label: 'Ir dashboard', run: () => ir('dashboard') },
     tertiary: { label: 'Ir pedidos', run: () => ir('pedidos') }
@@ -246,7 +401,7 @@ const PAGE_META = {
   produtos: {
     kicker: 'Cadastros',
     title: 'Produtos',
-    sub: 'Catalogo e precos',
+    sub: 'Catálogo, preços e cadastro',
     primary: {
       label: 'Novo produto',
       run: () => {
@@ -264,10 +419,15 @@ const PAGE_META = {
   clientes: {
     kicker: 'Cadastros',
     title: 'Clientes',
-    sub: 'Relacionamento e segmentos',
+    sub: 'Base, relacionamento e histórico',
     primary: {
       label: 'Novo cliente',
       run: () => {
+        if (isClientesReactFeatureEnabled()) {
+          forceClientesReactMode();
+          deps.abrirNovoClienteReact();
+          return;
+        }
         deps.limparFormCliTracked();
         deps.abrirModal('modal-cliente');
       }
@@ -282,7 +442,7 @@ const PAGE_META = {
   pedidos: {
     kicker: 'Vendas',
     title: 'Pedidos',
-    sub: 'Orcamentos e vendas',
+    sub: 'Orçamentos, vendas e acompanhamento',
     primary: {
       label: 'Novo pedido',
       run: () => {
@@ -299,16 +459,16 @@ const PAGE_META = {
   },
   receber: {
     kicker: 'Financeiro',
-    title: 'A Receber',
+    title: 'Contas a receber',
     sub: 'Contas a receber e recebimentos',
     primary: { label: 'Ir pedidos', run: () => ir('pedidos') },
     secondary: null,
     tertiary: null
   },
   cotacao: {
-    kicker: 'Compras',
-    title: 'Cotação',
-    sub: 'Fornecedores e precos',
+    kicker: 'Financeiro',
+    title: 'Compras',
+    sub: 'Fornecedores, pre?os e negocia??es de compra',
     primary: { label: 'Novo fornecedor', run: () => deps.abrirModal('modal-forn') },
     secondary: {
       label: 'Exportar CSV',
@@ -318,9 +478,9 @@ const PAGE_META = {
     tertiary: { label: 'Travar/Destravar', run: () => deps.cotLock() }
   },
   estoque: {
-    kicker: 'Operação',
+    kicker: 'Estoque',
     title: 'Estoque',
-    sub: 'Saldo e movimentações',
+    sub: 'Saldo, alertas e movimenta??es',
     primary: {
       label: 'Nova movimentação',
       run: () => {
@@ -338,7 +498,7 @@ const PAGE_META = {
   campanhas: {
     kicker: 'Marketing',
     title: 'Campanhas',
-    sub: 'Acoes e envios',
+    sub: 'Ações, públicos e envios',
     primary: {
       label: 'Nova campanha',
       run: () => deps.abrirNovaCampanhaTracked(),
@@ -352,9 +512,9 @@ const PAGE_META = {
     }
   },
   filiais: {
-    kicker: 'Sistema',
+    kicker: 'Administração',
     title: 'Filiais',
-    sub: 'Unidades e contexto',
+    sub: 'Unidades, contexto e operação ativa',
     primary: {
       label: 'Nova filial',
       run: () => {
@@ -367,9 +527,9 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   acessos: {
-    kicker: 'Sistema',
+    kicker: 'Administração',
     title: 'Acessos',
-    sub: 'Perfis e permissões',
+    sub: 'Perfis, usu?rios e permiss?es',
     primary: {
       label: 'Atualizar',
       run: () => deps.renderAcessosAdmin(),
@@ -379,7 +539,7 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   },
   notificacoes: {
-    kicker: 'Alertas',
+    kicker: 'Marketing',
     title: 'Notificações',
     sub: 'Críticos, atenção e oportunidade',
     primary: { label: 'Resolver todas', run: () => deps.resolverTodasNotificacoesTracked() },
@@ -387,6 +547,19 @@ const PAGE_META = {
     tertiary: { label: 'Ir dashboard', run: () => ir('dashboard') }
   }
 };
+
+PAGE_META.relatorios.kicker = 'An\u00e1lises';
+PAGE_META.relatorios.title = 'Relat\u00f3rios';
+PAGE_META.relatorios.sub = 'An\u00e1lises detalhadas do desempenho comercial';
+PAGE_META.cotacao.kicker = 'Financeiro';
+PAGE_META.cotacao.title = 'Compras';
+PAGE_META.cotacao.sub = 'Fornecedores, pre\u00e7os e negocia\u00e7\u00f5es de compra';
+PAGE_META.estoque.kicker = 'Estoque';
+PAGE_META.acessos.title = 'Acessos e permiss\u00f5es';
+PAGE_META.acessos.sub = 'Perfis, usu\u00e1rios, convites e permiss\u00f5es por filial';
+PAGE_META.notificacoes.kicker = 'Marketing';
+PAGE_META.notificacoes.title = 'Alertas e pend\u00eancias';
+PAGE_META.notificacoes.sub = 'Pend\u00eancias, aten\u00e7\u00e3o e oportunidades para agir';
 
 export function pageAtual() {
   const on = document.querySelector('.pg.on');
@@ -415,7 +588,7 @@ export function getContextualPageMeta(page) {
   if (page === 'clientes') {
     const segTabAtiva = !!document.getElementById('cli-tc-segs')?.classList.contains('on');
     const reactState = getClientesReactBridgeState();
-    const reactAtivo = isClientesReactPilotActive();
+    const reactAtivo = isClientesReactPilotActive() || isClientesReactPilotRequested();
 
     if (reactAtivo) {
       meta.primary = { label: 'Novo cliente', run: () => deps.abrirNovoClienteReact() };
@@ -446,9 +619,11 @@ export function getContextualPageMeta(page) {
           roles: deps.roleManagerPlus
         };
         meta.tertiary =
-          reactState.filtersActive > 0
-            ? { label: 'Limpar filtros', run: () => deps.limparFiltrosClienteReact() }
-            : null;
+          reactState.surfaceTab === 'segmentos'
+            ? { label: 'Voltar lista', run: () => deps.abrirListaClienteReact() }
+            : reactState.filtersActive > 0
+              ? { label: 'Limpar filtros', run: () => deps.limparFiltrosClienteReact() }
+              : { label: 'Ver segmentos', run: () => deps.abrirSegmentosClienteReact() };
       }
     } else {
       meta.tertiary = segTabAtiva
@@ -526,6 +701,7 @@ export function syncTopbar(page) {
   bindTopbarAction('app-act-primary', meta.primary);
   bindTopbarAction('app-act-secondary', meta.secondary);
   bindTopbarAction('app-act-tertiary', meta.tertiary);
+  syncFavoriteButton(page);
   renderQuickLinks(meta);
   syncSidebarContext(meta);
 }
@@ -537,9 +713,9 @@ export function syncSidebarContext(meta) {
   const kicker = document.getElementById('sb-context-kicker');
   const title = document.getElementById('sb-context-title');
   const sub = document.getElementById('sb-context-sub');
-  if (kicker) kicker.textContent = meta?.kicker || 'Resumo';
-  if (title) title.textContent = meta?.title || 'Dashboard';
-  if (sub) sub.textContent = meta?.sub || 'Visão geral';
+  if (kicker) kicker.textContent = meta?.kicker || 'In?cio';
+  if (title) title.textContent = meta?.title || 'Painel do dia';
+  if (sub) sub.textContent = meta?.sub || 'Prioridades da opera??o';
 }
 
 export function filterSidebarNav(raw = '') {
@@ -566,6 +742,8 @@ export function filterSidebarNav(raw = '') {
 
   const empty = document.getElementById('sb-empty');
   if (empty) empty.style.display = visibleItems ? 'none' : 'block';
+  renderFavoriteNav(query);
+  renderSearchResults(raw);
 }
 
 export function initSidebarEnhancements() {
@@ -583,6 +761,14 @@ export function initSidebarEnhancements() {
       }, 120);
     });
     input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const nextPage = getBestSidebarSearchMatch();
+        if (nextPage) {
+          e.preventDefault();
+          ir(nextPage);
+        }
+        return;
+      }
       if (e.key === 'Escape') {
         if (sidebarFilterTimer) clearTimeout(sidebarFilterTimer);
         input.value = '';
@@ -592,9 +778,11 @@ export function initSidebarEnhancements() {
     });
   }
   filterSidebarNav(input?.value || '');
+  renderFavoriteNav(norm(input?.value || ''));
   const current = pageAtual();
   setActivePageVisibility(current);
   syncSidebarContext(getContextualPageMeta(current));
+  syncFavoriteButton(current);
   initMobileMenuFab();
 }
 
@@ -775,6 +963,17 @@ export function renderQuickLinks(meta) {
     if (!(btn instanceof HTMLButtonElement)) return;
     btn.onclick = actions[idx].run;
   });
+}
+
+export function toggleCurrentPageFavorite() {
+  const page = pageAtual();
+  const favorites = readFavoritePages();
+  const next = favorites.includes(page)
+    ? favorites.filter((item) => item !== page)
+    : [...favorites, page];
+  writeFavoritePages(next);
+  syncFavoriteButton(page);
+  renderFavoriteNav(norm(document.getElementById('sb-search')?.value || ''));
 }
 
 /** @type {string} */

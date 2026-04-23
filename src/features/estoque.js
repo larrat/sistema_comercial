@@ -9,9 +9,11 @@ import {
   fmt,
   fmtN,
   fmtQ,
+  notifyGuided,
   toast,
   setButtonLoading
 } from '../shared/utils.js';
+import { SEVERITY } from '../shared/messages.js';
 
 /** @typedef {import('../types/domain').MovimentoEstoque} MovimentoEstoque */
 /** @typedef {import('../types/domain').ScreenDom} ScreenDom */
@@ -273,7 +275,7 @@ export function renderEstPosicao() {
     estDom.html(
       'position',
       'est-posicao',
-      `<div class="empty"><div class="ico">ES</div><p>${P().length ? 'Nenhum encontrado.' : 'Cadastre produtos em "Produtos".'}</p></div>`,
+      `<div class="empty"><div class="ico">ES</div><p>${P().length ? 'Nenhum item combina com os filtros atuais.' : 'Ainda não há produtos para acompanhar no estoque.'}</p><p class="table-cell-caption table-cell-muted">${P().length ? 'Limpe a busca ou ajuste o filtro para voltar a ver a posição.' : 'Cadastre produtos primeiro para começar a movimentar e monitorar saldo.'}</p></div>`,
       'estoque:posicao-vazia'
     );
     return;
@@ -410,7 +412,7 @@ export function renderEstHist() {
     estDom.html(
       'history',
       'est-hist',
-      `<div class="empty"><div class="ico">MV</div><p>Nenhuma movimentação.</p></div>`,
+      `<div class="empty"><div class="ico">MV</div><p>Nenhuma movimentação registrada.</p><p class="table-cell-caption table-cell-muted">Use "Movimentar" para lançar entrada, saída, ajuste ou transferência.</p></div>`,
       'estoque:hist-vazio'
     );
     return;
@@ -530,7 +532,12 @@ export async function excluirMov(id) {
   try {
     await SB.deleteMov(id);
   } catch (e) {
-    toast('Erro: ' + e.message);
+    notifyGuided({
+      severity: SEVERITY.ERROR,
+      what: `falha ao excluir movimentação (${e.message})`,
+      impact: 'o histórico continua sem alteração',
+      next: 'atualize a tela e tente novamente'
+    });
     setButtonLoading(btn instanceof HTMLButtonElement ? btn : null, false, 'Excluir');
     return;
   }
@@ -542,6 +549,12 @@ export async function excluirMov(id) {
   renderEstAlerts();
 
   setButtonLoading(btn instanceof HTMLButtonElement ? btn : null, false, 'Excluir');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'movimentação excluída',
+    impact: 'a posição do estoque foi recalculada',
+    next: 'revise saldo e histórico para confirmar o ajuste'
+  });
 }
 
 export function refreshMovSel() {
@@ -746,7 +759,12 @@ export function movCalcAjuste() {
 export async function salvarMov() {
   const prodId = estDom.get('mov-prod')?.value;
   if (!prodId) {
-    toast('Selecione produto.');
+    notifyGuided({
+      severity: SEVERITY.WARNING,
+      what: 'nenhum produto foi selecionado',
+      impact: 'a movimentação não pode ser registrada',
+      next: 'escolha o produto e tente novamente'
+    });
     return;
   }
 
@@ -768,14 +786,24 @@ export async function salvarMov() {
   if (State.movTipo === 'ajuste') {
     const real = parseFloat(estDom.get('mov-real')?.value);
     if (isNaN(real) || real < 0) {
-      toast('Informe o saldo real.');
+      notifyGuided({
+        severity: SEVERITY.WARNING,
+        what: 'saldo real inválido para ajuste',
+        impact: 'o ajuste não pode ser salvo',
+        next: 'informe um saldo real maior ou igual a zero'
+      });
       return;
     }
     mov.saldo_real = real;
   } else {
     const qty = parseFloat(estDom.get('mov-qty')?.value) || 0;
     if (qty <= 0) {
-      toast('Informe a quantidade.');
+      notifyGuided({
+        severity: SEVERITY.WARNING,
+        what: 'quantidade inválida para a movimentação',
+        impact: 'o lançamento não pode ser salvo',
+        next: 'informe uma quantidade maior que zero'
+      });
       return;
     }
     mov.qty = qty;
@@ -783,7 +811,12 @@ export async function salvarMov() {
     if (State.movTipo === 'transf') {
       const dest = estDom.get('mov-dest')?.value;
       if (!dest) {
-        toast('Selecione filial destino.');
+        notifyGuided({
+          severity: SEVERITY.WARNING,
+          what: 'filial de destino não foi selecionada',
+          impact: 'a transferência não pode ser concluída',
+          next: 'escolha a filial de destino e tente novamente'
+        });
         return;
       }
 
@@ -836,7 +869,12 @@ export async function salvarMov() {
   try {
     await SB.insertMov(mov);
   } catch (e) {
-    toast('Erro: ' + e.message);
+    notifyGuided({
+      severity: SEVERITY.ERROR,
+      what: `falha ao registrar movimentação (${e.message})`,
+      impact: 'o estoque não foi atualizado',
+      next: 'tente novamente em alguns segundos'
+    });
     setButtonLoading(saveBtn instanceof HTMLButtonElement ? saveBtn : null, false, 'Confirmar');
     return;
   }
@@ -850,5 +888,11 @@ export async function salvarMov() {
   renderEstHist();
 
   setButtonLoading(saveBtn instanceof HTMLButtonElement ? saveBtn : null, false, 'Confirmar');
+  notifyGuided({
+    severity: SEVERITY.SUCCESS,
+    what: 'movimentação registrada',
+    impact: 'saldo, alertas e histórico já foram atualizados',
+    next: 'confira a posição do item se quiser validar o resultado'
+  });
   toast('Movimentação registrada!');
 }

@@ -21,13 +21,18 @@
     <script type="module" src="./dist-react/clientes-bridge.js" defer></script>
     <script type="module" src="./dist-react/dashboard-bridge.js" defer></script>
     <script type="module" src="./dist-react/pedidos-bridge.js" defer></script>
+    <script type="module" src="./dist-react/contas-receber-bridge.js" defer></script>
   </head>
   <body>
     <!-- ══ SETUP SCREEN ══ -->
     <div id="screen-setup" class="screen">
       <div class="setup-card">
+        <div class="setup-kicker">Acesso</div>
         <div class="setup-logo">Sistema Comercial</div>
-        <div class="setup-sub" id="setup-sub">Selecione a filial para continuar</div>
+        <div class="setup-sub" id="setup-sub">Faça login para acessar sua operação.</div>
+        <div class="setup-helper" id="setup-helper">
+          Entre com sua conta para escolher a filial ativa e começar a trabalhar.
+        </div>
 
         <!-- Login -->
         <div id="setup-auth" hidden>
@@ -48,7 +53,7 @@
             id="auth-login-btn"
             data-action="authEntrar"
           >
-            Entrar com conta
+            Entrar
           </button>
         </div>
 
@@ -80,7 +85,7 @@
             </div>
           </div>
           <button class="btn btn-p btn-block-center mt-4" data-click="criarPrimeiraFilial()">
-            Criar filial e entrar >
+            Criar primeira filial
           </button>
         </div>
 
@@ -90,10 +95,11 @@
             class="btn btn-gh btn-sm"
             data-click="abrirModal('modal-filial');limparFormFilial()"
           >
-            + Nova filial
+            Nova filial
           </button>
-          <button class="btn btn-p" data-click="entrar()">Entrar ></button>
+          <button class="btn btn-p" data-click="entrar()">Continuar</button>
         </div>
+        <div class="setup-checklist" id="setup-checklist"></div>
       </div>
     </div>
 
@@ -119,29 +125,67 @@
               class="inp sb-search-input"
               id="sb-search"
               type="search"
-              placeholder="Buscar tela..."
+              placeholder="Buscar tela ou ação..."
               aria-label="Buscar no menu lateral"
             />
+            <div class="sb-search-hint">
+              Enter abre o melhor resultado. Ctrl+K abre a busca rápida.
+            </div>
+            <div class="sb-search-results is-hidden" id="sb-search-results"></div>
+          </div>
+          <div class="sb-context" aria-live="polite">
+            <div class="sb-context-kicker" id="sb-context-kicker">Início</div>
+            <div class="sb-context-title" id="sb-context-title">Painel do dia</div>
+            <div class="sb-context-sub" id="sb-context-sub">Prioridades da operação</div>
           </div>
         </div>
         <nav class="sb-nav">
-          <section class="sb-group" data-group="Principal">
-            <div class="nl">Principal</div>
+          <section class="sb-group sb-group--favorites is-hidden" id="sb-favorites-group">
+            <div class="nl">Favoritos</div>
+            <div id="sb-favorites"></div>
+          </section>
+          <section class="sb-group" data-group="Inicio">
+            <div class="nl">Início</div>
             <button
               class="ni on"
               data-p="dashboard"
-              data-label="Dashboard"
+              data-label="Início"
               data-click="ir('dashboard')"
             >
-              <span class="ico">DS</span>Dashboard
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="2" width="7" height="7" rx="1.5" />
+                  <rect x="11" y="2" width="7" height="7" rx="1.5" />
+                  <rect x="2" y="11" width="7" height="7" rx="1.5" />
+                  <rect x="11" y="11" width="7" height="7" rx="1.5" /></svg></span
+              >Início
             </button>
             <button
               class="ni"
               data-p="gerencial"
-              data-label="Gerencial"
+              data-label="Análises"
               data-click="ir('gerencial')"
             >
-              <span class="ico">GR</span>Gerencial
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="11" width="4" height="7" rx="1" />
+                  <rect x="8" y="7" width="4" height="11" rx="1" />
+                  <rect x="14" y="3" width="4" height="15" rx="1" /></svg></span
+              >Análises
             </button>
             <button
               class="ni"
@@ -149,58 +193,219 @@
               data-label="Relatórios"
               data-click="ir('relatorios')"
             >
-              <span class="ico">RL</span>Relatórios
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 2H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6l-4-4z" />
+                  <polyline points="12 2 12 6 16 6" />
+                  <line x1="7" y1="10" x2="13" y2="10" />
+                  <line x1="7" y1="13" x2="13" y2="13" />
+                  <line x1="7" y1="16" x2="10" y2="16" /></svg></span
+              >Relatórios
             </button>
           </section>
-          <section class="sb-group" data-group="Operação">
-            <div class="nl">Operação</div>
+          <section class="sb-group" data-group="Cadastros">
+            <div class="nl">Cadastros</div>
             <button class="ni" data-p="produtos" data-label="Produtos" data-click="ir('produtos')">
-              <span class="ico">PR</span>Produtos
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M10 2l8 4v8l-8 4-8-4V6z" />
+                  <line x1="10" y1="10" x2="10" y2="18" />
+                  <polyline points="2 6 10 10 18 6" /></svg></span
+              >Produtos
             </button>
             <button class="ni" data-p="clientes" data-label="Clientes" data-click="ir('clientes')">
-              <span class="ico">CL</span>Clientes
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="8" cy="6" r="3" />
+                  <path d="M2 18c0-3.3 2.7-6 6-6h1" />
+                  <circle cx="14.5" cy="8" r="2.5" />
+                  <path d="M11 18c0-2.8 1.6-5.2 3.5-5.8" /></svg></span
+              >Clientes
             </button>
+          </section>
+          <section class="sb-group" data-group="Vendas">
+            <div class="nl">Vendas</div>
             <button class="ni" data-p="pedidos" data-label="Pedidos" data-click="ir('pedidos')">
-              <span class="ico">PD</span>Pedidos
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M13 3h1a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h1"
+                  />
+                  <rect x="7" y="2" width="6" height="3" rx="1" />
+                  <line x1="7" y1="9" x2="13" y2="9" />
+                  <line x1="7" y1="12" x2="13" y2="12" />
+                  <line x1="7" y1="15" x2="10" y2="15" /></svg></span
+              >Pedidos
             </button>
-            <button class="ni" data-p="receber" data-label="A Receber" data-click="ir('receber')">
-              <span class="ico">CR</span>A Receber
+          </section>
+          <section class="sb-group" data-group="Financeiro">
+            <div class="nl">Financeiro</div>
+            <button
+              class="ni"
+              data-p="receber"
+              data-label="Contas a receber"
+              data-click="ir('receber')"
+            >
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="5" width="16" height="11" rx="1.5" />
+                  <line x1="2" y1="9" x2="18" y2="9" />
+                  <line x1="5" y1="13.5" x2="7" y2="13.5" />
+                  <line x1="10" y1="13.5" x2="14" y2="13.5" /></svg></span
+              >Contas a receber
             </button>
-            <button class="ni" data-p="cotacao" data-label="Cotação" data-click="ir('cotacao')">
-              <span class="ico">CT</span>Cotação
+            <button class="ni" data-p="cotacao" data-label="Compras" data-click="ir('cotacao')">
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M3 3h6l8 8a2 2 0 0 1 0 2.8l-3.2 3.2a2 2 0 0 1-2.8 0L3 9V3z" />
+                  <circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none" /></svg></span
+              >Compras
             </button>
+          </section>
+          <section class="sb-group" data-group="Estoque">
+            <div class="nl">Estoque</div>
             <button class="ni" data-p="estoque" data-label="Estoque" data-click="ir('estoque')">
-              <span class="ico">ES</span>Estoque <span class="nb is-hidden" id="est-badge">!</span>
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="10 2 18 6.5 10 11 2 6.5" />
+                  <polyline points="2 11.5 10 16 18 11.5" />
+                  <polyline points="2 8.5 10 13 18 8.5" /></svg></span
+              >Estoque <span class="nb is-hidden" id="est-badge">!</span>
             </button>
+          </section>
+          <section class="sb-group" data-group="Marketing">
+            <div class="nl">Marketing</div>
             <button
               class="ni"
               data-p="campanhas"
               data-label="Campanhas"
               data-click="ir('campanhas')"
             >
-              <span class="ico">CP</span>Campanhas
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="5" width="16" height="12" rx="1.5" />
+                  <polyline points="2 5 10 12 18 5" /></svg></span
+              >Campanhas
             </button>
             <button
               class="ni"
               data-p="notificacoes"
-              data-label="Alertas"
+              data-label="Alertas e pendências"
               data-click="ir('notificacoes')"
             >
-              <span class="ico">NT</span>Alertas <span class="nb is-hidden" id="noti-badge">!</span>
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M10 2a5 5 0 0 0-5 5v4l-2 2v1h14v-1l-2-2V7a5 5 0 0 0-5-5z" />
+                  <path d="M8 16a2 2 0 0 0 4 0" /></svg></span
+              >Alertas e pendências <span class="nb is-hidden" id="noti-badge">!</span>
             </button>
           </section>
-          <section class="sb-group" data-group="Sistema">
-            <div class="nl">Sistema</div>
+          <section class="sb-group" data-group="Administracao">
+            <div class="nl">Administração</div>
             <button class="ni" data-p="filiais" data-label="Filiais" data-click="ir('filiais')">
-              <span class="ico">FL</span>Filiais
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="8" width="14" height="10" rx="1" />
+                  <path d="M1 8l9-6 9 6" />
+                  <rect x="7" y="13" width="2.5" height="5" />
+                  <rect x="10.5" y="13" width="2.5" height="5" /></svg></span
+              >Filiais
             </button>
-            <button class="ni" data-p="acessos" data-label="Acessos" data-click="ir('acessos')">
-              <span class="ico">AC</span>Acessos
+            <button
+              class="ni"
+              data-p="acessos"
+              data-label="Acessos e permissões"
+              data-click="ir('acessos')"
+            >
+              <span class="ico"
+                ><svg
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M10 2l7 2.8v5.2c0 4-3 7.2-7 8-4-.8-7-4-7-8V4.8z" />
+                  <polyline points="7 10 9 12 13 8" /></svg></span
+              >Acessos e permissões
             </button>
           </section>
           <div class="sb-empty is-hidden" id="sb-empty">
-            <div class="sb-empty-title">Nenhuma tela encontrada</div>
-            <div class="sb-empty-sub">Tente buscar por nome.</div>
+            <div class="sb-empty-title">Nenhuma tela combina com a busca</div>
+            <div class="sb-empty-sub">
+              Tente buscar por vendas, cadastros, financeiro ou estoque.
+            </div>
           </div>
         </nav>
         <div class="sb-foot">
@@ -224,156 +429,35 @@
       <main class="main" id="main">
         <div class="app-topbar">
           <div>
-            <div class="app-topbar-kicker" id="app-kicker">Workspace</div>
-            <div class="app-topbar-title" id="app-title">Dashboard</div>
-            <div class="app-topbar-sub" id="app-sub">Visão geral e oportunidades</div>
+            <div class="app-topbar-kicker" id="app-kicker">Início</div>
+            <div class="app-topbar-title" id="app-title">Painel do dia</div>
+            <div class="app-topbar-sub" id="app-sub">
+              Prioridades, riscos e próximos passos da operação
+            </div>
           </div>
+          <div class="quick-links" id="quick-links" aria-label="Ações rápidas da tela"></div>
           <div class="app-topbar-actions">
-            <button class="btn btn-sm" id="app-act-secondary" type="button">Ação 2</button>
-            <button class="btn btn-sm" id="app-act-tertiary" type="button">Ação 3</button>
-            <button class="btn btn-p" id="app-act-primary" type="button">Ação principal</button>
+            <button class="btn btn-sm" id="app-act-favorite" type="button">Fixar</button>
+            <button class="btn btn-sm" id="app-act-secondary" type="button">Novo cliente</button>
+            <button class="btn btn-sm" id="app-act-tertiary" type="button">Novo produto</button>
+            <button class="btn btn-p" id="app-act-primary" type="button">Novo pedido</button>
           </div>
         </div>
 
         <!-- ── DASHBOARD ── -->
         <div class="pg on" id="pg-dashboard">
-          <div class="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
-            <div class="fg2" id="dash-legacy-controls">
-              <select
-                class="inp sel select-w-sm input-compact"
-                id="dash-fil"
-                data-change="renderDash()"
-              ></select>
-              <div class="pseg" id="dash-pseg">
-                <button data-click="setP('semana',this)">Semana</button>
-                <button class="on" data-click="setP('mes',this)">Mes</button>
-                <button data-click="setP('ano',this)">Ano</button>
-                <button data-click="setP('tudo',this)">Tudo</button>
-              </div>
-            </div>
-            <div class="toolbar-actions">
-              <button
-                class="btn btn-sm"
-                id="dash-react-toggle"
-                hidden
-                onclick="window.__SC_TOGGLE_DASH_REACT?.()"
-              >
-                Piloto React
-              </button>
-              <button
-                class="btn btn-sm"
-                id="dash-personalizar-btn"
-                data-click="togglePersonalizarDash()"
-              >
-                Personalizar
-              </button>
-            </div>
-          </div>
-
           <div class="mobile-home-shortcuts" aria-label="Atalhos contextuais mobile">
-            <button class="btn btn-sm" type="button" data-click="ir('gerencial')">Gerencial</button>
-            <button class="btn btn-sm" type="button" data-click="ir('campanhas')">Campanhas</button>
-            <button class="btn btn-sm" type="button" data-click="ir('notificacoes')">
-              Alertas
-            </button>
+            <button class="btn btn-sm" type="button" data-click="ir('clientes')">Clientes</button>
+            <button class="btn btn-sm" type="button" data-click="ir('receber')">Financeiro</button>
+            <button class="btn btn-sm" type="button" data-click="ir('estoque')">Estoque</button>
             <button class="btn btn-p btn-sm" type="button" data-click="abrirNovoPedidoReact()">
               Novo pedido
             </button>
           </div>
 
-          <!-- React shell (substituição controlada do dashboard legado) -->
-          <div id="dash-react-shell" hidden>
+          <div id="dash-react-shell">
             <div id="dash-react-root"></div>
           </div>
-
-          <!-- Conteúdo legado do dashboard -->
-          <div id="dash-legacy-content">
-            <!-- Métricas -->
-            <div class="mg bento-band" id="dash-met" data-dash-slot="metrics"></div>
-
-            <!-- Alertas operacionais -->
-            <div id="dash-alerts"></div>
-
-            <!-- Operação rápida -->
-            <div class="dash-grid-cards dash-grid-cards--operacao" data-dash-zone="ops">
-              <div
-                class="card card-shell dash-card dash-card--oportunidades"
-                data-dash-slot="oportunidades"
-              >
-                <div class="fb mb-10">
-                  <div class="ct ct-inline">Oportunidades por time</div>
-                  <select
-                    class="inp sel select-w-xs input-compact"
-                    id="dash-opp-camp"
-                    data-change="renderDash()"
-                  >
-                    <option value="todas">Todas</option>
-                    <option value="a">Série A</option>
-                    <option value="b">Série B</option>
-                    <option value="c">Série C</option>
-                  </select>
-                </div>
-                <div id="dash-oportunidades"></div>
-              </div>
-              <div class="card card-shell dash-card dash-card--jogos" data-dash-slot="jogos">
-                <div class="fb mb-10">
-                  <div class="ct ct-inline">Próximos jogos</div>
-                  <div class="fg2">
-                    <button class="btn btn-sm" data-click="abrirSyncJogos()">Sincronizar</button>
-                    <button class="btn btn-sm" data-click="abrirNovoJogo()">+ Jogo</button>
-                  </div>
-                </div>
-                <div id="dash-jogos"></div>
-              </div>
-              <div class="card card-shell dash-card dash-card--estoque" data-dash-slot="estoque">
-                <div class="ct">Estoque em alerta</div>
-                <div id="dash-ea"></div>
-              </div>
-            </div>
-
-            <!-- Faturamento e status -->
-            <div class="dash-grid-main" data-dash-slot="chart-status">
-              <div class="card card-shell dash-card dash-card--hero">
-                <div class="ct">Faturamento e lucro</div>
-                <div class="barchart" id="dash-chart"></div>
-                <div id="dash-chart-empty" class="empty dash-empty-compact is-hidden">
-                  <p>Sem pedidos entregues no periodo</p>
-                </div>
-                <div class="dash-chart-legend">
-                  <span
-                    ><span class="dash-legend-swatch dash-legend-swatch--fat"></span
-                    >Faturamento</span
-                  >
-                  <span
-                    ><span class="dash-legend-swatch dash-legend-swatch--lucro"></span>Lucro</span
-                  >
-                </div>
-              </div>
-              <div class="card card-shell dash-card">
-                <div class="ct">Status dos pedidos</div>
-                <div id="dash-status"></div>
-              </div>
-            </div>
-
-            <!-- Top produtos e fornecedores -->
-            <div class="dash-grid-cards dash-grid-cards--analise" data-dash-slot="top-forn">
-              <div class="card card-shell dash-card dash-card--top">
-                <div class="ct">Top produtos</div>
-                <div id="dash-tp"></div>
-              </div>
-              <div class="card card-shell dash-card dash-card--forn">
-                <div class="ct">Fornecedores</div>
-                <div id="dash-forn"></div>
-              </div>
-            </div>
-
-            <!-- Margem por produto -->
-            <div class="card card-shell dash-card" data-dash-slot="margem">
-              <div class="fb mb-12"><div class="ct ct-inline">Margem por produto</div></div>
-              <div id="dash-margem"></div>
-            </div>
-          </div>
-          <!-- /dash-legacy-content -->
         </div>
 
         <!-- ── GERENCIAL ── -->
@@ -385,15 +469,17 @@
           <div class="ger-bento-grid">
             <div class="card card-shell">
               <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="ct ct-inline">KPIs por jornada (UX)</div>
+                <div class="ct ct-inline">KPIs da operação</div>
                 <div class="toolbar-actions">
-                  <button class="btn btn-sm" data-click="resetUxKpis()">Resetar KPIs</button>
+                  <button class="btn btn-sm" data-click="resetUxKpis()">
+                    Recalcular indicadores
+                  </button>
                 </div>
               </div>
               <div id="dash-kpi-jornadas"></div>
             </div>
             <div class="card card-shell">
-              <div class="ct">Telemetria de eventos</div>
+              <div class="ct">Sinais da operação</div>
               <div id="dash-kpi-eventos"></div>
             </div>
             <div class="card card-shell">
@@ -523,28 +609,11 @@
           </div>
           <div class="tc on" id="cli-tc-lista">
             <div class="toolbar toolbar-shell">
-              <div class="toolbar-main" id="cli-legacy-controls">
-                <input
-                  class="inp input-w-sm"
-                  id="cli-busca"
-                  placeholder="Buscar..."
-                  data-input="renderClientes()"
-                />
-                <select class="inp sel select-w-sm" id="cli-fil-seg" data-change="renderClientes()">
-                  <option value="">Todos os segmentos</option>
-                </select>
-                <select class="inp sel select-w-xs" id="cli-fil-st" data-change="renderClientes()">
-                  <option value="">Todos os status</option>
-                  <option>ativo</option>
-                  <option>prospecto</option>
-                  <option>inativo</option>
-                </select>
-              </div>
-              <div class="toolbar-main cli-react-modebar" id="cli-react-modebar" hidden>
+              <div class="toolbar-main cli-react-modebar" id="cli-react-modebar">
                 <div class="cli-react-modebar__copy">
-                  <div class="cli-react-modebar__kicker">Piloto React ativo</div>
+                  <div class="cli-react-modebar__kicker">Nova experiência ativa</div>
                   <div class="cli-react-modebar__title" id="cli-react-modebar-title">
-                    Lista React em substituição controlada
+                    Lista de clientes com navegação mais rápida
                   </div>
                 </div>
                 <div class="cli-react-modebar__chips" id="cli-react-indicators">
@@ -638,25 +707,14 @@
                 <button class="btn btn-sm" id="cli-export-btn" data-click="exportCSV('clientes')">
                   Exportar CSV
                 </button>
-                <button
-                  class="btn btn-gh btn-sm"
-                  id="cli-react-toggle"
-                  data-click="toggleClientesReactBridge()"
-                  hidden
-                >
-                  Piloto React
-                </button>
               </div>
             </div>
-            <div id="cli-legacy-shell">
-              <div class="card"><div id="cli-lista"></div></div>
-            </div>
-            <div class="card card-shell" id="cli-react-shell" hidden>
+            <div class="card card-shell" id="cli-react-shell">
               <div class="cli-react-shell__head">
                 <div>
-                  <div class="cli-react-shell__kicker">Clientes React</div>
+                  <div class="cli-react-shell__kicker">Clientes</div>
                   <div class="cli-react-shell__title" id="cli-react-shell-title">
-                    Lista em migração controlada
+                    Lista com filtros e atalhos aprimorados
                   </div>
                 </div>
                 <div class="cli-react-shell__chips">
@@ -679,60 +737,7 @@
 
         <!-- A RECEBER -->
         <div class="pg" id="pg-receber">
-          <div class="mg bento-band" id="cr-met"></div>
-          <div class="tabs">
-            <button class="tb on" data-click="switchCrTab('pendentes')">Pendentes</button>
-            <button class="tb" data-click="switchCrTab('vencidos')">Vencidos</button>
-            <button class="tb" data-click="switchCrTab('recebidos')">Recebidos</button>
-          </div>
-
-          <div class="tc on" id="receber-tc-pendentes">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="toolbar-main">
-                  <input
-                    class="inp input-w-sm"
-                    id="cr-busca-pendentes"
-                    placeholder="Cliente ou pedido..."
-                    data-input="renderContasReceber()"
-                  />
-                </div>
-              </div>
-              <div id="cr-lista-pendentes"></div>
-            </div>
-          </div>
-
-          <div class="tc" id="receber-tc-vencidos">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="toolbar-main">
-                  <input
-                    class="inp input-w-sm"
-                    id="cr-busca-vencidos"
-                    placeholder="Cliente ou pedido..."
-                    data-input="renderContasReceber()"
-                  />
-                </div>
-              </div>
-              <div id="cr-lista-vencidos"></div>
-            </div>
-          </div>
-
-          <div class="tc" id="receber-tc-recebidos">
-            <div class="card card-shell">
-              <div class="toolbar toolbar-shell toolbar-shell--section">
-                <div class="toolbar-main">
-                  <input
-                    class="inp input-w-sm"
-                    id="cr-busca-recebidos"
-                    placeholder="Cliente ou pedido..."
-                    data-input="renderContasReceber()"
-                  />
-                </div>
-              </div>
-              <div id="cr-lista-recebidos"></div>
-            </div>
-          </div>
+          <div id="cr-react-root"></div>
         </div>
 
         <!-- COTACAO -->
@@ -1139,13 +1144,13 @@
             <span class="mico">DS</span>Início
           </button>
           <button class="mob-btn" id="mob-gerencial" data-click="ir('gerencial')">
-            <span class="mico">GR</span>Gestão
+            <span class="mico">GR</span>Análises
           </button>
           <button class="mob-btn" id="mob-pedidos" data-click="ir('pedidos')">
             <span class="mico">PD</span>Pedidos
           </button>
           <button class="mob-btn" id="mob-campanhas" data-click="ir('campanhas')">
-            <span class="mico">CP</span>Camp.
+            <span class="mico">CP</span>Marketing
           </button>
           <button class="mob-btn" id="mob-notificacoes" data-click="ir('notificacoes')">
             <span class="mico">NT</span>Alertas
@@ -1177,36 +1182,55 @@
       <div class="modal-bg" data-click="fecharModal('modal-filial')"></div>
       <div class="modal-box">
         <div class="mt" id="filial-modal-titulo">Nova filial</div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Nome *</div>
-            <input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza" />
+        <p class="modal-helper">
+          Comece pelo essencial da unidade. Endere?o e cor ficam dispon?veis nas op??es avan?adas.
+        </p>
+        <div class="form-section-card">
+          <div class="form-section-head">
+            <div>
+              <div class="form-section-title">Essencial</div>
+              <div class="form-section-copy">
+                Identifique a unidade e a cidade antes de preencher os detalhes administrativos.
+              </div>
+            </div>
+            <span class="bdg bb">Primeiro</span>
           </div>
-          <div>
-            <div class="fl">Cidade</div>
-            <input class="inp" id="fil-cidade" placeholder="Fortaleza" />
-          </div>
-        </div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Estado</div>
-            <input class="inp" id="fil-estado" placeholder="CE" />
-          </div>
-          <div>
-            <div class="fl">Cor</div>
-            <input class="inp input-color" id="fil-cor" type="color" value="#163F80" />
-          </div>
-        </div>
-        <div class="fg">
-          <div>
-            <div class="fl">Endereco (opcional)</div>
-            <input class="inp" id="fil-end" placeholder="Rua, numero, bairro" />
+          <div class="fg c2">
+            <div>
+              <div class="fl">Nome *</div>
+              <input class="inp" id="fil-nome" placeholder="Ex: Matriz Fortaleza" />
+            </div>
+            <div>
+              <div class="fl">Cidade</div>
+              <input class="inp" id="fil-cidade" placeholder="Fortaleza" />
+            </div>
           </div>
         </div>
+        <details class="form-advanced">
+          <summary>Op??es avan?adas da filial</summary>
+          <div class="fg c2">
+            <div>
+              <div class="fl">Estado</div>
+              <input class="inp" id="fil-estado" placeholder="CE" />
+            </div>
+            <div>
+              <div class="fl">Cor</div>
+              <input class="inp input-color" id="fil-cor" type="color" value="#163F80" />
+            </div>
+          </div>
+          <div class="fg">
+            <div>
+              <div class="fl">Endereco (opcional)</div>
+              <input class="inp" id="fil-end" placeholder="Rua, numero, bairro" />
+            </div>
+          </div>
+        </details>
         <div class="div"></div>
         <div class="modal-actions">
           <button class="btn" data-click="fecharModal('modal-filial')">Cancelar</button>
-          <button class="btn btn-p" data-click="salvarFilial()">Salvar filial</button>
+          <button class="btn btn-p" id="fil-save-btn" data-click="salvarFilial()">
+            Salvar filial
+          </button>
         </div>
       </div>
     </div>
@@ -1216,6 +1240,10 @@
       <div class="modal-bg" data-click="fecharModal('modal-produto')"></div>
       <div class="modal-box">
         <div class="mt" id="prod-modal-titulo">Novo produto</div>
+        <p class="modal-helper">
+          Cadastre primeiro o b?sico do item. Campos de estrutura e regra comercial podem ser
+          abertos quando voc? precisar.
+        </p>
         <div class="flow-head">
           <button
             class="flow-chip on"
@@ -1256,57 +1284,69 @@
         </div>
 
         <div class="flow-step on" data-flow-id="prod" data-step="1">
-          <div class="fg">
-            <div>
-              <div class="fl">
-                Produto Pai
-                <span style="color: var(--tx3); font-size: 11px; font-weight: 400"
-                  >(opcional — para variantes de cor, time, modelo...)</span
-                >
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <div>
+                <div class="form-section-title">Dados principais</div>
+                <div class="form-section-copy">
+                  Cadastre identificacao e custo primeiro. Regras comerciais entram na proxima
+                  etapa.
+                </div>
               </div>
-              <select class="inp sel" id="p-pai" data-input="onPaiChange()">
-                <option value="">— produto independente —</option>
-              </select>
+              <span class="bdg bb">Essencial</span>
             </div>
-          </div>
-          <div class="fg c2">
-            <div>
-              <div class="fl">Nome *</div>
-              <input class="inp" id="p-nome" placeholder="Nome do produto" />
+            <div class="fg">
+              <div>
+                <div class="fl">
+                  Produto Pai
+                  <span style="color: var(--tx3); font-size: 11px; font-weight: 400"
+                    >(opcional — para variantes de cor, time, modelo...)</span
+                  >
+                </div>
+                <select class="inp sel" id="p-pai" data-input="onPaiChange()">
+                  <option value="">— produto independente —</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <div class="fl">SKU / Codigo</div>
-              <input class="inp" id="p-sku" placeholder="PRD-001" />
+            <div class="fg c2">
+              <div>
+                <div class="fl">Nome *</div>
+                <input class="inp" id="p-nome" placeholder="Nome do produto" />
+              </div>
+              <div>
+                <div class="fl">SKU / Codigo</div>
+                <input class="inp" id="p-sku" placeholder="PRD-001" />
+              </div>
             </div>
-          </div>
-          <div class="fg c3">
-            <div>
-              <div class="fl">Unidade</div>
-              <select class="inp sel" id="p-un">
-                <option>un</option>
-                <option>kg</option>
-                <option>m</option>
-                <option>m2</option>
-                <option>L</option>
-                <option>cx</option>
-                <option>pc</option>
-                <option>t</option>
-              </select>
-            </div>
-            <div>
-              <div class="fl">Categoria</div>
-              <input class="inp" id="p-cat" placeholder="Ex: aco, eletrico" />
-            </div>
-            <div>
-              <div class="fl">Custo (R$) *</div>
-              <input
-                class="inp"
-                id="p-custo"
-                type="number"
-                step="0.01"
-                min="0"
-                data-input="syncProdFromCost()"
-              />
+            <div class="fg c3">
+              <div>
+                <div class="fl">Unidade</div>
+                <select class="inp sel" id="p-un">
+                  <option>un</option>
+                  <option>kg</option>
+                  <option>m</option>
+                  <option>m2</option>
+                  <option>L</option>
+                  <option>cx</option>
+                  <option>pc</option>
+                  <option>t</option>
+                </select>
+              </div>
+              <div>
+                <div class="fl">Categoria</div>
+                <input class="inp" id="p-cat" placeholder="Ex: aco, eletrico" />
+              </div>
+              <div>
+                <div class="fl">Custo (R$) *</div>
+                <input
+                  class="inp"
+                  id="p-custo"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  data-input="syncProdFromCost()"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1340,16 +1380,19 @@
                   <input class="inp" id="p-mgv" type="number" step="0.1" data-input="syncV('mg')" />
                 </div>
               </div>
-              <div class="fg c2">
-                <div>
-                  <div class="fl">Qtd min. atacado</div>
-                  <input class="inp" id="p-qtmin" type="number" step="1" min="0" />
+              <details class="form-advanced">
+                <summary>Regras avan?adas de varejo</summary>
+                <div class="fg c2">
+                  <div>
+                    <div class="fl">Qtd min. atacado</div>
+                    <input class="inp" id="p-qtmin" type="number" step="1" min="0" />
+                  </div>
+                  <div>
+                    <div class="fl">Desc. max. %</div>
+                    <input class="inp" id="p-dv" type="number" step="0.1" min="0" />
+                  </div>
                 </div>
-                <div>
-                  <div class="fl">Desc. max. %</div>
-                  <input class="inp" id="p-dv" type="number" step="0.1" min="0" />
-                </div>
-              </div>
+              </details>
             </div>
             <div class="panel">
               <div class="pt">Atacado</div>
@@ -1365,23 +1408,26 @@
                   <input class="inp" id="p-mga" type="number" step="0.1" data-input="syncA('mg')" />
                 </div>
               </div>
-              <div class="fg c2">
-                <div>
-                  <div class="fl">Preco fixo (R$)</div>
-                  <input
-                    class="inp"
-                    id="p-pfa"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    data-input="syncA('pv')"
-                  />
+              <details class="form-advanced">
+                <summary>Regras avan?adas de atacado</summary>
+                <div class="fg c2">
+                  <div>
+                    <div class="fl">Preco fixo (R$)</div>
+                    <input
+                      class="inp"
+                      id="p-pfa"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      data-input="syncA('pv')"
+                    />
+                  </div>
+                  <div>
+                    <div class="fl">Desc. max. %</div>
+                    <input class="inp" id="p-da" type="number" step="0.1" min="0" />
+                  </div>
                 </div>
-                <div>
-                  <div class="fl">Desc. max. %</div>
-                  <input class="inp" id="p-da" type="number" step="0.1" min="0" />
-                </div>
-              </div>
+              </details>
             </div>
           </div>
           <div id="prod-preview" class="panel is-hidden">
@@ -1408,25 +1454,36 @@
         </div>
 
         <div class="flow-step" data-flow-id="prod" data-step="3">
-          <div class="fg c3">
-            <div>
-              <div class="fl">Estoque minimo</div>
-              <input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0" />
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <div>
+                <div class="form-section-title">Estoque inicial</div>
+                <div class="form-section-copy">
+                  Preencha somente se o item ja entrar com saldo. Se ainda nao houver estoque, pode
+                  deixar zerado.
+                </div>
+              </div>
             </div>
-            <div>
-              <div class="fl">Saldo inicial</div>
-              <input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0" />
-            </div>
-            <div>
-              <div class="fl">Custo medio inicial</div>
-              <input
-                class="inp"
-                id="p-ecm"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="= custo"
-              />
+            <div class="fg c3">
+              <div>
+                <div class="fl">Estoque minimo</div>
+                <input class="inp" id="p-emin" type="number" step="0.01" min="0" placeholder="0" />
+              </div>
+              <div>
+                <div class="fl">Saldo inicial</div>
+                <input class="inp" id="p-esal" type="number" step="0.01" min="0" placeholder="0" />
+              </div>
+              <div>
+                <div class="fl">Custo medio inicial</div>
+                <input
+                  class="inp"
+                  id="p-ecm"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="= custo"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1446,7 +1503,7 @@
             data-flow="prod"
             data-flow-nav="-1"
           >
-            < Voltar
+            Voltar
           </button>
           <button
             class="btn btn-sm"
@@ -1455,7 +1512,7 @@
             data-flow="prod"
             data-flow-nav="1"
           >
-            Proximo >
+            Pr?ximo
           </button>
         </div>
         <div class="modal-actions">
@@ -1471,234 +1528,6 @@
     <div class="modal-wrap" id="modal-prod-det">
       <div class="modal-bg" data-click="fecharModal('modal-prod-det')"></div>
       <div class="modal-box" id="prod-det-box"></div>
-    </div>
-
-    <!-- Cliente -->
-    <div class="modal-wrap" id="modal-cliente">
-      <div class="modal-bg" data-click="fecharModal('modal-cliente')"></div>
-      <div class="modal-box">
-        <div class="modal-shell">
-          <div class="modal-shell-head">
-            <div class="mt" id="cli-modal-titulo">Novo cliente</div>
-            <div class="flow-head">
-              <button
-                class="flow-chip on"
-                type="button"
-                data-flow-chip="cli"
-                data-step="1"
-                data-click="setFlowStep('cli',1)"
-              >
-                1 Dados
-              </button>
-              <button
-                class="flow-chip"
-                type="button"
-                data-flow-chip="cli"
-                data-step="2"
-                data-click="setFlowStep('cli',2)"
-              >
-                2 Comercial
-              </button>
-              <button
-                class="flow-chip"
-                type="button"
-                data-flow-chip="cli"
-                data-step="3"
-                data-click="setFlowStep('cli',3)"
-              >
-                3 Marketing
-              </button>
-              <button
-                class="flow-chip"
-                type="button"
-                data-flow-chip="cli"
-                data-step="4"
-                data-click="setFlowStep('cli',4)"
-              >
-                4 Resumo
-              </button>
-            </div>
-          </div>
-          <div class="modal-shell-body">
-            <div class="flow-step on" data-flow-id="cli" data-step="1">
-              <div class="fg c2">
-                <div>
-                  <div class="fl">Nome / Razao social *</div>
-                  <input class="inp" id="c-nome" />
-                </div>
-                <div>
-                  <div class="fl">Apelido / Fantasia</div>
-                  <input class="inp" id="c-apelido" />
-                </div>
-              </div>
-              <div class="fg c3">
-                <div>
-                  <div class="fl">CPF / CNPJ</div>
-                  <input class="inp" id="c-doc" />
-                </div>
-                <div>
-                  <div class="fl">Tipo</div>
-                  <select class="inp sel" id="c-tipo">
-                    <option value="PJ">PJ</option>
-                    <option value="PF">PF</option>
-                  </select>
-                </div>
-                <div>
-                  <div class="fl">Status</div>
-                  <select class="inp sel" id="c-status">
-                    <option value="ativo">Ativo</option>
-                    <option value="prospecto">Prospecto</option>
-                    <option value="inativo">Inativo</option>
-                  </select>
-                </div>
-              </div>
-              <div class="fg c3">
-                <div>
-                  <div class="fl">Telefone</div>
-                  <input class="inp" id="c-tel" />
-                </div>
-                <div>
-                  <div class="fl">WhatsApp</div>
-                  <input class="inp" id="c-whatsapp" />
-                </div>
-                <div>
-                  <div class="fl">E-mail</div>
-                  <input class="inp" id="c-email" />
-                </div>
-              </div>
-            </div>
-
-            <div class="flow-step" data-flow-id="cli" data-step="2">
-              <div class="fg c2">
-                <div>
-                  <div class="fl">Responsavel / Comprador</div>
-                  <input class="inp" id="c-resp" />
-                </div>
-                <div>
-                  <div class="fl">RCA / Vendedor</div>
-                  <div class="fg2">
-                    <select class="inp sel input-flex" id="c-rca">
-                      <option value="">Sem RCA</option>
-                    </select>
-                    <button class="btn btn-sm" type="button" data-click="abrirModalRca('c-rca')">
-                      + RCA
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div class="fg c4">
-                <div>
-                  <div class="fl">Time(s)</div>
-                  <input class="inp" id="c-time" placeholder="Ex: Flamengo, Paysandu" />
-                </div>
-                <div>
-                  <div class="fl">Segmento</div>
-                  <input class="inp" id="c-seg" />
-                </div>
-                <div>
-                  <div class="fl">Tabela de preco</div>
-                  <select class="inp sel" id="c-tab">
-                    <option value="padrao">Padrao</option>
-                    <option value="especial">Especial</option>
-                    <option value="vip">VIP</option>
-                  </select>
-                </div>
-                <div>
-                  <div class="fl">Prazo de pagamento</div>
-                  <select class="inp sel" id="c-prazo">
-                    <option value="a_vista">A vista</option>
-                    <option value="7d">7 dias</option>
-                    <option value="15d">15 dias</option>
-                    <option value="30d">30 dias</option>
-                    <option value="60d">60 dias</option>
-                  </select>
-                </div>
-              </div>
-              <div class="fg c2">
-                <div>
-                  <div class="fl">Cidade</div>
-                  <input class="inp" id="c-cidade" />
-                </div>
-                <div>
-                  <div class="fl">Estado</div>
-                  <input class="inp" id="c-estado" />
-                </div>
-              </div>
-            </div>
-
-            <div class="flow-step" data-flow-id="cli" data-step="3">
-              <div class="fg c2">
-                <div>
-                  <div class="fl">Data de aniversario</div>
-                  <input class="inp" id="c-aniv" type="date" />
-                </div>
-                <div>
-                  <div class="fl">Opt-ins de marketing</div>
-                  <div class="optins-box fg2">
-                    <label class="optin-choice"
-                      ><input id="c-optin-marketing" type="checkbox" /> Marketing</label
-                    >
-                    <label class="optin-choice"
-                      ><input id="c-optin-email" type="checkbox" /> E-mail</label
-                    >
-                    <label class="optin-choice"
-                      ><input id="c-optin-sms" type="checkbox" /> SMS</label
-                    >
-                  </div>
-                </div>
-              </div>
-              <div class="fg">
-                <div>
-                  <div class="fl">Observacoes</div>
-                  <textarea class="inp" id="c-obs"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="flow-step" data-flow-id="cli" data-step="4">
-              <div class="panel">
-                <div class="pt">Resumo</div>
-                <div id="cli-flow-resumo"></div>
-              </div>
-            </div>
-
-            <div class="flow-nav">
-              <button
-                class="btn btn-sm"
-                type="button"
-                id="cli-flow-prev"
-                data-flow="cli"
-                data-flow-nav="-1"
-              >
-                < Voltar
-              </button>
-              <button
-                class="btn btn-sm"
-                type="button"
-                id="cli-flow-next"
-                data-flow="cli"
-                data-flow-nav="1"
-              >
-                Proximo >
-              </button>
-            </div>
-          </div>
-          <div class="modal-shell-foot">
-            <div class="modal-actions">
-              <button class="btn" data-click="fecharModal('modal-cliente')">Cancelar</button
-              ><button class="btn btn-p" id="cli-flow-save" data-click="salvarCliente()">
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Detalhe cliente -->
-    <div class="modal-wrap" id="modal-cli-det">
-      <div class="modal-bg" data-click="fecharModal('modal-cli-det')"></div>
-      <div class="modal-box" id="cli-det-box"></div>
     </div>
 
     <!-- Pedido -->
@@ -1743,115 +1572,145 @@
         <div class="modal-shell">
           <div class="modal-shell-head">
             <div class="mt" id="campanha-modal-titulo">Nova campanha</div>
+            <p class="modal-helper">
+              Defina nome, canal e mensagem primeiro. Regras promocionais podem ser abertas depois.
+            </p>
           </div>
 
           <div class="modal-shell-body">
-            <div class="fg c2">
-              <div>
-                <div class="fl">Nome *</div>
-                <input
-                  class="inp"
-                  id="camp-nome"
-                  placeholder="Ex: Aniversariantes do mes"
-                  data-input="renderCampanhaPreview()"
-                />
+            <div class="form-section-card">
+              <div class="form-section-head">
+                <div>
+                  <div class="form-section-title">Essencial</div>
+                  <div class="form-section-copy">
+                    Defina nome, canal e mensagem primeiro. Regras promocionais podem ficar para
+                    depois.
+                  </div>
+                </div>
+                <span class="bdg bb">Primeiro</span>
               </div>
-              <div>
-                <div class="fl">Tipo</div>
-                <select class="inp sel" id="camp-tipo">
-                  <option value="aniversario">Aniversário</option>
-                </select>
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Nome *</div>
+                  <input
+                    class="inp"
+                    id="camp-nome"
+                    placeholder="Ex: Aniversariantes do mes"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
+                <div>
+                  <div class="fl">Tipo</div>
+                  <select class="inp sel" id="camp-tipo">
+                    <option value="aniversario">Aniversário</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="fg c3">
+                <div>
+                  <div class="fl">Canal</div>
+                  <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
+                    <option value="whatsapp_manual">WhatsApp manual</option>
+                    <option value="email">E-mail</option>
+                    <option value="sms">SMS</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="fl">Dias de antecedencia</div>
+                  <input
+                    class="inp"
+                    id="camp-dias"
+                    type="number"
+                    min="0"
+                    step="1"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
+                <div>
+                  <div class="fl">Ativa</div>
+                  <label class="inline-choice inline-choice--tall"
+                    ><input id="camp-ativo" type="checkbox" checked />
+                    <span class="inline-choice__text">Campanha habilitada</span></label
+                  >
+                </div>
               </div>
             </div>
 
-            <div class="fg c3">
-              <div>
-                <div class="fl">Canal</div>
-                <select class="inp sel" id="camp-canal" data-change="renderCampanhaPreview()">
-                  <option value="whatsapp_manual">WhatsApp manual</option>
-                  <option value="email">E-mail</option>
-                  <option value="sms">SMS</option>
-                </select>
+            <details class="form-advanced">
+              <summary>Mais op??es da campanha</summary>
+              <div class="fg c2">
+                <div>
+                  <div class="fl">Cupom</div>
+                  <input
+                    class="inp"
+                    id="camp-cupom"
+                    placeholder="NIVER10"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
+                <div>
+                  <div class="fl">Desconto (%)</div>
+                  <input
+                    class="inp"
+                    id="camp-desconto"
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
               </div>
-              <div>
-                <div class="fl">Dias de antecedencia</div>
-                <input
-                  class="inp"
-                  id="camp-dias"
-                  type="number"
-                  min="0"
-                  step="1"
-                  data-input="renderCampanhaPreview()"
-                />
-              </div>
-              <div>
-                <div class="fl">Ativa</div>
-                <label class="inline-choice inline-choice--tall"
-                  ><input id="camp-ativo" type="checkbox" checked />
-                  <span class="inline-choice__text">Campanha habilitada</span></label
-                >
-              </div>
-            </div>
 
-            <div class="fg c2">
-              <div>
-                <div class="fl">Cupom</div>
-                <input
-                  class="inp"
-                  id="camp-cupom"
-                  placeholder="NIVER10"
-                  data-input="renderCampanhaPreview()"
-                />
+              <div class="fg">
+                <div>
+                  <div class="fl">Assunto (opcional)</div>
+                  <input
+                    class="inp"
+                    id="camp-assunto"
+                    placeholder="Feliz aniversario!"
+                    data-input="renderCampanhaPreview()"
+                  />
+                </div>
               </div>
-              <div>
-                <div class="fl">Desconto (%)</div>
-                <input
-                  class="inp"
-                  id="camp-desconto"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  data-input="renderCampanhaPreview()"
-                />
+            </details>
+            <div class="form-section-card">
+              <div class="form-section-head">
+                <div>
+                  <div class="form-section-title">Mensagem e preview</div>
+                  <div class="form-section-copy">
+                    Escreva o texto principal e valide logo abaixo como o cliente vai receber.
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div class="fg">
-              <div>
-                <div class="fl">Assunto (opcional)</div>
-                <input
-                  class="inp"
-                  id="camp-assunto"
-                  placeholder="Feliz aniversario!"
-                  data-input="renderCampanhaPreview()"
-                />
+              <div class="fg">
+                <div>
+                  <div class="fl">Mensagem *</div>
+                  <textarea
+                    class="inp"
+                    id="camp-mensagem"
+                    rows="6"
+                    placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"
+                    data-input="renderCampanhaPreview()"
+                  ></textarea>
+                </div>
               </div>
-            </div>
-            <div class="fg">
-              <div>
-                <div class="fl">Mensagem *</div>
-                <textarea
-                  class="inp"
-                  id="camp-mensagem"
-                  rows="6"
-                  placeholder="Use {{nome}}, {{apelido}}, {{desconto}}, {{cupom}} e {{validade}}"
-                  data-input="renderCampanhaPreview()"
-                ></textarea>
+              <div class="panel camp-preview-panel">
+                <div class="pt">Preview vivo da mensagem</div>
+                <div class="camp-preview-hint">
+                  Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.
+                </div>
+                <div class="camp-preview" id="camp-preview"></div>
               </div>
-            </div>
-            <div class="panel camp-preview-panel">
-              <div class="pt">Preview vivo da mensagem</div>
-              <div class="camp-preview-hint">
-                Exemplo com cliente da filial ativa. Atualiza enquanto voce digita.
-              </div>
-              <div class="camp-preview" id="camp-preview"></div>
             </div>
           </div>
 
           <div class="modal-shell-foot">
             <div class="modal-actions">
               <button class="btn" data-click="fecharModal('modal-campanha')">Cancelar</button>
-              <button class="btn btn-p" data-click="salvarCampanha()">Salvar campanha</button>
+              <button class="btn btn-p" id="camp-save-btn" data-click="salvarCampanha()">
+                Salvar campanha
+              </button>
             </div>
           </div>
         </div>
@@ -1926,106 +1785,6 @@
           <button class="btn" data-click="fecharModal('modal-rel-validacao')">Cancelar</button>
           <button class="btn btn-p" data-click="salvarValidacaoOportunidade()">
             Validar venda
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Jogo Dashboard -->
-    <div class="modal-wrap" id="modal-jogo">
-      <div class="modal-bg" data-click="fecharModal('modal-jogo')"></div>
-      <div class="modal-box">
-        <div class="mt">Novo jogo (agenda)</div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Titulo *</div>
-            <input class="inp" id="jogo-titulo" placeholder="Ex: Final do campeonato" />
-          </div>
-          <div>
-            <div class="fl">Campeonato</div>
-            <input class="inp" id="jogo-campeonato" placeholder="Brasileirao" />
-          </div>
-        </div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Mandante</div>
-            <input class="inp" id="jogo-mandante" placeholder="Time A" />
-          </div>
-          <div>
-            <div class="fl">Visitante</div>
-            <input class="inp" id="jogo-visitante" placeholder="Time B" />
-          </div>
-        </div>
-        <div class="fg c2">
-          <div>
-            <div class="fl">Data e hora *</div>
-            <input class="inp" id="jogo-data" type="datetime-local" />
-          </div>
-          <div>
-            <div class="fl">Local</div>
-            <input class="inp" id="jogo-local" placeholder="Estadio / TV" />
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-jogo')">Cancelar</button>
-          <button class="btn btn-p" data-click="salvarJogoDashboard()">Salvar jogo</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sincronização de jogos -->
-    <div class="modal-wrap" id="modal-jogo-sync">
-      <div class="modal-bg" data-click="fecharModal('modal-jogo-sync')"></div>
-      <div class="modal-box">
-        <div class="mt">Sincronizar jogos por API</div>
-        <div class="fg">
-          <div>
-            <div class="fl">URL da API (JSON) *</div>
-            <input class="inp" id="jogo-api-url" placeholder="https://..." />
-          </div>
-        </div>
-        <div class="fg2 form-gap-bottom">
-          <button
-            class="btn btn-sm"
-            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4351')"
-          >
-            Brasil Série A
-          </button>
-          <button
-            class="btn btn-sm"
-            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4404')"
-          >
-            Brasil Série B
-          </button>
-          <button
-            class="btn btn-sm"
-            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnextleague.php?id=4625')"
-          >
-            Brasil Série C
-          </button>
-          <button
-            class="btn btn-sm"
-            data-click="usarExemploSyncJogos('https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=133604')"
-          >
-            Por time
-          </button>
-        </div>
-        <div class="fg">
-          <div>
-            <div class="fl">Filtro por time (opcional)</div>
-            <input class="inp" id="jogo-api-time" placeholder="Ex: Flamengo" />
-          </div>
-        </div>
-        <div class="panel">
-          <div class="pt">Formatos suportados</div>
-          <p class="panel-copy">
-            Array direto ou objeto com `matches`, `response`, `events` ou `data`.
-          </p>
-        </div>
-        <div class="modal-actions">
-          <button class="btn" data-click="fecharModal('modal-jogo-sync')">Cancelar</button>
-          <button class="btn btn-p" data-click="sincronizarJogosDashboard()">
-            Sincronizar agora
           </button>
         </div>
       </div>

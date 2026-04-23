@@ -92,7 +92,7 @@ export function usePedidoMutations() {
     }
   }
 
-  async function submitPedido(input: Omit<PedidoSaveInput, 'filial_id'>): Promise<void> {
+  async function submitPedido(input: Omit<PedidoSaveInput, 'filial_id'>): Promise<string | null> {
     const context = resolveContext();
 
     const pedidos = usePedidoStore.getState().pedidos;
@@ -112,7 +112,16 @@ export function usePedidoMutations() {
       data: full.data,
       prazo: full.prazo
     };
-    gerarContaSeNecessario(context, contaInput, full.status, statusAnterior).catch(() => undefined);
+
+    if (normalizePedStatus(full.status) === 'entregue') {
+      try {
+        await gerarContaSeNecessario(context, contaInput, full.status, statusAnterior);
+      } catch {
+        return 'Pedido salvo, mas houve falha ao gerar a conta a receber. Use "Gerar A Receber" no detalhe do pedido.';
+      }
+    }
+
+    return null;
   }
 
   /**

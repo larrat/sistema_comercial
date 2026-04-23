@@ -7,6 +7,7 @@ import {
   getPilotFlagStorageKey
 } from '../legacy/bridges/feature-flags.js';
 import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import { fecharModal } from '../shared/utils.js';
 
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeState} BridgeState */
@@ -16,6 +17,7 @@ const COMMAND_SOURCE = 'clientes-legacy-shell';
 
 const DEFAULT_BRIDGE_STATE = {
   view: 'list',
+  surfaceTab: 'lista',
   status: 'ready',
   count: 0,
   filtersActive: 0,
@@ -32,9 +34,10 @@ let pageObserver = null;
 let currentBridgeState = { ...DEFAULT_BRIDGE_STATE };
 
 function getMode() {
+  if (isClientesReactFeatureEnabled()) return UI_MODES.REACT;
   const stored = localStorage.getItem(STORAGE_KEYS.CLIENTES_UI_MODE);
   if (stored === UI_MODES.LEGACY || stored === UI_MODES.REACT) return stored;
-  return isClientesReactFeatureEnabled() ? UI_MODES.REACT : UI_MODES.LEGACY;
+  return UI_MODES.LEGACY;
 }
 
 function setMode(mode) {
@@ -47,9 +50,7 @@ export function isClientesReactFeatureEnabled() {
 
 export function setClientesReactFeatureEnabled(enabled) {
   setPilotEnabled('clientes', enabled);
-  if (!localStorage.getItem(STORAGE_KEYS.CLIENTES_UI_MODE)) {
-    setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
-  }
+  setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
 }
 
 function getToggle() {
@@ -70,6 +71,14 @@ function getRoot() {
 
 function getLegacyControls() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cli-legacy-controls'));
+}
+
+function getLegacyMetrics() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('cli-met'));
+}
+
+function getTabsBar() {
+  return /** @type {HTMLElement | null} */ (document.querySelector('#pg-clientes > .tabs'));
 }
 
 function getReactModebar() {
@@ -100,12 +109,36 @@ function getClientesPage() {
   return /** @type {HTMLElement | null} */ (document.getElementById('pg-clientes'));
 }
 
+function getLegacyDetailModal() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('modal-cli-det'));
+}
+
+function getLegacyFormModal() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('modal-cliente'));
+}
+
+function getLegacyDetailBox() {
+  return /** @type {HTMLElement | null} */ (document.getElementById('cli-det-box'));
+}
+
 function isClientesPageActive() {
   return getClientesPage()?.classList.contains('on') || false;
 }
 
-function isReactModeActive() {
+function isReactModeRequested() {
   return !!(bridge?.mount && getMode() === UI_MODES.REACT && isClientesPageActive());
+}
+
+function isReactModeActive() {
+  return !!(mounted && getMode() === UI_MODES.REACT && isClientesPageActive());
+}
+
+function notifyLegacyFallback(reason) {
+  window.dispatchEvent(
+    new CustomEvent('sc:clientes-react-fallback', {
+      detail: { reason: String(reason || 'fallback') }
+    })
+  );
 }
 
 function toViewLabel(view) {
@@ -176,10 +209,10 @@ function updateBridgeIndicators() {
   if (modebarTitle) {
     const baseTitle =
       currentBridgeState.view === 'form'
-        ? 'Formulario React no fluxo principal'
+        ? 'Cadastro de cliente em edição rápida'
         : currentBridgeState.view === 'detail'
-          ? 'Detalhe React aberto no piloto'
-          : 'Lista React em substituicao controlada';
+          ? 'Cliente em foco'
+          : 'Lista de clientes com navegação mais rápida';
     modebarTitle.textContent = currentBridgeState.selectedName
       ? `${baseTitle} - ${currentBridgeState.selectedName}`
       : baseTitle;
@@ -189,10 +222,10 @@ function updateBridgeIndicators() {
   if (shellTitle) {
     const baseTitle =
       currentBridgeState.view === 'form'
-        ? 'Edicao e cadastro rodando no piloto'
+        ? 'Cadastro e edição de cliente'
         : currentBridgeState.view === 'detail'
           ? 'Detalhe do cliente em foco'
-          : 'Lista em migracao controlada';
+          : 'Lista com filtros e atalhos aprimorados';
     shellTitle.textContent = currentBridgeState.selectedName
       ? `${baseTitle} - ${currentBridgeState.selectedName}`
       : baseTitle;
@@ -204,6 +237,7 @@ function syncBridgeState(state) {
   const nextState = state && typeof state === 'object' ? state : {};
   currentBridgeState = {
     view: String(nextState.view || 'list'),
+    surfaceTab: String(nextState.surfaceTab || 'lista'),
     status: String(nextState.status || 'ready'),
     count: Number(nextState.count ?? 0) || 0,
     filtersActive: Number(nextState.filtersActive ?? 0) || 0,
@@ -214,6 +248,7 @@ function syncBridgeState(state) {
 
   if (reactShell) {
     reactShell.dataset.reactView = currentBridgeState.view;
+    reactShell.dataset.reactSurfaceTab = currentBridgeState.surfaceTab;
     reactShell.dataset.reactStatus = currentBridgeState.status;
     reactShell.dataset.reactCount = String(currentBridgeState.count);
     reactShell.dataset.reactFiltersActive = String(currentBridgeState.filtersActive);
@@ -302,57 +337,118 @@ function forceClientesListTab() {
 
 function syncShellModeUi(reactActive) {
   const legacyControls = getLegacyControls();
+  const legacyMetrics = getLegacyMetrics();
+  const tabsBar = getTabsBar();
   const reactModebar = getReactModebar();
   const exportButton = getExportButton();
   const segTab = getSegmentosTab();
+  const segPanel = getSegmentosPanel();
 
   if (legacyControls) legacyControls.hidden = !!reactActive;
+  if (legacyMetrics) legacyMetrics.hidden = !!reactActive;
+  if (tabsBar) tabsBar.hidden = !!reactActive;
   if (reactModebar) reactModebar.hidden = !reactActive;
   if (exportButton) exportButton.hidden = !!reactActive;
   if (segTab) segTab.hidden = !!reactActive;
+  if (segPanel) segPanel.hidden = !!reactActive;
 
   if (reactActive) forceClientesListTab();
+}
+
+function syncLegacyDetailModal(reactActive) {
+  const modal = getLegacyDetailModal();
+  if (!modal) return;
+
+  if (reactActive) {
+    if (modal.classList.contains('on')) fecharModal('modal-cli-det');
+    const detailBox = getLegacyDetailBox();
+    if (detailBox) detailBox.innerHTML = '';
+    modal.hidden = true;
+    return;
+  }
+
+  modal.hidden = false;
+}
+
+function syncLegacyFormModal(reactActive) {
+  const modal = getLegacyFormModal();
+  if (!modal) return;
+
+  if (reactActive) {
+    if (modal.classList.contains('on')) fecharModal('modal-cliente');
+    modal.hidden = true;
+    return;
+  }
+
+  modal.hidden = false;
 }
 
 function updateToggle() {
   const toggle = getToggle();
   if (!toggle) return;
-
-  if (!bridge?.mount || !isClientesPageActive()) {
-    toggle.hidden = true;
-    return;
-  }
-
   toggle.hidden = false;
-  toggle.textContent = getMode() === UI_MODES.REACT ? 'Voltar legado' : 'Piloto React';
+  toggle.disabled = true;
+  toggle.setAttribute('aria-disabled', 'true');
+  toggle.textContent = 'React ativo';
 }
 
 async function applyMode() {
   const legacyShell = getLegacyShell();
   const reactShell = getReactShell();
   const root = getRoot();
-  const reactActive = isReactModeActive();
+  const reactRequested = isReactModeRequested();
 
-  if (legacyShell) legacyShell.hidden = !!reactActive;
-  if (reactShell) reactShell.hidden = !reactActive;
-  syncShellModeUi(reactActive);
-
-  if (!reactActive) {
+  if (!reactRequested) {
     if (mounted && bridge?.unmount) bridge.unmount();
     mounted = false;
+    if (isClientesPageActive()) notifyLegacyFallback('legacy-mode');
+    if (legacyShell) legacyShell.hidden = false;
+    if (reactShell) reactShell.hidden = true;
+    syncShellModeUi(false);
+    syncLegacyDetailModal(false);
+    syncLegacyFormModal(false);
     syncBridgeState(null);
     updateToggle();
     return;
   }
 
   if (!root || !bridge?.mount) {
+    if (isClientesPageActive()) notifyLegacyFallback('bridge-unavailable');
+    if (legacyShell) legacyShell.hidden = false;
+    if (reactShell) reactShell.hidden = true;
+    syncShellModeUi(false);
+    syncLegacyDetailModal(false);
+    syncLegacyFormModal(false);
     updateToggle();
     return;
   }
 
   if (!mounted) {
-    await bridge.mount(root);
-    mounted = true;
+    try {
+      await bridge.mount(root);
+      mounted = true;
+    } catch (error) {
+      mounted = false;
+      console.error(
+        '[clientes-react-bridge] falha ao montar piloto React; usando fallback legado.',
+        error
+      );
+      if (isClientesPageActive()) notifyLegacyFallback('mount-error');
+    }
+  }
+
+  const reactActive = isReactModeActive();
+  if (legacyShell) legacyShell.hidden = !!reactActive;
+  if (reactShell) reactShell.hidden = !reactActive;
+  syncShellModeUi(reactActive);
+  syncLegacyDetailModal(reactActive);
+  syncLegacyFormModal(reactActive);
+
+  if (!reactActive) {
+    if (isClientesPageActive()) notifyLegacyFallback('react-inactive');
+    syncBridgeState(null);
+    updateToggle();
+    return;
   }
 
   updateBridgeIndicators();
@@ -372,6 +468,10 @@ export function isClientesReactPilotActive() {
   return isReactModeActive();
 }
 
+export function isClientesReactPilotRequested() {
+  return isReactModeRequested();
+}
+
 export function getClientesReactBridgeState() {
   return { ...currentBridgeState };
 }
@@ -381,9 +481,7 @@ export function syncClientesReactBridge() {
 }
 
 export function toggleClientesReactBridge() {
-  if (!bridge?.mount) return;
-  setMode(getMode() === UI_MODES.REACT ? UI_MODES.LEGACY : UI_MODES.REACT);
-  void applyMode();
+  forceClientesReactMode();
 }
 
 export function forceClientesReactMode() {
@@ -395,83 +493,82 @@ export function forceClientesReactMode() {
 }
 
 export function abrirNovoClienteReact() {
-  postToReactFrame('clientes:novo');
+  return postToReactFrame('clientes:novo');
 }
 
 export function abrirDetalheClienteReact(clienteId, tab = 'resumo') {
-  if (!clienteId) return;
-  postToReactFrame('clientes:abrir-detalhe', { id: String(clienteId), tab });
+  if (!clienteId) return false;
+  return postToReactFrame('clientes:abrir-detalhe', { id: String(clienteId), tab });
 }
 
 export function editarClienteReact(clienteId) {
-  if (!clienteId) return;
-  postToReactFrame('clientes:editar', { id: String(clienteId) });
+  if (!clienteId) return false;
+  return postToReactFrame('clientes:editar', { id: String(clienteId) });
 }
 
 export function excluirClienteReact(clienteId) {
-  if (!clienteId) return;
-  postToReactFrame('clientes:excluir', { id: String(clienteId) });
+  if (!clienteId) return false;
+  return postToReactFrame('clientes:excluir', { id: String(clienteId) });
 }
 
 export function limparFiltrosClienteReact() {
-  postToReactFrame('clientes:limpar-filtros');
+  return postToReactFrame('clientes:limpar-filtros');
 }
 
 export function abrirListaClienteReact() {
-  postToReactFrame('clientes:abrir-lista');
+  return postToReactFrame('clientes:abrir-lista');
+}
+
+export function abrirSegmentosClienteReact() {
+  return postToReactFrame('clientes:abrir-segmentos');
 }
 
 export function editarClienteReactAtual() {
-  postToReactFrame('clientes:editar-atual');
+  return postToReactFrame('clientes:editar-atual');
 }
 
 export function exportarClientesReactCsv() {
-  postToReactFrame('clientes:exportar-csv');
+  return postToReactFrame('clientes:exportar-csv');
 }
 
 export function abrirResumoClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'resumo');
-    return;
+    return abrirDetalheClienteReact(targetId, 'resumo');
   }
-  postToReactFrame('clientes:abrir-resumo');
+  return postToReactFrame('clientes:abrir-resumo');
 }
 
 export function abrirAbertasClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'abertas');
-    return;
+    return abrirDetalheClienteReact(targetId, 'abertas');
   }
-  postToReactFrame('clientes:abrir-abertas');
+  return postToReactFrame('clientes:abrir-abertas');
 }
 
 export function abrirFechadasClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'fechadas');
-    return;
+    return abrirDetalheClienteReact(targetId, 'fechadas');
   }
-  postToReactFrame('clientes:abrir-fechadas');
+  return postToReactFrame('clientes:abrir-fechadas');
 }
 
 export function abrirNotasClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'notas');
-    return;
+    return abrirDetalheClienteReact(targetId, 'notas');
   }
-  postToReactFrame('clientes:abrir-notas');
+  return postToReactFrame('clientes:abrir-notas');
 }
 
 export function abrirFidelidadeClienteReact(clienteId) {
   const targetId = clienteId || currentBridgeState.selectedId;
   if (targetId) {
-    abrirDetalheClienteReact(targetId, 'fidelidade');
-    return;
+    return abrirDetalheClienteReact(targetId, 'fidelidade');
   }
-  postToReactFrame('clientes:abrir-fidelidade');
+  return postToReactFrame('clientes:abrir-fidelidade');
 }
 
 function handleBridgeMessage(event) {

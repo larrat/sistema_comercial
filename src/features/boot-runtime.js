@@ -11,9 +11,7 @@
  * @typedef {{
  *   initCotacaoModule: (deps?: Record<string, unknown>) => unknown
  *   initProdutosModule: (deps?: Record<string, unknown>) => unknown
- *   initClientesModule: (deps?: Record<string, unknown>) => unknown
  *   initPedidosModule: (deps?: Record<string, unknown>) => unknown
- *   initDashboardModule: (deps?: Record<string, unknown>) => unknown
  *   initTelemetriaModule: (deps?: Record<string, unknown>) => unknown
  *   initRuntimeLoadingModule: (deps?: Record<string, unknown>) => unknown
  *   initUxWorkflowsModule: (deps?: Record<string, unknown>) => unknown
@@ -32,7 +30,6 @@
  *   calcSaldos: () => Record<string, { saldo?: number, cm?: number }>
  *   setFlowStep: (...args: any[]) => void
  *   refreshMovSel: () => void
- *   refreshCliDL: () => void
  *   calcSaldosMulti: (...args: any[]) => Record<string, { saldo?: number, cm?: number }>
  *   pageAtual: () => string
  *   getNotificacoesResumo: () => unknown
@@ -40,10 +37,9 @@
  *   abrirNovaCampanhaTracked: () => void
  *   abrirModal: (id: string) => void
  *   fmt: (value: unknown) => string
- *   limparFormCliTracked: () => void
+ *   limparFormPedTracked: () => void
  *   limparFormProdTracked: () => void
  *   resetMov: () => void
- *   abrirSyncJogos: () => void
  *   filterSidebarNav: (query?: string) => void
  *   resetRuntimeData: () => void
  *   showLoading: (on: boolean) => void
@@ -54,8 +50,6 @@
  *   refreshRcaSelectors: () => void
  *   renderFornSel: () => void
  *   refreshDestSel: () => void
- *   renderDashFilSel: () => void
- *   renderDash: () => void
  *   atualizarBadgeEst: () => void
  *   updateNotiBadge: () => void
  *   cores: string[]
@@ -68,11 +62,10 @@
  *   markConsistencyPage: (page: string) => void
  *   renderMetasNegocio: () => void
  *   renderRelatorios: () => void
- *   renderCliMet: () => void
- *   renderClientes: () => void
  *   abrirNovoClienteReact?: () => void
  *   limparFiltrosClienteReact?: () => void
  *   abrirListaClienteReact?: () => void
+ *   abrirSegmentosClienteReact?: () => void
  *   editarClienteReactAtual?: () => void
  *   exportarClientesReactCsv?: () => void
  *   abrirResumoClienteReact?: () => void
@@ -113,7 +106,6 @@
  *   appRoles: string[]
  *   registerNotificationKpi: (metric: string, delta?: number) => void
  *   logStrategicAction: (context: string) => void
- *   isClientesReactPilotActive: () => boolean
  * }} RegisterBootRuntimeDeps
  */
 
@@ -171,29 +163,10 @@ export function registerApplicationModules({ registry, modules, deps }) {
   });
 
   registry.register({
-    name: 'clientes',
-    init() {
-      modules.initClientesModule({
-        setFlowStep: deps.setFlowStep
-      });
-    }
-  });
-
-  registry.register({
     name: 'pedidos',
     init() {
       modules.initPedidosModule({
-        refreshProdSel: deps.refreshProdSel,
-        refreshCliDL: deps.refreshCliDL
-      });
-    }
-  });
-
-  registry.register({
-    name: 'dashboard',
-    init() {
-      modules.initDashboardModule({
-        calcSaldosMulti: deps.calcSaldosMulti
+        refreshProdSel: deps.refreshProdSel
       });
     }
   });
@@ -227,12 +200,10 @@ export function registerApplicationModules({ registry, modules, deps }) {
       modules.initUxWorkflowsModule({
         ir: deps.ir,
         limparFormPedTracked: deps.limparFormPedTracked,
-        limparFormCliTracked: deps.limparFormCliTracked,
         limparFormProdTracked: deps.limparFormProdTracked,
         abrirNovaCampanhaTracked: deps.abrirNovaCampanhaTracked,
         abrirModal: deps.abrirModal,
-        resetMov: deps.resetMov,
-        abrirSyncJogos: deps.abrirSyncJogos
+        resetMov: deps.resetMov
       });
     }
   });
@@ -250,12 +221,9 @@ export function registerApplicationModules({ registry, modules, deps }) {
         buildSkeletonLines: deps.buildSkeletonLines,
         carregarDadosFilial: deps.carregarDadosFilial,
         refreshProdSel: deps.refreshProdSel,
-        refreshCliDL: deps.refreshCliDL,
         renderFornSel: deps.renderFornSel,
         refreshMovSel: deps.refreshMovSel,
         refreshDestSel: deps.refreshDestSel,
-        renderDashFilSel: deps.renderDashFilSel,
-        renderDash: deps.renderDash,
         atualizarBadgeEst: deps.atualizarBadgeEst,
         updateNotiBadge: deps.updateNotiBadge,
         cores: deps.cores
@@ -275,15 +243,10 @@ export function registerApplicationModules({ registry, modules, deps }) {
         completePrimaryActionTracking: deps.completePrimaryActionTracking,
         markConsistencyPage: deps.markConsistencyPage,
         updateNotiBadge: deps.updateNotiBadge,
-        renderDash: deps.renderDash,
         renderMetasNegocio: deps.renderMetasNegocio,
         renderRelatorios: deps.renderRelatorios,
         renderProdMet: deps.renderProdMet,
         renderProdutos: deps.renderProdutos,
-        renderCliMet: deps.renderCliMet,
-        renderClientes: deps.renderClientes,
-        renderPedMet: deps.renderPedMet,
-        renderPedidos: deps.renderPedidos,
         renderFornSel: deps.renderFornSel,
         renderCotForns: deps.renderCotForns,
         renderCotLogs: deps.renderCotLogs,
@@ -300,7 +263,6 @@ export function registerApplicationModules({ registry, modules, deps }) {
         renderAcessosAdmin: deps.renderAcessosAdmin,
         renderNotificacoes: deps.renderNotificacoes,
         limparFormPedTracked: deps.limparFormPedTracked,
-        limparFormCliTracked: deps.limparFormCliTracked,
         limparFormProdTracked: deps.limparFormProdTracked,
         abrirNovaCampanhaTracked: deps.abrirNovaCampanhaTracked,
         gerarFilaCampanhaTracked: deps.gerarFilaCampanhaTracked,
@@ -326,7 +288,6 @@ export function registerApplicationModules({ registry, modules, deps }) {
         requireRole: deps.requireRole,
         renderSetup: deps.renderSetup,
         entrar: deps.entrar,
-        renderDashFilSel: deps.renderDashFilSel,
         scheduleRoleUiGuards: deps.scheduleRoleUiGuards,
         roleAdminOnly: deps.roleAdminOnly,
         appRoles: deps.appRoles,
