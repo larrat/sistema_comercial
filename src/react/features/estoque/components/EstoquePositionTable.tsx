@@ -3,6 +3,8 @@ import type { EstoquePositionRow } from '../types';
 
 type EstoquePositionTableProps = {
   rows: EstoquePositionRow[];
+  totalProdutos: number;
+  onMoveProduct: (row: EstoquePositionRow) => void;
 };
 
 function fmtCurrency(value: number) {
@@ -18,12 +20,37 @@ function toneByStatus(status: EstoquePositionRow['status']) {
   return 'success';
 }
 
-export function EstoquePositionTable({ rows }: EstoquePositionTableProps) {
+function labelByStatus(status: EstoquePositionRow['status']) {
+  if (status === 'zerado') return 'Zerado';
+  if (status === 'baixo') return 'Baixo';
+  return 'OK';
+}
+
+function fmtQuantity(value: number) {
+  return Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(Number(value || 0));
+}
+
+export function EstoquePositionTable({
+  rows,
+  totalProdutos,
+  onMoveProduct
+}: EstoquePositionTableProps) {
   if (!rows.length) {
     return (
       <EmptyState
-        title="Posição de estoque ainda não migrada."
-        description="A base React do módulo já existe. A próxima rodada porta cálculo, listagem e alertas reais."
+        title={
+          totalProdutos
+            ? 'Nenhum item combina com os filtros atuais.'
+            : 'Ainda não há produtos para acompanhar no estoque.'
+        }
+        description={
+          totalProdutos
+            ? 'Limpe a busca ou ajuste o status para voltar a ver a posição do estoque.'
+            : 'Cadastre produtos primeiro para começar a movimentar e monitorar saldo.'
+        }
       />
     );
   }
@@ -44,7 +71,16 @@ export function EstoquePositionTable({ rows }: EstoquePositionTableProps) {
         {
           key: 'saldo',
           header: 'Saldo',
-          render: (row) => `${row.saldo} ${row.unidade || ''}`
+          render: (row) => (
+            <div>
+              <div className="table-cell-strong">
+                {fmtQuantity(row.saldo)} {row.unidade || ''}
+              </div>
+              <div className="table-cell-caption table-cell-muted">
+                {row.minimo > 0 ? `Mín. ${fmtQuantity(row.minimo)} ${row.unidade || ''}` : 'Sem mínimo'}
+              </div>
+            </div>
+          )
         },
         {
           key: 'custo',
@@ -59,7 +95,19 @@ export function EstoquePositionTable({ rows }: EstoquePositionTableProps) {
         {
           key: 'status',
           header: 'Status',
-          render: (row) => <StatusBadge tone={toneByStatus(row.status)}>{row.status || 'ok'}</StatusBadge>
+          render: (row) => (
+            <StatusBadge tone={toneByStatus(row.status)}>{labelByStatus(row.status)}</StatusBadge>
+          )
+        },
+        {
+          key: 'acoes',
+          header: '',
+          align: 'right',
+          render: (row) => (
+            <button className="btn btn-sm" type="button" onClick={() => onMoveProduct(row)}>
+              Movimentar
+            </button>
+          )
         }
       ]}
       rows={rows}

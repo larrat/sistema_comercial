@@ -260,6 +260,78 @@
   padding: 20px;
 }
 
+.rf-ui-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rf-ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rf-ui-field__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.rf-ui-field__static {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.rf-ui-inline-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rf-ui-stock-summary,
+.rf-ui-stock-preview {
+  padding: 16px;
+}
+
+.rf-ui-stock-summary__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rf-ui-stock-summary__meta {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.rf-ui-stock-preview__title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 920px) {
+  .rf-ui-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rf-ui-stock-summary__head {
+    flex-direction: column;
+  }
+}
+
 .rf-overlay__card p {
   margin: 12px 0 0;
 }

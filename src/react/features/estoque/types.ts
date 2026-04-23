@@ -1,8 +1,11 @@
+import type { MovimentoEstoque, Produto } from '../../../../types/domain';
+
 export type EstoqueView = 'posicao' | 'historico';
 
 export type EstoqueStatusFilter = '' | 'ok' | 'baixo' | 'zerado';
 
 export type EstoqueMovementType = '' | 'entrada' | 'saida' | 'ajuste' | 'transf';
+export type EstoqueMovementMode = Exclude<EstoqueMovementType, '' | 'transf'>;
 
 export type EstoquePositionRow = {
   id: string;
@@ -31,4 +34,19 @@ export type EstoqueMetrics = {
   valorEmEstoque: number;
   emAlerta: number;
   zerados: number;
+};
+
+export type EstoquePositionSnapshot = {
+  produtos: Produto[];
+  movimentacoes: MovimentoEstoque[];
+};
+
+export type EstoqueMovementDraft = {
+  produtoId: string;
+  tipo: EstoqueMovementMode;
+  data: string;
+  quantidade: string;
+  custo: string;
+  observacao: string;
+  saldoReal: string;
 };

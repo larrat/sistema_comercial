@@ -1,3 +1,4 @@
+import { filterEstoquePositionRows } from './useEstoqueCalculations';
 import { useEstoqueStore } from '../store/useEstoqueStore';
 
 export function useEstoqueFilters() {
@@ -6,6 +7,8 @@ export function useEstoqueFilters() {
   const statusFilter = useEstoqueStore((s) => s.statusFilter);
   const buscaHistorico = useEstoqueStore((s) => s.buscaHistorico);
   const tipoHistorico = useEstoqueStore((s) => s.tipoHistorico);
+  const positionRows = useEstoqueStore((s) => s.positionRows);
+  const historyRows = useEstoqueStore((s) => s.historyRows);
 
   const setView = useEstoqueStore((s) => s.setView);
   const setBuscaPosicao = useEstoqueStore((s) => s.setBuscaPosicao);
@@ -19,6 +22,8 @@ export function useEstoqueFilters() {
     statusFilter,
     buscaHistorico,
     tipoHistorico,
+    positionRows: filterEstoquePositionRows(positionRows, buscaPosicao, statusFilter),
+    historyRows,
     setView,
     setBuscaPosicao,
     setStatusFilter,
