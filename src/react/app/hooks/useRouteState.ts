@@ -11,6 +11,7 @@ export function useRouteState() {
     const pathname = location.pathname;
     if (pathname.startsWith(APP_ROUTE_BY_ID.dashboard.path)) return 'dashboard';
     if (pathname.startsWith(APP_ROUTE_BY_ID.clientes.path)) return 'clientes';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.estoque.path)) return 'estoque';
     if (pathname.startsWith(APP_ROUTE_BY_ID.pedidos.path)) return 'pedidos';
     if (pathname.startsWith(APP_ROUTE_BY_ID.receber.path)) return 'receber';
     if (pathname.startsWith(APP_ROUTE_BY_ID.produtos.path)) return 'produtos';

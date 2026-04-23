@@ -24,10 +24,10 @@ export function AppContent({ kicker = 'Base criada', title, description }: AppCo
 
         <section className="rf-panel">
           <div className="rf-panel__kicker">Próximo encaixe</div>
-          <h2 className="rf-panel__title">Módulos reais</h2>
+          <h2 className="rf-panel__title">Fase 1 consolidada</h2>
           <p className="rf-panel__copy">
-            Ainda faltam conectar as páginas reais da onda 1 nesta área central, reaproveitando os
-            módulos React já existentes.
+            O shell React já controla a onda 1. As próximas rodadas focam em reduzir dependências
+            transitórias e migrar os módulos ainda legados.
           </p>
         </section>
       </section>

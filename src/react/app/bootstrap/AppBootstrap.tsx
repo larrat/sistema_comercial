@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 
-import { AuthGate } from '../auth/AuthGate';
 import { useAppBootstrap } from '../hooks/useAppBootstrap';
 import { AppRouter } from '../router/AppRouter';
 import { AppProviders } from './AppProviders';
@@ -19,9 +18,7 @@ export function AppBootstrap() {
 
   return (
     <AppProviders>
-      <AuthGate bootstrap={bootstrap}>
-        <AppRouter bootstrap={bootstrap} />
-      </AuthGate>
+      <AppRouter bootstrap={bootstrap} />
     </AppProviders>
   );
 }

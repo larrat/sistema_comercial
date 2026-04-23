@@ -52,6 +52,15 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
       { label: 'Pedidos', to: '/app/pedidos' }
     ]
   },
+  estoque: {
+    kicker: 'Operação',
+    title: 'Estoque',
+    description: 'Esqueleto React do módulo criado. A migração seguirá em partes, começando por posição e histórico.',
+    actions: [
+      { label: 'Produtos', to: '/app/produtos' },
+      { label: 'Dashboard', to: '/app/dashboard' }
+    ]
+  },
   pedidos: {
     kicker: 'Vendas',
     title: 'Pedidos',
