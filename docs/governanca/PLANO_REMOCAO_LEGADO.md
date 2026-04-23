@@ -93,15 +93,30 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 - [x] Registrar pilot flag `produtos` com `defaultValue: false` em `feature-flags.js`
 - [x] Adicionar `#prod-react-root` e `#prod-legacy-shell` no `index.html`
 - [x] Cobrir cálculos, store e API com testes unitários
-- [ ] Validar pilot no browser (`localStorage.setItem('sc_produtos_react_enabled','true')`)
-- [ ] Flipar `defaultValue: false → true` em `feature-flags.js`
-- [ ] Remover `src/features/produtos.js` e imports de `main.js`
-- [ ] Remover `#prod-legacy-shell` do `index.html`
+- [x] Flipar `defaultValue: false → true` em `feature-flags.js`
+- [x] Remover `src/features/produtos.js` e imports de `main.js`
+- [x] Remover `#prod-legacy-shell`, `#modal-produto` e `#modal-prod-det` do `index.html`
+- [x] Adaptar `main.js`: `limparFormProdTracked` chama `abrirNovoProdutoReact`, stubs para deps removidos
+
+**Fase 2A concluída.** React é o caminho principal para Produtos.
 
 ### 2B — Estoque
+> Concluído em 2026-04-23 (commits 89c4620 + ae21652 + limpeza)
+
 **Dependência:** Produtos (2A).  
 **Escopo React:** saldo por produto, histórico de movimentações, entrada/saída, alertas de ruptura.  
 **Referência:** `src/features/estoque.js` → `src/react/features/estoque/`
+
+- [x] Criar tipos, store, services e hooks (`useEstoqueData`, `useEstoqueMutations`, `useEstoqueCalculations`, `useEstoqueFilters`)
+- [x] Criar componentes (`EstoqueMetrics`, `EstoquePositionTable`, `EstoqueHistoryTable`, `EstoqueFilters`, `EstoqueMovementModal`, `EstoquePage`, `EstoquePageHeader`)
+- [x] Criar shared UI reutilizável (`DataTable`, `Drawer`, `EmptyState`, `FilterBar`, `FormSection`, `Modal`, `PageHeader`, `StatCard`, `StatusBadge`)
+- [x] Registrar rota `/app/estoque` no `AppRouter.tsx` e `wave1Navigation.ts`
+- [x] Cobrir cálculos de saldo com `calculateEstoqueSaldos` / `buildEstoquePositionRows`
+- [x] Remover `#pg-estoque` e `#modal-mov` do `index.html`
+- [x] Deletar `src/features/estoque.js` e remover imports de `main.js`
+- [x] Stub das funções legadas em `main.js`; branch de exportCSV e exportarTudo atualizados
+
+**Fase 2B concluída.** React é o caminho principal para Estoque.
 
 ### 2C — Cotação
 **Dependência:** Produtos (2A).  

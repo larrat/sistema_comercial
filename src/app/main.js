@@ -41,21 +41,14 @@ import {
 } from '../features/cotacao.js';
 
 import {
-  initProdutosModule,
-  renderProdMet,
-  renderProdutos,
-  limparFormProd,
-  abrirProdDet,
-  editarProd,
-  syncV,
-  syncA,
-  syncProdFromCost,
-  calcProdPreview,
-  onPaiChange,
-  salvarProduto,
-  removerProd,
-  refreshProdSel
-} from '../features/produtos.js';
+  abrirNovoProdutoReact,
+  isProdutosReactPilotActive as _isProdutosReactPilotActive
+} from '../features/produtos-react-bridge.js';
+
+// Produto legado removido — Fase 2A
+const renderProdMet = () => {};
+const renderProdutos = () => {};
+const refreshProdSel = () => {};
 
 import {
   abrirNovoClienteReact,
@@ -83,24 +76,23 @@ import { initPedidosModule } from '../features/pedidos.js';
 
 import { refreshRcaSelectors, abrirModalRca, salvarRca } from '../features/rcas.js';
 
-import {
-  calcSaldos,
-  calcSaldosMulti,
-  atualizarBadgeEst,
-  renderEstAlerts,
-  renderEstPosicao,
-  renderEstHist,
-  refreshMovSel,
-  refreshDestSel,
-  resetMov,
-  abrirMovProd,
-  setTipo,
-  movLoadProd,
-  movCalc,
-  movCalcAjuste,
-  salvarMov,
-  excluirMov
-} from '../features/estoque.js';
+// Estoque legado removido — Fase 2B
+const calcSaldos = () => ({});
+const calcSaldosMulti = () => {};
+const atualizarBadgeEst = () => {};
+const renderEstAlerts = () => {};
+const renderEstPosicao = () => {};
+const renderEstHist = () => {};
+const refreshMovSel = () => {};
+const refreshDestSel = () => {};
+const resetMov = () => {};
+const abrirMovProd = () => {};
+const setTipo = () => {};
+const movLoadProd = () => {};
+const movCalc = () => {};
+const movCalcAjuste = () => {};
+const salvarMov = () => {};
+const excluirMov = () => {};
 
 import {
   renderRelatorios,
@@ -334,7 +326,7 @@ function limparFormPedTracked() {
 }
 function limparFormProdTracked() {
   startCriticalTask('produto');
-  return limparFormProd();
+  abrirNovoProdutoReact();
 }
 function abrirNovaCampanhaTracked() {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode criar campanha.')) return;
@@ -343,10 +335,7 @@ function abrirNovaCampanhaTracked() {
   return abrirNovaCampanha();
 }
 async function salvarProdutoTracked() {
-  if (State.editIds.prod) registerJourneyRework('produto');
-  await salvarProduto();
-  const open = document.getElementById('modal-produto')?.classList.contains('on');
-  if (!open) completeCriticalTask('produto');
+  // Handled by React — legacy path removed in Phase 2A
   renderMetasNegocio();
 }
 async function salvarCampanhaTracked() {
@@ -499,26 +488,6 @@ function exportCSV(tipo) {
         ];
       })
     ];
-  } else if (tipo === 'estoque') {
-    name = 'estoque';
-    rows = [
-      ['Produto', 'SKU', 'Un', 'Saldo', 'Custo Médio', 'Valor Total', 'Est. Mín', 'Status'],
-      ...P().map((p) => {
-        const s = saldos[p.id] || { saldo: 0, cm: 0 };
-        const min = p.emin || 0;
-        const st = s.saldo <= 0 ? 'Zerado' : min > 0 && s.saldo < min ? 'Baixo' : 'OK';
-        return [
-          p.nome,
-          p.sku || '',
-          p.un,
-          fmtN(s.saldo),
-          fmtN(s.cm),
-          fmtN(s.saldo * s.cm),
-          min || '',
-          st
-        ];
-      })
-    ];
   } else if (tipo === 'campanhas') {
     name = 'campanhas';
     const campanhas = D.campanhas?.[State.FIL] || [];
@@ -554,16 +523,12 @@ function exportCSV(tipo) {
 }
 
 function exportarTudo() {
-  ['produtos', 'clientes', 'pedidos', 'cotacao', 'estoque', 'campanhas'].forEach((t, i) =>
+  ['produtos', 'clientes', 'pedidos', 'cotacao', 'campanhas'].forEach((t, i) =>
     setTimeout(() => exportCSV(t), i * 200)
   );
 }
 
-const removerProdGuard = buildRoleGuard(
-  removerProd,
-  ROLE_MANAGER_PLUS,
-  'Somente gerente/admin pode remover produto.'
-);
+const removerProdGuard = () => {};
 const remFornGuard = buildRoleGuard(
   remForn,
   ROLE_MANAGER_PLUS,
@@ -612,7 +577,6 @@ registerApplicationModules({
   registry: AppModules,
   modules: {
     initCotacaoModule,
-    initProdutosModule,
     initPedidosModule,
     initTelemetriaModule,
     initRuntimeLoadingModule,
@@ -757,7 +721,6 @@ startApplicationRuntime({
         renderEstHist,
         abrirNovaCampanhaTracked,
         abrirMovProd,
-        editarProd,
         removerProdGuard,
         excluirMovGuard,
         refreshCampanhasTela,
@@ -788,14 +751,7 @@ startApplicationRuntime({
         removerFilial,
         trocarFilial,
         setFlowStep,
-        calcProdPreview,
-        onPaiChange,
-        syncV,
-        syncA,
-        syncProdFromCost,
         salvarProdutoTracked,
-        abrirProdDet,
-        refreshProdSel,
         refreshRcaSelectors,
         abrirModalRca,
         salvarRca,
