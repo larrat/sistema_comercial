@@ -6,7 +6,10 @@ import {
   setPilotEnabled,
   getPilotFlagStorageKey
 } from '../legacy/bridges/feature-flags.js';
-import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import {
+  createDirectBridgeFromWindow,
+  loadDirectBridgeScript
+} from '../legacy/bridges/bridge-contract.js';
 import { fecharModal } from '../shared/utils.js';
 
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
@@ -14,6 +17,8 @@ import { fecharModal } from '../shared/utils.js';
 
 const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
+const DIRECT_BRIDGE_PROP = '__SC_CLIENTES_DIRECT_BRIDGE__';
+const DIRECT_BRIDGE_SCRIPT = './dist-react/clientes-bridge.js';
 
 const DEFAULT_BRIDGE_STATE = {
   view: 'list',
@@ -126,11 +131,19 @@ function isClientesPageActive() {
 }
 
 function isReactModeRequested() {
-  return !!(bridge?.mount && getMode() === UI_MODES.REACT && isClientesPageActive());
+  return getMode() === UI_MODES.REACT && isClientesPageActive();
 }
 
 function isReactModeActive() {
   return !!(mounted && getMode() === UI_MODES.REACT && isClientesPageActive());
+}
+
+async function ensureBridgeLoaded() {
+  if (bridge) return bridge;
+  bridge = createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP);
+  if (bridge) return bridge;
+  bridge = await loadDirectBridgeScript(DIRECT_BRIDGE_SCRIPT, DIRECT_BRIDGE_PROP);
+  return bridge;
 }
 
 function notifyLegacyFallback(reason) {
@@ -225,7 +238,7 @@ function updateBridgeIndicators() {
         ? 'Cadastro e edição de cliente'
         : currentBridgeState.view === 'detail'
           ? 'Detalhe do cliente em foco'
-          : 'Lista com filtros e atalhos aprimorados';
+          : 'Base de clientes';
     shellTitle.textContent = currentBridgeState.selectedName
       ? `${baseTitle} - ${currentBridgeState.selectedName}`
       : baseTitle;
@@ -411,6 +424,8 @@ async function applyMode() {
     updateToggle();
     return;
   }
+
+  await ensureBridgeLoaded();
 
   if (!root || !bridge?.mount) {
     if (isClientesPageActive()) notifyLegacyFallback('bridge-unavailable');
@@ -606,7 +621,7 @@ function ensurePageObserver() {
 
 if (typeof window !== 'undefined') {
   ensurePageObserver();
-  registerClientesReactBridge(createDirectBridgeFromWindow('__SC_CLIENTES_DIRECT_BRIDGE__'));
+  registerClientesReactBridge(createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP));
   window.addEventListener('message', handleBridgeMessage);
   window.addEventListener('storage', (e) => {
     const flagKey = getPilotFlagStorageKey('clientes');

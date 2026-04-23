@@ -7,6 +7,10 @@ import { toast } from '../shared/utils.js';
 /** @typedef {import('../types/domain').Pedido} Pedido */
 
 const IS_E2E_UI_CORE = window.__SC_E2E_MODE__ === true || window.__SC_E2E_UI_CORE__ === true;
+const LOADING_OVERLAY_DELAY_MS = 240;
+
+/** @type {ReturnType<typeof setTimeout> | null} */
+let loadingOverlayTimer = null;
 
 export function initRuntimeLoadingModule() {
   return true;
@@ -121,7 +125,18 @@ export function showLoading(on) {
     el.innerHTML = '<div class="runtime-loading__spinner"></div><span>Carregando dados...</span>';
     document.body.appendChild(el);
   }
-  el.classList.toggle('is-on', on);
+  if (loadingOverlayTimer) {
+    clearTimeout(loadingOverlayTimer);
+    loadingOverlayTimer = null;
+  }
+  if (on) {
+    loadingOverlayTimer = setTimeout(() => {
+      el.classList.add('is-on');
+      loadingOverlayTimer = null;
+    }, LOADING_OVERLAY_DELAY_MS);
+  } else {
+    el.classList.remove('is-on');
+  }
   document.body.dataset.runtimeLoading = on ? 'true' : 'false';
 }
 

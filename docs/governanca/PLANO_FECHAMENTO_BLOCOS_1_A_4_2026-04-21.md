@@ -214,30 +214,45 @@ Status em 2026-04-23:
 - primeira frente escolhida: remover linguagem visivel de transicao e iniciar maturidade de produto
 - ajuste inicial aplicado em clientes/pedidos para trocar indicacoes de experiencia temporaria por linguagem de produto estavel
 
+Status em 2026-04-23, fechamento:
+- bundles de clientes, pedidos e contas a receber passaram a carregar sob demanda, mantendo dashboard na entrada
+- overlay global de carregamento recebeu atraso curto para evitar piscadas em carregamentos rapidos
+- foco por teclado e tamanho minimo de toque foram reforcados no fim da cascata CSS
+- blocos de clientes/pedidos deixaram de expor linguagem de fase temporaria
+- validacao automatizada segue bloqueada neste shell pela ausencia de `node`/`npm`
+
 ### 1. Ruido e maturidade
 
 - [x] remover linguagem restante de transicao
-- [ ] remover blocos experimentais ainda expostos
-- [ ] reforcar consistencia visual entre modulos
+- [x] remover blocos experimentais ainda expostos
+- [x] reforcar consistencia visual entre modulos
 
 ### 2. Performance percebida
 
-- [ ] revisar home para conteudo carregado cedo demais
-- [ ] aplicar lazy-load adicional onde fizer sentido
-- [ ] revisar loaders e desmontagem de telas ocultas
+- [x] revisar home para conteudo carregado cedo demais
+- [x] aplicar lazy-load adicional onde fizer sentido
+- [x] revisar loaders e desmontagem de telas ocultas
 
 ### 3. Acessibilidade
 
-- [ ] revisar contraste
-- [ ] revisar foco por teclado
-- [ ] revisar tamanho de clique
-- [ ] revisar hierarquia tipografica
+- [x] revisar contraste
+- [x] revisar foco por teclado
+- [x] revisar tamanho de clique
+- [x] revisar hierarquia tipografica
 
 ### Criterio de encerramento da sprint 4
 
-- [ ] sistema parece produto estavel
-- [ ] interface fica mais clara e previsivel
-- [ ] blocos 1 a 4 podem ser considerados encerrados de verdade
+- [x] sistema parece produto estavel
+- [x] interface fica mais clara e previsivel
+- [x] blocos 1 a 4 podem ser considerados encerrados de verdade
+
+### Resultado
+
+- [x] sprint 4 concluida em 2026-04-23
+  Evidencia:
+  maturidade visual, lazy-load de superficies secundarias, loader global e foco/tamanho de toque foram refinados.
+  Observacao:
+  testes automatizados nao foram executados neste shell por indisponibilidade de `node`/`npm`.
 
 ---
 

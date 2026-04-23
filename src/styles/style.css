@@ -12825,6 +12825,18 @@ html[data-theme='dark'] .flow-chip.on {
   outline-offset: 2px;
 }
 
+.btn:focus-visible,
+.ib:focus-visible,
+.tb:focus-visible,
+.qk:focus-visible,
+.mob-btn:focus-visible,
+.flow-chip:focus-visible,
+.ni:focus-visible,
+[role='button']:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--acc) 70%, #fff);
+  outline-offset: 3px;
+}
+
 @media (max-width: 980px) {
   .dash-role-summary__grid,
   .dash-insight-grid {
@@ -12870,6 +12882,20 @@ html[data-theme='dark'] .flow-chip.on {
   #pg-dashboard #dash-tp .rrow,
   #pg-dashboard #dash-forn .rrow {
     min-height: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .btn-sm,
+  .tb,
+  .qk,
+  .flow-chip,
+  .mob-btn {
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    padding-inline: 14px;
   }
 }
 

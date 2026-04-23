@@ -1,12 +1,17 @@
 // @ts-check
 
-import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import {
+  createDirectBridgeFromWindow,
+  loadDirectBridgeScript
+} from '../legacy/bridges/bridge-contract.js';
 import { isPilotEnabled, getPilotFlagStorageKey } from '../legacy/bridges/feature-flags.js';
 
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
 
 const MESSAGE_SOURCE = 'receber-react-pilot';
 const COMMAND_SOURCE = 'receber-legacy-shell';
+const DIRECT_BRIDGE_PROP = '__SC_RECEBER_DIRECT_BRIDGE__';
+const DIRECT_BRIDGE_SCRIPT = './dist-react/contas-receber-bridge.js';
 
 /** @type {BridgeInterface | null} */
 let bridge = null;
@@ -36,6 +41,14 @@ function getLegacyShell() {
 
 function getRoot() {
   return /** @type {HTMLElement | null} */ (document.getElementById('cr-react-root'));
+}
+
+async function ensureBridgeLoaded() {
+  if (bridge) return bridge;
+  bridge = createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP);
+  if (bridge) return bridge;
+  bridge = await loadDirectBridgeScript(DIRECT_BRIDGE_SCRIPT, DIRECT_BRIDGE_PROP);
+  return bridge;
 }
 
 function isReactEnabled() {
@@ -85,6 +98,7 @@ async function applyMode() {
   if (legacyShell) legacyShell.hidden = true;
   if (root) root.hidden = false;
 
+  await ensureBridgeLoaded();
   if (!root || !bridge?.mount) return;
 
   if (!mounted) {
@@ -139,7 +153,7 @@ function ensurePageObserver() {
 
 if (typeof window !== 'undefined') {
   ensurePageObserver();
-  registerContasReceberReactBridge(createDirectBridgeFromWindow('__SC_RECEBER_DIRECT_BRIDGE__'));
+  registerContasReceberReactBridge(createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP));
   window.addEventListener('message', handleBridgeMessage);
   window.addEventListener('storage', (e) => {
     const flagKey = getPilotFlagStorageKey('receber');

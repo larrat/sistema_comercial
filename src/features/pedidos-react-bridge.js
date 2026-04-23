@@ -1,12 +1,17 @@
 // @ts-check
 
-import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import {
+  createDirectBridgeFromWindow,
+  loadDirectBridgeScript
+} from '../legacy/bridges/bridge-contract.js';
 import { getPilotFlagStorageKey } from '../legacy/bridges/feature-flags.js';
 
 /** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
 
 const MESSAGE_SOURCE = 'pedidos-react-pilot';
 const COMMAND_SOURCE = 'pedidos-legacy-shell';
+const DIRECT_BRIDGE_PROP = '__SC_PEDIDOS_DIRECT_BRIDGE__';
+const DIRECT_BRIDGE_SCRIPT = './dist-react/pedidos-bridge.js';
 
 /** @type {BridgeInterface | null} */
 let bridge = null;
@@ -37,6 +42,14 @@ function isPedidosPageActive() {
 
 function getRoot() {
   return /** @type {HTMLElement | null} */ (document.getElementById('ped-react-root'));
+}
+
+async function ensureBridgeLoaded() {
+  if (bridge) return bridge;
+  bridge = createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP);
+  if (bridge) return bridge;
+  bridge = await loadDirectBridgeScript(DIRECT_BRIDGE_SCRIPT, DIRECT_BRIDGE_PROP);
+  return bridge;
 }
 
 function toStatusTone(status) {
@@ -104,6 +117,7 @@ async function applyMode() {
   }
 
   const root = getRoot();
+  await ensureBridgeLoaded();
   if (!root || !bridge?.mount) return;
 
   if (!mounted) {
@@ -182,7 +196,7 @@ function ensurePageObserver() {
 
 if (typeof window !== 'undefined') {
   ensurePageObserver();
-  registerPedidosReactBridge(createDirectBridgeFromWindow('__SC_PEDIDOS_DIRECT_BRIDGE__'));
+  registerPedidosReactBridge(createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP));
   window.addEventListener('message', handleBridgeMessage);
   window.addEventListener('storage', (e) => {
     const flagKey = getPilotFlagStorageKey('pedidos');
