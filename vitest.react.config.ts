@@ -17,7 +17,9 @@ export default defineConfig({
         'src/react/app/**/*.ts',
         'src/react/app/**/*.tsx',
         'src/react/features/clientes/**/*.ts',
-        'src/react/features/clientes/**/*.tsx'
+        'src/react/features/clientes/**/*.tsx',
+        'src/react/features/produtos/**/*.ts',
+        'src/react/features/produtos/**/*.tsx'
       ],
       exclude: [
         'src/react/**/*.test.*',

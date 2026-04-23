@@ -6,7 +6,8 @@ import {
   syncPriceFields,
   recalcFromCost,
   markupToPrice,
-  markupToMargin
+  markupToMargin,
+  type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
 
 type Props = {
@@ -111,23 +112,23 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   function handleVariavelVarejo(field: 'markup' | 'margem' | 'preco', raw: string) {
     const custo = parseFloat(values.custo) || 0;
-    const current = {
-      preco: values.precoVarejo,
-      markup: values.markupVarejo,
-      margem: values.margemVarejo
+    const current: SyncedPriceState = {
+      preco: field === 'preco' ? raw : values.precoVarejo,
+      markup: field === 'markup' ? raw : values.markupVarejo,
+      margem: field === 'margem' ? raw : values.margemVarejo
     };
-    const synced = syncPriceFields(field, { ...current, [field]: raw }, custo);
+    const synced = syncPriceFields(field, current, custo);
     set({ precoVarejo: synced.preco, markupVarejo: synced.markup, margemVarejo: synced.margem });
   }
 
   function handleVariavelAtacado(field: 'markup' | 'margem' | 'preco', raw: string) {
     const custo = parseFloat(values.custo) || 0;
-    const current = {
-      preco: values.precoFixoAtacado,
-      markup: values.markupAtacado,
-      margem: values.margemAtacado
+    const current: SyncedPriceState = {
+      preco: field === 'preco' ? raw : values.precoFixoAtacado,
+      markup: field === 'markup' ? raw : values.markupAtacado,
+      margem: field === 'margem' ? raw : values.margemAtacado
     };
-    const synced = syncPriceFields(field, { ...current, [field]: raw }, custo);
+    const synced = syncPriceFields(field, current, custo);
     set({
       precoFixoAtacado: synced.preco,
       markupAtacado: synced.markup,

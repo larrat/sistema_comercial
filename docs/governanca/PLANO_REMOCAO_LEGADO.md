@@ -87,6 +87,17 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 **Escopo React:** listagem com busca, modal de edição, métricas de preço, preview de cálculo.  
 **Referência:** `src/features/produtos.js` → `src/react/features/produtos/`
 
+- [x] Criar tipos, store, services e hooks (`useProdutoData`, `useProdutoMutations`, `useProdutoCalculations`)
+- [x] Criar componentes (`ProdutoMetrics`, `ProdutoListView`, `ProdutoForm`, `ProdutoDetailPanel`, `ProdutosPilotPage`)
+- [x] Criar bridge (`src/react/produtos-bridge.tsx` + `src/features/produtos-react-bridge.js`)
+- [x] Registrar pilot flag `produtos` com `defaultValue: false` em `feature-flags.js`
+- [x] Adicionar `#prod-react-root` e `#prod-legacy-shell` no `index.html`
+- [x] Cobrir cálculos, store e API com testes unitários
+- [ ] Validar pilot no browser (`localStorage.setItem('sc_produtos_react_enabled','true')`)
+- [ ] Flipar `defaultValue: false → true` em `feature-flags.js`
+- [ ] Remover `src/features/produtos.js` e imports de `main.js`
+- [ ] Remover `#prod-legacy-shell` do `index.html`
+
 ### 2B — Estoque
 **Dependência:** Produtos (2A).  
 **Escopo React:** saldo por produto, histórico de movimentações, entrada/saída, alertas de ruptura.  

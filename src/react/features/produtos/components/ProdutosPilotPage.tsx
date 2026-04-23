@@ -3,6 +3,7 @@ import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
 import { useProdutoStore, selectFilteredProdutos, selectCategorias } from '../store/useProdutoStore';
 import { useProdutoMutations } from '../hooks/useProdutoMutations';
+import { useFilialStore } from '../../../app/useFilialStore';
 import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListView, ProdutoListMobile } from './ProdutoListView';
 import { ProdutoDetailPanel } from './ProdutoDetailPanel';
@@ -57,12 +58,11 @@ export function ProdutosPilotPage() {
   const setFiltro = useProdutoStore((s) => s.setFiltro);
 
   const { submitProduto, deleteProdutoById, saving, error: mutError } = useProdutoMutations();
+  const filialId = useFilialStore((s) => s.filialId) ?? '';
 
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
 
   const isMobile = useIsMobile();
-
-  const filialId = todos[0]?.filial_id ?? '';
   const paisSemSelf = (modal.tipo === 'form' && modal.produto)
     ? todos.filter((p) => !p.produto_pai_id && p.id !== modal.produto!.id)
     : todos.filter((p) => !p.produto_pai_id);
