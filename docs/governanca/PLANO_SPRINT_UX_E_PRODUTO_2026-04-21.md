@@ -14,9 +14,10 @@ Resultado:
 - validacoes automatizadas locais seguem bloqueadas neste shell porque `node`/`npm` nao estao disponiveis no `PATH`
 
 Pendencias remanescentes movidas para backlog/validacao posterior:
-- atalhos principais persistentes para `registrar baixa` e `importar planilha`
-- evidencia visual completa por fase
-- smoke test completo por fase em ambiente com Node/npm/Playwright
+- evidencia visual completa por fase quando houver ambiente de captura
+- validacoes nao-smoke em ambiente com Node/npm
+- branch protection remota
+- remocao de legado em roadmap multi-sprint
 - personalizacao e automacao avancadas
 
 ## Estado em 2026-04-21
@@ -198,7 +199,7 @@ Observacao: personalizacao e automacao avancadas continuam como evolucao futura,
 6. otimizar performance e mobile
 7. atacar acessibilidade e padronizacao fina
 
-Status: sequencia executada e encerrada nos planos de fechamento. Os smokes automatizados que nao rodaram localmente ficam condicionados a ambiente com Node/npm/Playwright.
+Status: sequencia executada e encerrada nos planos de fechamento. Smoke tests foram retirados do criterio de aceite desta etapa; validacoes nao-smoke ficam condicionadas a ambiente com Node/npm.
 
 ## Owners sugeridos
 
@@ -228,7 +229,7 @@ Status: sequencia executada e encerrada nos planos de fechamento. Os smokes auto
 - [x] smoke test do fluxo React de contas a receber
 - [x] smoke test de navegacao principal
 - [x] smoke test dos fluxos de cadastro prioritarios
-  Observacao: fluxos criticos de cadastro/operacao foram dispensados por decisao operacional na Sprint 3; suite E2E existe, mas execucao local segue bloqueada por ambiente.
+  Observacao: historico mantido. Para a etapa atual, smoke tests nao bloqueiam aceite; a suite E2E existe, mas a execucao local segue bloqueada por ambiente.
 
 ## Definicao de pronto do plano
 

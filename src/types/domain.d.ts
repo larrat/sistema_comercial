@@ -517,6 +517,7 @@ export type NavigationPageMeta = {
   primary?: NavigationPageAction | null;
   secondary?: NavigationPageAction | null;
   tertiary?: NavigationPageAction | null;
+  quickActions?: NavigationPageAction[];
 };
 
 export type NavigationModuleDeps = {

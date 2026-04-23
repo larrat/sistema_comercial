@@ -24,6 +24,7 @@ Referencias de commits principais:
 - `1437837` - fechamento da Sprint 4
 - `ce1a133` - revisao de governanca
 - `a8eef61` - fechamento do plano de sprint UX/produto
+- etapa atual - fechamento das pendencias reais sem smoke tests como criterio de aceite
 
 ## Resumo executivo
 
@@ -34,7 +35,8 @@ Ainda assim, nem tudo que aparece marcado como concluido nos checklists signific
 Portanto, o estado correto e:
 - produto e codigo avancaram de verdade em varias frentes
 - governanca foi reconciliada e fechada
-- validacao automatizada, evidencias visuais completas e parte da remocao de legado continuam pendentes
+- smoke tests foram retirados do criterio de fechamento desta etapa
+- validacao automatizada nao-smoke, branch protection remota e remocao de legado continuam pendentes
 
 ## Entrou de fato no codigo/produto
 
@@ -116,41 +118,46 @@ Portanto, o estado correto e:
 - `CHECKLIST_EXECUCAO_UX_E_PRODUTO_2026-04-21.md` foi revalidado.
 - `CODE_REVIEW_CHECKLIST.md` foi encerrado com ressalvas.
 - `PLANO_SPRINT_UX_E_PRODUTO_2026-04-21.md` foi finalizado e reconciliado.
+- Atalhos persistentes de descoberta foram adicionados na home:
+  - `Registrar baixa`
+  - `Importar planilha`
 
 ## Fechado por decisao operacional ou governanca, nao por execucao automatizada local
 
 - Smoke tests criticos da Sprint 3 foram dispensados por decisao operacional para nao bloquear o fechamento.
+- Smoke tests foram removidos do criterio de aceite desta etapa.
 - Alguns itens de checklist foram marcados como concluidos por auditoria documental/manual, nao por suite automatizada rodada neste shell.
 - Code review foi aprovado com ressalvas, condicionado a CI ou ambiente com Node/npm antes de release tecnico.
 - Personalizacao e automacao avancadas foram encaminhadas para backlog futuro, nao implementadas integralmente.
-- "Smoke test completo por fase" e "evidencia visual por fase" nao foram produzidos de forma completa.
+- Evidencia visual por fase nao foi produzida de forma completa e passa a ser melhoria documental, nao bloqueio desta etapa.
+
+## Fechado nesta etapa sem smoke como criterio
+
+- [x] Atalho persistente `Registrar baixa` adicionado na home/quick links.
+- [x] Atalho persistente `Importar planilha` adicionado na home/quick links.
+- [x] Documentos reconciliados para remover smoke tests do criterio de aceite desta etapa.
+- [x] Plano de remocao de legado atualizado como roadmap multi-sprint.
+- [x] Gates nao-smoke definidos documentalmente: lint, typecheck, testes React/unitarios e coverage do piloto quando aplicavel.
 
 ## Pendente de fato
 
 ### Validacao automatizada
 
+- Tentativa local em 2026-04-23:
+  - `npm run lint` nao executou porque `npm` nao esta disponivel no shell
+  - `npm run typecheck` nao executou porque `npm` nao esta disponivel no shell
+  - `npm run test:react` nao executou porque `npm` nao esta disponivel no shell
 - Rodar em ambiente com Node/npm:
   - `npm run lint`
   - `npm run typecheck`
   - `npm run test:react`
-  - `npm run test:e2e`
-- Rodar especificamente:
-  - `npm run test:e2e -- tests/e2e/sprint-2-structural-navigation.spec.js`
-  - `npm run test:e2e -- tests/e2e/sprint-3-critical-flows.spec.js`
-- Configurar `PLAYWRIGHT_EXECUTABLE_PATH` ou `E2E_BROWSER_CHANNEL` se o Chromium local continuar ausente.
+  - `npm run test:pilot:clientes:coverage` quando a mudanca tocar clientes/piloto
+- Smoke E2E nao bloqueia o fechamento desta etapa.
 
 ### Evidencias de produto
 
-- Criar evidencia visual completa por fase.
-- Registrar smoke completo por fase.
-- Registrar evidencia de navegacao, responsividade e fluxos criticos com data, ambiente e responsavel.
-
-### Atalhos operacionais
-
-- Criar atalhos principais persistentes para:
-  - `registrar baixa`
-  - `importar planilha`
-- Hoje essas acoes existem como acoes contextuais/fluxos, mas nao como atalhos principais persistentes da home/topbar.
+- Criar evidencia visual completa por fase quando houver ambiente de captura disponivel.
+- Registrar evidencia de navegacao, responsividade e fluxos criticos com data, ambiente e responsavel quando a validacao for manual.
 
 ### Remocao de legado
 
@@ -185,7 +192,7 @@ O plano de remocao de legado ainda nao esta concluido. Estado real:
 - Aplicar branch protection no GitHub.
 - Definir gates de merge como regra real no repositorio remoto.
 - Formalizar criterios de aceite por sprint no board.
-- Confirmar que CI esta rodando com lint, typecheck, testes React e Playwright.
+- Confirmar que CI esta rodando com lint, typecheck e testes React.
 - Revalidar coverage gate conforme proposta:
   - piloto/clientes ja existe como direcao
   - coverage global ainda nao deve bloquear legado
@@ -209,27 +216,26 @@ Itens ainda registrados como abertos ou em andamento:
 
 ## Contradicoes ou pontos que precisam ser reconciliados nos documentos antigos
 
-- `PLANO_REMOCAO_LEGADO.md` ainda indica alguns itens de contas a receber como pendentes, mas os planos de fechamento posteriores registram validacao real/manual. O documento de legado precisa ser atualizado ou anotado como historico.
-- `PLANO_FECHAMENTO_BLOCOS_1_A_4_2026-04-21.md` marca "smoke tests dos fluxos criticos concluidos", mas o proprio texto da Sprint 3 diz que eles foram dispensados. O status correto e: suite criada, execucao automatizada dispensada, risco residual aceito.
-- `CODE_REVIEW_CHECKLIST.md` menciona "revalidacao do checklist de UX/produto ainda pendente no working tree" dentro do escopo inicial, mas esse item foi posteriormente commitado em `ce1a133`. O texto e historico, nao pendencia atual.
+- [x] `PLANO_REMOCAO_LEGADO.md` atualizado para refletir validacao real/manual de contas a receber e roadmap multi-sprint.
+- [x] `PLANO_FECHAMENTO_BLOCOS_1_A_4_2026-04-21.md` atualizado para deixar claro que a suite critica foi criada e o smoke foi dispensado.
+- [x] `CODE_REVIEW_CHECKLIST.md` atualizado para remover a pendencia historica do working tree.
 
 ## Proximo plano recomendado
 
-1. Rodar CI/testes em ambiente com Node/npm e Playwright.
+1. Rodar CI/testes nao-smoke em ambiente com Node/npm.
 2. Corrigir ou confirmar os resultados de lint/typecheck/testes.
-3. Implementar atalhos persistentes para `registrar baixa` e `importar planilha`.
-4. Atualizar `PLANO_REMOCAO_LEGADO.md` com o estado real atual.
-5. Planejar proxima sprint de remocao de legado, com prioridade sugerida:
+3. Aplicar branch protection no GitHub e confirmar os gates remotos.
+4. Planejar proxima sprint de remocao de legado, com prioridade sugerida:
    - Produtos
    - Estoque
    - Cotacao
    - RCAs/Oportunidades
    - Relatorios
    - Campanhas
-6. Produzir evidencias visuais e smokes por fase para fechar a lacuna documental.
+5. Produzir evidencias visuais quando houver ambiente de validacao/captura.
 
 ## Decisao de leitura
 
-Para gestao, considerar os blocos 1 a 4 encerrados com ressalvas.
+Para gestao, considerar os blocos 1 a 4 encerrados com ressalvas e sem smoke tests como criterio desta etapa.
 
-Para engenharia/release, considerar pendente ate passar por CI/ambiente com Node/npm e ate reconciliar as pendencias de legado, evidencia e smokes completos.
+Para engenharia/release, considerar pendente ate passar por CI/ambiente com Node/npm e ate avancar a remocao de legado multi-sprint.

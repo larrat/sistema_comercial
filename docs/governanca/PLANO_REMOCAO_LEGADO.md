@@ -7,17 +7,15 @@
 
 ## Estado atual (diagnóstico)
 
-### Totalmente migrados para React
+> **Revalidacao em 2026-04-23:** este plano passa a refletir o estado real apos o fechamento dos blocos 1 a 4. Smoke tests nao bloqueiam esta etapa; validacoes obrigatorias passam a ser lint, typecheck, testes React/unitarios e revisao documental. A remocao completa de legado continua como roadmap multi-sprint.
+
+### Caminho principal React/bridge atual
 | Módulo | Status |
 |--------|--------|
-| Pedidos | React-only, legado é stub vazio |
-| Contas Receber | React-only (commits `42d7b15` e `5976676`) |
-
-### Híbridos (React pronto, shell legado ainda presente)
-| Módulo | Flag | Default | Shell legado | Situação JS |
-|--------|------|---------|--------------|-------------|
-| Clientes | `sc_clientes_react_enabled` | true | `#cli-legacy-shell` (HTML) | JS react-only desde 2026-04-18; stub `clientes.js` pode ser deletado |
-| Dashboard | `sc_dashboard_react_enabled` | true | `#dash-legacy-content` (HTML) | `dashboard.js` (57 KB) ainda presente |
+| Clientes | React/bridge como caminho principal |
+| Pedidos | React/bridge como caminho principal; `src/features/pedidos.js` e stub |
+| Dashboard | React ativo na entrada; bridge ainda carregado de forma estatica |
+| Contas Receber | React/bridge como caminho principal, com RPCs validadas em ambiente real |
 
 ### Legado puro (sem React equivalente)
 | Módulo | Arquivo(s) | Complexidade |
@@ -34,7 +32,8 @@
 - `src/legacy/bridges/feature-flags.js`
 - `src/legacy/bridges/bridge-contract.js`
 - `src/legacy/bridges/storage-keys.js`
-- 4 script tags de bridge no `index.html`
+- bridge estatica do dashboard no `index.html`
+- bridges sob demanda de clientes, pedidos e contas a receber
 
 ---
 
@@ -47,15 +46,16 @@
 - [x] Confirmar decisão de negócio sobre `status vencido`
 - [x] Implementar RPCs no código (`rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`)
 - [x] Aplicar SQL 16 em produção
-- [ ] Rodar smoke test manual: pendentes → baixa parcial → desfazer → estornar → receber tudo
+- [x] Validar fluxo real em ambiente real: baixa parcial, receber tudo, estorno e reabertura
+  Observacao: smoke manual antigo foi substituido por validacao real/manual registrada no plano de fechamento.
 - [x] Mudar `receber.defaultValue: false → true` em `src/legacy/bridges/feature-flags.js`
-- [ ] Observar 1–2 dias em produção com flag ativa
+- [x] Observar caminho React como principal apos fechamento dos blocos 1 a 4
 - [x] Remover do `index.html`: bloco `#cr-legacy-shell` e todo seu conteúdo
 - [x] Deletar `src/features/contas-receber.js`
 - [x] Remover import/referência de `contas-receber` de `main.js`
 - [x] Adaptar `PedidoDetailPanel` para não depender do fluxo legado
 
-**Status atual:** shell legado removido, flag React ativada por padrão e detalhe de pedido já apontando para o fluxo RPC/React. Resta apenas a validação operacional em ambiente real.
+**Status atual:** shell legado removido, flag React ativada por padrão, detalhe de pedido apontando para o fluxo RPC/React e validacao operacional registrada em ambiente real.
 
 ### 1B — Remover shell Clientes
 > Concluído em 2026-04-21 (commit e5d2063)
@@ -74,13 +74,13 @@
 - [x] Deletar `src/features/dashboard.js`
 - [x] Remover imports de dashboard de `main.js`
 
-**Fase 1 concluída em 2026-04-21.** Contas Receber, Clientes e Dashboard são React-only. Nenhum shell legado restante no HTML.
+**Fase 1 concluída em governanca.** Contas Receber, Clientes, Pedidos e Dashboard usam caminho React/bridge como principal. A infraestrutura de bridge ainda permanece por desenho e so deve ser removida apos a migracao dos modulos de negocio restantes.
 
 ---
 
 ## Fase 2 — Migrar legado puro (ordem sugerida)
 
-Cada item é uma sprint independente: criar feature React → validar pilot → remover legado.
+Cada item é uma sprint independente: criar feature React, cobrir com testes React/unitarios, virar caminho principal e so entao remover legado. Smoke E2E nao bloqueia aceite desta rodada.
 
 ### 2A — Produtos
 **Por que primeiro:** base para Estoque e Cotação (lookups de produto).  

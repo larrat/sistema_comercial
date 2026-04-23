@@ -380,7 +380,22 @@ const PAGE_META = {
         deps.limparFormProdTracked();
         deps.abrirModal('modal-produto');
       }
-    }
+    },
+    quickActions: [
+      {
+        label: 'Registrar baixa',
+        run: () => {
+          ir('receber');
+        }
+      },
+      {
+        label: 'Importar planilha',
+        run: () => {
+          ir('cotacao');
+          switchTab('cot', 'importar');
+        }
+      }
+    ]
   },
   gerencial: {
     kicker: 'Análises',
@@ -953,9 +968,9 @@ function initMobileMenuFab() {
 export function renderQuickLinks(meta) {
   const el = document.getElementById('quick-links');
   if (!el) return;
-  const actions = [meta?.primary, meta?.secondary, meta?.tertiary]
+  const actions = [meta?.primary, meta?.secondary, meta?.tertiary, ...(meta?.quickActions || [])]
     .filter((a) => a && (!a.roles || deps.hasRole(a.roles)))
-    .slice(0, 2);
+    .slice(0, 4);
   el.innerHTML = actions
     .map((a) => `<button class="qk" type="button">${a.label}</button>`)
     .join('');

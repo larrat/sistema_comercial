@@ -16,7 +16,7 @@ Explique o problema e o objetivo desta mudanca.
 
 - [ ] typecheck
 - [ ] testes locais
-- [ ] smoke manual
+- [ ] validacao manual quando aplicavel
 - [ ] evidencias anexadas
 
 ## Rollback

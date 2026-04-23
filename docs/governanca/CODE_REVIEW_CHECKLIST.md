@@ -11,7 +11,7 @@ Este checklist deve ser usado por quem abre o PR e por quem revisa.
 Escopo inicial desta revisao:
 - fechamento dos blocos 1 a 4 registrado nos documentos de governanca
 - commits recentes das Sprints 2, 3 e 4
-- revalidacao do checklist de UX/produto ainda pendente no working tree
+- revalidacao do checklist de UX/produto consolidada nos documentos de governanca
 
 Estado atual:
 - [x] contexto inicial levantado
@@ -22,14 +22,14 @@ Estado atual:
 - [x] decisao final registrada
 
 Bloqueio de ambiente:
-- `node` e `npm` nao estao disponiveis neste shell, entao `npm run lint`, `npm run typecheck`, `npm run test:react` e `npm run test:e2e` ainda nao foram executados localmente.
+- `node` e `npm` nao estao disponiveis neste shell, entao `npm run lint`, `npm run typecheck` e `npm run test:react` ainda nao foram executados localmente.
 - Para fechar esta revisao documental, a ausencia dessas validacoes foi aceita como ressalva. Antes de release tecnico ou merge protegido, as validacoes devem rodar em ambiente com Node/npm ou CI.
 
 Achados finais:
 - O uso amplo de `innerHTML` continua sendo ponto de atencao de seguranca; existe utilitario de sanitizacao em `src/shared/sanitize.js`, mas cada renderizacao com dados vindos de usuario/Supabase ainda precisa ser conferida quando tocar nesses arquivos.
 - As chaves Supabase aparecem como chave publica/publishable em configuracao, headers e testes. Nao foi identificado segredo privado/service-role hardcoded nesta primeira varredura textual.
 - Os `any` encontrados estao majoritariamente em camada legada, contratos de ponte e tipagens de compatibilidade. Devem ser tratados como debito controlado, nao como bloqueio automatico desta revisao.
-- A revalidacao de UX/produto deixou pendencias reais: atalhos persistentes para `registrar baixa` e `importar planilha`, evidencia visual completa por fase e smoke test completo por fase.
+- A revalidacao de UX/produto deixou pendencias reais que foram separadas por tipo: atalhos operacionais, evidencias documentais e validacoes automatizadas nao-smoke.
 
 Decisao final em 2026-04-23:
 - [x] Aprovar fechamento documental com ressalvas
@@ -38,7 +38,7 @@ Decisao final em 2026-04-23:
 
 Ressalvas de aprovacao:
 - A aprovacao cobre governanca/documentacao e encerramento do ciclo de revisao, nao substitui CI.
-- As pendencias de UX/produto permanecem rastreadas no checklist especifico.
+- As pendencias de UX/produto permanecem rastreadas no checklist especifico e no consolidado de entregas reais.
 - Qualquer PR com alteracao funcional posterior deve reabrir esta revisao ou criar revisao propria com validacoes automatizadas executadas.
 
 ## 1. Contexto do PR
@@ -73,7 +73,7 @@ Ressalvas de aprovacao:
 - [x] Casos de sucesso e falha foram considerados
 - [x] Fluxos criticos nao perderam cobertura
 - [x] O reviewer entende como validar a mudanca
-  Observacao: suites e smokes foram criados/registrados, mas a execucao local foi dispensada por bloqueio de ambiente. Validar com `npm run lint`, `npm run typecheck`, `npm run test:react` e smokes E2E em CI/ambiente Node.
+  Observacao: suites foram criadas/registradas, mas smoke tests foram retirados do criterio desta etapa. Validar com `npm run lint`, `npm run typecheck` e `npm run test:react` em CI/ambiente Node.
 
 ## 5. Seguranca
 

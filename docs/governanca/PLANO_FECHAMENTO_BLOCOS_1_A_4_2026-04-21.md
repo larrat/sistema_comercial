@@ -272,5 +272,5 @@ Os blocos 1 a 4 so devem ser considerados encerrados quando estas 5 condicoes es
 - [x] financeiro validado em ambiente real
 - [x] menu e arquitetura reorganizados
 - [x] feedback e estados vazios resolvidos nos fluxos principais
-- [x] smoke tests dos fluxos criticos concluidos
+- [x] suite dos fluxos criticos criada; execucao smoke dispensada por decisao operacional
 - [x] responsividade principal revisada

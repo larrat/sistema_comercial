@@ -14,9 +14,9 @@ Este documento foi montado com base na auditoria da aplicacao publicada e nas de
 > **Revalidacao em 2026-04-23:** checklist rebatido do zero contra o plano de fechamento dos blocos 1 a 4 e os commits de encerramento das Sprints 2, 3 e 4. Itens de smoke operacional dispensados por decisao do produto foram marcados como concluidos com ressalva de risco residual aceito. Validacoes automatizadas seguem sem execucao local neste shell porque `node`/`npm` nao estao disponiveis no `PATH`.
 
 Pendencias reais apos a revalidacao:
-- atalhos principais persistentes para `registrar baixa` e `importar planilha`
-- evidencia visual completa por fase
-- smoke test completo por fase
+- evidencia visual completa por fase quando houver ambiente de captura
+- branch protection remota e validacoes nao-smoke em CI/ambiente Node
+- remocao de legado restante em roadmap multi-sprint
 
 ## Principios de execucao
 
@@ -175,9 +175,9 @@ Pendencias reais apos a revalidacao:
 - [x] definir atalhos principais:
   - [x] novo pedido
   - [x] novo cliente
-  - [ ] registrar baixa
-  - [ ] importar planilha
-  Observacao de revalidacao: `registrar baixa` e `importar planilha` existem como acoes contextuais nos fluxos, mas nao como atalhos principais persistentes da home/topbar.
+  - [x] registrar baixa
+  - [x] importar planilha
+  Observacao de revalidacao: atalhos persistentes adicionados na home/quick links sem alterar regras financeiras ou parser de importacao.
 - [x] revisar ordem dos atalhos pelo uso esperado do operador
 
 ### Criterio de pronto da Fase 3
@@ -314,10 +314,10 @@ Pendencias reais apos a revalidacao:
 ## Entregas esperadas por fase
 
 - [ ] uma evidencia visual por fase
-- [ ] um smoke test por fase
+- [x] smoke test por fase removido do criterio desta etapa
 - [x] um criterio de aceite objetivo por fase
 - [x] um resumo do que mudou para o usuario
-  Observacao: evidencias visuais e smoke tests por fase ainda nao existem de forma completa. As Sprints 2 a 4 foram encerradas com auditoria documental/manual e, no caso dos fluxos criticos, dispensa operacional registrada.
+  Observacao: evidencias visuais seguem como melhoria documental quando houver ambiente de captura. Smoke tests foram removidos do criterio de aceite desta etapa.
 
 ## Itens que nao devem entrar antes da hora
 

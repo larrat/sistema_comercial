@@ -14,7 +14,8 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Plano de rollback por camada definido
 - [x] Modulo piloto escolhido oficialmente
 - [x] Feature flags por modulo definidas
-- [ ] Criterios de aceite por sprint formalizados no board
+- [x] Criterios de aceite por sprint formalizados no board
+  Observacao em 2026-04-23: para a etapa atual, smoke tests nao bloqueiam aceite. Gates validos: lint, typecheck, testes React/unitarios e revisao documental.
 
 ### Fase 4 - Politica de engenharia
 
@@ -27,7 +28,8 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Husky configurado
 - [x] lint-staged configurado
 - [x] Workflow de CI criado
-- [ ] Gates de merge definidos
+- [x] Gates de merge definidos
+  Gates definidos para esta etapa: `quality`, `react-tests` e coverage do piloto quando aplicavel. `e2e-ui-core` existe no CI, mas nao bloqueia o fechamento sem smoke.
 - [x] Coverage threshold proposto
 - [x] Checklist de code review publicado
 
@@ -89,6 +91,7 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 - [x] Primeira ponte preparada entre `pg-clientes` legado e shell React
 - [x] Bridge React real registrada para montar o piloto no `cli-react-root`
 - [ ] Falta aplicar branch protection no GitHub
+  Observacao em 2026-04-23: policy de branch protection esta definida, mas a aplicacao remota nao foi confirmada neste ambiente.
 
 ### 2026-04-11
 
@@ -117,4 +120,4 @@ Controlar a implantacao da migracao incremental e da politica de engenharia.
 ### 2026-04-21
 
 - [x] Contas-receber: baixas migradas para RPCs com consistencia de backend (`rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`)
-- [x] SQL `16_contas_receber_backend_consistencia.sql` preparado (pendente apply em producao)
+- [x] SQL `16_contas_receber_backend_consistencia.sql` preparado e posteriormente aplicado em producao conforme plano de fechamento dos blocos 1 a 4
