@@ -322,6 +322,12 @@
   margin-bottom: 8px;
 }
 
+.rf-ui-section-title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 @media (max-width: 920px) {
   .rf-ui-form-grid {
     grid-template-columns: 1fr;
@@ -671,6 +677,21 @@
   align-items: center;
 }
 
+.rf-ui-lock-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rf-ui-lock-banner__copy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .rf-ui-empty {
   padding: 24px 0;
   text-align: center;
@@ -707,6 +728,16 @@
   text-align: right;
   padding: 4px 6px;
   font-size: 13px;
+}
+
+.cot-table-input.is-saving {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.cot-table-input.is-error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 28%, transparent);
 }
 
 .upz {

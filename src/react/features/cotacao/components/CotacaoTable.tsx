@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { StatusBadge } from '../../../shared/ui';
 import type { Fornecedor, PrecosMap } from '../types';
 import type { Produto } from '../../../../types/domain';
@@ -13,9 +13,103 @@ type Props = {
   precos: PrecosMap;
   locked: boolean;
   onPriceChange: (prodId: string, fornId: string, value: string) => void;
-  onToggleLock: () => void;
   onExportCsv: () => void;
+  savingCells?: Record<string, boolean>;
+  errorCells?: Record<string, string | null>;
 };
+
+type PriceCellProps = {
+  produtoId: string;
+  fornecedorId: string;
+  value: number | null;
+  locked: boolean;
+  isBest: boolean;
+  isWorst: boolean;
+  saving?: boolean;
+  error?: string | null;
+  onCommit: (prodId: string, fornId: string, value: string) => void;
+};
+
+function toInputValue(value: number | null) {
+  return value != null && value > 0 ? value.toFixed(2) : '';
+}
+
+const CotacaoPriceCell = memo(function CotacaoPriceCell({
+  produtoId,
+  fornecedorId,
+  value,
+  locked,
+  isBest,
+  isWorst,
+  saving = false,
+  error = null,
+  onCommit
+}: PriceCellProps) {
+  const [draft, setDraft] = useState(() => toInputValue(value));
+  const [dirty, setDirty] = useState(false);
+  const bg = isBest ? 'var(--gbg)' : isWorst ? 'var(--rbg)' : undefined;
+
+  useEffect(() => {
+    if (!dirty) {
+      setDraft(toInputValue(value));
+    }
+  }, [dirty, value]);
+
+  function commit() {
+    if (locked) return;
+    const normalizedCurrent = toInputValue(value);
+    const normalizedDraft = draft.trim();
+    if (normalizedDraft === normalizedCurrent) {
+      setDirty(false);
+      return;
+    }
+    setDirty(false);
+    onCommit(produtoId, fornecedorId, normalizedDraft);
+  }
+
+  function cancel() {
+    setDraft(toInputValue(value));
+    setDirty(false);
+  }
+
+  return (
+    <td
+      style={{ textAlign: 'right', background: bg }}
+      title={error || undefined}
+    >
+      {locked ? (
+        value !== null && value > 0 ? (
+          fmt(value)
+        ) : (
+          '—'
+        )
+      ) : (
+        <input
+          className={`inp cot-table-input${saving ? ' is-saving' : ''}${error ? ' is-error' : ''}`}
+          type="number"
+          value={draft}
+          placeholder="0,00"
+          min="0"
+          step="0.01"
+          onChange={(e) => {
+            setDraft(e.target.value);
+            setDirty(true);
+          }}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              (e.currentTarget as HTMLInputElement).blur();
+            }
+            if (e.key === 'Escape') {
+              cancel();
+              (e.currentTarget as HTMLInputElement).blur();
+            }
+          }}
+        />
+      )}
+    </td>
+  );
+});
 
 export function CotacaoTable({
   produtos,
@@ -23,25 +117,10 @@ export function CotacaoTable({
   precos,
   locked,
   onPriceChange,
-  onToggleLock,
-  onExportCsv
+  onExportCsv,
+  savingCells = {},
+  errorCells = {}
 }: Props) {
-  const debounceRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-
-  const handleInput = useCallback(
-    (prodId: string, fornId: string, value: string) => {
-      const key = `${prodId}_${fornId}`;
-      const existing = debounceRef.current.get(key);
-      if (existing) clearTimeout(existing);
-      const timer = setTimeout(() => {
-        onPriceChange(prodId, fornId, value);
-        debounceRef.current.delete(key);
-      }, 600);
-      debounceRef.current.set(key, timer);
-    },
-    [onPriceChange]
-  );
-
   if (!produtos.length || !fornecedores.length) {
     return (
       <div className="rf-ui-empty">
@@ -68,17 +147,8 @@ export function CotacaoTable({
           <button type="button" className="btn btn-sm" onClick={onExportCsv}>
             Exportar CSV
           </button>
-          <button type="button" className="btn btn-sm" onClick={onToggleLock}>
-            {locked ? 'Destravar' : 'Travar'}
-          </button>
         </div>
       </div>
-
-      {locked && (
-        <div className="alert al-a" style={{ marginBottom: 12 }}>
-          Cotação travada | valores protegidos
-        </div>
-      )}
 
       <div className="tw" style={{ overflowX: 'auto' }}>
         <table className="tbl">
@@ -116,31 +186,19 @@ export function CotacaoTable({
                       val === maxP &&
                       valid.length > 1 &&
                       minP !== maxP;
-                    const bg = isBest
-                      ? 'var(--gbg)'
-                      : isWorst
-                      ? 'var(--rbg)'
-                      : undefined;
                     return (
-                      <td
+                      <CotacaoPriceCell
                         key={f.id}
-                        style={{ textAlign: 'right', background: bg }}
-                      >
-                        {locked ? (
-                          val !== null && val > 0 ? fmt(val) : '—'
-                        ) : (
-                          <input
-                            className="inp cot-table-input"
-                            type="number"
-                            defaultValue={val !== null ? val.toFixed(2) : ''}
-                            placeholder="0,00"
-                            min="0"
-                            step="0.01"
-                            style={{ width: 90 }}
-                            onChange={(e) => handleInput(p.id, f.id, e.target.value)}
-                          />
-                        )}
-                      </td>
+                        produtoId={p.id}
+                        fornecedorId={f.id}
+                        value={val}
+                        locked={locked}
+                        isBest={isBest}
+                        isWorst={isWorst}
+                        saving={!!savingCells[`${p.id}:${f.id}`]}
+                        error={errorCells[`${p.id}:${f.id}`]}
+                        onCommit={onPriceChange}
+                      />
                     );
                   })}
                   <td style={{ textAlign: 'center' }}>
