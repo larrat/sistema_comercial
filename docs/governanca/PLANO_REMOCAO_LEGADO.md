@@ -203,18 +203,25 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 
 ---
 
-## Fase 4 — Migrar app shell para React (opcional, longo prazo)
-> Módulos de suporte que ainda estão em vanilla JS mas não são "features":
+## Fase 4 — Migrar app shell para React
+> Concluído em 2026-04-24
 
-| Módulo | Arquivo | Caminho React sugerido |
-|--------|---------|------------------------|
-| Navegação/Sidebar | `src/features/navigation.js` | `src/react/app/Navigation/` |
-| Auth e roles | `src/features/auth-setup.js` | `src/react/app/Auth/` |
-| Filiais/Acessos | `src/features/filiais-acessos.js` | `src/react/app/Filiais/` |
-| Notificações | `src/features/notificacoes.js` | `src/react/app/Notificacoes/` |
-| Telemetria | `src/features/telemetria.js` | manter como módulo puro (sem UI) |
+**Escopo:** Login/Setup React, logout no sidebar, `index.html` → SPA React, remoção de toda infraestrutura de bridge.
 
-**Nota:** Esta fase converte o `index.html` em um SPA verdadeiro, com roteamento React. É uma refatoração estrutural grande — tratar como projeto separado.
+- [x] Criar `src/react/features/auth/services/authApi.ts` (`signInWithPassword`, `signOut`, `listUserFiliais`)
+- [x] Criar `src/react/features/auth/components/LoginPage.tsx` (form email/senha, navega para `/setup`)
+- [x] Criar `src/react/features/setup/components/SetupPage.tsx` (lista filiais, navega para `/app/dashboard`)
+- [x] Atualizar `AppRouter.tsx` — substituir placeholders pelas páginas reais
+- [x] Atualizar `AppSidebar.tsx` — adicionar botão de logout (clearSession + clearFilial + navigate /login)
+- [x] Substituir `index.html` (968 linhas de legado) pelo entry React SPA (fonts + runtime-config + `<div id="root">`)
+- [x] Atualizar `vite.config.ts` — entry muda de `react.html` para `index.html`
+- [x] Deletar `vite.bridge.config.ts`
+- [x] Deletar `src/react/*-bridge.tsx` (5 entry files de bridge)
+- [x] Deletar `src/features/*-react-bridge.js` + `bridge-utils.js` (6 arquivos)
+- [x] Remover scripts `dev:bridge` / `build:bridge` do `package.json`
+- [x] Substituir imports de bridge em `main.js` por stubs inline
+
+**Fase 4 concluída.** `index.html` é o SPA React. Toda infraestrutura de bridge foi removida. `main.js` sobrevive como arquivo morto (não carregado).
 
 ---
 

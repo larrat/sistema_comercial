@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     outDir: 'dist-react',
     rollupOptions: {
-      input: { react: 'react.html' }
+      input: { main: 'index.html' }
     }
   }
 });

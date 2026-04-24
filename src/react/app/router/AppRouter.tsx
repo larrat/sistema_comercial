@@ -11,7 +11,8 @@ import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePa
 import { RcasRoutePage } from '../../features/rcas/pages/RcasRoutePage';
 import { RelatoriosRoutePage } from '../../features/relatorios/pages/RelatoriosRoutePage';
 import { CampanhasRoutePage } from '../../features/campanhas/pages/CampanhasRoutePage';
-import { AppContent } from '../layout/AppContent';
+import { LoginPage } from '../../features/auth/components/LoginPage';
+import { SetupPage } from '../../features/setup/components/SetupPage';
 import { AppShell } from '../layout/AppShell';
 import { LoginRouteAccess, ProtectedAppRoute, SetupRouteAccess } from './routeAccess';
 import { getDefaultAppPath } from './routes';
@@ -19,26 +20,6 @@ import { getDefaultAppPath } from './routes';
 type AppRouterProps = {
   bootstrap: AppBootstrapState;
 };
-
-function LoginPage() {
-  return (
-    <AppContent
-      kicker="Acesso"
-      title="Login"
-      description="O login real ainda é fornecido pelo sistema principal. Esta rota já existe para receber o fluxo da nova árvore React."
-    />
-  );
-}
-
-function SetupPage() {
-  return (
-    <AppContent
-      kicker="Configuração"
-      title="Setup"
-      description="A seleção e criação de filial ainda dependem do fluxo legado. Esta rota já representa o estado autenticado sem filial."
-    />
-  );
-}
 
 function AppRootRedirect() {
   return <Navigate to={getDefaultAppPath()} replace />;
@@ -85,8 +66,6 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
           }
         />
 
-        <Route path="/react.html" element={<Navigate to="/" replace />} />
-        <Route path="/react.html/*" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

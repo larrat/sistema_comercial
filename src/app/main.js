@@ -27,6 +27,7 @@ import {
 
 // Cotação legado removido — Fase 2C
 const initCotacaoModule = () => {};
+const initProdutosModule = () => {};
 const renderFornSel = () => {};
 const renderCotLogs = () => {};
 const renderCotForns = () => {};
@@ -39,37 +40,32 @@ const cotFile = () => {};
 const confirmarMapa = () => {};
 const renderMapaBody = () => {};
 
-import {
-  abrirNovoProdutoReact,
-  isProdutosReactPilotActive as _isProdutosReactPilotActive
-} from '../features/produtos-react-bridge.js';
+// Bridges removidos — Fase 4 (main.js não é mais carregado pelo index.html)
+const abrirNovoProdutoReact = () => {};
+const _isProdutosReactPilotActive = () => false;
 
 // Produto legado removido — Fase 2A
 const renderProdMet = () => {};
 const renderProdutos = () => {};
 const refreshProdSel = () => {};
 
-import {
-  abrirNovoClienteReact,
-  limparFiltrosClienteReact,
-  abrirListaClienteReact,
-  abrirSegmentosClienteReact,
-  editarClienteReactAtual,
-  exportarClientesReactCsv,
-  abrirResumoClienteReact,
-  abrirAbertasClienteReact,
-  abrirFechadasClienteReact,
-  abrirNotasClienteReact,
-  abrirFidelidadeClienteReact
-} from '../features/clientes-react-bridge.js';
-import {
-  isPedidosReactPilotActive,
-  limparFiltrosPedidosReact,
-  abrirNovoPedidoReact,
-  editarPedidoReact,
-  abrirDetalhePedidoReact
-} from '../features/pedidos-react-bridge.js';
-import { setContasReceberReactTab } from '../features/contas-receber-react-bridge.js';
+const abrirNovoClienteReact = () => {};
+const limparFiltrosClienteReact = () => {};
+const abrirListaClienteReact = () => {};
+const abrirSegmentosClienteReact = () => {};
+const editarClienteReactAtual = () => {};
+const exportarClientesReactCsv = () => {};
+const abrirResumoClienteReact = () => {};
+const abrirAbertasClienteReact = () => {};
+const abrirFechadasClienteReact = () => {};
+const abrirNotasClienteReact = () => {};
+const abrirFidelidadeClienteReact = () => {};
+const isPedidosReactPilotActive = () => false;
+const limparFiltrosPedidosReact = () => {};
+const abrirNovoPedidoReact = () => {};
+const editarPedidoReact = () => {};
+const abrirDetalhePedidoReact = () => {};
+const setContasReceberReactTab = () => {};
 
 import { initPedidosModule } from '../features/pedidos.js';
 
@@ -80,7 +76,7 @@ const salvarRca = () => {};
 
 // Estoque legado removido — Fase 2B
 const calcSaldos = () => ({});
-const calcSaldosMulti = () => {};
+const calcSaldosMulti = () => ({});
 const atualizarBadgeEst = () => {};
 const renderEstAlerts = () => {};
 const renderEstPosicao = () => {};
@@ -351,7 +347,7 @@ async function salvarCampanhaTracked() {
 async function gerarFilaCampanhaTracked(id) {
   if (!requireRole(ROLE_MANAGER_PLUS, 'Somente gerente/admin pode gerar fila de campanha.')) return;
   logStrategicAction('campanhas');
-  await gerarFilaCampanha(id);
+  await gerarFilaCampanha();
   renderMetasNegocio();
 }
 
@@ -545,6 +541,7 @@ registerApplicationModules({
   registry: AppModules,
   modules: {
     initCotacaoModule,
+    initProdutosModule,
     initPedidosModule,
     initTelemetriaModule,
     initRuntimeLoadingModule,

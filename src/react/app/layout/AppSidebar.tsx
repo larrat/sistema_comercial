@@ -1,18 +1,26 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
+import { useAuthStore } from '../useAuthStore';
+import { useFilialStore } from '../useFilialStore';
 import { useNavigationItems } from '../hooks/useNavigationItems';
 
 export function AppSidebar() {
   const groups = useNavigationItems();
+  const clearSession = useAuthStore((s) => s.clearSession);
+  const clearFilial = useFilialStore((s) => s.clearFilial);
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    clearFilial();
+    clearSession();
+    navigate('/login', { replace: true });
+  }
 
   return (
-    <aside className="rf-sidebar" aria-label="Navegação principal React">
+    <aside className="rf-sidebar" aria-label="Navegação principal">
       <div className="rf-sidebar__brand">
-        <div className="rf-sidebar__kicker">React-first</div>
+        <div className="rf-sidebar__kicker">Operação</div>
         <div className="rf-sidebar__title">Sistema Comercial</div>
-        <p className="rf-sidebar__sub">
-          Shell novo da operação comercial, isolado da navegação legacy.
-        </p>
       </div>
 
       <nav className="rf-sidebar__nav">
@@ -35,10 +43,13 @@ export function AppSidebar() {
       </nav>
 
       <div className="rf-sidebar__footer">
-        <div className="rf-sidebar__footer-label">Onda 1</div>
-        <div className="rf-sidebar__footer-copy">
-          Dashboard, clientes, pedidos, contas a receber e produtos entram aqui nas próximas rodadas.
-        </div>
+        <button
+          type="button"
+          className="rf-sidebar__logout-btn"
+          onClick={handleLogout}
+        >
+          Sair
+        </button>
       </div>
     </aside>
   );

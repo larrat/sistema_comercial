@@ -2,7 +2,9 @@
 
 /** @typedef {import('../types/domain').UxWorkflowsModuleDeps} UxWorkflowsModuleDeps */
 
-import { forceClientesReactMode, isClientesReactFeatureEnabled } from './clientes-react-bridge.js';
+// Bridges removidos — Fase 4
+const forceClientesReactMode = () => {};
+const isClientesReactFeatureEnabled = () => true;
 import { toast, norm, fmt, prV } from '../shared/utils.js';
 
 /** @type {UxWorkflowsModuleDeps} */

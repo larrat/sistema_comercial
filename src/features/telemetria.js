@@ -4,7 +4,8 @@
 
 import { D, State } from '../app/store.js';
 import { uid, norm, toast } from '../shared/utils.js';
-import { isClientesReactFeatureEnabled } from './clientes-react-bridge.js';
+// Bridges removidos — Fase 4
+const isClientesReactFeatureEnabled = () => true;
 
 const GOAL_METRICS_KEY = 'sc_goal_metrics_v1';
 const UX_EVENTS_KEY = 'sc_ux_events_v1';

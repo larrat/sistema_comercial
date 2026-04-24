@@ -3,14 +3,13 @@
 import { D, State } from '../app/store.js';
 import { norm, toast } from '../shared/utils.js';
 import { markInvalidation, markRender } from '../shared/render-metrics.js';
-import {
-  getClientesReactBridgeState,
-  isClientesReactFeatureEnabled,
-  isClientesReactPilotActive,
-  isClientesReactPilotRequested,
-  forceClientesReactMode,
-  syncClientesReactBridge
-} from './clientes-react-bridge.js';
+// Bridges removidos — Fase 4
+const getClientesReactBridgeState = () => ({ mode: 'react', mounted: false });
+const isClientesReactFeatureEnabled = () => true;
+const isClientesReactPilotActive = () => false;
+const isClientesReactPilotRequested = () => false;
+const forceClientesReactMode = () => {};
+const syncClientesReactBridge = () => {};
 
 /** @typedef {import('../types/domain').NavigationModuleDeps} NavigationModuleDeps */
 /** @typedef {import('../types/domain').NavigationPageMeta} NavigationPageMeta */

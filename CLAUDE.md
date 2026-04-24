@@ -6,12 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Desenvolvimento
-npm run dev:react        # Dev server React (react.html, porta Vite padrão)
-npm run dev:bridge       # Dev server bridge (builds JS bridge separado)
+npm run dev:react        # Dev server React (index.html, porta Vite padrão)
 
 # Build
 npm run build:react      # Build React → dist-react/
-npm run build:bridge     # Build bridge JS → dist-react/
 
 # Qualidade (obrigatório antes de qualquer PR)
 npm run lint             # ESLint em .js e .ts
@@ -34,29 +32,24 @@ Rodar um único teste: `npx vitest run src/react/features/clientes/components/Cl
 
 ## Arquitetura
 
-### Dois runtimes em paralelo
+### Runtime único React (migração concluída)
 
-O sistema opera com **dois runtimes simultâneos** carregados no mesmo browser:
+O sistema é um SPA React. O `index.html` carrega `/src/react/main.tsx` diretamente.
 
-1. **Runtime legado** (`index.html` → `src/app/main.js`): vanilla JS, módulos por domínio em `src/features/*.js`, estado global em `D` (cache) e `State` (estado de UI), API via objeto `SB` (wrapper Supabase manual com retry/timeout). Este runtime **ainda é o ponto de entrada principal**.
+- **Entry**: `index.html` → `src/react/main.tsx` → `App.tsx` → `AppBootstrap` → `AppRouter`
+- **Stack**: React 19 + Zustand + Tailwind CSS v4 + React Router v7
+- **Estado**: isolado por módulo via Zustand stores. Auth: `useAuthStore` (session em `sc_auth_session_v1`). Filial: `useFilialStore` (id em `sc_filial_id`).
+- **Tipos compartilhados**: `src/types/domain.ts`
 
-2. **Runtime React** (`react.html` → `src/react/main.tsx`): React 19 + Zustand + Tailwind CSS v4. Carregado em iframes ou embeds pelo runtime legado. Estado isolado por módulo via Zustand. Tipos compartilhados em `src/types/domain.ts`.
+O `src/app/main.js` (vanilla JS legado) sobrevive como arquivo morto — não é carregado pelo HTML e não deve ser modificado.
 
-### Bridge: como os dois runtimes se comunicam
+### Fluxo de autenticação React
 
-Cada módulo migrado tem um **bridge** (`src/features/*-react-bridge.js`) que:
-- Monta o componente React em um elemento DOM do `index.html`
-- Expõe funções imperativas para o `main.js` chamar (ex: `abrirNovoClienteReact()`)
-- Escuta `CustomEvent`s disparados pelo React para sincronizar o `D` legado (ex: `sc:cliente-salvo`)
+`useAppBootstrap` hidrata auth + filial do localStorage e determina o status da sessão. `AppRouter` usa `LoginRouteAccess` / `SetupRouteAccess` / `ProtectedAppRoute` para guardar as rotas. Login chama `authApi.signInWithPassword()`, Setup chama `authApi.listUserFiliais()`, sidebar tem logout com `clearSession + clearFilial`.
 
-A infraestrutura de bridge está em `src/legacy/bridges/`:
-- `feature-flags.js` — registry de pilots React (`isPilotEnabled`, `setPilotEnabled`). Prioridade: `localStorage > window global > defaultValue`. Todos os módulos migrados estão com `defaultValue: true`.
-- `bridge-contract.js` — contrato de interface entre legado e React
-- `storage-keys.js` — chaves de localStorage centralizadas
+### Estrutura de módulos
 
-### Padrão de migração de módulos (Fase 2 em andamento)
-
-Módulos migrados seguem sempre esta estrutura em `src/react/features/<modulo>/`:
+Cada feature vive em `src/react/features/<modulo>/`:
 ```
 components/    # Componentes TSX (Page, Form, ListView, DetailPanel, Card)
 hooks/         # useData (fetch), useMutations (save/delete), domínio específico
@@ -65,12 +58,9 @@ store/         # Zustand store com estado + seletores
 types.ts       # Tipos específicos do módulo (além de src/types/domain.ts)
 ```
 
-O fluxo de migração: criar pilot com `defaultValue: false` → validar → flipar para `true` → remover legado.
+### Todos os módulos de negócio são React-only
 
-### Estado de migração atual
-
-**React-only** (legado removido): Pedidos, Clientes, Dashboard, Contas Receber  
-**Legado puro** (Fase 2 pendente): Produtos, Estoque, Cotação, Relatórios, Campanhas, RCAs/Oportunidades
+Dashboard, Clientes, Pedidos, Contas Receber, Produtos, Estoque, Cotação, Relatórios, RCAs, Campanhas. Toda infraestrutura de bridge foi removida.
 
 ### Configuração em runtime
 
@@ -106,5 +96,4 @@ Scripts em `sql/` com numeração sequencial. Ordem de aplicação obrigatória:
 - Commits em Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 - PR sem lint + typecheck + testes passando não deve ser mergeado
 - Nenhuma regra de negócio financeira fica só no frontend
-- Novo módulo React: sempre criar pilot com `defaultValue: false`, validar, flipar, remover legado
 - Todo SQL novo segue `GOVERNANCA_SQL_RLS.md`
