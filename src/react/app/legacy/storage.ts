@@ -1,6 +1,7 @@
 export const LEGACY_STORAGE_KEYS = {
   authSession: 'sc_auth_session_v1',
   filialId: 'sc_filial_id',
+  userRole: 'sc_user_role',
   supabaseUrl: 'sc_supabase_url',
   supabaseKey: 'sc_supabase_key'
 } as const;

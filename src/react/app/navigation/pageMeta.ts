@@ -123,5 +123,17 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Relatórios', to: '/app/relatorios' }
     ]
+  },
+  filiais: {
+    kicker: 'Administração',
+    title: 'Filiais',
+    description: 'Cadastro e gestão de filiais da operação.',
+    actions: [{ label: 'Acessos', to: '/app/acessos' }]
+  },
+  acessos: {
+    kicker: 'Administração',
+    title: 'Acessos',
+    description: 'Perfis de usuário, vínculos a filiais, convites e auditoria de acesso.',
+    actions: [{ label: 'Filiais', to: '/app/filiais' }]
   }
 };

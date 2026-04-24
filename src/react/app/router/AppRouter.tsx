@@ -13,7 +13,10 @@ import { RelatoriosRoutePage } from '../../features/relatorios/pages/RelatoriosR
 import { CampanhasRoutePage } from '../../features/campanhas/pages/CampanhasRoutePage';
 import { LoginPage } from '../../features/auth/components/LoginPage';
 import { SetupPage } from '../../features/setup/components/SetupPage';
+import { FiliaisRoutePage } from '../../features/filiais/pages/FiliaisRoutePage';
+import { AcessosRoutePage } from '../../features/acessos/pages/AcessosRoutePage';
 import { AppShell } from '../layout/AppShell';
+import { AdminOnlyRoute } from './AdminOnlyRoute';
 import { LoginRouteAccess, ProtectedAppRoute, SetupRouteAccess } from './routeAccess';
 import { getDefaultAppPath } from './routes';
 
@@ -50,6 +53,10 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="rcas" element={<RcasRoutePage />} />
             <Route path="relatorios" element={<RelatoriosRoutePage />} />
             <Route path="campanhas" element={<CampanhasRoutePage />} />
+            <Route element={<AdminOnlyRoute />}>
+              <Route path="filiais" element={<FiliaisRoutePage />} />
+              <Route path="acessos" element={<AcessosRoutePage />} />
+            </Route>
           </Route>
         </Route>
 

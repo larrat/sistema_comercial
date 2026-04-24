@@ -2,16 +2,19 @@ import { NavLink, useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../useAuthStore';
 import { useFilialStore } from '../useFilialStore';
+import { useRoleStore } from '../useRoleStore';
 import { useNavigationItems } from '../hooks/useNavigationItems';
 
 export function AppSidebar() {
   const groups = useNavigationItems();
   const clearSession = useAuthStore((s) => s.clearSession);
   const clearFilial = useFilialStore((s) => s.clearFilial);
+  const clearRole = useRoleStore((s) => s.clearRole);
   const navigate = useNavigate();
 
   function handleLogout() {
     clearFilial();
+    clearRole();
     clearSession();
     navigate('/login', { replace: true });
   }

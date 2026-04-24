@@ -42,6 +42,24 @@ export async function signOut(base: ApiBase, token: string): Promise<void> {
   }).catch(() => {});
 }
 
+export async function getMeuPerfil(
+  base: ApiBase,
+  token: string,
+  userId: string
+): Promise<{ papel: string } | null> {
+  try {
+    const res = await fetch(
+      `${base.url}/rest/v1/user_perfis?user_id=eq.${encodeURIComponent(userId)}&select=papel&limit=1`,
+      { headers: { apikey: base.key, Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(4000) }
+    );
+    if (!res.ok) return null;
+    const rows: Array<{ papel: string }> = await res.json();
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function listUserFiliais(
   base: ApiBase,
   token: string,

@@ -5,7 +5,7 @@ export type NavigationItem = {
   id: AppRouteId;
   label: string;
   path: string;
-  group: 'Operação' | 'Cadastros' | 'Vendas' | 'Financeiro';
+  group: 'Operação' | 'Cadastros' | 'Vendas' | 'Financeiro' | 'Administração';
   roles?: AppUserRole[];
 };
 
@@ -79,5 +79,19 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     path: '/app/campanhas',
     group: 'Operação',
     roles: ['gerente', 'admin']
+  },
+  {
+    id: 'filiais',
+    label: 'Filiais',
+    path: '/app/filiais',
+    group: 'Administração',
+    roles: ['admin']
+  },
+  {
+    id: 'acessos',
+    label: 'Acessos',
+    path: '/app/acessos',
+    group: 'Administração',
+    roles: ['admin']
   }
 ];

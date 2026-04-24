@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
+import { useRoleStore } from '../../../app/useRoleStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { signInWithPassword } from '../services/authApi';
+import { getMeuPerfil, signInWithPassword } from '../services/authApi';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export function LoginPage() {
 
   const setSession = useAuthStore((s) => s.setSession);
   const clearFilial = useFilialStore((s) => s.clearFilial);
+  const setRole = useRoleStore((s) => s.setRole);
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,6 +29,11 @@ export function LoginPage() {
       clearFilial();
       const session = await signInWithPassword(cfg, email.trim(), password);
       setSession(session);
+      const userId = String((session.user as Record<string, unknown>)?.id ?? '');
+      if (userId) {
+        const perfil = await getMeuPerfil(cfg, session.access_token, userId);
+        if (perfil?.papel) setRole(perfil.papel);
+      }
       navigate('/setup', { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao entrar.');

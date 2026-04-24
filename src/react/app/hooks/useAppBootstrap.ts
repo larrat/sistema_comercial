@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useAuthStore } from '../useAuthStore';
 import { useFilialStore } from '../useFilialStore';
+import { useRoleStore } from '../useRoleStore';
 
 export type AppBootstrapStatus =
   | 'unknown'
@@ -20,11 +21,13 @@ export function useAppBootstrap(): AppBootstrapState {
   const authStatus = useAuthStore((state) => state.status);
   const hydrateFilial = useFilialStore((state) => state.hydrate);
   const filialId = useFilialStore((state) => state.filialId);
+  const hydrateRole = useRoleStore((state) => state.hydrate);
   const [hasBootstrapped, setHasBootstrapped] = useState(false);
 
   async function runBootstrap() {
     setHasBootstrapped(false);
     hydrateFilial();
+    hydrateRole();
     await hydrateAuth();
     setHasBootstrapped(true);
   }
