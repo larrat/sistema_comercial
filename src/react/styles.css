@@ -809,3 +809,266 @@
   padding: 10px 14px;
   font-size: 13px;
 }
+
+/* ── Campanhas ─────────────────────────────────────────── */
+
+.camp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.camp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+.camp-card-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.camp-card-nome {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.camp-card-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--text-muted, #6b7280);
+}
+
+.camp-card-meta span::before {
+  content: '·';
+  margin-right: 8px;
+  opacity: 0.4;
+}
+
+.camp-card-meta span:first-child::before {
+  content: none;
+}
+
+.camp-card-msg {
+  font-size: 12px;
+  color: var(--text-muted, #6b7280);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.camp-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.camp-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--surface-raised, #f3f4f6);
+}
+
+.camp-section {
+  padding: 0;
+  overflow: hidden;
+}
+
+.camp-section-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.camp-section-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.camp-fila-table-wrap {
+  overflow-x: auto;
+}
+
+.camp-fila-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.camp-fila-table th,
+.camp-fila-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.camp-fila-table th {
+  background: var(--surface-raised, #f9fafb);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.camp-row--sel {
+  background: var(--accent-muted, #e8f0fe);
+}
+
+.camp-fila-destino {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.camp-fila-row-actions {
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.camp-hist-grupo {
+  border-bottom: 1px solid var(--border);
+}
+
+.camp-hist-grupo:last-child {
+  border-bottom: none;
+}
+
+.camp-hist-grupo-hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface-raised, #f9fafb);
+  font-size: 13px;
+}
+
+.camp-hist-nome {
+  font-weight: 600;
+  flex: 1;
+}
+
+.camp-hist-resumo {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.camp-hist-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.camp-hist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.camp-hist-row:last-child {
+  border-bottom: none;
+}
+
+.camp-hist-destino {
+  font-family: monospace;
+  flex: 1;
+}
+
+.camp-hist-data {
+  color: var(--text-muted, #6b7280);
+  white-space: nowrap;
+}
+
+.camp-hist-erro {
+  font-size: 11px;
+}
+
+.camp-lote-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-muted, #e8f0fe);
+  color: var(--accent, #1a56db);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.camp-preview-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.camp-preview-label {
+  background: var(--surface-raised, #f3f4f6);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.camp-preview-body {
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.modal-box--wa {
+  max-width: 480px;
+}
+
+.camp-wa-destino {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.camp-field-label {
+  color: var(--text-muted, #6b7280);
+  font-size: 12px;
+}
+
+.camp-wa-msg-box {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised, #f9fafb);
+  padding: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.camp-wa-msg {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.camp-wa-actions-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

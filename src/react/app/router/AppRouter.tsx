@@ -10,6 +10,7 @@ import { PedidosRoutePage } from '../../features/pedidos/pages/PedidosRoutePage'
 import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePage';
 import { RcasRoutePage } from '../../features/rcas/pages/RcasRoutePage';
 import { RelatoriosRoutePage } from '../../features/relatorios/pages/RelatoriosRoutePage';
+import { CampanhasRoutePage } from '../../features/campanhas/pages/CampanhasRoutePage';
 import { AppContent } from '../layout/AppContent';
 import { AppShell } from '../layout/AppShell';
 import { LoginRouteAccess, ProtectedAppRoute, SetupRouteAccess } from './routeAccess';
@@ -67,6 +68,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="produtos" element={<ProdutosRoutePage />} />
             <Route path="rcas" element={<RcasRoutePage />} />
             <Route path="relatorios" element={<RelatoriosRoutePage />} />
+            <Route path="campanhas" element={<CampanhasRoutePage />} />
           </Route>
         </Route>
 

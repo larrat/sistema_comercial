@@ -72,5 +72,12 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     path: '/app/relatorios',
     group: 'Operação',
     roles: ['operador', 'gerente', 'admin']
+  },
+  {
+    id: 'campanhas',
+    label: 'Campanhas',
+    path: '/app/campanhas',
+    group: 'Operação',
+    roles: ['gerente', 'admin']
   }
 ];

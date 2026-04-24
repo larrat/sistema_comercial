@@ -167,9 +167,21 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 **Fase 2E concluída.** React é o caminho principal para Relatórios, oportunidades por jogos e validações.
 
 ### 2F — Campanhas
+> Concluído em 2026-04-23
+
 **Alta complexidade — última por depender de WhatsApp queue e envios.**  
 **Escopo React:** criação/edição, preview, fila de envio WhatsApp, histórico de envios.  
 **Referência:** `src/features/campanhas/` → `src/react/features/campanhas/`
+
+- [x] Criar tipos, store, services e hooks (`useCampanhasData`, `useCampanhasMutations`)
+- [x] Criar componentes (`CampanhasPage`, `FilaWhatsAppSection`, `HistoricoEnviosSection`, `CampanhaModal`, `WhatsAppPreviewModal`)
+- [x] Registrar rota `/app/campanhas` no `AppRouter.tsx`, `wave1Navigation.ts`, `navigation/config.ts` e `pageMeta.ts`
+- [x] Fila WhatsApp com seleção múltipla, envio em lote guiado, marcar enviado/falhou/desfazer
+- [x] Popup aberto antes do `await gerarFilaEdge` para contornar bloqueio de popup dos browsers
+- [x] Remover `#pg-campanhas`, `#modal-campanha`, `#modal-campanha-det` e `#modal-campanha-wa-preview` do `index.html`
+- [x] Deletar `src/features/campanhas.js` + `src/features/campanhas/` e substituir por stubs no `main.js`
+
+**Fase 2F concluída.** React é o caminho principal para Campanhas. `src/features/` não contém mais nenhuma feature de negócio.
 
 ---
 

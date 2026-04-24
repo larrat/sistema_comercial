@@ -114,5 +114,14 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
       { label: 'Pedidos', to: '/app/pedidos' },
       { label: 'Clientes', to: '/app/clientes' }
     ]
+  },
+  campanhas: {
+    kicker: 'Marketing',
+    title: 'Campanhas',
+    description: 'Criação e gestão de campanhas, fila de envio WhatsApp e histórico de contatos.',
+    actions: [
+      { label: 'Clientes', to: '/app/clientes' },
+      { label: 'Relatórios', to: '/app/relatorios' }
+    ]
   }
 };

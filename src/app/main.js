@@ -101,37 +101,35 @@ const renderRelatorios = () => {};
 const abrirValidacaoOportunidade = () => {};
 const salvarValidacaoOportunidade = () => {};
 
-import {
-  carregarCampanhas,
-  carregarCampanhaEnvios,
-  refreshCampanhasTela,
-  abrirNovaCampanha,
-  adotarCampanhasParaFilialAtiva,
-  editarCampanha,
-  abrirCampanhaDet,
-  salvarCampanha,
-  removerCampanha,
-  renderCampanhasMet,
-  renderCampanhas,
-  renderCampanhaPreview,
-  gerarFilaCampanha,
-  renderFilaWhatsApp,
-  renderCampanhaEnvios,
-  toggleEnvioFilaSelecionado,
-  toggleSelecionarTodosFilaWhatsApp,
-  abrirPreviewWhatsAppEnvio,
-  abrirWhatsAppPreviewAtual,
-  abrirWhatsAppEnvio,
-  copiarNumeroPreviewAtual,
-  copiarMensagemPreviewAtual,
-  abrirWhatsAppLote,
-  proximoEnvioLoteWhatsApp,
-  marcarEnvioEnviado,
-  marcarEnvioFalhou,
-  marcarSelecionadosEnviados,
-  desfazerStatusEnvio,
-  marcarSelecionadosFalhou
-} from '../features/campanhas.js';
+const carregarCampanhas = () => {};
+const carregarCampanhaEnvios = () => {};
+const refreshCampanhasTela = () => {};
+const abrirNovaCampanha = () => {};
+const adotarCampanhasParaFilialAtiva = () => {};
+const editarCampanha = () => {};
+const abrirCampanhaDet = () => {};
+const salvarCampanha = () => {};
+const removerCampanha = () => {};
+const renderCampanhasMet = () => {};
+const renderCampanhas = () => {};
+const renderCampanhaPreview = () => {};
+const gerarFilaCampanha = () => {};
+const renderFilaWhatsApp = () => {};
+const renderCampanhaEnvios = () => {};
+const toggleEnvioFilaSelecionado = () => {};
+const toggleSelecionarTodosFilaWhatsApp = () => {};
+const abrirPreviewWhatsAppEnvio = () => {};
+const abrirWhatsAppPreviewAtual = () => {};
+const abrirWhatsAppEnvio = () => {};
+const copiarNumeroPreviewAtual = () => {};
+const copiarMensagemPreviewAtual = () => {};
+const abrirWhatsAppLote = () => {};
+const proximoEnvioLoteWhatsApp = () => {};
+const marcarEnvioEnviado = () => {};
+const marcarEnvioFalhou = () => {};
+const marcarSelecionadosEnviados = () => {};
+const desfazerStatusEnvio = () => {};
+const marcarSelecionadosFalhou = () => {};
 
 import {
   initNotificacoesModule,
