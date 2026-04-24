@@ -1,12 +1,8 @@
 // @ts-check
 
-import {
-  createDirectBridgeFromWindow,
-  loadDirectBridgeScript
-} from '../legacy/bridges/bridge-contract.js';
-import { getPilotFlagStorageKey } from '../legacy/bridges/feature-flags.js';
+import { createDirectBridgeFromWindow, loadDirectBridgeScript } from './bridge-utils.js';
 
-/** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
+/** @typedef {import('./bridge-utils.js').BridgeInterface} BridgeInterface */
 
 const MESSAGE_SOURCE = 'pedidos-react-pilot';
 const COMMAND_SOURCE = 'pedidos-legacy-shell';
@@ -67,16 +63,8 @@ function toTabLabel(tab) {
 function updateBridgeIndicators() {
   const indicators = [
     ['ped-react-indicator-tab', toTabLabel(currentBridgeState.tab), 'bb'],
-    [
-      'ped-react-indicator-status',
-      toStatusLabel(currentBridgeState.status),
-      toStatusTone(currentBridgeState.status)
-    ],
-    [
-      'ped-react-indicator-count',
-      `${currentBridgeState.count} pedido${currentBridgeState.count === 1 ? '' : 's'}`,
-      'bg'
-    ]
+    ['ped-react-indicator-status', toStatusLabel(currentBridgeState.status), toStatusTone(currentBridgeState.status)],
+    ['ped-react-indicator-count', `${currentBridgeState.count} pedido${currentBridgeState.count === 1 ? '' : 's'}`, 'bg']
   ];
 
   indicators.forEach(([id, text, tone]) => {
@@ -198,8 +186,4 @@ if (typeof window !== 'undefined') {
   ensurePageObserver();
   registerPedidosReactBridge(createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP));
   window.addEventListener('message', handleBridgeMessage);
-  window.addEventListener('storage', (e) => {
-    const flagKey = getPilotFlagStorageKey('pedidos');
-    if (e.key === flagKey) void applyMode();
-  });
 }

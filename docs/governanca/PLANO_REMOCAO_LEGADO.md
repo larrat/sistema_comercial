@@ -186,13 +186,20 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 ---
 
 ## Fase 3 — Remover infraestrutura bridge
-> Executar somente após Fase 2 completa.
+> Concluído em 2026-04-24 (parcial — bridge build e dist-react bundles permanecem até Fase 4)
 
-1. Remover `src/legacy/bridges/` (o diretório inteiro)
-2. Remover os 4 `<script>` de bridge do `index.html`
-3. Remover chamadas a `isPilotEnabled` / `setPilotEnabled` de todo o código
-4. Deletar entradas de build de bridge em `vite.config.ts` (ou equivalente)
-5. Deletar bundles gerados em `dist-react/*-bridge.js`
+### O que foi removido
+- [x] Deletar `src/legacy/bridges/` (todo o diretório: `feature-flags.js`, `bridge-contract.js`, `storage-keys.js`)
+- [x] Remover todas as chamadas a `isPilotEnabled` / `setPilotEnabled` / `getPilotFlagStorageKey` do código
+- [x] Criar `src/features/bridge-utils.js` com apenas `createDirectBridgeFromWindow` e `loadDirectBridgeScript`
+- [x] Atualizar os 5 feature bridge files para importar de `bridge-utils.js` e eliminar dependência de pilots flags
+- [x] Remover storage listeners de feature flags (pilots são permanentemente ativos)
+
+### Permanece para Fase 4 (quando index.html for aposentado)
+- `vite.bridge.config.ts` e os 5 `src/react/*-bridge.tsx` entry files — ainda necessários para build
+- `dist-react/*-bridge.js` e `dist-react/bridges.css` — ainda carregados pelo `index.html`
+- `<link>` e `<script>` de bridge no `index.html` — 1 script estático (dashboard) + 4 lazy
+- Os 5 `src/features/*-react-bridge.js` — ainda montam React no shell legado
 
 ---
 

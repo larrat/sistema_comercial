@@ -1,12 +1,8 @@
 // @ts-check
 
-import {
-  createDirectBridgeFromWindow,
-  loadDirectBridgeScript
-} from '../legacy/bridges/bridge-contract.js';
-import { isPilotEnabled, getPilotFlagStorageKey } from '../legacy/bridges/feature-flags.js';
+import { createDirectBridgeFromWindow, loadDirectBridgeScript } from './bridge-utils.js';
 
-/** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
+/** @typedef {import('./bridge-utils.js').BridgeInterface} BridgeInterface */
 
 const MESSAGE_SOURCE = 'receber-react-pilot';
 const COMMAND_SOURCE = 'receber-legacy-shell';
@@ -51,10 +47,6 @@ async function ensureBridgeLoaded() {
   return bridge;
 }
 
-function isReactEnabled() {
-  return isPilotEnabled('receber');
-}
-
 function updateBridgeIndicators() {
   const el = document.getElementById('cr-react-indicator-count');
   if (el) {
@@ -84,8 +76,7 @@ async function applyMode() {
   const legacyShell = getLegacyShell();
   const root = getRoot();
 
-  if (!isReceberPageActive() || !isReactEnabled()) {
-    // Show legacy, hide React
+  if (!isReceberPageActive()) {
     if (legacyShell) legacyShell.hidden = false;
     if (root) root.hidden = true;
     if (mounted && bridge?.unmount) bridge.unmount();
@@ -94,7 +85,6 @@ async function applyMode() {
     return;
   }
 
-  // React mode: hide legacy, show React root
   if (legacyShell) legacyShell.hidden = true;
   if (root) root.hidden = false;
 
@@ -115,11 +105,11 @@ export function registerContasReceberReactBridge(nextBridge) {
 }
 
 export function shouldRenderLegacyContasReceber() {
-  return !mounted || !isReceberPageActive() || !isReactEnabled();
+  return !mounted || !isReceberPageActive();
 }
 
 export function isContasReceberReactPilotActive() {
-  return mounted && isReceberPageActive() && isReactEnabled();
+  return mounted && isReceberPageActive();
 }
 
 export function syncContasReceberReactBridge() {
@@ -155,8 +145,4 @@ if (typeof window !== 'undefined') {
   ensurePageObserver();
   registerContasReceberReactBridge(createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP));
   window.addEventListener('message', handleBridgeMessage);
-  window.addEventListener('storage', (e) => {
-    const flagKey = getPilotFlagStorageKey('receber');
-    if (e.key === flagKey) void applyMode();
-  });
 }

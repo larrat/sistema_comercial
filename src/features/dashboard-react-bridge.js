@@ -1,14 +1,10 @@
 // @ts-check
 
-import { STORAGE_KEYS, UI_MODES } from '../legacy/bridges/storage-keys.js';
-import {
-  isPilotEnabled,
-  setPilotEnabled,
-  getPilotFlagStorageKey
-} from '../legacy/bridges/feature-flags.js';
-import { createDirectBridgeFromWindow } from '../legacy/bridges/bridge-contract.js';
+import { createDirectBridgeFromWindow } from './bridge-utils.js';
 
-/** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
+/** @typedef {import('./bridge-utils.js').BridgeInterface} BridgeInterface */
+
+const DASHBOARD_UI_MODE_KEY = 'sc_dashboard_ui_mode';
 
 /** @type {BridgeInterface | null} */
 let bridge = null;
@@ -17,25 +13,21 @@ let mounted = false;
 let pageObserver = null;
 
 function getMode() {
-  const stored = localStorage.getItem(STORAGE_KEYS.DASHBOARD_UI_MODE);
-  if (stored === UI_MODES.LEGACY || stored === UI_MODES.REACT) return stored;
-  return isDashboardReactFeatureEnabled() ? UI_MODES.REACT : UI_MODES.LEGACY;
+  const stored = localStorage.getItem(DASHBOARD_UI_MODE_KEY);
+  if (stored === 'legacy' || stored === 'react') return stored;
+  return 'react';
 }
 
 function setMode(mode) {
-  localStorage.setItem(STORAGE_KEYS.DASHBOARD_UI_MODE, mode);
+  localStorage.setItem(DASHBOARD_UI_MODE_KEY, mode);
 }
 
 export function isDashboardReactFeatureEnabled() {
-  return isPilotEnabled('dashboard');
+  return true;
 }
 
-export function setDashboardReactFeatureEnabled(enabled) {
-  setPilotEnabled('dashboard', enabled);
-  // Alinha o modo UI com a flag, igualando o comportamento do bridge de Clientes
-  if (!localStorage.getItem(STORAGE_KEYS.DASHBOARD_UI_MODE)) {
-    setMode(enabled ? UI_MODES.REACT : UI_MODES.LEGACY);
-  }
+export function setDashboardReactFeatureEnabled(_enabled) {
+  // no-op — React is permanently enabled
 }
 
 function getDashboardPage() {
@@ -67,7 +59,7 @@ function isDashboardPageActive() {
 }
 
 function isReactModeActive() {
-  return !!(bridge?.mount && getMode() === UI_MODES.REACT && isDashboardPageActive());
+  return !!(bridge?.mount && getMode() === 'react' && isDashboardPageActive());
 }
 
 function updateToggle() {
@@ -78,7 +70,7 @@ function updateToggle() {
     return;
   }
   toggle.hidden = false;
-  toggle.textContent = getMode() === UI_MODES.REACT ? 'Visual clássico' : 'Nova interface';
+  toggle.textContent = getMode() === 'react' ? 'Visual clássico' : 'Nova interface';
 }
 
 async function applyMode() {
@@ -127,7 +119,7 @@ export function syncDashboardReactBridge() {
 
 export function toggleDashboardReactBridge() {
   if (!bridge?.mount) return;
-  setMode(getMode() === UI_MODES.REACT ? UI_MODES.LEGACY : UI_MODES.REACT);
+  setMode(getMode() === 'react' ? 'legacy' : 'react');
   void applyMode();
 }
 
@@ -147,7 +139,6 @@ if (typeof window !== 'undefined') {
   ensurePageObserver();
   registerDashboardReactBridge(createDirectBridgeFromWindow('__SC_DASHBOARD_DIRECT_BRIDGE__'));
   window.addEventListener('storage', (e) => {
-    const flagKey = getPilotFlagStorageKey('dashboard');
-    if (e.key === STORAGE_KEYS.DASHBOARD_UI_MODE || e.key === flagKey) void applyMode();
+    if (e.key === DASHBOARD_UI_MODE_KEY) void applyMode();
   });
 }

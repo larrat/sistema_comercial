@@ -1,12 +1,8 @@
 // @ts-check
 
-import {
-  createDirectBridgeFromWindow,
-  loadDirectBridgeScript
-} from '../legacy/bridges/bridge-contract.js';
-import { isPilotEnabled, getPilotFlagStorageKey } from '../legacy/bridges/feature-flags.js';
+import { createDirectBridgeFromWindow, loadDirectBridgeScript } from './bridge-utils.js';
 
-/** @typedef {import('../legacy/bridges/bridge-contract.js').BridgeInterface} BridgeInterface */
+/** @typedef {import('./bridge-utils.js').BridgeInterface} BridgeInterface */
 
 const DIRECT_BRIDGE_PROP = '__SC_PRODUTOS_DIRECT_BRIDGE__';
 const DIRECT_BRIDGE_SCRIPT = './dist-react/produtos-bridge.js';
@@ -41,15 +37,11 @@ async function ensureBridgeLoaded() {
   return bridge;
 }
 
-function isReactEnabled() {
-  return isPilotEnabled('produtos');
-}
-
 async function applyMode() {
   const legacyShell = getLegacyShell();
   const root = getRoot();
 
-  if (!isProdutosPageActive() || !isReactEnabled()) {
+  if (!isProdutosPageActive()) {
     if (legacyShell) legacyShell.hidden = false;
     if (root) root.hidden = true;
     if (mounted && bridge?.unmount) bridge.unmount();
@@ -75,7 +67,7 @@ export function registerProdutosReactBridge(nextBridge) {
 }
 
 export function isProdutosReactPilotActive() {
-  return mounted && isProdutosPageActive() && isReactEnabled();
+  return mounted && isProdutosPageActive();
 }
 
 export function syncProdutosReactBridge() {
@@ -101,13 +93,7 @@ function ensurePageObserver() {
 if (typeof window !== 'undefined') {
   ensurePageObserver();
   registerProdutosReactBridge(createDirectBridgeFromWindow(DIRECT_BRIDGE_PROP));
-  window.addEventListener('storage', (e) => {
-    const flagKey = getPilotFlagStorageKey('produtos');
-    if (e.key === flagKey) void applyMode();
-  });
-  // Sincroniza D.produtos quando o React salva/remove um produto
   window.addEventListener('sc:produto-salvo', () => {
-    if (!isProdutosReactPilotActive()) return;
     // O legado pode reagir a este evento se precisar atualizar outros módulos (ex: pedidos)
   });
 }
