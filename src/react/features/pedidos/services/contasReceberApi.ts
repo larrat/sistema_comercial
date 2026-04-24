@@ -2,6 +2,7 @@ import type { PedidoApiContext } from './pedidosApi';
 import { normalizePedStatus } from '../types';
 import { D } from '../../../../app/store.js';
 import { emitLegacyEvent } from '../../../app/legacy/events';
+import type { ContaReceber } from '../../../../types/domain';
 
 const PRAZO_DIAS: Record<string, number> = {
   '7d': 7,
@@ -30,7 +31,7 @@ export type ContaReceberInput = {
 
 async function inserirConta(
   context: PedidoApiContext,
-  conta: Record<string, unknown>
+  conta: ContaReceber
 ): Promise<void> {
   const res = await fetch(`${context.url}/rest/v1/contas_receber`, {
     method: 'POST',
@@ -50,8 +51,8 @@ async function inserirConta(
   }
 
   if (!D.contasReceber) D.contasReceber = {};
-  const contasFilial = D.contasReceber[context.filialId] || [];
-  const nextConta = conta as Record<string, unknown>;
+  const contasFilial = /** @type {ContaReceber[]} */ (D.contasReceber[context.filialId] || []);
+  const nextConta = conta;
   D.contasReceber[context.filialId] = contasFilial.some((item) => item.id === nextConta.id)
     ? contasFilial.map((item) => (item.id === nextConta.id ? { ...item, ...nextConta } : item))
     : [nextConta, ...contasFilial];

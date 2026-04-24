@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from './App';
@@ -13,6 +13,7 @@ let authState: {
 };
 let filialState: {
   hydrate: () => void;
+  filialId?: string | null;
 };
 
 vi.mock('./features/clientes/components/ClientesPilotPage', () => ({
@@ -41,7 +42,8 @@ describe('App', () => {
       hydrate: authHydrateMock
     };
     filialState = {
-      hydrate: filialHydrateMock
+      hydrate: filialHydrateMock,
+      filialId: null
     };
   });
 
@@ -53,20 +55,25 @@ describe('App', () => {
     expect(filialHydrateMock).toHaveBeenCalled();
   });
 
-  it('mostra aviso quando nao ha sessao', () => {
+  it('mostra a rota de login quando nao ha sessao', async () => {
     authState.status = 'unauthenticated';
 
     render(<App />);
 
-    expect(screen.getByText(/Sess/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Login')).toBeInTheDocument();
+    });
   });
 
-  it('renderiza o piloto de clientes quando autenticado', () => {
+  it('renderiza a rota principal quando autenticado com filial', async () => {
     authState.status = 'authenticated';
+    filialState.filialId = 'filial-1';
 
     render(<App />);
 
-    expect(screen.getByTestId('clientes-pilot-page')).toBeInTheDocument();
-    expect(useClienteDataMock).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard-pilot-page')).toBeInTheDocument();
+    });
+    expect(useClienteDataMock).not.toHaveBeenCalled();
   });
 });

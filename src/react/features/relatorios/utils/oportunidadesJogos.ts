@@ -128,7 +128,7 @@ export function computeOportunidades(
         } satisfies OportunidadeJogo;
       });
     })
-    .filter((x): x is OportunidadeJogo => x !== null)
+    .filter((x): x is NonNullable<typeof x> => x !== null)
     .sort((a, b) => (a.data as Date).getTime() - (b.data as Date).getTime());
 }
 

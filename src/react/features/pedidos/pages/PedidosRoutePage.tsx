@@ -10,10 +10,12 @@ export function PedidosRoutePage() {
 
   const routeIntent = useMemo(() => {
     const pedidoId = searchParams.get('pedido');
-    const view = searchParams.get('view');
+    const rawView = searchParams.get('view');
+    const view: 'detail' | 'edit' | 'new' | null =
+      rawView === 'detail' || rawView === 'edit' || rawView === 'new' ? rawView : null;
     return {
       pedidoId,
-      view: view === 'detail' || view === 'edit' || view === 'new' ? view : null
+      view
     };
   }, [searchParams]);
 

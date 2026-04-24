@@ -2,11 +2,11 @@ import type { Cliente } from '../../../../types/domain';
 import type { PedidoApiContext } from './pedidosApi';
 
 /** Campos mínimos necessários para o form de pedido */
-export type ClienteLight = Pick<Cliente, 'id' | 'nome' | 'rca_id' | 'rca_nome'>;
+export type ClienteLight = Pick<Cliente, 'id' | 'nome' | 'rca_id' | 'rca_nome' | 'prazo'>;
 
 export async function listClientesLight(context: PedidoApiContext): Promise<ClienteLight[]> {
   const res = await fetch(
-    `${context.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(context.filialId)}&select=id,nome,rca_id,rca_nome&order=nome`,
+    `${context.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(context.filialId)}&select=id,nome,rca_id,rca_nome,prazo&order=nome`,
     {
       headers: {
         apikey: context.key,

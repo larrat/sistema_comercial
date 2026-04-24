@@ -825,7 +825,7 @@ export const SB = {
   /** @returns {Promise<Filial[]>} */
   getFiliais: async () => {
     const session = await getActiveAuthSession();
-    const accessibleIds = await listAccessibleFilialIds(session?.user?.id);
+    const accessibleIds = await listAccessibleFilialIds(String(session?.user?.id || ''));
     if (!accessibleIds.length) return [];
     const allFiliais = /** @type {Filial[] | null} */ (
       await sbReq('filiais', 'GET', null, '?order=criado_em')

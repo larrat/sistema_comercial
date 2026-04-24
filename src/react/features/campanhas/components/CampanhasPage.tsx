@@ -82,7 +82,7 @@ export function CampanhasPage() {
     <div className="rf-ui-stack">
       <PageHeader
         title="Campanhas"
-        subtitle="Gerencie campanhas de marketing e fila de WhatsApp"
+        description="Gerencie campanhas de marketing e fila de WhatsApp."
         actions={
           <>
             <button className="btn btn-ghost" onClick={requestReload} disabled={loading}>
