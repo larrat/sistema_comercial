@@ -1,7 +1,14 @@
+import { useEffect, useState } from 'react';
+
 import { Modal, StatusBadge } from '../../../shared/ui';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { useFilialStore } from '../../../app/useFilialStore';
 import { useEstoqueStore } from '../store/useEstoqueStore';
 import { useEstoqueMutations } from '../hooks/useEstoqueMutations';
 import { calculateEstoqueSaldos } from '../hooks/useEstoqueCalculations';
+import { listTransferFiliais } from '../services/estoqueApi';
+import type { Filial } from '../../../../types/domain';
 
 function fmtCurrency(value: number) {
   return Intl.NumberFormat('pt-BR', {
@@ -29,7 +36,13 @@ export function EstoqueMovementModal() {
   const snapshot = useEstoqueStore((s) => s.snapshot);
   const updateMovementDraft = useEstoqueStore((s) => s.updateMovementDraft);
   const closeMovementModal = useEstoqueStore((s) => s.closeMovementModal);
+  const session = useAuthStore((s) => s.session);
+  const filialId = useFilialStore((s) => s.filialId);
   const { saveMovement } = useEstoqueMutations();
+  const [transferFiliais, setTransferFiliais] = useState<Filial[]>([]);
+  const [transferStatus, setTransferStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
+    'idle'
+  );
 
   const produtos = snapshot?.produtos || [];
   const movimentacoes = snapshot?.movimentacoes || [];
@@ -52,7 +65,7 @@ export function EstoqueMovementModal() {
         ? (atual.saldo * atual.cm + quantidade * custoInformado) / previewSaldo
         : custoInformado;
     previewValor = quantidade * custoInformado;
-  } else if (draft.tipo === 'saida' && quantidade > 0) {
+  } else if ((draft.tipo === 'saida' || draft.tipo === 'transf') && quantidade > 0) {
     previewSaldo = atual.saldo - quantidade;
   } else if (draft.tipo === 'ajuste' && draft.saldoReal !== '') {
     previewSaldo = saldoReal;
@@ -61,7 +74,50 @@ export function EstoqueMovementModal() {
   const canShowPreview =
     !!draft.produtoId &&
     ((draft.tipo === 'ajuste' && draft.saldoReal !== '') ||
-      (draft.tipo !== 'ajuste' && quantidade > 0));
+      (draft.tipo !== 'ajuste' &&
+        quantidade > 0 &&
+        (draft.tipo !== 'transf' || !!draft.destinoFilialId)));
+
+  useEffect(() => {
+    if (!open || draft.tipo !== 'transf') return;
+    const config = getSupabaseConfig();
+    const token = session?.access_token || '';
+    const userId = String(session?.user?.id || '').trim();
+    const currentFilialId = String(filialId || '').trim();
+
+    if (!config.ready || !token || !userId || !currentFilialId) {
+      setTransferFiliais([]);
+      setTransferStatus('error');
+      return;
+    }
+
+    let cancelled = false;
+    setTransferStatus('loading');
+
+    void listTransferFiliais({
+      url: config.url,
+      key: config.key,
+      token,
+      filialId: currentFilialId,
+      userId
+    })
+      .then((rows) => {
+        if (cancelled) return;
+        setTransferFiliais(rows.filter((filial) => filial.id !== currentFilialId));
+        setTransferStatus('ready');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTransferFiliais([]);
+        setTransferStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, draft.tipo, session?.access_token, session?.user?.id, filialId]);
+
+  const destinationFilial = transferFiliais.find((item) => item.id === draft.destinoFilialId) || null;
 
   return (
     <Modal
@@ -76,9 +132,9 @@ export function EstoqueMovementModal() {
           <button
             type="button"
             className="btn btn-p btn-sm"
-            onClick={() => void saveMovement(atual.saldo)}
+            onClick={() => void saveMovement(atual.saldo, atual.cm)}
           >
-            Salvar movimentação
+            {draft.tipo === 'transf' ? 'Salvar transferência' : 'Salvar movimentação'}
           </button>
         </>
       }
@@ -113,14 +169,20 @@ export function EstoqueMovementModal() {
         </div>
 
         <div className="rf-ui-inline-tabs">
-          {(['entrada', 'saida', 'ajuste'] as const).map((tipo) => (
+          {(['entrada', 'saida', 'ajuste', 'transf'] as const).map((tipo) => (
             <button
               key={tipo}
               type="button"
               className={`tb ${draft.tipo === tipo ? 'on' : ''}`}
               onClick={() => updateMovementDraft({ tipo })}
             >
-              {tipo === 'entrada' ? 'Entrada' : tipo === 'saida' ? 'Saída' : 'Ajuste'}
+              {tipo === 'entrada'
+                ? 'Entrada'
+                : tipo === 'saida'
+                  ? 'Saída'
+                  : tipo === 'ajuste'
+                    ? 'Ajuste'
+                    : 'Transferência'}
             </button>
           ))}
         </div>
@@ -151,7 +213,11 @@ export function EstoqueMovementModal() {
           {draft.tipo !== 'ajuste' ? (
             <label className="rf-ui-field">
               <span className="rf-ui-field__label">
-                {draft.tipo === 'entrada' ? 'Quantidade recebida' : 'Quantidade saída'}
+                {draft.tipo === 'entrada'
+                  ? 'Quantidade recebida'
+                  : draft.tipo === 'transf'
+                    ? 'Quantidade transferida'
+                    : 'Quantidade saída'}
               </span>
               <input
                 className="inp"
@@ -187,11 +253,40 @@ export function EstoqueMovementModal() {
             </label>
           ) : (
             <div className="rf-ui-field">
-              <span className="rf-ui-field__label">Custo médio atual</span>
+              <span className="rf-ui-field__label">
+                {draft.tipo === 'transf' ? 'Custo transferido' : 'Custo médio atual'}
+              </span>
               <div className="rf-ui-field__static">{fmtCurrency(atual.cm)}</div>
             </div>
           )}
         </div>
+
+        {draft.tipo === 'transf' ? (
+          <label className="rf-ui-field">
+            <span className="rf-ui-field__label">Filial de destino</span>
+            <select
+              className="inp sel"
+              value={draft.destinoFilialId}
+              onChange={(event) => updateMovementDraft({ destinoFilialId: event.target.value })}
+            >
+              <option value="">Selecione...</option>
+              {transferFiliais.map((filial) => (
+                <option key={filial.id} value={filial.id}>
+                  {filial.nome}
+                </option>
+              ))}
+            </select>
+            <div className="table-cell-caption table-cell-muted">
+              {transferStatus === 'loading'
+                ? 'Carregando filiais disponíveis...'
+                : transferStatus === 'error'
+                  ? 'Não foi possível carregar as filiais disponíveis para transferência.'
+                  : transferFiliais.length
+                    ? 'A saída será lançada na filial atual e a entrada será registrada na filial de destino.'
+                    : 'Nenhuma outra filial disponível para transferência.'}
+            </div>
+          </label>
+        ) : null}
 
         <label className="rf-ui-field">
           <span className="rf-ui-field__label">Observação</span>
@@ -214,10 +309,15 @@ export function EstoqueMovementModal() {
               <span>
                 {draft.tipo === 'ajuste'
                   ? `Diferença: ${fmtQuantity(previewSaldo - atual.saldo)} ${produto?.un || ''}`
+                  : draft.tipo === 'transf'
+                    ? `Custo transferido: ${fmtCurrency(atual.cm)}`
                   : `Custo médio: ${fmtCurrency(previewCusto)}`}
               </span>
               {draft.tipo === 'entrada' ? (
                 <span>Valor da entrada: {fmtCurrency(previewValor)}</span>
+              ) : null}
+              {draft.tipo === 'transf' ? (
+                <span>Destino: {destinationFilial?.nome || 'Selecione a filial de destino'}</span>
               ) : null}
             </div>
           </div>

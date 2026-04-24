@@ -5,7 +5,7 @@ import type {
   CotacaoSheet as DomainCotacaoSheet,
   Fornecedor as DomainFornecedor,
   Produto
-} from '../../../../types/domain';
+} from '../../../types/domain';
 
 export type CotacaoTabId = 'cotacao' | 'fornecedores' | 'importar';
 
@@ -71,15 +71,48 @@ export type CotacaoHeaderOption = {
 };
 
 export type ImportResumo = {
+  status?: 'success' | 'partial' | 'failed';
   novos: number;
   atualizados: number;
   ignorados: number;
   falhas: number;
+  itensProblematicos?: Array<{
+    etapa: 'produtos' | 'cotacao_atual' | 'historico' | 'layout' | 'log';
+    nome: string;
+    motivo: string;
+  }>;
+  etapas?: Array<{
+    id: 'produtos' | 'cotacao_atual' | 'historico' | 'layout' | 'log';
+    label: string;
+    status: 'success' | 'partial' | 'failed';
+    processados: number;
+    sucesso: number;
+    falhas: number;
+  }>;
   ignoradosExemplos: Array<{
     linha: number | string;
     nome: string;
     motivo: string;
   }>;
+};
+
+export type ImportMatchStatus = 'matched' | 'ambiguous' | 'unmatched';
+
+export type ImportMatchReviewRow = {
+  nomeOriginal: string;
+  status: ImportMatchStatus;
+  produtoId?: string;
+  produtoNome?: string;
+  candidatos?: string[];
+};
+
+export type ImportMatchReview = {
+  total: number;
+  matched: number;
+  ambiguous: number;
+  unmatched: number;
+  blocking: number;
+  rows: ImportMatchReviewRow[];
 };
 
 export type CotacaoImportContext = {

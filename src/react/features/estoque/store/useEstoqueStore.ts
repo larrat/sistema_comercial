@@ -66,7 +66,8 @@ function createMovementDraft(
     quantidade: '',
     custo: '',
     observacao: '',
-    saldoReal: ''
+    saldoReal: '',
+    destinoFilialId: ''
   };
 }
 

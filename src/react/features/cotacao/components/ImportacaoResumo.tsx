@@ -11,6 +11,25 @@ export function ImportacaoResumo() {
         <div className="table-cell-strong" style={{ marginBottom: 4 }}>
           Último resumo disponível
         </div>
+        {importResumo.status ? (
+          <div style={{ marginBottom: 8 }}>
+            <StatusBadge
+              tone={
+                importResumo.status === 'success'
+                  ? 'success'
+                  : importResumo.status === 'partial'
+                    ? 'warning'
+                    : 'danger'
+              }
+            >
+              {importResumo.status === 'success'
+                ? 'Sucesso'
+                : importResumo.status === 'partial'
+                  ? 'Falha parcial'
+                  : 'Falhou'}
+            </StatusBadge>
+          </div>
+        ) : null}
         <div className="rf-ui-inline-stats">
           <span>{importResumo.novos} novos</span>
           <span>{importResumo.atualizados} atualizados</span>
@@ -19,6 +38,11 @@ export function ImportacaoResumo() {
             <span style={{ color: 'var(--red)' }}>{importResumo.falhas} falhas</span>
           )}
         </div>
+        {importResumo.itensProblematicos?.length ? (
+          <p className="table-cell-caption table-cell-muted" style={{ marginTop: 8 }}>
+            Itens problemáticos visíveis: {importResumo.itensProblematicos.length}
+          </p>
+        ) : null}
       </div>
     );
   }

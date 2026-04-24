@@ -1,4 +1,4 @@
-import { filterEstoquePositionRows } from './useEstoqueCalculations';
+import { filterEstoqueHistoryRows, filterEstoquePositionRows } from './useEstoqueCalculations';
 import { useEstoqueStore } from '../store/useEstoqueStore';
 
 export function useEstoqueFilters() {
@@ -23,7 +23,7 @@ export function useEstoqueFilters() {
     buscaHistorico,
     tipoHistorico,
     positionRows: filterEstoquePositionRows(positionRows, buscaPosicao, statusFilter),
-    historyRows,
+    historyRows: filterEstoqueHistoryRows(historyRows, buscaHistorico, tipoHistorico),
     setView,
     setBuscaPosicao,
     setStatusFilter,

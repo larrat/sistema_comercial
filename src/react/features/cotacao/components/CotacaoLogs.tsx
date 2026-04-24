@@ -32,7 +32,7 @@ export function CotacaoLogs({ logs }: Props) {
             <span className="table-cell-muted table-cell-caption">{l.data}</span>
             <StatusBadge tone="success">{l.novos ?? 0} novos</StatusBadge>
             {l.atu ? <StatusBadge tone="info">{l.atu} atualizados</StatusBadge> : null}
-            {l.falhas ? <StatusBadge tone="error">{l.falhas} falha(s)</StatusBadge> : null}
+            {l.falhas ? <StatusBadge tone="danger">{l.falhas} falha(s)</StatusBadge> : null}
           </div>
         </div>
       ))}

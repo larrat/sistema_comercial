@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../../shared/ui';
 import { useCotacaoImport } from '../hooks/useCotacaoImport';
+import {
+  buildCotacaoImportMatchReview,
+  buildCotacaoImportPlan
+} from '../services/cotacaoImportService';
 import { useCotacaoStore } from '../store/useCotacaoStore';
 import type { CotacaoMapaDraft } from '../types';
 import {
@@ -14,6 +18,7 @@ export function ImportMapModal() {
   const ctx = useCotacaoStore((s) => s.importContext);
   const progress = useCotacaoStore((s) => s.importProgress);
   const resumo = useCotacaoStore((s) => s.importResumo);
+  const produtos = useCotacaoStore((s) => s.produtos);
   const closeImportMap = useCotacaoStore((s) => s.closeImportMap);
   const { confirmarImportacao } = useCotacaoImport();
 
@@ -41,6 +46,14 @@ export function ImportMapModal() {
     [draft.startLine, rows]
   );
   const preview = useMemo(() => buildPreviewRows(rows, draft.startLine, 5), [draft.startLine, rows]);
+  const importPlan = useMemo(
+    () => buildCotacaoImportPlan({ ...draft, sheet: sheetIdx }, sheet),
+    [draft, sheet, sheetIdx]
+  );
+  const matchReview = useMemo(
+    () => buildCotacaoImportMatchReview(importPlan.rows, produtos),
+    [importPlan.rows, produtos]
+  );
 
   const opts = headers.map((h) => (
     <option key={h.idx} value={h.idx}>
@@ -90,7 +103,7 @@ export function ImportMapModal() {
               type="button"
               className="btn btn-p btn-sm"
               onClick={() => void handleConfirmar()}
-              disabled={confirming || !ctx}
+              disabled={confirming || !ctx || matchReview.blocking > 0}
             >
               {confirming ? 'Importando...' : 'Confirmar importação'}
             </button>
@@ -125,6 +138,25 @@ export function ImportMapModal() {
         ) : resumo ? (
           <div className="rf-ui-stack">
             <div className="table-cell-strong">Importação concluída</div>
+            {resumo.status ? (
+              <div>
+                <span
+                  className={`bdg ${
+                    resumo.status === 'success'
+                      ? 'ok'
+                      : resumo.status === 'partial'
+                        ? 'warn'
+                        : 'danger'
+                  }`}
+                >
+                  {resumo.status === 'success'
+                    ? 'Sucesso'
+                    : resumo.status === 'partial'
+                      ? 'Falha parcial'
+                      : 'Falhou'}
+                </span>
+              </div>
+            ) : null}
             <div className="rf-ui-inline-stats">
               <span>{resumo.novos} novos</span>
               <span>{resumo.atualizados} atualizados</span>
@@ -133,6 +165,38 @@ export function ImportMapModal() {
                 <span style={{ color: 'var(--red)' }}>{resumo.falhas} falhas</span>
               ) : null}
             </div>
+            {resumo.etapas?.length ? (
+              <div className="tw">
+                <table className="tbl">
+                  <thead>
+                    <tr>
+                      <th>Etapa</th>
+                      <th>Status</th>
+                      <th>Processados</th>
+                      <th>Sucesso</th>
+                      <th>Falhas</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {resumo.etapas.map((etapa) => (
+                      <tr key={etapa.id}>
+                        <td>{etapa.label}</td>
+                        <td>
+                          {etapa.status === 'success'
+                            ? 'Sucesso'
+                            : etapa.status === 'partial'
+                              ? 'Parcial'
+                              : 'Falhou'}
+                        </td>
+                        <td>{etapa.processados}</td>
+                        <td>{etapa.sucesso}</td>
+                        <td>{etapa.falhas}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
             {resumo.ignoradosExemplos.length ? (
               <details>
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
@@ -153,6 +217,33 @@ export function ImportMapModal() {
                           <td>{ex.linha}</td>
                           <td>{ex.nome || '—'}</td>
                           <td className="table-cell-muted">{ex.motivo}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            ) : null}
+            {resumo.itensProblematicos?.length ? (
+              <details>
+                <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
+                  Ver itens problemáticos ({resumo.itensProblematicos.length})
+                </summary>
+                <div className="tw" style={{ marginTop: 8 }}>
+                  <table className="tbl">
+                    <thead>
+                      <tr>
+                        <th>Etapa</th>
+                        <th>Item</th>
+                        <th>Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {resumo.itensProblematicos.map((item, index) => (
+                        <tr key={`${item.etapa}-${item.nome}-${index}`}>
+                          <td>{item.etapa}</td>
+                          <td>{item.nome || '—'}</td>
+                          <td className="table-cell-muted">{item.motivo}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -184,6 +275,28 @@ export function ImportMapModal() {
               <span>
                 Layout salvo: <strong>{ctx?.savedLayout ? 'Sim' : 'Não'}</strong>
               </span>
+            </div>
+
+            <div className="card-shell rf-ui-stack">
+              <div className="table-cell-strong">Política de mapeamento de produtos</div>
+              <div className="rf-ui-inline-stats">
+                <span>Confiáveis: <strong>{matchReview.matched}</strong></span>
+                <span>Ambíguos: <strong>{matchReview.ambiguous}</strong></span>
+                <span>Sem match: <strong>{matchReview.unmatched}</strong></span>
+              </div>
+              <p className="table-cell-caption table-cell-muted">
+                Só itens com match confiável seguem para a persistência. Match ambíguo ou sem match
+                bloqueiam a confirmação para evitar associação incorreta.
+              </p>
+              {matchReview.blocking > 0 ? (
+                <div className="table-cell-caption" style={{ color: 'var(--red)' }}>
+                  Há {matchReview.blocking} item(ns) com mapeamento inseguro. Revise antes de importar.
+                </div>
+              ) : (
+                <div className="table-cell-caption table-cell-muted">
+                  Todos os itens válidos estão mapeados com segurança.
+                </div>
+              )}
             </div>
 
             {sheets.length > 1 ? (
@@ -224,6 +337,48 @@ export function ImportMapModal() {
                   </tbody>
                 </table>
               </div>
+            ) : null}
+
+            {importPlan.rows.length ? (
+              <details>
+                <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
+                  Revisar matching dos itens ({matchReview.rows.length})
+                </summary>
+                <div className="tw" style={{ marginTop: 8 }}>
+                  <table className="tbl">
+                    <thead>
+                      <tr>
+                        <th>Item importado</th>
+                        <th>Status</th>
+                        <th>Produto relacionado</th>
+                        <th>Detalhe</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matchReview.rows.slice(0, 20).map((row, index) => (
+                        <tr key={`${row.nomeOriginal}-${index}`}>
+                          <td>{row.nomeOriginal}</td>
+                          <td>
+                            {row.status === 'matched'
+                              ? 'Confiável'
+                              : row.status === 'ambiguous'
+                                ? 'Ambíguo'
+                                : 'Sem match'}
+                          </td>
+                          <td>{row.produtoNome || '—'}</td>
+                          <td className="table-cell-muted">
+                            {row.status === 'ambiguous'
+                              ? row.candidatos?.join(', ') || 'Mais de um candidato'
+                              : row.status === 'unmatched'
+                                ? 'Nenhum produto existente bateu com segurança'
+                                : 'Match único por nome/descrição padronizada'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
             ) : null}
 
             <div className="rf-ui-form-grid">

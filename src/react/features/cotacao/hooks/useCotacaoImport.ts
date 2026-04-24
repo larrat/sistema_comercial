@@ -32,8 +32,6 @@ function scoreSheet(rows: CotacaoSheet['rows'], name: string): number {
   return score;
 }
 
-export const autoDetectColumns = autoDetectColumnsImportacao;
-
 function parseXlsx(buffer: ArrayBuffer): CotacaoSheet[] {
   const wb = XLSX.read(buffer, { type: 'array' });
   return wb.SheetNames.map((name) => {
@@ -150,10 +148,19 @@ export function useCotacaoImport() {
       setImportResumo(result.resumo);
       clearImportProgress();
       requestReload();
-      emitToast(
-        `Importação concluída: ${result.resumo.atualizados} atualizados, ${result.resumo.novos} novos na cotação.`,
-        'success'
-      );
+      if (result.resumo.status === 'partial') {
+        emitToast(
+          `Importação concluída com falhas parciais: ${result.resumo.atualizados} atualizados, ${result.resumo.novos} novos e ${result.resumo.falhas} falhas.`,
+          'warning'
+        );
+      } else if (result.resumo.status === 'failed') {
+        emitToast('Importação processada, mas nenhuma etapa foi concluída com sucesso.', 'error');
+      } else {
+        emitToast(
+          `Importação concluída: ${result.resumo.atualizados} atualizados, ${result.resumo.novos} novos na cotação.`,
+          'success'
+        );
+      }
     } catch (err) {
       emitToast(err instanceof Error ? err.message : 'Erro na importação.', 'error');
       clearImportProgress();

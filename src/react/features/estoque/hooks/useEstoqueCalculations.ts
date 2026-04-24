@@ -1,5 +1,6 @@
 import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import type {
+  EstoqueHistoryRow,
   EstoqueMetrics,
   EstoquePositionRow,
   EstoqueStatusFilter
@@ -18,6 +19,34 @@ function getSaldoStatus(saldo: number, minimo: number): EstoqueStatusFilter {
   if (saldo <= 0) return 'zerado';
   if (minimo > 0 && saldo < minimo) return 'baixo';
   return 'ok';
+}
+
+function fmtCurrency(value: number): string {
+  return Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(Number(value || 0));
+}
+
+function fmtQuantity(value: number): string {
+  return Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(Number(value || 0));
+}
+
+function fmtDate(value?: string): string {
+  if (!value) return '—';
+  const [year, month, day] = String(value).split('-');
+  if (!year || !month || !day) return value;
+  return `${day}/${month}/${year}`;
+}
+
+function normalizeHistoryType(value: string): EstoqueHistoryRow['tipo'] {
+  if (value === 'entrada' || value === 'saida' || value === 'ajuste' || value === 'transf') {
+    return value;
+  }
+  return 'ajuste';
 }
 
 export function calculateEstoqueSaldos(
@@ -103,6 +132,40 @@ export function buildEstoqueMetrics(rows: EstoquePositionRow[]): EstoqueMetrics 
   };
 }
 
+export function buildEstoqueHistoryRows(
+  produtos: Produto[],
+  movimentacoes: MovimentoEstoque[]
+): EstoqueHistoryRow[] {
+  const produtosById = new Map(produtos.map((produto) => [produto.id, produto]));
+
+  return [...movimentacoes]
+    .sort((a, b) => toNumber(b.ts) - toNumber(a.ts))
+    .map((movimento) => {
+      const produtoId = movimento.prodId || movimento.prod_id;
+      const produto = produtoId ? produtosById.get(produtoId) : null;
+      const quantidade =
+        movimento.tipo === 'ajuste'
+          ? toNumber(movimento.saldo_real ?? movimento.saldoReal)
+          : toNumber(movimento.qty);
+
+      return {
+        id: String(movimento.id),
+        produto: produto?.nome || 'Produto removido',
+        data: fmtDate(movimento.data),
+        tipo: normalizeHistoryType(String(movimento.tipo || '')),
+        quantidadeLabel:
+          movimento.tipo === 'ajuste'
+            ? `Saldo real: ${fmtQuantity(quantidade)}`
+            : fmtQuantity(quantidade),
+        custoLabel:
+          movimento.tipo === 'entrada' && toNumber(movimento.custo) > 0
+            ? fmtCurrency(toNumber(movimento.custo))
+            : '—',
+        observacao: String(movimento.obs || '').trim()
+      };
+    });
+}
+
 export function filterEstoquePositionRows(
   rows: EstoquePositionRow[],
   query: string,
@@ -126,5 +189,25 @@ export function filterEstoquePositionRows(
     }
 
     return matchesQuery && matchesStatus;
+  });
+}
+
+export function filterEstoqueHistoryRows(
+  rows: EstoqueHistoryRow[],
+  query: string,
+  tipoHistorico: EstoqueHistoryRow['tipo'] | ''
+): EstoqueHistoryRow[] {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  return rows.filter((row) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      row.produto.toLowerCase().includes(normalizedQuery) ||
+      row.observacao.toLowerCase().includes(normalizedQuery) ||
+      row.data.toLowerCase().includes(normalizedQuery);
+
+    const matchesTipo = !tipoHistorico || row.tipo === tipoHistorico;
+
+    return matchesQuery && matchesTipo;
   });
 }

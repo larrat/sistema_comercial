@@ -5,6 +5,7 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { listProdutos } from '../../produtos/services/produtosApi';
 import {
+  buildEstoqueHistoryRows,
   buildEstoqueMetrics,
   buildEstoquePositionRows
 } from './useEstoqueCalculations';
@@ -53,13 +54,14 @@ export function useEstoqueData() {
         if (cancelled) return;
 
         const positionRows = buildEstoquePositionRows(produtos, movimentacoes);
+        const historyRows = buildEstoqueHistoryRows(produtos, movimentacoes);
         const metrics = buildEstoqueMetrics(positionRows);
 
         setData({
           snapshot: { produtos, movimentacoes },
           metrics,
           positionRows,
-          historyRows: []
+          historyRows
         });
       } catch (error) {
         if (cancelled) return;

@@ -3,6 +3,8 @@ import type { EstoqueHistoryRow } from '../types';
 
 type EstoqueHistoryTableProps = {
   rows: EstoqueHistoryRow[];
+  onDelete: (row: EstoqueHistoryRow) => void;
+  deletingId?: string | null;
 };
 
 function toneByType(tipo: EstoqueHistoryRow['tipo']) {
@@ -12,12 +14,16 @@ function toneByType(tipo: EstoqueHistoryRow['tipo']) {
   return 'warning';
 }
 
-export function EstoqueHistoryTable({ rows }: EstoqueHistoryTableProps) {
+export function EstoqueHistoryTable({
+  rows,
+  onDelete,
+  deletingId = null
+}: EstoqueHistoryTableProps) {
   if (!rows.length) {
     return (
       <EmptyState
-        title="Histórico ainda não migrado."
-        description="A rota React do estoque já existe. O histórico real entra na próxima etapa da migração."
+        title="Nenhuma movimentação encontrada."
+        description="Ajuste os filtros ou registre uma movimentação para visualizar o histórico do estoque."
       />
     );
   }
@@ -34,7 +40,22 @@ export function EstoqueHistoryTable({ rows }: EstoqueHistoryTableProps) {
         },
         { key: 'quantidade', header: 'Quantidade', render: (row) => row.quantidadeLabel },
         { key: 'custo', header: 'Custo', render: (row) => row.custoLabel },
-        { key: 'obs', header: 'Obs', render: (row) => row.observacao || '-' }
+        { key: 'obs', header: 'Obs', render: (row) => row.observacao || '-' },
+        {
+          key: 'acoes',
+          header: '',
+          align: 'right',
+          render: (row) => (
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => onDelete(row)}
+              disabled={deletingId === row.id}
+            >
+              {deletingId === row.id ? 'Excluindo...' : 'Excluir'}
+            </button>
+          )
+        }
       ]}
       rows={rows}
       rowKey={(row) => row.id}
