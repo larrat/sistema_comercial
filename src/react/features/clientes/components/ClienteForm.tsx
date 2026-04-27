@@ -142,11 +142,11 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
     event.preventDefault();
 
     if (!values.nome.trim()) {
-      setLocalError('Nome do cliente e obrigatorio.');
+      setLocalError('Nome do cliente é obrigatório.');
       return;
     }
     if (values.email.trim() && !isValidEmail(values.email.trim())) {
-      setLocalError('Informe um e-mail valido ou deixe o campo vazio.');
+      setLocalError('Informe um e-mail válido ou deixe o campo vazio.');
       return;
     }
     if (values.optin_email && !values.email.trim()) {
@@ -196,11 +196,11 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
   const title = initialCliente ? 'Editar cliente' : 'Novo cliente';
   const subtitle = initialCliente
-    ? 'Revise os dados essenciais e deixe os detalhes complementares agrupados no avancado.'
+    ? 'Revise os dados essenciais e deixe os detalhes complementares agrupados no avançado.'
     : 'Comece pelo contato principal e pelos dados comerciais. O restante pode ficar para depois.';
 
   return (
-    <form className="card-shell form-gap-lg" onSubmit={handleSubmit} data-testid="cliente-form">
+    <form className="rf-ui-stack" onSubmit={handleSubmit} data-testid="cliente-form">
       <div className="form-shell-head">
         <div className="form-shell-kicker">Cadastro</div>
         <div className="fb form-gap-bottom-xs">
@@ -218,10 +218,10 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
           <div>
             <div className="form-section-title">Essencial</div>
             <p className="form-section-copy">
-              Identificacao e contato para o time conseguir atender e vender.
+              Identificação e contato para o time conseguir atender e vender.
             </p>
           </div>
-          <span className="bdg bb">Obrigatorio primeiro</span>
+          <span className="bdg bb">Obrigatório primeiro</span>
         </div>
 
         <div className="grid grid-2">
@@ -259,7 +259,7 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               data-testid="form-doc"
             />
             <small className="field-help">
-              Aceita CPF ou CNPJ; a formatacao entra ao sair do campo.
+              Aceita CPF ou CNPJ; a formatação entra ao sair do campo.
             </small>
           </label>
           <label className="form-field">
@@ -338,7 +338,7 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
           <div>
             <div className="form-section-title">Comercial</div>
             <p className="form-section-copy">
-              Organize quem atende, qual segmento e quais condicoes basicas valem para esse cliente.
+              Organize quem atende, qual segmento e quais condições básicas valem para esse cliente.
             </p>
           </div>
         </div>
@@ -429,9 +429,9 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
         onToggle={(event) => setShowAdvanced(event.currentTarget.open)}
       >
         <summary className="form-advanced-summary">
-          <span>Detalhes avancados</span>
+          <span>Detalhes avançados</span>
           <span className="table-cell-caption table-cell-muted">
-            Localizacao, marketing e observacoes
+            Localização, marketing e observações
           </span>
         </summary>
 
@@ -462,7 +462,7 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
           <div className="grid grid-2">
             <label className="form-field">
-              <span>Data de aniversario</span>
+              <span>Data de aniversário</span>
               <input
                 className="inp"
                 type="date"
@@ -519,9 +519,7 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
       </details>
 
       {(localError || error) && (
-        <div className="empty" data-testid="form-error">
-          <p>{localError || error}</p>
-        </div>
+        <div className="rf-error-banner" data-testid="form-error">{localError || error}</div>
       )}
 
       <div className="form-sticky-actions">
@@ -542,7 +540,7 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
             disabled={saving}
             data-testid="salvar-btn"
           >
-            {saving ? 'Salvando...' : initialCliente ? 'Salvar alteracoes' : 'Salvar cliente'}
+            {saving ? 'Salvando…' : initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
+import { Drawer, EmptyState, PageHeader } from '../../../shared/ui';
 import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
 import type { Cliente } from '../../../../types/domain';
 import { selectFilteredClientes, useClienteStore } from '../store/useClienteStore';
@@ -201,11 +202,28 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   ]);
 
   return (
-    <div className="rf-content" data-testid="clientes-pilot-page">
+    <main className="rf-content rf-ui-stack" data-testid="clientes-pilot-page">
+      <PageHeader
+        title="Clientes"
+        description="Cadastre e gerencie seus clientes."
+        actions={
+          <button
+            className="btn btn-p btn-sm"
+            type="button"
+            onClick={() => {
+              setSurfaceTab('lista');
+              setDetailId(null);
+              setEditingId('new');
+              setDetailTab('resumo');
+            }}
+          >
+            Novo cliente
+          </button>
+        }
+      />
+
       {error && (
-        <div className="empty" data-testid="cliente-pilot-error">
-          <p>{error}</p>
-        </div>
+        <div className="rf-error-banner" data-testid="cliente-pilot-error">{error}</div>
       )}
 
       <div className="tabs" data-testid="cliente-surface-tabs">
@@ -278,13 +296,13 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
         />
       )}
 
-      {deletingId && (
-        <div className="empty-inline" data-testid="cliente-pilot-deleting">
-          Removendo cliente...
-        </div>
-      )}
+      {deletingId && <EmptyState title="Removendo cliente..." compact />}
 
-      {editingId && (
+      <Drawer
+        open={!!editingId}
+        title={editingId === 'new' ? 'Novo cliente' : 'Editar cliente'}
+        onClose={() => setEditingId(null)}
+      >
         <ClienteForm
           initialCliente={editingId === 'new' ? null : editingCliente}
           onSaved={(cliente) => {
@@ -293,11 +311,9 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
             setDetailId(cliente.id);
             setDetailTab('resumo');
           }}
-          onCancel={() => {
-            setEditingId(null);
-          }}
+          onCancel={() => setEditingId(null)}
         />
-      )}
-    </div>
+      </Drawer>
+    </main>
   );
 }

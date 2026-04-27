@@ -41,7 +41,7 @@ export function ClienteListView({
   const temFiltro = !!(filtro.q || filtro.seg || filtro.status);
 
   return (
-    <div className="screen-content" data-testid="cliente-list-view" hidden={hidden}>
+    <div data-testid="cliente-list-view" hidden={hidden}>
       {status === 'loading' && (
         <div className="sk-card" data-testid="skeleton">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -82,7 +82,7 @@ export function ClienteListView({
                 )}
                 {onNovoCliente && (
                   <button
-                    className="btn btn-p btn-sm"
+                    className="btn btn-sm"
                     onClick={onNovoCliente}
                     data-testid="novo-btn"
                   >
