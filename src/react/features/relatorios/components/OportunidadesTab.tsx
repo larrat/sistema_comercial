@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { EmptyState } from '../../../shared/ui';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { computeOportunidades, syncHistorico } from '../utils/oportunidadesJogos';
@@ -210,7 +211,7 @@ export function OportunidadesTab() {
             </table>
           </div>
         ) : (
-          <div className="empty"><p>Sem oportunidades registradas no filtro.</p></div>
+          <EmptyState title="Sem oportunidades registradas no filtro." compact />
         )}
       </div>
 
@@ -234,7 +235,7 @@ export function OportunidadesTab() {
               </div>
             ))
           ) : (
-            <div className="empty"><div className="ico">OK</div><p>Sem oportunidades abertas para validar.</p></div>
+            <EmptyState title="Sem oportunidades abertas para validar." compact />
           )}
         </div>
 
@@ -255,7 +256,7 @@ export function OportunidadesTab() {
               </div>
             ))
           ) : (
-            <div className="empty"><div className="ico">VR</div><p>Nenhuma oportunidade validada no filtro.</p></div>
+            <EmptyState title="Nenhuma oportunidade validada no filtro." compact />
           )}
         </div>
       </div>

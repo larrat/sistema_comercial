@@ -10,19 +10,13 @@ Itens abertos são débito mapeado — corrigir por prioridade nas próximas spr
 
 ## Prioridade alta
 
-### A1 — Modal legado em ContasReceberPilotPage
-- **Arquivo:** `src/react/features/contas-receber/components/ContasReceberPilotPage.tsx:503`
-- **Problema:** usa `modal-wrap`/`modal-bg` manual em vez do `<Modal>` compartilhado
-- **Impacto:** sem Escape key, sem `aria-modal`, overflow não controlado
-- **Esforço:** médio — a seção de baixa parcial é uma função interna (~60 linhas) que precisa ser extraída para componente próprio antes de migrar o modal
-- **Status:** aberto
+### A1 — Modal legado em ContasReceberPilotPage — **CORRIGIDO em UX-9**
+- **Arquivo:** `src/react/features/contas-receber/components/ContasReceberPilotPage.tsx`
+- **Status:** `BaixaParcialModal` migrado para `<Modal>` compartilhado (Escape key, `aria-modal`, overflow controlado, ordem Cancelar/Confirmar padronizada)
 
-### A2 — `div.empty` em PedidoForm (estados de loading/erro)
-- **Arquivo:** `src/react/features/pedidos/components/PedidoForm.tsx:171,176`
-- **Problema:** usa `<div className="empty">` em vez de `<EmptyState compact />`
-- **Impacto:** inconsistente com o tratamento de estados no restante do módulo Pedidos
-- **Esforço:** baixo
-- **Status:** aberto
+### A2 — `div.empty` em PedidoForm (estados de loading/erro) — **CORRIGIDO em UX-9**
+- **Arquivo:** `src/react/features/pedidos/components/PedidoForm.tsx`
+- **Status:** substituído por `<EmptyState compact />`
 
 ---
 
@@ -47,19 +41,13 @@ Itens abertos são débito mapeado — corrigir por prioridade nas próximas spr
 - **Esforço:** médio-alto — Relatórios tem vários sub-componentes densos
 - **Status:** aberto
 
-### M4 — `div.empty` em múltiplas sub-telas de Relatórios
-- **Arquivos:** `ClientesTab.tsx:53,70`, `OportunidadesTab.tsx:213,237,258`, `PerformanceTab.tsx:57,74`, `RelatoriosPage.tsx:45`
-- **Problema:** estados vazios improvisados em módulo read-only
-- **Impacto:** baixo (módulo não é fluxo operacional principal)
-- **Esforço:** médio — muitos arquivos, mas alterações mecânicas
-- **Status:** aberto
+### M4 — `div.empty` em múltiplas sub-telas de Relatórios — **CORRIGIDO em UX-9**
+- **Arquivos:** `ClientesTab.tsx`, `OportunidadesTab.tsx`, `PerformanceTab.tsx`, `RelatoriosPage.tsx`
+- **Status:** todos os estados vazios e de loading substituídos por `<EmptyState compact />`
 
-### M5 — `bdg` manual para status de pedido em PedidoDetailPanel
+### M5 — `bdg` manual para status de pedido em PedidoDetailPanel — **CORRIGIDO em UX-9**
 - **Arquivo:** `src/react/features/pedidos/components/PedidoDetailPanel.tsx`
-- **Problema:** usa `STATUS_BADGE` record com `.bdg bk/bb/ba/bg/br` para status semânticos de pedido, enquanto `PedidoRow` já usa `StatusBadge` para o mesmo pedido
-- **Observação:** alguns `bdg` no painel são chips informativos (data, valor) — esses são aceitáveis
-- **Esforço:** médio
-- **Status:** aberto
+- **Status:** `STATUS_BADGE` record e `getContaStatusClass` substituídos por `STATUS_TONE` e `getContaStatusTone` usando `StatusBadge`. Chips informativos (data, valor) mantidos como `bdg` — correto.
 
 ### M6 — Pages PedidosPilotPage e ClientesPilotPage sem PageHeader
 - **Arquivos:** `PedidosPilotPage.tsx`, `ClientesPilotPage.tsx`

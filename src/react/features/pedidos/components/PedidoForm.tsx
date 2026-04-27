@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { EmptyState } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
@@ -167,16 +168,8 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
         </div>
       </div>
 
-      {formLoading && (
-        <div className="empty">
-          <p>Carregando dados do formulario...</p>
-        </div>
-      )}
-      {formError && (
-        <div className="empty">
-          <p>{formError}</p>
-        </div>
-      )}
+      {formLoading && <EmptyState title="Carregando dados do formulário..." compact />}
+      {formError && <EmptyState title={formError} compact />}
 
       {!formLoading && !formError && (
         <form onSubmit={(e) => void handleSubmit(e)}>

@@ -14,6 +14,8 @@ import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { PedidoItemsSection } from './PedidoItemsSection';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
+import { StatusBadge } from '../../../shared/ui';
+import type { StatusBadgeTone } from '../../../shared/ui';
 
 type Props = {
   pedido: Pedido;
@@ -29,12 +31,12 @@ const STATUS_LABEL: Record<string, string> = {
   cancelado: 'Cancelado'
 };
 
-const STATUS_BADGE: Record<string, string> = {
-  orcamento: 'bdg bk',
-  confirmado: 'bdg bb',
-  em_separacao: 'bdg ba',
-  entregue: 'bdg bg',
-  cancelado: 'bdg br'
+const STATUS_TONE: Record<string, StatusBadgeTone> = {
+  orcamento: 'neutral',
+  confirmado: 'info',
+  em_separacao: 'warning',
+  entregue: 'success',
+  cancelado: 'danger'
 };
 
 const PGTO_LABEL: Record<string, string> = {
@@ -94,11 +96,11 @@ function getContaStatusLabel(conta: ContaReceber | null): string {
   return 'Pendente';
 }
 
-function getContaStatusClass(conta: ContaReceber | null): string {
+function getContaStatusTone(conta: ContaReceber | null): StatusBadgeTone {
   const label = getContaStatusLabel(conta);
-  if (label === 'Recebido') return 'bdg bg';
-  if (label === 'Parcial') return 'bdg ba';
-  return 'bdg bk';
+  if (label === 'Recebido') return 'success';
+  if (label === 'Parcial') return 'warning';
+  return 'neutral';
 }
 
 function readContaFinanceira(
@@ -132,7 +134,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
     baixas: ContaReceberBaixa[];
   }>(() => readContaFinanceira(filialId, pedido.id));
   const status = normalizePedStatus(pedido.status);
-  const badgeClass = STATUS_BADGE[status] ?? 'bdg bk';
+  const statusTone: StatusBadgeTone = STATUS_TONE[status] ?? 'neutral';
   const statusLabel = STATUS_LABEL[status] ?? status;
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
@@ -234,7 +236,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
         <div>
           <div className="mt">Pedido #{pedido.num}</div>
           <div className="cli-react-shell__chips" style={{ marginTop: '0.25rem' }}>
-            <span className={badgeClass}>{statusLabel}</span>
+            <StatusBadge tone={statusTone}>{statusLabel}</StatusBadge>
             {pedido.data && <span className="bdg bk">{pedido.data}</span>}
             <span className="bdg bg">{fmtCurrency(pedido.total)}</span>
           </div>
@@ -292,7 +294,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
           {conta ? (
             <>
               <div className="cli-react-shell__chips" style={{ marginTop: '0.5rem' }}>
-                <span className={getContaStatusClass(conta)}>{getContaStatusLabel(conta)}</span>
+                <StatusBadge tone={getContaStatusTone(conta)}>{getContaStatusLabel(conta)}</StatusBadge>
                 <span className="bdg bk">Vencimento {conta.vencimento}</span>
                 <span className="bdg bg">Total {fmtCurrency(conta.valor)}</span>
               </div>

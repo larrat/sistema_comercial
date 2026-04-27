@@ -1,4 +1,4 @@
-import { PageHeader } from '../../../shared/ui';
+import { EmptyState, PageHeader } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { OportunidadesTab } from './OportunidadesTab';
 import { PerformanceTab } from './PerformanceTab';
@@ -41,9 +41,7 @@ export function RelatoriosPage() {
         ))}
       </div>
 
-      {loading && (
-        <div className="empty"><p>Carregando dados...</p></div>
-      )}
+      {loading && <EmptyState title="Carregando dados..." compact />}
 
       {!loading && activeTab === 'oportunidades' && <OportunidadesTab />}
       {!loading && activeTab === 'performance' && <PerformanceTab />}

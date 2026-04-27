@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { EmptyState } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 function fmt(v: number): string {
@@ -54,7 +55,7 @@ export function PerformanceTab() {
               </div>
             ))
           ) : (
-            <div className="empty"><div className="ico">PD</div><p>Sem pedidos.</p></div>
+            <EmptyState title="Sem pedidos." compact />
           )}
         </div>
 
@@ -71,7 +72,7 @@ export function PerformanceTab() {
               </div>
             ))
           ) : (
-            <div className="empty"><div className="ico">CL</div><p>Nenhum cliente com pedido.</p></div>
+            <EmptyState title="Nenhum cliente com pedido." compact />
           )}
         </div>
       </div>

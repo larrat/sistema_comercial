@@ -4,7 +4,7 @@ import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../..
 import { emitToast } from '../../../app/legacy/events';
 import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
-import { EmptyState, FilterBar, StatCard } from '../../../shared/ui';
+import { EmptyState, FilterBar, Modal, StatCard } from '../../../shared/ui';
 import {
   useContasReceberMutations,
   getValorRecebido,
@@ -500,106 +500,98 @@ function BaixaParcialModal({
   }
 
   return (
-    <div className="modal-wrap" style={{ display: 'flex' }}>
-      <div className="modal-bg" onClick={onCancelar} />
-      <div className="modal">
-        <div className="modal-head">
-          <div className="modal-title" id="cr-parcial-titulo">
-            Registrar baixa - {conta.cliente}
-            {conta.pedido_num ? ` (#${conta.pedido_num})` : ''}
-          </div>
-        </div>
-        <div className="modal-body">
-          <div className="form-section-card form-gap-bottom-xs">
-            <div className="form-section-head">
-              <div>
-                <div className="form-section-title">Resumo da conta</div>
-                <p className="form-section-copy">
-                  Use o valor real recebido. O saldo restante continua aberto automaticamente.
-                </p>
-              </div>
-            </div>
-            <div className="form-summary-grid">
-              <div className="form-summary-item">
-                <span className="table-cell-caption table-cell-muted">Total</span>
-                <strong>{fmt(conta.valor)}</strong>
-              </div>
-              <div className="form-summary-item">
-                <span className="table-cell-caption table-cell-muted">Recebido</span>
-                <strong>{fmt(getValorRecebido(conta))}</strong>
-              </div>
-              <div className="form-summary-item">
-                <span className="table-cell-caption table-cell-muted">Em aberto</span>
-                <strong>{fmt(aberto)}</strong>
-              </div>
-            </div>
-          </div>
-          {error && (
-            <div className="alert alert-danger" style={{ marginTop: '0.75rem' }}>
-              {error}
-            </div>
-          )}
-          <div className="form-row">
-            <label className="form-label">Valor recebido</label>
-            <input
-              ref={valorRef}
-              className="inp"
-              type="number"
-              step="0.01"
-              min="0.01"
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
-            />
-            <div className="form-quick-actions">
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => applySuggestedAmount(0.25)}
-              >
-                25%
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => applySuggestedAmount(0.5)}
-              >
-                50%
-              </button>
-              <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(1)}>
-                Quitar saldo
-              </button>
-            </div>
-          </div>
-          <div className="form-row">
-            <label className="form-label">Data / hora</label>
-            <input
-              className="inp"
-              type="datetime-local"
-              value={data}
-              onChange={(e) => setData(e.target.value)}
-            />
-          </div>
-          <div className="form-row">
-            <label className="form-label">Observação (opcional)</label>
-            <input
-              className="inp"
-              type="text"
-              placeholder="Ex: Pix, transferência..."
-              value={obs}
-              onChange={(e) => setObs(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="modal-foot">
-          <button className="btn btn-p" onClick={handleConfirmar} disabled={submitting}>
-            {submitting ? 'Salvando...' : 'Confirmar baixa'}
-          </button>
-          <button className="btn" onClick={onCancelar} disabled={submitting}>
+    <Modal
+      open
+      title={`Registrar baixa — ${conta.cliente}${conta.pedido_num ? ` (#${conta.pedido_num})` : ''}`}
+      onClose={onCancelar}
+      closeOnOverlay={!submitting}
+      footer={
+        <>
+          <button className="btn btn-sm" onClick={onCancelar} disabled={submitting}>
             Cancelar
+          </button>
+          <button className="btn btn-p btn-sm" onClick={handleConfirmar} disabled={submitting}>
+            {submitting ? 'Confirmando…' : 'Confirmar baixa'}
+          </button>
+        </>
+      }
+    >
+      <div className="form-section-card form-gap-bottom-xs">
+        <div className="form-section-head">
+          <div>
+            <div className="form-section-title">Resumo da conta</div>
+            <p className="form-section-copy">
+              Use o valor real recebido. O saldo restante continua aberto automaticamente.
+            </p>
+          </div>
+        </div>
+        <div className="form-summary-grid">
+          <div className="form-summary-item">
+            <span className="table-cell-caption table-cell-muted">Total</span>
+            <strong>{fmt(conta.valor)}</strong>
+          </div>
+          <div className="form-summary-item">
+            <span className="table-cell-caption table-cell-muted">Recebido</span>
+            <strong>{fmt(getValorRecebido(conta))}</strong>
+          </div>
+          <div className="form-summary-item">
+            <span className="table-cell-caption table-cell-muted">Em aberto</span>
+            <strong>{fmt(aberto)}</strong>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="rf-error-banner">
+          {error}
+        </div>
+      )}
+
+      <div className="form-row">
+        <label className="form-label">Valor recebido</label>
+        <input
+          ref={valorRef}
+          className="inp"
+          type="number"
+          step="0.01"
+          min="0.01"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+        />
+        <div className="form-quick-actions">
+          <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(0.25)}>
+            25%
+          </button>
+          <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(0.5)}>
+            50%
+          </button>
+          <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(1)}>
+            Quitar saldo
           </button>
         </div>
       </div>
-    </div>
+
+      <div className="form-row">
+        <label className="form-label">Data / hora</label>
+        <input
+          className="inp"
+          type="datetime-local"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+        />
+      </div>
+
+      <div className="form-row">
+        <label className="form-label">Observação (opcional)</label>
+        <input
+          className="inp"
+          type="text"
+          placeholder="Ex: Pix, transferência..."
+          value={obs}
+          onChange={(e) => setObs(e.target.value)}
+        />
+      </div>
+    </Modal>
   );
 }
 

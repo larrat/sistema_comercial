@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { EmptyState } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 export function ClientesTab() {
@@ -50,7 +51,7 @@ export function ClientesTab() {
               </div>
             ))
           ) : (
-            <div className="empty"><div className="ico">CL</div><p>Sem clientes cadastrados.</p></div>
+            <EmptyState title="Sem clientes cadastrados." compact />
           )}
         </div>
 
@@ -67,7 +68,7 @@ export function ClientesTab() {
               </div>
             ))
           ) : (
-            <div className="empty"><div className="ico">SG</div><p>Sem segmentos suficientes.</p></div>
+            <EmptyState title="Sem segmentos suficientes." compact />
           )}
         </div>
       </div>
