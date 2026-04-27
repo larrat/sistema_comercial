@@ -16,7 +16,7 @@ export function FiliaisPage() {
   const loading = status === 'loading';
 
   return (
-    <div className="rf-ui-stack">
+    <div className="rf-content rf-ui-stack">
       <PageHeader
         kicker="Administração"
         title="Filiais"

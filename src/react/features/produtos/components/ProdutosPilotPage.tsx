@@ -110,7 +110,7 @@ export function ProdutosPilotPage() {
   }
 
   return (
-    <div className="rf-ui-stack">
+    <main className="rf-content rf-ui-stack">
       <ProdutoMetrics produtos={todos} />
 
       <FilterBar
@@ -214,6 +214,6 @@ export function ProdutosPilotPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

@@ -127,7 +127,7 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   ]);
 
   return (
-    <div data-testid="pedidos-pilot-page">
+    <div className="rf-content" data-testid="pedidos-pilot-page">
       <PedidoListView
         onNovoPedido={() => {
           setDetailId(null);

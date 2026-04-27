@@ -201,7 +201,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   ]);
 
   return (
-    <div className="screen-content form-gap-lg" data-testid="clientes-pilot-page">
+    <div className="rf-content" data-testid="clientes-pilot-page">
       {error && (
         <div className="empty" data-testid="cliente-pilot-error">
           <p>{error}</p>
