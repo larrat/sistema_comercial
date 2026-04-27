@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 import { emitLegacyEvent, subscribeLegacyEvent } from '../../../app/legacy/events';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
@@ -51,8 +52,8 @@ function useIsMobile() {
 
 export function ProdutosPilotPage() {
   const todos = useProdutoStore((s) => s.produtos);
-  const filtrados = useProdutoStore(selectFilteredProdutos);
-  const categorias = useProdutoStore(selectCategorias);
+  const filtrados = useProdutoStore(useShallow(selectFilteredProdutos));
+  const categorias = useProdutoStore(useShallow(selectCategorias));
   const status = useProdutoStore((s) => s.status);
   const storeError = useProdutoStore((s) => s.error);
   const filtro = useProdutoStore((s) => s.filtro);
