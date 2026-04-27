@@ -7,6 +7,29 @@ Critérios práticos de qualidade visual, checklists de PR e novas telas, e regr
 
 ---
 
+## Definição de Pronto — UI/UX
+
+Uma tela está **pronta** quando os critérios abaixo são verdadeiros.
+Exceções precisam estar documentadas em `AUDITORIA_INCONSISTENCIAS.md`.
+
+| Critério | Padrão obrigatório |
+|----------|--------------------|
+| Shell | `<main className="rf-content rf-ui-stack">` |
+| Título e contexto | `PageHeader` com título, descrição e CTA principal |
+| Listas | `FilterBar` + `DataTable` ou lista de cards |
+| Vazio | `EmptyState` com ação ou orientação clara |
+| Loading | `EmptyState compact` ou estado integrado ao `DataTable` |
+| Erro | `EmptyState compact` ou `rf-error-banner` inline |
+| CTA principal | Exatamente 1 `btn btn-p` por tela ou modal |
+| Ação destrutiva | `<Modal>` de confirmação com `btn-r` antes de executar |
+| Em progresso | Botão `disabled` + texto descritivo — nunca `'...'` |
+| Status semântico | `StatusBadge` — sem `.bdg` manual para status de entidade |
+| Métricas | `StatCard` em `rf-ui-stat-grid` — sem `.bento-band .met` |
+| Overlays | `<Modal>` ou `<Drawer>` compartilhado — sem `modal-wrap` manual |
+| Microcopy | Sem jargão técnico; erros descrevem problema e próximo passo |
+
+---
+
 ## 1. Princípios
 
 O produto é um ERP/SaaS B2B operacional. Cada decisão visual deve satisfazer:
@@ -175,3 +198,4 @@ Responda antes de implementar:
 4. Classes mortas que não devem ser usadas em código novo: `screen-content`, `form-gap-lg`, `btn-danger`
 5. Antes de criar componente novo: verificar se `EmptyState`, `DataTable`, `Modal` ou `FormSection` já resolve com props
 6. Inconsistências encontradas fora do escopo de um PR → registrar em `AUDITORIA_INCONSISTENCIAS.md`, não corrigir inline
+7. A trilha de consolidação visual UX-1 a UX-10 está encerrada. Toda manutenção segue esta governança — sem rodadas especiais.

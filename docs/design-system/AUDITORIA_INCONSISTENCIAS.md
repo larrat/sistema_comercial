@@ -1,10 +1,11 @@
-# Auditoria de Inconsistências Visuais — pós UX-7
+# Auditoria de Inconsistências Visuais — UX-1 a UX-10
 
-Data: 2026-04-27
-Escopo: frontend React completo após rodadas UX-1 a UX-7
+Data de abertura: 2026-04-27 | Fechada em: UX-11 (2026-04-27)
+Escopo: frontend React completo após rodadas UX-1 a UX-10
 
 Itens marcados como **CORRIGIDO** foram tratados nesta ou em rodadas anteriores.
-Itens abertos são débito mapeado — corrigir por prioridade nas próximas sprints de polish.
+Itens marcados como **DECIDIDO** foram avaliados e mantidos como exceção arquitetural documentada.
+Itens na seção final são débito consciente aceito — não requerem correção.
 
 ---
 
@@ -52,32 +53,54 @@ Itens abertos são débito mapeado — corrigir por prioridade nas próximas spr
 
 ---
 
-## Prioridade baixa / débito aceitável
+## Exceções aceitas e débito consciente
+
+Itens abaixo foram avaliados e formalizados como exceção — não requerem sprint dedicado.
 
 ### B1 — `bdg` para chips informativos não-semânticos
 - **Arquivos:** `ProdutoListView.tsx`, `ClienteSegmentView.tsx`, `PedidoRow.tsx`
-- **Avaliação:** `.bdg bk/.bdg bb` usados para chips de categoria, contagem, modo atacado — não são status semânticos. `StatusBadge` não é a ferramenta certa para isso
-- **Decisão:** débito aceitável — não migrar
+- **Motivo:** `.bdg bk/.bdg bb` para chips de categoria, contagem, modo atacado — não são status semânticos. `StatusBadge` não é a ferramenta certa
+- **Reavaliar:** se criado componente `InfoChip` ou similar em `shared/ui/`
 
-### B2 — Inconsistência de `<main>` vs `<div>` como wrapper de page
-- **Problema:** algumas pages usam `<main>`, outras `<div>` como elemento raiz com `rf-content`
-- **Impacto:** semântico apenas, zero impacto visual
-- **Decisão:** padronizar em `<main>` na próxima feature que tocar cada página
+### B2 — `<main>` vs `<div>` como wrapper de page
+- **Motivo:** inconsistência semântica apenas, zero impacto visual
+- **Reavaliar:** organicamente na próxima feature que tocar cada página
 
 ### B3 — `div.empty` em AppErrorBoundary e FilialProvider
 - **Arquivos:** `src/react/app/ui/AppErrorBoundary.tsx`, `src/react/app/filial/FilialProvider.tsx`
-- **Avaliação:** componentes de infraestrutura de app que inicializam antes dos componentes de UI. Dependência de `EmptyState` aqui seria circular
-- **Decisão:** manter como está — justificado
+- **Motivo:** inicializam antes dos componentes de UI — `EmptyState` aqui seria dependência circular
+- **Reavaliar:** nunca — justificado por arquitetura
 
-### B4 — `bdg` em Campanhas e Relatórios para labels de urgência esportiva
+### B4 — `bdg` para labels de urgência esportiva em Campanhas e Oportunidades
 - **Arquivos:** `CampanhasPage.tsx`, `OportunidadesTab.tsx`
-- **Avaliação:** `.bdg br/.bdg ba/.bdg bb` para "Hoje" / "Esta semana" / "Validada" — equivalentes semânticos de `danger`/`warning`/`info`. Migrar junto com M3 quando Campanhas/Relatórios for revisado
-- **Decisão:** aberto, baixa prioridade isolada
+- **Motivo:** `.bdg br/.bdg ba/.bdg bb` para "Hoje" / "Esta semana" / "Validada" — chips de urgência contextual, não status de entidade. `StatusBadge` resolve status; esses chips são UI de contexto
+- **Reavaliar:** se criado componente `ContextBadge` para chips de urgência
+
+### B5 — Classes de botão não-padronizadas em CampanhasPage
+- **Arquivo:** `src/react/features/campanhas/components/CampanhasPage.tsx`
+- **Motivo:** `btn-ghost`, `btn-primary`, `btn-xs` são padrão anterior ao design system unificado. Não causa regressão funcional
+- **Reavaliar:** quando Campanhas for revisada por sprint de produto
+
+### B6 — `window.confirm()` em CampanhasPage (exclusão de campanha)
+- **Arquivo:** `src/react/features/campanhas/components/CampanhasPage.tsx`
+- **Motivo:** padrão anterior. Confirmação destrutiva deveria usar `<Modal>` com `btn-r`
+- **Reavaliar:** quando Campanhas for revisada por sprint de produto — prioridade real
 
 ---
 
-## Regra para novas inconsistências
+## Registro de novas inconsistências
 
 Toda inconsistência encontrada fora do escopo de um PR vai nesta lista.
-Não corrigir inline no PR corrente para não inflar scope.
-Priorizar na próxima rodada de polish ou sprint de QA visual.
+Não corrigir inline no PR corrente — registrar aqui com prioridade e reavaliar na próxima sprint de polish.
+
+---
+
+## Status da trilha UX
+
+A trilha de consolidação visual UX-1 a UX-10 foi encerrada na rodada UX-11 (2026-04-27).
+
+- Todos os itens de prioridade alta foram corrigidos (A1, A2)
+- Todos os itens de prioridade média foram corrigidos ou decididos (M1–M6)
+- Os itens B1–B6 são exceções formalizadas ou débito consciente sem prioridade imediata
+
+**Não há mais rodadas especiais de UX.** Toda manutenção futura segue `GOVERNANCA_VISUAL.md`.

@@ -221,3 +221,19 @@ Painel lateral deslizante. Mesma API do Modal.
 | `<div className="modal-wrap">` | `<Modal>` |
 | `<table className="tbl">` manual | `<DataTable>` |
 | `<div className="fg">` para layout | `rf-ui-form-grid` ou `rf-ui-stack` |
+
+---
+
+## Componentes ausentes em shared/ui
+
+`Toast`, `Snackbar` e `LoadingOverlay` **não existem** em `shared/ui/`. Use os padrões já disponíveis:
+
+| Necessidade | Padrão atual |
+|-------------|-------------|
+| Notificação de sucesso | Fechar modal + redirecionar para o detalhe |
+| Erro de fetch | `<EmptyState compact>` ou `rf-error-banner` inline |
+| Loading de página/lista | `<EmptyState compact>` ou estado integrado no `DataTable` |
+| Loading de botão | `disabled` + texto descritivo (`'Salvando…'`) |
+| Confirmação destrutiva | `<Modal>` com `btn-r` — nunca `window.confirm()` |
+
+Não criar `Toast` ou `LoadingOverlay` local. Se a necessidade for real e recorrente em ≥ 2 módulos, propor à governança antes de implementar.
