@@ -12,7 +12,7 @@ export function CotacaoImportPage() {
   return (
     <FormSection
       title="Importar planilha"
-      description="A importação assistida já roda no shell React com leitura do arquivo, mapeamento, persistência em lote e recarga da grade após concluir."
+      description="Importe planilhas de fornecedores para preencher a grade de cotação automaticamente."
     >
       <CotacaoImport
         fornecedores={fornecedores}

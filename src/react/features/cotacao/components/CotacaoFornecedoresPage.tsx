@@ -14,7 +14,7 @@ export function CotacaoFornecedoresPage() {
   return (
     <FormSection
       title="Fornecedores"
-      description="CRUD principal de fornecedores já roda no shell React, com contagem de produtos cotados e remoção com confirmação."
+      description="Gerencie os fornecedores participantes da cotação."
       aside={
         <button type="button" className="btn btn-p btn-sm" onClick={openFornModal}>
           Novo fornecedor
@@ -24,7 +24,7 @@ export function CotacaoFornecedoresPage() {
       {!fornecedores.length ? (
         <EmptyState
           title="Nenhum fornecedor cadastrado."
-          description="Cadastre o primeiro fornecedor para começar as comparações de compra no shell React."
+          description="Cadastre o primeiro fornecedor para iniciar as comparações de compra."
         />
       ) : (
         <FornecedorList

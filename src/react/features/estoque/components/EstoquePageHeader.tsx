@@ -10,7 +10,7 @@ export function EstoquePageHeader({ filialId, onCreateMovement }: EstoquePageHea
     <PageHeader
       kicker="Estoque"
       title="Estoque"
-      description="Posição principal de estoque já roda no shell React. Histórico e movimentação seguem em migração gradual."
+      description="Controle de posição, movimentações e histórico por produto."
       actions={
         <button type="button" className="btn btn-p btn-sm" onClick={onCreateMovement}>
           Nova movimentação

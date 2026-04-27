@@ -2,7 +2,7 @@ import { useFiliaisStore } from '../store/useFiliaisStore';
 import { useFiliaisData } from '../hooks/useFiliaisData';
 import { FilialCard } from './FilialCard';
 import { FilialModal } from './FilialModal';
-import { PageHeader } from '../../../shared/ui/PageHeader';
+import { EmptyState, PageHeader, StatCard } from '../../../shared/ui';
 
 export function FiliaisPage() {
   useFiliaisData();
@@ -23,10 +23,10 @@ export function FiliaisPage() {
         description="Gerencie as filiais da empresa e suas configurações."
         actions={
           <>
-            <button className="btn btn-ghost" onClick={reload} disabled={loading}>
+            <button className="btn btn-sm" onClick={reload} disabled={loading}>
               {loading ? 'Carregando…' : 'Atualizar'}
             </button>
-            <button className="btn btn-primary" onClick={openNew}>
+            <button className="btn btn-p btn-sm" onClick={openNew}>
               Nova filial
             </button>
           </>
@@ -35,23 +35,19 @@ export function FiliaisPage() {
 
       {error && <div className="rf-error-banner">{error}</div>}
 
-      <div className="mg bento-band">
-        <div className="met">
-          <div className="ml">Filiais</div>
-          <div className="mv">{filiais.length}</div>
-        </div>
-      </div>
+      <section className="rf-ui-stat-grid--2">
+        <StatCard label="Filiais" value={filiais.length} />
+      </section>
 
       {filiais.length === 0 && !loading ? (
-        <div className="card card-shell">
-          <div className="empty">
-            <div className="ico">FL</div>
-            <p>Nenhuma filial cadastrada.</p>
-            <button className="btn btn-primary" onClick={openNew}>
+        <EmptyState
+          title="Nenhuma filial cadastrada."
+          action={
+            <button className="btn btn-p btn-sm" onClick={openNew}>
               Criar primeira filial
             </button>
-          </div>
-        </div>
+          }
+        />
       ) : (
         <div className="filiais-grid">
           {filiais.map((f) => (

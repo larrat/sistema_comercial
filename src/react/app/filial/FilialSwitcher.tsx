@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../useAuthStore';
@@ -53,10 +53,19 @@ export function FilialSwitcher() {
     if (!filiais.length) void loadFiliais();
   }
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     setOpen(false);
     setError(null);
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') handleClose();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [open, handleClose]);
 
   function handleSelect(id: string) {
     if (id !== filialId) {
@@ -75,6 +84,8 @@ export function FilialSwitcher() {
           type="button"
           onClick={handleOpen}
           disabled={!session}
+          aria-haspopup="dialog"
+          aria-expanded={open}
           title="Trocar filial ativa"
         >
           <span className="rf-filial-sw__name">{displayName}</span>
@@ -85,10 +96,20 @@ export function FilialSwitcher() {
       {open && (
         <div className="rf-filial-modal-wrap" style={{ display: 'flex' }}>
           <div className="rf-filial-modal-bg" onClick={handleClose} />
-          <div className="rf-filial-modal">
+          <div
+            className="rf-filial-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Trocar filial"
+          >
             <div className="rf-filial-modal__head">
               <span className="rf-filial-modal__title">Trocar filial</span>
-              <button className="rf-filial-modal__close" type="button" onClick={handleClose}>
+              <button
+                className="rf-filial-modal__close"
+                type="button"
+                aria-label="Fechar"
+                onClick={handleClose}
+              >
                 ✕
               </button>
             </div>

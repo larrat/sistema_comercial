@@ -61,7 +61,9 @@
       "Bash(command -v node)",
       "Read(//Applications/Cursor.app/Contents/Resources/app/node_modules/.bin/**)",
       "Bash(awk 'NR==1212,NR==1505' /Users/larrat/sistema_comercial/sistema_comercial/index.html)",
-      "Bash(/usr/local/bin/npm run *)"
+      "Bash(/usr/local/bin/npm run *)",
+      "Bash(HUSKY=0 git add src/react/shared/ui/EmptyState.tsx src/react/shared/ui/DataTable.tsx src/react/features/clientes/components/ClienteListView.tsx src/react/features/clientes/components/ClienteListView.test.tsx src/react/features/produtos/components/ProdutoListView.tsx src/react/features/estoque/components/EstoquePage.tsx src/react/styles.css)",
+      "Bash(HUSKY=0 git add src/react/shared/ui/StatusBadge.tsx src/react/shared/ui/index.ts src/react/features/clientes/components/ClienteCard.tsx src/react/features/contas-receber/components/ContasReceberPilotPage.tsx src/react/features/dashboard/components/DashboardPilotPage.tsx src/react/features/pedidos/components/PedidoListView.tsx src/react/features/pedidos/components/PedidoRow.tsx src/react/features/produtos/components/ProdutoMetrics.tsx src/react/features/produtos/components/ProdutosPilotPage.tsx)"
     ]
   }
 }

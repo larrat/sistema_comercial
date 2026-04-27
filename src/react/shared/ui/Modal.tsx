@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from 'react';
+import { useEffect, useId, type MouseEvent, type ReactNode } from 'react';
 
 type ModalProps = {
   open: boolean;
@@ -17,6 +17,17 @@ export function Modal({
   onClose,
   closeOnOverlay = true
 }: ModalProps) {
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && closeOnOverlay) onClose();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, closeOnOverlay, onClose]);
+
   if (!open) return null;
 
   function handleOverlayClick() {
@@ -35,8 +46,9 @@ export function Modal({
         onClick={stopPropagation}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
       >
-        {title ? <div className="rf-ui-modal__title">{title}</div> : null}
+        {title ? <div id={titleId} className="rf-ui-modal__title">{title}</div> : null}
         <div className="rf-ui-modal__body">{children}</div>
         {footer ? <div className="rf-ui-modal__footer">{footer}</div> : null}
       </div>

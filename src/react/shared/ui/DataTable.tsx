@@ -43,6 +43,7 @@ export function DataTable<Row>({
                 <th
                   key={column.key}
                   className={column.className}
+                  scope="col"
                   style={{ width: column.width, textAlign: column.align ?? 'left' }}
                 >
                   {column.header}

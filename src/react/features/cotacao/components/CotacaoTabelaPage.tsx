@@ -26,8 +26,8 @@ export function CotacaoTabelaPage() {
       title="Tabela de cotação"
       description={
         locked
-          ? 'A cotacao esta travada. A grade React permanece auditavel em leitura e bloqueia alteracoes ate novo destravamento.'
-          : 'Grade principal roda no shell React com edicao inline por celula, persistencia imediata e recalculo automatico dos comparativos.'
+          ? 'A cotação está travada. Edições bloqueadas até novo destravamento.'
+          : 'Edição inline por célula com persistência imediata e recálculo automático dos comparativos.'
       }
     >
       {status === 'loading' ? (
@@ -51,12 +51,7 @@ export function CotacaoTabelaPage() {
             errorCells={errorCells}
           />
           <div className="rf-ui-stack">
-            <div>
-              <h3 className="rf-ui-section-title">Totais por fornecedor</h3>
-              <p className="table-cell-caption table-cell-muted">
-                Resumo consolidado para leitura rápida da comparação atual, sem edição inline nesta fase.
-              </p>
-            </div>
+            <h3 className="rf-ui-section-title">Totais por fornecedor</h3>
             <CotacaoTotalsByFornecedor />
           </div>
         </>

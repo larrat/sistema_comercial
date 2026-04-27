@@ -840,6 +840,35 @@
   }
 }
 
+/* ── Shell interativo — foco e botão de logout ───────────────────────────── */
+
+.rf-sidebar__logout-btn {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.rf-sidebar__logout-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--panel) 80%, var(--line) 20%);
+}
+
+/* Focus visível — todos os elementos interativos rf-* */
+.rf-sidebar__item:focus-visible,
+.rf-sidebar__logout-btn:focus-visible,
+.rf-filial-sw__btn:focus-visible,
+.rf-filial-modal__close:focus-visible,
+.rf-filial-modal__item:focus-visible,
+.rf-topbar__action:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
 /* ── Cotação ─────────────────────────────────────────────────────────────── */
 
 .rf-ui-metrics-band {

@@ -19,8 +19,8 @@ export function CotacaoLockBanner({ onToggleLock, saving = false }: Props) {
           </StatusBadge>
           <span>
             {locked
-              ? 'A cotação está protegida contra edição. A grade React bloqueia alterações enquanto esse estado estiver ativo.'
-              : 'A cotação está liberada para edição. Alterações na grade React são persistidas por célula.'}
+              ? 'A cotação está protegida contra edição.'
+              : 'A cotação está liberada. Alterações são salvas por célula automaticamente.'}
           </span>
         </div>
         <button

@@ -21,18 +21,14 @@ export function CotacaoPage({ activeTab }: Props) {
       <PageHeader
         kicker="Compras"
         title="Compras / Cotação"
-        description="Entrada React criada para migrar o módulo em subfluxos: grade, fornecedores e só depois importação."
+        description="Comparação de compras por fornecedor, com grade editável e importação de planilha."
         meta={<StatusBadge tone="info">{filialId || 'Sem filial'}</StatusBadge>}
       />
 
       <CotacaoTabs activeTab={activeTab} />
 
       {status === 'loading' ? (
-        <EmptyState
-          title="Preparando o módulo de compras..."
-          description="A rota React já está ativa e a data layer inicial está sendo conectada com segurança."
-          compact
-        />
+        <EmptyState title="Carregando módulo de compras..." compact />
       ) : null}
 
       {status === 'error' && error ? <EmptyState title={error} compact /> : null}
