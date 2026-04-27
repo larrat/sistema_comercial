@@ -26,8 +26,15 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       return (
         <div className="rf-shell-state" role="alert">
           <div className="empty">
-            <div className="ico">ER</div>
-            <p>O novo shell React encontrou um erro inesperado.</p>
+            <div className="ico">!</div>
+            <p>Algo deu errado. Recarregue a página para continuar.</p>
+            <button
+              className="btn btn-ghost"
+              style={{ marginTop: 16 }}
+              onClick={() => window.location.reload()}
+            >
+              Recarregar
+            </button>
           </div>
         </div>
       );

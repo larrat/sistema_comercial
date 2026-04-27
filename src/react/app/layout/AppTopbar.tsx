@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 
-import { useFilialContext } from '../filial/FilialProvider';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useRouteState } from '../hooks/useRouteState';
+import { FilialSwitcher } from '../filial/FilialSwitcher';
 
 export function AppTopbar() {
-  const { filialId } = useFilialContext();
   const routeId = useRouteState();
   const meta = usePageMeta(routeId);
 
@@ -14,7 +13,6 @@ export function AppTopbar() {
       <div className="rf-topbar__copy">
         <div className="rf-topbar__kicker">{meta.kicker}</div>
         <h1 className="rf-topbar__title">{meta.title}</h1>
-        <p className="rf-topbar__sub">{meta.description}</p>
       </div>
 
       <div className="rf-topbar__meta">
@@ -42,13 +40,7 @@ export function AppTopbar() {
             )}
           </div>
         )}
-        <div className="rf-topbar__switcher-slot" aria-label="Espaço reservado para troca de filial">
-          <div className="rf-topbar__switcher-label">Filial</div>
-          <button className="rf-topbar__switcher" type="button" disabled>
-            {filialId || 'Sem filial'}
-          </button>
-        </div>
-        <span className="bdg bk">Shell React</span>
+        <FilialSwitcher />
       </div>
     </header>
   );

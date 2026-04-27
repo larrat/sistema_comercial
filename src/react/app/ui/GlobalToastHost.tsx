@@ -33,10 +33,20 @@ export function GlobalToastHost() {
 
   if (!items.length) return null;
 
+  function dismiss(id: number) {
+    setItems((current) => current.filter((item) => item.id !== id));
+  }
+
   return (
     <div className="rf-toast-host" aria-live="polite" aria-atomic="true">
       {items.map((item) => (
-        <div key={item.id} className={`rf-toast rf-toast--${item.severity}`}>
+        <div
+          key={item.id}
+          className={`rf-toast rf-toast--${item.severity}`}
+          onClick={() => dismiss(item.id)}
+          role="status"
+          style={{ cursor: 'pointer' }}
+        >
           {item.message}
         </div>
       ))}

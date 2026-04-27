@@ -16,6 +16,11 @@ export function useRouteState() {
     if (pathname.startsWith(APP_ROUTE_BY_ID.pedidos.path)) return 'pedidos';
     if (pathname.startsWith(APP_ROUTE_BY_ID.receber.path)) return 'receber';
     if (pathname.startsWith(APP_ROUTE_BY_ID.produtos.path)) return 'produtos';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.rcas.path)) return 'rcas';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.relatorios.path)) return 'relatorios';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.campanhas.path)) return 'campanhas';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.filiais.path)) return 'filiais';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.acessos.path)) return 'acessos';
     if (pathname.startsWith(APP_ROUTE_BY_ID.setup.path)) return 'setup';
     if (pathname.startsWith(APP_ROUTE_BY_ID.login.path)) return 'login';
     if (pathname.startsWith(APP_ROUTE_BY_ID.app.path)) return 'app';

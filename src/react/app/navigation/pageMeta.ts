@@ -19,25 +19,25 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   login: {
     kicker: 'Acesso',
     title: 'Login',
-    description: 'Fluxo público da nova árvore React.',
-    actions: [{ label: 'Ir para setup', to: '/setup' }]
+    description: 'Entre com seu e-mail e senha para acessar o sistema.',
+    actions: []
   },
   setup: {
     kicker: 'Configuração',
-    title: 'Setup',
-    description: 'Fluxo autenticado sem filial ativa.',
-    actions: [{ label: 'Ir para login', to: '/login' }]
+    title: 'Selecionar filial',
+    description: 'Escolha a filial com que deseja trabalhar nesta sessão.',
+    actions: []
   },
   app: {
-    kicker: 'App',
+    kicker: 'Sistema',
     title: 'Sistema Comercial',
-    description: 'Container da nova árvore protegida.',
-    actions: [{ label: 'Abrir dashboard', to: '/app/dashboard', tone: 'primary' }]
+    description: '',
+    actions: [{ label: 'Dashboard', to: '/app/dashboard', tone: 'primary' }]
   },
   dashboard: {
     kicker: 'Operação',
     title: 'Dashboard',
-    description: 'Dashboard real conectado ao shell novo, ainda com algumas dependências transitórias do legado.',
+    description: 'Visão geral da operação da filial.',
     actions: [
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Pedidos', to: '/app/pedidos', tone: 'primary' }
@@ -46,7 +46,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   clientes: {
     kicker: 'Cadastros',
     title: 'Clientes',
-    description: 'Módulo real de clientes conectado ao shell novo, preservando integrações transitórias necessárias.',
+    description: 'Gestão da base de clientes da filial.',
     actions: [
       { label: 'Dashboard', to: '/app/dashboard' },
       { label: 'Pedidos', to: '/app/pedidos' }
@@ -55,16 +55,16 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   estoque: {
     kicker: 'Operação',
     title: 'Estoque',
-    description: 'Módulo React de estoque ativo: posição, histórico e movimentações.',
+    description: 'Posição de estoque, histórico de movimentações e alertas de ruptura.',
     actions: [
       { label: 'Produtos', to: '/app/produtos' },
-      { label: 'Dashboard', to: '/app/dashboard' }
+      { label: 'Cotação', to: '/app/cotacao' }
     ]
   },
   cotacao: {
     kicker: 'Compras',
     title: 'Cotação',
-    description: 'Comparação de preços entre fornecedores, importação de planilhas e tabela de decisão de compra.',
+    description: 'Comparação de preços entre fornecedores e tabela de decisão de compra.',
     actions: [
       { label: 'Produtos', to: '/app/produtos' },
       { label: 'Estoque', to: '/app/estoque' }
@@ -73,7 +73,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   pedidos: {
     kicker: 'Vendas',
     title: 'Pedidos',
-    description: 'Módulo real de pedidos conectado ao shell novo, ainda preservando integrações transitórias com o legado.',
+    description: 'Registro e acompanhamento de pedidos de venda.',
     actions: [
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Receber', to: '/app/receber', tone: 'primary' }
@@ -82,25 +82,25 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   receber: {
     kicker: 'Financeiro',
     title: 'Contas a receber',
-    description: 'Módulo real de contas a receber conectado ao shell novo, preservando integrações transitórias necessárias.',
+    description: 'Gestão de cobranças, baixas e controle financeiro da filial.',
     actions: [
       { label: 'Pedidos', to: '/app/pedidos' },
-      { label: 'Produtos', to: '/app/produtos' }
+      { label: 'Dashboard', to: '/app/dashboard' }
     ]
   },
   produtos: {
     kicker: 'Catálogo',
     title: 'Produtos',
-    description: 'Módulo real de produtos conectado ao shell novo, preservando integrações transitórias com estoque e bridge legado.',
+    description: 'Cadastro e precificação de produtos.',
     actions: [
-      { label: 'Dashboard', to: '/app/dashboard' },
-      { label: 'Clientes', to: '/app/clientes' }
+      { label: 'Estoque', to: '/app/estoque' },
+      { label: 'Cotação', to: '/app/cotacao' }
     ]
   },
   rcas: {
     kicker: 'Cadastros',
     title: 'Vendedores',
-    description: 'Cadastro e gestão de vendedores (RCAs) da filial.',
+    description: 'Cadastro e gestão de vendedores da filial.',
     actions: [
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Pedidos', to: '/app/pedidos' }
@@ -109,7 +109,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   relatorios: {
     kicker: 'Análise',
     title: 'Relatórios',
-    description: 'Oportunidades por jogos, performance comercial e análise da base de clientes.',
+    description: 'Oportunidades por jogos, performance comercial e análise de clientes.',
     actions: [
       { label: 'Pedidos', to: '/app/pedidos' },
       { label: 'Clientes', to: '/app/clientes' }
@@ -118,7 +118,7 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   campanhas: {
     kicker: 'Marketing',
     title: 'Campanhas',
-    description: 'Criação e gestão de campanhas, fila de envio WhatsApp e histórico de contatos.',
+    description: 'Gestão de campanhas, fila de envio WhatsApp e histórico de contatos.',
     actions: [
       { label: 'Clientes', to: '/app/clientes' },
       { label: 'Relatórios', to: '/app/relatorios' }
@@ -127,13 +127,13 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
   filiais: {
     kicker: 'Administração',
     title: 'Filiais',
-    description: 'Cadastro e gestão de filiais da operação.',
-    actions: [{ label: 'Acessos', to: '/app/acessos' }]
+    description: 'Cadastro e configuração das filiais da operação.',
+    actions: [{ label: 'Acessos', to: '/app/acessos', roles: ['admin'] }]
   },
   acessos: {
     kicker: 'Administração',
     title: 'Acessos',
-    description: 'Perfis de usuário, vínculos a filiais, convites e auditoria de acesso.',
-    actions: [{ label: 'Filiais', to: '/app/filiais' }]
+    description: 'Perfis de usuário, vínculos a filiais, convites e auditoria.',
+    actions: [{ label: 'Filiais', to: '/app/filiais', roles: ['admin'] }]
   }
 };

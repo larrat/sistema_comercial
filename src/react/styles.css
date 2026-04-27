@@ -214,6 +214,182 @@
   opacity: 0.92;
 }
 
+/* FilialSwitcher */
+.rf-filial-sw {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.rf-filial-sw__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.rf-filial-sw__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+  color: inherit;
+  border-radius: 8px;
+  min-height: 36px;
+  padding: 0 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.rf-filial-sw__btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--panel) 100%, transparent);
+}
+
+.rf-filial-sw__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rf-filial-sw__name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rf-filial-sw__caret {
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.rf-filial-modal-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.rf-filial-modal-bg {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+}
+
+.rf-filial-modal {
+  position: relative;
+  z-index: 1;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.24);
+}
+
+.rf-filial-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.rf-filial-modal__title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rf-filial-modal__close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.rf-filial-modal__close:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+.rf-filial-modal__list {
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rf-filial-modal__hint {
+  padding: 12px 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rf-filial-modal__hint--err {
+  color: var(--danger, #e53e3e);
+}
+
+.rf-filial-modal__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.rf-filial-modal__item:hover {
+  background: color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.rf-filial-modal__item.is-active {
+  background: color-mix(in srgb, var(--accent, #163F80) 10%, transparent);
+}
+
+.rf-filial-modal__cor {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rf-filial-modal__nome {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rf-filial-modal__badge {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
 .rf-content {
   padding: 24px;
   display: grid;

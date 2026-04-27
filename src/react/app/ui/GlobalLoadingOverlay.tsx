@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { subscribeLoading, type LoadingDetail } from '../legacy/events';
 
-const DEFAULT_LABEL = 'Preparando a nova estrutura React-first.';
+const DEFAULT_LABEL = 'Carregando…';
 
 export function GlobalLoadingOverlay() {
   const [state, setState] = useState<LoadingDetail>({ active: false, label: DEFAULT_LABEL });
