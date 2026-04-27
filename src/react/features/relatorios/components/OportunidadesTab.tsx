@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EmptyState } from '../../../shared/ui';
+import { EmptyState, StatCard } from '../../../shared/ui';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { computeOportunidades, syncHistorico } from '../utils/oportunidadesJogos';
@@ -108,12 +108,11 @@ export function OportunidadesTab() {
 
   return (
     <div className="rf-ui-stack">
-      {/* Metrics */}
-      <div className="mg bento-band">
-        <div className="met"><div className="ml">Oportunidades</div><div className="mv">{total}</div></div>
-        <div className="met"><div className="ml">Validadas</div><div className="mv tone-success">{validadasCount}</div></div>
-        <div className="met"><div className="ml">Pendentes</div><div className="mv tone-warning">{pendentes}</div></div>
-        <div className="met"><div className="ml">Conversão</div><div className="mv">{pct(taxa)}</div></div>
+      <div className="rf-ui-stat-grid">
+        <StatCard label="Oportunidades" value={total} />
+        <StatCard label="Validadas" value={validadasCount} tone="success" />
+        <StatCard label="Pendentes" value={pendentes} tone="warning" />
+        <StatCard label="Conversão" value={pct(taxa)} />
       </div>
 
       {/* Context card */}

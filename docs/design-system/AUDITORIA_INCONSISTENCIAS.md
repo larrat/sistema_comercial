@@ -30,16 +30,13 @@ Itens abertos são débito mapeado — corrigir por prioridade nas próximas spr
 - **Arquivo:** `src/react/features/relatorios/components/ValidacaoModal.tsx`
 - **Status:** migrado para `<Modal>` compartilhado
 
-### M3 — `bento-band`/`met` em Campanhas e Relatórios
+### M3 — `bento-band`/`met` em Campanhas e Relatórios — **CORRIGIDO em UX-10**
 - **Arquivos:**
-  - `src/react/features/campanhas/components/CampanhasPage.tsx:102`
-  - `src/react/features/relatorios/components/ClientesTab.tsx:32`
-  - `src/react/features/relatorios/components/OportunidadesTab.tsx:111`
-  - `src/react/features/relatorios/components/PerformanceTab.tsx:36`
-- **Problema:** usa padrão legado de métricas em vez de `StatCard` em `rf-ui-stat-grid`
-- **Impacto:** visual inconsistente em módulos de baixo tráfego
-- **Esforço:** médio-alto — Relatórios tem vários sub-componentes densos
-- **Status:** aberto
+  - `src/react/features/campanhas/components/CampanhasPage.tsx`
+  - `src/react/features/relatorios/components/ClientesTab.tsx`
+  - `src/react/features/relatorios/components/OportunidadesTab.tsx`
+  - `src/react/features/relatorios/components/PerformanceTab.tsx`
+- **Status:** `bento-band`/`met` substituídos por `StatCard` em `rf-ui-stat-grid` em todos os 4 arquivos
 
 ### M4 — `div.empty` em múltiplas sub-telas de Relatórios — **CORRIGIDO em UX-9**
 - **Arquivos:** `ClientesTab.tsx`, `OportunidadesTab.tsx`, `PerformanceTab.tsx`, `RelatoriosPage.tsx`
@@ -49,12 +46,9 @@ Itens abertos são débito mapeado — corrigir por prioridade nas próximas spr
 - **Arquivo:** `src/react/features/pedidos/components/PedidoDetailPanel.tsx`
 - **Status:** `STATUS_BADGE` record e `getContaStatusClass` substituídos por `STATUS_TONE` e `getContaStatusTone` usando `StatusBadge`. Chips informativos (data, valor) mantidos como `bdg` — correto.
 
-### M6 — Pages PedidosPilotPage e ClientesPilotPage sem PageHeader
+### M6 — Pages PedidosPilotPage e ClientesPilotPage sem PageHeader — **DECIDIDO em UX-10**
 - **Arquivos:** `PedidosPilotPage.tsx`, `ClientesPilotPage.tsx`
-- **Problema:** módulos sem título/descrição formal; usam stat-bars e surface-tabs customizadas no lugar
-- **Avaliação:** é uma decisão arquitetural — esses módulos têm UI mais densa e integrada. Adicionar PageHeader implicaria reorganizar o layout
-- **Esforço:** alto
-- **Status:** débito arquitetural — decidir por sprint dedicado
+- **Decisão:** exceção arquitetural mantida. Ambas são páginas "pilot" embutidas num shell legado (`COMMAND_SOURCE = 'pedidos-legacy-shell'` / `'clientes-legacy-shell'`) que fornece o título da página. Adicionar `PageHeader` resultaria em título duplicado. Sem regressão visual — o padrão é intencional enquanto o shell legado existir.
 
 ---
 

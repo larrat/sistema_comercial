@@ -1,4 +1,5 @@
 import { PageHeader } from '../../../shared/ui/PageHeader';
+import { StatCard } from '../../../shared/ui/StatCard';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import { CampanhaModal } from './CampanhaModal';
@@ -99,11 +100,11 @@ export function CampanhasPage() {
         <div className="rf-error-banner">{error}</div>
       )}
 
-      <div className="mg bento-band">
-        <div className="met"><div className="ml">Campanhas</div><div className="mv">{ativas.length}</div></div>
-        <div className="met"><div className="ml">Pendentes</div><div className="mv tone-warning">{pendentes}</div></div>
-        <div className="met"><div className="ml">Enviados</div><div className="mv tone-success">{enviados}</div></div>
-        <div className="met"><div className="ml">Falhos</div><div className="mv tone-danger">{falhos}</div></div>
+      <div className="rf-ui-stat-grid">
+        <StatCard label="Campanhas" value={ativas.length} />
+        <StatCard label="Pendentes" value={pendentes} tone="warning" />
+        <StatCard label="Enviados" value={enviados} tone="success" />
+        <StatCard label="Falhos" value={falhos} tone="danger" />
       </div>
 
       {campanhas.length === 0 && !loading ? (

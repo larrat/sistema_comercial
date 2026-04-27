@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { EmptyState } from '../../../shared/ui';
+import { EmptyState, StatCard } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 function fmt(v: number): string {
@@ -34,11 +34,11 @@ export function PerformanceTab() {
 
   return (
     <div className="rf-ui-stack">
-      <div className="mg bento-band">
-        <div className="met"><div className="ml">Pedidos</div><div className="mv">{pedidos.length}</div></div>
-        <div className="met"><div className="ml">Entregues</div><div className="mv tone-success">{entregues.length}</div></div>
-        <div className="met"><div className="ml">Faturamento</div><div className="mv">{fmt(faturamento)}</div></div>
-        <div className="met"><div className="ml">Ticket médio</div><div className="mv">{fmt(ticketMedio)}</div></div>
+      <div className="rf-ui-stat-grid">
+        <StatCard label="Pedidos" value={pedidos.length} />
+        <StatCard label="Entregues" value={entregues.length} tone="success" />
+        <StatCard label="Faturamento" value={fmt(faturamento)} />
+        <StatCard label="Ticket médio" value={fmt(ticketMedio)} />
       </div>
 
       <div className="rel-bento-grid">

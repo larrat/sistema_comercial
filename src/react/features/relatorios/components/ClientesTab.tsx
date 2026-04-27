@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { EmptyState } from '../../../shared/ui';
+import { EmptyState, StatCard } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 export function ClientesTab() {
@@ -30,11 +30,11 @@ export function ClientesTab() {
 
   return (
     <div className="rf-ui-stack">
-      <div className="mg bento-band">
-        <div className="met"><div className="ml">Clientes</div><div className="mv">{clientes.length}</div></div>
-        <div className="met"><div className="ml">Com aniversário</div><div className="mv">{comAniversario}</div></div>
-        <div className="met"><div className="ml">Opt-in marketing</div><div className="mv tone-success">{marketing}</div></div>
-        <div className="met"><div className="ml">Prospectos</div><div className="mv tone-warning">{prospects}</div></div>
+      <div className="rf-ui-stat-grid">
+        <StatCard label="Clientes" value={clientes.length} />
+        <StatCard label="Com aniversário" value={comAniversario} />
+        <StatCard label="Opt-in marketing" value={marketing} tone="success" />
+        <StatCard label="Prospectos" value={prospects} tone="warning" />
       </div>
 
       <div className="rel-bento-grid">
