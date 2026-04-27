@@ -150,7 +150,7 @@ function renderPedidosList(
                 onClick={() => options.onFecharVenda!(pedido)}
                 data-testid={`pedido-fechar-${pedido.id}`}
               >
-                {options.fechandoId === pedido.id ? 'Fechando...' : 'Fechar venda'}
+                {options.fechandoId === pedido.id ? 'Fechando…' : 'Fechar venda'}
               </button>
             )}
           </div>
@@ -210,13 +210,13 @@ export function ClienteDetailPanel({
   }
 
   return (
-    <div className="card-shell form-gap-lg" data-testid="cliente-detail-panel">
+    <div className="rf-ui-stack" data-testid="cliente-detail-panel">
       <div className="fb form-gap-bottom-xs">
         <div>
           <div className="table-cell-caption table-cell-muted">Detalhe do cliente</div>
           <h3 className="table-cell-strong">{cliente.nome}</h3>
           <div className="table-cell-caption table-cell-muted">
-            {cliente.seg || 'Sem segmento'} - {cliente.cidade || 'Cidade nao informada'}
+            {cliente.seg || 'Sem segmento'} - {cliente.cidade || 'Cidade não informada'}
           </div>
         </div>
         <div className="mobile-card-actions">
@@ -251,7 +251,7 @@ export function ClienteDetailPanel({
           Pedidos fechados
         </button>
         <button className={`tb ${tab === 'notas' ? 'on' : ''}`} onClick={() => setTab('notas')}>
-          Notas / historico
+          Notas / histórico
         </button>
         <button
           className={`tb ${tab === 'fidelidade' ? 'on' : ''}`}
@@ -279,7 +279,7 @@ export function ClienteDetailPanel({
 
       {tab === 'notas' && (
         <div className="form-gap-lg" data-testid="cliente-detail-notas">
-          <div className="cli-detail-label form-gap-bottom-xs">Notas / historico</div>
+          <div className="cli-detail-label form-gap-bottom-xs">Notas / histórico</div>
           <div className="fg2 cli-detail-notes-input form-gap-bottom-xs">
             <input
               className="inp input-flex"

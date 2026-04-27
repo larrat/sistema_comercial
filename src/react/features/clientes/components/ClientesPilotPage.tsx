@@ -278,23 +278,32 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
         />
       )}
 
-      {detailCliente && !editingId && surfaceTab === 'lista' && (
-        <ClienteDetailPanel
-          cliente={detailCliente}
-          activeTab={detailTab}
-          onTabChange={setDetailTab}
-          onPedidoAction={onPedidoAction}
-          onEditar={(id) => {
-            setDetailId(null);
-            setEditingId(id);
-            setDetailTab('resumo');
-          }}
-          onClose={() => {
-            setDetailId(null);
-            setDetailTab('resumo');
-          }}
-        />
-      )}
+      <Drawer
+        open={!!detailCliente && !editingId && surfaceTab === 'lista'}
+        title={detailCliente?.nome ?? 'Cliente'}
+        onClose={() => {
+          setDetailId(null);
+          setDetailTab('resumo');
+        }}
+      >
+        {detailCliente && (
+          <ClienteDetailPanel
+            cliente={detailCliente}
+            activeTab={detailTab}
+            onTabChange={setDetailTab}
+            onPedidoAction={onPedidoAction}
+            onEditar={(id) => {
+              setDetailId(null);
+              setEditingId(id);
+              setDetailTab('resumo');
+            }}
+            onClose={() => {
+              setDetailId(null);
+              setDetailTab('resumo');
+            }}
+          />
+        )}
+      </Drawer>
 
       {deletingId && <EmptyState title="Removendo cliente..." compact />}
 

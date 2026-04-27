@@ -47,9 +47,10 @@ Itens na seção final são débito consciente aceito — não requerem correç�
 - **Arquivo:** `src/react/features/pedidos/components/PedidoDetailPanel.tsx`
 - **Status:** `STATUS_BADGE` record e `getContaStatusClass` substituídos por `STATUS_TONE` e `getContaStatusTone` usando `StatusBadge`. Chips informativos (data, valor) mantidos como `bdg` — correto.
 
-### M6 — Pages PedidosPilotPage e ClientesPilotPage sem PageHeader — **DECIDIDO em UX-10**
+### M6 — Pages PedidosPilotPage e ClientesPilotPage sem PageHeader — **PARCIALMENTE CORRIGIDO**
 - **Arquivos:** `PedidosPilotPage.tsx`, `ClientesPilotPage.tsx`
-- **Decisão:** exceção arquitetural mantida. Ambas são páginas "pilot" embutidas num shell legado (`COMMAND_SOURCE = 'pedidos-legacy-shell'` / `'clientes-legacy-shell'`) que fornece o título da página. Adicionar `PageHeader` resultaria em título duplicado. Sem regressão visual — o padrão é intencional enquanto o shell legado existir.
+- **ClientesPilotPage:** corrigido em refinamento pós-UX-11 — `PageHeader` adicionado com título "Clientes", descrição e CTA primário "Novo cliente". Formulário movido para `Drawer`; `ClienteDetailPanel` também em `Drawer`.
+- **PedidosPilotPage:** exceção arquitetural mantida. Embutida em shell legado (`COMMAND_SOURCE = 'pedidos-legacy-shell'`) que fornece o título. Adicionar `PageHeader` resultaria em título duplicado. Sem regressão visual — o padrão é intencional enquanto o shell legado existir.
 
 ---
 

@@ -1,4 +1,4 @@
-import type { MouseEvent, ReactNode } from 'react';
+import { useEffect, useRef, type MouseEvent, type ReactNode } from 'react';
 
 type DrawerProps = {
   open: boolean;
@@ -9,6 +9,18 @@ type DrawerProps = {
 };
 
 export function Drawer({ open, title, children, footer, onClose }: DrawerProps) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onCloseRef.current();
+    }
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open]);
+
   if (!open) return null;
 
   function stopPropagation(event: MouseEvent<HTMLDivElement>) {
