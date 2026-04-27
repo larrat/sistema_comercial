@@ -147,7 +147,7 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
                 onClick={onAvancar}
                 data-testid={`pedido-acao-avancar-${pedido.id}`}
               >
-                {inFlight ? '...' : acaoLabel}
+                {inFlight ? 'Aguarde…' : acaoLabel}
               </button>
             )}
 

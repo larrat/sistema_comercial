@@ -51,7 +51,7 @@ export function ImportacaoResumo() {
     return (
       <EmptyState
         title="Nenhum arquivo analisado ainda."
-        description="Selecione um fornecedor e envie uma planilha para abrir o fluxo assistido de importação no shell React."
+        description="Selecione um fornecedor e envie uma planilha para iniciar a importação."
         compact
       />
     );
@@ -73,7 +73,7 @@ export function ImportacaoResumo() {
         {suggested ? <span>Sugestão: {suggested.name}</span> : null}
       </div>
       <p className="table-cell-caption table-cell-muted">
-        O arquivo já foi lido e o mapeamento pode ser revisado antes da persistência em lote no fluxo React.
+        Revise o mapeamento e confirme a importação para persistir os dados em lote.
       </p>
     </div>
   );

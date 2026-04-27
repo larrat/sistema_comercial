@@ -40,11 +40,21 @@ export function CotacaoImport({ fornecedores, logs, onNovoFornecedor }: Props) {
             </select>
           </label>
           <div className="rf-ui-field" style={{ alignSelf: 'flex-end' }}>
-            <button type="button" className="btn" onClick={onNovoFornecedor}>
+            <button type="button" className="btn btn-sm" onClick={onNovoFornecedor}>
               + Novo fornecedor
             </button>
           </div>
         </div>
+
+        {fornecedores.length === 0 ? (
+          <p className="table-cell-caption table-cell-muted">
+            Nenhum fornecedor cadastrado. Cadastre um fornecedor para liberar o envio de planilhas.
+          </p>
+        ) : !fornId ? (
+          <p className="table-cell-caption table-cell-muted">
+            Selecione um fornecedor acima para liberar o envio do arquivo.
+          </p>
+        ) : null}
 
         <ImportacaoDropzone disabled={!fornId} onSelect={onFileChange} />
 

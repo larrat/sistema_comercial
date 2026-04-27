@@ -309,7 +309,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
                   </div>
                 </div>
                 <div>
-                  <div className="fl">Ultima baixa</div>
+                  <div className="fl">Última baixa</div>
                   <div className="fv">
                     {formatDateTimeLabel(conta.ultimo_recebimento_em || conta.recebido_em)}
                   </div>
@@ -341,7 +341,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
                           onClick={() => void handleConfirmarBaixa(conta.id)}
                           data-testid="pedido-detail-confirmar-baixa"
                         >
-                          {baixaLoading ? '...' : 'Confirmar'}
+                          {baixaLoading ? 'Confirmando…' : 'Confirmar'}
                         </button>
                         <button
                           className="btn btn-sm"
@@ -382,7 +382,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
                           onClick={() => void handleReceberTudo(conta.id, valorEmAberto)}
                           data-testid="pedido-detail-receber-tudo"
                         >
-                          {baixaLoading ? '...' : 'Receber tudo'}
+                          {baixaLoading ? 'Recebendo…' : 'Receber tudo'}
                         </button>
                       </div>
                       {baixaError && (
@@ -400,7 +400,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
               )}
 
               <div style={{ marginTop: '0.75rem' }}>
-                <div className="fl">Ultimas baixas</div>
+                <div className="fl">Últimas baixas</div>
                 {baixas.length ? (
                   <div style={{ display: 'grid', gap: '0.4rem', marginTop: '0.4rem' }}>
                     {baixas.slice(0, 4).map((baixa) => (
@@ -436,17 +436,17 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
         <div className="modal-actions" style={{ marginTop: '1rem' }}>
           {nextStatus && acaoLabel && (
             <button
-              className="btn btn-sm"
+              className="btn btn-sm btn-p"
               disabled={isInFlight}
               onClick={() => void avancarStatus(pedido)}
               data-testid="pedido-detail-avancar"
             >
-              {isInFlight ? '...' : acaoLabel}
+              {isInFlight ? 'Aguarde…' : acaoLabel}
             </button>
           )}
           {status !== 'cancelado' && status !== 'entregue' && (
             <button
-              className="btn btn-sm btn-danger"
+              className="btn btn-sm btn-r"
               disabled={isInFlight}
               onClick={() => void cancelarPedido(pedido)}
               data-testid="pedido-detail-cancelar"
@@ -466,7 +466,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
           )}
           {status === 'entregue' && !conta && (
             <button
-              className="btn btn-sm"
+              className="btn btn-sm btn-p"
               disabled={isInFlight}
               onClick={() => {
                 setContaMsg(null);
@@ -474,7 +474,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
               }}
               data-testid="pedido-detail-gerar-conta"
             >
-              {isInFlight ? '...' : 'Gerar A Receber'}
+              {isInFlight ? 'Gerando…' : 'Gerar conta a receber'}
             </button>
           )}
         </div>
