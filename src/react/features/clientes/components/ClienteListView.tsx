@@ -141,7 +141,7 @@ export function ClienteListView({
           )}
 
           {filtrados.length > 0 && (
-            <div className="flex flex-col gap-3" data-testid="cliente-list">
+            <div data-testid="cliente-list">
               {filtrados.map((cliente) => (
                 <ClienteCard
                   key={cliente.id}
