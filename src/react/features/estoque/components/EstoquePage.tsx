@@ -45,18 +45,9 @@ export function EstoquePage() {
 
       <FormSection
         title={view === 'posicao' ? 'Posição de estoque' : 'Histórico de movimentações'}
-        description={
-          view === 'posicao'
-            ? 'Listagem principal portada para React com filtros e leitura real de produtos e movimentações.'
-            : 'Estrutura pronta para migrar o histórico sem depender do shell legado.'
-        }
       >
         {status === 'loading' ? (
-          <EmptyState
-            title="Carregando posição de estoque..."
-            description="Estamos consolidando produtos e movimentações da filial atual."
-            compact
-          />
+          <EmptyState title="Carregando..." compact />
         ) : null}
 
         {status !== 'loading' && view === 'posicao' ? (

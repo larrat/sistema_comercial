@@ -14,19 +14,66 @@ type DataTableProps<Row> = {
   columns: Array<DataTableColumn<Row>>;
   rows: Row[];
   rowKey: (row: Row, index: number) => string;
+  loading?: boolean;
+  error?: string;
   emptyTitle?: string;
   emptyDescription?: string;
+  emptyAction?: ReactNode;
+  skeletonRows?: number;
 };
 
 export function DataTable<Row>({
   columns,
   rows,
   rowKey,
+  loading,
+  error,
   emptyTitle = 'Nenhum registro encontrado.',
-  emptyDescription
+  emptyDescription,
+  emptyAction,
+  skeletonRows = 5
 }: DataTableProps<Row>) {
+  if (loading) {
+    return (
+      <div className="rf-ui-data-table">
+        <table className="tbl">
+          <thead>
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  className={column.className}
+                  style={{ width: column.width, textAlign: column.align ?? 'left' }}
+                >
+                  {column.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: skeletonRows }).map((_, i) => (
+              <tr key={i}>
+                {columns.map((column) => (
+                  <td key={column.key}>
+                    <div className="sk-line" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <EmptyState title={error} compact />;
+  }
+
   if (!rows.length) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    return (
+      <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />
+    );
   }
 
   return (
@@ -38,10 +85,7 @@ export function DataTable<Row>({
               <th
                 key={column.key}
                 className={column.className}
-                style={{
-                  width: column.width,
-                  textAlign: column.align ?? 'left'
-                }}
+                style={{ width: column.width, textAlign: column.align ?? 'left' }}
               >
                 {column.header}
               </th>

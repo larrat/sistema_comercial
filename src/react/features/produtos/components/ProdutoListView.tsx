@@ -1,6 +1,7 @@
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoSaldo } from '../types';
 import { markupToPrice } from '../hooks/useProdutoCalculations';
+import { EmptyState, StatusBadge } from '../../../shared/ui';
 
 type Props = {
   filtrados: Produto[];
@@ -65,10 +66,16 @@ function fmtQ(v: number): string {
   return v % 1 === 0 ? String(v) : v.toFixed(3);
 }
 
-function StatusBadge({ saldo, emin }: { saldo: number; emin: number }) {
-  if (saldo <= 0) return <span className="bdg br">Zerado</span>;
-  if (emin > 0 && saldo < emin) return <span className="bdg ba">Baixo</span>;
-  return <span className="bdg bg">OK</span>;
+function stockTone(saldo: number, emin: number): 'danger' | 'warning' | 'success' {
+  if (saldo <= 0) return 'danger';
+  if (emin > 0 && saldo < emin) return 'warning';
+  return 'success';
+}
+
+function stockLabel(saldo: number, emin: number): string {
+  if (saldo <= 0) return 'Zerado';
+  if (emin > 0 && saldo < emin) return 'Baixo';
+  return 'OK';
 }
 
 type RowActions = {
@@ -111,10 +118,9 @@ export function ProdutoListView({
 }: Props) {
   if (filtrados.length === 0) {
     return (
-      <div className="empty">
-        <div className="ico">PR</div>
-        <p>{totalCount ? 'Nenhum produto encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p>
-      </div>
+      <EmptyState
+        title={totalCount ? 'Nenhum produto encontrado.' : 'Cadastre o primeiro produto desta filial.'}
+      />
     );
   }
 
@@ -224,10 +230,9 @@ export function ProdutoListMobile({
 }: Props) {
   if (filtrados.length === 0) {
     return (
-      <div className="empty">
-        <div className="ico">PR</div>
-        <p>{totalCount ? 'Nenhum produto encontrado.' : 'Cadastre o primeiro produto desta filial.'}</p>
-      </div>
+      <EmptyState
+        title={totalCount ? 'Nenhum produto encontrado.' : 'Cadastre o primeiro produto desta filial.'}
+      />
     );
   }
 
@@ -268,7 +273,9 @@ export function ProdutoListMobile({
                   {p.sku || 'Sem SKU'}{p.cat ? ` - ${p.cat}` : ''}
                 </div>
               </div>
-              <StatusBadge saldo={s.saldo} emin={emin} />
+              <StatusBadge tone={stockTone(s.saldo, emin)}>
+                {stockLabel(s.saldo, emin)}
+              </StatusBadge>
             </div>
 
             <div className="mobile-card-meta">

@@ -731,6 +731,14 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.rf-ui-stat-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rf-ui-stat-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .rf-ui-form-section {
   padding: 20px 24px;
   display: grid;
@@ -814,7 +822,20 @@
     padding: 16px;
   }
 
-  .rf-ui-stat-grid {
+  .rf-ui-stat-grid,
+  .rf-ui-stat-grid--3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rf-ui-stat-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .rf-ui-stat-grid,
+  .rf-ui-stat-grid--3,
+  .rf-ui-stat-grid--2 {
     grid-template-columns: 1fr;
   }
 }

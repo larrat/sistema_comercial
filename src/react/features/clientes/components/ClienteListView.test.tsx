@@ -59,8 +59,8 @@ describe('ClienteListView', () => {
     render(<ClienteListView />);
     const metrics = screen.getByTestId('cliente-metrics');
     // verifica o valor ao lado de cada label
-    const total = within(metrics).getByText('Total').closest('.met') as HTMLElement;
-    const ativos = within(metrics).getByText('Ativos').closest('.met') as HTMLElement;
+    const total = within(metrics).getByText('Total').closest('.rf-ui-stat-card') as HTMLElement;
+    const ativos = within(metrics).getByText('Ativos').closest('.rf-ui-stat-card') as HTMLElement;
     expect(within(total).getByText('3')).toBeInTheDocument();
     expect(within(ativos).getByText('1')).toBeInTheDocument();
   });
