@@ -9,6 +9,7 @@ import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListView, ProdutoListMobile } from './ProdutoListView';
 import { ProdutoDetailPanel } from './ProdutoDetailPanel';
 import { ProdutoForm } from './ProdutoForm';
+import { EmptyState, FilterBar } from '../../../shared/ui';
 
 type Modal =
   | { tipo: 'none' }
@@ -101,51 +102,48 @@ export function ProdutosPilotPage() {
   }
 
   if (status === 'loading') {
-    return (
-      <div style={{ padding: 24 }}>
-        <div className="sk-card">
-          <div className="sk-line" />
-          <div className="sk-line" />
-          <div className="sk-line" />
-        </div>
-      </div>
-    );
+    return <EmptyState title="Carregando produtos..." compact />;
   }
 
   if (status === 'error') {
-    return (
-      <div style={{ padding: 24 }}>
-        <div className="alert alert-error">{storeError ?? 'Erro ao carregar produtos.'}</div>
-      </div>
-    );
+    return <EmptyState title={storeError ?? 'Erro ao carregar produtos.'} compact />;
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <ProdutoMetrics
-          produtos={todos}
-          categorias={categorias}
-          catSelecionada={filtro.cat}
-          onCatChange={(cat) => setFiltro({ cat })}
+    <div className="rf-ui-stack">
+      <ProdutoMetrics produtos={todos} />
+
+      <FilterBar
+        actions={
+          <button
+            className="btn btn-p btn-sm"
+            onClick={() => setModal({ tipo: 'form', produto: null })}
+          >
+            + Produto
+          </button>
+        }
+      >
+        <input
+          className="inp"
+          placeholder="Buscar por nome ou SKU..."
+          value={filtro.q}
+          onChange={(e) => setFiltro({ q: e.target.value })}
         />
-        <button
-          className="btn btn-p"
-          style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}
-          onClick={() => setModal({ tipo: 'form', produto: null })}
+        <select
+          className="inp sel"
+          value={filtro.cat}
+          onChange={(e) => setFiltro({ cat: e.target.value })}
         >
-          + Produto
-        </button>
-      </div>
+          <option value="">Todas as categorias</option>
+          {categorias.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </FilterBar>
 
-      <input
-        className="inp"
-        placeholder="Buscar por nome ou SKU..."
-        value={filtro.q}
-        onChange={(e) => setFiltro({ q: e.target.value })}
-      />
-
-      {mutError && <div className="alert alert-error">{mutError}</div>}
+      {mutError && <EmptyState title={mutError} compact />}
 
       {isMobile ? (
         <ProdutoListMobile

@@ -3,6 +3,7 @@ import { useCurrentUserRole } from '../../../app/hooks/useCurrentUserRole';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
 import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
+import { EmptyState, StatusBadge } from '../../../shared/ui';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
@@ -648,9 +649,9 @@ function DashboardRoleSummary({
           <h3>{focus.title}</h3>
           <p>{focus.copy}</p>
         </div>
-        <span className={`bdg ${role === 'admin' ? 'br' : role === 'gerente' ? 'ba' : 'bg'}`}>
+        <StatusBadge tone={role === 'admin' ? 'danger' : role === 'gerente' ? 'warning' : 'success'}>
           {ROLE_LABELS[role]}
-        </span>
+        </StatusBadge>
       </div>
       <div className="dash-role-summary__grid">
         {focus.items.map((item) => (
@@ -767,7 +768,7 @@ export function DashboardPilotPage({
         <DashboardViewSelector view={view} onChange={setView} />
       </div>
 
-      {error && <div className="alert al-r">{error}</div>}
+      {error && <EmptyState title={error} compact />}
 
       {status === 'loading' && (
         <div className="sk-card" data-testid="dash-pilot-loading">

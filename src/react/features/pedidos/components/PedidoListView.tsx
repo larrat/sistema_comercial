@@ -5,6 +5,7 @@ import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { PedidoRow } from './PedidoRow';
 import type { Pedido } from '../../../../types/domain';
 import { TAB_STATUSES, normalizePedStatus, type PedidoTab } from '../types';
+import { EmptyState } from '../../../shared/ui';
 
 const EXIT_DURATION = 400;
 
@@ -322,17 +323,17 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
 
         {/* Loading */}
         {(storeStatus === 'loading' || storeStatus === 'idle') && (
-          <div className="ped-empty" data-testid="pedido-loading">
-            <div className="ped-empty-title">Carregando pedidos...</div>
-          </div>
+          <EmptyState title="Carregando pedidos..." compact data-testid="pedido-loading" />
         )}
 
         {/* Error */}
         {storeStatus === 'error' && (
-          <div className="ped-empty" data-testid="pedido-error">
-            <div className="ped-empty-title">Erro ao carregar</div>
-            <div className="ped-empty-sub">{storeError}</div>
-          </div>
+          <EmptyState
+            title="Erro ao carregar pedidos."
+            description={storeError ?? undefined}
+            compact
+            data-testid="pedido-error"
+          />
         )}
 
         {/* Empty state */}

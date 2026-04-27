@@ -2,6 +2,7 @@ export { PageHeader } from './PageHeader';
 export { FilterBar } from './FilterBar';
 export { DataTable } from './DataTable';
 export { StatusBadge } from './StatusBadge';
+export type { StatusBadgeTone } from './StatusBadge';
 export { EmptyState } from './EmptyState';
 export { StatCard } from './StatCard';
 export { FormSection } from './FormSection';

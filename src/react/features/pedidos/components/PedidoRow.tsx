@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Pedido } from '../../../../types/domain';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
+import { StatusBadge } from '../../../shared/ui';
+import type { StatusBadgeTone } from '../../../shared/ui';
 
 type Props = {
   pedido: Pedido;
@@ -11,12 +13,12 @@ type Props = {
   onDetalhe: (id: string) => void;
 };
 
-const STATUS_BADGE: Record<string, string> = {
-  orcamento: 'bdg bk',
-  confirmado: 'bdg bb',
-  em_separacao: 'bdg ba',
-  entregue: 'bdg bg',
-  cancelado: 'bdg br'
+const STATUS_TONE: Record<string, StatusBadgeTone> = {
+  orcamento: 'neutral',
+  confirmado: 'info',
+  em_separacao: 'warning',
+  entregue: 'success',
+  cancelado: 'danger'
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -73,7 +75,7 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
   }, [pedido.status]);
 
   const status = normalizePedStatus(pedido.status);
-  const badgeClass = STATUS_BADGE[status] ?? 'bdg bk';
+  const badgeTone = STATUS_TONE[status] ?? 'neutral';
   const statusLabel = STATUS_LABEL[status] ?? status;
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
@@ -118,7 +120,7 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
 
       {/* Status */}
       <div className="ped-col-status">
-        <span className={badgeClass}>{statusLabel}</span>
+        <StatusBadge tone={badgeTone}>{statusLabel}</StatusBadge>
       </div>
 
       {/* Data */}

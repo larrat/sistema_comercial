@@ -1,9 +1,6 @@
 import type { Cliente } from '../../../../types/domain';
-import type { ContatoInfo } from '../../../../pilot/clientes/ui/ClienteCard';
-
-// ---------------------------------------------------------------------------
-// Constantes visuais — espelho do piloto
-// ---------------------------------------------------------------------------
+import { StatusBadge } from '../../../shared/ui';
+import type { StatusBadgeTone } from '../../../shared/ui';
 
 const AVC = [
   { bg: '#E6EEF9', c: '#0F2F5E' },
@@ -12,10 +9,17 @@ const AVC = [
   { bg: '#FAEBE9', c: '#731F18' }
 ];
 
-const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
-  ativo: { label: 'Ativo', cls: 'bdg bg' },
-  inativo: { label: 'Inativo', cls: 'bdg bk' },
-  prospecto: { label: 'Prospecto', cls: 'bdg bb' }
+const STATUS_BADGE: Record<string, { label: string; tone: StatusBadgeTone }> = {
+  ativo: { label: 'Ativo', tone: 'success' },
+  inativo: { label: 'Inativo', tone: 'neutral' },
+  prospecto: { label: 'Prospecto', tone: 'info' }
+};
+
+type ContatoInfo = {
+  principal: string;
+  secundario: string;
+  badgeTone: StatusBadgeTone;
+  badgeLabel: string;
 };
 
 function avatarColor(nome: string) {
@@ -28,7 +32,7 @@ function initials(nome: string): string {
   return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
 }
 
-function getContatoInfo(cliente: Cliente): ContatoInfo & { badgeCls: string; badgeLabel: string } {
+function getContatoInfo(cliente: Cliente): ContatoInfo {
   const whatsapp = String(cliente.whatsapp || '').trim();
   const tel = String(cliente.tel || '').trim();
   const email = String(cliente.email || '').trim();
@@ -37,8 +41,7 @@ function getContatoInfo(cliente: Cliente): ContatoInfo & { badgeCls: string; bad
     return {
       principal: `WhatsApp: ${whatsapp}`,
       secundario: tel && tel !== whatsapp ? `Telefone: ${tel}` : '',
-      badge: '',
-      badgeCls: 'bdg bg',
+      badgeTone: 'success',
       badgeLabel: 'WhatsApp'
     };
   }
@@ -46,8 +49,7 @@ function getContatoInfo(cliente: Cliente): ContatoInfo & { badgeCls: string; bad
     return {
       principal: `Telefone: ${tel}`,
       secundario: email,
-      badge: '',
-      badgeCls: 'bdg ba',
+      badgeTone: 'warning',
       badgeLabel: 'Telefone'
     };
   }
@@ -55,23 +57,17 @@ function getContatoInfo(cliente: Cliente): ContatoInfo & { badgeCls: string; bad
     return {
       principal: email,
       secundario: '',
-      badge: '',
-      badgeCls: 'bdg bb',
+      badgeTone: 'info',
       badgeLabel: 'E-mail'
     };
   }
   return {
     principal: 'Sem contato',
     secundario: '',
-    badge: '',
-    badgeCls: 'bdg br',
+    badgeTone: 'danger',
     badgeLabel: 'Sem contato'
   };
 }
-
-// ---------------------------------------------------------------------------
-// Componente
-// ---------------------------------------------------------------------------
 
 type Props = {
   cliente: Cliente;
@@ -83,11 +79,10 @@ type Props = {
 export function ClienteCard({ cliente, onDetalhe, onEditar, onExcluir }: Props) {
   const cor = avatarColor(cliente.nome);
   const contato = getContatoInfo(cliente);
-  const status = STATUS_LABEL[cliente.status ?? ''];
+  const statusBadge = STATUS_BADGE[cliente.status ?? ''];
 
   return (
     <div className="cliente-card" data-testid="cliente-card">
-      {/* Header */}
       <div className="cliente-card__header">
         <div className="cliente-card__hero">
           <div className="av" style={{ background: cor.bg, color: cor.c }} aria-hidden="true">
@@ -98,10 +93,11 @@ export function ClienteCard({ cliente, onDetalhe, onEditar, onExcluir }: Props) 
             {cliente.apelido && <div className="cliente-card__apelido">{cliente.apelido}</div>}
           </div>
         </div>
-        {status && <span className={status.cls}>{status.label}</span>}
+        {statusBadge && (
+          <StatusBadge tone={statusBadge.tone}>{statusBadge.label}</StatusBadge>
+        )}
       </div>
 
-      {/* Contato */}
       <div className="cliente-card__contact">
         <div className="cliente-card__contact-primary">{contato.principal}</div>
         {contato.secundario && (
@@ -109,14 +105,12 @@ export function ClienteCard({ cliente, onDetalhe, onEditar, onExcluir }: Props) 
         )}
       </div>
 
-      {/* Badges */}
       <div className="cliente-card__badges">
-        <span className={contato.badgeCls}>{contato.badgeLabel}</span>
-        {cliente.seg && <span className="bdg bk">{cliente.seg}</span>}
-        {cliente.optin_marketing && <span className="bdg bg">MKT</span>}
+        <StatusBadge tone={contato.badgeTone}>{contato.badgeLabel}</StatusBadge>
+        {cliente.seg && <StatusBadge tone="neutral">{cliente.seg}</StatusBadge>}
+        {cliente.optin_marketing && <StatusBadge tone="success">MKT</StatusBadge>}
       </div>
 
-      {/* Ações */}
       {(onDetalhe || onEditar || onExcluir) && (
         <div className="mobile-card-actions">
           {onDetalhe && (

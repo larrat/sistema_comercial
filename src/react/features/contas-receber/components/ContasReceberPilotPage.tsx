@@ -4,6 +4,7 @@ import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../..
 import { emitToast } from '../../../app/legacy/events';
 import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
+import { EmptyState, FilterBar, StatCard } from '../../../shared/ui';
 import {
   useContasReceberMutations,
   getValorRecebido,
@@ -341,12 +342,7 @@ function ContasList({
     );
 
   if (!filtered.length) {
-    return (
-      <div className="empty">
-        <div className="ico">CR</div>
-        <p>Nenhum lançamento encontrado.</p>
-      </div>
-    );
+    return <EmptyState title="Nenhum lançamento encontrado." />;
   }
 
   const isMobile = window.matchMedia('(max-width: 1080px)').matches;
@@ -453,20 +449,11 @@ function ContasReceberMetrics({
   const recebidoMes = Number((totalBaixas + fallbackRecebidas).toFixed(2));
 
   return (
-    <div className="mg bento-band">
-      <div className="met">
-        <div className="ml">Em aberto</div>
-        <div className="mv kpi-value-sm tone-warning">{fmt(totalPendente)}</div>
-      </div>
-      <div className="met">
-        <div className="ml">Vencido</div>
-        <div className="mv kpi-value-sm tone-danger">{fmt(totalVencido)}</div>
-      </div>
-      <div className="met">
-        <div className="ml">Recebido no mês</div>
-        <div className="mv kpi-value-sm tone-success">{fmt(recebidoMes)}</div>
-      </div>
-    </div>
+    <section className="rf-ui-stat-grid--3">
+      <StatCard label="Em aberto" value={fmt(totalPendente)} tone="warning" />
+      <StatCard label="Vencido" value={fmt(totalVencido)} tone="danger" />
+      <StatCard label="Recebido no mês" value={fmt(recebidoMes)} tone="success" />
+    </section>
   );
 }
 
@@ -725,24 +712,16 @@ export function ContasReceberPilotPage() {
   const activeTabConfig = TABS.find((t) => t.key === activeTab) ?? TABS[0];
 
   if (status === 'loading') {
-    return (
-      <div className="empty">
-        <p>Carregando contas a receber...</p>
-        <p className="table-cell-caption table-cell-muted">
-          Estamos preparando saldos, baixas e pendências da filial ativa.
-        </p>
-      </div>
-    );
+    return <EmptyState title="Carregando contas a receber..." compact />;
   }
 
   if (status === 'error') {
     return (
-      <div className="empty">
-        <p className="tone-danger">{error ?? 'Erro ao carregar dados.'}</p>
-        <p className="table-cell-caption table-cell-muted">
-          Atualize a tela ou confirme a filial ativa antes de tentar novamente.
-        </p>
-      </div>
+      <EmptyState
+        title={error ?? 'Erro ao carregar dados.'}
+        description="Atualize a tela ou confirme a filial ativa antes de tentar novamente."
+        compact
+      />
     );
   }
 
@@ -764,16 +743,14 @@ export function ContasReceberPilotPage() {
 
       <div className="tc on">
         <div className="card card-shell">
-          <div className="toolbar toolbar-shell toolbar-shell--section">
-            <div className="toolbar-main">
-              <input
-                className="inp input-w-sm"
-                placeholder="Cliente ou pedido..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
+          <FilterBar>
+            <input
+              className="inp"
+              placeholder="Cliente ou pedido..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </FilterBar>
           <ContasList
             contas={contas}
             allBaixas={baixas}
