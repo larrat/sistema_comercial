@@ -138,12 +138,12 @@
 }
 
 .rf-topbar {
-  margin: 24px 24px 0;
-  padding: 20px 24px;
+  margin: 12px 24px 0;
+  padding: 10px 24px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .rf-topbar__copy {
