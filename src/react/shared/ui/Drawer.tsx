@@ -8,6 +8,8 @@ type DrawerProps = {
   children: ReactNode;
   footer?: ReactNode;
   withOverlay?: boolean;
+  closeOnOverlayClick?: boolean;
+  bodyClassName?: string;
   onClose: () => void;
 };
 
@@ -19,6 +21,8 @@ export function Drawer({
   children,
   footer,
   withOverlay = true,
+  closeOnOverlayClick = true,
+  bodyClassName,
   onClose
 }: DrawerProps) {
   const onCloseRef = useRef(onClose);
@@ -42,7 +46,7 @@ export function Drawer({
   return (
     <div
       className={`rf-ui-drawer-overlay ${withOverlay ? '' : 'rf-ui-drawer-overlay--no-bg'}`}
-      onClick={onClose}
+      onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <aside
         className="rf-ui-drawer"
@@ -56,14 +60,14 @@ export function Drawer({
             {title ? <div className="rf-ui-drawer__title">{title}</div> : null}
             {subtitle ? <div className="rf-ui-drawer__subtitle">{subtitle}</div> : null}
           </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+          <div className="rf-ui-drawer__actions">
             {action}
             <button type="button" className="btn btn-sm" onClick={onClose}>
               Fechar
             </button>
           </div>
         </div>
-        <div className="rf-ui-drawer__body">{children}</div>
+        <div className={`rf-ui-drawer__body${bodyClassName ? ` ${bodyClassName}` : ''}`}>{children}</div>
         {footer ? <div className="rf-ui-drawer__footer">{footer}</div> : null}
       </aside>
     </div>

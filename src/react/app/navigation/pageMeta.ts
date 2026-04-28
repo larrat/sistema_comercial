@@ -124,6 +124,15 @@ export const PAGE_META: Record<AppRouteId, PageMeta> = {
       { label: 'Relatórios', to: '/app/relatorios' }
     ]
   },
+  analytics: {
+    kicker: 'Análise',
+    title: 'Analytics',
+    description: 'Uso interno do sistema, tempo de execução de ações e identificação de gargalos.',
+    actions: [
+      { label: 'Dashboard', to: '/app/dashboard' },
+      { label: 'Relatórios', to: '/app/relatorios' }
+    ]
+  },
   filiais: {
     kicker: 'Administração',
     title: 'Filiais',

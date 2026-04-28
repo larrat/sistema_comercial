@@ -9,6 +9,7 @@ import {
   FilterBar,
   PageHeader
 } from '../../../shared/ui';
+import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import {
   postLegacyBridgeMessage,
   subscribeLegacyBridgeMessages
@@ -106,6 +107,57 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
     setDetailId(id);
     setDetailTab(tab);
   }
+
+  function openNewCliente() {
+    setSurfaceTab('lista');
+    setDetailId(null);
+    setEditingId('new');
+    setDetailTab('resumo');
+  }
+
+  useKeyboardShortcuts([
+    {
+      key: '/',
+      preventDefault: true,
+      enabled: surfaceTab === 'lista' && !editingId,
+      handler: () => {
+        const input = document.querySelector('[data-testid="busca-input"]') as HTMLInputElement | null;
+        input?.focus();
+        input?.select();
+      }
+    },
+    {
+      key: 'n',
+      enabled: surfaceTab === 'lista' && !editingId,
+      handler: () => {
+        openNewCliente();
+      }
+    },
+    {
+      key: 'Escape',
+      enabled: Boolean(editingId || detailId),
+      handler: () => {
+        if (editingId) {
+          setEditingId(null);
+          return;
+        }
+        if (detailId) {
+          setDetailId(null);
+          setDetailTab('resumo');
+        }
+      }
+    },
+    {
+      key: 'Enter',
+      enabled: Boolean(editingId),
+      handler: () => {
+        const active = document.activeElement as HTMLElement | null;
+        if (active?.tagName.toLowerCase() === 'textarea') return;
+        const submitBtn = document.querySelector('[data-testid="salvar-btn"]') as HTMLButtonElement | null;
+        if (submitBtn && !submitBtn.disabled) submitBtn.click();
+      }
+    }
+  ]);
 
   function getInitials(nome: string) {
     const parts = nome.trim().split(/\s+/).filter(Boolean);
@@ -249,12 +301,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
             className="btn btn-p btn-sm"
             type="button"
             data-testid="novo-btn"
-            onClick={() => {
-              setSurfaceTab('lista');
-              setDetailId(null);
-              setEditingId('new');
-              setDetailTab('resumo');
-            }}
+            onClick={openNewCliente}
           >
             Novo cliente
           </button>
@@ -364,12 +411,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                     <button
                       className="btn btn-p btn-sm h-9"
                       type="button"
-                      onClick={() => {
-                        setSurfaceTab('lista');
-                        setDetailId(null);
-                        setEditingId('new');
-                        setDetailTab('resumo');
-                      }}
+                      onClick={openNewCliente}
                       data-testid="novo-inline-btn"
                     >
                       + Novo cliente
@@ -388,12 +430,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                 <button
                   className="btn btn-p btn-sm h-9"
                   type="button"
-                  onClick={() => {
-                    setSurfaceTab('lista');
-                    setDetailId(null);
-                    setEditingId('new');
-                    setDetailTab('resumo');
-                  }}
+                  onClick={openNewCliente}
                 >
                   + Novo cliente
                 </button>

@@ -11,6 +11,7 @@ import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePa
 import { RcasRoutePage } from '../../features/rcas/pages/RcasRoutePage';
 import { RelatoriosRoutePage } from '../../features/relatorios/pages/RelatoriosRoutePage';
 import { CampanhasRoutePage } from '../../features/campanhas/pages/CampanhasRoutePage';
+import { AnalyticsPage } from '../../features/analytics/pages/AnalyticsPage';
 import { LoginPage } from '../../features/auth/components/LoginPage';
 import { SetupPage } from '../../features/setup/components/SetupPage';
 import { FiliaisRoutePage } from '../../features/filiais/pages/FiliaisRoutePage';
@@ -53,6 +54,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="rcas" element={<RcasRoutePage />} />
             <Route path="relatorios" element={<RelatoriosRoutePage />} />
             <Route path="campanhas" element={<CampanhasRoutePage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
             <Route element={<AdminOnlyRoute />}>
               <Route path="filiais" element={<FiliaisRoutePage />} />
               <Route path="acessos" element={<AcessosRoutePage />} />

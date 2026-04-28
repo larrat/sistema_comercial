@@ -12,6 +12,7 @@ export type AppRouteId =
   | 'rcas'
   | 'relatorios'
   | 'campanhas'
+  | 'analytics'
   | 'filiais'
   | 'acessos';
 
@@ -35,6 +36,7 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'rcas', path: '/app/rcas', label: 'Vendedores' },
   { id: 'relatorios', path: '/app/relatorios', label: 'Relatórios' },
   { id: 'campanhas', path: '/app/campanhas', label: 'Campanhas' },
+  { id: 'analytics', path: '/app/analytics', label: 'Analytics' },
   { id: 'filiais', path: '/app/filiais', label: 'Filiais' },
   { id: 'acessos', path: '/app/acessos', label: 'Acessos' }
 ];

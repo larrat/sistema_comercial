@@ -26,6 +26,12 @@ type DataTableProps<Row> = {
   renderActions?: (row: Row, index: number) => ReactNode;
   className?: string;
   getRowClassName?: (row: Row, index: number) => string | undefined;
+  page?: number;
+  pageSize?: number;
+  total?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+  pageSizeOptions?: number[];
 };
 
 export function DataTable<Row>({
@@ -42,7 +48,13 @@ export function DataTable<Row>({
   onRowClick,
   renderActions,
   className,
-  getRowClassName
+  getRowClassName,
+  page,
+  pageSize,
+  total,
+  onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = [10, 20, 50]
 }: DataTableProps<Row>) {
   const tableRows = data ?? rows;
   const hasActions = Boolean(renderActions);
@@ -53,6 +65,24 @@ export function DataTable<Row>({
   function getHeaderLabel(column: DataTableColumn<Row> | { key: string; label?: ReactNode }) {
     if ('header' in column) return column.header ?? column.label ?? '';
     return column.label ?? '';
+  }
+
+  const hasPagination =
+    typeof page === 'number' &&
+    typeof pageSize === 'number' &&
+    typeof total === 'number' &&
+    typeof onPageChange === 'function';
+  const safePage = Math.max(1, page ?? 1);
+  const safePageSize = Math.max(1, pageSize ?? tableRows.length || 1);
+  const totalItems = Math.max(0, total ?? tableRows.length);
+  const totalPages = Math.max(1, Math.ceil(totalItems / safePageSize));
+  const fromItem = totalItems === 0 ? 0 : (safePage - 1) * safePageSize + 1;
+  const toItem = totalItems === 0 ? 0 : Math.min(totalItems, safePage * safePageSize);
+
+  function goToPage(nextPage: number) {
+    if (!hasPagination) return;
+    const clampedPage = Math.min(Math.max(1, nextPage), totalPages);
+    if (clampedPage !== safePage) onPageChange?.(clampedPage);
   }
 
   if (loading) {
@@ -160,6 +190,48 @@ export function DataTable<Row>({
           ))}
         </tbody>
       </table>
+      {hasPagination ? (
+        <div className="rf-ui-data-table__pagination">
+          <div className="rf-ui-data-table__pagination-meta">
+            {fromItem}-{toItem} de {totalItems}
+          </div>
+          <div className="rf-ui-data-table__pagination-controls">
+            {onPageSizeChange ? (
+              <select
+                className="inp sel"
+                value={safePageSize}
+                onChange={(event) => onPageSizeChange(Number(event.target.value))}
+                aria-label="Itens por página"
+              >
+                {pageSizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size} / página
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => goToPage(safePage - 1)}
+              disabled={safePage <= 1}
+            >
+              Anterior
+            </button>
+            <span className="rf-ui-data-table__pagination-page">
+              Página {safePage} de {totalPages}
+            </span>
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => goToPage(safePage + 1)}
+              disabled={safePage >= totalPages}
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

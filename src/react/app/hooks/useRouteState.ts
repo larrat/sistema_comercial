@@ -19,6 +19,7 @@ export function useRouteState() {
     if (pathname.startsWith(APP_ROUTE_BY_ID.rcas.path)) return 'rcas';
     if (pathname.startsWith(APP_ROUTE_BY_ID.relatorios.path)) return 'relatorios';
     if (pathname.startsWith(APP_ROUTE_BY_ID.campanhas.path)) return 'campanhas';
+    if (pathname.startsWith(APP_ROUTE_BY_ID.analytics.path)) return 'analytics';
     if (pathname.startsWith(APP_ROUTE_BY_ID.filiais.path)) return 'filiais';
     if (pathname.startsWith(APP_ROUTE_BY_ID.acessos.path)) return 'acessos';
     if (pathname.startsWith(APP_ROUTE_BY_ID.setup.path)) return 'setup';
