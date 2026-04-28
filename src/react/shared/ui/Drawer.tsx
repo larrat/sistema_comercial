@@ -7,10 +7,20 @@ type DrawerProps = {
   action?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  withOverlay?: boolean;
   onClose: () => void;
 };
 
-export function Drawer({ open, title, subtitle, action, children, footer, onClose }: DrawerProps) {
+export function Drawer({
+  open,
+  title,
+  subtitle,
+  action,
+  children,
+  footer,
+  withOverlay = true,
+  onClose
+}: DrawerProps) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -30,7 +40,10 @@ export function Drawer({ open, title, subtitle, action, children, footer, onClos
   }
 
   return (
-    <div className="modal-overlay rf-ui-drawer-overlay" onClick={onClose}>
+    <div
+      className={`rf-ui-drawer-overlay ${withOverlay ? '' : 'rf-ui-drawer-overlay--no-bg'}`}
+      onClick={onClose}
+    >
       <aside
         className="rf-ui-drawer"
         onClick={stopPropagation}
