@@ -344,7 +344,7 @@ describe('ClientesPilotPage', () => {
   it('abre edicao do cliente atual quando recebe comando do shell legado', async () => {
     render(<ClientesPilotPage />);
 
-    await userEvent.click(screen.getByText('Detalhes'));
+    await userEvent.click(screen.getByTestId('cliente-card'));
 
     act(() => {
       window.dispatchEvent(
@@ -362,7 +362,7 @@ describe('ClientesPilotPage', () => {
   it('troca para fidelidade quando recebe comando do shell legado no detalhe', async () => {
     render(<ClientesPilotPage />);
 
-    await userEvent.click(screen.getByText('Detalhes'));
+    await userEvent.click(screen.getByTestId('cliente-card'));
 
     act(() => {
       window.dispatchEvent(
@@ -393,7 +393,7 @@ describe('ClientesPilotPage', () => {
     ]);
     render(<ClientesPilotPage />);
 
-    await userEvent.click(screen.getByText('Detalhes'));
+    await userEvent.click(screen.getByTestId('cliente-card'));
 
     act(() => {
       window.dispatchEvent(
@@ -425,7 +425,7 @@ describe('ClientesPilotPage', () => {
     ]);
     render(<ClientesPilotPage />);
 
-    await userEvent.click(screen.getByText('Detalhes'));
+    await userEvent.click(screen.getByTestId('cliente-card'));
 
     act(() => {
       window.dispatchEvent(
