@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import {
+  ActionMenu,
+  DataTable,
   Drawer,
   EmptyState,
+  FilterBar,
   PageHeader
 } from '../../../shared/ui';
 import {
@@ -50,7 +53,6 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>('resumo');
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { deleteClienteById, deletingId, error } = useClienteMutations();
 
   const editingCliente = useMemo<Cliente | null>(
@@ -66,15 +68,6 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   useEffect(() => {
     if (storeStatus === 'idle') setStatus('loading');
   }, [storeStatus, setStatus]);
-
-  useEffect(() => {
-    if (!openMenuId) return;
-    function handleClose() {
-      setOpenMenuId(null);
-    }
-    document.addEventListener('mousedown', handleClose);
-    return () => document.removeEventListener('mousedown', handleClose);
-  }, [openMenuId]);
 
   async function handleExcluir(id: string) {
     await deleteClienteById(id);
@@ -311,77 +304,79 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
 
         {storeStatus === 'ready' && (
           <>
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-3" data-testid="clientes-toolbar">
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  className="h-9 w-[280px] rounded-md border border-gray-300 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
-                  type="search"
-                  placeholder="Buscar cliente..."
-                  value={filtro.q ?? ''}
-                  onChange={(e) => setFiltro({ q: e.target.value })}
-                  aria-label="Buscar clientes"
-                  data-testid="busca-input"
-                />
-                <select
-                  className="h-9 rounded-md border border-gray-300 px-2 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
-                  value={filtro.seg ?? ''}
-                  onChange={(e) => setFiltro({ seg: e.target.value })}
-                  aria-label="Filtrar por segmento"
-                  data-testid="seg-select"
-                >
-                  <option value="">Segmento</option>
-                  {segmentos.map((seg) => (
-                    <option key={seg} value={seg}>
-                      {seg}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="h-9 rounded-md border border-gray-300 px-2 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
-                  value={filtro.status ?? ''}
-                  onChange={(e) => setFiltro({ status: e.target.value })}
-                  aria-label="Filtrar por status"
-                  data-testid="status-select"
-                >
-                  <option value="">Status</option>
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
-                  <option value="prospecto">Prospecto</option>
-                </select>
-                {temFiltro && (
-                  <button
-                    className="btn btn-sm h-9"
-                    type="button"
-                    onClick={clearFiltro}
-                    data-testid="limpar-filtro"
-                  >
-                    Limpar
-                  </button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  className="btn btn-ghost btn-sm h-9"
-                  type="button"
-                  onClick={exportarCsvAtual}
-                  data-testid="export-btn"
-                >
-                  Exportar
-                </button>
-                <button
-                  className="btn btn-p btn-sm h-9"
-                  type="button"
-                  onClick={() => {
-                    setSurfaceTab('lista');
-                    setDetailId(null);
-                    setEditingId('new');
-                    setDetailTab('resumo');
-                  }}
-                  data-testid="novo-inline-btn"
-                >
-                  + Novo cliente
-                </button>
-              </div>
+            <div className="mb-2" data-testid="clientes-toolbar">
+              <FilterBar
+                search={{
+                  value: filtro.q ?? '',
+                  onChange: (value) => setFiltro({ q: value }),
+                  placeholder: 'Buscar cliente...',
+                  ariaLabel: 'Buscar clientes',
+                  testId: 'busca-input',
+                  className:
+                    'h-9 w-[280px] rounded-md border border-gray-300 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none'
+                }}
+                filters={[
+                  {
+                    key: 'segmento',
+                    value: filtro.seg ?? '',
+                    onChange: (value) => setFiltro({ seg: value }),
+                    ariaLabel: 'Filtrar por segmento',
+                    testId: 'seg-select',
+                    options: [
+                      { value: '', label: 'Segmento' },
+                      ...segmentos.map((seg) => ({ value: seg, label: seg }))
+                    ]
+                  },
+                  {
+                    key: 'status',
+                    value: filtro.status ?? '',
+                    onChange: (value) => setFiltro({ status: value }),
+                    ariaLabel: 'Filtrar por status',
+                    testId: 'status-select',
+                    options: [
+                      { value: '', label: 'Status' },
+                      { value: 'ativo', label: 'Ativo' },
+                      { value: 'inativo', label: 'Inativo' },
+                      { value: 'prospecto', label: 'Prospecto' }
+                    ]
+                  }
+                ]}
+                actions={
+                  <>
+                    {temFiltro && (
+                      <button
+                        className="btn btn-sm h-9"
+                        type="button"
+                        onClick={clearFiltro}
+                        data-testid="limpar-filtro"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-ghost btn-sm h-9"
+                      type="button"
+                      onClick={exportarCsvAtual}
+                      data-testid="export-btn"
+                    >
+                      Exportar
+                    </button>
+                    <button
+                      className="btn btn-p btn-sm h-9"
+                      type="button"
+                      onClick={() => {
+                        setSurfaceTab('lista');
+                        setDetailId(null);
+                        setEditingId('new');
+                        setDetailTab('resumo');
+                      }}
+                      data-testid="novo-inline-btn"
+                    >
+                      + Novo cliente
+                    </button>
+                  </>
+                }
+              />
             </div>
 
             {filteredClientes.length === 0 && (
@@ -406,130 +401,102 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
             )}
 
             {filteredClientes.length > 0 && (
-              <div className="overflow-hidden rounded-md border border-gray-200 bg-white" data-testid="cliente-list">
-                <div
-                  className="grid grid-cols-[minmax(220px,2fr)_120px_150px_160px_100px_56px] items-center gap-3 border-b border-gray-200 bg-gray-50 px-4 py-2 text-xs uppercase tracking-wide text-gray-500"
-                  aria-hidden="true"
-                >
-                  <span>Nome</span>
-                  <span>Status</span>
-                  <span>WhatsApp</span>
-                  <span>Segmento</span>
-                  <span>Tags</span>
-                  <span className="text-right">Ações</span>
-                </div>
-
-                {filteredClientes.map((cliente) => {
-                  const badge = STATUS_BADGE[cliente.status ?? ''];
-                  const menuOpen = openMenuId === cliente.id;
-                  const whatsapp = cliente.whatsapp || cliente.tel || '—';
-
-                  return (
-                    <div
-                      key={cliente.id}
-                      className="group grid min-h-12 cursor-pointer grid-cols-[minmax(220px,2fr)_120px_150px_160px_100px_56px] items-center gap-3 border-b border-gray-100 px-4 py-2 transition-colors hover:bg-gray-50"
-                      data-testid="cliente-card"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => openDetail(cliente.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') openDetail(cliente.id);
-                      }}
-                    >
+              <DataTable
+                className="clientes-data-table"
+                data={filteredClientes}
+                rowKey={(cliente) => cliente.id}
+                onRowClick={(cliente) => openDetail(cliente.id)}
+                columns={[
+                  {
+                    key: 'nome',
+                    label: 'Nome',
+                    render: (cliente) => (
                       <div className="flex items-center gap-2">
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
                           {getInitials(cliente.nome || '')}
                         </div>
                         <div className="min-w-0">
                           <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
-                        {cliente.apelido && (
+                          {cliente.apelido && (
                             <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
-                        )}
+                          )}
                         </div>
                       </div>
-
-                      <div>
-                        {badge && (
-                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${badge.className}`}>
-                            {badge.label}
-                          </span>
-                        )}
-                      </div>
-
-                      <div>
-                        <span className="text-sm text-gray-600">{whatsapp}</span>
-                      </div>
-
-                      <div>
-                        <span className="text-sm text-gray-700">{cliente.seg || '—'}</span>
-                      </div>
-
-                      <div>
-                        {cliente.optin_marketing && (
-                          <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                            MKT
-                          </span>
-                        )}
-                      </div>
-
-                      <div
-                        className="relative flex justify-end"
-                        onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
-                        onMouseDown={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
-                      >
-                        <button
-                          className="h-8 w-8 rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-                          type="button"
-                          data-testid="cli-menu-btn"
-                          aria-label="Ações do cliente"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenMenuId(menuOpen ? null : cliente.id);
-                          }}
-                        >
-                          ⋯
-                        </button>
-                        {menuOpen && (
-                          <div className="absolute right-0 top-9 z-10 min-w-[140px] rounded-md border border-gray-200 bg-white py-1 shadow-sm" role="menu">
-                            <button
-                              className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
-                              type="button"
-                              onClick={() => {
-                                openDetail(cliente.id);
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              Ver detalhes
-                            </button>
-                            <button
-                              className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
-                              type="button"
-                              onClick={() => {
-                                setSurfaceTab('lista');
-                                setDetailId(null);
-                                setEditingId(cliente.id);
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              className="block w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
-                              type="button"
-                              onClick={() => {
-                                void handleExcluir(cliente.id);
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              Excluir
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    )
+                  },
+                  {
+                    key: 'status',
+                    label: 'Status',
+                    render: (cliente) => {
+                      const badge = STATUS_BADGE[cliente.status ?? ''];
+                      if (!badge) return '—';
+                      return (
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                      );
+                    }
+                  },
+                  {
+                    key: 'whatsapp',
+                    label: 'WhatsApp',
+                    render: (cliente) => (
+                      <span className="text-sm text-gray-600">{cliente.whatsapp || cliente.tel || '—'}</span>
+                    )
+                  },
+                  {
+                    key: 'segmento',
+                    label: 'Segmento',
+                    render: (cliente) => (
+                      <span className="text-sm text-gray-700">{cliente.seg || '—'}</span>
+                    )
+                  },
+                  {
+                    key: 'tags',
+                    label: 'Tags',
+                    render: (cliente) =>
+                      cliente.optin_marketing ? (
+                        <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                          MKT
+                        </span>
+                      ) : (
+                        '—'
+                      )
+                  }
+                ]}
+                renderActions={(cliente) => {
+                  return (
+                    <ActionMenu
+                      label="Ações do cliente"
+                      buttonTestId="cli-menu-btn"
+                      items={[
+                        {
+                          key: 'detalhes',
+                          label: 'Ver detalhes',
+                          onClick: () => openDetail(cliente.id)
+                        },
+                        {
+                          key: 'editar',
+                          label: 'Editar',
+                          onClick: () => {
+                            setSurfaceTab('lista');
+                            setDetailId(null);
+                            setEditingId(cliente.id);
+                          }
+                        },
+                        {
+                          key: 'excluir',
+                          label: 'Excluir',
+                          danger: true,
+                          onClick: () => {
+                            void handleExcluir(cliente.id);
+                          }
+                        }
+                      ]}
+                    />
                   );
-                })}
-              </div>
+                }}
+              />
             )}
           </>
         )}

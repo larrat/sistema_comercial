@@ -836,6 +836,24 @@
   min-width: 480px;
 }
 
+.clientes-data-table .tbl thead th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.clientes-data-table .tbl tbody tr {
+  height: 48px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+}
+
+.clientes-data-table .tbl tbody tr:hover {
+  background: #f9fafb;
+}
+
 @media (max-width: 980px) {
   /* Sidebar compacta quando empilhada verticalmente */
   .rf-sidebar {

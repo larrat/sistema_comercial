@@ -1,5 +1,6 @@
 export { PageHeader } from './PageHeader';
 export { FilterBar } from './FilterBar';
+export { ActionMenu } from './ActionMenu';
 export { DataTable } from './DataTable';
 export { StatusBadge } from './StatusBadge';
 export type { StatusBadgeTone } from './StatusBadge';
@@ -9,3 +10,4 @@ export { FormSection } from './FormSection';
 export { Modal } from './Modal';
 export { Drawer } from './Drawer';
 export type { DataTableColumn } from './DataTable';
+export type { ActionMenuItem } from './ActionMenu';
