@@ -89,23 +89,25 @@ describe('ClienteCard', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('chama onDetalhe com o id ao clicar em Detalhes', async () => {
+  it('chama onDetalhe com o id ao clicar na linha', async () => {
     const onDetalhe = vi.fn();
     render(<ClienteCard cliente={cli} onDetalhe={onDetalhe} />);
-    await userEvent.click(screen.getByText('Detalhes'));
+    await userEvent.click(screen.getByTestId('cliente-card'));
     expect(onDetalhe).toHaveBeenCalledWith('c1');
   });
 
-  it('chama onEditar com o id ao clicar em Editar', async () => {
+  it('chama onEditar com o id via menu', async () => {
     const onEditar = vi.fn();
     render(<ClienteCard cliente={cli} onEditar={onEditar} />);
+    await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Editar'));
     expect(onEditar).toHaveBeenCalledWith('c1');
   });
 
-  it('chama onExcluir com o id ao clicar em Excluir', async () => {
+  it('chama onExcluir com o id via menu', async () => {
     const onExcluir = vi.fn();
     render(<ClienteCard cliente={cli} onExcluir={onExcluir} />);
+    await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Excluir'));
     expect(onExcluir).toHaveBeenCalledWith('c1');
   });

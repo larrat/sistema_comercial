@@ -3,7 +3,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { Cliente } from '../../../../types/domain';
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { useRcas } from '../hooks/useRcas';
-import { ClienteContextSummary } from './ClienteContextSummary';
 
 type ClienteFormValues = {
   nome: string;
@@ -104,25 +103,12 @@ function isValidEmail(value: string): boolean {
 export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props) {
   const [values, setValues] = useState<ClienteFormValues>(() => toFormValues(initialCliente));
   const [localError, setLocalError] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const { submitCliente, saving, error } = useClienteMutations();
   const rcas = useRcas();
 
   useEffect(() => {
     setValues(toFormValues(initialCliente));
     setLocalError(null);
-    setShowAdvanced(
-      Boolean(
-        initialCliente?.cidade ||
-        initialCliente?.estado ||
-        initialCliente?.data_aniversario ||
-        initialCliente?.time ||
-        initialCliente?.obs ||
-        initialCliente?.optin_marketing ||
-        initialCliente?.optin_email ||
-        initialCliente?.optin_sms
-      )
-    );
   }, [initialCliente]);
 
   function update<K extends keyof ClienteFormValues>(key: K, value: ClienteFormValues[K]) {
@@ -190,28 +176,11 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
     if (!initialCliente) {
       setValues(toFormValues(null));
-      setShowAdvanced(false);
     }
   }
 
-  const title = initialCliente ? 'Editar cliente' : 'Novo cliente';
-  const subtitle = initialCliente
-    ? 'Revise os dados essenciais e deixe os detalhes complementares agrupados no avançado.'
-    : 'Comece pelo contato principal e pelos dados comerciais. O restante pode ficar para depois.';
-
   return (
     <form className="rf-ui-stack" onSubmit={handleSubmit} data-testid="cliente-form">
-      <div className="form-shell-head">
-        <div className="form-shell-kicker">Cadastro</div>
-        <div className="fb form-gap-bottom-xs">
-          <div>
-            <h3 className="table-cell-strong">{title}</h3>
-            <p className="form-shell-copy">{subtitle}</p>
-          </div>
-        </div>
-      </div>
-
-      {initialCliente && <ClienteContextSummary cliente={initialCliente} />}
 
       <section className="form-section-card">
         <div className="form-section-head">
@@ -423,100 +392,93 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
         </div>
       </section>
 
-      <details
-        className="form-advanced-block"
-        open={showAdvanced}
-        onToggle={(event) => setShowAdvanced(event.currentTarget.open)}
-      >
-        <summary className="form-advanced-summary">
-          <span>Detalhes avançados</span>
-          <span className="table-cell-caption table-cell-muted">
-            Localização, marketing e observações
-          </span>
-        </summary>
-
-        <div className="form-advanced-body">
-          <div className="grid grid-2">
-            <label className="form-field">
-              <span>Cidade</span>
-              <input
-                className="inp"
-                value={values.cidade}
-                onChange={(e) => update('cidade', e.target.value)}
-                data-testid="form-cidade"
-              />
-            </label>
-            <label className="form-field">
-              <span>Estado</span>
-              <input
-                className="inp"
-                value={values.estado}
-                onChange={(e) => update('estado', e.target.value)}
-                onBlur={(e) => update('estado', normalizeUf(e.target.value))}
-                maxLength={2}
-                placeholder="UF"
-                data-testid="form-estado"
-              />
-            </label>
+      <section className="form-section-card">
+        <div className="form-section-head">
+          <div>
+            <div className="form-section-title">Localização e observações</div>
           </div>
+        </div>
 
-          <div className="grid grid-2">
-            <label className="form-field">
-              <span>Data de aniversário</span>
-              <input
-                className="inp"
-                type="date"
-                value={values.data_aniversario}
-                onChange={(e) => update('data_aniversario', e.target.value)}
-                data-testid="form-aniv"
-              />
-            </label>
-            <div className="form-field">
-              <span>Opt-ins de marketing</span>
-              <div className="fg2">
-                <label className="optin-choice">
-                  <input
-                    type="checkbox"
-                    checked={values.optin_marketing}
-                    onChange={(e) => update('optin_marketing', e.target.checked)}
-                    data-testid="form-optin-marketing"
-                  />
-                  Marketing
-                </label>
-                <label className="optin-choice">
-                  <input
-                    type="checkbox"
-                    checked={values.optin_email}
-                    onChange={(e) => update('optin_email', e.target.checked)}
-                    data-testid="form-optin-email"
-                  />
-                  E-mail
-                </label>
-                <label className="optin-choice">
-                  <input
-                    type="checkbox"
-                    checked={values.optin_sms}
-                    onChange={(e) => update('optin_sms', e.target.checked)}
-                    data-testid="form-optin-sms"
-                  />
-                  SMS
-                </label>
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-2">
           <label className="form-field">
-            <span>Observacoes</span>
-            <textarea
+            <span>Cidade</span>
+            <input
               className="inp"
-              rows={3}
-              value={values.obs}
-              onChange={(e) => update('obs', e.target.value)}
-              data-testid="form-obs"
+              value={values.cidade}
+              onChange={(e) => update('cidade', e.target.value)}
+              data-testid="form-cidade"
+            />
+          </label>
+          <label className="form-field">
+            <span>Estado</span>
+            <input
+              className="inp"
+              value={values.estado}
+              onChange={(e) => update('estado', e.target.value)}
+              onBlur={(e) => update('estado', normalizeUf(e.target.value))}
+              maxLength={2}
+              placeholder="UF"
+              data-testid="form-estado"
             />
           </label>
         </div>
-      </details>
+
+        <div className="grid grid-2">
+          <label className="form-field">
+            <span>Data de aniversário</span>
+            <input
+              className="inp"
+              type="date"
+              value={values.data_aniversario}
+              onChange={(e) => update('data_aniversario', e.target.value)}
+              data-testid="form-aniv"
+            />
+          </label>
+          <div className="form-field">
+            <span>Opt-ins de marketing</span>
+            <div className="fg2">
+              <label className="optin-choice">
+                <input
+                  type="checkbox"
+                  checked={values.optin_marketing}
+                  onChange={(e) => update('optin_marketing', e.target.checked)}
+                  data-testid="form-optin-marketing"
+                />
+                Marketing
+              </label>
+              <label className="optin-choice">
+                <input
+                  type="checkbox"
+                  checked={values.optin_email}
+                  onChange={(e) => update('optin_email', e.target.checked)}
+                  data-testid="form-optin-email"
+                />
+                E-mail
+              </label>
+              <label className="optin-choice">
+                <input
+                  type="checkbox"
+                  checked={values.optin_sms}
+                  onChange={(e) => update('optin_sms', e.target.checked)}
+                  data-testid="form-optin-sms"
+                />
+                SMS
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <label className="form-field">
+          <span>Observações</span>
+          <textarea
+            className="inp"
+            rows={3}
+            value={values.obs}
+            onChange={(e) => update('obs', e.target.value)}
+            data-testid="form-obs"
+          />
+        </label>
+      </section>
 
       {(localError || error) && (
         <div className="rf-error-banner" data-testid="form-error">{localError || error}</div>

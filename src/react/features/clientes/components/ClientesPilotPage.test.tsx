@@ -160,6 +160,7 @@ describe('ClientesPilotPage', () => {
 
     render(<ClientesPilotPage />);
 
+    await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Editar'));
     const nomeInput = screen.getByTestId('form-nome');
     await userEvent.clear(nomeInput);
@@ -199,6 +200,7 @@ describe('ClientesPilotPage', () => {
 
     render(<ClientesPilotPage />);
 
+    await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Excluir'));
 
     await waitFor(() => {
@@ -221,7 +223,7 @@ describe('ClientesPilotPage', () => {
   it('mostra resumo contextual ao abrir um cliente existente', async () => {
     render(<ClientesPilotPage />);
 
-    await userEvent.click(screen.getByText('Detalhes'));
+    await userEvent.click(screen.getByTestId('cliente-card'));
 
     expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
     expect(screen.getByText('Resumo do cliente')).toBeInTheDocument();

@@ -144,7 +144,7 @@ describe('ClienteListView', () => {
     carregarClientes();
     const onDetalhe = vi.fn();
     render(<ClienteListView onDetalhe={onDetalhe} />);
-    await userEvent.click(screen.getAllByText('Detalhes')[0]);
+    await userEvent.click(screen.getAllByTestId('cliente-card')[0]);
     expect(onDetalhe).toHaveBeenCalledWith('1');
   });
 
@@ -152,7 +152,8 @@ describe('ClienteListView', () => {
     carregarClientes();
     const onExcluir = vi.fn();
     render(<ClienteListView onExcluir={onExcluir} />);
-    await userEvent.click(screen.getAllByText('Excluir')[0]);
+    await userEvent.click(screen.getAllByTestId('cli-menu-btn')[0]);
+    await userEvent.click(screen.getByText('Excluir'));
     expect(onExcluir).toHaveBeenCalledWith('1');
   });
 

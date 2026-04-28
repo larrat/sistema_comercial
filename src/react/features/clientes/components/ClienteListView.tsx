@@ -141,7 +141,15 @@ export function ClienteListView({
           )}
 
           {filtrados.length > 0 && (
-            <div data-testid="cliente-list">
+            <div className="cli-list" data-testid="cliente-list">
+              <div className="cli-list__head" aria-hidden="true">
+                <span>Nome</span>
+                <span>Status</span>
+                <span>Contato</span>
+                <span>Segmento</span>
+                <span>Cidade / UF</span>
+                <span />
+              </div>
               {filtrados.map((cliente) => (
                 <ClienteCard
                   key={cliente.id}

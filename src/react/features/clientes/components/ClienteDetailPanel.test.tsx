@@ -201,7 +201,7 @@ describe('ClienteDetailPanel', () => {
       render(<ClienteDetailPanel cliente={CLIENTE} />);
     });
 
-    await user.click(screen.getByText('Notas / historico'));
+    await user.click(screen.getByText('Notas / histórico'));
 
     await waitFor(() => {
       expect(listNotasMock).toHaveBeenCalledWith(
@@ -229,7 +229,7 @@ describe('ClienteDetailPanel', () => {
       render(<ClienteDetailPanel cliente={CLIENTE} />);
     });
 
-    await user.click(screen.getByText('Notas / historico'));
+    await user.click(screen.getByText('Notas / histórico'));
     await user.type(screen.getByTestId('nota-input'), 'Retorno confirmado');
     await user.click(screen.getByTestId('nota-add'));
 

@@ -1561,3 +1561,202 @@
   padding-top: 8px;
   border-top: 1px solid var(--border);
 }
+
+/* ── Cliente lista compacta ──────────────────────────────────────────────── */
+
+.cli-list {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.cli-list__head {
+  display: grid;
+  grid-template-columns: 1fr 100px 170px 130px 100px 40px;
+  padding: 0 12px;
+  height: 32px;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 50%, var(--panel));
+}
+
+.cli-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 170px 130px 100px 40px;
+  align-items: center;
+  padding: 0 12px;
+  height: 44px;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+  cursor: default;
+  position: relative;
+  transition: background 0.1s;
+}
+
+.cli-row:last-child {
+  border-bottom: none;
+}
+
+.cli-row--clickable {
+  cursor: pointer;
+}
+
+.cli-row--clickable:hover {
+  background: color-mix(in srgb, var(--bg) 60%, var(--panel));
+}
+
+.cli-row__name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.cli-row__title {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cli-row__sub {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cli-row__contact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cli-row__contact-val {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.cli-row__seg {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cli-row__seg > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cli-row__loc {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cli-row__actions {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cli-row__menu-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--muted);
+  transition: background 0.1s, color 0.1s;
+}
+
+.cli-row__menu-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.cli-row__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 2px);
+  z-index: 30;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.cli-row__menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.cli-row__menu-item:hover {
+  background: var(--bg);
+}
+
+.cli-row__menu-item--danger {
+  color: var(--danger, #e53e3e);
+}
+
+.rf-ui-drawer__subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+@media (max-width: 700px) {
+  .cli-list__head {
+    display: none;
+  }
+
+  .cli-row {
+    grid-template-columns: 1fr 90px 36px;
+    height: auto;
+    min-height: 44px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .cli-row > *:nth-child(3),
+  .cli-row > *:nth-child(4),
+  .cli-row > *:nth-child(5) {
+    display: none;
+  }
+}

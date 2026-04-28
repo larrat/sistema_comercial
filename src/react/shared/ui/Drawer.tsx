@@ -3,12 +3,14 @@ import { useEffect, useRef, type MouseEvent, type ReactNode } from 'react';
 type DrawerProps = {
   open: boolean;
   title?: string;
+  subtitle?: string;
+  action?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   onClose: () => void;
 };
 
-export function Drawer({ open, title, children, footer, onClose }: DrawerProps) {
+export function Drawer({ open, title, subtitle, action, children, footer, onClose }: DrawerProps) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -37,10 +39,16 @@ export function Drawer({ open, title, children, footer, onClose }: DrawerProps) 
         aria-label={title || 'Painel lateral'}
       >
         <div className="rf-ui-drawer__head">
-          {title ? <div className="rf-ui-drawer__title">{title}</div> : <div />}
-          <button type="button" className="btn btn-sm" onClick={onClose}>
-            Fechar
-          </button>
+          <div>
+            {title ? <div className="rf-ui-drawer__title">{title}</div> : null}
+            {subtitle ? <div className="rf-ui-drawer__subtitle">{subtitle}</div> : null}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+            {action}
+            <button type="button" className="btn btn-sm" onClick={onClose}>
+              Fechar
+            </button>
+          </div>
         </div>
         <div className="rf-ui-drawer__body">{children}</div>
         {footer ? <div className="rf-ui-drawer__footer">{footer}</div> : null}

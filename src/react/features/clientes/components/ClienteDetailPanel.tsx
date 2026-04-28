@@ -11,8 +11,6 @@ export type DetailTab = 'resumo' | 'abertas' | 'fechadas' | 'notas' | 'fidelidad
 
 type Props = {
   cliente: Cliente;
-  onEditar?: (id: string) => void;
-  onClose?: () => void;
   activeTab?: DetailTab;
   onTabChange?: (tab: DetailTab) => void;
   onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void;
@@ -162,8 +160,6 @@ function renderPedidosList(
 
 export function ClienteDetailPanel({
   cliente,
-  onEditar,
-  onClose,
   activeTab,
   onTabChange,
   onPedidoAction
@@ -211,32 +207,6 @@ export function ClienteDetailPanel({
 
   return (
     <div className="rf-ui-stack" data-testid="cliente-detail-panel">
-      <div className="fb form-gap-bottom-xs">
-        <div>
-          <div className="table-cell-caption table-cell-muted">Detalhe do cliente</div>
-          <h3 className="table-cell-strong">{cliente.nome}</h3>
-          <div className="table-cell-caption table-cell-muted">
-            {cliente.seg || 'Sem segmento'} - {cliente.cidade || 'Cidade não informada'}
-          </div>
-        </div>
-        <div className="mobile-card-actions">
-          {onEditar && (
-            <button
-              className="btn btn-p btn-sm"
-              onClick={() => onEditar(cliente.id)}
-              data-testid="detalhe-editar"
-            >
-              Editar
-            </button>
-          )}
-          {onClose && (
-            <button className="btn btn-sm" onClick={onClose} data-testid="detalhe-fechar">
-              Fechar
-            </button>
-          )}
-        </div>
-      </div>
-
       <div className="tabs" data-testid="cliente-detail-tabs">
         <button className={`tb ${tab === 'resumo' ? 'on' : ''}`} onClick={() => setTab('resumo')}>
           Resumo

@@ -281,6 +281,24 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
       <Drawer
         open={!!detailCliente && !editingId && surfaceTab === 'lista'}
         title={detailCliente?.nome ?? 'Cliente'}
+        subtitle={[detailCliente?.seg, detailCliente?.cidade, detailCliente?.status]
+          .filter(Boolean)
+          .join(' · ')}
+        action={
+          detailCliente ? (
+            <button
+              className="btn btn-p btn-sm"
+              type="button"
+              onClick={() => {
+                setDetailId(null);
+                setEditingId(detailCliente.id);
+                setDetailTab('resumo');
+              }}
+            >
+              Editar
+            </button>
+          ) : undefined
+        }
         onClose={() => {
           setDetailId(null);
           setDetailTab('resumo');
@@ -292,15 +310,6 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
             activeTab={detailTab}
             onTabChange={setDetailTab}
             onPedidoAction={onPedidoAction}
-            onEditar={(id) => {
-              setDetailId(null);
-              setEditingId(id);
-              setDetailTab('resumo');
-            }}
-            onClose={() => {
-              setDetailId(null);
-              setDetailTab('resumo');
-            }}
           />
         )}
       </Drawer>
