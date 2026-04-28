@@ -4,11 +4,8 @@ import { useShallow } from 'zustand/shallow';
 import {
   Drawer,
   EmptyState,
-  FilterBar,
-  PageHeader,
-  StatusBadge
+  PageHeader
 } from '../../../shared/ui';
-import type { StatusBadgeTone } from '../../../shared/ui';
 import {
   postLegacyBridgeMessage,
   subscribeLegacyBridgeMessages
@@ -28,10 +25,10 @@ const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
 type SurfaceTab = 'lista' | 'segmentos';
 
-const STATUS_BADGE: Record<string, { label: string; tone: StatusBadgeTone }> = {
-  ativo: { label: 'Ativo', tone: 'success' },
-  inativo: { label: 'Inativo', tone: 'neutral' },
-  prospecto: { label: 'Prospecto', tone: 'info' }
+const STATUS_BADGE: Record<string, { label: string; className: string }> = {
+  ativo: { label: 'Ativo', className: 'bg-emerald-50 text-emerald-700' },
+  inativo: { label: 'Inativo', className: 'bg-gray-100 text-gray-600' },
+  prospecto: { label: 'Prospecto', className: 'bg-blue-50 text-blue-700' }
 };
 
 type ClientesPilotPageProps = {
@@ -115,6 +112,13 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
     setEditingId(null);
     setDetailId(id);
     setDetailTab(tab);
+  }
+
+  function getInitials(nome: string) {
+    const parts = nome.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
   }
 
   useEffect(() => {
@@ -243,7 +247,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   ]);
 
   return (
-    <main className="rf-content rf-ui-stack" data-testid="clientes-pilot-page">
+    <main className="rf-content rf-ui-stack py-2" data-testid="clientes-pilot-page">
       <PageHeader
         title="Clientes"
         description="Cadastre e gerencie seus clientes."
@@ -307,103 +311,112 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
 
         {storeStatus === 'ready' && (
           <>
-            <FilterBar
-              actions={
-                <>
-                  {temFiltro && (
-                    <button
-                      className="btn btn-sm"
-                      type="button"
-                      onClick={clearFiltro}
-                      data-testid="limpar-filtro"
-                    >
-                      Limpar filtros
-                    </button>
-                  )}
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-3" data-testid="clientes-toolbar">
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  className="h-9 w-[280px] rounded-md border border-gray-300 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                  type="search"
+                  placeholder="Buscar cliente..."
+                  value={filtro.q ?? ''}
+                  onChange={(e) => setFiltro({ q: e.target.value })}
+                  aria-label="Buscar clientes"
+                  data-testid="busca-input"
+                />
+                <select
+                  className="h-9 rounded-md border border-gray-300 px-2 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
+                  value={filtro.seg ?? ''}
+                  onChange={(e) => setFiltro({ seg: e.target.value })}
+                  aria-label="Filtrar por segmento"
+                  data-testid="seg-select"
+                >
+                  <option value="">Segmento</option>
+                  {segmentos.map((seg) => (
+                    <option key={seg} value={seg}>
+                      {seg}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="h-9 rounded-md border border-gray-300 px-2 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
+                  value={filtro.status ?? ''}
+                  onChange={(e) => setFiltro({ status: e.target.value })}
+                  aria-label="Filtrar por status"
+                  data-testid="status-select"
+                >
+                  <option value="">Status</option>
+                  <option value="ativo">Ativo</option>
+                  <option value="inativo">Inativo</option>
+                  <option value="prospecto">Prospecto</option>
+                </select>
+                {temFiltro && (
                   <button
-                    className="btn btn-sm"
+                    className="btn btn-sm h-9"
                     type="button"
-                    onClick={exportarCsvAtual}
-                    data-testid="export-btn"
+                    onClick={clearFiltro}
+                    data-testid="limpar-filtro"
                   >
-                    Exportar CSV
+                    Limpar
                   </button>
-                </>
-              }
-            >
-              <input
-                className="inp"
-                type="search"
-                placeholder="Buscar..."
-                value={filtro.q ?? ''}
-                onChange={(e) => setFiltro({ q: e.target.value })}
-                aria-label="Buscar clientes"
-                data-testid="busca-input"
-              />
-              <select
-                className="inp"
-                value={filtro.seg ?? ''}
-                onChange={(e) => setFiltro({ seg: e.target.value })}
-                aria-label="Filtrar por segmento"
-                data-testid="seg-select"
-              >
-                <option value="">Todos os segmentos</option>
-                {segmentos.map((seg) => (
-                  <option key={seg} value={seg}>
-                    {seg}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="inp"
-                value={filtro.status ?? ''}
-                onChange={(e) => setFiltro({ status: e.target.value })}
-                aria-label="Filtrar por status"
-                data-testid="status-select"
-              >
-                <option value="">Todos os status</option>
-                <option value="ativo">Ativo</option>
-                <option value="inativo">Inativo</option>
-                <option value="prospecto">Prospecto</option>
-              </select>
-            </FilterBar>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="btn btn-ghost btn-sm h-9"
+                  type="button"
+                  onClick={exportarCsvAtual}
+                  data-testid="export-btn"
+                >
+                  Exportar
+                </button>
+                <button
+                  className="btn btn-p btn-sm h-9"
+                  type="button"
+                  onClick={() => {
+                    setSurfaceTab('lista');
+                    setDetailId(null);
+                    setEditingId('new');
+                    setDetailTab('resumo');
+                  }}
+                  data-testid="novo-inline-btn"
+                >
+                  + Novo cliente
+                </button>
+              </div>
+            </div>
 
             {filteredClientes.length === 0 && (
-              <EmptyState
-                title={
-                  clientes.length > 0
-                    ? 'Nenhum cliente encontrado com os filtros atuais.'
-                    : 'Nenhum cliente encontrado.'
-                }
-                action={
-                  clientes.length === 0 ? (
-                    <button
-                      className="btn btn-p btn-sm"
-                      type="button"
-                      onClick={() => {
-                        setSurfaceTab('lista');
-                        setDetailId(null);
-                        setEditingId('new');
-                        setDetailTab('resumo');
-                      }}
-                    >
-                      + Novo cliente
-                    </button>
-                  ) : undefined
-                }
+              <div
+                className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-md border border-dashed border-gray-200 bg-white text-center"
                 data-testid="empty-state"
-              />
+              >
+                <p className="text-sm text-gray-600">Nenhum cliente encontrado</p>
+                <button
+                  className="btn btn-p btn-sm h-9"
+                  type="button"
+                  onClick={() => {
+                    setSurfaceTab('lista');
+                    setDetailId(null);
+                    setEditingId('new');
+                    setDetailTab('resumo');
+                  }}
+                >
+                  + Novo cliente
+                </button>
+              </div>
             )}
 
             {filteredClientes.length > 0 && (
-              <div className="cli-list" data-testid="cliente-list">
-                <div className="cli-list__head" aria-hidden="true">
+              <div className="overflow-hidden rounded-md border border-gray-200 bg-white" data-testid="cliente-list">
+                <div
+                  className="grid grid-cols-[minmax(220px,2fr)_120px_150px_160px_100px_56px] items-center gap-3 border-b border-gray-200 bg-gray-50 px-4 py-2 text-xs uppercase tracking-wide text-gray-500"
+                  aria-hidden="true"
+                >
                   <span>Nome</span>
                   <span>Status</span>
                   <span>WhatsApp</span>
                   <span>Segmento</span>
                   <span>Tags</span>
-                  <span />
+                  <span className="text-right">Ações</span>
                 </div>
 
                 {filteredClientes.map((cliente) => {
@@ -414,7 +427,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                   return (
                     <div
                       key={cliente.id}
-                      className="cli-row cli-row--clickable"
+                      className="group grid min-h-12 cursor-pointer grid-cols-[minmax(220px,2fr)_120px_150px_160px_100px_56px] items-center gap-3 border-b border-gray-100 px-4 py-2 transition-colors hover:bg-gray-50"
                       data-testid="cliente-card"
                       role="button"
                       tabIndex={0}
@@ -423,40 +436,49 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                         if (e.key === 'Enter' || e.key === ' ') openDetail(cliente.id);
                       }}
                     >
-                      <div className="cli-row__name">
-                        <span className="cli-row__title">{cliente.nome}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
+                          {getInitials(cliente.nome || '')}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
                         {cliente.apelido && (
-                          <span className="cli-row__sub">{cliente.apelido}</span>
+                            <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
                         )}
+                        </div>
                       </div>
 
                       <div>
                         {badge && (
-                          <StatusBadge tone={badge.tone}>{badge.label}</StatusBadge>
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${badge.className}`}>
+                            {badge.label}
+                          </span>
                         )}
                       </div>
 
-                      <div className="cli-row__contact">
-                        <span className="cli-row__contact-val">{whatsapp}</span>
+                      <div>
+                        <span className="text-sm text-gray-600">{whatsapp}</span>
                       </div>
 
-                      <div className="cli-row__seg">
-                        <span>{cliente.seg || '—'}</span>
+                      <div>
+                        <span className="text-sm text-gray-700">{cliente.seg || '—'}</span>
                       </div>
 
-                      <div className="cli-row__seg">
+                      <div>
                         {cliente.optin_marketing && (
-                          <StatusBadge tone="success">MKT</StatusBadge>
+                          <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                            MKT
+                          </span>
                         )}
                       </div>
 
                       <div
-                        className="cli-row__actions"
+                        className="relative flex justify-end"
                         onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
                         onMouseDown={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
                       >
                         <button
-                          className="cli-row__menu-btn"
+                          className="h-8 w-8 rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
                           type="button"
                           data-testid="cli-menu-btn"
                           aria-label="Ações do cliente"
@@ -468,9 +490,9 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                           ⋯
                         </button>
                         {menuOpen && (
-                          <div className="cli-row__menu" role="menu">
+                          <div className="absolute right-0 top-9 z-10 min-w-[140px] rounded-md border border-gray-200 bg-white py-1 shadow-sm" role="menu">
                             <button
-                              className="cli-row__menu-item"
+                              className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
                               type="button"
                               onClick={() => {
                                 openDetail(cliente.id);
@@ -480,7 +502,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                               Ver detalhes
                             </button>
                             <button
-                              className="cli-row__menu-item"
+                              className="block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
                               type="button"
                               onClick={() => {
                                 setSurfaceTab('lista');
@@ -492,7 +514,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                               Editar
                             </button>
                             <button
-                              className="cli-row__menu-item cli-row__menu-item--danger"
+                              className="block w-full px-3 py-1.5 text-left text-sm text-red-600 hover:bg-red-50"
                               type="button"
                               onClick={() => {
                                 void handleExcluir(cliente.id);
