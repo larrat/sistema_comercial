@@ -1,5 +1,4 @@
-import { PageHeader } from '../../../shared/ui/PageHeader';
-import { StatCard } from '../../../shared/ui/StatCard';
+import { PageHeader, StatCard } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import { CampanhaModal } from './CampanhaModal';

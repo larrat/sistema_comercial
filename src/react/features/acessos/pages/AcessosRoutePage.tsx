@@ -1,15 +1,13 @@
+import { PageHeader } from '../../../shared/ui';
+
 export function AcessosRoutePage() {
   return (
     <div className="rf-content">
-      <div className="rf-ui-page-header">
-        <div className="rf-ui-page-header__copy">
-          <div className="rf-ui-page-header__kicker">Administração</div>
-          <h1 className="rf-ui-page-header__title">Acessos</h1>
-          <p className="rf-ui-page-header__description">
-            Perfis de usuário, vínculos a filiais, convites e auditoria.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        kicker="Administração"
+        title="Acessos"
+        description="Perfis de usuário, vínculos a filiais, convites e auditoria."
+      />
 
       <div className="card" style={{ padding: '32px 28px', maxWidth: 520 }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>🔒</div>
