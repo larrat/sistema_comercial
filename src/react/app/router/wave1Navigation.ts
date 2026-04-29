@@ -1,8 +1,25 @@
-export type Wave1LegacyPage = 'dashboard' | 'clientes' | 'estoque' | 'cotacao' | 'pedidos' | 'receber' | 'produtos' | 'rcas' | 'relatorios' | 'campanhas';
+export type Wave1LegacyPage =
+  | 'dashboard'
+  | 'clientes'
+  | 'estoque'
+  | 'cotacao'
+  | 'pedidos'
+  | 'receber'
+  | 'produtos'
+  | 'rcas'
+  | 'relatorios'
+  | 'campanhas';
+
+export type ClienteProfileTab = 'resumo' | 'pedidos' | 'financeiro' | 'notas' | 'cadastro';
 
 export type PedidoRouteIntent = {
   pedidoId?: string | null;
+  clienteId?: string | null;
   view?: 'detail' | 'edit' | 'new' | null;
+};
+
+export type ReceberRouteIntent = {
+  contaId?: string | null;
 };
 
 const WAVE1_ROUTE_BY_PAGE: Record<Wave1LegacyPage, string> = {
@@ -22,10 +39,30 @@ export function getWave1RouteByLegacyPage(page: string): string | null {
   return page in WAVE1_ROUTE_BY_PAGE ? WAVE1_ROUTE_BY_PAGE[page as Wave1LegacyPage] : null;
 }
 
+export function buildClienteRoute(
+  clienteId: string,
+  options: { tab?: ClienteProfileTab | null } = {}
+): string {
+  const params = new URLSearchParams();
+  if (options.tab) params.set('tab', options.tab);
+  const query = params.toString();
+  return query
+    ? `/app/clientes/${encodeURIComponent(clienteId)}?${query}`
+    : `/app/clientes/${encodeURIComponent(clienteId)}`;
+}
+
 export function buildPedidosRoute(intent: PedidoRouteIntent = {}): string {
   const params = new URLSearchParams();
   if (intent.pedidoId) params.set('pedido', intent.pedidoId);
+  if (intent.clienteId) params.set('cliente', intent.clienteId);
   if (intent.view) params.set('view', intent.view);
   const query = params.toString();
   return query ? `/app/pedidos?${query}` : '/app/pedidos';
+}
+
+export function buildReceberRoute(intent: ReceberRouteIntent = {}): string {
+  const params = new URLSearchParams();
+  if (intent.contaId) params.set('conta', intent.contaId);
+  const query = params.toString();
+  return query ? `/app/receber?${query}` : '/app/receber';
 }

@@ -15,6 +15,7 @@ const COMMAND_SOURCE = 'pedidos-legacy-shell';
 
 type PedidosRouteIntent = {
   pedidoId?: string | null;
+  clienteId?: string | null;
   view?: 'detail' | 'edit' | 'new' | null;
 };
 
@@ -40,6 +41,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
   const [editingId, setEditingId] = useState<string | null>(null); // 'new' | pedidoId | null
   const [detailId, setDetailId] = useState<string | null>(null);
   const [formOrigin, setFormOrigin] = useState<string>('unknown');
+  const [prefillClienteId, setPrefillClienteId] = useState<string | null>(null);
 
   const editingPedido = useMemo<Pedido | null>(
     () =>
@@ -52,13 +54,15 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     [pedidos, detailId]
   );
 
-  function openNewPedido(origin = 'list_button') {
+  function openNewPedido(origin = 'list_button', clienteId: string | null = null) {
     setDetailId(null);
     setEditingId('new');
     setFormOrigin(origin);
+    setPrefillClienteId(clienteId);
     trackEvent('pedido_iniciado', {
       metadata: {
-        origin
+        origin,
+        has_cliente_prefill: Boolean(clienteId)
       },
       result: 'success'
     });
@@ -82,11 +86,13 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
       if (data.type === 'pedidos:editar' && data.id) {
         setDetailId(null);
         setEditingId(String(data.id));
+        setPrefillClienteId(null);
         return;
       }
       if (data.type === 'pedidos:detalhe' && data.id) {
         setEditingId(null);
         setDetailId(String(data.id));
+        setPrefillClienteId(null);
         return;
       }
     });
@@ -96,7 +102,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     if (!routeIntent) return;
 
     if (routeIntent.view === 'new') {
-      openNewPedido('route_intent');
+      openNewPedido('route_intent', routeIntent.clienteId ?? null);
       return;
     }
 
@@ -105,12 +111,14 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     if (routeIntent.view === 'edit') {
       setDetailId(null);
       setEditingId(routeIntent.pedidoId);
+      setPrefillClienteId(null);
       return;
     }
 
     setEditingId(null);
     setDetailId(routeIntent.pedidoId);
-  }, [routeIntent?.pedidoId, routeIntent?.view]);
+    setPrefillClienteId(null);
+  }, [routeIntent?.clienteId, routeIntent?.pedidoId, routeIntent?.view]);
 
   // Publica estado ao bridge legado
   useEffect(() => {
@@ -188,14 +196,17 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
 
       {editingId && (
         <PedidoForm
+          prefillClienteId={editingId === 'new' ? prefillClienteId : null}
           initialPedido={editingId === 'new' ? null : editingPedido}
           analyticsOrigin={formOrigin}
           onSaved={(pedido) => {
             setEditingId(null);
             setDetailId(pedido.id);
+            setPrefillClienteId(null);
           }}
           onCancel={() => {
             setEditingId(null);
+            setPrefillClienteId(null);
           }}
         />
       )}

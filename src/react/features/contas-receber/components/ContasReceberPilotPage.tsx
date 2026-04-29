@@ -30,6 +30,9 @@ const MESSAGE_SOURCE = 'receber-react-pilot';
 const COMMAND_SOURCE = 'receber-legacy-shell';
 
 type ContasReceberPilotPageProps = {
+  routeIntent?: {
+    contaId?: string | null;
+  };
   onRetryLoad?: () => void;
 };
 
@@ -615,7 +618,7 @@ const TABS: { key: CrTab; label: string; statusEfetivo: 'pendente_ok' | 'vencido
   { key: 'recebidos', label: 'Recebidos', statusEfetivo: 'recebido' }
 ];
 
-export function ContasReceberPilotPage({ onRetryLoad }: ContasReceberPilotPageProps) {
+export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceberPilotPageProps) {
   const contas = useContasReceberStore(useShallow((s) => s.contas));
   const baixas = useContasReceberStore(useShallow((s) => s.baixas));
   const status = useContasReceberStore((s) => s.status);
@@ -651,6 +654,11 @@ export function ContasReceberPilotPage({ onRetryLoad }: ContasReceberPilotPagePr
       }
     });
   }, [setActiveTab]);
+
+  useEffect(() => {
+    if (!routeIntent?.contaId) return;
+    setDetailContaId(routeIntent.contaId);
+  }, [routeIntent?.contaId]);
 
   useEffect(() => {
     const count = contas.filter((c) => getStatusEfetivo(c) !== 'recebido').length;

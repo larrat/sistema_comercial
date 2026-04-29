@@ -13,6 +13,7 @@ import {
 } from '../../../shared/ui';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
+import type { ClienteProfileTab } from '../../../app/router/wave1Navigation';
 import {
   postLegacyBridgeMessage,
   subscribeLegacyBridgeMessages
@@ -25,7 +26,6 @@ import {
 } from '../store/useClienteStore';
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { ClienteForm } from './ClienteForm';
-import { ClienteDetailPanel, type DetailTab } from './ClienteDetailPanel';
 import { ClienteDeleteConfirmModal } from './ClienteDeleteConfirmModal';
 import { ClienteSegmentView } from './ClienteSegmentView';
 
@@ -33,24 +33,21 @@ const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
 type SurfaceTab = 'lista' | 'segmentos';
 
-const STATUS_BADGE: Record<
-  string,
-  { label: string; tone: 'success' | 'neutral' | 'info' }
-> = {
+const STATUS_BADGE: Record<string, { label: string; tone: 'success' | 'neutral' | 'info' }> = {
   ativo: { label: 'Ativo', tone: 'success' },
   inativo: { label: 'Inativo', tone: 'neutral' },
   prospecto: { label: 'Prospecto', tone: 'info' }
 };
 
 type ClientesPilotPageProps = {
-  onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void;
+  onOpenCliente?: (clienteId: string, options?: { tab?: ClienteProfileTab; origin?: string }) => void;
   onRetryLoad?: () => void;
   onLoadFilteredAll?: () => Promise<Cliente[]>;
   onLoadSegmentClientes?: () => Promise<Cliente[]>;
 };
 
 export function ClientesPilotPage({
-  onPedidoAction,
+  onOpenCliente,
   onRetryLoad,
   onLoadFilteredAll,
   onLoadSegmentClientes
@@ -75,27 +72,18 @@ export function ClientesPilotPage({
 
   const [surfaceTab, setSurfaceTab] = useState<SurfaceTab>('lista');
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState<DetailTab>('resumo');
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [transientDetailCliente, setTransientDetailCliente] = useState<Cliente | null>(null);
   const [editorOrigin, setEditorOrigin] = useState<string>('unknown');
   const { deleteClienteById, deletingId, error } = useClienteMutations();
   const { trackEvent } = useAnalytics({ module: 'clientes' });
   const lastSearchKeyRef = useRef<string>('');
 
   const editingCliente = useMemo<Cliente | null>(
-    () => clientes.find((c) => c.id === editingId) ?? null,
+    () => clientes.find((cliente) => cliente.id === editingId) ?? null,
     [clientes, editingId]
   );
-  const detailCliente = useMemo<Cliente | null>(
-    () =>
-      clientes.find((c) => c.id === detailId) ??
-      (transientDetailCliente?.id === detailId ? transientDetailCliente : null),
-    [clientes, detailId, transientDetailCliente]
-  );
   const deleteTarget = useMemo<Cliente | null>(
-    () => clientes.find((c) => c.id === deleteTargetId) ?? null,
+    () => clientes.find((cliente) => cliente.id === deleteTargetId) ?? null,
     [clientes, deleteTargetId]
   );
   const temFiltro = !!(filtro.q || filtro.seg || filtro.status);
@@ -117,7 +105,7 @@ export function ClientesPilotPage({
       return;
     }
 
-    const filtersActive = buildActiveFilterKeys();
+    const filtersActive = buildActiveFilterKeys(filtro.seg, filtro.status);
     const searchKey = [term, filtro.seg || '', filtro.status || ''].join('|');
     if (searchKey === lastSearchKeyRef.current) return;
 
@@ -140,8 +128,6 @@ export function ClientesPilotPage({
   async function handleExcluir(id: string) {
     await deleteClienteById(id);
     if (editingId === id) setEditingId(null);
-    if (detailId === id) setDetailId(null);
-    if (transientDetailCliente?.id === id) setTransientDetailCliente(null);
     setDeleteTargetId(null);
     if (page > 1 && clientes.length === 1) {
       setPage(page - 1);
@@ -154,19 +140,19 @@ export function ClientesPilotPage({
     const exportRows = onLoadFilteredAll ? await onLoadFilteredAll() : clientes;
     const rows = [
       ['Nome', 'E-mail', 'Telefone', 'WhatsApp', 'Segmento', 'Status', 'Cidade', 'Vendedor'],
-      ...exportRows.map((c) => [
-        c.nome || '',
-        c.email || '',
-        c.tel || '',
-        c.whatsapp || '',
-        c.seg || '',
-        c.status || '',
-        c.cidade || '',
-        c.rca_nome || ''
+      ...exportRows.map((cliente) => [
+        cliente.nome || '',
+        cliente.email || '',
+        cliente.tel || '',
+        cliente.whatsapp || '',
+        cliente.seg || '',
+        cliente.status || '',
+        cliente.cidade || '',
+        cliente.rca_nome || ''
       ])
     ];
     const csv = rows
-      .map((row) => row.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+      .map((row) => row.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
       .join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
     const anchor = document.createElement('a');
@@ -176,48 +162,33 @@ export function ClientesPilotPage({
     URL.revokeObjectURL(anchor.href);
   }
 
-  function buildActiveFilterKeys() {
-    return [
-      ...(filtro.seg ? ['segmento'] : []),
-      ...(filtro.status ? ['status'] : [])
-    ];
-  }
-
-  function trackDrawerOpen(mode: 'detail' | 'create' | 'edit', origin: string) {
+  function trackDrawerOpen(mode: 'create' | 'edit', origin: string) {
     trackEvent('drawer_aberto', {
       metadata: { mode, origin },
       result: 'success'
     });
   }
 
-  function openDetail(id: string, tab: DetailTab = 'resumo', origin = 'list_row') {
+  function openDetail(clienteId: string, tab: ClienteProfileTab = 'resumo', origin = 'list_row') {
     setSurfaceTab('lista');
     setEditingId(null);
-    setTransientDetailCliente(null);
-    setDetailId(id);
-    setDetailTab(tab);
     trackEvent('cliente_aberto', {
       metadata: { origin },
       result: 'success'
     });
-    trackDrawerOpen('detail', origin);
+    onOpenCliente?.(clienteId, { tab, origin });
   }
 
   function openNewCliente(origin = 'header_button') {
     setSurfaceTab('lista');
-    setDetailId(null);
     setEditingId('new');
-    setDetailTab('resumo');
     setEditorOrigin(origin);
     trackDrawerOpen('create', origin);
   }
 
-  function openEditCliente(id: string, origin = 'row_menu') {
+  function openEditCliente(clienteId: string, origin = 'row_menu') {
     setSurfaceTab('lista');
-    setDetailId(null);
-    setTransientDetailCliente(null);
-    setEditingId(id);
-    setDetailTab('resumo');
+    setEditingId(clienteId);
     setEditorOrigin(origin);
     trackDrawerOpen('edit', origin);
   }
@@ -236,22 +207,13 @@ export function ClientesPilotPage({
     {
       key: 'n',
       enabled: surfaceTab === 'lista' && !editingId,
-      handler: () => {
-        openNewCliente('keyboard_shortcut');
-      }
+      handler: () => openNewCliente('keyboard_shortcut')
     },
     {
       key: 'Escape',
-      enabled: Boolean(editingId || detailId),
+      enabled: Boolean(editingId),
       handler: () => {
-        if (editingId) {
-          setEditingId(null);
-          return;
-        }
-        if (detailId) {
-          setDetailId(null);
-          setDetailTab('resumo');
-        }
+        if (editingId) setEditingId(null);
       }
     },
     {
@@ -266,32 +228,21 @@ export function ClientesPilotPage({
     }
   ]);
 
-  function getInitials(nome: string) {
-    const parts = nome.trim().split(/\s+/).filter(Boolean);
-    if (parts.length === 0) return '?';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
-  }
-
   useEffect(() => {
     return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
       if (data.type === 'clientes:novo') {
-        setTransientDetailCliente(null);
         openNewCliente('legacy_bridge');
         return;
       }
 
       if (data.type === 'clientes:abrir-segmentos') {
         setEditingId(null);
-        setDetailId(null);
-        setTransientDetailCliente(null);
-        setDetailTab('resumo');
         setSurfaceTab('segmentos');
         return;
       }
 
       if (data.type === 'clientes:abrir-detalhe' && data.id) {
-        openDetail(String(data.id), (data.tab as DetailTab) || 'resumo', 'legacy_bridge');
+        openDetail(String(data.id), normalizeClienteProfileTab(data.tab), 'legacy_bridge');
         return;
       }
 
@@ -310,16 +261,8 @@ export function ClientesPilotPage({
         return;
       }
 
-      if (data.type === 'clientes:editar-atual' && detailId) {
-        openEditCliente(detailId, 'detail_bridge');
-        return;
-      }
-
       if (data.type === 'clientes:abrir-lista') {
         setEditingId(null);
-        setDetailId(null);
-        setTransientDetailCliente(null);
-        setDetailTab('resumo');
         setSurfaceTab('lista');
         return;
       }
@@ -329,63 +272,49 @@ export function ClientesPilotPage({
         return;
       }
 
-      if (data.type === 'clientes:abrir-resumo') {
-        if (!detailId && data.id) setDetailId(String(data.id));
-        setDetailTab('resumo');
+      if (data.type === 'clientes:abrir-resumo' && data.id) {
+        openDetail(String(data.id), 'resumo', 'legacy_bridge');
         return;
       }
 
-      if (data.type === 'clientes:abrir-abertas') {
-        if (!detailId && data.id) setDetailId(String(data.id));
-        if (detailId || data.id) setDetailTab('abertas');
+      if ((data.type === 'clientes:abrir-abertas' || data.type === 'clientes:abrir-fechadas') && data.id) {
+        openDetail(String(data.id), 'pedidos', 'legacy_bridge');
         return;
       }
 
-      if (data.type === 'clientes:abrir-fechadas') {
-        if (!detailId && data.id) setDetailId(String(data.id));
-        if (detailId || data.id) setDetailTab('fechadas');
+      if (data.type === 'clientes:abrir-notas' && data.id) {
+        openDetail(String(data.id), 'notas', 'legacy_bridge');
         return;
       }
 
-      if (data.type === 'clientes:abrir-notas') {
-        if (!detailId && data.id) setDetailId(String(data.id));
-        if (detailId || data.id) setDetailTab('notas');
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-fidelidade') {
-        if (!detailId && data.id) setDetailId(String(data.id));
-        if (detailId || data.id) setDetailTab('fidelidade');
+      if (data.type === 'clientes:abrir-fidelidade' && data.id) {
+        openDetail(String(data.id), 'cadastro', 'legacy_bridge');
       }
     });
-  }, [clearFiltro, detailId, onLoadFilteredAll]);
+  }, [clearFiltro, onOpenCliente]);
 
   useEffect(() => {
     postLegacyBridgeMessage({
       source: MESSAGE_SOURCE,
       type: 'clientes:state',
       state: {
-        view: editingId ? 'form' : detailId ? 'detail' : 'list',
+        view: editingId ? 'form' : 'list',
         status: deletingId ? 'deleting' : error ? 'error' : 'ready',
         count: total,
         filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length,
-        selectedId: editingId === 'new' ? '' : editingId || detailId || '',
-        selectedName: editingCliente?.nome || detailCliente?.nome || '',
-        detailTab,
+        selectedId: editingId === 'new' ? '' : editingId || '',
+        selectedName: editingCliente?.nome || '',
         surfaceTab
       }
     });
   }, [
     deletingId,
-    detailId,
     editingId,
     error,
     filtro.q,
     filtro.seg,
     filtro.status,
     editingCliente?.nome,
-    detailCliente?.nome,
-    detailTab,
     surfaceTab,
     total
   ]);
@@ -432,9 +361,8 @@ export function ClientesPilotPage({
         </button>
       </div>
 
-      {/* ── TABELA OPERACIONAL ─────────────────────────────────────────── */}
       <div hidden={surfaceTab !== 'lista'}>
-        {storeStatus !== 'error' && (
+        {storeStatus !== 'error' ? (
           <>
             <div className="mb-2" data-testid="clientes-toolbar">
               <FilterBar
@@ -454,10 +382,7 @@ export function ClientesPilotPage({
                     onChange: (value) => setFiltro({ seg: value }),
                     ariaLabel: 'Filtrar por segmento',
                     testId: 'seg-select',
-                    options: [
-                      { value: '', label: 'Segmento' },
-                      ...segmentos.map((seg) => ({ value: seg, label: seg }))
-                    ]
+                    options: [{ value: '', label: 'Segmento' }, ...segmentos.map((seg) => ({ value: seg, label: seg }))]
                   },
                   {
                     key: 'status',
@@ -476,12 +401,7 @@ export function ClientesPilotPage({
                 actions={
                   <>
                     {temFiltro ? (
-                      <button
-                        className="btn btn-sm h-9"
-                        type="button"
-                        onClick={clearFiltro}
-                        data-testid="limpar-filtro"
-                      >
+                      <button className="btn btn-sm h-9" type="button" onClick={clearFiltro} data-testid="limpar-filtro">
                         Limpar
                       </button>
                     ) : null}
@@ -520,22 +440,14 @@ export function ClientesPilotPage({
                 total={total}
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
-                emptyTitle={
-                  temFiltro
-                    ? 'Nenhum cliente encontrado com os filtros atuais.'
-                    : 'Nenhum cliente cadastrado ainda.'
-                }
+                emptyTitle={temFiltro ? 'Nenhum cliente encontrado com os filtros atuais.' : 'Nenhum cliente cadastrado ainda.'}
                 emptyDescription={
                   temFiltro
                     ? 'Ajuste os filtros ou limpe a busca para ampliar os resultados.'
                     : 'Cadastre o primeiro cliente para começar a operar por aqui.'
                 }
                 emptyAction={
-                  <button
-                    className="btn btn-p btn-sm h-9"
-                    type="button"
-                    onClick={() => openNewCliente('empty_state')}
-                  >
+                  <button className="btn btn-p btn-sm h-9" type="button" onClick={() => openNewCliente('empty_state')}>
                     Novo cliente
                   </button>
                 }
@@ -549,13 +461,13 @@ export function ClientesPilotPage({
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
                           {getInitials(cliente.nome || '')}
                         </div>
-                      <div className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
-                        {cliente.apelido ? (
-                          <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
-                        ) : null}
+                        <div className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
+                          {cliente.apelido ? (
+                            <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
                     )
                   },
                   {
@@ -577,9 +489,7 @@ export function ClientesPilotPage({
                   {
                     key: 'segmento',
                     label: 'Segmento',
-                    render: (cliente) => (
-                      <span className="text-sm text-gray-700">{cliente.seg || '—'}</span>
-                    )
+                    render: (cliente) => <span className="text-sm text-gray-700">{cliente.seg || '—'}</span>
                   },
                   {
                     key: 'tags',
@@ -607,9 +517,7 @@ export function ClientesPilotPage({
                         key: 'excluir',
                         label: 'Excluir',
                         danger: true,
-                        onClick: () => {
-                          setDeleteTargetId(cliente.id);
-                        }
+                        onClick: () => setDeleteTargetId(cliente.id)
                       }
                     ]}
                   />
@@ -617,9 +525,7 @@ export function ClientesPilotPage({
               />
             </div>
           </>
-        )}
-
-        {storeStatus === 'error' && (
+        ) : (
           <ErrorState
             title={storeError ?? 'Erro ao carregar clientes.'}
             compact
@@ -629,7 +535,7 @@ export function ClientesPilotPage({
         )}
       </div>
 
-      {surfaceTab === 'segmentos' && !detailCliente && !editingId && (
+      {surfaceTab === 'segmentos' && !editingId ? (
         <ClienteSegmentView
           clientes={filteredSegmentClientes}
           loading={segmentStatus === 'loading'}
@@ -637,44 +543,9 @@ export function ClientesPilotPage({
           onRetry={() => {
             void onLoadSegmentClientes?.();
           }}
-          onDetalhe={(id) => openDetail(id, 'resumo', 'segmentos')}
+          onDetalhe={(clienteId) => openDetail(clienteId, 'resumo', 'segmentos')}
         />
-      )}
-
-      <Drawer
-        open={!!detailCliente && !editingId && surfaceTab === 'lista'}
-        title={detailCliente?.nome ?? 'Cliente'}
-        subtitle={[detailCliente?.seg, detailCliente?.cidade, detailCliente?.status]
-          .filter(Boolean)
-          .join(' · ')}
-        size="lg"
-        action={
-          detailCliente ? (
-            <button
-              className="btn btn-p btn-sm"
-              type="button"
-              onClick={() => {
-                openEditCliente(detailCliente.id, 'detail_drawer');
-              }}
-            >
-              Editar
-            </button>
-          ) : undefined
-        }
-        onClose={() => {
-          setDetailId(null);
-          setDetailTab('resumo');
-        }}
-      >
-        {detailCliente && (
-          <ClienteDetailPanel
-            cliente={detailCliente}
-            activeTab={detailTab}
-            onTabChange={setDetailTab}
-            onPedidoAction={onPedidoAction}
-          />
-        )}
-      </Drawer>
+      ) : null}
 
       {deletingId ? <LoadingState title="Removendo cliente..." compact /> : null}
 
@@ -690,15 +561,8 @@ export function ClientesPilotPage({
           onSaved={(cliente) => {
             setSurfaceTab('lista');
             setEditingId(null);
-            setTransientDetailCliente(cliente);
-            setDetailId(cliente.id);
-            setDetailTab('resumo');
-            trackEvent('cliente_aberto', {
-              metadata: { origin: 'save_success' },
-              result: 'success'
-            });
-            trackDrawerOpen('detail', 'save_success');
             onRetryLoad?.();
+            openDetail(cliente.id, 'resumo', 'save_success');
           }}
           onCancel={() => setEditingId(null)}
         />
@@ -717,4 +581,24 @@ export function ClientesPilotPage({
       />
     </main>
   );
+}
+
+function buildActiveFilterKeys(segmento?: string, status?: string) {
+  return [...(segmento ? ['segmento'] : []), ...(status ? ['status'] : [])];
+}
+
+function getInitials(nome: string) {
+  const parts = nome.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
+}
+
+function normalizeClienteProfileTab(value: unknown): ClienteProfileTab {
+  if (value === 'pedidos' || value === 'financeiro' || value === 'notas' || value === 'cadastro') {
+    return value;
+  }
+  if (value === 'abertas' || value === 'fechadas') return 'pedidos';
+  if (value === 'fidelidade') return 'cadastro';
+  return 'resumo';
 }

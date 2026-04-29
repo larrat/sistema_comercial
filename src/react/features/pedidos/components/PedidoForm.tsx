@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ErrorState,
   FormActions,
@@ -38,6 +38,7 @@ function normalizePedidoPrazo(value?: string | null): string {
 
 type Props = {
   initialPedido: Pedido | null;
+  prefillClienteId?: string | null;
   onSaved: (pedido: Pedido) => void;
   onCancel: () => void;
   analyticsOrigin?: string;
@@ -51,6 +52,7 @@ type PedidoFormErrors = {
 
 export function PedidoForm({
   initialPedido,
+  prefillClienteId = null,
   onSaved,
   onCancel,
   analyticsOrigin = 'unknown'
@@ -118,6 +120,19 @@ export function PedidoForm({
       setPrazo('30d');
     }
   }
+
+  useEffect(() => {
+    if (initialPedido || !prefillClienteId || !clientes.length) return;
+    const clientePrefill = clientes.find((cliente) => cliente.id === prefillClienteId) ?? null;
+    if (!clientePrefill) return;
+    setCli((current) => (current.trim() ? current : clientePrefill.id));
+    if (clientePrefill.rca_id) {
+      setRcaId((current) => current || clientePrefill.rca_id || '');
+    }
+    if (clientePrefill.prazo) {
+      setPrazo((current) => (current === 'imediato' ? normalizePedidoPrazo(clientePrefill.prazo) : current));
+    }
+  }, [clientes, initialPedido, prefillClienteId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

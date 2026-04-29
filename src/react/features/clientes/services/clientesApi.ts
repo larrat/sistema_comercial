@@ -60,6 +60,10 @@ export function buildListClientesUrl(url: string, filialId: string): string {
   return `${url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(filialId)}&order=nome`;
 }
 
+export function buildGetClienteByIdUrl(url: string, filialId: string, clienteId: string): string {
+  return `${url}/rest/v1/clientes?id=eq.${encodeURIComponent(clienteId)}&filial_id=eq.${encodeURIComponent(filialId)}&limit=1`;
+}
+
 function createClienteQueryParams(
   filialId: string,
   filters: ClienteListFilters,
@@ -178,6 +182,19 @@ export async function listClientes(context: ClienteApiContext): Promise<Cliente[
   return Array.isArray(body) ? (body as Cliente[]) : [];
 }
 
+export async function getClienteById(
+  context: ClienteApiContext,
+  clienteId: string
+): Promise<Cliente | null> {
+  const res = await fetch(buildGetClienteByIdUrl(context.url, context.filialId, clienteId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar cliente`);
+  return Array.isArray(body) && body[0] ? (body[0] as Cliente) : null;
+}
+
 function parseTotalFromContentRange(contentRange: string | null): number {
   if (!contentRange) return 0;
   const [, totalPart] = contentRange.split('/');
@@ -224,8 +241,9 @@ export async function listClienteSegmentos(context: ClienteApiContext): Promise<
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar segmentos`);
   if (!Array.isArray(body)) return [];
-  return [...new Set(body.map((item) => String((item as { seg?: string }).seg || 'Sem segmento')))]
-    .sort((a, b) => a.localeCompare(b));
+  return [
+    ...new Set(body.map((item) => String((item as { seg?: string }).seg || 'Sem segmento')))
+  ].sort((a, b) => a.localeCompare(b));
 }
 
 export async function saveCliente(
