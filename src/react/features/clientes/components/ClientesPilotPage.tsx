@@ -647,6 +647,7 @@ export function ClientesPilotPage({
         subtitle={[detailCliente?.seg, detailCliente?.cidade, detailCliente?.status]
           .filter(Boolean)
           .join(' · ')}
+        size="lg"
         action={
           detailCliente ? (
             <button
