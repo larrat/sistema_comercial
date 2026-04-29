@@ -63,7 +63,22 @@
       "Bash(awk 'NR==1212,NR==1505' /Users/larrat/sistema_comercial/sistema_comercial/index.html)",
       "Bash(/usr/local/bin/npm run *)",
       "Bash(HUSKY=0 git add src/react/shared/ui/EmptyState.tsx src/react/shared/ui/DataTable.tsx src/react/features/clientes/components/ClienteListView.tsx src/react/features/clientes/components/ClienteListView.test.tsx src/react/features/produtos/components/ProdutoListView.tsx src/react/features/estoque/components/EstoquePage.tsx src/react/styles.css)",
-      "Bash(HUSKY=0 git add src/react/shared/ui/StatusBadge.tsx src/react/shared/ui/index.ts src/react/features/clientes/components/ClienteCard.tsx src/react/features/contas-receber/components/ContasReceberPilotPage.tsx src/react/features/dashboard/components/DashboardPilotPage.tsx src/react/features/pedidos/components/PedidoListView.tsx src/react/features/pedidos/components/PedidoRow.tsx src/react/features/produtos/components/ProdutoMetrics.tsx src/react/features/produtos/components/ProdutosPilotPage.tsx)"
+      "Bash(HUSKY=0 git add src/react/shared/ui/StatusBadge.tsx src/react/shared/ui/index.ts src/react/features/clientes/components/ClienteCard.tsx src/react/features/contas-receber/components/ContasReceberPilotPage.tsx src/react/features/dashboard/components/DashboardPilotPage.tsx src/react/features/pedidos/components/PedidoListView.tsx src/react/features/pedidos/components/PedidoRow.tsx src/react/features/produtos/components/ProdutoMetrics.tsx src/react/features/produtos/components/ProdutosPilotPage.tsx)",
+      "Bash(/Users/larrat/.nvm/versions/node/v22.14.0/bin/npm run *)",
+      "Bash(export PATH=\"$PATH:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin\")",
+      "Bash(npm --version)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial status)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial log --oneline -3)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial diff src/react/app/filial/FilialSwitcher.tsx src/react/shared/ui/Modal.tsx src/react/shared/ui/DataTable.tsx src/react/styles.css)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial add src/react/app/filial/FilialSwitcher.tsx src/react/features/cotacao/components/CotacaoFornecedoresPage.tsx src/react/features/cotacao/components/CotacaoImportPage.tsx src/react/features/cotacao/components/CotacaoLockBanner.tsx src/react/features/cotacao/components/CotacaoPage.tsx src/react/features/cotacao/components/CotacaoTabelaPage.tsx src/react/features/estoque/components/EstoquePageHeader.tsx src/react/features/filiais/components/FiliaisPage.tsx src/react/shared/ui/DataTable.tsx src/react/shared/ui/Modal.tsx src/react/styles.css docs/design-system/UI_COMPONENTS.md)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial commit -m ' *)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial diff --stat HEAD)",
+      "Bash(git -C /Users/larrat/sistema_comercial/sistema_comercial add src/react/styles.css src/react/features/clientes/components/ClientesPilotPage.tsx src/react/features/filiais/components/FiliaisPage.tsx src/react/features/pedidos/components/PedidosPilotPage.tsx src/react/features/produtos/components/ProdutosPilotPage.tsx)",
+      "Bash(HUSKY=0 git add src/react/features/pedidos/components/PedidoDetailPanel.tsx src/react/features/pedidos/components/PedidoRow.tsx src/react/features/cotacao/components/CotacaoImport.tsx src/react/features/cotacao/components/ImportacaoResumo.tsx src/react/features/filiais/components/FilialModal.tsx)",
+      "Bash(HUSKY=0 git add docs/design-system/GOVERNANCA_VISUAL.md docs/design-system/AUDITORIA_INCONSISTENCIAS.md src/react/features/rcas/components/RcaModal.tsx src/react/features/relatorios/components/ValidacaoModal.tsx)",
+      "Bash(/usr/local/bin/node node_modules/.bin/tsc --project tsconfig.strict.json --noEmit)",
+      "Bash(export PATH=\"/opt/homebrew/opt/node/bin:/usr/local/opt/node/bin:$PATH\")",
+      "Bash(/Users/larrat/sistema_comercial/sistema_comercial/node_modules/.bin/tsc --project tsconfig.strict.json --noEmit)"
     ]
   }
 }

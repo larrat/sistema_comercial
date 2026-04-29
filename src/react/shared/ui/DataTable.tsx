@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { EmptyState } from './EmptyState';
+import { ErrorState } from './ErrorState';
 
 export type DataTableColumn<Row> = {
   key: string;
@@ -9,6 +10,7 @@ export type DataTableColumn<Row> = {
   align?: 'left' | 'center' | 'right';
   width?: string;
   className?: string;
+  sortable?: boolean;
 };
 
 type DataTableProps<Row> = {
@@ -18,9 +20,11 @@ type DataTableProps<Row> = {
   rowKey?: (row: Row, index: number) => string;
   loading?: boolean;
   error?: string;
+  onRetry?: () => void;
   emptyTitle?: string;
   emptyDescription?: string;
   emptyAction?: ReactNode;
+  emptyIcon?: ReactNode;
   skeletonRows?: number;
   onRowClick?: (row: Row, index: number) => void;
   renderActions?: (row: Row, index: number) => ReactNode;
@@ -32,6 +36,10 @@ type DataTableProps<Row> = {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (pageSize: number) => void;
   pageSizeOptions?: number[];
+  density?: 'default' | 'compact';
+  sortKey?: string;
+  sortDir?: 'asc' | 'desc';
+  onSort?: (key: string, dir: 'asc' | 'desc') => void;
 };
 
 export function DataTable<Row>({
@@ -41,9 +49,11 @@ export function DataTable<Row>({
   rowKey,
   loading,
   error,
+  onRetry,
   emptyTitle = 'Nenhum registro encontrado.',
   emptyDescription,
   emptyAction,
+  emptyIcon,
   skeletonRows = 5,
   onRowClick,
   renderActions,
@@ -54,7 +64,11 @@ export function DataTable<Row>({
   total,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 50]
+  pageSizeOptions = [10, 20, 50],
+  density = 'default',
+  sortKey,
+  sortDir,
+  onSort
 }: DataTableProps<Row>) {
   const tableRows = data ?? rows;
   const hasActions = Boolean(renderActions);
@@ -65,6 +79,12 @@ export function DataTable<Row>({
   function getHeaderLabel(column: DataTableColumn<Row> | { key: string; label?: ReactNode }) {
     if ('header' in column) return column.header ?? column.label ?? '';
     return column.label ?? '';
+  }
+
+  function handleSort(key: string) {
+    if (!onSort) return;
+    const nextDir = sortKey === key && sortDir === 'asc' ? 'desc' : 'asc';
+    onSort(key, nextDir);
   }
 
   const hasPagination =
@@ -85,9 +105,17 @@ export function DataTable<Row>({
     if (clampedPage !== safePage) onPageChange?.(clampedPage);
   }
 
+  const containerClass = [
+    'rf-ui-data-table',
+    density === 'compact' ? 'rf-ui-data-table--compact' : '',
+    className ?? ''
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   if (loading) {
     return (
-      <div className={`rf-ui-data-table${className ? ` ${className}` : ''}`}>
+      <div className={containerClass}>
         <table className="tbl">
           <thead>
             <tr>
@@ -123,32 +151,58 @@ export function DataTable<Row>({
   }
 
   if (error) {
-    return <EmptyState title={error} compact />;
+    return (
+      <ErrorState title={error} onRetry={onRetry} compact />
+    );
   }
 
   if (!tableRows.length) {
     return (
-      <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+      />
     );
   }
 
   return (
-    <div className={`rf-ui-data-table${className ? ` ${className}` : ''}`}>
+    <div className={containerClass}>
       <table className="tbl">
         <thead>
           <tr>
-            {tableColumns.map((column) => (
-              <th
-                key={column.key}
-                className={'className' in column ? column.className : undefined}
-                style={{
-                  width: 'width' in column ? column.width : undefined,
-                  textAlign: column.align ?? 'left'
-                }}
-              >
-                {getHeaderLabel(column)}
-              </th>
-            ))}
+            {tableColumns.map((column) => {
+              const isSortable = 'sortable' in column && column.sortable && Boolean(onSort);
+              return (
+                <th
+                  key={column.key}
+                  className={'className' in column ? column.className : undefined}
+                  scope="col"
+                  style={{
+                    width: 'width' in column ? column.width : undefined,
+                    textAlign: column.align ?? 'left',
+                    cursor: isSortable ? 'pointer' : undefined,
+                    userSelect: isSortable ? 'none' : undefined
+                  }}
+                  onClick={isSortable ? () => handleSort(column.key) : undefined}
+                  aria-sort={
+                    isSortable && sortKey === column.key
+                      ? sortDir === 'asc'
+                        ? 'ascending'
+                        : 'descending'
+                      : undefined
+                  }
+                >
+                  {getHeaderLabel(column)}
+                  {isSortable ? (
+                    <span className="rf-ui-data-table__sort-icon" aria-hidden="true">
+                      {sortKey === column.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                    </span>
+                  ) : null}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody>
