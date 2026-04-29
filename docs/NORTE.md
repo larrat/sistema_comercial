@@ -1,6 +1,6 @@
 # Norte do Projeto — Sistema Comercial
 
-**Atualizado em:** 2026-04-28
+**Atualizado em:** 2026-04-29
 
 Este é o documento central. Ele descreve o estado real do sistema, o que estamos fazendo agora e onde encontrar cada referência ativa. Qualquer doc que não esteja listado aqui foi cancelado.
 
@@ -16,8 +16,8 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 | Clientes | React-only — shell removido, server-side pagination (2026-04-28) | Nenhuma |
 | Pedidos | React-only — legado é stub vazio | Migrar de `modal-shell-*` para Drawer global |
 | Contas Receber | React-only — shell removido (2026-04-21) | Validar RPCs em ambiente real |
-| Produtos | React implementado — server-side pagination (2026-04-28) | Remover shell legado |
-| Estoque | React implementado — mapeado e documentado (2026-04-28) | Remover shell legado |
+| Produtos | React-only — shell legado removido (2026-04-29) | Nenhuma |
+| Estoque | React-only — shell legado removido (2026-04-29) | Nenhuma |
 | Cotação | Legado puro — sem React equivalente | Fase 2 da migração |
 | Relatórios | Legado puro — sem React equivalente | Fase 2 da migração |
 | RCAs / Oportunidades | Legado puro — baixa complexidade | Fase 2 da migração |
@@ -61,9 +61,8 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 ### Pendente imediato
 
 1. **Validar RPCs** em ambiente real: `rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`
-2. **Remover shell legado** de Produtos e Estoque (implementação React confirmada)
-3. **Aplicar RBAC v2 + Auditoria** em produção (`sql/04` e `sql/05`)
-4. **Rodar CI** — lint, typecheck, test:react em ambiente com Node/npm
+2. **Aplicar RBAC v2 + Auditoria** em produção (`sql/04` e `sql/05`)
+3. **Rodar CI** — lint, typecheck, test:react em ambiente com Node/npm
 
 ---
 
@@ -140,11 +139,10 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 
 | Ordem | Frente | Estimativa |
 |-------|--------|-----------|
-| 1 | Remover shells legados de Produtos e Estoque | Imediato |
-| 2 | Aplicar RBAC v2 + Auditoria em produção | Imediato |
-| 3 | Validar RPCs de Contas Receber em ambiente real | Imediato |
-| 4 | React: Cotação | Mês 1 |
-| 5 | React: RCAs + Relatórios | Mês 1–2 |
-| 6 | React: Campanhas | Mês 2–3 |
-| 7 | Remover infraestrutura bridge (`src/legacy/`) | Após fase 6 |
-| 8 | CI com lint + typecheck + testes em branch protection | Antes de fase 7 |
+| 1 | Aplicar RBAC v2 + Auditoria em produção | Imediato |
+| 2 | Validar RPCs de Contas Receber em ambiente real | Imediato |
+| 3 | React: Cotação | Mês 1 |
+| 4 | React: RCAs + Relatórios | Mês 1–2 |
+| 5 | React: Campanhas | Mês 2–3 |
+| 6 | Remover infraestrutura bridge (`src/legacy/`) | Após fase 6 |
+| 7 | CI com lint + typecheck + testes em branch protection | Antes de fase 6 |

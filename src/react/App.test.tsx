@@ -61,7 +61,7 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('Login')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument();
     });
   });
 

@@ -21,6 +21,12 @@ vi.mock('../../../app/supabaseConfig', () => ({
   getSupabaseConfig: vi.fn()
 }));
 
+vi.mock('../../../shared/hooks/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: vi.fn()
+  })
+}));
+
 vi.mock('../services/clientesApi', async () => {
   const actual = await vi.importActual('../services/clientesApi');
   return {
@@ -111,6 +117,7 @@ describe('ClientesPilotPage', () => {
   });
 
   it('cria um novo cliente pelo formulario React', async () => {
+    const onOpenCliente = vi.fn();
     saveClienteMock.mockResolvedValue({
       id: '2',
       filial_id: 'filial-1',
@@ -120,7 +127,7 @@ describe('ClientesPilotPage', () => {
       seg: 'Atacado'
     });
 
-    render(<ClientesPilotPage />);
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     await userEvent.click(screen.getByTestId('novo-btn'));
     await userEvent.type(screen.getByTestId('form-nome'), 'Ana Paula');
@@ -148,14 +155,12 @@ describe('ClientesPilotPage', () => {
       );
     });
 
-    await waitFor(() => {
-      expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
-      expect(within(screen.getByTestId('cliente-list')).getByText('Ana Paula')).toBeInTheDocument();
-    });
+    expect(onOpenCliente).toHaveBeenCalledWith('2', { tab: 'resumo', origin: 'save_success' });
     expect(screen.queryByTestId('cliente-form')).not.toBeInTheDocument();
   });
 
   it('edita cliente existente e atualiza a lista', async () => {
+    const onOpenCliente = vi.fn();
     saveClienteMock.mockResolvedValue({
       id: '1',
       filial_id: 'filial-1',
@@ -165,7 +170,7 @@ describe('ClientesPilotPage', () => {
       seg: 'Varejo'
     });
 
-    render(<ClientesPilotPage />);
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Editar'));
@@ -195,11 +200,11 @@ describe('ClientesPilotPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
       expect(
         within(screen.getByTestId('cliente-list')).getByText('Maria Souza Premium')
       ).toBeInTheDocument();
     });
+    expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'resumo', origin: 'save_success' });
   });
 
   it('remove cliente da lista pelo fluxo real de exclusao', async () => {
@@ -228,14 +233,13 @@ describe('ClientesPilotPage', () => {
     });
   });
 
-  it('mostra resumo contextual ao abrir um cliente existente', async () => {
-    render(<ClientesPilotPage />);
+  it('abre o perfil dedicado ao clicar em um cliente existente', async () => {
+    const onOpenCliente = vi.fn();
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     await userEvent.click(screen.getByTestId('cliente-card'));
 
-    expect(screen.getByTestId('cliente-detail-panel')).toBeInTheDocument();
-    expect(screen.getByText('Resumo do cliente')).toBeInTheDocument();
-    expect(screen.getByText(/Segmento: Varejo/)).toBeInTheDocument();
+    expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'resumo', origin: 'list_row' });
   });
 
   it('abre novo formulario quando recebe comando do shell legado', async () => {
@@ -254,7 +258,8 @@ describe('ClientesPilotPage', () => {
   });
 
   it('abre detalhe quando recebe comando com id', async () => {
-    render(<ClientesPilotPage />);
+    const onOpenCliente = vi.fn();
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     act(() => {
       window.dispatchEvent(
@@ -265,8 +270,9 @@ describe('ClientesPilotPage', () => {
       );
     });
 
-    const detail = await screen.findByTestId('cliente-detail-panel');
-    expect(within(detail).getAllByText('Maria Souza').length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'resumo', origin: 'legacy_bridge' });
+    });
   });
 
   it('abre edicao quando recebe comando com id', async () => {
@@ -349,10 +355,8 @@ describe('ClientesPilotPage', () => {
     expect(within(segmentView).getByText('Varejo')).toBeInTheDocument();
   });
 
-  it('abre edicao do cliente atual quando recebe comando do shell legado', async () => {
+  it('ignora comando legado editar-atual que nao existe mais no piloto React', async () => {
     render(<ClientesPilotPage />);
-
-    await userEvent.click(screen.getByTestId('cliente-card'));
 
     act(() => {
       window.dispatchEvent(
@@ -363,89 +367,63 @@ describe('ClientesPilotPage', () => {
       );
     });
 
-    expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
-    expect(screen.getByTestId('form-nome')).toHaveValue('Maria Souza');
+    await waitFor(() => {
+      expect(screen.queryByTestId('cliente-form')).not.toBeInTheDocument();
+    });
   });
 
-  it('troca para fidelidade quando recebe comando do shell legado no detalhe', async () => {
-    render(<ClientesPilotPage />);
-
-    await userEvent.click(screen.getByTestId('cliente-card'));
+  it('abre cadastro quando recebe comando de fidelidade do shell legado', async () => {
+    const onOpenCliente = vi.fn();
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     act(() => {
       window.dispatchEvent(
         new MessageEvent('message', {
           origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fidelidade' }
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fidelidade', id: '1' }
         })
       );
     });
 
-    expect(await screen.findByTestId('cliente-detail-fidelidade')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'cadastro', origin: 'legacy_bridge' });
+    });
   });
 
-  it('troca para pedidos abertos quando recebe comando do shell legado no detalhe', async () => {
-    listPedidosByClienteMock.mockResolvedValue([
-      {
-        id: 'p1',
-        cliente_id: '1',
-        num: 40,
-        cli: 'Maria Souza',
-        status: 'confirmado',
-        pgto: 'pix',
-        prazo: 'a_vista',
-        itens: [],
-        total: 210,
-        venda_fechada: false
-      }
-    ]);
-    render(<ClientesPilotPage />);
-
-    await userEvent.click(screen.getByTestId('cliente-card'));
+  it('abre aba de pedidos quando recebe comando de pedidos abertos do shell legado', async () => {
+    const onOpenCliente = vi.fn();
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     act(() => {
       window.dispatchEvent(
         new MessageEvent('message', {
           origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-abertas' }
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-abertas', id: '1' }
         })
       );
     });
 
-    expect(await screen.findByTestId('cliente-detail-pedidos-abertos')).toBeInTheDocument();
-    expect(screen.getByText('Pedido #40')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'pedidos', origin: 'legacy_bridge' });
+    });
   });
 
-  it('troca para pedidos fechados quando recebe comando do shell legado no detalhe', async () => {
-    listPedidosByClienteMock.mockResolvedValue([
-      {
-        id: 'p2',
-        cliente_id: '1',
-        num: 12,
-        cli: 'Maria Souza',
-        status: 'entregue',
-        pgto: 'boleto',
-        prazo: '30d',
-        itens: [],
-        total: 450,
-        venda_fechada: true
-      }
-    ]);
-    render(<ClientesPilotPage />);
-
-    await userEvent.click(screen.getByTestId('cliente-card'));
+  it('abre aba de pedidos quando recebe comando de pedidos fechados do shell legado', async () => {
+    const onOpenCliente = vi.fn();
+    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     act(() => {
       window.dispatchEvent(
         new MessageEvent('message', {
           origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fechadas' }
+          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fechadas', id: '1' }
         })
       );
     });
 
-    expect(await screen.findByTestId('cliente-detail-pedidos-fechados')).toBeInTheDocument();
-    expect(screen.getByText('Pedido #12')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'pedidos', origin: 'legacy_bridge' });
+    });
   });
 
   it('exporta csv filtrado quando recebe comando do shell legado', async () => {

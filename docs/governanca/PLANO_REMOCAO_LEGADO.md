@@ -20,8 +20,8 @@
 ### Legado puro (sem React equivalente)
 | Módulo | Arquivo(s) | Complexidade |
 |--------|-----------|--------------|
-| Produtos | `produtos.js` | Média |
-| Estoque | `estoque.js` | Alta |
+| Produtos | Shell já removido; restam apenas resíduos documentais/CSS legado | Baixa |
+| Estoque | Shell já removido; restam apenas resíduos documentais/CSS legado. Ponte `sc:abrir-mov-produto` preservada por integração com Produtos | Baixa |
 | Cotação | `cotacao.js` + `cotacao/` | Alta |
 | Relatórios | `relatorios.js` | Baixa |
 | Campanhas | `campanhas/` (data, render, actions) | Alta |
@@ -100,6 +100,8 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 
 **Fase 2A concluída.** React é o caminho principal para Produtos.
 
+> **Revalidação em 2026-04-29:** `src/features/produtos.js` já não existe, a rota React `/app/produtos` está ativa em `AppRouter.tsx` e o `index.html` atual não carrega mais shell legado de Produtos. O fechamento desta etapa passa a ser apenas limpeza segura de resíduos não executados (documentação e CSS legado específico de `#pg-produtos` / `#modal-prod-det`).
+
 ### 2B — Estoque
 > Concluído em 2026-04-23 (commits 89c4620 + ae21652 + limpeza)
 
@@ -117,6 +119,8 @@ Cada item é uma sprint independente: criar feature React, cobrir com testes Rea
 - [x] Stub das funções legadas em `main.js`; branch de exportCSV e exportarTudo atualizados
 
 **Fase 2B concluída.** React é o caminho principal para Estoque.
+
+> **Revalidação em 2026-04-29:** `src/features/estoque.js` já não existe, a rota React `/app/estoque` está ativa em `AppRouter.tsx` e o `index.html` atual não carrega mais shell legado de Estoque. O fechamento desta etapa passa a ser apenas limpeza segura de resíduos não executados (documentação e CSS legado específico de `#pg-estoque`), preservando a ponte `sc:abrir-mov-produto` enquanto ela ainda serve ao fluxo `Produtos -> Estoque`.
 
 ### 2C — Cotação
 > Concluído em 2026-04-23 (commits 1fd473f + limpeza)

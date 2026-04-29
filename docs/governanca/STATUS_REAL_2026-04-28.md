@@ -21,7 +21,7 @@ O sistema agora tem 6 dos 10 módulos de negócio em React (Clientes, Dashboard,
 | Clientes | React-only | Server-side pagination implementada. ClienteDeleteConfirmModal adicionado. |
 | Pedidos | React-only (stub) | Funcional, mas usa `modal-shell-*` CSS próprio em vez de Drawer global. |
 | Contas Receber | React-only | ContaReceberConfirmModal adicionado. RPCs ainda não validados em ambiente real. |
-| Produtos | React implementado | Server-side pagination. ProdutoDeleteConfirmModal adicionado. Legacy shell pendente de remoção. |
+| Produtos | React-only | Server-side pagination. ProdutoDeleteConfirmModal adicionado. Shell legado removido em 2026-04-29. |
 | Estoque | React implementado | EstoqueAdjustConfirmModal adicionado. Mapeamento completo documentado. Legacy shell pendente de remoção. |
 | Cotação | Legado puro | Sem equivalente React. Fase 2. |
 | Relatórios | Legado puro | Sem equivalente React. Fase 2. |
@@ -106,7 +106,7 @@ O sistema agora tem 6 dos 10 módulos de negócio em React (Clientes, Dashboard,
 
 ### Imediatas (próximo sprint)
 
-- [ ] Remover shell legado de **Produtos** (React já implementado)
+- [x] Remover shell legado de **Produtos** (concluído em 2026-04-29; restavam apenas resíduos documentais/CSS legado)
 - [ ] Remover shell legado de **Estoque** (React já implementado)
 - [ ] Aplicar `sql/04_rbac_v2_admin_only.sql` em produção
 - [ ] Aplicar `sql/05_rbac_auditoria_acessos.sql` em produção

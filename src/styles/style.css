@@ -3396,21 +3396,11 @@ body {
 .toolbar-main .sel {
   max-width: 180px !important;
 }
-#pg-produtos #prod-busca {
-  max-width: 220px !important;
-}
-#pg-produtos #prod-cat-fil {
-  max-width: 180px !important;
-}
 #pg-clientes #cli-fil-st {
   max-width: 150px !important;
 }
 #pg-pedidos #ped-fil-st {
   max-width: 170px !important;
-}
-#pg-estoque #est-fil,
-#pg-estoque #est-hist-tipo {
-  max-width: 150px !important;
 }
 #pg-notificacoes #noti-fil-prioridade {
   max-width: 190px !important;
@@ -3516,17 +3506,6 @@ body {
   }
 
   /* Cards mobile sem perda de contexto */
-  #pg-estoque .mobile-card-meta {
-    gap: 6px;
-  }
-  #pg-estoque .mobile-card-actions .btn {
-    flex: 1;
-    justify-content: center;
-  }
-  #pg-estoque .mobile-card-actions {
-    justify-content: stretch;
-    width: 100%;
-  }
 }
 
 /* =========================================================
@@ -4912,32 +4891,8 @@ textarea.inp:focus {
     min-width: 0;
   }
 
-  #pg-produtos #prod-met,
-  #pg-estoque #est-met,
   #pg-dashboard .mg {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #pg-produtos .toolbar,
-  #pg-estoque .toolbar {
-    align-items: stretch;
-  }
-
-  #pg-produtos .toolbar-main,
-  #pg-produtos .toolbar-actions,
-  #pg-estoque .toolbar-main,
-  #pg-estoque .toolbar-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  #pg-produtos .toolbar-main .inp,
-  #pg-produtos .toolbar-main .sel,
-  #pg-estoque .toolbar-main .inp,
-  #pg-estoque .toolbar-main .sel {
-    flex: 1 1 220px;
-    max-width: none !important;
-    min-width: 0;
   }
 
   #pg-dashboard .dash-grid-main,
@@ -5123,14 +5078,7 @@ textarea.inp:focus {
   border-color: rgba(15, 23, 42, 0.08);
 }
 
-#pg-produtos .mobile-card,
-#pg-estoque .mobile-card {
-  border-color: rgba(15, 23, 42, 0.08);
-}
-
 #pg-clientes .mobile-card-meta,
-#pg-produtos .mobile-card-meta,
-#pg-estoque .mobile-card-meta,
 #pg-campanhas #camp-lista .mobile-card-meta,
 #pg-campanhas #camp-wa-fila .mobile-card-meta,
 #pg-campanhas #camp-envios-lista .mobile-card-meta {
@@ -5141,8 +5089,6 @@ textarea.inp:focus {
 }
 
 #pg-clientes .mobile-card-actions,
-#pg-produtos .mobile-card-actions,
-#pg-estoque .mobile-card-actions,
 #pg-campanhas .mobile-card-actions {
   margin-top: 12px;
 }
@@ -5268,8 +5214,6 @@ textarea.inp:focus {
 }
 
 @media (max-width: 1280px) {
-  #pg-produtos .tw,
-  #pg-estoque .tw,
   #pg-clientes .tw,
   #pg-campanhas .tw {
     display: none;
@@ -7659,53 +7603,43 @@ textarea.inp:focus {
 /* =========================================================
    PRODUTOS / CAMPANHAS REFINEMENT
    ========================================================= */
-#pg-produtos .card > #prod-lista,
 #pg-campanhas .card > #camp-lista,
 #pg-campanhas .card > #camp-wa-fila,
 #pg-campanhas .card > #camp-envios-lista {
   min-width: 0;
 }
 
-#pg-produtos .tw,
 #pg-campanhas .tw {
   border-radius: 18px;
 }
 
-#pg-produtos .tbl td,
-#pg-produtos .tbl th,
 #pg-campanhas .tbl td,
 #pg-campanhas .tbl th {
   vertical-align: middle;
 }
 
-#pg-produtos .tbl td:first-child,
 #pg-campanhas #camp-lista .tbl td:first-child {
   font-weight: 700;
 }
 
-#pg-produtos .tbl td .fg2,
 #pg-campanhas .tbl td .fg2 {
   row-gap: 6px;
   align-items: center;
 }
 
-#pg-produtos .mobile-card,
 #pg-campanhas .mobile-card {
   padding: 16px;
   border-radius: 18px;
 }
 
-#pg-produtos .mobile-card-head,
 #pg-campanhas .mobile-card-head {
   margin-bottom: 10px;
 }
 
-#pg-produtos .mobile-card-title,
 #pg-campanhas .mobile-card-title {
   line-height: 1.3;
 }
 
-#pg-produtos .mobile-card-meta,
 #pg-campanhas .mobile-card-meta {
   padding: 10px 12px;
   border: 1px solid #e4ebf4;
@@ -7713,20 +7647,16 @@ textarea.inp:focus {
   background: #f8fbff;
 }
 
-#pg-produtos .mobile-card-actions,
 #pg-campanhas .mobile-card-actions {
   margin-top: 12px;
 }
 
-#pg-produtos .mobile-card-actions .btn,
 #pg-campanhas .mobile-card-actions .btn {
   min-height: 36px;
   justify-content: center;
 }
 
-#pg-produtos .tbl .btn,
 #pg-campanhas .tbl .btn,
-#pg-estoque .tbl .btn,
 #pg-cotacao .tbl .btn {
   min-width: 84px;
   min-height: 34px;
@@ -8165,10 +8095,6 @@ textarea.inp:focus {
   color: var(--tx2);
 }
 
-#modal-prod-det .modal-box {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-}
-
 .prod-detail {
   display: grid;
   gap: 14px;
@@ -8253,14 +8179,12 @@ textarea.inp:focus {
 }
 
 @media (max-width: 760px) {
-  #pg-produtos .mobile-card-actions,
   #pg-campanhas .mobile-card-actions {
     display: grid;
     grid-template-columns: 1fr;
     width: 100%;
   }
 
-  #pg-produtos .mobile-card-actions .btn,
   #pg-campanhas .mobile-card-actions .btn {
     width: 100%;
   }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useCurrentUserRole } from '../../../app/hooks/useCurrentUserRole';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
@@ -229,6 +229,48 @@ function goToPage(page: string, onNavigatePage?: (page: string) => void) {
   }
 }
 
+function DashboardSection({
+  title,
+  description,
+  children
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="dash-section">
+      <div className="dash-section-head">
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function DashboardCard({
+  title,
+  children,
+  className = '',
+  action
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <section className={`card card-shell dash-bento-card ${className}`.trim()}>
+      <div className="dash-bento-card__head">
+        <div className="ct">{title}</div>
+        {action ? <div className="dash-bento-card__action">{action}</div> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 function DashboardContextStats({
   pedidosCount,
   produtosCount,
@@ -253,7 +295,11 @@ function DashboardContextStats({
           value={pedidosCount}
           description="Total de pedidos registrados na filial"
           foot={
-            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+            <button
+              className="btn btn-ghost btn-xs"
+              type="button"
+              onClick={() => goToPage('pedidos', onNavigatePage)}
+            >
               Abrir pedidos
             </button>
           }
@@ -263,7 +309,11 @@ function DashboardContextStats({
           value={produtosCount}
           description="Catálogo ativo com controle de estoque"
           foot={
-            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('produtos', onNavigatePage)}>
+            <button
+              className="btn btn-ghost btn-xs"
+              type="button"
+              onClick={() => goToPage('produtos', onNavigatePage)}
+            >
               Abrir produtos
             </button>
           }
@@ -273,7 +323,11 @@ function DashboardContextStats({
           value={clientesCount}
           description="Base de clientes cadastrada na filial"
           foot={
-            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+            <button
+              className="btn btn-ghost btn-xs"
+              type="button"
+              onClick={() => goToPage('clientes', onNavigatePage)}
+            >
               Abrir clientes
             </button>
           }
@@ -284,7 +338,11 @@ function DashboardContextStats({
           tone={entreguesHoje > 0 ? 'success' : 'default'}
           description="Pedidos entregues na data de hoje"
           foot={
-            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+            <button
+              className="btn btn-ghost btn-xs"
+              type="button"
+              onClick={() => goToPage('pedidos', onNavigatePage)}
+            >
               Ver pedidos
             </button>
           }
@@ -413,7 +471,13 @@ function DashAlerts({
   onNavigatePage?: (page: string) => void;
 }) {
   if (!crit.length && !baixo.length && !anivProximos.length) {
-    return <div className="empty-inline table-cell-muted">Sem alertas no momento.</div>;
+    return (
+      <EmptyState
+        compact
+        title="Sem alertas no momento."
+        description="A operação da filial está estável na leitura atual."
+      />
+    );
   }
 
   return (
@@ -433,7 +497,11 @@ function DashAlerts({
             {crit.length > 3 ? '...' : ''}
           </div>
           <div style={{ marginTop: 10 }}>
-            <button className="btn btn-sm" type="button" onClick={() => goToPage('estoque', onNavigatePage)}>
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => goToPage('estoque', onNavigatePage)}
+            >
               Ver estoque
             </button>
           </div>
@@ -453,7 +521,11 @@ function DashAlerts({
             {baixo.length > 3 ? '...' : ''}
           </div>
           <div style={{ marginTop: 10 }}>
-            <button className="btn btn-sm" type="button" onClick={() => goToPage('estoque', onNavigatePage)}>
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => goToPage('estoque', onNavigatePage)}
+            >
               Revisar estoque
             </button>
           </div>
@@ -474,7 +546,11 @@ function DashAlerts({
             .join(', ')}
           {anivProximos.length > 3 ? '...' : ''}
           <div style={{ marginTop: 10 }}>
-            <button className="btn btn-sm" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+            <button
+              className="btn btn-sm"
+              type="button"
+              onClick={() => goToPage('clientes', onNavigatePage)}
+            >
               Abrir clientes
             </button>
           </div>
@@ -495,9 +571,11 @@ function DashChart({
 }) {
   if (!chartKeys.length) {
     return (
-      <div className="empty dash-empty-compact">
-        <p>Sem pedidos entregues no período.</p>
-      </div>
+      <EmptyState
+        compact
+        title="Sem pedidos entregues no período."
+        description="Assim que houver entregas, a curva de faturamento e lucro aparece aqui."
+      />
     );
   }
   return (
@@ -577,7 +655,13 @@ function DashTopProdutos({
   maxFat: number;
 }) {
   if (!topProdutos.length) {
-    return <div className="empty-inline table-cell-muted">Sem dados no período.</div>;
+    return (
+      <EmptyState
+        compact
+        title="Sem dados no período."
+        description="Os produtos com maior faturamento aparecem aqui quando houver vendas entregues."
+      />
+    );
   }
   return (
     <div data-testid="dash-top-produtos">
@@ -726,7 +810,9 @@ function DashboardRoleSummary({
           <h3>{focus.title}</h3>
           <p>{focus.copy}</p>
         </div>
-        <StatusBadge tone={role === 'admin' ? 'danger' : role === 'gerente' ? 'warning' : 'success'}>
+        <StatusBadge
+          tone={role === 'admin' ? 'danger' : role === 'gerente' ? 'warning' : 'success'}
+        >
           {ROLE_LABELS[role]}
         </StatusBadge>
       </div>
@@ -844,7 +930,12 @@ export function DashboardPilotPage({
         title="Painel executivo"
         description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema. Sem métricas estimadas ou mockadas."
         actions={
-          <button className="btn btn-sm" type="button" onClick={onReload} disabled={status === 'loading'}>
+          <button
+            className="btn btn-sm"
+            type="button"
+            onClick={onReload}
+            disabled={status === 'loading'}
+          >
             {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
           </button>
         }
@@ -891,13 +982,25 @@ export function DashboardPilotPage({
           description="Assim que a filial tiver pedidos, produtos ou clientes cadastrados, os indicadores executivos passam a aparecer aqui."
           action={
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn btn-sm" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+              <button
+                className="btn btn-sm"
+                type="button"
+                onClick={() => goToPage('clientes', onNavigatePage)}
+              >
                 Abrir clientes
               </button>
-              <button className="btn btn-sm" type="button" onClick={() => goToPage('produtos', onNavigatePage)}>
+              <button
+                className="btn btn-sm"
+                type="button"
+                onClick={() => goToPage('produtos', onNavigatePage)}
+              >
                 Abrir produtos
               </button>
-              <button className="btn btn-sm" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+              <button
+                className="btn btn-sm"
+                type="button"
+                onClick={() => goToPage('pedidos', onNavigatePage)}
+              >
                 Abrir pedidos
               </button>
             </div>
@@ -908,24 +1011,31 @@ export function DashboardPilotPage({
 
       {status === 'ready' && (
         <>
-          <DashboardContextStats
-            pedidosCount={pedidos.length}
-            produtosCount={produtos.length}
-            clientesCount={clientes.length}
-            entreguesHoje={derived.entreguesHoje}
-            sourceSummary={sourceSummary}
-            onNavigatePage={onNavigatePage}
-          />
+          <DashboardSection
+            title="Visão geral da filial"
+            description="Panorama executivo do período selecionado, sem estimativas artificiais e sem trocar a origem dos dados."
+          >
+            <div className="dash-bento-panel dash-bento-panel--overview">
+              <DashboardContextStats
+                pedidosCount={pedidos.length}
+                produtosCount={produtos.length}
+                clientesCount={clientes.length}
+                entreguesHoje={derived.entreguesHoje}
+                sourceSummary={sourceSummary}
+                onNavigatePage={onNavigatePage}
+              />
 
-          <DashKpis
-            fat={derived.fat}
-            lucro={derived.lucro}
-            mg={derived.mg}
-            tk={derived.tk}
-            abertos={derived.abertos}
-            entreguesCount={derived.entregues.length}
-            allPedsCount={pedidos.length}
-          />
+              <DashKpis
+                fat={derived.fat}
+                lucro={derived.lucro}
+                mg={derived.mg}
+                tk={derived.tk}
+                abertos={derived.abertos}
+                entreguesCount={derived.entregues.length}
+                allPedsCount={pedidos.length}
+              />
+            </div>
+          </DashboardSection>
 
           <DashboardRoleSummary
             role={userRole}
@@ -938,45 +1048,41 @@ export function DashboardPilotPage({
           />
 
           {showOperational && (
-            <>
-              <section className="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
-                <div className="dash-section-head">
-                  <h3>Decisões de hoje</h3>
-                  <p>Fila comercial, ruptura de estoque e relacionamento que pedem ação imediata.</p>
-                </div>
-                <DashAlerts
-                  crit={derived.crit}
-                  baixo={derived.baixo}
-                  anivProximos={derived.anivProximos}
-                  hoje={derived.hoje}
-                  onNavigatePage={onNavigatePage}
-                />
-              </section>
-
-              <div className="dash-grid-main dash-bento-grid dash-bento-grid--primary">
-                <div className="card card-shell dash-card dash-bento-card dash-bento-card--status">
-                <div className="ct">Status dos pedidos</div>
-                  <DashStatusPedidos stMap={derived.stMap} />
-                </div>
-                <div className="card card-shell dash-card dash-card--top dash-bento-card">
-                  <div className="ct">Top produtos</div>
-                  <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+            <DashboardSection
+              title="Decisões de hoje"
+              description="Fila comercial, ruptura de estoque e relacionamento que pedem ação imediata."
+            >
+              <div className="dash-bento-grid dash-bento-grid--ops">
+                <DashboardCard title="Alertas e atenção" className="dash-bento-card--alerts-panel">
+                  <DashAlerts
+                    crit={derived.crit}
+                    baixo={derived.baixo}
+                    anivProximos={derived.anivProximos}
+                    hoje={derived.hoje}
+                    onNavigatePage={onNavigatePage}
+                  />
+                </DashboardCard>
+                <div className="dash-bento-stack">
+                  <DashboardCard title="Status dos pedidos" className="dash-bento-card--status">
+                    <DashStatusPedidos stMap={derived.stMap} />
+                  </DashboardCard>
+                  <DashboardCard title="Top produtos" className="dash-bento-card--top">
+                    <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+                  </DashboardCard>
                 </div>
               </div>
-            </>
+            </DashboardSection>
           )}
 
           {(showManagerial || showAnalytical) && (
-            <section className="dash-section dash-section--analise dash-bento-panel dash-bento-panel--analysis">
-              <div className="dash-section-head">
-                <h3>{showAnalytical ? 'Leitura analítica' : 'Leitura gerencial'}</h3>
-                <p>
-                  {showAnalytical
-                    ? 'Profundidade para identificar padrão, cobertura e consistência operacional com base nos dados atuais.'
-                    : 'Resultado, tendência e distribuição do desempenho comercial no período selecionado.'}
-                </p>
-              </div>
-
+            <DashboardSection
+              title={showAnalytical ? 'Leitura analítica' : 'Leitura gerencial'}
+              description={
+                showAnalytical
+                  ? 'Profundidade para identificar padrão, cobertura e consistência operacional com base nos dados atuais.'
+                  : 'Resultado, tendência e distribuição do desempenho comercial no período selecionado.'
+              }
+            >
               {showAnalytical && (
                 <DashboardInsightGrid
                   derived={derived}
@@ -985,44 +1091,44 @@ export function DashboardPilotPage({
                 />
               )}
 
-              <div className="dash-grid-main dash-bento-grid dash-bento-grid--primary">
-                <div className="card card-shell dash-card dash-card--hero dash-bento-card dash-bento-card--chart">
-                  <div className="ct">Faturamento e lucro</div>
+              <div className="dash-bento-grid dash-bento-grid--analysis">
+                <DashboardCard title="Faturamento e lucro" className="dash-bento-card--chart">
                   <DashChart
                     chartKeys={derived.chartKeys}
                     grupos={derived.grupos}
                     maxFat={derived.maxChartFat}
                   />
-                </div>
-                <div className="card card-shell dash-card dash-bento-card dash-bento-card--status">
-                  <div className="ct">Status dos pedidos</div>
-                  <DashStatusPedidos stMap={derived.stMap} />
-                </div>
-              </div>
-
-              <div className="dash-grid-cards dash-grid-cards--analise">
-                <div className="card card-shell dash-card dash-card--top dash-bento-card">
-                  <div className="ct">Top produtos</div>
-                  <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+                </DashboardCard>
+                <div className="dash-bento-stack">
+                  <DashboardCard title="Status dos pedidos" className="dash-bento-card--status">
+                    <DashStatusPedidos stMap={derived.stMap} />
+                  </DashboardCard>
+                  <DashboardCard title="Top produtos" className="dash-bento-card--top">
+                    <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
+                  </DashboardCard>
                 </div>
               </div>
-            </section>
+            </DashboardSection>
           )}
 
           {showAnalytical && (
-            <section className="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
-              <div className="dash-section-head">
-                <h3>Sinais operacionais de apoio</h3>
-                <p>Contexto que ajuda a explicar resultado e orientar ajuste fino.</p>
-              </div>
-              <DashAlerts
-                crit={derived.crit}
-                baixo={derived.baixo}
-                anivProximos={derived.anivProximos}
-                hoje={derived.hoje}
-                onNavigatePage={onNavigatePage}
-              />
-            </section>
+            <DashboardSection
+              title="Sinais operacionais de apoio"
+              description="Contexto que ajuda a explicar resultado e orientar ajuste fino."
+            >
+              <DashboardCard
+                title="Alertas complementares"
+                className="dash-bento-card--alerts-panel"
+              >
+                <DashAlerts
+                  crit={derived.crit}
+                  baixo={derived.baixo}
+                  anivProximos={derived.anivProximos}
+                  hoje={derived.hoje}
+                  onNavigatePage={onNavigatePage}
+                />
+              </DashboardCard>
+            </DashboardSection>
           )}
         </>
       )}

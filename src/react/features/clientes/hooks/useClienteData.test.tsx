@@ -217,13 +217,13 @@ describe('useClienteData', () => {
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        headers: new Headers({ 'content-range': '0-1/2' }),
-        text: async () => JSON.stringify(CLIENTES)
+        headers: new Headers(),
+        text: async () => JSON.stringify([{ seg: 'Atacado' }, { seg: 'Varejo' }])
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        headers: new Headers(),
-        text: async () => JSON.stringify([{ seg: 'Atacado' }, { seg: 'Varejo' }])
+        headers: new Headers({ 'content-range': '0-1/2' }),
+        text: async () => JSON.stringify(CLIENTES)
       } as Response);
 
     const { result } = renderHook(() => useClienteData());
