@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
+import { Drawer } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
@@ -161,16 +162,29 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         }}
       />
 
-      {detailPedido && !editingId && (
-        <PedidoDetailPanel
-          pedido={detailPedido}
-          onEditar={(id) => {
-            setDetailId(null);
-            setEditingId(id);
-          }}
-          onClose={() => setDetailId(null)}
-        />
-      )}
+      <Drawer
+        open={!!detailPedido && !editingId}
+        title={detailPedido ? `Pedido #${detailPedido.num}` : ''}
+        size="lg"
+        action={
+          detailPedido ? (
+            <button
+              className="btn btn-sm"
+              type="button"
+              data-testid="pedido-detail-editar"
+              onClick={() => {
+                setDetailId(null);
+                setEditingId(detailPedido.id);
+              }}
+            >
+              Editar
+            </button>
+          ) : undefined
+        }
+        onClose={() => setDetailId(null)}
+      >
+        {detailPedido && <PedidoDetailPanel pedido={detailPedido} />}
+      </Drawer>
 
       {editingId && (
         <PedidoForm

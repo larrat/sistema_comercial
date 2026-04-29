@@ -20,24 +20,6 @@ import type { StatusBadgeTone } from '../../../shared/ui';
 
 type Props = {
   pedido: Pedido;
-  onEditar: (id: string) => void;
-  onClose: () => void;
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  orcamento: 'Orçamento',
-  confirmado: 'Confirmado',
-  em_separacao: 'Em separação',
-  entregue: 'Entregue',
-  cancelado: 'Cancelado'
-};
-
-const STATUS_TONE: Record<string, StatusBadgeTone> = {
-  orcamento: 'neutral',
-  confirmado: 'info',
-  em_separacao: 'warning',
-  entregue: 'success',
-  cancelado: 'danger'
 };
 
 const PGTO_LABEL: Record<string, string> = {
@@ -119,7 +101,7 @@ function readContaFinanceira(
   return { conta, baixas };
 }
 
-export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
+export function PedidoDetailPanel({ pedido }: Props) {
   const { avancarStatus, cancelarPedido, reabrirPedido, gerarContaManual, inFlight } =
     usePedidoMutations();
   const filialId = useFilialStore((state) => state.filialId);
@@ -136,8 +118,6 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
     baixas: ContaReceberBaixa[];
   }>(() => readContaFinanceira(filialId, pedido.id));
   const status = normalizePedStatus(pedido.status);
-  const statusTone: StatusBadgeTone = STATUS_TONE[status] ?? 'neutral';
-  const statusLabel = STATUS_LABEL[status] ?? status;
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
   const isInFlight = inFlight.has(pedido.id);
@@ -233,32 +213,8 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
   }
 
   return (
-    <div className="card card-shell" data-testid="pedido-detail-panel">
-      <div className="modal-shell-head">
-        <div>
-          <div className="mt">Pedido #{pedido.num}</div>
-          <div className="cli-react-shell__chips" style={{ marginTop: '0.25rem' }}>
-            <StatusBadge tone={statusTone}>{statusLabel}</StatusBadge>
-            {pedido.data && <span className="bdg bk">{pedido.data}</span>}
-            <span className="bdg bg">{fmtCurrency(pedido.total)}</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-          <button
-            className="btn btn-sm"
-            onClick={() => onEditar(pedido.id)}
-            data-testid="pedido-detail-editar"
-          >
-            Editar
-          </button>
-          <button className="btn btn-sm" onClick={onClose} data-testid="pedido-detail-close">
-            Fechar
-          </button>
-        </div>
-      </div>
-
-      <div className="modal-shell-body">
-        <div className="fg c3">
+    <div data-testid="pedido-detail-panel">
+      <div className="fg c3">
           <div>
             <div className="fl">Cliente</div>
             <div className="fv">{pedido.cli || '—'}</div>
@@ -490,8 +446,6 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
             {contaMsg}
           </div>
         )}
-      </div>
-
       <PedidoCancelConfirmModal
         open={showCancelConfirm}
         pedido={pedido}
