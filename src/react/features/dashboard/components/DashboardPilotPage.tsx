@@ -366,47 +366,35 @@ function DashKpis({
   allPedsCount: number;
 }) {
   return (
-    <div className="mg dash-bento-band dash-bento-band--metrics" data-testid="dash-kpis">
-      <div className="met metric-card">
-        <div className="metric-card__eyebrow">Receita</div>
-        <div className="ml">Faturamento</div>
-        <div className="mv kpi-value-sm">{fmt(fat)}</div>
-        <div className="ms metric-card__foot">{entreguesCount} entregue(s)</div>
-      </div>
-      <div className="met metric-card">
-        <div className="metric-card__eyebrow">Resultado</div>
-        <div className="ml">Lucro bruto</div>
-        <div className={`mv kpi-value-sm ${lucro >= 0 ? 'tone-success' : 'tone-critical'}`}>
-          {fmt(lucro)}
-        </div>
-        <div className="ms metric-card__foot">
-          {lucro >= 0 ? 'Operação saudável' : 'Abaixo do esperado'}
-        </div>
-      </div>
-      <div className="met metric-card">
-        <div className="metric-card__eyebrow">Eficiência</div>
-        <div className="ml">Margem</div>
-        <div
-          className={`mv ${mg >= 15 ? 'tone-success' : mg >= 8 ? 'tone-warning' : 'tone-critical'}`}
-        >
-          {pct(mg)}
-        </div>
-        <div className="ms metric-card__foot">
-          {mg >= 15 ? 'Boa zona de margem' : mg >= 8 ? 'Atenção' : 'Revisar mix e preço'}
-        </div>
-      </div>
-      <div className="met metric-card">
-        <div className="metric-card__eyebrow">Conversão</div>
-        <div className="ml">Ticket médio</div>
-        <div className="mv kpi-value-sm">{fmt(tk)}</div>
-        <div className="ms metric-card__foot">Base {allPedsCount} pedido(s)</div>
-      </div>
-      <div className="met metric-card">
-        <div className="metric-card__eyebrow">Pipeline</div>
-        <div className="ml">Em aberto</div>
-        <div className="mv tone-warning">{abertos}</div>
-        <div className="ms metric-card__foot">Orçamentos e confirmados</div>
-      </div>
+    <div className="rf-ui-stat-grid rf-ui-stat-grid--5" data-testid="dash-kpis">
+      <StatCard
+        label="Faturamento"
+        value={fmt(fat)}
+        description={`${entreguesCount} pedido(s) entregue(s) no período`}
+      />
+      <StatCard
+        label="Lucro bruto"
+        value={fmt(lucro)}
+        description={lucro >= 0 ? 'Operação saudável' : 'Abaixo do esperado'}
+        tone={lucro >= 0 ? 'success' : 'danger'}
+      />
+      <StatCard
+        label="Margem"
+        value={pct(mg)}
+        description={mg >= 15 ? 'Boa zona de margem' : mg >= 8 ? 'Atenção' : 'Revisar mix e preço'}
+        tone={mg >= 15 ? 'success' : mg >= 8 ? 'warning' : 'danger'}
+      />
+      <StatCard
+        label="Ticket médio"
+        value={fmt(tk)}
+        description={`Base de ${allPedsCount} pedido(s)`}
+      />
+      <StatCard
+        label="Em aberto"
+        value={abertos}
+        description="Orçamentos e pedidos confirmados"
+        tone={abertos > 0 ? 'warning' : 'default'}
+      />
     </div>
   );
 }
