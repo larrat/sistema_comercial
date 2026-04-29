@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
-import { selectPedidosForTab, usePedidoStore } from '../store/usePedidoStore';
+import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
 import { PedidoForm } from './PedidoForm';
 import { PedidoDetailPanel } from './PedidoDetailPanel';
@@ -18,17 +18,21 @@ type PedidosRouteIntent = {
 
 type PedidosPilotPageProps = {
   routeIntent?: PedidosRouteIntent;
+  onRetryLoad?: () => void;
 };
 
-export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
+export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageProps) {
   const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
+  const summary = usePedidoStore((s) => s.summary);
   const activeTab = usePedidoStore((s) => s.activeTab);
   const setActiveTab = usePedidoStore((s) => s.setActiveTab);
   const filtro = usePedidoStore((s) => s.filtro);
   const clearFiltro = usePedidoStore((s) => s.clearFiltro);
   const storeStatus = usePedidoStore((s) => s.status);
   const storeError = usePedidoStore((s) => s.error);
-  const visiblePedidos = usePedidoStore(useShallow(selectPedidosForTab));
+  const visiblePedidos = pedidos;
+  const page = usePedidoStore((s) => s.page);
+  const total = usePedidoStore((s) => s.total);
 
   const [editingId, setEditingId] = useState<string | null>(null); // 'new' | pedidoId | null
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -96,7 +100,8 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
 
   // Publica estado ao bridge legado
   useEffect(() => {
-    const filtersActive = [filtro.q, filtro.status].filter(Boolean).length;
+    const filtersActive = [filtro.q, filtro.status, filtro.pgto, filtro.periodo].filter(Boolean)
+      .length;
     const view = editingId ? 'form' : detailId ? 'detail' : 'list';
     postLegacyBridgeMessage({
       source: MESSAGE_SOURCE,
@@ -107,7 +112,9 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
         status: storeStatus === 'loading' ? 'loading' : storeError ? 'error' : 'ready',
         count: visiblePedidos.length,
         filtersActive,
-        totalPedidos: pedidos.length,
+        totalPedidos: summary.total,
+        page,
+        totalFiltrados: total,
         selectedId: editingId === 'new' ? '' : editingId || detailId || '',
         selectedNum: editingPedido?.num ?? detailPedido?.num ?? null
       }
@@ -118,8 +125,12 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
     storeError,
     filtro.q,
     filtro.status,
+    filtro.pgto,
+    filtro.periodo,
     visiblePedidos.length,
-    pedidos.length,
+    summary.total,
+    page,
+    total,
     editingId,
     detailId,
     editingPedido?.num,
@@ -129,6 +140,7 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   return (
     <div className="rf-content" data-testid="pedidos-pilot-page">
       <PedidoListView
+        onRetry={onRetryLoad}
         onNovoPedido={() => {
           setDetailId(null);
           setEditingId('new');

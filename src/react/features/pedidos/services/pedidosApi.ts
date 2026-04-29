@@ -1,4 +1,5 @@
 import type { Pedido, PedidoItem } from '../../../../types/domain';
+import { TAB_STATUSES, normalizePedStatus, type PedidoSummary, type PedidoTab } from '../types';
 
 export type PedidoSaveInput = {
   id: string;
@@ -23,6 +24,28 @@ export type PedidoApiContext = {
   key: string;
   token: string;
   filialId: string;
+};
+
+export type PedidoListFilters = {
+  q?: string;
+  status?: string;
+  pgto?: string;
+  periodo?: string;
+  sort?: 'data_desc' | 'data_asc';
+  tab?: PedidoTab;
+};
+
+export type PedidoListPageQuery = PedidoListFilters & {
+  page?: number;
+  pageSize?: number;
+};
+
+export type PedidoListPageResult = {
+  rows: Pedido[];
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
 };
 
 function createHeaders(key: string, token: string): HeadersInit {
@@ -51,6 +74,93 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
   throw new Error(fallback);
 }
 
+function parseTotalFromContentRange(contentRange: string | null): number {
+  if (!contentRange) return 0;
+  const [, totalPart] = contentRange.split('/');
+  const total = Number(totalPart);
+  return Number.isFinite(total) ? total : 0;
+}
+
+function buildPeriodoDate(periodo: string): string | null {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (periodo === 'hoje') return today.toISOString().slice(0, 10);
+  if (periodo === 'semana') {
+    const limit = new Date(today);
+    limit.setDate(today.getDate() - 7);
+    return limit.toISOString().slice(0, 10);
+  }
+  if (periodo === 'mes') {
+    const limit = new Date(today);
+    limit.setDate(today.getDate() - 30);
+    return limit.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+function createPedidoQueryParams(
+  filialId: string,
+  filters: PedidoListFilters,
+  options?: { page?: number; pageSize?: number }
+): URLSearchParams {
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${filialId}`);
+  params.set('order', filters.sort === 'data_asc' ? 'data.asc,num.asc' : 'data.desc,num.desc');
+
+  const tabStatus = filters.tab ? TAB_STATUSES[filters.tab] : [];
+  const status = normalizePedStatus(filters.status);
+  if (status && filters.tab === 'emaberto') {
+    params.set('status', `eq.${status}`);
+  } else if (tabStatus.length === 1) {
+    params.set('status', `eq.${tabStatus[0]}`);
+  } else if (tabStatus.length > 1) {
+    params.set('status', `in.(${tabStatus.join(',')})`);
+  }
+
+  const pgto = String(filters.pgto || '').trim();
+  if (pgto) params.set('pgto', `eq.${pgto}`);
+
+  const periodo = String(filters.periodo || '').trim();
+  if (periodo === 'hoje') {
+    const today = buildPeriodoDate(periodo);
+    if (today) params.set('data', `eq.${today}`);
+  } else if (periodo) {
+    const startDate = buildPeriodoDate(periodo);
+    if (startDate) params.set('data', `gte.${startDate}`);
+  }
+
+  const q = String(filters.q || '').trim();
+  if (q) {
+    const clean = q.replace(/\*/g, '').replace(/,/g, ' ').trim();
+    const pattern = `*${clean}*`;
+    const conditions = [`cli.ilike.${pattern}`];
+    if (/^\d+$/.test(clean)) conditions.push(`num.eq.${clean}`);
+    params.set('or', `(${conditions.join(',')})`);
+  }
+
+  if (options?.page && options?.pageSize) {
+    params.set('limit', String(options.pageSize));
+    params.set('offset', String((options.page - 1) * options.pageSize));
+  }
+
+  return params;
+}
+
+export function buildListPedidosPageUrl(
+  url: string,
+  filialId: string,
+  query: PedidoListPageQuery
+): string {
+  const page = Math.max(1, query.page ?? 1);
+  const pageSize = Math.max(1, query.pageSize ?? 20);
+  const params = createPedidoQueryParams(filialId, query, { page, pageSize });
+  return `${url}/rest/v1/pedidos?${params.toString()}`;
+}
+
+export function buildListPedidosSummaryUrl(url: string, filialId: string): string {
+  return `${url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(filialId)}&select=status,total`;
+}
+
 export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> {
   const res = await fetch(
     `${context.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(context.filialId)}&order=num.desc`,
@@ -62,6 +172,62 @@ export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> 
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
   return Array.isArray(body) ? (body as Pedido[]) : [];
+}
+
+export async function listPedidosPage(
+  context: PedidoApiContext,
+  query: PedidoListPageQuery = {}
+): Promise<PedidoListPageResult> {
+  const page = Math.max(1, query.page ?? 1);
+  const pageSize = Math.max(1, query.pageSize ?? 20);
+  const res = await fetch(buildListPedidosPageUrl(context.url, context.filialId, query), {
+    headers: {
+      ...createHeaders(context.key, context.token),
+      Prefer: 'count=exact'
+    },
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
+  const rows = Array.isArray(body) ? (body as Pedido[]) : [];
+  const total = parseTotalFromContentRange(res.headers.get('content-range'));
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  return { rows, page, pageSize, total, pageCount };
+}
+
+export async function listPedidosSummary(context: PedidoApiContext): Promise<PedidoSummary> {
+  const res = await fetch(buildListPedidosSummaryUrl(context.url, context.filialId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar resumo de pedidos`);
+  const rows = Array.isArray(body) ? (body as Array<Pick<Pedido, 'status' | 'total'>>) : [];
+  const summary: PedidoSummary = {
+    total: rows.length,
+    emAbertoCount: 0,
+    valorEmAberto: 0,
+    entreguesCount: 0,
+    canceladosCount: 0
+  };
+
+  for (const row of rows) {
+    const status = normalizePedStatus(row.status);
+    if (TAB_STATUSES.emaberto.includes(status)) {
+      summary.emAbertoCount += 1;
+      summary.valorEmAberto += row.total ?? 0;
+      continue;
+    }
+    if (TAB_STATUSES.entregues.includes(status)) {
+      summary.entreguesCount += 1;
+      continue;
+    }
+    if (TAB_STATUSES.cancelados.includes(status)) {
+      summary.canceladosCount += 1;
+    }
+  }
+
+  return summary;
 }
 
 export async function savePedido(context: PedidoApiContext, input: PedidoSaveInput): Promise<void> {

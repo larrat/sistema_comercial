@@ -3,6 +3,17 @@ export type PedidoTab = 'emaberto' | 'entregues' | 'cancelados';
 export type PedidoFiltro = {
   q: string;
   status: string;
+  pgto: string;
+  periodo: string;
+  sort: 'data_desc' | 'data_asc';
+};
+
+export type PedidoSummary = {
+  total: number;
+  emAbertoCount: number;
+  valorEmAberto: number;
+  entreguesCount: number;
+  canceladosCount: number;
 };
 
 export const TAB_STATUSES: Record<PedidoTab, string[]> = {

@@ -1,13 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { selectPedidosForTab, usePedidoStore } from '../store/usePedidoStore';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
-import { PedidoRow } from './PedidoRow';
-import type { Pedido } from '../../../../types/domain';
-import { TAB_STATUSES, normalizePedStatus, type PedidoTab } from '../types';
-import { EmptyState } from '../../../shared/ui';
 
-const EXIT_DURATION = 400;
+import type { Pedido } from '../../../../types/domain';
+import {
+  ActionMenu,
+  DataTable,
+  FilterBar,
+  PageHeader,
+  StatusBadge
+} from '../../../shared/ui';
+import { usePedidoStore } from '../store/usePedidoStore';
+import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus, type PedidoTab } from '../types';
+import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 
 const TABS: { id: PedidoTab; label: string }[] = [
   { id: 'emaberto', label: 'Em Aberto' },
@@ -40,160 +45,127 @@ const PERIODO_OPTIONS = [
 
 const SORT_OPTIONS = [
   { value: 'data_desc', label: 'Mais recentes' },
-  { value: 'data_asc', label: 'Mais antigos' },
-  { value: 'valor_desc', label: 'Maior valor' },
-  { value: 'valor_asc', label: 'Menor valor' },
-  { value: 'cli_asc', label: 'Cliente A–Z' }
+  { value: 'data_asc', label: 'Mais antigos' }
 ];
 
-function isInPeriodo(pedidoData: string | undefined, periodo: string): boolean {
-  if (!periodo || !pedidoData) return true;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const ped = new Date(pedidoData + 'T00:00:00');
-  if (periodo === 'hoje') return pedidoData === today.toISOString().split('T')[0];
-  if (periodo === 'semana') {
-    const limit = new Date(today);
-    limit.setDate(today.getDate() - 7);
-    return ped >= limit;
-  }
-  if (periodo === 'mes') {
-    const limit = new Date(today);
-    limit.setDate(today.getDate() - 30);
-    return ped >= limit;
-  }
-  return true;
-}
+const STATUS_TONE: Record<string, 'neutral' | 'info' | 'warning' | 'success' | 'danger'> = {
+  orcamento: 'neutral',
+  confirmado: 'info',
+  em_separacao: 'warning',
+  entregue: 'success',
+  cancelado: 'danger'
+};
 
-function sortPedidos(list: Pedido[], sort: string): Pedido[] {
-  const sorted = [...list];
-  switch (sort) {
-    case 'data_asc':
-      return sorted.sort((a, b) => (a.data ?? '').localeCompare(b.data ?? ''));
-    case 'valor_desc':
-      return sorted.sort((a, b) => (b.total ?? 0) - (a.total ?? 0));
-    case 'valor_asc':
-      return sorted.sort((a, b) => (a.total ?? 0) - (b.total ?? 0));
-    case 'cli_asc':
-      return sorted.sort((a, b) => (a.cli ?? '').localeCompare(b.cli ?? ''));
-    default:
-      return sorted.sort((a, b) => (b.data ?? '').localeCompare(a.data ?? ''));
-  }
-}
+const STATUS_LABEL: Record<string, string> = {
+  orcamento: 'Orçamento',
+  confirmado: 'Confirmado',
+  em_separacao: 'Em separação',
+  entregue: 'Entregue',
+  cancelado: 'Cancelado'
+};
+
+const PGTO_LABEL: Record<string, string> = {
+  a_vista: 'À vista',
+  pix: 'PIX',
+  boleto: 'Boleto',
+  cartao: 'Cartão',
+  cheque: 'Cheque'
+};
 
 function fmtCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return '—';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function getItemCount(itens: Pedido['itens']): number {
+  if (Array.isArray(itens)) return itens.length;
+  if (typeof itens === 'string') {
+    try {
+      return (JSON.parse(itens) as unknown[]).length;
+    } catch {
+      return 0;
+    }
+  }
+  return 0;
+}
+
 type Props = {
   onNovoPedido: () => void;
   onDetalhe: (id: string) => void;
+  onRetry?: () => void;
 };
 
-export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
-  const allPedidos = usePedidoStore(useShallow((s) => s.pedidos));
+export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
+  const summary = usePedidoStore((s) => s.summary);
   const activeTab = usePedidoStore((s) => s.activeTab);
   const setActiveTab = usePedidoStore((s) => s.setActiveTab);
   const filtro = usePedidoStore((s) => s.filtro);
   const setFiltro = usePedidoStore((s) => s.setFiltro);
   const clearFiltro = usePedidoStore((s) => s.clearFiltro);
+  const page = usePedidoStore((s) => s.page);
+  const pageSize = usePedidoStore((s) => s.pageSize);
+  const total = usePedidoStore((s) => s.total);
+  const setPage = usePedidoStore((s) => s.setPage);
+  const setPageSize = usePedidoStore((s) => s.setPageSize);
   const storeStatus = usePedidoStore((s) => s.status);
   const storeError = usePedidoStore((s) => s.error);
-  const basePedidos = usePedidoStore(useShallow(selectPedidosForTab));
+  const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
   const { avancarStatus, cancelarPedido, reabrirPedido, inFlight } = usePedidoMutations();
 
-  const [sortBy, setSortBy] = useState('data_desc');
-  const [filterPgto, setFilterPgto] = useState('');
-  const [filterPeriodo, setFilterPeriodo] = useState('');
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
 
-  const snapshotRef = useRef<Map<string, Pedido>>(new Map());
-  const prevIdsRef = useRef<Set<string>>(new Set());
-  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
+  const stats = summary;
 
-  // Apply local filters + sort on top of store-filtered list
-  const pedidos = useMemo(() => {
-    let list = basePedidos;
-    if (filterPgto) list = list.filter((p) => p.pgto === filterPgto);
-    if (filterPeriodo) list = list.filter((p) => isInPeriodo(p.data, filterPeriodo));
-    return sortPedidos(list, sortBy);
-  }, [basePedidos, filterPgto, filterPeriodo, sortBy]);
-
-  // Stats from all pedidos (no active filter applied)
-  const stats = useMemo(() => {
-    const emAberto = allPedidos.filter((p) =>
-      TAB_STATUSES.emaberto.includes(normalizePedStatus(p.status))
-    );
-    return {
-      emAbertoCount: emAberto.length,
-      valorEmAberto: emAberto.reduce((s, p) => s + (p.total ?? 0), 0),
-      entreguesCount: allPedidos.filter((p) =>
-        TAB_STATUSES.entregues.includes(normalizePedStatus(p.status))
-      ).length,
-      canceladosCount: allPedidos.filter((p) =>
-        TAB_STATUSES.cancelados.includes(normalizePedStatus(p.status))
-      ).length
-    };
-  }, [allPedidos]);
-
-  // Tab counts (total per tab, ignoring any active filter)
   const tabCounts = useMemo(
     () => ({
-      emaberto: allPedidos.filter((p) =>
-        TAB_STATUSES.emaberto.includes(normalizePedStatus(p.status))
-      ).length,
-      entregues: allPedidos.filter((p) =>
-        TAB_STATUSES.entregues.includes(normalizePedStatus(p.status))
-      ).length,
-      cancelados: allPedidos.filter((p) =>
-        TAB_STATUSES.cancelados.includes(normalizePedStatus(p.status))
-      ).length
+      emaberto: summary.emAbertoCount,
+      entregues: summary.entreguesCount,
+      cancelados: summary.canceladosCount
     }),
-    [allPedidos]
+    [summary.canceladosCount, summary.emAbertoCount, summary.entreguesCount]
   );
 
-  // Reset local filters on tab change
-  useEffect(() => {
-    setFilterPgto('');
-    setFilterPeriodo('');
-  }, [activeTab]);
+  const cancelTarget = useMemo(
+    () => pedidos.find((pedido) => pedido.id === cancelTargetId) ?? null,
+    [pedidos, cancelTargetId]
+  );
 
-  // Exit animation
-  useEffect(() => {
-    pedidos.forEach((p) => snapshotRef.current.set(p.id, p));
-    const currentIds = new Set(pedidos.map((p) => p.id));
-    const removed = [...prevIdsRef.current].filter((id) => !currentIds.has(id));
-    if (removed.length > 0) {
-      setExitingIds((prev) => new Set([...prev, ...removed]));
-      setTimeout(() => {
-        setExitingIds((prev) => {
-          const next = new Set(prev);
-          removed.forEach((id) => {
-            next.delete(id);
-            snapshotRef.current.delete(id);
-          });
-          return next;
-        });
-      }, EXIT_DURATION);
-    }
-    prevIdsRef.current = currentIds;
-  }, [pedidos]);
-
-  const hasLocalFilters = filterPgto !== '' || filterPeriodo !== '';
-  const hasAnyFilter = !!(filtro.q || filtro.status || hasLocalFilters);
+  const hasAnyFilter = !!(filtro.q || filtro.status || filtro.pgto || filtro.periodo);
 
   function handleClearFilters() {
     clearFiltro();
-    setFilterPgto('');
-    setFilterPeriodo('');
   }
-
-  const isListVisible = storeStatus === 'ready' && (pedidos.length > 0 || exitingIds.size > 0);
-  const isEmptyVisible =
-    storeStatus === 'ready' && pedidos.length === 0 && exitingIds.size === 0;
 
   return (
     <div className="screen-content" data-testid="pedido-list-view">
-      {/* Stats bar */}
+      <PageHeader
+        title="Pedidos"
+        description="Acompanhe os pedidos por etapa operacional, revise a carteira e abra detalhes sem sair da listagem."
+        actions={
+          <button
+            className="btn btn-p btn-sm"
+            onClick={onNovoPedido}
+            data-testid="pedido-novo-btn"
+          >
+            + Novo pedido
+          </button>
+        }
+        meta={
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge tone="info">{stats.emAbertoCount} em aberto</StatusBadge>
+            <StatusBadge tone="success">{stats.entreguesCount} entregues</StatusBadge>
+            <StatusBadge tone="danger">{stats.canceladosCount} cancelados</StatusBadge>
+            <StatusBadge tone="neutral">{total} filtrados · página {page}</StatusBadge>
+          </div>
+        }
+      />
+
       <div className="ped-stats-bar">
         <div className="ped-stat">
           <span className="ped-stat-value">{stats.emAbertoCount}</span>
@@ -214,17 +186,8 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
           <span className="ped-stat-value">{stats.canceladosCount}</span>
           <span className="ped-stat-label">Cancelados</span>
         </div>
-        <div className="ped-stats-spacer" />
-        <button
-          className="btn btn-p btn-sm"
-          onClick={onNovoPedido}
-          data-testid="pedido-novo-btn"
-        >
-          + Novo pedido
-        </button>
       </div>
 
-      {/* Tabs with counts */}
       <div className="tabs">
         {TABS.map((tab) => (
           <button
@@ -238,66 +201,52 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
         ))}
       </div>
 
-      <div className="card card-shell">
-        {/* Toolbar */}
-        <div className="ped-toolbar">
-          <div className="ped-toolbar-filters">
-            <input
-              className="inp ped-search"
-              placeholder="N.º ou cliente..."
-              value={filtro.q}
-              onChange={(e) => setFiltro({ q: e.target.value })}
-              data-testid="pedido-busca"
-            />
+      <FilterBar
+        search={{
+          value: filtro.q,
+          onChange: (value) => setFiltro({ q: value }),
+          placeholder: 'N.º ou cliente...',
+          ariaLabel: 'Buscar pedidos',
+          testId: 'pedido-busca',
+          className: 'inp ped-search'
+        }}
+        filters={[
+          ...(activeTab === 'emaberto'
+            ? [
+                {
+                  key: 'status',
+                  value: filtro.status,
+                  onChange: (value: string) => setFiltro({ status: value }),
+                  options: STATUS_OPTIONS,
+                  ariaLabel: 'Filtrar por status',
+                  testId: 'pedido-filtro-status',
+                  className: 'inp sel ped-filter-sel'
+                }
+              ]
+            : []),
+          {
+            key: 'pagamento',
+            value: filtro.pgto,
+            onChange: (value: string) => setFiltro({ pgto: value }),
+            options: PGTO_OPTIONS,
+            ariaLabel: 'Filtrar por forma de pagamento',
+            className: 'inp sel ped-filter-sel'
+          },
+          {
+            key: 'periodo',
+            value: filtro.periodo,
+            onChange: (value: string) => setFiltro({ periodo: value }),
+            options: PERIODO_OPTIONS,
+            ariaLabel: 'Filtrar por período',
+            className: 'inp sel ped-filter-sel'
+          }
+        ]}
+        actions={
+          <>
             <select
               className="inp sel ped-filter-sel"
-              value={filterPeriodo}
-              onChange={(e) => setFilterPeriodo(e.target.value)}
-              aria-label="Filtrar por período"
-            >
-              {PERIODO_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            {activeTab === 'emaberto' && (
-              <select
-                className="inp sel ped-filter-sel"
-                value={filtro.status}
-                onChange={(e) => setFiltro({ status: e.target.value })}
-                data-testid="pedido-filtro-status"
-              >
-                {STATUS_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            )}
-            <select
-              className="inp sel ped-filter-sel"
-              value={filterPgto}
-              onChange={(e) => setFilterPgto(e.target.value)}
-              aria-label="Filtrar por forma de pagamento"
-            >
-              {PGTO_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            {hasAnyFilter && (
-              <button className="btn btn-sm" onClick={handleClearFilters}>
-                Limpar filtros
-              </button>
-            )}
-          </div>
-          <div className="ped-toolbar-end">
-            <select
-              className="inp sel ped-filter-sel"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              value={filtro.sort}
+              onChange={(e) => setFiltro({ sort: e.target.value as 'data_desc' | 'data_asc' })}
               aria-label="Ordenar pedidos"
             >
               {SORT_OPTIONS.map((o) => (
@@ -306,100 +255,177 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
                 </option>
               ))}
             </select>
-          </div>
-        </div>
+            {hasAnyFilter ? (
+              <button className="btn btn-sm" onClick={handleClearFilters}>
+                Limpar filtros
+              </button>
+            ) : null}
+          </>
+        }
+      />
 
-        {/* Column headers */}
-        {isListVisible && (
-          <div className="ped-list-header" aria-hidden="true">
-            <div className="ped-list-header-col">Pedido</div>
-            <div className="ped-list-header-col">Cliente</div>
-            <div className="ped-list-header-col">Status</div>
-            <div className="ped-list-header-col">Data</div>
-            <div className="ped-list-header-col align-right">Valor</div>
-            <div className="ped-list-header-col align-right">Ações</div>
-          </div>
-        )}
-
-        {/* Loading */}
-        {(storeStatus === 'loading' || storeStatus === 'idle') && (
-          <EmptyState title="Carregando pedidos..." compact data-testid="pedido-loading" />
-        )}
-
-        {/* Error */}
-        {storeStatus === 'error' && (
-          <EmptyState
-            title="Erro ao carregar pedidos."
-            description={storeError ?? undefined}
-            compact
-            data-testid="pedido-error"
-          />
-        )}
-
-        {/* Empty state */}
-        {isEmptyVisible && (
-          <div className="ped-empty" data-testid="pedido-empty">
-            <div className="ped-empty-icon">📋</div>
-            <div className="ped-empty-title">
-              {hasAnyFilter ? 'Nenhum resultado encontrado' : 'Sem pedidos nesta aba'}
-            </div>
-            <div className="ped-empty-sub">
-              {hasAnyFilter
-                ? 'Nenhum pedido corresponde aos filtros ativos. Tente ajustar a busca ou limpar os filtros.'
-                : activeTab === 'emaberto'
-                  ? 'Nenhum pedido em aberto. Crie um novo para começar.'
-                  : activeTab === 'entregues'
-                    ? 'Pedidos entregues aparecerão aqui.'
-                    : 'Pedidos cancelados aparecerão aqui.'}
-            </div>
-            <div className="ped-empty-actions">
-              {hasAnyFilter && (
-                <button className="btn btn-sm" onClick={handleClearFilters}>
-                  Limpar filtros
-                </button>
-              )}
-              {!hasAnyFilter && activeTab === 'emaberto' && (
-                <button className="btn btn-sm btn-p" onClick={onNovoPedido}>
-                  + Novo pedido
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* List */}
-        {isListVisible && (
-          <div className="list" data-testid="pedido-list">
-            {pedidos.map((pedido) => (
-              <PedidoRow
-                key={pedido.id}
-                pedido={pedido}
-                inFlight={inFlight.has(pedido.id)}
-                onAvancar={() => void avancarStatus(pedido)}
-                onCancelar={() => void cancelarPedido(pedido)}
-                onReabrir={() => void reabrirPedido(pedido)}
-                onDetalhe={onDetalhe}
-              />
-            ))}
-            {[...exitingIds].map((id) => {
-              const pedido = snapshotRef.current.get(id);
-              if (!pedido) return null;
+      <DataTable
+        className="pedidos-data-table"
+        data={pedidos}
+        rowKey={(pedido) => pedido.id}
+        loading={storeStatus === 'loading' || storeStatus === 'idle'}
+        error={storeStatus === 'error' ? storeError ?? 'Erro ao carregar pedidos.' : undefined}
+        onRetry={onRetry}
+        emptyTitle={hasAnyFilter ? 'Nenhum resultado encontrado.' : 'Sem pedidos nesta aba.'}
+        emptyDescription={
+          hasAnyFilter
+            ? 'Nenhum pedido corresponde aos filtros ativos. Tente ajustar a busca ou limpar os filtros.'
+            : activeTab === 'emaberto'
+              ? 'Nenhum pedido em aberto. Crie um novo para começar.'
+              : activeTab === 'entregues'
+                ? 'Pedidos entregues aparecerão aqui.'
+                : 'Pedidos cancelados aparecerão aqui.'
+        }
+        emptyAction={
+          hasAnyFilter ? (
+            <button className="btn btn-sm" onClick={handleClearFilters}>
+              Limpar filtros
+            </button>
+          ) : activeTab === 'emaberto' ? (
+            <button className="btn btn-sm btn-p" onClick={onNovoPedido}>
+              + Novo pedido
+            </button>
+          ) : undefined
+        }
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        onRowClick={(pedido) => onDetalhe(pedido.id)}
+        columns={[
+          {
+            key: 'pedido',
+            label: 'Pedido',
+            render: (pedido) => {
+              const pgtoLabel = pedido.pgto ? (PGTO_LABEL[pedido.pgto] ?? pedido.pgto) : null;
               return (
-                <div key={id} className="list-row--exiting">
-                  <PedidoRow
-                    pedido={pedido}
-                    inFlight={false}
-                    onAvancar={() => undefined}
-                    onCancelar={() => undefined}
-                    onReabrir={() => undefined}
-                    onDetalhe={() => undefined}
-                  />
+                <div className="rf-ui-stack" style={{ gap: 2 }}>
+                  <span className="table-cell-strong">#{pedido.num}</span>
+                  {pgtoLabel ? <span className="table-cell-caption table-cell-muted">{pgtoLabel}</span> : null}
                 </div>
               );
-            })}
-          </div>
-        )}
-      </div>
+            }
+          },
+          {
+            key: 'cliente',
+            label: 'Cliente',
+            render: (pedido) => {
+              const itemCount = getItemCount(pedido.itens);
+              return (
+                <div className="rf-ui-stack" style={{ gap: 2 }}>
+                  <span className="table-cell-strong">{pedido.cli || '—'}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {pedido.tipo === 'atacado' ? <StatusBadge tone="info">Atacado</StatusBadge> : null}
+                    {pedido.rca_nome ? (
+                      <span className="table-cell-caption table-cell-muted">{pedido.rca_nome}</span>
+                    ) : null}
+                    {itemCount > 0 ? (
+                      <span className="table-cell-caption table-cell-muted">
+                        {itemCount} {itemCount === 1 ? 'item' : 'itens'}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            }
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            render: (pedido) => {
+              const status = normalizePedStatus(pedido.status);
+              const badgeTone = STATUS_TONE[status] ?? 'neutral';
+              const statusLabel = STATUS_LABEL[status] || status || '—';
+              return <StatusBadge tone={badgeTone}>{statusLabel}</StatusBadge>;
+            }
+          },
+          {
+            key: 'data',
+            label: 'Data',
+            render: (pedido) => formatDate(pedido.data)
+          },
+          {
+            key: 'valor',
+            label: 'Valor',
+            align: 'right',
+            render: (pedido) => <span className="table-cell-strong">{fmtCurrency(pedido.total ?? 0)}</span>
+          }
+        ]}
+        renderActions={(pedido) => {
+          const status = normalizePedStatus(pedido.status);
+          const nextStatus = NEXT_STATUS[status];
+          const acaoLabel = ACAO_LABEL[status];
+          const isTerminal = status === 'entregue' || status === 'cancelado';
+          const isBusy = inFlight.has(pedido.id);
+
+          return (
+            <div className="flex items-center justify-end gap-2">
+              {nextStatus && acaoLabel ? (
+                <button
+                  className="btn btn-p btn-sm"
+                  disabled={isBusy}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void avancarStatus(pedido);
+                  }}
+                  data-testid={`pedido-acao-avancar-${pedido.id}`}
+                >
+                  {isBusy ? 'Aguarde…' : acaoLabel}
+                </button>
+              ) : null}
+              <ActionMenu
+                label="Ações do pedido"
+                items={[
+                  {
+                    key: 'detalhes',
+                    label: 'Ver detalhes',
+                    onClick: () => onDetalhe(pedido.id)
+                  },
+                  ...(!isTerminal
+                    ? [
+                        {
+                          key: 'cancelar',
+                          label: 'Cancelar',
+                          danger: true,
+                          onClick: () => setCancelTargetId(pedido.id)
+                        }
+                      ]
+                    : []),
+                  ...(status === 'cancelado'
+                    ? [
+                        {
+                          key: 'reabrir',
+                          label: 'Reabrir',
+                          onClick: () => void reabrirPedido(pedido)
+                        }
+                      ]
+                    : [])
+                ]}
+                buttonTestId={`pedido-acao-menu-${pedido.id}`}
+              />
+            </div>
+          );
+        }}
+      />
+
+      <PedidoCancelConfirmModal
+        open={!!cancelTarget}
+        pedido={cancelTarget}
+        submitting={cancelTarget ? inFlight.has(cancelTarget.id) : false}
+        onClose={() => {
+          if (!cancelTarget || !inFlight.has(cancelTarget.id)) setCancelTargetId(null);
+        }}
+        onConfirm={() => {
+          if (!cancelTarget) return;
+          void cancelarPedido(cancelTarget).then(() => setCancelTargetId(null));
+        }}
+      />
     </div>
   );
 }
