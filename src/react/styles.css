@@ -871,6 +871,23 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   color: var(--err);
 }
 
+.rf-ui-form-field--disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.rf-ui-form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.rf-ui-form-actions--start {
+  justify-content: flex-start;
+}
+
 .rf-ui-modal-overlay,
 .rf-ui-drawer-overlay {
   z-index: 80;
@@ -932,6 +949,8 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   overflow: hidden;
   z-index: 90;
 }
+.rf-ui-drawer--sm { width: clamp(300px, 26vw, 380px); }
+.rf-ui-drawer--lg { width: clamp(520px, 46vw, 680px); }
 
 .rf-ui-drawer__head {
   display: flex;

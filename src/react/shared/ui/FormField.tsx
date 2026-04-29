@@ -6,12 +6,13 @@ type FormFieldProps = {
   required?: boolean;
   hint?: ReactNode;
   error?: ReactNode;
+  disabled?: boolean;
   children: ReactNode;
 };
 
-export function FormField({ label, htmlFor, required, hint, error, children }: FormFieldProps) {
+export function FormField({ label, htmlFor, required, hint, error, disabled, children }: FormFieldProps) {
   return (
-    <div className="rf-ui-form-field">
+    <div className={`rf-ui-form-field${disabled ? ' rf-ui-form-field--disabled' : ''}`}>
       <label className="rf-ui-form-field__label" htmlFor={htmlFor}>
         {label}
         {required ? <span className="rf-ui-form-field__required">*</span> : null}

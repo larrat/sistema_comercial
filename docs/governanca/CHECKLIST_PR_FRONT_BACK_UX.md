@@ -1,14 +1,13 @@
 # Checklist de PR — Front-end, Back-end e UX
 
-> Use este checklist antes de abrir qualquer PR ou marcar uma tarefa como concluída.  
-> Itens que não se aplicam ao escopo da mudança devem ser marcados com `N/A` e justificados brevemente.
+Use este checklist em todo PR ou commit relevante antes de solicitar revisão ou merge.
 
 ---
 
 ## Front-end
 
 - [ ] Não criei componente duplicado.
-- [ ] Reaproveitei componente global quando existia (`PageHeader`, `FilterBar`, `DataTable`, `ActionMenu`, `Drawer`, `Modal`, `StatusBadge`, `EmptyState`, `StatCard`, `FormSection`, `FormField`, `FormError`).
+- [ ] Reaproveitei componente global quando existia.
 - [ ] Não alterei AppShell sem necessidade.
 - [ ] Não alterei Router sem necessidade.
 - [ ] Não alterei Sidebar/Topbar sem necessidade.
@@ -16,13 +15,11 @@
 - [ ] Ação crítica tem confirmação.
 - [ ] Ação bem-sucedida tem feedback.
 - [ ] Formulário mostra erro próximo do campo.
-- [ ] Drawer/Modal segue padrão global (`Drawer.tsx` / `Modal.tsx` de `shared/ui`).
-- [ ] Listagem usa `DataTable` quando aplicável.
-- [ ] Busca/filtros usam `FilterBar` quando aplicável.
+- [ ] Drawer/Modal segue padrão global.
+- [ ] Listagem usa DataTable quando aplicável.
+- [ ] Busca/filtros usam FilterBar quando aplicável.
 - [ ] Responsividade mínima foi validada.
-- [ ] Acessibilidade básica foi validada (`aria-label`, `role`, `tabIndex` quando interativo).
-
----
+- [ ] Acessibilidade básica foi validada.
 
 ## Back-end / Supabase
 
@@ -30,11 +27,9 @@
 - [ ] Permissão foi verificada.
 - [ ] RLS/RBAC não foi enfraquecido.
 - [ ] Consulta de alto volume tem paginação.
-- [ ] Erro tem formato previsível (ver `docs/backend/CONTRATO_MINIMO_SB_V1.md`).
+- [ ] Erro tem formato previsível.
 - [ ] Ação crítica gera log ou está prevista para auditoria.
 - [ ] Nenhum dado sensível foi exposto indevidamente.
-
----
 
 ## Produto / UX
 
@@ -45,8 +40,6 @@
 - [ ] O estado vazio orienta o próximo passo.
 - [ ] A ação principal está evidente.
 - [ ] A mudança melhora operação real, não apenas aparência.
-
----
 
 ## Validação
 
@@ -61,10 +54,10 @@
 
 ## Referências
 
-| Documento | Quando consultar |
-|---|---|
-| `docs/governanca/BASELINE_TECNICO_ATUAL.md` | Antes de criar componente ou modificar estrutura |
-| `docs/governanca/ENGINEERING_POLICY.md` | Dúvidas sobre tipagem, commits e qualidade |
-| `docs/governanca/GOVERNANCA_SQL_RLS.md` | Qualquer SQL novo ou alteração de RLS |
-| `docs/backend/CONTRATO_MINIMO_SB_V1.md` | Formato de erro e retorno de API |
-| `docs/design-system/GOVERNANCA_VISUAL.md` | Dúvidas de identidade visual |
+| Documento | Para que serve |
+|-----------|----------------|
+| `docs/governanca/BASELINE_TECNICO_ATUAL.md` | Mapa da arquitetura atual |
+| `docs/governanca/INVENTARIO_COMPONENTES_COMPARTILHADOS.md` | Componentes globais disponíveis |
+| `docs/governanca/ENGINEERING_POLICY.md` | Política de qualidade e tipagem |
+| `docs/governanca/GOVERNANCA_SQL_RLS.md` | Regras obrigatórias para SQL novo |
+| `docs/backend/CONTRATO_MINIMO_SB_V1.md` | Padrão de erro e retorno do layer Supabase |
