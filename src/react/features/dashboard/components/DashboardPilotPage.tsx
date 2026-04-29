@@ -234,50 +234,63 @@ function DashboardContextStats({
   produtosCount,
   clientesCount,
   entreguesHoje,
+  sourceSummary,
   onNavigatePage
 }: {
   pedidosCount: number;
   produtosCount: number;
   clientesCount: number;
   entreguesHoje: number;
+  sourceSummary: string;
   onNavigatePage?: (page: string) => void;
 }) {
   return (
-    <section className="rf-ui-stat-grid--4">
-      <StatCard
-        label="Pedidos na base"
-        value={pedidosCount}
-        foot={
-          <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
-            Abrir pedidos
-          </button>
-        }
-      />
-      <StatCard
-        label="Produtos monitorados"
-        value={produtosCount}
-        foot={
-          <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('produtos', onNavigatePage)}>
-            Abrir produtos
-          </button>
-        }
-      />
-      <StatCard
-        label="Clientes monitorados"
-        value={clientesCount}
-        foot={
-          <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
-            Abrir clientes
-          </button>
-        }
-      />
-      <StatCard
-        label="Entregues hoje"
-        value={entreguesHoje}
-        tone={entreguesHoje > 0 ? 'success' : 'default'}
-        foot="Pedidos entregues na data de hoje"
-      />
-    </section>
+    <div className="rf-dash-context-panel">
+      <p className="rf-dash-context-panel__source">{sourceSummary}</p>
+      <div className="rf-ui-stat-grid">
+        <StatCard
+          label="Pedidos na base"
+          value={pedidosCount}
+          description="Total de pedidos registrados na filial"
+          foot={
+            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+              Abrir pedidos
+            </button>
+          }
+        />
+        <StatCard
+          label="Produtos monitorados"
+          value={produtosCount}
+          description="Catálogo ativo com controle de estoque"
+          foot={
+            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('produtos', onNavigatePage)}>
+              Abrir produtos
+            </button>
+          }
+        />
+        <StatCard
+          label="Clientes monitorados"
+          value={clientesCount}
+          description="Base de clientes cadastrada na filial"
+          foot={
+            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+              Abrir clientes
+            </button>
+          }
+        />
+        <StatCard
+          label="Entregues hoje"
+          value={entreguesHoje}
+          tone={entreguesHoje > 0 ? 'success' : 'default'}
+          description="Pedidos entregues na data de hoje"
+          foot={
+            <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+              Ver pedidos
+            </button>
+          }
+        />
+      </div>
+    </div>
   );
 }
 
@@ -866,10 +879,6 @@ export function DashboardPilotPage({
         <DashboardViewSelector view={view} onChange={setView} />
       </div>
 
-      <p className="table-cell-caption table-cell-muted" style={{ marginTop: -6 }}>
-        {sourceSummary}
-      </p>
-
       {status === 'loading' && (
         <LoadingState
           title="Carregando indicadores do dashboard..."
@@ -916,6 +925,7 @@ export function DashboardPilotPage({
             produtosCount={produtos.length}
             clientesCount={clientes.length}
             entreguesHoje={derived.entreguesHoje}
+            sourceSummary={sourceSummary}
             onNavigatePage={onNavigatePage}
           />
 

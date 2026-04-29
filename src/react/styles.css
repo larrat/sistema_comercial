@@ -769,8 +769,9 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   border-radius: 8px;
   background: var(--panel);
   padding: 16px;
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .rf-ui-stat-card__label {
@@ -784,9 +785,16 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   line-height: 1.1;
 }
 
+.rf-ui-stat-card__description {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .rf-ui-stat-card__foot {
   font-size: 12px;
   color: var(--muted);
+  margin-top: auto;
 }
 
 .rf-ui-stat-card--success {
@@ -817,6 +825,20 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-ui-stat-grid--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rf-dash-context-panel {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.rf-dash-context-panel__source {
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .rf-ui-form-section {
