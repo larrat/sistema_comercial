@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Cliente } from '../../../../types/domain';
-import type { ClienteFiltro } from '../../../../pilot/clientes/filter';
-import { filterClientes, getClienteSegmentos } from '../../../../pilot/clientes/filter';
+import type { ClienteFiltro } from '../utils/filterClientes';
+import { filterClientes, getClienteSegmentos } from '../utils/filterClientes';
 
 // ---------------------------------------------------------------------------
 // Tipos
