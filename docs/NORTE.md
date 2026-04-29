@@ -1,6 +1,6 @@
 # Norte do Projeto — Sistema Comercial
 
-**Atualizado em:** 2026-04-21
+**Atualizado em:** 2026-04-28
 
 Este é o documento central. Ele descreve o estado real do sistema, o que estamos fazendo agora e onde encontrar cada referência ativa. Qualquer doc que não esteja listado aqui foi cancelado.
 
@@ -12,16 +12,16 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 
 | Módulo | Status | Próxima ação |
 |--------|--------|-------------|
-| Pedidos | React-only — legado é stub vazio | Nenhuma |
-| Clientes | React-only — shell e JS legado removidos (2026-04-21) | Nenhuma |
-| Dashboard | React-only — shell e JS legado removidos (2026-04-21) | Nenhuma |
-| Contas Receber | React-only — shell e JS legado removidos (2026-04-21) | Validar RPCs no ambiente real |
-| Estoque | Legado puro — sem React equivalente | Fase 2 da migração |
-| Produtos | Legado puro — sem React equivalente | Fase 2 da migração |
+| Dashboard | React-only — shell removido (2026-04-21) | Refatorar 892 linhas (alta dívida visual) |
+| Clientes | React-only — shell removido, server-side pagination (2026-04-28) | Nenhuma |
+| Pedidos | React-only — legado é stub vazio | Migrar de `modal-shell-*` para Drawer global |
+| Contas Receber | React-only — shell removido (2026-04-21) | Validar RPCs em ambiente real |
+| Produtos | React implementado — server-side pagination (2026-04-28) | Remover shell legado |
+| Estoque | React implementado — mapeado e documentado (2026-04-28) | Remover shell legado |
 | Cotação | Legado puro — sem React equivalente | Fase 2 da migração |
 | Relatórios | Legado puro — sem React equivalente | Fase 2 da migração |
-| Campanhas | Legado puro — sem React equivalente | Fase 2 da migração (maior complexidade) |
 | RCAs / Oportunidades | Legado puro — baixa complexidade | Fase 2 da migração |
+| Campanhas | Legado puro — maior complexidade | Fase 2 da migração (última) |
 
 ### RBAC / Backend
 
@@ -34,22 +34,36 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 | Auditoria RBAC (`05_rbac_auditoria_acessos.sql`) | **Pendente em produção** |
 | Edge Functions (campanhas, acessos-admin) | **Não deployadas** |
 
+### UI Shared Components
+
+| Componente | Status |
+|------------|--------|
+| PageHeader, FilterBar, DataTable, ActionMenu | Ativos |
+| Drawer | Ativo — revisado 2026-04-28 (size, loading, closeOnEsc, aria-labelledby) |
+| Modal, StatusBadge, EmptyState, LoadingState, ErrorState | Ativos |
+| StatCard, FormSection, FormField | Ativos — FormField ganhou `disabled` em 2026-04-28 |
+| FormActions | **Criado 2026-04-28** — padrão canônico de ações de formulário |
+| FormError | Ativo |
+
 ---
 
 ## O que estamos fazendo agora
 
-### Imediato (Bloco 1 do sprint)
+### Concluído nesta rodada (2026-04-28)
 
-1. ~~Aplicar `sql/16_contas_receber_backend_consistencia.sql` em produção~~ — feito 2026-04-21
-2. ~~Remover shells legados de Contas Receber, Clientes e Dashboard~~ — Fase 1 concluída 2026-04-21
-3. **Validar RPCs no ambiente real:** `rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`
+- **Server-side pagination** — Clientes e Produtos migrados de client-side para server-side
+- **Confirm modals** — `ClienteDeleteConfirmModal`, `ContaReceberConfirmModal`, `EstoqueAdjustConfirmModal`, `ProdutoDeleteConfirmModal`
+- **UI Components** — FilterBar (`onClearFilters`, `activeFilterCount`), Drawer (size/loading/closeOnEsc/aria), FormField (`disabled`), FormActions (novo)
+- **Mapeamentos** — Pedidos, Contas Receber, Estoque, Auditoria de Ações Críticas
+- **Analytics hook** — `useAnalytics.ts` em shared/hooks
+- **Governança** — INVENTARIO_COMPONENTES_COMPARTILHADOS, CHECKLIST_PR_FRONT_BACK_UX reescritos; MATRIZ_PERMISSOES publicada
 
-### Depois (UX — Bloco 1 continuação)
+### Pendente imediato
 
-7. Separar fluxo de entrada: login / criar empresa / escolher filial
-8. Reduzir e reorganizar menu principal
-9. Redesenhar primeira dobra do dashboard
-10. Criar estados vazios acionáveis nos módulos principais
+1. **Validar RPCs** em ambiente real: `rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`
+2. **Remover shell legado** de Produtos e Estoque (implementação React confirmada)
+3. **Aplicar RBAC v2 + Auditoria** em produção (`sql/04` e `sql/05`)
+4. **Rodar CI** — lint, typecheck, test:react em ambiente com Node/npm
 
 ---
 
@@ -60,17 +74,32 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 | Documento | Para que serve |
 |-----------|---------------|
 | [governanca/PLANO_REMOCAO_LEGADO.md](governanca/PLANO_REMOCAO_LEGADO.md) | Checklists granulares por módulo para remoção do legado |
-| [governanca/CHECKLIST_EXECUCAO_UX_E_PRODUTO_2026-04-21.md](governanca/CHECKLIST_EXECUCAO_UX_E_PRODUTO_2026-04-21.md) | Tracker das 8 fases de UX — marcar itens conforme concluídos |
-| [governanca/PLANO_SPRINT_UX_E_PRODUTO_2026-04-21.md](governanca/PLANO_SPRINT_UX_E_PRODUTO_2026-04-21.md) | Blocos 1/2/3 do sprint atual |
-| [governanca/CHECKLIST_EXECUCAO_FASES_3_E_4.md](governanca/CHECKLIST_EXECUCAO_FASES_3_E_4.md) | Registro histórico da migração técnica com datas |
-| [governanca/BACKLOG_DEBT_CONTROL_UX_UI.md](governanca/BACKLOG_DEBT_CONTROL_UX_UI.md) | Débito técnico de UX/UI — itens a resolver |
+| [governanca/STATUS_REAL_2026-04-28.md](governanca/STATUS_REAL_2026-04-28.md) | Estado real do sistema — snapshot desta data |
+
+### Componentes e arquitetura front
+
+| Documento | Para que serve |
+|-----------|---------------|
+| [governanca/INVENTARIO_COMPONENTES_COMPARTILHADOS.md](governanca/INVENTARIO_COMPONENTES_COMPARTILHADOS.md) | Mapa de todos os shared/ui — o que usar e o que não criar |
+| [governanca/ABORDAGEM_CLIENTES_SERVER_SIDE.md](governanca/ABORDAGEM_CLIENTES_SERVER_SIDE.md) | Decisão de migração Clientes para server-side |
+| [governanca/ABORDAGEM_PRODUTOS_SERVER_SIDE.md](governanca/ABORDAGEM_PRODUTOS_SERVER_SIDE.md) | Decisão de migração Produtos para server-side |
+| [governanca/ABORDAGEM_PEDIDOS_SERVER_SIDE.md](governanca/ABORDAGEM_PEDIDOS_SERVER_SIDE.md) | Decisão de abordagem Pedidos |
+
+### Mapeamentos de módulo
+
+| Documento | Para que serve |
+|-----------|---------------|
+| [governanca/MAPEAMENTO_MODULO_PEDIDOS.md](governanca/MAPEAMENTO_MODULO_PEDIDOS.md) | Todos os arquivos e fluxo de dados de Pedidos |
+| [governanca/MAPEAMENTO_MODULO_CONTAS_RECEBER.md](governanca/MAPEAMENTO_MODULO_CONTAS_RECEBER.md) | Todos os arquivos e fluxo de dados de Contas Receber |
+| [governanca/MAPEAMENTO_MODULO_ESTOQUE.md](governanca/MAPEAMENTO_MODULO_ESTOQUE.md) | Todos os arquivos e fluxo de dados de Estoque |
+| [governanca/MAPEAMENTO_AUDITORIA_ACOES_CRITICAS.md](governanca/MAPEAMENTO_AUDITORIA_ACOES_CRITICAS.md) | Auditoria das ações críticas por módulo |
 
 ### Backend e banco
 
 | Documento | Para que serve |
 |-----------|---------------|
 | [backend/CHECKLIST_RBAC_IMPLANTACAO.md](../backend/CHECKLIST_RBAC_IMPLANTACAO.md) | 4 itens de RBAC ainda pendentes em produção |
-| [backend/RBAC_MATRIZ_PERMISSOES_2026-04-07.md](../backend/RBAC_MATRIZ_PERMISSOES_2026-04-07.md) | Referência de papéis: admin / gerente / operador |
+| [governanca/MATRIZ_PERMISSOES.md](governanca/MATRIZ_PERMISSOES.md) | Estado real de permissões — RBAC × guards × RLS |
 | [backend/CONTRATO_MINIMO_SB_V1.md](../backend/CONTRATO_MINIMO_SB_V1.md) | Contrato do layer SB — padrão de erro e retorno |
 | [governanca/GOVERNANCA_SQL_RLS.md](governanca/GOVERNANCA_SQL_RLS.md) | Regras obrigatórias para qualquer SQL novo |
 
@@ -79,10 +108,10 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 | Documento | Para que serve |
 |-----------|---------------|
 | [governanca/ENGINEERING_POLICY.md](governanca/ENGINEERING_POLICY.md) | Política de engenharia — tipagem, qualidade, commits, segurança |
-| [governanca/CODE_REVIEW_CHECKLIST.md](governanca/CODE_REVIEW_CHECKLIST.md) | Checklist de PR — usar em todo review |
-| [governanca/COVERAGE_THRESHOLD_PROPOSTA.md](governanca/COVERAGE_THRESHOLD_PROPOSTA.md) | Thresholds de cobertura por fase (ativo no CI) |
+| [governanca/CHECKLIST_PR_FRONT_BACK_UX.md](governanca/CHECKLIST_PR_FRONT_BACK_UX.md) | Gate obrigatório em todo PR (front + back + UX) |
+| [governanca/BASELINE_TECNICO_ATUAL.md](governanca/BASELINE_TECNICO_ATUAL.md) | Auditoria técnica completa do codebase |
 | [arquitetura/TYPESCRIPT_GRADUAL.md](../arquitetura/TYPESCRIPT_GRADUAL.md) | Estratégia de adoção gradual de TypeScript |
-| [arquitetura/ADR_TEMPLATE.md](../arquitetura/ADR_TEMPLATE.md) | Template para registrar decisões de arquitetura |
+| [governanca/COVERAGE_THRESHOLD_PROPOSTA.md](governanca/COVERAGE_THRESHOLD_PROPOSTA.md) | Thresholds de cobertura por fase (ativo no CI) |
 
 ### UX e release
 
@@ -97,23 +126,25 @@ Este é o documento central. Ele descreve o estado real do sistema, o que estamo
 
 ## Regras que não mudam
 
-- Todo PR passa pelo `CODE_REVIEW_CHECKLIST.md`
+- Todo PR passa pelo `CHECKLIST_PR_FRONT_BACK_UX.md`
 - Todo SQL novo segue a `GOVERNANCA_SQL_RLS.md`
 - Toda feature com UI passa pelo `CHECKLIST_RELEASE_UX_UI.md`
 - Nenhuma regra de negócio financeira fica só no frontend
 - Commits seguem o padrão `feat/fix/refactor/docs(escopo): mensagem`
-- Novo módulo React = cria pilot com flag `defaultValue: false` → valida → flipa → remove legado
+- Shared/ui: consultar INVENTARIO antes de criar componente novo
+- Novo módulo React = documenta abordagem → valida → remove legado
 
 ---
 
-## Próximas frentes (após Bloco 1)
+## Próximas frentes (após remoção dos legados restantes)
 
 | Ordem | Frente | Estimativa |
 |-------|--------|-----------|
-| 1 | Remover shells legados (clientes, dashboard, contas-receber) | Imediato após SQL 16 |
-| 2 | UX: fluxo de entrada e menu | Bloco 1 cont. |
-| 3 | React: Produtos (base para Estoque e Cotação) | Mês 1 |
-| 4 | React: Estoque + Cotação (paralelo) | Mês 1–2 |
-| 5 | React: RCAs + Relatórios | Mês 2 |
-| 6 | React: Campanhas | Mês 3 |
+| 1 | Remover shells legados de Produtos e Estoque | Imediato |
+| 2 | Aplicar RBAC v2 + Auditoria em produção | Imediato |
+| 3 | Validar RPCs de Contas Receber em ambiente real | Imediato |
+| 4 | React: Cotação | Mês 1 |
+| 5 | React: RCAs + Relatórios | Mês 1–2 |
+| 6 | React: Campanhas | Mês 2–3 |
 | 7 | Remover infraestrutura bridge (`src/legacy/`) | Após fase 6 |
+| 8 | CI com lint + typecheck + testes em branch protection | Antes de fase 7 |

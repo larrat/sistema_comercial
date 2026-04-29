@@ -172,22 +172,26 @@ index.html
 | Componente | Arquivo | Props principais | Status | Observação |
 |---|---|---|---|---|
 | `PageHeader` | `shared/ui/PageHeader.tsx` | `title`, `description?`, `kicker?`, `actions?`, `meta?` | Ativo | Usado por ~8 módulos |
-| `FilterBar` | `shared/ui/FilterBar.tsx` | `search?`, `filters[]?`, `actions?`, `children?` | Ativo | Usado por Clientes, Produtos, Contas Receber |
+| `FilterBar` | `shared/ui/FilterBar.tsx` | `search?`, `filters[]?`, `onClearFilters?`, `activeFilterCount?`, `actions?`, `children?` | Ativo — revisado 2026-04-28 | Usado por Clientes, Produtos, Contas Receber |
 | `DataTable` | `shared/ui/DataTable.tsx` | `columns`, `data/rows`, `onRowClick?`, `renderActions?`, paginação | Ativo | Usado por Clientes, Analytics |
 | `ActionMenu` | `shared/ui/ActionMenu.tsx` | `items[]`, `label?`, `align?`, `buttonTestId?` | Ativo | Usado por Clientes |
-| `Drawer` | `shared/ui/Drawer.tsx` | `open`, `title?`, `subtitle?`, `action?`, `onClose` | Ativo | Usado por Clientes; Pedidos usa CSS próprio |
+| `Drawer` | `shared/ui/Drawer.tsx` | `open`, `title?`, `subtitle?`, `action?`, `onClose`, `size?`, `loading?`, `closeOnEsc?` | Ativo — revisado 2026-04-28 | Usado por Clientes; Pedidos usa CSS próprio |
 | `Modal` | `shared/ui/Modal.tsx` | `open`, `title?`, `footer?`, `onClose`, `closeOnOverlay?` | Ativo | Usado por Contas Receber; Campanhas usa CSS próprio |
-| `StatusBadge` | `shared/ui/StatusBadge.tsx` | `children`, `tone?` (neutral/info/success/warning/danger) | Ativo | Usado por ~5 módulos; Clientes usa span Tailwind inline |
+| `StatusBadge` | `shared/ui/StatusBadge.tsx` | `children`, `tone?` (neutral/info/success/warning/danger) | Ativo | Usado por ~5 módulos |
 | `EmptyState` | `shared/ui/EmptyState.tsx` | `title`, `description?`, `action?`, `compact?` | Ativo | Usado amplamente |
 | `LoadingState` | `shared/ui/LoadingState.tsx` | `title?`, `description?`, `compact?` | Ativo | Pouco usado (Clientes usa sk-card/sk-line) |
 | `ErrorState` | `shared/ui/ErrorState.tsx` | `title?`, `description?`, `action?`, `compact?` | Ativo | Pouco usado |
 | `StatCard` | `shared/ui/StatCard.tsx` | `label`, `value`, `foot?`, `tone?` | Ativo | Usado por Dashboard, Contas Receber, Campanhas, Filiais |
 | `FormSection` | `shared/ui/FormSection.tsx` | `title`, `description?`, `aside?`, `children` | Ativo | Usado por Estoque |
-| `FormField` | `shared/ui/FormField.tsx` | `label`, `htmlFor?`, `required?`, `hint?`, `error?`, `children` | Ativo | [NÃO CONFIRMADO] uso real verificado |
-| `FormError` | `shared/ui/FormError.tsx` | `message?`, `className?` | Ativo | [NÃO CONFIRMADO] uso real verificado |
-| `EmptyState` (tipo) | — | `DataTableColumn`, `StatusBadgeTone`, `ActionMenuItem` | Ativo | Exportados como tipos |
+| `FormField` | `shared/ui/FormField.tsx` | `label`, `htmlFor?`, `required?`, `hint?`, `error?`, `disabled?`, `children` | Ativo — revisado 2026-04-28 | `disabled` é visual apenas (opacity + pointer-events) |
+| `FormError` | `shared/ui/FormError.tsx` | `message?`, `className?` | Ativo | — |
+| `FormActions` | `shared/ui/FormActions.tsx` | `onCancel?`, `submitLabel?`, `cancelLabel?`, `loading?`, `disabled?`, `align?`, `children?` | **Criado 2026-04-28** | Padrão canônico de ações de formulário; `children` slot para layout customizado |
 
-**Hook compartilhado:** `src/react/shared/hooks/useKeyboardShortcuts.ts` — usado por `ClientesPilotPage`.
+**Tipos exportados:** `DataTableColumn`, `StatusBadgeTone`, `ActionMenuItem`, `DrawerProps`, `FormActionsProps`
+
+**Hooks compartilhados:**
+- `src/react/shared/hooks/useKeyboardShortcuts.ts` — usado por `ClientesPilotPage`
+- `src/react/shared/hooks/useAnalytics.ts` — criado 2026-04-28
 
 ---
 
@@ -196,15 +200,15 @@ index.html
 | Módulo | Arquivo principal | Componentes globais usados | Status visual | Risco |
 |---|---|---|---|---|
 | Dashboard | `DashboardPilotPage.tsx` (892 linhas) | `EmptyState`, `StatusBadge` | Sem `PageHeader` global — HTML próprio implícito | Alto — maior dívida visual |
-| Clientes | `ClientesPilotPage.tsx` (604 linhas) | `PageHeader`, `FilterBar`, `DataTable`, `ActionMenu`, `Drawer`, `EmptyState` | Mais completo — referência | Baixo |
-| Pedidos | `PedidosPilotPage.tsx` → `PedidoListView` + `PedidoForm` (406 linhas) + `PedidoDetailPanel` (494 linhas) | `EmptyState` apenas na list view | Sem `PageHeader`, sem `Drawer` — usa `modal-shell-*` CSS próprio | Alto |
-| Produtos | `ProdutosPilotPage.tsx` | `FilterBar`, `EmptyState` | Sem `PageHeader` global — usa `ProdutoListView` próprio | Médio |
-| Estoque | `EstoquePage.tsx` | `EmptyState`, `FormSection` | Usa `EstoquePageHeader` local em vez de `PageHeader` | Médio |
-| Contas Receber | `ContasReceberPilotPage.tsx` (771 linhas) | `FilterBar`, `Modal`, `StatCard`, `EmptyState` | Sem `PageHeader` — header implícito | Alto |
-| Cotação | `CotacaoPage.tsx` | `PageHeader`, `StatusBadge`, `EmptyState` | OK — tem multi-tabs (Fornecedores, Import, Tabela) | Médio |
+| Clientes | `ClientesPilotPage.tsx` | `PageHeader`, `FilterBar`, `DataTable`, `ActionMenu`, `Drawer`, `EmptyState` | Referência — server-side pagination (2026-04-28) | Baixo |
+| Pedidos | `PedidosPilotPage.tsx` → `PedidoListView` + `PedidoForm` + `PedidoDetailPanel` | `EmptyState` apenas na list view | Sem `PageHeader`, sem `Drawer` — usa `modal-shell-*` CSS próprio | Alto |
+| Produtos | `ProdutosPilotPage.tsx` | `FilterBar`, `EmptyState`, `DataTable` | Server-side pagination (2026-04-28); `ProdutoDeleteConfirmModal` adicionado | Médio |
+| Estoque | `EstoquePage.tsx` | `EmptyState`, `FormSection` | `EstoqueAdjustConfirmModal` adicionado (2026-04-28); usa `EstoquePageHeader` local | Médio |
+| Contas Receber | `ContasReceberPilotPage.tsx` (771 linhas) | `FilterBar`, `Modal`, `StatCard`, `EmptyState` | `ContaReceberConfirmModal` adicionado; sem `PageHeader` | Alto |
+| Cotação | `CotacaoPage.tsx` | `PageHeader`, `StatusBadge`, `EmptyState` | OK — multi-tabs (Fornecedores, Import, Tabela) | Médio |
 | RCAs | `RcasPage.tsx` | `PageHeader`, `EmptyState` | CSS próprio (`rrow`, `rf-rca-*`) — sem DataTable | Médio |
 | Relatórios | `RelatoriosPage.tsx` | `PageHeader`, `EmptyState` | 3 tabs com lógica própria de tabelas | Médio |
-| Campanhas | `CampanhasPage.tsx` | `PageHeader`, `StatCard` (import direto por path, não via index) | Usa `CampanhaModal` com `modal-overlay` CSS próprio | Médio |
+| Campanhas | `CampanhasPage.tsx` | `PageHeader`, `StatCard` (import direto por path) | Usa `CampanhaModal` com `modal-overlay` CSS próprio | Médio |
 | Analytics | `AnalyticsPage.tsx` | `DataTable`, `StatCard` | Dados mock — sem API real | Baixo |
 | Filiais | `FiliaisPage.tsx` | `PageHeader`, `EmptyState`, `StatCard` | OK — usa `FilialModal` (com `Modal` global) | Baixo |
 | Acessos | `AcessosRoutePage.tsx` | Nenhum — HTML manual | Placeholder — em implantação | Baixo |
@@ -321,7 +325,18 @@ useXxxData.ts → lê store + config → chama xxxApi.ts → popula useXxxStore
 | `PLANO_FECHAMENTO_BLOCOS_1_A_4_2026-04-21.md` | `docs/governanca/` | Plano de fechamento de blocos |
 | `PLANO_REMOCAO_LEGADO.md` | `docs/governanca/` | Checklist de migração React por módulo |
 | `PLANO_SPRINT_UX_E_PRODUTO_2026-04-21.md` | `docs/governanca/` | Plano de sprint UX e produto |
-| `STATUS_REAL_ENTREGAS_E_PENDENCIAS_2026-04-23.md` | `docs/governanca/` | Status real de entregas |
+| `STATUS_REAL_ENTREGAS_E_PENDENCIAS_2026-04-23.md` | `docs/governanca/` | Status real de entregas (2026-04-23 — **supersedido por STATUS_REAL_2026-04-28.md**) |
+| `STATUS_REAL_2026-04-28.md` | `docs/governanca/` | Status real atual — snapshot de 2026-04-28 |
+| `INVENTARIO_COMPONENTES_COMPARTILHADOS.md` | `docs/governanca/` | Mapa de todos os shared/ui — guia de uso |
+| `CHECKLIST_PR_FRONT_BACK_UX.md` | `docs/governanca/` | Gate obrigatório em todo PR (34 itens) |
+| `ABORDAGEM_CLIENTES_SERVER_SIDE.md` | `docs/governanca/` | Decisão de server-side para Clientes |
+| `ABORDAGEM_PRODUTOS_SERVER_SIDE.md` | `docs/governanca/` | Decisão de server-side para Produtos |
+| `ABORDAGEM_PEDIDOS_SERVER_SIDE.md` | `docs/governanca/` | Abordagem de server-side para Pedidos |
+| `MAPEAMENTO_MODULO_PEDIDOS.md` | `docs/governanca/` | Todos os arquivos e fluxo de dados de Pedidos |
+| `MAPEAMENTO_MODULO_CONTAS_RECEBER.md` | `docs/governanca/` | Todos os arquivos e fluxo de dados de Contas Receber |
+| `MAPEAMENTO_MODULO_ESTOQUE.md` | `docs/governanca/` | Todos os arquivos e fluxo de dados de Estoque |
+| `MAPEAMENTO_AUDITORIA_ACOES_CRITICAS.md` | `docs/governanca/` | Auditoria de ações críticas por módulo |
+| `MATRIZ_PERMISSOES.md` | `docs/governanca/` | Estado real de permissões — RBAC × guards × RLS |
 | `CHECKLIST_RELEASE_UX_UI.md` | `docs/release/` | Checklist de release |
 | `CRITERIO_ACEITE_UX_UI_POR_FEATURE.md` | `docs/release/` | Critério de aceite por feature |
 
