@@ -7,6 +7,21 @@ export type ProdutoApiContext = {
   token: string;
   filialId: string;
 };
+export type ProdutoListFilters = {
+  q?: string;
+  cat?: string;
+};
+export type ProdutoListPageQuery = ProdutoListFilters & {
+  page?: number;
+  pageSize?: number;
+};
+export type ProdutoListPageResult = {
+  rows: Produto[];
+  page: number;
+  pageSize: number;
+  total: number;
+  pageCount: number;
+};
 
 function createHeaders(key: string, token: string, prefer?: string): HeadersInit {
   return {
@@ -43,6 +58,105 @@ export async function listProdutos(context: ProdutoApiContext): Promise<Produto[
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar produtos`);
+  return Array.isArray(body) ? (body as Produto[]) : [];
+}
+
+function createProdutoQueryParams(
+  filialId: string,
+  filters: ProdutoListFilters,
+  options?: { page?: number; pageSize?: number }
+): URLSearchParams {
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${filialId}`);
+  params.set('order', 'nome');
+  const conditions: string[] = [];
+
+  const cat = String(filters.cat || '').trim();
+  if (cat) {
+    conditions.push(`cat.eq.${cat}`);
+  }
+
+  const q = String(filters.q || '').trim();
+  if (q) {
+    const pattern = `*${q.replace(/\*/g, '').replace(/,/g, ' ')}*`;
+    conditions.push(`or(nome.ilike.${pattern},sku.ilike.${pattern},cat.ilike.${pattern})`);
+  }
+
+  if (conditions.length) {
+    params.set('and', `(${conditions.join(',')})`);
+  }
+
+  if (options?.page && options?.pageSize) {
+    params.set('limit', String(options.pageSize));
+    params.set('offset', String((options.page - 1) * options.pageSize));
+  }
+
+  return params;
+}
+
+function parseTotalFromContentRange(contentRange: string | null): number {
+  if (!contentRange) return 0;
+  const [, totalPart] = contentRange.split('/');
+  const total = Number(totalPart);
+  return Number.isFinite(total) ? total : 0;
+}
+
+export function buildListProdutosPageUrl(
+  url: string,
+  filialId: string,
+  query: ProdutoListPageQuery
+): string {
+  const page = Math.max(1, query.page ?? 1);
+  const pageSize = Math.max(1, query.pageSize ?? 20);
+  const params = createProdutoQueryParams(filialId, query, { page, pageSize });
+  return `${url}/rest/v1/produtos?${params.toString()}`;
+}
+
+export function buildListProdutoCategoriasUrl(url: string, filialId: string): string {
+  return `${url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(filialId)}&select=cat&order=cat`;
+}
+
+export function buildListProdutoPaisUrl(url: string, filialId: string): string {
+  return `${url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(filialId)}&produto_pai_id=is.null&order=nome`;
+}
+
+export async function listProdutosPage(
+  context: ProdutoApiContext,
+  query: ProdutoListPageQuery = {}
+): Promise<ProdutoListPageResult> {
+  const page = Math.max(1, query.page ?? 1);
+  const pageSize = Math.max(1, query.pageSize ?? 20);
+  const res = await fetch(buildListProdutosPageUrl(context.url, context.filialId, query), {
+    headers: createHeaders(context.key, context.token, 'count=exact'),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar produtos`);
+  const rows = Array.isArray(body) ? (body as Produto[]) : [];
+  const total = parseTotalFromContentRange(res.headers.get('content-range'));
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  return { rows, page, pageSize, total, pageCount };
+}
+
+export async function listProdutoCategorias(context: ProdutoApiContext): Promise<string[]> {
+  const res = await fetch(buildListProdutoCategoriasUrl(context.url, context.filialId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar categorias`);
+  if (!Array.isArray(body)) return [];
+  return [...new Set(body.map((item) => String((item as { cat?: string }).cat || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b));
+}
+
+export async function listProdutoPais(context: ProdutoApiContext): Promise<Produto[]> {
+  const res = await fetch(buildListProdutoPaisUrl(context.url, context.filialId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar produtos-pai`);
   return Array.isArray(body) ? (body as Produto[]) : [];
 }
 

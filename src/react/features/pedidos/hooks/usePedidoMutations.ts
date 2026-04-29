@@ -1,6 +1,7 @@
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { trackEvent, type AnalyticsMetadata } from '../../../shared/lib/analytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { savePedido, updatePedidoStatus, type PedidoSaveInput } from '../services/pedidosApi';
 import {
@@ -10,6 +11,10 @@ import {
 } from '../services/contasReceberApi';
 import { NEXT_STATUS, normalizePedStatus } from '../types';
 
+type PedidoSubmitTracking = {
+  metadata?: Record<string, AnalyticsMetadata>;
+};
+
 export function usePedidoMutations() {
   const upsertPedido = usePedidoStore((s) => s.upsertPedido);
   const setInFlight = usePedidoStore((s) => s.setInFlight);
@@ -17,6 +22,10 @@ export function usePedidoMutations() {
 
   const session = useAuthStore((s) => s.session);
   const filialId = useFilialStore((s) => s.filialId);
+  const userId =
+    session?.user && typeof session.user === 'object' && 'id' in session.user
+      ? String(session.user.id ?? '')
+      : null;
 
   function resolveContext() {
     if (!session?.access_token) throw new Error('Sessão expirada. Faça login novamente.');
@@ -73,6 +82,17 @@ export function usePedidoMutations() {
     try {
       await updatePedidoStatus(context, pedido.id, 'cancelado');
       upsertPedido({ ...pedido, status: 'cancelado' } as Parameters<typeof upsertPedido>[0]);
+      trackEvent({
+        event_name: 'pedido_cancelado',
+        module: 'pedidos',
+        user_id: userId,
+        tenant_id: filialId ?? null,
+        metadata: {
+          origin: 'list_or_detail',
+          previous_status: current
+        },
+        result: 'success'
+      });
     } finally {
       setInFlight(pedido.id, false);
     }
@@ -92,7 +112,10 @@ export function usePedidoMutations() {
     }
   }
 
-  async function submitPedido(input: Omit<PedidoSaveInput, 'filial_id'>): Promise<string | null> {
+  async function submitPedido(
+    input: Omit<PedidoSaveInput, 'filial_id'>,
+    tracking?: PedidoSubmitTracking
+  ): Promise<string | null> {
     const context = resolveContext();
 
     const pedidos = usePedidoStore.getState().pedidos;
@@ -117,10 +140,38 @@ export function usePedidoMutations() {
       try {
         await gerarContaSeNecessario(context, contaInput, full.status, statusAnterior);
       } catch {
-        return 'Pedido salvo, mas houve falha ao gerar a conta a receber. Use "Gerar A Receber" no detalhe do pedido.';
+        const warning =
+          'Pedido salvo, mas houve falha ao gerar a conta a receber. Use "Gerar A Receber" no detalhe do pedido.';
+        trackEvent({
+          event_name: 'pedido_salvo',
+          module: 'pedidos',
+          user_id: userId,
+          tenant_id: filialId ?? null,
+          metadata: {
+            mode: existing ? 'edit' : 'create',
+            status: normalizePedStatus(full.status),
+            item_count: Array.isArray(full.itens) ? full.itens.length : 0,
+            ...tracking?.metadata
+          },
+          result: 'partial'
+        });
+        return warning;
       }
     }
 
+    trackEvent({
+      event_name: 'pedido_salvo',
+      module: 'pedidos',
+      user_id: userId,
+      tenant_id: filialId ?? null,
+      metadata: {
+        mode: existing ? 'edit' : 'create',
+        status: normalizePedStatus(full.status),
+        item_count: Array.isArray(full.itens) ? full.itens.length : 0,
+        ...tracking?.metadata
+      },
+      result: 'success'
+    });
     return null;
   }
 

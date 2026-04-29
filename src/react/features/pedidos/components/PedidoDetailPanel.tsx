@@ -13,6 +13,7 @@ import type { Pedido, PedidoItem } from '../../../../types/domain';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { PedidoItemsSection } from './PedidoItemsSection';
+import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
 import { StatusBadge } from '../../../shared/ui';
 import type { StatusBadgeTone } from '../../../shared/ui';
@@ -125,6 +126,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
   const session = useAuthStore((state) => state.session);
   const [contaMsg, setContaMsg] = useState<string | null>(null);
   const [showBaixaForm, setShowBaixaForm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [baixaValor, setBaixaValor] = useState('');
   const [baixaLoading, setBaixaLoading] = useState(false);
   const [baixaError, setBaixaError] = useState<string | null>(null);
@@ -450,7 +452,7 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
             <button
               className="btn btn-sm btn-r"
               disabled={isInFlight}
-              onClick={() => void cancelarPedido(pedido)}
+              onClick={() => setShowCancelConfirm(true)}
               data-testid="pedido-detail-cancelar"
             >
               Cancelar
@@ -489,6 +491,18 @@ export function PedidoDetailPanel({ pedido, onEditar, onClose }: Props) {
           </div>
         )}
       </div>
+
+      <PedidoCancelConfirmModal
+        open={showCancelConfirm}
+        pedido={pedido}
+        submitting={isInFlight}
+        onClose={() => {
+          if (!isInFlight) setShowCancelConfirm(false);
+        }}
+        onConfirm={() => {
+          void cancelarPedido(pedido).then(() => setShowCancelConfirm(false));
+        }}
+      />
     </div>
   );
 }

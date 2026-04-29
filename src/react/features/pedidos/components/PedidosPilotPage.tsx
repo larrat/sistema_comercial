@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
+import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
 import { PedidoForm } from './PedidoForm';
@@ -33,9 +34,11 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
   const visiblePedidos = pedidos;
   const page = usePedidoStore((s) => s.page);
   const total = usePedidoStore((s) => s.total);
+  const { trackEvent } = useAnalytics({ module: 'pedidos' });
 
   const [editingId, setEditingId] = useState<string | null>(null); // 'new' | pedidoId | null
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [formOrigin, setFormOrigin] = useState<string>('unknown');
 
   const editingPedido = useMemo<Pedido | null>(
     () =>
@@ -47,6 +50,18 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     () => (detailId ? (pedidos.find((p) => p.id === detailId) ?? null) : null),
     [pedidos, detailId]
   );
+
+  function openNewPedido(origin = 'list_button') {
+    setDetailId(null);
+    setEditingId('new');
+    setFormOrigin(origin);
+    trackEvent('pedido_iniciado', {
+      metadata: {
+        origin
+      },
+      result: 'success'
+    });
+  }
 
   // Comandos do shell legado
   useEffect(() => {
@@ -60,8 +75,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         return;
       }
       if (data.type === 'pedidos:novo') {
-        setDetailId(null);
-        setEditingId('new');
+        openNewPedido('legacy_bridge');
         return;
       }
       if (data.type === 'pedidos:editar' && data.id) {
@@ -81,8 +95,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     if (!routeIntent) return;
 
     if (routeIntent.view === 'new') {
-      setDetailId(null);
-      setEditingId('new');
+      openNewPedido('route_intent');
       return;
     }
 
@@ -141,10 +154,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     <div className="rf-content" data-testid="pedidos-pilot-page">
       <PedidoListView
         onRetry={onRetryLoad}
-        onNovoPedido={() => {
-          setDetailId(null);
-          setEditingId('new');
-        }}
+        onNovoPedido={() => openNewPedido('list_button')}
         onDetalhe={(id) => {
           setEditingId(null);
           setDetailId(id);
@@ -165,6 +175,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
       {editingId && (
         <PedidoForm
           initialPedido={editingId === 'new' ? null : editingPedido}
+          analyticsOrigin={formOrigin}
           onSaved={(pedido) => {
             setEditingId(null);
             setDetailId(pedido.id);

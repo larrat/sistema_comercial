@@ -2,8 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   buildDeleteClienteUrl,
+  buildListClientesFilteredUrl,
+  buildListClientesPageUrl,
+  buildListClienteSegmentosUrl,
   buildListClientesUrl,
   deleteCliente,
+  listClienteSegmentos,
+  listClientesFiltered,
+  listClientesPage,
   listClientes,
   saveCliente,
   toClienteWritePayload
@@ -41,6 +47,31 @@ describe('clientesApi', () => {
   it('monta a URL de listagem com filial e ordenacao', () => {
     expect(buildListClientesUrl(context.url, 'Filial Especial')).toBe(
       'https://example.supabase.co/rest/v1/clientes?filial_id=eq.Filial%20Especial&order=nome'
+    );
+  });
+
+  it('monta a URL de listagem paginada com filtros server-side', () => {
+    const url = buildListClientesPageUrl(context.url, 'filial-1', {
+      page: 2,
+      pageSize: 20,
+      q: 'maria',
+      seg: 'Varejo',
+      status: 'ativo'
+    });
+    expect(url).toContain('/rest/v1/clientes?filial_id=eq.filial-1&order=nome&status=eq.ativo');
+    expect(url).toContain('&and=');
+    expect(url).toContain('&limit=20&offset=20');
+  });
+
+  it('monta a URL de listagem filtrada sem paginação para exportação/superfícies auxiliares', () => {
+    const url = buildListClientesFilteredUrl(context.url, 'filial-1', { q: 'maria' });
+    expect(url).toContain('/rest/v1/clientes?filial_id=eq.filial-1&order=nome');
+    expect(url).toContain('&and=');
+  });
+
+  it('monta a URL de segmentos por filial', () => {
+    expect(buildListClienteSegmentosUrl(context.url, 'filial-1')).toBe(
+      'https://example.supabase.co/rest/v1/clientes?filial_id=eq.filial-1&select=seg&order=seg'
     );
   });
 
@@ -106,6 +137,46 @@ describe('clientesApi', () => {
         })
       })
     );
+  });
+
+  it('lista clientes com paginação server-side e devolve total', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      headers: new Headers({ 'content-range': '20-39/42' }),
+      text: async () => JSON.stringify([CLIENTE])
+    } as Response);
+
+    const result = await listClientesPage(context, { page: 2, pageSize: 20, q: 'maria' });
+
+    expect(result).toEqual({
+      rows: [CLIENTE],
+      page: 2,
+      pageSize: 20,
+      total: 42,
+      pageCount: 3
+    });
+  });
+
+  it('lista clientes filtrados sem paginação quando a superfície precisa do conjunto completo', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      text: async () => JSON.stringify([CLIENTE])
+    } as Response);
+
+    const result = await listClientesFiltered(context, { status: 'ativo' });
+
+    expect(result).toEqual([CLIENTE]);
+  });
+
+  it('lista segmentos únicos a partir do backend atual', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      text: async () => JSON.stringify([{ seg: 'Varejo' }, { seg: 'Atacado' }, { seg: 'Varejo' }])
+    } as Response);
+
+    const result = await listClienteSegmentos(context);
+
+    expect(result).toEqual(['Atacado', 'Varejo']);
   });
 
   it('propaga a mensagem de erro do backend na leitura', async () => {

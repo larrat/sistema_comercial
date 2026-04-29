@@ -23,9 +23,17 @@ const CLIENTES: Cliente[] = [
 function resetStores() {
   useClienteStore.setState({
     clientes: [],
+    segmentClientes: [],
     status: 'idle',
+    segmentStatus: 'idle',
     error: null,
-    filtro: { q: '', seg: '', status: '' }
+    segmentError: null,
+    filtro: { q: '', seg: '', status: '' },
+    segmentos: [],
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    pageCount: 1
   });
 
   useAuthStore.setState({
@@ -141,6 +149,7 @@ describe('useClienteData', () => {
     useFilialStore.setState({ filialId: 'filial-1' });
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
+      headers: new Headers({ 'content-range': '0-1/2' }),
       text: async () => JSON.stringify(CLIENTES)
     } as Response);
 
@@ -151,7 +160,8 @@ describe('useClienteData', () => {
     });
 
     expect(useClienteStore.getState().clientes).toEqual(CLIENTES);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(useClienteStore.getState().total).toBe(2);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it('evita fetch duplo em StrictMode', async () => {
@@ -169,6 +179,7 @@ describe('useClienteData', () => {
     useFilialStore.setState({ filialId: 'filial-1' });
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
+      headers: new Headers({ 'content-range': '0-1/2' }),
       text: async () => JSON.stringify(CLIENTES)
     } as Response);
 
@@ -180,7 +191,7 @@ describe('useClienteData', () => {
       expect(useClienteStore.getState().status).toBe('ready');
     });
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it('permite reload apos falha inicial', async () => {
@@ -201,11 +212,18 @@ describe('useClienteData', () => {
       .mockResolvedValueOnce({
         ok: false,
         status: 500,
+        headers: new Headers(),
         text: async () => JSON.stringify({ message: 'Falhou no backend' })
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ 'content-range': '0-1/2' }),
         text: async () => JSON.stringify(CLIENTES)
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: new Headers(),
+        text: async () => JSON.stringify([{ seg: 'Atacado' }, { seg: 'Varejo' }])
       } as Response);
 
     const { result } = renderHook(() => useClienteData());
@@ -225,6 +243,6 @@ describe('useClienteData', () => {
     });
 
     expect(useClienteStore.getState().clientes).toEqual(CLIENTES);
-    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch).toHaveBeenCalledTimes(3);
   });
 });

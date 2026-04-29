@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Filial } from '../../../../../types/domain';
+import type { Filial } from '../../../../types/domain';
 
 const DEFAULT_COR = '#163F80';
 

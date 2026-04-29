@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import type { Pedido } from '../../../../types/domain';
@@ -9,6 +9,7 @@ import {
   PageHeader,
   StatusBadge
 } from '../../../shared/ui';
+import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus, type PedidoTab } from '../types';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
@@ -117,8 +118,10 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   const storeError = usePedidoStore((s) => s.error);
   const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
   const { avancarStatus, cancelarPedido, reabrirPedido, inFlight } = usePedidoMutations();
+  const { trackEvent } = useAnalytics({ module: 'pedidos' });
 
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+  const lastFilterKeyRef = useRef<string>('');
 
   const stats = summary;
 
@@ -142,9 +145,52 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
     clearFiltro();
   }
 
+  useEffect(() => {
+    const activeFilters = [
+      ...(filtro.q ? ['busca'] : []),
+      ...(filtro.status ? ['status'] : []),
+      ...(filtro.pgto ? ['pagamento'] : []),
+      ...(filtro.periodo ? ['periodo'] : []),
+      ...(filtro.sort && filtro.sort !== 'data_desc' ? ['ordenacao'] : [])
+    ];
+
+    if (!activeFilters.length) {
+      lastFilterKeyRef.current = '';
+      return;
+    }
+
+    const filterKey = [
+      activeTab,
+      filtro.q || '',
+      filtro.status || '',
+      filtro.pgto || '',
+      filtro.periodo || '',
+      filtro.sort || ''
+    ].join('|');
+
+    if (filterKey === lastFilterKeyRef.current) return;
+
+    const timeoutId = window.setTimeout(() => {
+      trackEvent('filtro_aplicado', {
+        metadata: {
+          origin: 'pedido_list',
+          active_tab: activeTab,
+          filters_active: activeFilters,
+          filters_count: activeFilters.length,
+          term_length: filtro.q ? String(filtro.q).trim().length : 0
+        },
+        result: 'success'
+      });
+      lastFilterKeyRef.current = filterKey;
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [activeTab, filtro.pgto, filtro.periodo, filtro.q, filtro.sort, filtro.status, trackEvent]);
+
   return (
     <div className="screen-content" data-testid="pedido-list-view">
       <PageHeader
+        kicker="Comercial"
         title="Pedidos"
         description="Acompanhe os pedidos por etapa operacional, revise a carteira e abra detalhes sem sair da listagem."
         actions={
@@ -153,14 +199,12 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             onClick={onNovoPedido}
             data-testid="pedido-novo-btn"
           >
-            + Novo pedido
+            Novo pedido
           </button>
         }
         meta={
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge tone="info">{stats.emAbertoCount} em aberto</StatusBadge>
-            <StatusBadge tone="success">{stats.entreguesCount} entregues</StatusBadge>
-            <StatusBadge tone="danger">{stats.canceladosCount} cancelados</StatusBadge>
+            <StatusBadge tone="info">{TABS.find((tab) => tab.id === activeTab)?.label ?? 'Pedidos'}</StatusBadge>
             <StatusBadge tone="neutral">{total} filtrados · página {page}</StatusBadge>
           </div>
         }
@@ -288,7 +332,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             </button>
           ) : activeTab === 'emaberto' ? (
             <button className="btn btn-sm btn-p" onClick={onNovoPedido}>
-              + Novo pedido
+              Novo pedido
             </button>
           ) : undefined
         }

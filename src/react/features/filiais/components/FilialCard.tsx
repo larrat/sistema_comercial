@@ -1,4 +1,4 @@
-import type { Filial } from '../../../../../types/domain';
+import type { Filial } from '../../../../types/domain';
 import { useFiliaisStore } from '../store/useFiliaisStore';
 import { useFilialMutations } from '../hooks/useFilialMutations';
 

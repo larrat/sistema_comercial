@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
-import { useShallow } from 'zustand/shallow';
+import { EmptyState, ErrorState, LoadingState } from '../../../shared/ui';
 
 import type { Cliente } from '../../../../types/domain';
-import { selectFilteredClientes, useClienteStore } from '../store/useClienteStore';
 
 type Props = {
+  clientes: Cliente[];
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   onDetalhe?: (id: string) => void;
 };
 
@@ -29,13 +32,11 @@ function avatarColor(nome: string) {
   return palette[nome.charCodeAt(0) % palette.length];
 }
 
-export function ClienteSegmentView({ onDetalhe }: Props) {
-  const filtrados = useClienteStore(useShallow(selectFilteredClientes));
-
+export function ClienteSegmentView({ clientes, loading, error, onRetry, onDetalhe }: Props) {
   const grupos = useMemo<GrupoSegmento[]>(() => {
     const map = new Map<string, Cliente[]>();
 
-    filtrados.forEach((cliente) => {
+    clientes.forEach((cliente) => {
       const key = String(cliente.seg || 'Sem segmento');
       const bucket = map.get(key) || [];
       bucket.push(cliente);
@@ -48,14 +49,23 @@ export function ClienteSegmentView({ onDetalhe }: Props) {
         segmento,
         clientes: [...clientes].sort((a, b) => a.nome.localeCompare(b.nome))
       }));
-  }, [filtrados]);
+  }, [clientes]);
+
+  if (loading) {
+    return <LoadingState title="Carregando agrupamento por segmento..." compact />;
+  }
+
+  if (error) {
+    return <ErrorState title={error} compact onRetry={onRetry} />;
+  }
 
   if (!grupos.length) {
     return (
-      <div className="empty" data-testid="cliente-segment-empty">
-        <div className="ico">SG</div>
-        <p>Nenhum cliente encontrado para agrupar por segmento.</p>
-      </div>
+      <EmptyState
+        title="Nenhum cliente encontrado para agrupar por segmento."
+        description="Ajuste a busca ou os filtros para ampliar os resultados."
+        data-testid="cliente-segment-empty"
+      />
     );
   }
 

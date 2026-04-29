@@ -3,7 +3,11 @@ import { useProdutoStore } from '../store/useProdutoStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { listProdutos } from '../services/produtosApi';
+import {
+  listProdutoCategorias,
+  listProdutoPais,
+  listProdutosPage
+} from '../services/produtosApi';
 
 export type UseProdutoDataOptions = {
   skip?: boolean;
@@ -12,14 +16,85 @@ export type UseProdutoDataOptions = {
 export function useProdutoData(options: UseProdutoDataOptions = {}) {
   const { skip = false } = options;
 
-  const setProdutos = useProdutoStore((s) => s.setProdutos);
+  const setProdutosPage = useProdutoStore((s) => s.setProdutosPage);
   const setStatus = useProdutoStore((s) => s.setStatus);
+  const setCategorias = useProdutoStore((s) => s.setCategorias);
+  const setParentProdutos = useProdutoStore((s) => s.setParentProdutos);
+  const setAuxStatus = useProdutoStore((s) => s.setAuxStatus);
+  const filtro = useProdutoStore((s) => s.filtro);
+  const page = useProdutoStore((s) => s.page);
+  const pageSize = useProdutoStore((s) => s.pageSize);
 
   const session = useAuthStore((s) => s.session);
   const authStatus = useAuthStore((s) => s.status);
   const filialId = useFilialStore((s) => s.filialId);
 
   const fetchedRef = useRef(false);
+  const auxFetchedRef = useRef(false);
+  const lastRequestIdRef = useRef(0);
+
+  useEffect(() => {
+    fetchedRef.current = false;
+    auxFetchedRef.current = false;
+    lastRequestIdRef.current = 0;
+  }, [filialId, session?.access_token]);
+
+  function resolveContext() {
+    if (!session?.access_token || !filialId) return null;
+    const { url, key, ready } = getSupabaseConfig();
+    if (!ready) return null;
+    return { url, key, token: session.access_token, filialId };
+  }
+
+  function loadPage() {
+    const context = resolveContext();
+    if (!context) return;
+    const requestId = ++lastRequestIdRef.current;
+    setStatus('loading');
+
+    listProdutosPage(context, {
+      page,
+      pageSize,
+      q: filtro.q,
+      cat: filtro.cat
+    })
+      .then((result) => {
+        if (requestId !== lastRequestIdRef.current) return;
+        setProdutosPage({
+          produtos: result.rows,
+          page: result.page,
+          pageSize: result.pageSize,
+          total: result.total,
+          pageCount: result.pageCount
+        });
+      })
+      .catch((err: unknown) => {
+        if (requestId !== lastRequestIdRef.current) return;
+        fetchedRef.current = false;
+        setStatus('error', err instanceof Error ? err.message : 'Erro ao carregar produtos.');
+      });
+  }
+
+  function loadAuxiliary() {
+    if (auxFetchedRef.current) return;
+    const context = resolveContext();
+    if (!context) return;
+    auxFetchedRef.current = true;
+    setAuxStatus('loading');
+    Promise.all([listProdutoCategorias(context), listProdutoPais(context)])
+      .then(([categorias, parentProdutos]) => {
+        setCategorias(categorias);
+        setParentProdutos(parentProdutos);
+        setAuxStatus('ready');
+      })
+      .catch((err: unknown) => {
+        auxFetchedRef.current = false;
+        setAuxStatus(
+          'error',
+          err instanceof Error ? err.message : 'Erro ao carregar dados auxiliares de produtos.'
+        );
+      });
+  }
 
   useEffect(() => {
     if (skip) return;
@@ -33,38 +108,18 @@ export function useProdutoData(options: UseProdutoDataOptions = {}) {
       return;
     }
 
-    const { url, key, ready } = getSupabaseConfig();
-    if (!ready) {
+    if (!resolveContext()) {
       setStatus('error', 'Configuração do Supabase ausente.');
       return;
     }
-
-    if (fetchedRef.current) return;
     fetchedRef.current = true;
-
-    setStatus('loading');
-
-    listProdutos({ url, key, token: session.access_token, filialId })
-      .then((data) => setProdutos(data))
-      .catch((err: unknown) => {
-        fetchedRef.current = false;
-        setStatus('error', err instanceof Error ? err.message : 'Erro ao carregar produtos.');
-      });
-  }, [skip, authStatus, session, filialId, setProdutos, setStatus]);
+    loadPage();
+    loadAuxiliary();
+  }, [skip, authStatus, session, filialId, filtro.q, filtro.cat, page, pageSize, setStatus]);
 
   function reload() {
-    fetchedRef.current = false;
-    setStatus('loading');
-    if (!session?.access_token || !filialId) return;
-    const { url, key, ready } = getSupabaseConfig();
-    if (!ready) return;
     fetchedRef.current = true;
-    listProdutos({ url, key, token: session.access_token, filialId })
-      .then((data) => setProdutos(data))
-      .catch((err: unknown) => {
-        fetchedRef.current = false;
-        setStatus('error', err instanceof Error ? err.message : 'Erro ao recarregar produtos.');
-      });
+    loadPage();
   }
 
   return { reload };

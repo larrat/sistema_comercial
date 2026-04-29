@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { postLegacyBridgeMessage } from '../../../app/legacy/bridgeMessaging';
 
 import type { Cliente, Pedido } from '../../../../types/domain';
+import { EmptyState, ErrorState, LoadingState } from '../../../shared/ui';
 import { useClienteNotes } from '../hooks/useClienteNotes';
 import { useClientePedidos } from '../hooks/useClientePedidos';
 import { ClienteContextSummary } from './ClienteContextSummary';
@@ -55,29 +56,24 @@ function renderPedidosList(
   }
 ) {
   if (options.loading) {
-    return (
-      <div className="sk-card" data-testid={`pedidos-${kind}-loading`}>
-        <div className="sk-line" />
-        <div className="sk-line" />
-      </div>
-    );
+    return <LoadingState title="Carregando pedidos..." compact data-testid={`pedidos-${kind}-loading`} />;
   }
 
   if (options.error) {
-    return (
-      <div className="empty" data-testid={`pedidos-${kind}-error`}>
-        <p>{options.error}</p>
-      </div>
-    );
+    return <ErrorState title={options.error} compact data-testid={`pedidos-${kind}-error`} />;
   }
 
   if (!pedidos.length) {
     return (
-      <div className="empty-inline table-cell-muted" data-testid={`pedidos-${kind}-empty`}>
-        {kind === 'abertas'
-          ? 'Nenhum pedido em andamento para este cliente.'
-          : 'Nenhum pedido fechado para este cliente.'}
-      </div>
+      <EmptyState
+        title={
+          kind === 'abertas'
+            ? 'Nenhum pedido em andamento para este cliente.'
+            : 'Nenhum pedido fechado para este cliente.'
+        }
+        compact
+        data-testid={`pedidos-${kind}-empty`}
+      />
     );
   }
 
@@ -269,16 +265,11 @@ export function ClienteDetailPanel({
           </div>
 
           {error && (
-            <div className="empty" data-testid="nota-error">
-              <p>{error}</p>
-            </div>
+            <ErrorState title={error} compact data-testid="nota-error" />
           )}
 
           {loading ? (
-            <div className="sk-card" data-testid="nota-loading">
-              <div className="sk-line" />
-              <div className="sk-line" />
-            </div>
+            <LoadingState title="Carregando notas..." compact data-testid="nota-loading" />
           ) : notas.length ? (
             <div className="cli-detail-notes" data-testid="nota-list">
               {notas.map((nota, index) => (
@@ -289,9 +280,7 @@ export function ClienteDetailPanel({
               ))}
             </div>
           ) : (
-            <div className="empty-inline table-cell-muted" data-testid="nota-empty">
-              Nenhuma nota.
-            </div>
+            <EmptyState title="Nenhuma nota." compact data-testid="nota-empty" />
           )}
         </div>
       )}

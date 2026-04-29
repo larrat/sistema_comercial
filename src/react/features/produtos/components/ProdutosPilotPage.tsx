@@ -1,28 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { emitLegacyEvent, subscribeLegacyEvent } from '../../../app/legacy/events';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
-import { useProdutoStore, selectFilteredProdutos, selectCategorias } from '../store/useProdutoStore';
+import { useProdutoStore, selectCategorias } from '../store/useProdutoStore';
 import { useProdutoMutations } from '../hooks/useProdutoMutations';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { ProdutoMetrics } from './ProdutoMetrics';
-import { ProdutoListView, ProdutoListMobile } from './ProdutoListView';
+import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
 import { ProdutoDetailPanel } from './ProdutoDetailPanel';
 import { ProdutoForm } from './ProdutoForm';
-import { EmptyState, FilterBar } from '../../../shared/ui';
+import { ProdutoDeleteConfirmModal } from './ProdutoDeleteConfirmModal';
+import {
+  Drawer,
+  ErrorState,
+  FilterBar,
+  LoadingState,
+  PageHeader,
+  StatusBadge
+} from '../../../shared/ui';
 
 type Modal =
   | { tipo: 'none' }
   | { tipo: 'form'; produto: Produto | null }
   | { tipo: 'detalhe'; produto: Produto };
 
+type ProdutosPilotPageProps = {
+  onRetryLoad?: () => void;
+};
+
 function formValuesToProduto(values: ProdutoFormValues, filialId: string, existing: Produto | null): Produto {
   const custo = parseFloat(values.custo) || 0;
   const precoVarejo = parseFloat(values.precoVarejo) || 0;
-  const mkv = precoVarejo > 0 && custo > 0
-    ? (precoVarejo / custo - 1) * 100
-    : parseFloat(values.markupVarejo) || 0;
+  const mkv =
+    precoVarejo > 0 && custo > 0 ? (precoVarejo / custo - 1) * 100 : parseFloat(values.markupVarejo) || 0;
 
   return {
     id: values.id ?? crypto.randomUUID(),
@@ -50,22 +61,31 @@ function useIsMobile() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 1280px)').matches;
 }
 
-export function ProdutosPilotPage() {
-  const todos = useProdutoStore((s) => s.produtos);
-  const filtrados = useProdutoStore(useShallow(selectFilteredProdutos));
+export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
+  const produtos = useProdutoStore((s) => s.produtos);
   const categorias = useProdutoStore(useShallow(selectCategorias));
+  const parentProdutos = useProdutoStore((s) => s.parentProdutos);
   const status = useProdutoStore((s) => s.status);
   const storeError = useProdutoStore((s) => s.error);
+  const page = useProdutoStore((s) => s.page);
+  const pageSize = useProdutoStore((s) => s.pageSize);
+  const total = useProdutoStore((s) => s.total);
   const filtro = useProdutoStore((s) => s.filtro);
   const saldos = useProdutoStore((s) => s.saldos);
   const setFiltro = useProdutoStore((s) => s.setFiltro);
+  const setPage = useProdutoStore((s) => s.setPage);
+  const setPageSize = useProdutoStore((s) => s.setPageSize);
 
-  const { submitProduto, deleteProdutoById, saving, error: mutError } = useProdutoMutations();
+  const { submitProduto, deleteProdutoById, saving, deletingId, error: mutError } = useProdutoMutations();
   const filialId = useFilialStore((s) => s.filialId) ?? '';
 
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const isMobile = useIsMobile();
+  const deleteTarget =
+    deleteTargetId ? produtos.find((produto) => produto.id === deleteTargetId) ?? null : null;
+  const activeFilterCount = [filtro.q, filtro.cat].filter(Boolean).length;
 
   useEffect(() => {
     function handleAbrirNovo() {
@@ -73,9 +93,14 @@ export function ProdutosPilotPage() {
     }
     return subscribeLegacyEvent('sc:abrir-novo-produto', handleAbrirNovo);
   }, []);
-  const paisSemSelf = (modal.tipo === 'form' && modal.produto)
-    ? todos.filter((p) => !p.produto_pai_id && p.id !== modal.produto!.id)
-    : todos.filter((p) => !p.produto_pai_id);
+
+  const paisSemSelf = useMemo(
+    () =>
+      modal.tipo === 'form' && modal.produto
+        ? parentProdutos.filter((p) => p.id !== modal.produto.id)
+        : parentProdutos,
+    [modal, parentProdutos]
+  );
 
   async function handleSalvar(values: ProdutoFormValues) {
     const existing = modal.tipo === 'form' ? modal.produto : null;
@@ -83,138 +108,228 @@ export function ProdutosPilotPage() {
     try {
       await submitProduto(produto);
       setModal({ tipo: 'none' });
+      onRetryLoad?.();
     } catch {
-      // erro já está em mutError
+      // erro já tratado no hook
     }
   }
 
   async function handleRemover(id: string) {
-    if (!window.confirm('Remover produto?')) return;
     try {
       await deleteProdutoById(id);
+      if (modal.tipo !== 'none' && modal.produto.id === id) {
+        setModal({ tipo: 'none' });
+      }
+      setDeleteTargetId(null);
+      if (page > 1 && produtos.length === 1) {
+        setPage(page - 1);
+        return;
+      }
+      onRetryLoad?.();
     } catch {
-      // erro já está em mutError
+      // erro já tratado no hook
     }
   }
 
   function handleMovimentar(id: string) {
-    // Notifica o legado para abrir o modal de movimentação de estoque
     emitLegacyEvent('sc:abrir-mov-produto', { id });
   }
 
+  const pageHeader = (
+    <PageHeader
+      kicker="Catálogo"
+      title="Produtos"
+      description="Gerencie catálogo, estoque visível e ações rápidas da filial sem sair da listagem principal."
+      meta={<StatusBadge tone="info">{total} no total · página {page}</StatusBadge>}
+      actions={
+        <button
+          className="btn btn-p btn-sm"
+          type="button"
+          onClick={() => setModal({ tipo: 'form', produto: null })}
+        >
+          Novo produto
+        </button>
+      }
+    />
+  );
+
   if (status === 'loading') {
-    return <EmptyState title="Carregando produtos..." compact />;
+    return (
+      <main className="rf-content rf-ui-stack">
+        {pageHeader}
+        <ProdutoMetrics produtos={produtos} />
+        <LoadingState
+          title="Carregando produtos..."
+          description="Estamos preparando a lista e o saldo atual da filial."
+        />
+      </main>
+    );
   }
 
   if (status === 'error') {
-    return <EmptyState title={storeError ?? 'Erro ao carregar produtos.'} compact />;
+    return (
+      <main className="rf-content rf-ui-stack">
+        {pageHeader}
+        <ProdutoMetrics produtos={produtos} />
+        <ErrorState
+          title={storeError ?? 'Erro ao carregar produtos.'}
+          description="Revise a sessão, a filial ativa ou tente recarregar os dados."
+          onRetry={onRetryLoad}
+        />
+      </main>
+    );
   }
 
   return (
     <main className="rf-content rf-ui-stack">
-      <ProdutoMetrics produtos={todos} />
+      {pageHeader}
+
+      <ProdutoMetrics produtos={produtos} />
 
       <FilterBar
+        search={{
+          value: filtro.q,
+          onChange: (value) => setFiltro({ q: value }),
+          placeholder: 'Buscar por nome ou SKU...',
+          ariaLabel: 'Buscar produtos'
+        }}
+        filters={[
+          {
+            key: 'categoria',
+            value: filtro.cat,
+            onChange: (value) => setFiltro({ cat: value }),
+            ariaLabel: 'Filtrar por categoria',
+            options: [
+              { value: '', label: 'Todas as categorias' },
+              ...categorias.map((categoria) => ({ value: categoria, label: categoria }))
+            ]
+          }
+        ]}
+        activeFilterCount={activeFilterCount}
+        onClearFilters={activeFilterCount ? () => setFiltro({ q: '', cat: '' }) : undefined}
         actions={
           <button
             className="btn btn-p btn-sm"
+            type="button"
             onClick={() => setModal({ tipo: 'form', produto: null })}
           >
-            + Produto
+            Novo produto
           </button>
         }
-      >
-        <input
-          className="inp"
-          placeholder="Buscar por nome ou SKU..."
-          value={filtro.q}
-          onChange={(e) => setFiltro({ q: e.target.value })}
-        />
-        <select
-          className="inp sel"
-          value={filtro.cat}
-          onChange={(e) => setFiltro({ cat: e.target.value })}
-        >
-          <option value="">Todas as categorias</option>
-          {categorias.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-      </FilterBar>
+      />
 
-      {mutError && <EmptyState title={mutError} compact />}
+      {mutError ? <ErrorState title={mutError} compact /> : null}
 
       {isMobile ? (
         <ProdutoListMobile
-          filtrados={filtrados}
-          todos={todos}
+          produtos={produtos}
           saldos={saldos}
-          totalCount={todos.length}
+          totalCount={total}
+          hasFilters={activeFilterCount > 0}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           onDetalhe={(id) => {
-            const p = todos.find((x) => x.id === id);
-            if (p) setModal({ tipo: 'detalhe', produto: p });
+            const produto = produtos.find((item) => item.id === id);
+            if (produto) setModal({ tipo: 'detalhe', produto });
           }}
           onEditar={(id) => {
-            const p = todos.find((x) => x.id === id);
-            if (p) setModal({ tipo: 'form', produto: p });
+            const produto = produtos.find((item) => item.id === id);
+            if (produto) setModal({ tipo: 'form', produto });
           }}
           onMovimentar={handleMovimentar}
-          onRemover={handleRemover}
+          onRemover={(id) => setDeleteTargetId(id)}
         />
       ) : (
         <ProdutoListView
-          filtrados={filtrados}
-          todos={todos}
+          produtos={produtos}
           saldos={saldos}
-          totalCount={todos.length}
+          totalCount={total}
+          hasFilters={activeFilterCount > 0}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           onDetalhe={(id) => {
-            const p = todos.find((x) => x.id === id);
-            if (p) setModal({ tipo: 'detalhe', produto: p });
+            const produto = produtos.find((item) => item.id === id);
+            if (produto) setModal({ tipo: 'detalhe', produto });
           }}
           onEditar={(id) => {
-            const p = todos.find((x) => x.id === id);
-            if (p) setModal({ tipo: 'form', produto: p });
+            const produto = produtos.find((item) => item.id === id);
+            if (produto) setModal({ tipo: 'form', produto });
           }}
           onMovimentar={handleMovimentar}
-          onRemover={handleRemover}
+          onRemover={(id) => setDeleteTargetId(id)}
         />
       )}
 
-      {/* Modal de detalhe */}
-      {modal.tipo === 'detalhe' && (
-        <div className="modal-overlay" onClick={() => setModal({ tipo: 'none' })}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <ProdutoDetailPanel
-              produto={modal.produto}
-              saldo={saldos[modal.produto.id] ?? { saldo: 0, cm: 0 }}
-              onFechar={() => setModal({ tipo: 'none' })}
-              onEditar={() => setModal({ tipo: 'form', produto: modal.produto })}
-              onMovimentar={() => {
-                setModal({ tipo: 'none' });
-                handleMovimentar(modal.produto.id);
-              }}
-            />
-          </div>
-        </div>
-      )}
+      <Drawer
+        open={modal.tipo === 'detalhe'}
+        title={modal.tipo === 'detalhe' ? modal.produto.nome : 'Produto'}
+        subtitle={
+          modal.tipo === 'detalhe'
+            ? [modal.produto.sku || 'Sem SKU', modal.produto.cat || 'Sem categoria'].join(' · ')
+            : undefined
+        }
+        action={
+          modal.tipo === 'detalhe' ? (
+            <button
+              className="btn btn-p btn-sm"
+              type="button"
+              onClick={() => setModal({ tipo: 'form', produto: modal.produto })}
+            >
+              Editar
+            </button>
+          ) : undefined
+        }
+        onClose={() => setModal({ tipo: 'none' })}
+      >
+        {modal.tipo === 'detalhe' ? (
+          <ProdutoDetailPanel
+            produto={modal.produto}
+            saldo={saldos[modal.produto.id] ?? { saldo: 0, cm: 0 }}
+            onFechar={() => setModal({ tipo: 'none' })}
+            onEditar={() => setModal({ tipo: 'form', produto: modal.produto })}
+            onMovimentar={() => {
+              setModal({ tipo: 'none' });
+              handleMovimentar(modal.produto.id);
+            }}
+          />
+        ) : null}
+      </Drawer>
 
-      {/* Modal de form */}
-      {modal.tipo === 'form' && (
-        <div className="modal-overlay" onClick={() => !saving && setModal({ tipo: 'none' })}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <ProdutoForm
-              produto={modal.produto}
-              pais={paisSemSelf}
-              saving={saving}
-              error={mutError}
-              onSalvar={handleSalvar}
-              onCancelar={() => setModal({ tipo: 'none' })}
-            />
-          </div>
-        </div>
-      )}
+      <Drawer
+        open={modal.tipo === 'form'}
+        title={modal.tipo === 'form' && modal.produto ? 'Editar produto' : 'Novo produto'}
+        onClose={() => !saving && setModal({ tipo: 'none' })}
+        closeOnOverlayClick={!saving}
+      >
+        {modal.tipo === 'form' ? (
+          <ProdutoForm
+            produto={modal.produto}
+            pais={paisSemSelf}
+            saving={saving}
+            error={mutError}
+            onSalvar={handleSalvar}
+            onCancelar={() => setModal({ tipo: 'none' })}
+          />
+        ) : null}
+      </Drawer>
+
+      {deletingId ? <LoadingState title="Removendo produto..." compact /> : null}
+
+      <ProdutoDeleteConfirmModal
+        open={!!deleteTarget}
+        target={deleteTarget}
+        submitting={Boolean(deletingId)}
+        onClose={() => {
+          if (!deletingId) setDeleteTargetId(null);
+        }}
+        onConfirm={() => {
+          if (deleteTarget) void handleRemover(deleteTarget.id);
+        }}
+      />
     </main>
   );
 }

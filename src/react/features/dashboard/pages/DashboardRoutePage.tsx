@@ -7,7 +7,7 @@ import { DashboardPilotPage } from '../components/DashboardPilotPage';
 import { useDashboardData } from '../hooks/useDashboardData';
 
 export function DashboardRoutePage() {
-  useDashboardData();
+  const { reload } = useDashboardData();
   const navigate = useNavigate();
 
   const handleNavigatePage = useCallback(
@@ -26,5 +26,5 @@ export function DashboardRoutePage() {
     [navigate]
   );
 
-  return <DashboardPilotPage onNavigatePage={handleNavigatePage} />;
+  return <DashboardPilotPage onNavigatePage={handleNavigatePage} onReload={reload} />;
 }

@@ -1,25 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
 import { emitToast } from '../../../app/legacy/events';
 import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
-import { EmptyState, FilterBar, Modal, StatCard } from '../../../shared/ui';
+import {
+  DataTable,
+  Drawer,
+  EmptyState,
+  ErrorState,
+  FilterBar,
+  LoadingState,
+  Modal,
+  PageHeader,
+  StatCard,
+  StatusBadge
+} from '../../../shared/ui';
 import {
   useContasReceberMutations,
-  getValorRecebido,
   getValorEmAberto,
-  getStatusLabel,
-  getStatusEfetivo
+  getValorRecebido,
+  getStatusEfetivo,
+  getStatusLabel
 } from '../hooks/useContasReceberMutations';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
+import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
 
 const MESSAGE_SOURCE = 'receber-react-pilot';
 const COMMAND_SOURCE = 'receber-legacy-shell';
 
-// ---------------------------------------------------------------------------
-// Utilities
-// ---------------------------------------------------------------------------
+type ContasReceberPilotPageProps = {
+  onRetryLoad?: () => void;
+};
+
+type ConfirmState =
+  | { kind: 'receber'; contaId: string }
+  | { kind: 'desfazer'; contaId: string }
+  | { kind: 'estorno'; contaId: string; baixaId: string }
+  | null;
 
 function hoje(): string {
   return new Date().toISOString().split('T')[0];
@@ -48,14 +66,39 @@ function fromDateTimeLocalValue(value: string): string {
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function StatusBadge({ cr }: { cr: ContaReceber }) {
+function getStatusTone(cr: ContaReceber): 'success' | 'warning' | 'neutral' {
   const label = getStatusLabel(cr);
-  const tone = label === 'Recebido' ? 'bg' : label === 'Parcial' ? 'ba' : 'bk';
-  return <span className={`bdg ${tone}`}>{label}</span>;
+  if (label === 'Recebido') return 'success';
+  if (label === 'Parcial') return 'warning';
+  return 'neutral';
+}
+
+function FinanceStatusBadge({ cr }: { cr: ContaReceber }) {
+  return <StatusBadge tone={getStatusTone(cr)}>{getStatusLabel(cr)}</StatusBadge>;
+}
+
+function getBaixasConta(allBaixas: ContaReceberBaixa[], contaId: string): ContaReceberBaixa[] {
+  return allBaixas
+    .filter((b) => b.conta_receber_id === contaId)
+    .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')));
+}
+
+function filterContas(
+  contas: ContaReceber[],
+  statusEfetivo: 'pendente_ok' | 'vencido' | 'recebido',
+  searchQuery: string
+) {
+  const q = searchQuery.toLowerCase();
+  return [...contas]
+    .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
+    .filter(
+      (c) =>
+        getStatusEfetivo(c) === statusEfetivo &&
+        (!q ||
+          c.cliente.toLowerCase().includes(q) ||
+          String(c.pedido_num ?? '').includes(q) ||
+          getStatusLabel(c).toLowerCase().includes(q))
+    );
 }
 
 type BaixaHistoricoProps = {
@@ -106,7 +149,7 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
               <div className="table-cell-caption table-cell-muted">
                 {formatDateTimeLabel(baixa.recebido_em)}
               </div>
-              {baixa.observacao && <div className="table-cell-caption">{baixa.observacao}</div>}
+              {baixa.observacao ? <div className="table-cell-caption">{baixa.observacao}</div> : null}
               <div className="fg2">
                 <button className="btn btn-sm" onClick={() => onEstornar(contaId, baixa.id)}>
                   Estornar
@@ -132,13 +175,15 @@ function ContaActions({ cr, inFlight, onReceber, onBaixaParcial, onDesfazer }: C
   if (inFlight) {
     return <span className="table-cell-muted table-cell-caption">Salvando...</span>;
   }
+
   if (getStatusEfetivo(cr) === 'recebido') {
     return (
       <button className="btn btn-sm" onClick={onDesfazer}>
-        Desfazer
+        Desfazer recebimento
       </button>
     );
   }
+
   return (
     <div className="fg2">
       <button className="btn btn-sm" onClick={onBaixaParcial}>
@@ -150,272 +195,6 @@ function ContaActions({ cr, inFlight, onReceber, onBaixaParcial, onDesfazer }: C
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Desktop table row
-// ---------------------------------------------------------------------------
-
-type ContaRowDesktopProps = {
-  conta: ContaReceber;
-  baixas: ContaReceberBaixa[];
-  statusEfetivo: 'pendente_ok' | 'vencido' | 'recebido';
-  inFlight: boolean;
-  onReceber: () => void;
-  onBaixaParcial: () => void;
-  onDesfazer: () => void;
-  onEstornar: (contaId: string, baixaId: string) => void;
-};
-
-function ContaRowDesktop({
-  conta,
-  baixas,
-  statusEfetivo,
-  inFlight,
-  onReceber,
-  onBaixaParcial,
-  onDesfazer,
-  onEstornar
-}: ContaRowDesktopProps) {
-  const recebido = getValorRecebido(conta);
-  const aberto = getValorEmAberto(conta);
-  const ultimaBaixa = baixas[0] ?? null;
-
-  return (
-    <>
-      <tr>
-        <td>
-          <div className="table-cell-strong">{conta.cliente}</div>
-          <div className="table-cell-caption">
-            <StatusBadge cr={conta} />
-          </div>
-        </td>
-        <td className="table-cell-muted">{conta.pedido_num ? `#${conta.pedido_num}` : '-'}</td>
-        <td className="table-cell-strong">{fmt(conta.valor)}</td>
-        <td className="table-cell-strong tone-success">{fmt(recebido)}</td>
-        <td className={`table-cell-strong ${aberto > 0 ? 'tone-warning' : 'tone-success'}`}>
-          {fmt(aberto)}
-        </td>
-        <td
-          className={
-            statusEfetivo === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'
-          }
-        >
-          {conta.vencimento}
-        </td>
-        <td>
-          {ultimaBaixa ? (
-            <>
-              <div className="table-cell-strong">{fmt(ultimaBaixa.valor)}</div>
-              <div className="table-cell-caption table-cell-muted">
-                {formatDateTimeLabel(ultimaBaixa.recebido_em)}
-              </div>
-            </>
-          ) : (
-            <span className="table-cell-muted">Sem baixas</span>
-          )}
-        </td>
-        <td>
-          <ContaActions
-            cr={conta}
-            inFlight={inFlight}
-            onReceber={onReceber}
-            onBaixaParcial={onBaixaParcial}
-            onDesfazer={onDesfazer}
-          />
-        </td>
-      </tr>
-      <tr className="cr-baixas-row">
-        <td colSpan={8}>
-          <BaixaHistorico baixas={baixas} contaId={conta.id} onEstornar={onEstornar} />
-        </td>
-      </tr>
-    </>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Mobile card
-// ---------------------------------------------------------------------------
-
-type ContaCardMobileProps = {
-  conta: ContaReceber;
-  baixas: ContaReceberBaixa[];
-  inFlight: boolean;
-  onReceber: () => void;
-  onBaixaParcial: () => void;
-  onDesfazer: () => void;
-  onEstornar: (contaId: string, baixaId: string) => void;
-};
-
-function ContaCardMobile({
-  conta,
-  baixas,
-  inFlight,
-  onReceber,
-  onBaixaParcial,
-  onDesfazer,
-  onEstornar
-}: ContaCardMobileProps) {
-  const recebido = getValorRecebido(conta);
-  const aberto = getValorEmAberto(conta);
-
-  return (
-    <div className="mobile-card">
-      <div className="mobile-card-head">
-        <div className="mobile-card-grow">
-          <div className="mobile-card-title">
-            {conta.cliente}
-            {conta.pedido_num ? ` - Ped. #${conta.pedido_num}` : ''}
-          </div>
-          <div className="mobile-card-sub">Vencimento: {conta.vencimento}</div>
-        </div>
-        <div>
-          <StatusBadge cr={conta} />
-        </div>
-      </div>
-      <div className="mobile-card-meta mobile-card-meta-gap">
-        <div>
-          Total: <b>{fmt(conta.valor)}</b>
-        </div>
-        <div>
-          Recebido: <b>{fmt(recebido)}</b>
-        </div>
-        <div>
-          Em aberto: <b>{fmt(aberto)}</b>
-        </div>
-        <div>
-          Ultima baixa:{' '}
-          <b>{formatDateTimeLabel(conta.ultimo_recebimento_em ?? conta.recebido_em)}</b>
-        </div>
-      </div>
-      <div className="mobile-card-actions">
-        <ContaActions
-          cr={conta}
-          inFlight={inFlight}
-          onReceber={onReceber}
-          onBaixaParcial={onBaixaParcial}
-          onDesfazer={onDesfazer}
-        />
-      </div>
-      <BaixaHistorico baixas={baixas} contaId={conta.id} onEstornar={onEstornar} />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Contas list (one tab)
-// ---------------------------------------------------------------------------
-
-type ContasListProps = {
-  contas: ContaReceber[];
-  allBaixas: ContaReceberBaixa[];
-  statusEfetivo: 'pendente_ok' | 'vencido' | 'recebido';
-  inFlight: Set<string>;
-  searchQuery: string;
-  onReceber: (contaId: string) => void;
-  onBaixaParcial: (contaId: string) => void;
-  onDesfazer: (contaId: string) => void;
-  onEstornar: (contaId: string, baixaId: string) => void;
-};
-
-function ContasList({
-  contas,
-  allBaixas,
-  statusEfetivo,
-  inFlight,
-  searchQuery,
-  onReceber,
-  onBaixaParcial,
-  onDesfazer,
-  onEstornar
-}: ContasListProps) {
-  const q = searchQuery.toLowerCase();
-  const filtered = [...contas]
-    .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-    .filter(
-      (c) =>
-        getStatusEfetivo(c) === statusEfetivo &&
-        (!q ||
-          c.cliente.toLowerCase().includes(q) ||
-          String(c.pedido_num ?? '').includes(q) ||
-          getStatusLabel(c).toLowerCase().includes(q))
-    );
-
-  if (!filtered.length) {
-    return <EmptyState title="Nenhum lançamento encontrado." />;
-  }
-
-  const isMobile = window.matchMedia('(max-width: 1080px)').matches;
-
-  if (isMobile) {
-    return (
-      <>
-        {filtered.map((conta) => {
-          const baixas = allBaixas
-            .filter((b) => b.conta_receber_id === conta.id)
-            .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')));
-          return (
-            <ContaCardMobile
-              key={conta.id}
-              conta={conta}
-              baixas={baixas}
-              inFlight={inFlight.has(conta.id)}
-              onReceber={() => onReceber(conta.id)}
-              onBaixaParcial={() => onBaixaParcial(conta.id)}
-              onDesfazer={() => onDesfazer(conta.id)}
-              onEstornar={onEstornar}
-            />
-          );
-        })}
-      </>
-    );
-  }
-
-  return (
-    <div className="tw">
-      <table className="tbl">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>Pedido</th>
-            <th>Total</th>
-            <th>Recebido</th>
-            <th>Em aberto</th>
-            <th>Vencimento</th>
-            <th>Ultima baixa</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map((conta) => {
-            const baixas = allBaixas
-              .filter((b) => b.conta_receber_id === conta.id)
-              .sort((a, b) =>
-                String(b.recebido_em || '').localeCompare(String(a.recebido_em || ''))
-              );
-            return (
-              <ContaRowDesktop
-                key={conta.id}
-                conta={conta}
-                baixas={baixas}
-                statusEfetivo={statusEfetivo}
-                inFlight={inFlight.has(conta.id)}
-                onReceber={() => onReceber(conta.id)}
-                onBaixaParcial={() => onBaixaParcial(conta.id)}
-                onDesfazer={() => onDesfazer(conta.id)}
-                onEstornar={onEstornar}
-              />
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Metrics
-// ---------------------------------------------------------------------------
 
 function ContasReceberMetrics({
   contas,
@@ -456,10 +235,6 @@ function ContasReceberMetrics({
     </section>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Baixa Parcial Modal
-// ---------------------------------------------------------------------------
 
 type BaixaParcialModalProps = {
   conta: ContaReceber;
@@ -511,7 +286,7 @@ function BaixaParcialModal({
             Cancelar
           </button>
           <button className="btn btn-p btn-sm" onClick={handleConfirmar} disabled={submitting}>
-            {submitting ? 'Confirmando…' : 'Confirmar baixa'}
+            {submitting ? 'Confirmando...' : 'Confirmar baixa'}
           </button>
         </>
       }
@@ -541,11 +316,7 @@ function BaixaParcialModal({
         </div>
       </div>
 
-      {error && (
-        <div className="rf-error-banner">
-          {error}
-        </div>
-      )}
+      {error ? <div className="rf-error-banner">{error}</div> : null}
 
       <div className="form-row">
         <label className="form-label">Valor recebido</label>
@@ -573,12 +344,7 @@ function BaixaParcialModal({
 
       <div className="form-row">
         <label className="form-label">Data / hora</label>
-        <input
-          className="inp"
-          type="datetime-local"
-          value={data}
-          onChange={(e) => setData(e.target.value)}
-        />
+        <input className="inp" type="datetime-local" value={data} onChange={(e) => setData(e.target.value)} />
       </div>
 
       <div className="form-row">
@@ -595,18 +361,261 @@ function BaixaParcialModal({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main page
-// ---------------------------------------------------------------------------
+type ContaDetailDrawerProps = {
+  conta: ContaReceber | null;
+  baixas: ContaReceberBaixa[];
+  inFlight: boolean;
+  open: boolean;
+  onClose: () => void;
+  onReceber: () => void;
+  onBaixaParcial: () => void;
+  onDesfazer: () => void;
+  onEstornar: (contaId: string, baixaId: string) => void;
+};
 
-const TABS: { key: CrTab; label: string; statusEfetivo: 'pendente_ok' | 'vencido' | 'recebido' }[] =
-  [
-    { key: 'pendentes', label: 'Pendentes', statusEfetivo: 'pendente_ok' },
-    { key: 'vencidos', label: 'Vencidos', statusEfetivo: 'vencido' },
-    { key: 'recebidos', label: 'Recebidos', statusEfetivo: 'recebido' }
-  ];
+function ContaDetailDrawer({
+  conta,
+  baixas,
+  inFlight,
+  open,
+  onClose,
+  onReceber,
+  onBaixaParcial,
+  onDesfazer,
+  onEstornar
+}: ContaDetailDrawerProps) {
+  if (!conta) return null;
 
-export function ContasReceberPilotPage() {
+  const recebido = getValorRecebido(conta);
+  const aberto = getValorEmAberto(conta);
+
+  return (
+    <Drawer
+      open={open}
+      title={conta.cliente}
+      subtitle={[
+        conta.pedido_num ? `Pedido #${conta.pedido_num}` : null,
+        `Vencimento ${conta.vencimento}`,
+        getStatusLabel(conta)
+      ]
+        .filter(Boolean)
+        .join(' · ')}
+      onClose={onClose}
+    >
+      <div className="rf-ui-stack">
+        <div className="rf-ui-stat-grid--3">
+          <StatCard label="Total" value={fmt(conta.valor)} />
+          <StatCard label="Recebido" value={fmt(recebido)} tone="success" />
+          <StatCard label="Em aberto" value={fmt(aberto)} tone={aberto > 0 ? 'warning' : 'success'} />
+        </div>
+
+        <div className="rf-ui-stack" style={{ gap: 8 }}>
+          <div className="table-cell-caption table-cell-muted">Ações da conta</div>
+          <ContaActions
+            cr={conta}
+            inFlight={inFlight}
+            onReceber={onReceber}
+            onBaixaParcial={onBaixaParcial}
+            onDesfazer={onDesfazer}
+          />
+        </div>
+
+        <BaixaHistorico baixas={baixas} contaId={conta.id} onEstornar={onEstornar} />
+      </div>
+    </Drawer>
+  );
+}
+
+type ContasListProps = {
+  contas: ContaReceber[];
+  allBaixas: ContaReceberBaixa[];
+  statusEfetivo: 'pendente_ok' | 'vencido' | 'recebido';
+  inFlight: Set<string>;
+  searchQuery: string;
+  onReceber: (contaId: string) => void;
+  onBaixaParcial: (contaId: string) => void;
+  onDesfazer: (contaId: string) => void;
+  onEstornar: (contaId: string, baixaId: string) => void;
+  onOpenDetail: (contaId: string) => void;
+};
+
+function ContasList({
+  contas,
+  allBaixas,
+  statusEfetivo,
+  inFlight,
+  searchQuery,
+  onReceber,
+  onBaixaParcial,
+  onDesfazer,
+  onEstornar,
+  onOpenDetail
+}: ContasListProps) {
+  const filtered = filterContas(contas, statusEfetivo, searchQuery);
+
+  if (!filtered.length) {
+    return (
+      <EmptyState
+        title="Nenhum lançamento encontrado."
+        description="Ajuste a busca ou troque o status para visualizar outros títulos."
+      />
+    );
+  }
+
+  const isMobile = window.matchMedia('(max-width: 1080px)').matches;
+
+  if (isMobile) {
+    return (
+      <div className="rf-ui-stack">
+        {filtered.map((conta) => {
+          const baixas = getBaixasConta(allBaixas, conta.id);
+          const recebido = getValorRecebido(conta);
+          const aberto = getValorEmAberto(conta);
+
+          return (
+            <div key={conta.id} className="mobile-card">
+              <div className="mobile-card-head">
+                <div className="mobile-card-grow">
+                  <div className="mobile-card-title">
+                    {conta.cliente}
+                    {conta.pedido_num ? ` - Ped. #${conta.pedido_num}` : ''}
+                  </div>
+                  <div className="mobile-card-sub">Vencimento: {conta.vencimento}</div>
+                </div>
+                <FinanceStatusBadge cr={conta} />
+              </div>
+
+              <div className="mobile-card-meta mobile-card-meta-gap">
+                <div>
+                  Total: <b>{fmt(conta.valor)}</b>
+                </div>
+                <div>
+                  Recebido: <b>{fmt(recebido)}</b>
+                </div>
+                <div>
+                  Em aberto: <b>{fmt(aberto)}</b>
+                </div>
+                <div>
+                  Última baixa: <b>{formatDateTimeLabel(conta.ultimo_recebimento_em ?? conta.recebido_em)}</b>
+                </div>
+              </div>
+
+              <div className="mobile-card-actions">
+                <button className="btn btn-sm" onClick={() => onOpenDetail(conta.id)}>
+                  Detalhes
+                </button>
+                <ContaActions
+                  cr={conta}
+                  inFlight={inFlight.has(conta.id)}
+                  onReceber={() => onReceber(conta.id)}
+                  onBaixaParcial={() => onBaixaParcial(conta.id)}
+                  onDesfazer={() => onDesfazer(conta.id)}
+                />
+              </div>
+
+              <BaixaHistorico baixas={baixas} contaId={conta.id} onEstornar={onEstornar} />
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <DataTable
+      data={filtered}
+      rowKey={(row) => row.id}
+      onRowClick={(row) => onOpenDetail(row.id)}
+      columns={[
+        {
+          key: 'cliente',
+          header: 'Cliente',
+          render: (conta) => (
+            <div>
+              <div className="table-cell-strong">{conta.cliente}</div>
+              <div className="table-cell-caption">
+                <FinanceStatusBadge cr={conta} />
+              </div>
+            </div>
+          )
+        },
+        {
+          key: 'pedido',
+          header: 'Pedido',
+          render: (conta) => <span className="table-cell-muted">{conta.pedido_num ? `#${conta.pedido_num}` : '—'}</span>
+        },
+        {
+          key: 'total',
+          header: 'Total',
+          render: (conta) => <span className="table-cell-strong">{fmt(conta.valor)}</span>,
+          align: 'right'
+        },
+        {
+          key: 'recebido',
+          header: 'Recebido',
+          render: (conta) => <span className="table-cell-strong tone-success">{fmt(getValorRecebido(conta))}</span>,
+          align: 'right'
+        },
+        {
+          key: 'aberto',
+          header: 'Em aberto',
+          render: (conta) => {
+            const aberto = getValorEmAberto(conta);
+            return (
+              <span className={`table-cell-strong ${aberto > 0 ? 'tone-warning' : 'tone-success'}`}>
+                {fmt(aberto)}
+              </span>
+            );
+          },
+          align: 'right'
+        },
+        {
+          key: 'vencimento',
+          header: 'Vencimento',
+          render: (conta) => (
+            <span className={getStatusEfetivo(conta) === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'}>
+              {conta.vencimento}
+            </span>
+          )
+        },
+        {
+          key: 'ultima_baixa',
+          header: 'Última baixa',
+          render: (conta) => {
+            const ultimaBaixa = getBaixasConta(allBaixas, conta.id)[0] ?? null;
+            return ultimaBaixa ? (
+              <>
+                <div className="table-cell-strong">{fmt(ultimaBaixa.valor)}</div>
+                <div className="table-cell-caption table-cell-muted">
+                  {formatDateTimeLabel(ultimaBaixa.recebido_em)}
+                </div>
+              </>
+            ) : (
+              <span className="table-cell-muted">Sem baixas</span>
+            );
+          }
+        }
+      ]}
+      renderActions={(conta) => (
+        <ContaActions
+          cr={conta}
+          inFlight={inFlight.has(conta.id)}
+          onReceber={() => onReceber(conta.id)}
+          onBaixaParcial={() => onBaixaParcial(conta.id)}
+          onDesfazer={() => onDesfazer(conta.id)}
+        />
+      )}
+    />
+  );
+}
+
+const TABS: { key: CrTab; label: string; statusEfetivo: 'pendente_ok' | 'vencido' | 'recebido' }[] = [
+  { key: 'pendentes', label: 'Pendentes', statusEfetivo: 'pendente_ok' },
+  { key: 'vencidos', label: 'Vencidos', statusEfetivo: 'vencido' },
+  { key: 'recebidos', label: 'Recebidos', statusEfetivo: 'recebido' }
+];
+
+export function ContasReceberPilotPage({ onRetryLoad }: ContasReceberPilotPageProps) {
   const contas = useContasReceberStore(useShallow((s) => s.contas));
   const baixas = useContasReceberStore(useShallow((s) => s.baixas));
   const status = useContasReceberStore((s) => s.status);
@@ -617,18 +626,24 @@ export function ContasReceberPilotPage() {
   const setSearchQuery = useContasReceberStore((s) => s.setSearchQuery);
   const inFlight = useContasReceberStore(useShallow((s) => s.inFlight));
 
-  const { registrarBaixa, marcarRecebido, marcarPendente, estornarBaixa } =
-    useContasReceberMutations();
+  const { registrarBaixa, marcarRecebido, marcarPendente, estornarBaixa } = useContasReceberMutations();
 
   const [baixaParcialContaId, setBaixaParcialContaId] = useState<string | null>(null);
+  const [detailContaId, setDetailContaId] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<ConfirmState>(null);
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalSubmitting, setModalSubmitting] = useState(false);
 
-  const baixaParcialConta = baixaParcialContaId
-    ? (contas.find((c) => c.id === baixaParcialContaId) ?? null)
-    : null;
+  const baixaParcialConta = baixaParcialContaId ? contas.find((c) => c.id === baixaParcialContaId) ?? null : null;
+  const detailConta = detailContaId ? contas.find((c) => c.id === detailContaId) ?? null : null;
+  const detailBaixas = detailConta ? getBaixasConta(baixas, detailConta.id) : [];
+  const activeTabConfig = TABS.find((t) => t.key === activeTab) ?? TABS[0];
+  const filteredContas = useMemo(
+    () => filterContas(contas, activeTabConfig.statusEfetivo, searchQuery),
+    [contas, activeTabConfig.statusEfetivo, searchQuery]
+  );
+  const activeFilterCount = (searchQuery ? 1 : 0) + (activeTab !== 'pendentes' ? 1 : 0);
 
-  // Comandos do shell legado
   useEffect(() => {
     return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
       if (data.type === 'receber:set-tab' && data.tab) {
@@ -637,23 +652,23 @@ export function ContasReceberPilotPage() {
     });
   }, [setActiveTab]);
 
-  // Emite estado para o bridge
   useEffect(() => {
     const count = contas.filter((c) => getStatusEfetivo(c) !== 'recebido').length;
     postLegacyBridgeMessage({
-        source: MESSAGE_SOURCE,
-        type: 'receber:state',
-        state: { tab: activeTab, status, count }
-      });
+      source: MESSAGE_SOURCE,
+      type: 'receber:state',
+      state: { tab: activeTab, status, count }
+    });
   }, [activeTab, status, contas]);
 
   async function handleReceber(contaId: string) {
     const result = await marcarRecebido(contaId);
     if (!result.ok) {
       emitToast(result.error ?? 'Não foi possível registrar o recebimento agora.', 'error');
-      return;
+      return false;
     }
     emitToast('Recebimento concluído. A conta já foi atualizada.', 'success');
+    return true;
   }
 
   function handleAbrirBaixaParcial(contaId: string) {
@@ -675,89 +690,192 @@ export function ContasReceberPilotPage() {
       setModalError(result.error ?? 'Erro ao registrar baixa.');
       return;
     }
+    emitToast('Baixa registrada. Os valores da conta já foram atualizados.', 'success');
     setBaixaParcialContaId(null);
   }
 
   async function handleDesfazer(contaId: string) {
-    if (!confirm('Desfazer todas as baixas desta conta e voltar para pendente?')) return;
     const result = await marcarPendente(contaId);
     if (!result.ok) {
       emitToast(result.error ?? 'Não foi possível reabrir a conta agora.', 'error');
-      return;
+      return false;
     }
     emitToast('Conta reaberta com sucesso. Ela voltou para pendente.', 'success');
+    return true;
   }
 
   async function handleEstornar(contaId: string, baixaId: string) {
-    const conta = contas.find((c) => c.id === contaId);
-    const baixa = baixas.find((b) => b.id === baixaId);
-    if (!conta || !baixa) return;
-    if (!confirm(`Estornar a baixa de ${fmt(baixa.valor)} para ${conta.cliente}?`)) return;
     const result = await estornarBaixa(contaId, baixaId);
     if (!result.ok) {
       emitToast(result.error ?? 'Não foi possível estornar a baixa agora.', 'error');
-      return;
+      return false;
     }
     emitToast('Baixa estornada. Os totais da conta já foram recalculados.', 'success');
+    return true;
   }
 
-  const activeTabConfig = TABS.find((t) => t.key === activeTab) ?? TABS[0];
+  async function handleConfirmAction() {
+    if (!confirmState) return;
+
+    if (confirmState.kind === 'receber') {
+      const ok = await handleReceber(confirmState.contaId);
+      if (ok) setConfirmState(null);
+      return;
+    }
+
+    if (confirmState.kind === 'desfazer') {
+      const ok = await handleDesfazer(confirmState.contaId);
+      if (ok) setConfirmState(null);
+      return;
+    }
+
+    const ok = await handleEstornar(confirmState.contaId, confirmState.baixaId);
+    if (ok) setConfirmState(null);
+  }
+
+  const confirmConta = confirmState ? contas.find((c) => c.id === confirmState.contaId) ?? null : null;
+  const confirmBaixa =
+    confirmState?.kind === 'estorno'
+      ? baixas.find((b) => b.id === confirmState.baixaId && b.conta_receber_id === confirmState.contaId) ?? null
+      : null;
+  const confirmSubmitting = confirmState ? inFlight.has(confirmState.contaId) : false;
+
+  const confirmTitle =
+    confirmState?.kind === 'receber'
+      ? 'Confirmar recebimento total'
+      : confirmState?.kind === 'desfazer'
+        ? 'Desfazer recebimento'
+        : 'Confirmar estorno';
+
+  const confirmDescription =
+    confirmState?.kind === 'receber'
+      ? 'Esta ação quita o valor em aberto da conta usando a data atual.'
+      : confirmState?.kind === 'desfazer'
+        ? 'Esta ação remove o estado de quitada e devolve a conta para pendente.'
+        : 'Esta ação estorna a baixa selecionada e recalcula os totais da conta.';
+
+  const confirmLabel =
+    confirmState?.kind === 'receber'
+      ? 'Receber tudo'
+      : confirmState?.kind === 'desfazer'
+        ? 'Desfazer recebimento'
+        : 'Estornar baixa';
 
   if (status === 'loading') {
-    return <EmptyState title="Carregando contas a receber..." compact />;
+    return (
+      <main className="rf-content rf-ui-stack">
+        <PageHeader
+          kicker="Financeiro"
+          title="Contas a Receber"
+          description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
+          actions={
+            onRetryLoad ? (
+              <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+                Atualizar
+              </button>
+            ) : undefined
+          }
+        />
+        <ContasReceberMetrics contas={contas} baixas={baixas} />
+        <LoadingState
+          title="Carregando contas a receber..."
+          description="Estamos reunindo títulos, baixas e indicadores financeiros da filial."
+        />
+      </main>
+    );
   }
 
   if (status === 'error') {
     return (
-      <EmptyState
-        title={error ?? 'Erro ao carregar dados.'}
-        description="Atualize a tela ou confirme a filial ativa antes de tentar novamente."
-        compact
-      />
+      <main className="rf-content rf-ui-stack">
+        <PageHeader
+          kicker="Financeiro"
+          title="Contas a Receber"
+          description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
+          actions={
+            onRetryLoad ? (
+              <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+                Atualizar
+              </button>
+            ) : undefined
+          }
+        />
+        <ContasReceberMetrics contas={contas} baixas={baixas} />
+        <ErrorState
+          title={error ?? 'Erro ao carregar dados.'}
+          description="Atualize a tela ou confirme a filial ativa antes de tentar novamente."
+          onRetry={onRetryLoad}
+        />
+      </main>
     );
   }
 
   return (
-    <>
+    <main className="rf-content rf-ui-stack">
+      <PageHeader
+        kicker="Financeiro"
+        title="Contas a Receber"
+        description="Acompanhe títulos em aberto, baixas e vencimentos sem sair do fluxo operacional."
+        actions={
+          onRetryLoad ? (
+            <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+              Atualizar
+            </button>
+          ) : undefined
+        }
+        meta={
+          <div className="fg2">
+            <StatusBadge tone={activeTab === 'recebidos' ? 'success' : activeTab === 'vencidos' ? 'danger' : 'warning'}>
+              {activeTabConfig.label}
+            </StatusBadge>
+            <StatusBadge tone="info">{filteredContas.length} visíveis</StatusBadge>
+          </div>
+        }
+      />
+
       <ContasReceberMetrics contas={contas} baixas={baixas} />
 
-      <div className="tabs">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            className={`tb${activeTab === tab.key ? ' on' : ''}`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <FilterBar
+        search={{
+          value: searchQuery,
+          onChange: setSearchQuery,
+          placeholder: 'Buscar por cliente, pedido ou status...',
+          ariaLabel: 'Buscar contas a receber'
+        }}
+        filters={[
+          {
+            key: 'status',
+            value: activeTab,
+            onChange: (value) => setActiveTab(value as CrTab),
+            ariaLabel: 'Filtrar por status financeiro',
+            options: TABS.map((tab) => ({ value: tab.key, label: tab.label }))
+          }
+        ]}
+        activeFilterCount={activeFilterCount}
+        onClearFilters={
+          activeFilterCount
+            ? () => {
+                setSearchQuery('');
+                setActiveTab('pendentes');
+              }
+            : undefined
+        }
+      />
 
-      <div className="tc on">
-        <div className="card card-shell">
-          <FilterBar>
-            <input
-              className="inp"
-              placeholder="Cliente ou pedido..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </FilterBar>
-          <ContasList
-            contas={contas}
-            allBaixas={baixas}
-            statusEfetivo={activeTabConfig.statusEfetivo}
-            inFlight={inFlight}
-            searchQuery={searchQuery}
-            onReceber={handleReceber}
-            onBaixaParcial={handleAbrirBaixaParcial}
-            onDesfazer={handleDesfazer}
-            onEstornar={handleEstornar}
-          />
-        </div>
-      </div>
+      <ContasList
+        contas={contas}
+        allBaixas={baixas}
+        statusEfetivo={activeTabConfig.statusEfetivo}
+        inFlight={inFlight}
+        searchQuery={searchQuery}
+        onReceber={(contaId) => setConfirmState({ kind: 'receber', contaId })}
+        onBaixaParcial={handleAbrirBaixaParcial}
+        onDesfazer={(contaId) => setConfirmState({ kind: 'desfazer', contaId })}
+        onEstornar={(contaId, baixaId) => setConfirmState({ kind: 'estorno', contaId, baixaId })}
+        onOpenDetail={setDetailContaId}
+      />
 
-      {baixaParcialConta && (
+      {baixaParcialConta ? (
         <BaixaParcialModal
           conta={baixaParcialConta}
           onConfirmar={handleConfirmarBaixaParcial}
@@ -765,7 +883,55 @@ export function ContasReceberPilotPage() {
           error={modalError}
           submitting={modalSubmitting}
         />
-      )}
-    </>
+      ) : null}
+
+      <ContaDetailDrawer
+        open={!!detailConta}
+        conta={detailConta}
+        baixas={detailBaixas}
+        inFlight={detailConta ? inFlight.has(detailConta.id) : false}
+        onClose={() => setDetailContaId(null)}
+        onReceber={() => {
+          if (detailConta) setConfirmState({ kind: 'receber', contaId: detailConta.id });
+        }}
+        onBaixaParcial={() => {
+          if (detailConta) handleAbrirBaixaParcial(detailConta.id);
+        }}
+        onDesfazer={() => {
+          if (detailConta) setConfirmState({ kind: 'desfazer', contaId: detailConta.id });
+        }}
+        onEstornar={(contaId, baixaId) => setConfirmState({ kind: 'estorno', contaId, baixaId })}
+      />
+
+      <ContaReceberConfirmModal
+        open={!!confirmState && !!confirmConta}
+        title={confirmTitle}
+        description={confirmDescription}
+        contaLabel={
+          confirmConta
+            ? `${confirmConta.cliente}${confirmConta.pedido_num ? ` — Pedido #${confirmConta.pedido_num}` : ''}`
+            : ''
+        }
+        valorLabel={
+          confirmState?.kind === 'receber'
+            ? confirmConta
+              ? fmt(getValorEmAberto(confirmConta))
+              : undefined
+            : confirmState?.kind === 'estorno'
+              ? confirmBaixa
+                ? fmt(confirmBaixa.valor)
+                : undefined
+              : undefined
+        }
+        submitting={confirmSubmitting}
+        confirmLabel={confirmLabel}
+        onClose={() => {
+          if (!confirmSubmitting) setConfirmState(null);
+        }}
+        onConfirm={() => {
+          void handleConfirmAction();
+        }}
+      />
+    </main>
   );
 }

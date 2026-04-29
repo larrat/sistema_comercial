@@ -1,4 +1,4 @@
-import type { Filial } from '../../../../../types/domain';
+import type { Filial } from '../../../../types/domain';
 
 export type FiliaisApiCtx = { url: string; key: string; token: string };
 

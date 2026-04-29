@@ -1,6 +1,16 @@
 import { useMemo, useState } from 'react';
-import { EmptyState } from '../../../shared/ui';
+import {
+  ErrorState,
+  FormActions,
+  FormError,
+  FormField,
+  FormSection,
+  LoadingState,
+  StatusBadge
+} from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
+import { emitToast } from '../../../app/legacy/events';
+import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { usePedidoFormData } from '../hooks/usePedidoFormData';
@@ -30,10 +40,23 @@ type Props = {
   initialPedido: Pedido | null;
   onSaved: (pedido: Pedido) => void;
   onCancel: () => void;
+  analyticsOrigin?: string;
 };
 
-export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
+type PedidoFormErrors = {
+  cli?: string;
+  itens?: string;
+  geral?: string;
+};
+
+export function PedidoForm({
+  initialPedido,
+  onSaved,
+  onCancel,
+  analyticsOrigin = 'unknown'
+}: Props) {
   const allPedidos = usePedidoStore((s) => s.pedidos);
+  const { trackEvent } = useAnalytics({ module: 'pedidos' });
   const { submitPedido } = usePedidoMutations();
   const { produtos, clientes, rcas, loading: formLoading, error: formError } = usePedidoFormData();
 
@@ -59,7 +82,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
   const [obs, setObs] = useState(initialPedido?.obs ?? '');
   const [itens, setItens] = useState<PedidoItem[]>(existingItens);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<PedidoFormErrors>({});
   const [showAdvanced, setShowAdvanced] = useState(Boolean(initialPedido?.obs));
 
   const selectedCliente = useMemo(() => findClienteByInput(clientes, cli.trim()), [clientes, cli]);
@@ -70,6 +93,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
 
   function addItem(item: PedidoItem) {
     setItens((prev) => [...prev, item]);
+    setErrors((current) => ({ ...current, itens: undefined, geral: undefined }));
   }
 
   function removeItem(index: number) {
@@ -78,6 +102,7 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
 
   function handleClienteChange(value: string) {
     setCli(value);
+    setErrors((current) => ({ ...current, cli: undefined, geral: undefined }));
     const clienteFound = findClienteByInput(clientes, value.trim());
     if (clienteFound?.rca_id && !rcaId) {
       setRcaId(clienteFound.rca_id);
@@ -96,22 +121,49 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    setErrors({});
 
     const cliTrimmed = cli.trim();
     if (!cliTrimmed) {
-      setError('Cliente e obrigatorio.');
+      setErrors({ cli: 'Selecione um cliente para continuar.' });
+      trackEvent('erro_formulario', {
+        metadata: {
+          origin: analyticsOrigin,
+          form: 'pedido',
+          fields: ['cli'],
+          reason: 'cliente_obrigatorio'
+        },
+        result: 'error'
+      });
       return;
     }
 
     const clienteFound = findClienteByInput(clientes, cliTrimmed);
     if (!clienteFound) {
-      setError('Cliente invalido. Escolha um cliente cadastrado na lista.');
+      setErrors({ cli: 'Cliente inválido. Escolha um cliente já cadastrado na lista.' });
+      trackEvent('erro_formulario', {
+        metadata: {
+          origin: analyticsOrigin,
+          form: 'pedido',
+          fields: ['cli'],
+          reason: 'cliente_invalido'
+        },
+        result: 'error'
+      });
       return;
     }
 
     if (itens.length === 0) {
-      setError('Adicione ao menos 1 item ao pedido.');
+      setErrors({ itens: 'Adicione pelo menos 1 item antes de salvar o pedido.' });
+      trackEvent('erro_formulario', {
+        metadata: {
+          origin: analyticsOrigin,
+          form: 'pedido',
+          fields: ['itens'],
+          reason: 'itens_obrigatorios'
+        },
+        result: 'error'
+      });
       return;
     }
 
@@ -139,14 +191,22 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
 
     setSaving(true);
     try {
-      const aviso = await submitPedido(pedidoInput);
+      const aviso = await submitPedido(pedidoInput, {
+        metadata: {
+          origin: analyticsOrigin
+        }
+      });
       if (aviso) {
-        setError(aviso);
+        setErrors({ geral: aviso });
+        emitToast(aviso, 'warning');
       } else {
+        emitToast(isEdit ? `Pedido #${num} atualizado com sucesso.` : `Pedido #${num} criado com sucesso.`, 'success');
         onSaved(pedidoInput as unknown as Pedido);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar pedido.');
+      const message = err instanceof Error ? err.message : 'Erro ao salvar pedido.';
+      setErrors({ geral: message });
+      emitToast(message, 'error');
     } finally {
       setSaving(false);
     }
@@ -162,44 +222,46 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
         <div className="modal-shell-head">
           <div className="mt">{titulo}</div>
           <p className="form-shell-copy">
-            Comece pelo cliente e pelos itens. Condicoes e observacoes ficam organizadas logo
-            abaixo.
+            Preencha cliente, itens e condições do pedido com clareza. O cálculo, o status e a
+            persistência continuam iguais ao fluxo atual.
           </p>
         </div>
       </div>
 
-      {formLoading && <EmptyState title="Carregando dados do formulário..." compact />}
-      {formError && <EmptyState title={formError} compact />}
+      {formLoading && (
+        <LoadingState
+          title="Carregando dados do formulário..."
+          description="Produtos, clientes e vendedores estão sendo preparados."
+          compact
+        />
+      )}
+      {formError && <ErrorState title={formError} compact />}
 
       {!formLoading && !formError && (
         <form onSubmit={(e) => void handleSubmit(e)}>
           <div className="modal-shell-body">
-            {error && (
-              <div className="empty-inline form-error-inline" data-testid="pedido-form-error">
-                {error}
-              </div>
-            )}
+            <FormError message={errors.geral} data-testid="pedido-form-error" />
 
             {status === 'entregue' && prazo === 'imediato' && (
               <div className="empty-inline form-warn-inline" data-testid="pedido-form-warn-prazo">
-                Prazo imediato nao gera conta a receber automaticamente. Altere o prazo para 7,
-                15, 30 ou 60 dias para geracao automatica.
+                Prazo imediato não gera conta a receber automaticamente. Use 7, 15, 30 ou 60 dias
+                se precisar da geração automática.
               </div>
             )}
 
-            <section className="form-section-card">
-              <div className="form-section-head">
-                <div>
-                  <div className="form-section-title">Resumo rapido</div>
-                  <p className="form-section-copy">
-                    Acompanhe o tamanho do pedido enquanto preenche.
-                  </p>
+            <FormSection
+              title="Resumo rápido"
+              description="Acompanhe o tamanho do pedido enquanto preenche os campos principais."
+              aside={
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge tone="info">{status || 'orcamento'}</StatusBadge>
+                  <StatusBadge tone="neutral">{tipo === 'atacado' ? 'Atacado' : 'Varejo'}</StatusBadge>
                 </div>
-              </div>
-
+              }
+            >
               <div className="form-summary-grid">
                 <div className="form-summary-item">
-                  <span className="table-cell-caption table-cell-muted">Numero</span>
+                  <span className="table-cell-caption table-cell-muted">Número</span>
                   <strong>{initialPedido?.num ?? nextPedNum(allPedidos)}</strong>
                 </div>
                 <div className="form-summary-item">
@@ -212,26 +274,26 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                 </div>
                 <div className="form-summary-item">
                   <span className="table-cell-caption table-cell-muted">Cliente</span>
-                  <strong>{selectedCliente?.nome || 'Nao selecionado'}</strong>
+                  <strong>{selectedCliente?.nome || 'Não selecionado'}</strong>
                 </div>
               </div>
-            </section>
+            </FormSection>
 
-            <section className="form-section-card">
-              <div className="form-section-head">
-                <div>
-                  <div className="form-section-title">Essencial</div>
-                  <p className="form-section-copy">
-                    Defina quem compra, quando o pedido foi criado e quais itens entram.
-                  </p>
-                </div>
-                <span className="bdg bb">Prioridade</span>
-              </div>
-
+            <FormSection
+              title="Essencial"
+              description="Defina cliente, data, vendedor e os itens que entram no pedido."
+              aside={<span className="bdg bb">Prioridade</span>}
+            >
               <div className="grid grid-3">
-                <label className="form-field">
-                  <span>Cliente *</span>
+                <FormField
+                  label="Cliente"
+                  htmlFor="pedido-form-cliente"
+                  required
+                  error={errors.cli}
+                  hint="Selecione um cliente já cadastrado para manter o vínculo correto do pedido."
+                >
                   <input
+                    id="pedido-form-cliente"
                     className="inp"
                     list="ped-form-cli-dl"
                     placeholder="Nome do cliente"
@@ -245,20 +307,24 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                       <option key={c.id} value={c.nome} />
                     ))}
                   </datalist>
-                </label>
-                <label className="form-field">
-                  <span>Data</span>
+                </FormField>
+                <FormField label="Data" htmlFor="pedido-form-data-input">
                   <input
+                    id="pedido-form-data-input"
                     className="inp"
                     type="date"
                     value={data}
                     onChange={(e) => setData(e.target.value)}
                     data-testid="pedido-form-data"
                   />
-                </label>
-                <label className="form-field">
-                  <span>Vendedor</span>
+                </FormField>
+                <FormField
+                  label="Vendedor"
+                  htmlFor="pedido-form-rca-input"
+                  hint="Se o cliente já tiver vendedor vinculado, o formulário tenta reaproveitar."
+                >
                   <select
+                    id="pedido-form-rca-input"
                     className="inp sel"
                     value={rcaId}
                     onChange={(e) => setRcaId(e.target.value)}
@@ -271,9 +337,14 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                       </option>
                     ))}
                   </select>
-                </label>
+                </FormField>
               </div>
 
+              <FormField
+                label="Itens do pedido"
+                error={errors.itens}
+                hint="A composição abaixo continua usando o mesmo cálculo atual de quantidade, preço e total."
+              >
               <PedidoItemsSection
                 itens={itens}
                 produtos={produtos}
@@ -281,23 +352,17 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                 onAdd={addItem}
                 onRemove={removeItem}
               />
-            </section>
+              </FormField>
+            </FormSection>
 
-            <section className="form-section-card">
-              <div className="form-section-head">
-                <div>
-                  <div className="form-section-title">Condicoes do pedido</div>
-                  <p className="form-section-copy">
-                    Ajuste status, pagamento, prazo e tipo de venda sem disputar espaco com os
-                    itens.
-                  </p>
-                </div>
-              </div>
-
+            <FormSection
+              title="Condições do pedido"
+              description="Ajuste status, pagamento, prazo e tipo de venda sem disputar espaço com os itens."
+            >
               <div className="grid grid-4">
-                <label className="form-field">
-                  <span>Status</span>
+                <FormField label="Status" htmlFor="pedido-form-status-input">
                   <select
+                    id="pedido-form-status-input"
                     className="inp sel"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
@@ -309,10 +374,10 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                     <option value="entregue">Entregue</option>
                     <option value="cancelado">Cancelado</option>
                   </select>
-                </label>
-                <label className="form-field">
-                  <span>Pagamento</span>
+                </FormField>
+                <FormField label="Pagamento" htmlFor="pedido-form-pgto-input">
                   <select
+                    id="pedido-form-pgto-input"
                     className="inp sel"
                     value={pgto}
                     onChange={(e) => handlePagamentoChange(e.target.value)}
@@ -324,10 +389,14 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                     <option value="cartao">Cartao</option>
                     <option value="cheque">Cheque</option>
                   </select>
-                </label>
-                <label className="form-field">
-                  <span>Prazo</span>
+                </FormField>
+                <FormField
+                  label="Prazo"
+                  htmlFor="pedido-form-prazo-input"
+                  hint="Cliente ou boleto preenchem um prazo seguro quando ainda estiver imediato."
+                >
                   <select
+                    id="pedido-form-prazo-input"
                     className="inp sel"
                     value={prazo}
                     onChange={(e) => setPrazo(e.target.value)}
@@ -339,13 +408,10 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                     <option value="30d">30 dias</option>
                     <option value="60d">60 dias</option>
                   </select>
-                  <small className="field-help">
-                    Cliente ou boleto preenchem um prazo seguro quando ainda estiver imediato.
-                  </small>
-                </label>
-                <label className="form-field">
-                  <span>Tipo de venda</span>
+                </FormField>
+                <FormField label="Tipo de venda" htmlFor="pedido-form-tipo-input">
                   <select
+                    id="pedido-form-tipo-input"
                     className="inp sel"
                     value={tipo}
                     onChange={(e) => setTipo(e.target.value)}
@@ -354,9 +420,9 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
                     <option value="varejo">Varejo</option>
                     <option value="atacado">Atacado</option>
                   </select>
-                </label>
+                </FormField>
               </div>
-            </section>
+            </FormSection>
 
             <details
               className="form-advanced-block"
@@ -364,40 +430,46 @@ export function PedidoForm({ initialPedido, onSaved, onCancel }: Props) {
               onToggle={(event) => setShowAdvanced(event.currentTarget.open)}
             >
               <summary className="form-advanced-summary">
-                <span>Observacoes e detalhes extras</span>
+                <span>Observações e detalhes extras</span>
                 <span className="table-cell-caption table-cell-muted">
-                  Use quando precisar orientar separacao, entrega ou atendimento
+                  Use este espaço quando precisar orientar separação, entrega ou atendimento
                 </span>
               </summary>
               <div className="form-advanced-body">
-                <label className="form-field">
-                  <span>Observacoes</span>
+                <FormField label="Observações" htmlFor="pedido-form-obs-input">
                   <textarea
+                    id="pedido-form-obs-input"
                     className="inp"
                     rows={3}
                     value={obs}
                     onChange={(e) => setObs(e.target.value)}
                     data-testid="pedido-form-obs"
                   />
-                </label>
+                </FormField>
               </div>
             </details>
           </div>
 
           <div className="form-sticky-actions">
-            <div className="modal-actions">
-              <button className="btn" type="button" onClick={onCancel} disabled={saving}>
-                Cancelar
-              </button>
-              <button
-                className="btn btn-p"
-                type="submit"
-                disabled={saving}
-                data-testid="pedido-form-submit"
-              >
-                {saving ? 'Salvando...' : 'Salvar pedido'}
-              </button>
-            </div>
+            <FormActions
+              onCancel={onCancel}
+              loading={saving}
+              submitLabel={isEdit ? 'Salvar alterações' : 'Salvar pedido'}
+            >
+              <>
+                <button className="btn" type="button" onClick={onCancel} disabled={saving}>
+                  Voltar
+                </button>
+                <button
+                  className="btn btn-p"
+                  type="submit"
+                  disabled={saving}
+                  data-testid="pedido-form-submit"
+                >
+                  {saving ? 'Salvando...' : isEdit ? 'Salvar alterações' : 'Salvar pedido'}
+                </button>
+              </>
+            </FormActions>
           </div>
         </form>
       )}

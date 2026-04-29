@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 import {
   ActionMenu,
   DataTable,
   Drawer,
-  EmptyState,
+  ErrorState,
   FilterBar,
-  PageHeader
+  LoadingState,
+  PageHeader,
+  StatusBadge
 } from '../../../shared/ui';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
+import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import {
   postLegacyBridgeMessage,
   subscribeLegacyBridgeMessages
@@ -23,46 +26,77 @@ import {
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { ClienteForm } from './ClienteForm';
 import { ClienteDetailPanel, type DetailTab } from './ClienteDetailPanel';
+import { ClienteDeleteConfirmModal } from './ClienteDeleteConfirmModal';
 import { ClienteSegmentView } from './ClienteSegmentView';
 
 const MESSAGE_SOURCE = 'clientes-react-pilot';
 const COMMAND_SOURCE = 'clientes-legacy-shell';
 type SurfaceTab = 'lista' | 'segmentos';
 
-const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  ativo: { label: 'Ativo', className: 'bg-emerald-50 text-emerald-700' },
-  inativo: { label: 'Inativo', className: 'bg-gray-100 text-gray-600' },
-  prospecto: { label: 'Prospecto', className: 'bg-blue-50 text-blue-700' }
+const STATUS_BADGE: Record<
+  string,
+  { label: string; tone: 'success' | 'neutral' | 'info' }
+> = {
+  ativo: { label: 'Ativo', tone: 'success' },
+  inativo: { label: 'Inativo', tone: 'neutral' },
+  prospecto: { label: 'Prospecto', tone: 'info' }
 };
 
 type ClientesPilotPageProps = {
   onPedidoAction?: (action: 'ver' | 'editar', pedidoId: string, clienteId: string) => void;
+  onRetryLoad?: () => void;
+  onLoadFilteredAll?: () => Promise<Cliente[]>;
+  onLoadSegmentClientes?: () => Promise<Cliente[]>;
 };
 
-export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
+export function ClientesPilotPage({
+  onPedidoAction,
+  onRetryLoad,
+  onLoadFilteredAll,
+  onLoadSegmentClientes
+}: ClientesPilotPageProps) {
   const clientes = useClienteStore(useShallow((s) => s.clientes));
+  const page = useClienteStore((s) => s.page);
+  const pageSize = useClienteStore((s) => s.pageSize);
+  const total = useClienteStore((s) => s.total);
+  const pageCount = useClienteStore((s) => s.pageCount);
   const storeStatus = useClienteStore((s) => s.status);
   const storeError = useClienteStore((s) => s.error);
+  const segmentStatus = useClienteStore((s) => s.segmentStatus);
+  const segmentError = useClienteStore((s) => s.segmentError);
   const setStatus = useClienteStore((s) => s.setStatus);
   const filtro = useClienteStore((s) => s.filtro);
   const setFiltro = useClienteStore((s) => s.setFiltro);
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
+  const setPage = useClienteStore((s) => s.setPage);
+  const setPageSize = useClienteStore((s) => s.setPageSize);
   const segmentos = useClienteStore(useShallow(selectSegmentos));
-  const filteredClientes = useClienteStore(useShallow(selectFilteredClientes));
+  const filteredSegmentClientes = useClienteStore(useShallow(selectFilteredClientes));
 
   const [surfaceTab, setSurfaceTab] = useState<SurfaceTab>('lista');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>('resumo');
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [transientDetailCliente, setTransientDetailCliente] = useState<Cliente | null>(null);
+  const [editorOrigin, setEditorOrigin] = useState<string>('unknown');
   const { deleteClienteById, deletingId, error } = useClienteMutations();
+  const { trackEvent } = useAnalytics({ module: 'clientes' });
+  const lastSearchKeyRef = useRef<string>('');
 
   const editingCliente = useMemo<Cliente | null>(
     () => clientes.find((c) => c.id === editingId) ?? null,
     [clientes, editingId]
   );
   const detailCliente = useMemo<Cliente | null>(
-    () => clientes.find((c) => c.id === detailId) ?? null,
-    [clientes, detailId]
+    () =>
+      clientes.find((c) => c.id === detailId) ??
+      (transientDetailCliente?.id === detailId ? transientDetailCliente : null),
+    [clientes, detailId, transientDetailCliente]
+  );
+  const deleteTarget = useMemo<Cliente | null>(
+    () => clientes.find((c) => c.id === deleteTargetId) ?? null,
+    [clientes, deleteTargetId]
   );
   const temFiltro = !!(filtro.q || filtro.seg || filtro.status);
 
@@ -70,16 +104,57 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
     if (storeStatus === 'idle') setStatus('loading');
   }, [storeStatus, setStatus]);
 
+  useEffect(() => {
+    if (surfaceTab !== 'segmentos' || !onLoadSegmentClientes) return;
+    void onLoadSegmentClientes();
+  }, [surfaceTab, filtro.q, filtro.seg, filtro.status, onLoadSegmentClientes]);
+
+  useEffect(() => {
+    if (surfaceTab !== 'lista') return;
+    const term = String(filtro.q || '').trim();
+    if (!term) {
+      lastSearchKeyRef.current = '';
+      return;
+    }
+
+    const filtersActive = buildActiveFilterKeys();
+    const searchKey = [term, filtro.seg || '', filtro.status || ''].join('|');
+    if (searchKey === lastSearchKeyRef.current) return;
+
+    const timeoutId = window.setTimeout(() => {
+      trackEvent('cliente_buscado', {
+        metadata: {
+          origin: 'list_filter_bar',
+          term_length: term.length,
+          filters_active: filtersActive,
+          filters_count: filtersActive.length
+        },
+        result: 'success'
+      });
+      lastSearchKeyRef.current = searchKey;
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [filtro.q, filtro.seg, filtro.status, surfaceTab, trackEvent]);
+
   async function handleExcluir(id: string) {
     await deleteClienteById(id);
     if (editingId === id) setEditingId(null);
     if (detailId === id) setDetailId(null);
+    if (transientDetailCliente?.id === id) setTransientDetailCliente(null);
+    setDeleteTargetId(null);
+    if (page > 1 && clientes.length === 1) {
+      setPage(page - 1);
+      return;
+    }
+    onRetryLoad?.();
   }
 
-  function exportarCsvAtual() {
+  async function exportarCsvAtual() {
+    const exportRows = onLoadFilteredAll ? await onLoadFilteredAll() : clientes;
     const rows = [
       ['Nome', 'E-mail', 'Telefone', 'WhatsApp', 'Segmento', 'Status', 'Cidade', 'Vendedor'],
-      ...filteredClientes.map((c) => [
+      ...exportRows.map((c) => [
         c.nome || '',
         c.email || '',
         c.tel || '',
@@ -101,18 +176,50 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
     URL.revokeObjectURL(anchor.href);
   }
 
-  function openDetail(id: string, tab: DetailTab = 'resumo') {
-    setSurfaceTab('lista');
-    setEditingId(null);
-    setDetailId(id);
-    setDetailTab(tab);
+  function buildActiveFilterKeys() {
+    return [
+      ...(filtro.seg ? ['segmento'] : []),
+      ...(filtro.status ? ['status'] : [])
+    ];
   }
 
-  function openNewCliente() {
+  function trackDrawerOpen(mode: 'detail' | 'create' | 'edit', origin: string) {
+    trackEvent('drawer_aberto', {
+      metadata: { mode, origin },
+      result: 'success'
+    });
+  }
+
+  function openDetail(id: string, tab: DetailTab = 'resumo', origin = 'list_row') {
+    setSurfaceTab('lista');
+    setEditingId(null);
+    setTransientDetailCliente(null);
+    setDetailId(id);
+    setDetailTab(tab);
+    trackEvent('cliente_aberto', {
+      metadata: { origin },
+      result: 'success'
+    });
+    trackDrawerOpen('detail', origin);
+  }
+
+  function openNewCliente(origin = 'header_button') {
     setSurfaceTab('lista');
     setDetailId(null);
     setEditingId('new');
     setDetailTab('resumo');
+    setEditorOrigin(origin);
+    trackDrawerOpen('create', origin);
+  }
+
+  function openEditCliente(id: string, origin = 'row_menu') {
+    setSurfaceTab('lista');
+    setDetailId(null);
+    setTransientDetailCliente(null);
+    setEditingId(id);
+    setDetailTab('resumo');
+    setEditorOrigin(origin);
+    trackDrawerOpen('edit', origin);
   }
 
   useKeyboardShortcuts([
@@ -130,7 +237,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
       key: 'n',
       enabled: surfaceTab === 'lista' && !editingId,
       handler: () => {
-        openNewCliente();
+        openNewCliente('keyboard_shortcut');
       }
     },
     {
@@ -169,34 +276,27 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
   useEffect(() => {
     return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
       if (data.type === 'clientes:novo') {
-        setSurfaceTab('lista');
-        setDetailId(null);
-        setEditingId('new');
-        setDetailTab('resumo');
+        setTransientDetailCliente(null);
+        openNewCliente('legacy_bridge');
         return;
       }
 
       if (data.type === 'clientes:abrir-segmentos') {
         setEditingId(null);
         setDetailId(null);
+        setTransientDetailCliente(null);
         setDetailTab('resumo');
         setSurfaceTab('segmentos');
         return;
       }
 
       if (data.type === 'clientes:abrir-detalhe' && data.id) {
-        setSurfaceTab('lista');
-        setEditingId(null);
-        setDetailId(String(data.id));
-        setDetailTab((data.tab as DetailTab) || 'resumo');
+        openDetail(String(data.id), (data.tab as DetailTab) || 'resumo', 'legacy_bridge');
         return;
       }
 
       if (data.type === 'clientes:editar' && data.id) {
-        setSurfaceTab('lista');
-        setDetailId(null);
-        setEditingId(String(data.id));
-        setDetailTab('resumo');
+        openEditCliente(String(data.id), 'legacy_bridge');
         return;
       }
 
@@ -211,22 +311,21 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
       }
 
       if (data.type === 'clientes:editar-atual' && detailId) {
-        setEditingId(detailId);
-        setDetailId(null);
-        setDetailTab('resumo');
+        openEditCliente(detailId, 'detail_bridge');
         return;
       }
 
       if (data.type === 'clientes:abrir-lista') {
         setEditingId(null);
         setDetailId(null);
+        setTransientDetailCliente(null);
         setDetailTab('resumo');
         setSurfaceTab('lista');
         return;
       }
 
       if (data.type === 'clientes:exportar-csv') {
-        exportarCsvAtual();
+        void exportarCsvAtual();
         return;
       }
 
@@ -259,7 +358,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
         if (detailId || data.id) setDetailTab('fidelidade');
       }
     });
-  }, [clearFiltro, detailId, filteredClientes]);
+  }, [clearFiltro, detailId, onLoadFilteredAll]);
 
   useEffect(() => {
     postLegacyBridgeMessage({
@@ -268,7 +367,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
       state: {
         view: editingId ? 'form' : detailId ? 'detail' : 'list',
         status: deletingId ? 'deleting' : error ? 'error' : 'ready',
-        count: clientes.length,
+        count: total,
         filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length,
         selectedId: editingId === 'new' ? '' : editingId || detailId || '',
         selectedName: editingCliente?.nome || detailCliente?.nome || '',
@@ -277,7 +376,6 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
       }
     });
   }, [
-    clientes.length,
     deletingId,
     detailId,
     editingId,
@@ -288,31 +386,34 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
     editingCliente?.nome,
     detailCliente?.nome,
     detailTab,
-    surfaceTab
+    surfaceTab,
+    total
   ]);
 
   return (
-    <main className="rf-content rf-ui-stack py-2" data-testid="clientes-pilot-page">
+    <main className="rf-content rf-ui-stack" data-testid="clientes-pilot-page">
       <PageHeader
+        kicker="Relacionamento"
         title="Clientes"
-        description="Cadastre e gerencie seus clientes."
+        description="Acompanhe a base de clientes, revise segmentos e abra cadastro ou detalhe sem sair da rotina operacional."
+        meta={
+          <StatusBadge tone="info">
+            {total} no total · página {page} de {pageCount}
+          </StatusBadge>
+        }
         actions={
           <button
             className="btn btn-p btn-sm"
             type="button"
             data-testid="novo-btn"
-            onClick={openNewCliente}
+            onClick={() => openNewCliente('header_button')}
           >
             Novo cliente
           </button>
         }
       />
 
-      {error && (
-        <div className="rf-error-banner" data-testid="cliente-pilot-error">
-          {error}
-        </div>
-      )}
+      {error ? <ErrorState title={error} compact data-testid="cliente-pilot-error" /> : null}
 
       <div className="tabs" data-testid="cliente-surface-tabs">
         <button
@@ -333,23 +434,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
 
       {/* ── TABELA OPERACIONAL ─────────────────────────────────────────── */}
       <div hidden={surfaceTab !== 'lista'}>
-        {storeStatus === 'loading' && (
-          <div className="sk-card" data-testid="skeleton">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="sk-line" />
-            ))}
-          </div>
-        )}
-
-        {storeStatus === 'error' && (
-          <EmptyState
-            title={storeError ?? 'Erro ao carregar clientes.'}
-            compact
-            data-testid="error-state"
-          />
-        )}
-
-        {storeStatus === 'ready' && (
+        {storeStatus !== 'error' && (
           <>
             <div className="mb-2" data-testid="clientes-toolbar">
               <FilterBar
@@ -390,7 +475,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                 ]}
                 actions={
                   <>
-                    {temFiltro && (
+                    {temFiltro ? (
                       <button
                         className="btn btn-sm h-9"
                         type="button"
@@ -399,66 +484,78 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                       >
                         Limpar
                       </button>
-                    )}
+                    ) : null}
                     <button
                       className="btn btn-ghost btn-sm h-9"
                       type="button"
-                      onClick={exportarCsvAtual}
+                      onClick={() => {
+                        void exportarCsvAtual();
+                      }}
                       data-testid="export-btn"
                     >
-                      Exportar
+                      Exportar CSV
                     </button>
                     <button
                       className="btn btn-p btn-sm h-9"
                       type="button"
-                      onClick={openNewCliente}
+                      onClick={() => openNewCliente('inline_button')}
                       data-testid="novo-inline-btn"
                     >
-                      + Novo cliente
+                      Novo cliente
                     </button>
                   </>
                 }
               />
             </div>
 
-            {filteredClientes.length === 0 && (
-              <div
-                className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-md border border-dashed border-gray-200 bg-white text-center"
-                data-testid="empty-state"
-              >
-                <p className="text-sm text-gray-600">Nenhum cliente encontrado</p>
-                <button
-                  className="btn btn-p btn-sm h-9"
-                  type="button"
-                  onClick={openNewCliente}
-                >
-                  + Novo cliente
-                </button>
-              </div>
-            )}
-
-            {filteredClientes.length > 0 && (
+            <div data-testid="cliente-list">
               <DataTable
                 className="clientes-data-table"
-                data={filteredClientes}
+                data={clientes}
                 rowKey={(cliente) => cliente.id}
-                onRowClick={(cliente) => openDetail(cliente.id)}
+                loading={storeStatus === 'loading'}
+                onRetry={onRetryLoad}
+                page={page}
+                pageSize={pageSize}
+                total={total}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+                emptyTitle={
+                  temFiltro
+                    ? 'Nenhum cliente encontrado com os filtros atuais.'
+                    : 'Nenhum cliente cadastrado ainda.'
+                }
+                emptyDescription={
+                  temFiltro
+                    ? 'Ajuste os filtros ou limpe a busca para ampliar os resultados.'
+                    : 'Cadastre o primeiro cliente para começar a operar por aqui.'
+                }
+                emptyAction={
+                  <button
+                    className="btn btn-p btn-sm h-9"
+                    type="button"
+                    onClick={() => openNewCliente('empty_state')}
+                  >
+                    Novo cliente
+                  </button>
+                }
+                onRowClick={(cliente) => openDetail(cliente.id, 'resumo', 'list_row')}
                 columns={[
                   {
                     key: 'nome',
                     label: 'Nome',
                     render: (cliente) => (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" data-testid="cliente-card">
                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
                           {getInitials(cliente.nome || '')}
                         </div>
-                        <div className="min-w-0">
-                          <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
-                          {cliente.apelido && (
-                            <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
-                          )}
-                        </div>
+                      <div className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
+                        {cliente.apelido ? (
+                          <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
+                        ) : null}
                       </div>
+                    </div>
                     )
                   },
                   {
@@ -467,11 +564,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                     render: (cliente) => {
                       const badge = STATUS_BADGE[cliente.status ?? ''];
                       if (!badge) return '—';
-                      return (
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${badge.className}`}>
-                          {badge.label}
-                        </span>
-                      );
+                      return <StatusBadge tone={badge.tone}>{badge.label}</StatusBadge>;
                     }
                   },
                   {
@@ -492,56 +585,59 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
                     key: 'tags',
                     label: 'Tags',
                     render: (cliente) =>
-                      cliente.optin_marketing ? (
-                        <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                          MKT
-                        </span>
-                      ) : (
-                        '—'
-                      )
+                      cliente.optin_marketing ? <StatusBadge tone="success">MKT</StatusBadge> : '—'
                   }
                 ]}
-                renderActions={(cliente) => {
-                  return (
-                    <ActionMenu
-                      label="Ações do cliente"
-                      buttonTestId="cli-menu-btn"
-                      items={[
-                        {
-                          key: 'detalhes',
-                          label: 'Ver detalhes',
-                          onClick: () => openDetail(cliente.id)
-                        },
-                        {
-                          key: 'editar',
-                          label: 'Editar',
-                          onClick: () => {
-                            setSurfaceTab('lista');
-                            setDetailId(null);
-                            setEditingId(cliente.id);
-                          }
-                        },
-                        {
-                          key: 'excluir',
-                          label: 'Excluir',
-                          danger: true,
-                          onClick: () => {
-                            void handleExcluir(cliente.id);
-                          }
+                renderActions={(cliente) => (
+                  <ActionMenu
+                    label="Ações do cliente"
+                    buttonTestId="cli-menu-btn"
+                    items={[
+                      {
+                        key: 'detalhes',
+                        label: 'Ver detalhes',
+                        onClick: () => openDetail(cliente.id, 'resumo', 'row_menu')
+                      },
+                      {
+                        key: 'editar',
+                        label: 'Editar',
+                        onClick: () => openEditCliente(cliente.id, 'row_menu')
+                      },
+                      {
+                        key: 'excluir',
+                        label: 'Excluir',
+                        danger: true,
+                        onClick: () => {
+                          setDeleteTargetId(cliente.id);
                         }
-                      ]}
-                    />
-                  );
-                }}
+                      }
+                    ]}
+                  />
+                )}
               />
-            )}
+            </div>
           </>
+        )}
+
+        {storeStatus === 'error' && (
+          <ErrorState
+            title={storeError ?? 'Erro ao carregar clientes.'}
+            compact
+            onRetry={onRetryLoad}
+            data-testid="error-state"
+          />
         )}
       </div>
 
       {surfaceTab === 'segmentos' && !detailCliente && !editingId && (
         <ClienteSegmentView
-          onDetalhe={(id) => openDetail(id)}
+          clientes={filteredSegmentClientes}
+          loading={segmentStatus === 'loading'}
+          error={segmentStatus === 'error' ? segmentError : null}
+          onRetry={() => {
+            void onLoadSegmentClientes?.();
+          }}
+          onDetalhe={(id) => openDetail(id, 'resumo', 'segmentos')}
         />
       )}
 
@@ -557,9 +653,7 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
               className="btn btn-p btn-sm"
               type="button"
               onClick={() => {
-                setDetailId(null);
-                setEditingId(detailCliente.id);
-                setDetailTab('resumo');
+                openEditCliente(detailCliente.id, 'detail_drawer');
               }}
             >
               Editar
@@ -581,24 +675,45 @@ export function ClientesPilotPage({ onPedidoAction }: ClientesPilotPageProps) {
         )}
       </Drawer>
 
-      {deletingId && <EmptyState title="Removendo cliente..." compact />}
+      {deletingId ? <LoadingState title="Removendo cliente..." compact /> : null}
 
       <Drawer
         open={!!editingId}
         title={editingId === 'new' ? 'Novo cliente' : 'Editar cliente'}
         onClose={() => setEditingId(null)}
+        closeOnOverlayClick={!deletingId}
       >
         <ClienteForm
           initialCliente={editingId === 'new' ? null : editingCliente}
+          analyticsOrigin={editorOrigin}
           onSaved={(cliente) => {
             setSurfaceTab('lista');
             setEditingId(null);
+            setTransientDetailCliente(cliente);
             setDetailId(cliente.id);
             setDetailTab('resumo');
+            trackEvent('cliente_aberto', {
+              metadata: { origin: 'save_success' },
+              result: 'success'
+            });
+            trackDrawerOpen('detail', 'save_success');
+            onRetryLoad?.();
           }}
           onCancel={() => setEditingId(null)}
         />
       </Drawer>
+
+      <ClienteDeleteConfirmModal
+        open={!!deleteTarget}
+        target={deleteTarget}
+        submitting={Boolean(deletingId)}
+        onClose={() => {
+          if (!deletingId) setDeleteTargetId(null);
+        }}
+        onConfirm={() => {
+          if (deleteTarget) void handleExcluir(deleteTarget.id);
+        }}
+      />
     </main>
   );
 }

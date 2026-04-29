@@ -68,10 +68,18 @@ const CLIENTES: Cliente[] = [
 
 function resetStores() {
   useClienteStore.setState({
-    clientes: [],
-    status: 'idle',
+    clientes: CLIENTES,
+    segmentClientes: CLIENTES,
+    status: 'ready',
+    segmentStatus: 'ready',
     error: null,
-    filtro: { q: '', seg: '', status: '' }
+    segmentError: null,
+    filtro: { q: '', seg: '', status: '' },
+    segmentos: ['Varejo'],
+    page: 1,
+    pageSize: 20,
+    total: 1,
+    pageCount: 1
   });
   useAuthStore.setState({
     session: {
@@ -100,7 +108,6 @@ describe('ClientesPilotPage', () => {
     getClienteFidelidadeSaldoMock.mockResolvedValue(null);
     listClienteFidelidadeLancamentosMock.mockResolvedValue([]);
     listPedidosByClienteMock.mockResolvedValue([]);
-    act(() => useClienteStore.getState().setClientes(CLIENTES));
   });
 
   it('cria um novo cliente pelo formulario React', async () => {
@@ -202,6 +209,7 @@ describe('ClientesPilotPage', () => {
 
     await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Excluir'));
+    await userEvent.click(screen.getByTestId('confirmar-exclusao-btn'));
 
     await waitFor(() => {
       expect(deleteClienteMock).toHaveBeenCalledWith(

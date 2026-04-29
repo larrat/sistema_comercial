@@ -9,6 +9,7 @@ import { useEstoqueMutations } from '../hooks/useEstoqueMutations';
 import { calculateEstoqueSaldos } from '../hooks/useEstoqueCalculations';
 import { listTransferFiliais } from '../services/estoqueApi';
 import type { Filial } from '../../../../types/domain';
+import { EstoqueAdjustConfirmModal } from './EstoqueAdjustConfirmModal';
 
 function fmtCurrency(value: number) {
   return Intl.NumberFormat('pt-BR', {
@@ -43,6 +44,8 @@ export function EstoqueMovementModal() {
   const [transferStatus, setTransferStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>(
     'idle'
   );
+  const [confirmAdjustOpen, setConfirmAdjustOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const produtos = snapshot?.produtos || [];
   const movimentacoes = snapshot?.movimentacoes || [];
@@ -119,27 +122,65 @@ export function EstoqueMovementModal() {
 
   const destinationFilial = transferFiliais.find((item) => item.id === draft.destinoFilialId) || null;
 
+  useEffect(() => {
+    if (!open) {
+      setConfirmAdjustOpen(false);
+      setSubmitting(false);
+    }
+  }, [open]);
+
+  async function submitMovement() {
+    if (submitting) return;
+    setSubmitting(true);
+    const success = await saveMovement(atual.saldo, atual.cm);
+    setSubmitting(false);
+    if (success) {
+      setConfirmAdjustOpen(false);
+    }
+  }
+
+  function handlePrimaryAction() {
+    if (draft.tipo === 'ajuste') {
+      setConfirmAdjustOpen(true);
+      return;
+    }
+
+    void submitMovement();
+  }
+
   return (
-    <Modal
-      open={open}
-      title="Registrar movimentação"
-      onClose={closeMovementModal}
-      footer={
-        <>
-          <button type="button" className="btn btn-sm" onClick={closeMovementModal}>
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn-p btn-sm"
-            onClick={() => void saveMovement(atual.saldo, atual.cm)}
-          >
-            {draft.tipo === 'transf' ? 'Salvar transferência' : 'Salvar movimentação'}
-          </button>
-        </>
-      }
-    >
-      <div className="rf-ui-stack">
+    <>
+      <Modal
+        open={open}
+        title="Registrar movimentação"
+        onClose={closeMovementModal}
+        footer={
+          <>
+            <button type="button" className="btn btn-sm" onClick={closeMovementModal} disabled={submitting}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-p btn-sm"
+              onClick={handlePrimaryAction}
+              disabled={submitting}
+            >
+              {submitting
+                ? draft.tipo === 'transf'
+                  ? 'Salvando transferência...'
+                  : draft.tipo === 'ajuste'
+                    ? 'Salvando ajuste...'
+                    : 'Salvando movimentação...'
+                : draft.tipo === 'transf'
+                  ? 'Salvar transferência'
+                  : draft.tipo === 'ajuste'
+                    ? 'Revisar ajuste'
+                    : 'Salvar movimentação'}
+            </button>
+          </>
+        }
+      >
+        <div className="rf-ui-stack">
         <div className="rf-ui-form-grid">
           <label className="rf-ui-field">
             <span className="rf-ui-field__label">Produto</span>
@@ -288,16 +329,22 @@ export function EstoqueMovementModal() {
           </label>
         ) : null}
 
-        <label className="rf-ui-field">
-          <span className="rf-ui-field__label">Observação</span>
-          <textarea
-            className="inp ta"
-            rows={3}
-            value={draft.observacao}
-            onChange={(event) => updateMovementDraft({ observacao: event.target.value })}
-            placeholder="Contexto da movimentação"
-          />
-        </label>
+          <label className="rf-ui-field">
+            <span className="rf-ui-field__label">Observação</span>
+            <textarea
+              className="inp ta"
+              rows={3}
+              value={draft.observacao}
+              onChange={(event) => updateMovementDraft({ observacao: event.target.value })}
+              placeholder={
+                draft.tipo === 'ajuste'
+                  ? 'Explique o motivo do ajuste manual'
+                  : draft.tipo === 'transf'
+                    ? 'Contexto da transferência'
+                    : 'Contexto da movimentação'
+              }
+            />
+          </label>
 
         {canShowPreview ? (
           <div className="card-shell rf-ui-stock-preview">
@@ -322,7 +369,23 @@ export function EstoqueMovementModal() {
             </div>
           </div>
         ) : null}
-      </div>
-    </Modal>
+        </div>
+      </Modal>
+
+      <EstoqueAdjustConfirmModal
+        open={confirmAdjustOpen}
+        produtoNome={produto?.nome || ''}
+        saldoAtualLabel={`${fmtQuantity(atual.saldo)} ${produto?.un || ''}`.trim()}
+        saldoNovoLabel={`${fmtQuantity(previewSaldo)} ${produto?.un || ''}`.trim()}
+        diferencaLabel={`${fmtQuantity(previewSaldo - atual.saldo)} ${produto?.un || ''}`.trim()}
+        submitting={submitting}
+        onClose={() => {
+          if (!submitting) setConfirmAdjustOpen(false);
+        }}
+        onConfirm={() => {
+          void submitMovement();
+        }}
+      />
+    </>
   );
 }

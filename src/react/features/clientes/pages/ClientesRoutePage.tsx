@@ -6,7 +6,7 @@ import { ClientesPilotPage } from '../components/ClientesPilotPage';
 import { useClienteData } from '../hooks/useClienteData';
 
 export function ClientesRoutePage() {
-  useClienteData();
+  const { reload, loadFilteredAll, ensureSegmentClientes } = useClienteData();
   const navigate = useNavigate();
 
   const handlePedidoAction = useCallback(
@@ -21,5 +21,12 @@ export function ClientesRoutePage() {
     [navigate]
   );
 
-  return <ClientesPilotPage onPedidoAction={handlePedidoAction} />;
+  return (
+    <ClientesPilotPage
+      onPedidoAction={handlePedidoAction}
+      onRetryLoad={reload}
+      onLoadFilteredAll={loadFilteredAll}
+      onLoadSegmentClientes={ensureSegmentClientes}
+    />
+  );
 }

@@ -93,7 +93,7 @@ export function DataTable<Row>({
     typeof total === 'number' &&
     typeof onPageChange === 'function';
   const safePage = Math.max(1, page ?? 1);
-  const safePageSize = Math.max(1, pageSize ?? tableRows.length || 1);
+  const safePageSize = Math.max(1, pageSize ?? (tableRows.length || 1));
   const totalItems = Math.max(0, total ?? tableRows.length);
   const totalPages = Math.max(1, Math.ceil(totalItems / safePageSize));
   const fromItem = totalItems === 0 ? 0 : (safePage - 1) * safePageSize + 1;

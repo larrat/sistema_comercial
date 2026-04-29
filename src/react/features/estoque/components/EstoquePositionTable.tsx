@@ -105,7 +105,7 @@ export function EstoquePositionTable({
           align: 'right',
           render: (row) => (
             <button className="btn btn-sm" type="button" onClick={() => onMoveProduct(row)}>
-              Movimentar
+              Registrar movimento
             </button>
           )
         }

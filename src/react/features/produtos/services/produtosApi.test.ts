@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { listProdutos, saveProduto, deleteProduto } from './produtosApi';
+import {
+  buildListProdutoCategoriasUrl,
+  buildListProdutoPaisUrl,
+  buildListProdutosPageUrl,
+  deleteProduto,
+  listProdutoCategorias,
+  listProdutoPais,
+  listProdutos,
+  listProdutosPage,
+  saveProduto
+} from './produtosApi';
 import type { Produto } from '../../../../types/domain';
 
 const context = {
@@ -70,6 +80,65 @@ describe('listProdutos', () => {
   it('lança erro genérico quando status não ok e sem mensagem', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse({}, 500));
     await expect(listProdutos(context)).rejects.toThrow('Erro 500');
+  });
+
+  it('monta a URL paginada com busca e categoria server-side', () => {
+    const url = buildListProdutosPageUrl(context.url, 'filial-1', {
+      page: 2,
+      pageSize: 20,
+      q: 'arroz',
+      cat: 'Alimentos'
+    });
+    expect(url).toContain('/rest/v1/produtos?filial_id=eq.filial-1&order=nome');
+    expect(url).toContain('&and=');
+    expect(url).toContain('&limit=20&offset=20');
+  });
+
+  it('monta a URL de categorias por filial', () => {
+    expect(buildListProdutoCategoriasUrl(context.url, 'filial-1')).toBe(
+      'https://example.supabase.co/rest/v1/produtos?filial_id=eq.filial-1&select=cat&order=cat'
+    );
+  });
+
+  it('monta a URL de produtos-pai por filial', () => {
+    expect(buildListProdutoPaisUrl(context.url, 'filial-1')).toBe(
+      'https://example.supabase.co/rest/v1/produtos?filial_id=eq.filial-1&produto_pai_id=is.null&order=nome'
+    );
+  });
+
+  it('lista produtos paginados com total', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ 'content-range': '20-39/42' }),
+      text: () => Promise.resolve(JSON.stringify([PRODUTO]))
+    } as Response);
+
+    const result = await listProdutosPage(context, { page: 2, pageSize: 20, q: 'arroz' });
+
+    expect(result).toEqual({
+      rows: [PRODUTO],
+      page: 2,
+      pageSize: 20,
+      total: 42,
+      pageCount: 3
+    });
+  });
+
+  it('lista categorias únicas do backend', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse([{ cat: 'Alimentos' }, { cat: 'Limpeza' }, { cat: 'Alimentos' }])
+    );
+
+    const result = await listProdutoCategorias(context);
+
+    expect(result).toEqual(['Alimentos', 'Limpeza']);
+  });
+
+  it('lista produtos-pai do backend atual', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse([PRODUTO]));
+    const result = await listProdutoPais(context);
+    expect(result).toEqual([PRODUTO]);
   });
 });
 

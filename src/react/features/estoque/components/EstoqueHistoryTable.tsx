@@ -52,7 +52,7 @@ export function EstoqueHistoryTable({
               onClick={() => onDelete(row)}
               disabled={deletingId === row.id}
             >
-              {deletingId === row.id ? 'Excluindo...' : 'Excluir'}
+              {deletingId === row.id ? 'Excluindo...' : 'Excluir registro'}
             </button>
           )
         }

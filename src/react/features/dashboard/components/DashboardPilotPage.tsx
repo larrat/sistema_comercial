@@ -3,7 +3,14 @@ import { useCurrentUserRole } from '../../../app/hooks/useCurrentUserRole';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
 import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
-import { EmptyState, StatusBadge } from '../../../shared/ui';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  PageHeader,
+  StatCard,
+  StatusBadge
+} from '../../../shared/ui';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
@@ -222,6 +229,58 @@ function goToPage(page: string, onNavigatePage?: (page: string) => void) {
   }
 }
 
+function DashboardContextStats({
+  pedidosCount,
+  produtosCount,
+  clientesCount,
+  entreguesHoje,
+  onNavigatePage
+}: {
+  pedidosCount: number;
+  produtosCount: number;
+  clientesCount: number;
+  entreguesHoje: number;
+  onNavigatePage?: (page: string) => void;
+}) {
+  return (
+    <section className="rf-ui-stat-grid--4">
+      <StatCard
+        label="Pedidos na base"
+        value={pedidosCount}
+        foot={
+          <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+            Abrir pedidos
+          </button>
+        }
+      />
+      <StatCard
+        label="Produtos monitorados"
+        value={produtosCount}
+        foot={
+          <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('produtos', onNavigatePage)}>
+            Abrir produtos
+          </button>
+        }
+      />
+      <StatCard
+        label="Clientes monitorados"
+        value={clientesCount}
+        foot={
+          <button className="btn btn-ghost btn-xs" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+            Abrir clientes
+          </button>
+        }
+      />
+      <StatCard
+        label="Entregues hoje"
+        value={entreguesHoje}
+        tone={entreguesHoje > 0 ? 'success' : 'default'}
+        foot="Pedidos entregues na data de hoje"
+      />
+    </section>
+  );
+}
+
 function PeriodSelector({
   periodo,
   onChange
@@ -343,12 +402,14 @@ function DashAlerts({
   crit,
   baixo,
   anivProximos,
-  hoje
+  hoje,
+  onNavigatePage
 }: {
   crit: Produto[];
   baixo: Produto[];
   anivProximos: Array<Cliente & { _anivData: Date }>;
   hoje: Date;
+  onNavigatePage?: (page: string) => void;
 }) {
   if (!crit.length && !baixo.length && !anivProximos.length) {
     return <div className="empty-inline table-cell-muted">Sem alertas no momento.</div>;
@@ -370,6 +431,11 @@ function DashAlerts({
               .join(', ')}
             {crit.length > 3 ? '...' : ''}
           </div>
+          <div style={{ marginTop: 10 }}>
+            <button className="btn btn-sm" type="button" onClick={() => goToPage('estoque', onNavigatePage)}>
+              Ver estoque
+            </button>
+          </div>
         </div>
       )}
       {baixo.length > 0 && (
@@ -384,6 +450,11 @@ function DashAlerts({
               .map((p) => p.nome)
               .join(', ')}
             {baixo.length > 3 ? '...' : ''}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <button className="btn btn-sm" type="button" onClick={() => goToPage('estoque', onNavigatePage)}>
+              Revisar estoque
+            </button>
           </div>
         </div>
       )}
@@ -401,6 +472,11 @@ function DashAlerts({
             })
             .join(', ')}
           {anivProximos.length > 3 ? '...' : ''}
+          <div style={{ marginTop: 10 }}>
+            <button className="btn btn-sm" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+              Abrir clientes
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -714,9 +790,11 @@ function DashboardInsightGrid({
 }
 
 export function DashboardPilotPage({
-  onNavigatePage
+  onNavigatePage,
+  onReload
 }: {
   onNavigatePage?: (page: string) => void;
+  onReload?: () => void;
 }) {
   const periodo = useDashboardStore((s) => s.periodo);
   const pedidos = useDashboardStore((s) => s.pedidos);
@@ -755,9 +833,29 @@ export function DashboardPilotPage({
   const showOperational = view === 'operacional';
   const showManagerial = view === 'gerencial';
   const showAnalytical = view === 'analitico';
+  const hasAnyBaseData = pedidos.length > 0 || produtos.length > 0 || clientes.length > 0;
+  const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
     <div className="dash-bento-page" data-testid="dashboard-pilot-page">
+      <PageHeader
+        kicker="Dashboard"
+        title="Painel executivo"
+        description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema. Sem métricas estimadas ou mockadas."
+        actions={
+          <button className="btn btn-sm" type="button" onClick={onReload} disabled={status === 'loading'}>
+            {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
+          </button>
+        }
+        meta={
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
+            <StatusBadge tone="info">{periodoLabels[periodo]}</StatusBadge>
+            <StatusBadge tone="neutral">{DASHBOARD_VIEW_LABELS[view]}</StatusBadge>
+            <StatusBadge tone="success">Dados reais</StatusBadge>
+          </div>
+        }
+      />
+
       <div className="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
         <div className="fg2 dash-page-toolbar">
           <span className="table-cell-muted dash-page-toolbar__meta">
@@ -768,25 +866,56 @@ export function DashboardPilotPage({
         <DashboardViewSelector view={view} onChange={setView} />
       </div>
 
-      {error && <EmptyState title={error} compact />}
+      <p className="table-cell-caption table-cell-muted" style={{ marginTop: -6 }}>
+        {sourceSummary}
+      </p>
 
       {status === 'loading' && (
-        <div className="sk-card" data-testid="dash-pilot-loading">
-          <div className="sk-line" />
-          <div className="sk-line" />
-          <div className="sk-line" />
-        </div>
+        <LoadingState
+          title="Carregando indicadores do dashboard..."
+          description="Estamos reunindo pedidos, produtos e clientes da filial ativa para montar a leitura executiva."
+          data-testid="dash-pilot-loading"
+        />
+      )}
+
+      {status === 'error' && (
+        <ErrorState
+          title="Não foi possível carregar o dashboard."
+          description="A leitura executiva depende das bases de pedidos, produtos e clientes da filial ativa."
+          technicalMessage={error ?? undefined}
+          onRetry={onReload}
+          data-testid="dash-pilot-error"
+        />
+      )}
+
+      {status === 'ready' && !hasAnyBaseData && (
+        <EmptyState
+          title="Ainda não há base suficiente para montar o dashboard."
+          description="Assim que a filial tiver pedidos, produtos ou clientes cadastrados, os indicadores executivos passam a aparecer aqui."
+          action={
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn btn-sm" type="button" onClick={() => goToPage('clientes', onNavigatePage)}>
+                Abrir clientes
+              </button>
+              <button className="btn btn-sm" type="button" onClick={() => goToPage('produtos', onNavigatePage)}>
+                Abrir produtos
+              </button>
+              <button className="btn btn-sm" type="button" onClick={() => goToPage('pedidos', onNavigatePage)}>
+                Abrir pedidos
+              </button>
+            </div>
+          }
+          data-testid="dash-pilot-empty"
+        />
       )}
 
       {status === 'ready' && (
         <>
-          <DashboardRoleSummary
-            role={userRole}
-            view={view}
-            derived={derived}
+          <DashboardContextStats
             pedidosCount={pedidos.length}
             produtosCount={produtos.length}
             clientesCount={clientes.length}
+            entreguesHoje={derived.entreguesHoje}
             onNavigatePage={onNavigatePage}
           />
 
@@ -800,24 +929,35 @@ export function DashboardPilotPage({
             allPedsCount={pedidos.length}
           />
 
+          <DashboardRoleSummary
+            role={userRole}
+            view={view}
+            derived={derived}
+            pedidosCount={pedidos.length}
+            produtosCount={produtos.length}
+            clientesCount={clientes.length}
+            onNavigatePage={onNavigatePage}
+          />
+
           {showOperational && (
             <>
               <section className="dash-section dash-section--operacao dash-bento-panel dash-bento-panel--ops">
                 <div className="dash-section-head">
                   <h3>Decisões de hoje</h3>
-                  <p>Fila, ruptura e sinais que pedem ação imediata.</p>
+                  <p>Fila comercial, ruptura de estoque e relacionamento que pedem ação imediata.</p>
                 </div>
                 <DashAlerts
                   crit={derived.crit}
                   baixo={derived.baixo}
                   anivProximos={derived.anivProximos}
                   hoje={derived.hoje}
+                  onNavigatePage={onNavigatePage}
                 />
               </section>
 
               <div className="dash-grid-main dash-bento-grid dash-bento-grid--primary">
                 <div className="card card-shell dash-card dash-bento-card dash-bento-card--status">
-                  <div className="ct">Status dos pedidos</div>
+                <div className="ct">Status dos pedidos</div>
                   <DashStatusPedidos stMap={derived.stMap} />
                 </div>
                 <div className="card card-shell dash-card dash-card--top dash-bento-card">
@@ -834,8 +974,8 @@ export function DashboardPilotPage({
                 <h3>{showAnalytical ? 'Leitura analítica' : 'Leitura gerencial'}</h3>
                 <p>
                   {showAnalytical
-                    ? 'Profundidade para identificar padrão, cobertura e consistência operacional.'
-                    : 'Resultado, tendência e distribuição do desempenho comercial.'}
+                    ? 'Profundidade para identificar padrão, cobertura e consistência operacional com base nos dados atuais.'
+                    : 'Resultado, tendência e distribuição do desempenho comercial no período selecionado.'}
                 </p>
               </div>
 
@@ -882,6 +1022,7 @@ export function DashboardPilotPage({
                 baixo={derived.baixo}
                 anivProximos={derived.anivProximos}
                 hoje={derived.hoje}
+                onNavigatePage={onNavigatePage}
               />
             </section>
           )}

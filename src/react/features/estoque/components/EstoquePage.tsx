@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { EmptyState, FormSection } from '../../../shared/ui';
+import { ErrorState, FormSection, LoadingState } from '../../../shared/ui';
 import { useFilialContext } from '../../../app/filial/FilialProvider';
 import { useEstoqueFilters } from '../hooks/useEstoqueFilters';
 import { useEstoqueMutations } from '../hooks/useEstoqueMutations';
@@ -22,6 +22,7 @@ export function EstoquePage() {
   const status = useEstoqueStore((s) => s.status);
   const error = useEstoqueStore((s) => s.error);
   const openMovementModal = useEstoqueStore((s) => s.openMovementModal);
+  const requestReload = useEstoqueStore((s) => s.requestReload);
   const [deletingRow, setDeletingRow] = useState<EstoqueHistoryRow | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -37,17 +38,36 @@ export function EstoquePage() {
 
   return (
     <main className="rf-content rf-ui-stack">
-      <EstoquePageHeader filialId={filialId} onCreateMovement={() => openMovementModal()} />
+      <EstoquePageHeader
+        filialId={filialId}
+        onCreateMovement={() => openMovementModal()}
+        onReload={requestReload}
+      />
       <EstoqueMetrics metrics={metrics} />
       <EstoqueFilters />
 
-      {status === 'error' && error ? <EmptyState title={error} compact /> : null}
+      {status === 'error' && error ? (
+        <ErrorState
+          title={error}
+          description="Revise a filial ativa, a sessão ou tente recarregar os dados do estoque."
+          onRetry={requestReload}
+          compact
+        />
+      ) : null}
 
       <FormSection
         title={view === 'posicao' ? 'Posição de estoque' : 'Histórico de movimentações'}
       >
         {status === 'loading' ? (
-          <EmptyState title="Carregando..." compact />
+          <LoadingState
+            title={view === 'posicao' ? 'Carregando posição de estoque...' : 'Carregando histórico...'}
+            description={
+              view === 'posicao'
+                ? 'Estamos atualizando os saldos e o valor estimado da filial.'
+                : 'Estamos reunindo as últimas movimentações registradas.'
+            }
+            compact
+          />
         ) : null}
 
         {status !== 'loading' && view === 'posicao' ? (

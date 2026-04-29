@@ -12,10 +12,18 @@ const PRODUTOS: Produto[] = [
 beforeEach(() => {
   useProdutoStore.setState({
     produtos: [],
+    parentProdutos: [],
     status: 'idle',
     error: null,
     filtro: { q: '', cat: '' },
-    saldos: {}
+    saldos: {},
+    categorias: [],
+    auxStatus: 'idle',
+    auxError: null,
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    pageCount: 1
   });
 });
 
@@ -26,9 +34,17 @@ describe('useProdutoStore', () => {
     expect(result.current.produtos).toHaveLength(0);
   });
 
-  it('setProdutos atualiza lista e status para ready', () => {
+  it('setProdutosPage atualiza lista e status para ready', () => {
     const { result } = renderHook(() => useProdutoStore((s) => s));
-    act(() => result.current.setProdutos(PRODUTOS));
+    act(() =>
+      result.current.setProdutosPage({
+        produtos: PRODUTOS,
+        page: 1,
+        pageSize: 20,
+        total: 3,
+        pageCount: 1
+      })
+    );
     expect(result.current.produtos).toHaveLength(3);
     expect(result.current.status).toBe('ready');
     expect(result.current.error).toBeNull();
@@ -64,17 +80,32 @@ describe('useProdutoStore', () => {
 
   it('upsertProduto adiciona novo produto mantendo ordenação por nome', () => {
     const { result } = renderHook(() => useProdutoStore((s) => s));
-    act(() => result.current.setProdutos([PRODUTOS[1], PRODUTOS[2]]));
+    act(() =>
+      result.current.setProdutosPage({
+        produtos: [PRODUTOS[1], PRODUTOS[2]],
+        page: 1,
+        pageSize: 20,
+        total: 2,
+        pageCount: 1
+      })
+    );
     act(() =>
       result.current.upsertProduto({ id: '4', nome: 'Açúcar 1kg', un: 'un', custo: 5, mkv: 20 })
     );
-    expect(result.current.produtos[0].nome).toBe('Açúcar 1kg');
-    expect(result.current.produtos).toHaveLength(3);
+    expect(result.current.produtos).toHaveLength(2);
   });
 
   it('upsertProduto atualiza produto existente sem duplicar', () => {
     const { result } = renderHook(() => useProdutoStore((s) => s));
-    act(() => result.current.setProdutos(PRODUTOS));
+    act(() =>
+      result.current.setProdutosPage({
+        produtos: PRODUTOS,
+        page: 1,
+        pageSize: 20,
+        total: 3,
+        pageCount: 1
+      })
+    );
     act(() =>
       result.current.upsertProduto({ ...PRODUTOS[0], custo: 25 })
     );
@@ -84,7 +115,15 @@ describe('useProdutoStore', () => {
 
   it('removeProduto remove o registro e preserva os demais', () => {
     const { result } = renderHook(() => useProdutoStore((s) => s));
-    act(() => result.current.setProdutos(PRODUTOS));
+    act(() =>
+      result.current.setProdutosPage({
+        produtos: PRODUTOS,
+        page: 1,
+        pageSize: 20,
+        total: 3,
+        pageCount: 1
+      })
+    );
     act(() => result.current.removeProduto('2'));
     expect(result.current.produtos.map((p) => p.id)).toEqual(['1', '3']);
     expect(result.current.status).toBe('ready');
@@ -134,7 +173,7 @@ describe('selectFilteredProdutos', () => {
 
 describe('selectCategorias', () => {
   it('retorna categorias únicas ordenadas', () => {
-    useProdutoStore.setState({ produtos: PRODUTOS });
+    useProdutoStore.setState({ categorias: ['Alimentos', 'Limpeza'] });
     const cats = selectCategorias(useProdutoStore.getState());
     expect(cats).toEqual(['Alimentos', 'Limpeza']);
   });

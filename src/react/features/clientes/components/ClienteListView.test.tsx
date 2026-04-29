@@ -16,14 +16,31 @@ const CLIENTES: Cliente[] = [
 beforeEach(() => {
   useClienteStore.setState({
     clientes: [],
+    segmentClientes: [],
     status: 'idle',
+    segmentStatus: 'idle',
     error: null,
-    filtro: { q: '', seg: '', status: '' }
+    segmentError: null,
+    filtro: { q: '', seg: '', status: '' },
+    segmentos: [],
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    pageCount: 1
   });
 });
 
 function carregarClientes() {
-  act(() => useClienteStore.getState().setClientes(CLIENTES));
+  act(() =>
+    useClienteStore.getState().setClientesPage({
+      clientes: CLIENTES,
+      page: 1,
+      pageSize: 20,
+      total: CLIENTES.length,
+      pageCount: 1
+    })
+  );
+  act(() => useClienteStore.getState().setSegmentClientes(CLIENTES));
 }
 
 describe('ClienteListView', () => {
@@ -41,7 +58,15 @@ describe('ClienteListView', () => {
   });
 
   it('mostra empty state no-data quando lista vazia', () => {
-    act(() => useClienteStore.getState().setClientes([]));
+    act(() =>
+      useClienteStore.getState().setClientesPage({
+        clientes: [],
+        page: 1,
+        pageSize: 20,
+        total: 0,
+        pageCount: 1
+      })
+    );
     render(<ClienteListView />);
     expect(screen.getByTestId('empty-state')).toBeInTheDocument();
     expect(screen.getByText(/Novo cliente/)).toBeInTheDocument();
@@ -84,7 +109,7 @@ describe('ClienteListView', () => {
     act(() =>
       useClienteStore
         .getState()
-        .setClientes([...CLIENTES, { id: '4', nome: 'Sem Seg', status: 'ativo' }])
+        .setSegmentClientes([...CLIENTES, { id: '4', nome: 'Sem Seg', status: 'ativo' }])
     );
     render(<ClienteListView />);
     await userEvent.selectOptions(screen.getByTestId('seg-select'), 'Sem segmento');

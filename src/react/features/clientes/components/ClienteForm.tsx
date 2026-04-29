@@ -1,6 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 
 import type { Cliente } from '../../../../types/domain';
+import {
+  FormActions,
+  FormError,
+  FormField,
+  FormSection
+} from '../../../shared/ui';
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { useRcas } from '../hooks/useRcas';
 
@@ -33,6 +39,7 @@ type Props = {
   initialCliente?: Cliente | null;
   onSaved?: (cliente: Cliente) => void;
   onCancel?: () => void;
+  analyticsOrigin?: string;
 };
 
 function toFormValues(cliente?: Cliente | null): ClienteFormValues {
@@ -100,7 +107,12 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props) {
+export function ClienteForm({
+  initialCliente = null,
+  onSaved,
+  onCancel,
+  analyticsOrigin = 'unknown'
+}: Props) {
   const [values, setValues] = useState<ClienteFormValues>(() => toFormValues(initialCliente));
   const [localError, setLocalError] = useState<string | null>(null);
   const { submitCliente, saving, error } = useClienteMutations();
@@ -113,6 +125,19 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
   function update<K extends keyof ClienteFormValues>(key: K, value: ClienteFormValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
+  }
+
+  function getChangedFieldNames(): string[] {
+    if (!initialCliente) return [];
+    const initialValues = toFormValues(initialCliente);
+    return (Object.keys(values) as Array<keyof ClienteFormValues>).filter((key) => {
+      const currentValue = values[key];
+      const previousValue = initialValues[key];
+      if (typeof currentValue === 'boolean' || typeof previousValue === 'boolean') {
+        return Boolean(currentValue) !== Boolean(previousValue);
+      }
+      return String(currentValue ?? '').trim() !== String(previousValue ?? '').trim();
+    });
   }
 
   function handleRcaChange(rcaId: string) {
@@ -146,31 +171,48 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
     setLocalError(null);
 
-    const saved = await submitCliente({
-      id: initialCliente?.id,
-      nome: values.nome,
-      apelido: values.apelido,
-      doc: values.doc,
-      tipo: values.tipo,
-      status: values.status,
-      tel: values.tel,
-      whatsapp: values.whatsapp,
-      email: values.email,
-      resp: values.resp,
-      rca_id: values.rca_id || null,
-      rca_nome: values.rca_nome || null,
-      time: values.time,
-      seg: values.seg,
-      tab: values.tab,
-      prazo: values.prazo,
-      cidade: values.cidade,
-      estado: values.estado,
-      data_aniversario: values.data_aniversario,
-      optin_marketing: values.optin_marketing,
-      optin_email: values.optin_email,
-      optin_sms: values.optin_sms,
-      obs: values.obs
-    });
+    const trackingMetadata = initialCliente
+      ? {
+          origin: analyticsOrigin,
+          changed_fields: getChangedFieldNames(),
+          mode: 'edit'
+        }
+      : {
+          origin: analyticsOrigin,
+          mode: 'create'
+        };
+
+    const saved = await submitCliente(
+      {
+        id: initialCliente?.id,
+        nome: values.nome,
+        apelido: values.apelido,
+        doc: values.doc,
+        tipo: values.tipo,
+        status: values.status,
+        tel: values.tel,
+        whatsapp: values.whatsapp,
+        email: values.email,
+        resp: values.resp,
+        rca_id: values.rca_id || null,
+        rca_nome: values.rca_nome || null,
+        time: values.time,
+        seg: values.seg,
+        tab: values.tab,
+        prazo: values.prazo,
+        cidade: values.cidade,
+        estado: values.estado,
+        data_aniversario: values.data_aniversario,
+        optin_marketing: values.optin_marketing,
+        optin_email: values.optin_email,
+        optin_sms: values.optin_sms,
+        obs: values.obs
+      },
+      {
+        eventName: initialCliente ? 'cliente_editado' : 'cliente_criado',
+        metadata: trackingMetadata
+      }
+    );
 
     onSaved?.(saved);
 
@@ -181,44 +223,45 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
 
   return (
     <form className="rf-ui-stack" onSubmit={handleSubmit} data-testid="cliente-form">
-
-      <section className="form-section-card">
-        <div className="form-section-head">
-          <div>
-            <div className="form-section-title">Essencial</div>
-            <p className="form-section-copy">
-              Identificação e contato para o time conseguir atender e vender.
-            </p>
-          </div>
-          <span className="bdg bb">Obrigatório primeiro</span>
-        </div>
-
+      <FormSection
+        title="Essencial"
+        description="Identificação e contato para o time conseguir atender e vender."
+        aside={<span className="bdg bb">Obrigatório primeiro</span>}
+      >
         <div className="grid grid-2">
-          <label className="form-field">
-            <span>Nome / Razao social *</span>
+          <FormField label="Nome / Razão social" htmlFor="cliente-nome" required>
             <input
+              id="cliente-nome"
               className="inp"
               value={values.nome}
               onChange={(e) => update('nome', e.target.value)}
               data-testid="form-nome"
             />
-          </label>
-          <label className="form-field">
-            <span>Apelido / Fantasia</span>
+          </FormField>
+          <FormField
+            label="Apelido / Fantasia"
+            htmlFor="cliente-apelido"
+            hint="Como a equipe identifica esse cliente no dia a dia."
+          >
             <input
+              id="cliente-apelido"
               className="inp"
               value={values.apelido}
               onChange={(e) => update('apelido', e.target.value)}
               placeholder="Como a equipe identifica esse cliente no dia a dia"
               data-testid="form-apelido"
             />
-          </label>
+          </FormField>
         </div>
 
         <div className="grid grid-3">
-          <label className="form-field">
-            <span>CPF / CNPJ</span>
+          <FormField
+            label="CPF / CNPJ"
+            htmlFor="cliente-doc"
+            hint="Aceita CPF ou CNPJ; a formatação entra ao sair do campo."
+          >
             <input
+              id="cliente-doc"
               className="inp"
               inputMode="numeric"
               value={values.doc}
@@ -227,13 +270,10 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               placeholder="Somente numeros ou documento completo"
               data-testid="form-doc"
             />
-            <small className="field-help">
-              Aceita CPF ou CNPJ; a formatação entra ao sair do campo.
-            </small>
-          </label>
-          <label className="form-field">
-            <span>Tipo</span>
+          </FormField>
+          <FormField label="Tipo" htmlFor="cliente-tipo">
             <select
+              id="cliente-tipo"
               className="inp"
               value={values.tipo}
               onChange={(e) => update('tipo', e.target.value)}
@@ -242,10 +282,10 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               <option value="PJ">PJ</option>
               <option value="PF">PF</option>
             </select>
-          </label>
-          <label className="form-field">
-            <span>Status</span>
+          </FormField>
+          <FormField label="Status" htmlFor="cliente-status">
             <select
+              id="cliente-status"
               className="inp"
               value={values.status}
               onChange={(e) => update('status', e.target.value)}
@@ -255,13 +295,13 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               <option value="prospecto">Prospecto</option>
               <option value="inativo">Inativo</option>
             </select>
-          </label>
+          </FormField>
         </div>
 
         <div className="grid grid-3">
-          <label className="form-field">
-            <span>Telefone</span>
+          <FormField label="Telefone" htmlFor="cliente-tel">
             <input
+              id="cliente-tel"
               className="inp"
               type="tel"
               inputMode="tel"
@@ -272,10 +312,10 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               autoComplete="tel"
               data-testid="form-tel"
             />
-          </label>
-          <label className="form-field">
-            <span>WhatsApp</span>
+          </FormField>
+          <FormField label="WhatsApp" htmlFor="cliente-whatsapp">
             <input
+              id="cliente-whatsapp"
               className="inp"
               type="tel"
               inputMode="tel"
@@ -286,10 +326,10 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               autoComplete="tel"
               data-testid="form-whatsapp"
             />
-          </label>
-          <label className="form-field">
-            <span>E-mail</span>
+          </FormField>
+          <FormField label="E-mail" htmlFor="cliente-email">
             <input
+              id="cliente-email"
               className="inp"
               type="email"
               value={values.email}
@@ -298,33 +338,27 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               autoComplete="email"
               data-testid="form-email"
             />
-          </label>
+          </FormField>
         </div>
-      </section>
+      </FormSection>
 
-      <section className="form-section-card">
-        <div className="form-section-head">
-          <div>
-            <div className="form-section-title">Comercial</div>
-            <p className="form-section-copy">
-              Organize quem atende, qual segmento e quais condições básicas valem para esse cliente.
-            </p>
-          </div>
-        </div>
-
+      <FormSection
+        title="Comercial"
+        description="Organize quem atende, qual segmento e quais condições básicas valem para esse cliente."
+      >
         <div className="grid grid-2">
-          <label className="form-field">
-            <span>Responsavel / Comprador</span>
+          <FormField label="Responsável / Comprador" htmlFor="cliente-resp">
             <input
+              id="cliente-resp"
               className="inp"
               value={values.resp}
               onChange={(e) => update('resp', e.target.value)}
               data-testid="form-resp"
             />
-          </label>
-          <label className="form-field">
-            <span>Vendedor</span>
+          </FormField>
+          <FormField label="Vendedor" htmlFor="cliente-rca">
             <select
+              id="cliente-rca"
               className="inp"
               value={values.rca_id}
               onChange={(e) => handleRcaChange(e.target.value)}
@@ -337,23 +371,23 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
                 </option>
               ))}
             </select>
-          </label>
+          </FormField>
         </div>
 
         <div className="grid grid-4">
-          <label className="form-field">
-            <span>Segmento</span>
+          <FormField label="Segmento" htmlFor="cliente-seg">
             <input
+              id="cliente-seg"
               className="inp"
               value={values.seg}
               onChange={(e) => update('seg', e.target.value)}
               placeholder="Ex: Atacado, Farmacia, Revenda"
               data-testid="form-seg"
             />
-          </label>
-          <label className="form-field">
-            <span>Tabela de preco</span>
+          </FormField>
+          <FormField label="Tabela de preço" htmlFor="cliente-tab">
             <select
+              id="cliente-tab"
               className="inp"
               value={values.tab}
               onChange={(e) => update('tab', e.target.value)}
@@ -363,10 +397,10 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               <option value="especial">Especial</option>
               <option value="vip">VIP</option>
             </select>
-          </label>
-          <label className="form-field">
-            <span>Prazo de pagamento</span>
+          </FormField>
+          <FormField label="Prazo de pagamento" htmlFor="cliente-prazo">
             <select
+              id="cliente-prazo"
               className="inp"
               value={values.prazo}
               onChange={(e) => update('prazo', e.target.value)}
@@ -378,40 +412,34 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               <option value="30d">30 dias</option>
               <option value="60d">60 dias</option>
             </select>
-          </label>
-          <label className="form-field">
-            <span>Time(s)</span>
+          </FormField>
+          <FormField label="Time(s)" htmlFor="cliente-time">
             <input
+              id="cliente-time"
               className="inp"
               value={values.time}
               placeholder="Ex: Flamengo, Paysandu"
               onChange={(e) => update('time', e.target.value)}
               data-testid="form-time"
             />
-          </label>
+          </FormField>
         </div>
-      </section>
+      </FormSection>
 
-      <section className="form-section-card">
-        <div className="form-section-head">
-          <div>
-            <div className="form-section-title">Localização e observações</div>
-          </div>
-        </div>
-
+      <FormSection title="Localização e observações">
         <div className="grid grid-2">
-          <label className="form-field">
-            <span>Cidade</span>
+          <FormField label="Cidade" htmlFor="cliente-cidade">
             <input
+              id="cliente-cidade"
               className="inp"
               value={values.cidade}
               onChange={(e) => update('cidade', e.target.value)}
               data-testid="form-cidade"
             />
-          </label>
-          <label className="form-field">
-            <span>Estado</span>
+          </FormField>
+          <FormField label="Estado" htmlFor="cliente-estado">
             <input
+              id="cliente-estado"
               className="inp"
               value={values.estado}
               onChange={(e) => update('estado', e.target.value)}
@@ -420,22 +448,21 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
               placeholder="UF"
               data-testid="form-estado"
             />
-          </label>
+          </FormField>
         </div>
 
         <div className="grid grid-2">
-          <label className="form-field">
-            <span>Data de aniversário</span>
+          <FormField label="Data de aniversário" htmlFor="cliente-aniv">
             <input
+              id="cliente-aniv"
               className="inp"
               type="date"
               value={values.data_aniversario}
               onChange={(e) => update('data_aniversario', e.target.value)}
               data-testid="form-aniv"
             />
-          </label>
-          <div className="form-field">
-            <span>Opt-ins de marketing</span>
+          </FormField>
+          <FormField label="Opt-ins de marketing">
             <div className="fg2">
               <label className="optin-choice">
                 <input
@@ -465,46 +492,51 @@ export function ClienteForm({ initialCliente = null, onSaved, onCancel }: Props)
                 SMS
               </label>
             </div>
-          </div>
+          </FormField>
         </div>
 
-        <label className="form-field">
-          <span>Observações</span>
+        <FormField label="Observações" htmlFor="cliente-obs">
           <textarea
+            id="cliente-obs"
             className="inp"
             rows={3}
             value={values.obs}
             onChange={(e) => update('obs', e.target.value)}
             data-testid="form-obs"
           />
-        </label>
-      </section>
+        </FormField>
+      </FormSection>
 
-      {(localError || error) && (
-        <div className="rf-error-banner" data-testid="form-error">{localError || error}</div>
-      )}
+      <FormError message={localError || error} data-testid="form-error" />
 
       <div className="form-sticky-actions">
-        <div className="modal-actions">
-          {onCancel && (
+        <FormActions
+          onCancel={onCancel}
+          loading={saving}
+          submitLabel={initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
+        >
+          <>
+            {onCancel ? (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={onCancel}
+                data-testid="cancelar-btn"
+                disabled={saving}
+              >
+                Cancelar
+              </button>
+            ) : null}
             <button
-              type="button"
-              className="btn btn-sm"
-              onClick={onCancel}
-              data-testid="cancelar-btn"
+              type="submit"
+              className="btn btn-p btn-sm"
+              disabled={saving}
+              data-testid="salvar-btn"
             >
-              Cancelar
+              {saving ? 'Salvando…' : initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
             </button>
-          )}
-          <button
-            type="submit"
-            className="btn btn-p btn-sm"
-            disabled={saving}
-            data-testid="salvar-btn"
-          >
-            {saving ? 'Salvando…' : initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
-          </button>
-        </div>
+          </>
+        </FormActions>
       </div>
     </form>
   );
