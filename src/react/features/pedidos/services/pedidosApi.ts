@@ -71,6 +71,23 @@ async function readJson(res: Response): Promise<unknown> {
   }
 }
 
+function normalizePedidoItens(raw: unknown): PedidoItem[] {
+  if (Array.isArray(raw)) return raw as PedidoItem[];
+  if (typeof raw === 'string' && raw.trim() !== '') {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as PedidoItem[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizePedido(pedido: Pedido): Pedido {
+  return { ...pedido, itens: normalizePedidoItens(pedido.itens) };
+}
+
 function ensureOk(res: Response, body: unknown, fallback: string): void {
   if (res.ok) return;
   if (body && typeof body === 'object' && 'message' in body && typeof body.message === 'string') {
@@ -180,7 +197,7 @@ export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> 
   );
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  return Array.isArray(body) ? (body as Pedido[]) : [];
+  return Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
 }
 
 export async function listPedidosPage(
@@ -198,7 +215,7 @@ export async function listPedidosPage(
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  const rows = Array.isArray(body) ? (body as Pedido[]) : [];
+  const rows = Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
   const total = parseTotalFromContentRange(res.headers.get('content-range'));
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   return { rows, page, pageSize, total, pageCount };
