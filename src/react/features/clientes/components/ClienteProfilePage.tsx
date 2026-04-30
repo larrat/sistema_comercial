@@ -15,6 +15,7 @@ import {
   FormError,
   LoadingState
 } from '../../../shared/ui';
+import { SystemBarChart } from '../../../app/components/charts';
 import { ClienteForm } from './ClienteForm';
 import { useClienteNotes } from '../hooks/useClienteNotes';
 import { useClientePedidos } from '../hooks/useClientePedidos';
@@ -281,9 +282,7 @@ function ClienteInfoTable({
 }
 
 function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const series = useMemo(() => buildPurchaseSeries(pedidos), [pedidos]);
-  const max = Math.max(...series.map((month) => month.total), 1);
   const total = series.reduce((sum, month) => sum + month.total, 0);
   const count = series.reduce((sum, month) => sum + month.count, 0);
 
@@ -307,70 +306,15 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
         />
       ) : (
         <div className="rf-cliente-profile__chart">
-          <svg viewBox="0 0 420 140" preserveAspectRatio="none" aria-hidden="true">
-            <defs>
-              <linearGradient id="rf-chart-bar-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="1" />
-                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.55" />
-              </linearGradient>
-              <linearGradient id="rf-chart-bar-gradient-hover" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-accent-strong)" stopOpacity="1" />
-                <stop offset="100%" stopColor="var(--color-accent-strong)" stopOpacity="0.7" />
-              </linearGradient>
-            </defs>
-            <line x1="8" y1="115" x2="412" y2="115" stroke="#F3F4F6" strokeWidth="1" />
-            <line x1="8" y1="75" x2="412" y2="75" stroke="#F3F4F6" strokeWidth="1" strokeDasharray="2 4" />
-            <line x1="8" y1="35" x2="412" y2="35" stroke="#F3F4F6" strokeWidth="1" strokeDasharray="2 4" />
-            {series.map((month, index) => {
-              const barHeight = Math.max(8, Math.min(100, (month.total / max) * 100));
-              const x = 14 + index * 34;
-              const y = 115 - barHeight;
-              const isHovered = hoveredIndex === index;
-              return (
-                <g
-                  key={month.key}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {isHovered ? (
-                    <>
-                      <rect x={x - 16} y={y - 28} width="64" height="20" rx="4" fill="var(--color-text)" />
-                      <text
-                        x={x + 16}
-                        y={y - 14}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fontSize="10"
-                        fill="#fff"
-                        fontWeight="500"
-                      >
-                        {formatCurrency(month.total)}
-                      </text>
-                    </>
-                  ) : null}
-                  <rect
-                    x={x}
-                    y={y}
-                    width="22"
-                    height={barHeight}
-                    rx="4"
-                    fill={isHovered ? 'url(#rf-chart-bar-gradient-hover)' : 'url(#rf-chart-bar-gradient)'}
-                  />
-                  <text
-                    x={x + 11}
-                    y="132"
-                    textAnchor="middle"
-                    fontSize="10"
-                    fill={isHovered ? 'var(--color-text)' : 'var(--color-text-3)'}
-                    fontWeight={isHovered ? '500' : '400'}
-                  >
-                    {month.label.replace('.', '')}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
+          <SystemBarChart
+            data={series}
+            xKey="label"
+            yKey="total"
+            height={140}
+            hideYAxis
+            ariaLabel="Histórico de compras dos últimos 12 meses"
+            valueFormatter={(value) => formatCurrency(Number(value || 0))}
+          />
         </div>
       )}
     </section>
