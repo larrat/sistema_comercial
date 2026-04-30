@@ -11,6 +11,7 @@ import {
   StatCard,
   StatusBadge
 } from '../../../shared/ui';
+import { SystemBarChart } from '../../../app/components/charts';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
@@ -562,12 +563,10 @@ function DashAlerts({
 
 function DashChart({
   chartKeys,
-  grupos,
-  maxFat
+  grupos
 }: {
   chartKeys: string[];
   grupos: Record<string, { fat: number; lucro: number }>;
-  maxFat: number;
 }) {
   if (!chartKeys.length) {
     return (
@@ -578,40 +577,26 @@ function DashChart({
       />
     );
   }
+
+  const data = chartKeys.map((k) => ({
+    periodo: k,
+    fat: grupos[k].fat,
+    lucro: grupos[k].lucro
+  }));
+
   return (
     <div data-testid="dash-chart">
-      <div className="barchart">
-        {chartKeys.map((k) => {
-          const g = grupos[k];
-          const fatPct = Math.max(2, (g.fat / maxFat) * 100);
-          const lucroPct = Math.max(0, (g.lucro / maxFat) * 100);
-          return (
-            <div key={k} className="barchart__group" title={`${k}: ${fmt(g.fat)}`}>
-              <div className="barchart__bars">
-                <span
-                  className="barchart__bar barchart__bar--fat"
-                  style={{ height: `${fatPct}%` }}
-                />
-                <span
-                  className="barchart__bar barchart__bar--lucro"
-                  style={{ height: `${lucroPct}%` }}
-                />
-              </div>
-              <div className="barchart__label">{k}</div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="dash-chart-legend">
-        <span>
-          <span className="dash-legend-swatch dash-legend-swatch--fat" />
-          Faturamento
-        </span>
-        <span>
-          <span className="dash-legend-swatch dash-legend-swatch--lucro" />
-          Lucro
-        </span>
-      </div>
+      <SystemBarChart
+        data={data}
+        xKey="periodo"
+        height={180}
+        valueFormatter={(value) => fmt(Number(value || 0))}
+        ariaLabel="Faturamento e lucro por período"
+        series={[
+          { key: 'fat', label: 'Faturamento', color: 'var(--color-accent)' },
+          { key: 'lucro', label: 'Lucro', color: 'var(--color-success)' }
+        ]}
+      />
     </div>
   );
 }
@@ -1096,7 +1081,6 @@ export function DashboardPilotPage({
                   <DashChart
                     chartKeys={derived.chartKeys}
                     grupos={derived.grupos}
-                    maxFat={derived.maxChartFat}
                   />
                 </DashboardCard>
                 <div className="dash-bento-stack">

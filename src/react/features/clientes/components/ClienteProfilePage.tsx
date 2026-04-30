@@ -309,7 +309,7 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
           <SystemBarChart
             data={series}
             xKey="label"
-            yKey="total"
+            series={[{ key: 'total', label: 'Compras', color: 'var(--color-accent)' }]}
             height={140}
             hideYAxis
             ariaLabel="Histórico de compras dos últimos 12 meses"

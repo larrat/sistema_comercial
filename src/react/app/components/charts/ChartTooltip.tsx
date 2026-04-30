@@ -31,14 +31,19 @@ export function ChartTooltip({
   if (!active || !payload?.length) return null;
 
   const item = payload[0];
-  const rowPayload = item.payload;
   const labelText = labelFormatter ? labelFormatter(label) : String(label ?? item.name ?? '');
-  const valueText = valueFormatter(item.value, rowPayload);
+  const isMultiSeries = payload.length > 1;
 
   return (
     <div className="rf-ui-chart-tooltip">
       {labelText ? <div className="rf-ui-chart-tooltip__label">{labelText}</div> : null}
-      <div className="rf-ui-chart-tooltip__value">{valueText}</div>
+      {isMultiSeries
+        ? payload.map((row, index) => (
+            <div key={`${String(row.name ?? 'serie')}-${index}`} className="rf-ui-chart-tooltip__value">
+              {String(row.name ?? 'Série')}: {valueFormatter(row.value, row.payload)}
+            </div>
+          ))
+        : <div className="rf-ui-chart-tooltip__value">{valueFormatter(item.value, item.payload)}</div>}
     </div>
   );
 }
