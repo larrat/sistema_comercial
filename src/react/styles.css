@@ -10,7 +10,7 @@
 .rf-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: var(--rf-sidebar-width, 240px) minmax(0, 1fr);
   background: var(--bg);
   color: var(--text);
   isolation: isolate;
@@ -29,12 +29,17 @@
 }
 
 .rf-sidebar {
-  border-right: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel) 88%, transparent);
-  padding: 24px 16px;
+  width: var(--rf-sidebar-width, 240px);
+  border-right: 0.5px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
+  transition:
+    width 200ms ease,
+    padding 200ms ease;
+  overflow: hidden;
 }
 
 .rf-sidebar__brand,
@@ -48,7 +53,41 @@
 }
 
 .rf-sidebar__brand {
-  padding: 16px;
+  padding: 12px;
+}
+
+.rf-sidebar__brand-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rf-sidebar__brand-copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.rf-sidebar__brand-icon {
+  flex-shrink: 0;
+}
+
+.rf-sidebar__toggle {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rf-sidebar__toggle:hover {
+  background: var(--color-surface-2);
 }
 
 .rf-sidebar__sub {
@@ -70,58 +109,92 @@
 .rf-sidebar__title,
 .rf-topbar__title,
 .rf-panel__title {
-  margin: 4px 0 0;
-  font-size: 20px;
-  font-weight: 700;
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: 500;
 }
 
 .rf-sidebar__nav {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   flex: 1;
+  min-height: 0;
+}
+
+.rf-sidebar__switcher-slot {
+  display: block;
 }
 
 .rf-sidebar__group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .rf-sidebar__group-label {
-  font-size: 12px;
+  font-size: var(--text-xs);
   text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 2px;
+  color: var(--color-text-3);
+  padding: 0 8px;
+  letter-spacing: 0.04em;
+}
+
+.rf-sidebar__group-divider {
+  height: 1px;
+  margin: 4px 10px;
+  background: var(--color-border);
+  opacity: 0.7;
 }
 
 .rf-sidebar__group-items {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 .rf-sidebar__item {
   width: 100%;
+  margin: 1px 4px;
   text-align: left;
-  border: 1px solid var(--line);
+  border: 0;
   background: transparent;
-  color: inherit;
-  border-radius: 8px;
-  padding: 12px 14px;
+  color: var(--color-text-2);
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
   cursor: pointer;
   text-decoration: none;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-sm);
+  min-height: 36px;
 }
 
 .rf-sidebar__item.is-active {
-  background: color-mix(in srgb, var(--panel) 74%, var(--brand) 26%);
-  border-color: color-mix(in srgb, var(--line) 45%, var(--brand) 55%);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.rf-sidebar__item:hover {
+  background: var(--color-surface-2);
+}
+
+.rf-sidebar__item-icon {
+  flex-shrink: 0;
+}
+
+.rf-sidebar__item-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rf-sidebar__footer {
-  border-top: 1px solid var(--line);
-  padding-top: 16px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .rf-sidebar__footer-label {
@@ -1029,6 +1102,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   .rf-sidebar {
     padding: 12px 16px;
     gap: 12px;
+    width: 100%;
   }
 
   .rf-sidebar__nav {
@@ -1058,7 +1132,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
     padding: 6px 12px;
     font-size: 13px;
     width: auto;
-    display: inline-block;
+    display: inline-flex;
   }
 }
 
@@ -1703,15 +1777,19 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-sidebar__logout-btn {
   width: 100%;
+  min-height: 36px;
   padding: 10px 14px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition:
     border-color 0.12s,
     color 0.12s,
@@ -1722,6 +1800,42 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   border-color: var(--err);
   color: var(--err);
   background: color-mix(in srgb, var(--err) 6%, transparent);
+}
+
+.rf-sidebar.is-collapsed {
+  padding-inline: 6px;
+}
+
+.rf-sidebar.is-collapsed .rf-sidebar__brand {
+  padding: 10px 6px;
+}
+
+.rf-sidebar.is-collapsed .rf-sidebar__brand-main {
+  flex-direction: column;
+}
+
+.rf-sidebar.is-collapsed .rf-sidebar__brand-copy {
+  justify-content: center;
+}
+
+.rf-sidebar.is-collapsed .rf-sidebar__switcher-slot {
+  display: none;
+}
+
+.rf-sidebar.is-collapsed .rf-sidebar__item {
+  width: 36px;
+  height: 36px;
+  margin-inline: auto;
+  padding: 0;
+  justify-content: center;
+}
+
+.rf-sidebar.is-collapsed .rf-sidebar__logout-btn {
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  margin-inline: auto;
 }
 
 /* ── Button aliases React ────────────────────────────────────────────── */
