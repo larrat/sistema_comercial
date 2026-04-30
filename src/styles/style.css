@@ -10056,6 +10056,11 @@ textarea.inp:focus {
   --bd2: var(--color-border-strong);
   --tx: var(--color-text);
   --tx2: var(--color-text-2);
+  --panel: var(--color-surface);
+  --line: var(--color-border);
+  --muted: var(--color-text-2);
+  --text: var(--color-text);
+  --brand: var(--color-accent);
   --tx3: var(--color-text-3);
   --acc: var(--color-accent);
   --acc-2: var(--color-accent-strong);
