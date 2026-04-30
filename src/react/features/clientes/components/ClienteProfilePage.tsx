@@ -281,6 +281,7 @@ function ClienteInfoTable({
 }
 
 function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const series = useMemo(() => buildPurchaseSeries(pedidos), [pedidos]);
   const max = Math.max(...series.map((month) => month.total), 1);
   const total = series.reduce((sum, month) => sum + month.total, 0);
@@ -290,11 +291,12 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
     <section className="rf-cliente-profile__card">
       <div className="rf-cliente-profile__card-head">
         <div>
-          <h3 className="rf-cliente-profile__card-title">Histórico de compras (12 meses)</h3>
+          <h3 className="rf-cliente-profile__card-title">Histórico de compras</h3>
           <p className="rf-cliente-profile__card-subtitle">
             {formatCurrency(total)} · {count} pedido(s)
           </p>
         </div>
+        <span className="rf-cliente-profile__pill is-neutral">12 MESES</span>
       </div>
 
       {count === 0 ? (
@@ -305,22 +307,64 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
         />
       ) : (
         <div className="rf-cliente-profile__chart">
-          <svg viewBox="0 0 420 164" preserveAspectRatio="none" aria-hidden="true">
+          <svg viewBox="0 0 420 140" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="rf-chart-bar-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="1" />
+                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.55" />
+              </linearGradient>
+              <linearGradient id="rf-chart-bar-gradient-hover" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-accent-strong)" stopOpacity="1" />
+                <stop offset="100%" stopColor="var(--color-accent-strong)" stopOpacity="0.7" />
+              </linearGradient>
+            </defs>
+            <line x1="8" y1="115" x2="412" y2="115" stroke="#F3F4F6" strokeWidth="1" />
+            <line x1="8" y1="75" x2="412" y2="75" stroke="#F3F4F6" strokeWidth="1" strokeDasharray="2 4" />
+            <line x1="8" y1="35" x2="412" y2="35" stroke="#F3F4F6" strokeWidth="1" strokeDasharray="2 4" />
             {series.map((month, index) => {
-              const barHeight = Math.max(8, (month.total / max) * 116);
-              const x = 12 + index * 34;
-              const y = 136 - barHeight;
+              const barHeight = Math.max(8, Math.min(100, (month.total / max) * 100));
+              const x = 14 + index * 34;
+              const y = 115 - barHeight;
+              const isHovered = hoveredIndex === index;
               return (
-                <g key={month.key}>
+                <g
+                  key={month.key}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {isHovered ? (
+                    <>
+                      <rect x={x - 16} y={y - 28} width="64" height="20" rx="4" fill="var(--color-text)" />
+                      <text
+                        x={x + 16}
+                        y={y - 14}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fontSize="10"
+                        fill="#fff"
+                        fontWeight="500"
+                      >
+                        {formatCurrency(month.total)}
+                      </text>
+                    </>
+                  ) : null}
                   <rect
                     x={x}
                     y={y}
                     width="22"
                     height={barHeight}
-                    rx="6"
-                    className="rf-cliente-profile__chart-bar"
+                    rx="4"
+                    fill={isHovered ? 'url(#rf-chart-bar-gradient-hover)' : 'url(#rf-chart-bar-gradient)'}
                   />
-                  <text x={x + 11} y="156" textAnchor="middle" className="rf-cliente-profile__chart-label">
+                  <text
+                    x={x + 11}
+                    y="132"
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill={isHovered ? 'var(--color-text)' : 'var(--color-text-3)'}
+                    fontWeight={isHovered ? '500' : '400'}
+                  >
                     {month.label.replace('.', '')}
                   </text>
                 </g>

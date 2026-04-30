@@ -2676,8 +2676,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-cliente-profile__meta-line,
 .rf-cliente-profile__card-subtitle,
 .rf-cliente-profile__note-meta,
-.rf-cliente-profile__info-label,
-.rf-cliente-profile__chart-label {
+.rf-cliente-profile__info-label {
   color: var(--muted);
   font-size: 12px;
 }
@@ -2860,15 +2859,13 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-cliente-profile__chart {
   width: 100%;
+  margin-top: 12px;
 }
 
 .rf-cliente-profile__chart svg {
   width: 100%;
-  height: 164px;
-}
-
-.rf-cliente-profile__chart-bar {
-  fill: color-mix(in srgb, var(--brand) 68%, var(--panel) 32%);
+  height: 140px;
+  overflow: visible;
 }
 
 .rf-cliente-profile__info-table,
