@@ -221,7 +221,7 @@ export function ClientesPilotPage({
       enabled: Boolean(editingId),
       handler: () => {
         const active = document.activeElement as HTMLElement | null;
-        if (active?.tagName.toLowerCase() === 'textarea') return;
+        if (String(active?.tagName || '').toLowerCase() === 'textarea') return;
         const submitBtn = document.querySelector('[data-testid="salvar-btn"]') as HTMLButtonElement | null;
         if (submitBtn && !submitBtn.disabled) submitBtn.click();
       }

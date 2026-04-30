@@ -10,7 +10,7 @@ type KeyboardShortcut = {
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName.toLowerCase();
+  const tag = String(target.tagName || '').toLowerCase();
   if (target.isContentEditable) return true;
   return tag === 'input' || tag === 'textarea' || tag === 'select';
 }

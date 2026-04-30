@@ -92,7 +92,7 @@ describe('clientesApi', () => {
         'filial-1'
       )
     ).toEqual({
-      id: undefined,
+      id: expect.any(String),
       filial_id: 'filial-1',
       nome: 'Maria Souza',
       rca_id: null,
@@ -104,7 +104,7 @@ describe('clientesApi', () => {
       tel: '',
       whatsapp: '',
       email: 'maria@a.com',
-      data_aniversario: '',
+      data_aniversario: null,
       time: '',
       resp: '',
       seg: '',
@@ -211,9 +211,11 @@ describe('clientesApi', () => {
     expect(request).toBeTruthy();
     expect(JSON.parse(String(request?.body))).toEqual(
       expect.objectContaining({
+        id: expect.any(String),
         filial_id: 'filial-1',
         nome: 'Maria Souza',
-        email: 'maria@a.com'
+        email: 'maria@a.com',
+        data_aniversario: null
       })
     );
   });

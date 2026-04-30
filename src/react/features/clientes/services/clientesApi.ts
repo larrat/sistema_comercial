@@ -9,8 +9,10 @@ export type ClienteApiContext = {
 
 export type ClienteWriteInput = Partial<Cliente> & Pick<Cliente, 'nome'>;
 export type ClienteWritePayload = Omit<Partial<Cliente>, 'nome'> & {
+  id: string;
   filial_id: string;
   nome: string;
+  data_aniversario: string | null;
 };
 export type ClienteListFilters = {
   q?: string;
@@ -144,8 +146,9 @@ export function toClienteWritePayload(
   input: ClienteWriteInput,
   filialId: string
 ): ClienteWritePayload {
+  const aniversario = String(input.data_aniversario || '').trim();
   return {
-    id: input.id ?? undefined,
+    id: input.id ?? globalThis.crypto.randomUUID(),
     filial_id: filialId,
     nome: input.nome.trim(),
     rca_id: input.rca_id ?? null,
@@ -157,7 +160,7 @@ export function toClienteWritePayload(
     tel: input.tel ?? '',
     whatsapp: input.whatsapp ?? '',
     email: input.email ?? '',
-    data_aniversario: input.data_aniversario ?? '',
+    data_aniversario: aniversario || null,
     time: input.time ?? '',
     resp: input.resp ?? '',
     seg: input.seg ?? '',
@@ -266,10 +269,7 @@ export async function saveCliente(
   if (Array.isArray(body) && body[0]) {
     return body[0] as Cliente;
   }
-  if (input.id) {
-    return { ...payload, id: input.id } as Cliente;
-  }
-  return null;
+  return payload as Cliente;
 }
 
 export async function deleteCliente(context: ClienteApiContext, clienteId: string): Promise<void> {
