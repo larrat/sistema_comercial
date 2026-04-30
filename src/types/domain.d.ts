@@ -177,6 +177,8 @@ export type Pedido = {
   obs?: string;
   itens: PedidoItem[] | string;
   total: number;
+  origem_venda?: string | null;
+  pgto_meta?: Record<string, unknown> | null;
   venda_fechada?: boolean;
   venda_fechada_em?: string | null;
   venda_fechada_por?: string | null;

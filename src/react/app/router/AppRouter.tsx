@@ -8,6 +8,7 @@ import { DashboardRoutePage } from '../../features/dashboard/pages/DashboardRout
 import { CotacaoRoutePage } from '../../features/cotacao/pages/CotacaoRoutePage';
 import { EstoqueRoutePage } from '../../features/estoque/pages/EstoqueRoutePage';
 import { PedidosRoutePage } from '../../features/pedidos/pages/PedidosRoutePage';
+import { PdvRoutePage } from '../../features/pedidos/pages/PdvRoutePage';
 import { ProdutosRoutePage } from '../../features/produtos/pages/ProdutosRoutePage';
 import { RcasRoutePage } from '../../features/rcas/pages/RcasRoutePage';
 import { RelatoriosRoutePage } from '../../features/relatorios/pages/RelatoriosRoutePage';
@@ -45,6 +46,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
         <Route element={<ProtectedAppRoute bootstrap={bootstrap} />}>
           <Route path="/app" element={<AppShell />}>
             <Route index element={<AppRootRedirect />} />
+            <Route path="pdv" element={<PdvRoutePage />} />
             <Route path="dashboard" element={<DashboardRoutePage />} />
             <Route path="clientes" element={<ClientesRoutePage />} />
             <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />

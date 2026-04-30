@@ -17,6 +17,11 @@ export type PedidoSaveInput = {
   obs: string;
   itens: PedidoItem[];
   total: number;
+  origem_venda?: string | null;
+  pgto_meta?: Record<string, unknown> | null;
+  venda_fechada?: boolean;
+  venda_fechada_em?: string | null;
+  venda_fechada_por?: string | null;
 };
 
 export type PedidoApiContext = {
@@ -161,6 +166,10 @@ export function buildListPedidosSummaryUrl(url: string, filialId: string): strin
   return `${url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(filialId)}&select=status,total`;
 }
 
+export function buildGetUltimoPedidoNumeroUrl(url: string, filialId: string): string {
+  return `${url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(filialId)}&select=num&order=num.desc&limit=1`;
+}
+
 export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> {
   const res = await fetch(
     `${context.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(context.filialId)}&order=num.desc`,
@@ -228,6 +237,18 @@ export async function listPedidosSummary(context: PedidoApiContext): Promise<Ped
   }
 
   return summary;
+}
+
+export async function getNextPedidoNumber(context: PedidoApiContext): Promise<number> {
+  const res = await fetch(buildGetUltimoPedidoNumeroUrl(context.url, context.filialId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao calcular proximo pedido`);
+  const rows = Array.isArray(body) ? (body as Array<{ num?: number | null }>) : [];
+  const ultimo = rows[0]?.num;
+  return Number.isFinite(ultimo) ? Number(ultimo) + 1 : 1;
 }
 
 export async function savePedido(context: PedidoApiContext, input: PedidoSaveInput): Promise<void> {

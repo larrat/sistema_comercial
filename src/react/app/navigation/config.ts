@@ -11,6 +11,13 @@ export type NavigationItem = {
 
 export const NAVIGATION_ITEMS: NavigationItem[] = [
   {
+    id: 'pdv',
+    label: 'PDV',
+    path: '/app/pdv',
+    group: 'Operação',
+    roles: ['operador', 'gerente', 'admin']
+  },
+  {
     id: 'dashboard',
     label: 'Dashboard',
     path: '/app/dashboard',

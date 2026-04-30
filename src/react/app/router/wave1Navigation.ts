@@ -1,4 +1,5 @@
 export type Wave1LegacyPage =
+  | 'pdv'
   | 'dashboard'
   | 'clientes'
   | 'estoque'
@@ -23,6 +24,7 @@ export type ReceberRouteIntent = {
 };
 
 const WAVE1_ROUTE_BY_PAGE: Record<Wave1LegacyPage, string> = {
+  pdv: '/app/pdv',
   dashboard: '/app/dashboard',
   clientes: '/app/clientes',
   estoque: '/app/estoque',

@@ -415,14 +415,6 @@ export function ClientesPilotPage({
                     >
                       Exportar CSV
                     </button>
-                    <button
-                      className="btn btn-p btn-sm h-9"
-                      type="button"
-                      onClick={() => openNewCliente('inline_button')}
-                      data-testid="novo-inline-btn"
-                    >
-                      Novo cliente
-                    </button>
                   </>
                 }
               />

@@ -2,6 +2,7 @@ export type AppRouteId =
   | 'login'
   | 'setup'
   | 'app'
+  | 'pdv'
   | 'dashboard'
   | 'clientes'
   | 'estoque'
@@ -26,6 +27,7 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'login', path: '/login', label: 'Login' },
   { id: 'setup', path: '/setup', label: 'Setup' },
   { id: 'app', path: '/app', label: 'App' },
+  { id: 'pdv', path: '/app/pdv', label: 'PDV' },
   { id: 'dashboard', path: '/app/dashboard', label: 'Dashboard' },
   { id: 'clientes', path: '/app/clientes', label: 'Clientes' },
   { id: 'estoque', path: '/app/estoque', label: 'Estoque' },
