@@ -1,5 +1,6 @@
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { TAB_STATUSES, normalizePedStatus, type PedidoSummary, type PedidoTab } from '../types';
+import { normalizePedido } from '../utils/normalizePedido';
 
 export type PedidoSaveInput = {
   id: string;
@@ -69,23 +70,6 @@ async function readJson(res: Response): Promise<unknown> {
   } catch {
     return text;
   }
-}
-
-function normalizePedidoItens(raw: unknown): PedidoItem[] {
-  if (Array.isArray(raw)) return raw as PedidoItem[];
-  if (typeof raw === 'string' && raw.trim() !== '') {
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? (parsed as PedidoItem[]) : [];
-    } catch {
-      return [];
-    }
-  }
-  return [];
-}
-
-function normalizePedido(pedido: Pedido): Pedido {
-  return { ...pedido, itens: normalizePedidoItens(pedido.itens) };
 }
 
 function ensureOk(res: Response, body: unknown, fallback: string): void {

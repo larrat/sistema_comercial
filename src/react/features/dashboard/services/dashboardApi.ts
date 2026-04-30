@@ -1,4 +1,5 @@
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
+import { normalizePedido } from '../../pedidos/utils/normalizePedido';
 
 export type DashboardApiContext = {
   url: string;
@@ -42,7 +43,7 @@ export async function fetchDashboardPedidos(
   );
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  return Array.isArray(body) ? (body as Pedido[]) : [];
+  return Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
 }
 
 export async function fetchDashboardProdutos(

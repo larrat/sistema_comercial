@@ -93,20 +93,6 @@ function computeDerivedData(
 ) {
   const range = getRange(periodo);
   const entregues = pedidos.filter((p) => p.status === 'entregue' && inRange(p.data, range));
-  console.log('debug-lucro', entregues.slice(0, 5).map((p) => ({
-    id: p.id,
-    num: p.num,
-    data: p.data,
-    total: p.total,
-    itensCount: Array.isArray(p.itens) ? p.itens.length : 'NOT_ARRAY',
-    itensSample: Array.isArray(p.itens) ? p.itens.slice(0, 3).map((i) => ({
-      nome: i.nome,
-      preco: i.preco,
-      custo: i.custo,
-      qty: i.qty,
-      margem: (i.preco - i.custo) * i.qty
-    })) : null
-  })));
 
   const fat = entregues.reduce((a, p) => a + (p.total || 0), 0);
   const lucro = entregues.reduce((a, p) => {
