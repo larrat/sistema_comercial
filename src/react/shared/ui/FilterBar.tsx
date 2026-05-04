@@ -27,6 +27,7 @@ type FilterBarFilterConfig = {
 
 type FilterBarProps = {
   children?: ReactNode;
+  className?: string;
   search?: FilterBarSearchConfig;
   filters?: FilterBarFilterConfig[];
   actions?: ReactNode;
@@ -36,6 +37,7 @@ type FilterBarProps = {
 
 export function FilterBar({
   children,
+  className,
   search,
   filters = [],
   actions,
@@ -53,7 +55,7 @@ export function FilterBar({
   ) : null;
 
   return (
-    <section className="rf-ui-filter-bar" aria-label="Filtros">
+    <section className={`rf-ui-filter-bar${className ? ` ${className}` : ''}`} aria-label="Filtros">
       <div className="rf-ui-filter-bar__fields">
         {hasConfigMode ? (
           <>

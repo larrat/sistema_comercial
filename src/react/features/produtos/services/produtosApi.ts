@@ -120,6 +120,14 @@ export function buildListProdutoPaisUrl(url: string, filialId: string): string {
   return `${url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(filialId)}&produto_pai_id=is.null&order=nome`;
 }
 
+export function buildProdutoByIdUrl(url: string, filialId: string, produtoId: string): string {
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${filialId}`);
+  params.set('id', `eq.${produtoId}`);
+  params.set('limit', '1');
+  return `${url}/rest/v1/produtos?${params.toString()}`;
+}
+
 export async function listProdutosPage(
   context: ProdutoApiContext,
   query: ProdutoListPageQuery = {}
@@ -146,8 +154,11 @@ export async function listProdutoCategorias(context: ProdutoApiContext): Promise
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar categorias`);
   if (!Array.isArray(body)) return [];
-  return [...new Set(body.map((item) => String((item as { cat?: string }).cat || '').trim()).filter(Boolean))]
-    .sort((a, b) => a.localeCompare(b));
+  return [
+    ...new Set(
+      body.map((item) => String((item as { cat?: string }).cat || '').trim()).filter(Boolean)
+    )
+  ].sort((a, b) => a.localeCompare(b));
 }
 
 export async function listProdutoPais(context: ProdutoApiContext): Promise<Produto[]> {
@@ -158,6 +169,19 @@ export async function listProdutoPais(context: ProdutoApiContext): Promise<Produ
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar produtos-pai`);
   return Array.isArray(body) ? (body as Produto[]) : [];
+}
+
+export async function listProdutoById(
+  context: ProdutoApiContext,
+  produtoId: string
+): Promise<Produto | null> {
+  const res = await fetch(buildProdutoByIdUrl(context.url, context.filialId, produtoId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar produto`);
+  return Array.isArray(body) && body[0] ? (body[0] as Produto) : null;
 }
 
 export async function saveProduto(

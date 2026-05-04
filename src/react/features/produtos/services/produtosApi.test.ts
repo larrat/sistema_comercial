@@ -3,8 +3,10 @@ import {
   buildListProdutoCategoriasUrl,
   buildListProdutoPaisUrl,
   buildListProdutosPageUrl,
+  buildProdutoByIdUrl,
   deleteProduto,
   listProdutoCategorias,
+  listProdutoById,
   listProdutoPais,
   listProdutos,
   listProdutosPage,
@@ -71,9 +73,7 @@ describe('listProdutos', () => {
   });
 
   it('lança erro com mensagem da API quando status não ok', async () => {
-    vi.mocked(fetch).mockResolvedValue(
-      makeResponse({ message: 'Acesso negado' }, 403)
-    );
+    vi.mocked(fetch).mockResolvedValue(makeResponse({ message: 'Acesso negado' }, 403));
     await expect(listProdutos(context)).rejects.toThrow('Acesso negado');
   });
 
@@ -103,6 +103,12 @@ describe('listProdutos', () => {
   it('monta a URL de produtos-pai por filial', () => {
     expect(buildListProdutoPaisUrl(context.url, 'filial-1')).toBe(
       'https://example.supabase.co/rest/v1/produtos?filial_id=eq.filial-1&produto_pai_id=is.null&order=nome'
+    );
+  });
+
+  it('monta a URL de produto por id', () => {
+    expect(buildProdutoByIdUrl(context.url, 'filial-1', 'p/1')).toBe(
+      'https://example.supabase.co/rest/v1/produtos?filial_id=eq.filial-1&id=eq.p%2F1&limit=1'
     );
   });
 
@@ -139,6 +145,18 @@ describe('listProdutos', () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse([PRODUTO]));
     const result = await listProdutoPais(context);
     expect(result).toEqual([PRODUTO]);
+  });
+
+  it('retorna produto por id', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse([PRODUTO]));
+    const result = await listProdutoById(context, 'p1');
+    expect(result).toEqual(PRODUTO);
+  });
+
+  it('retorna null quando produto por id não existe', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse([]));
+    const result = await listProdutoById(context, 'p1');
+    expect(result).toBeNull();
   });
 });
 

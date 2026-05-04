@@ -12,6 +12,7 @@ export type Wave1LegacyPage =
   | 'campanhas';
 
 export type ClienteProfileTab = 'resumo' | 'pedidos' | 'financeiro' | 'notas' | 'cadastro';
+export type ProdutoProfileTab = 'resumo' | 'precificacao' | 'estoque' | 'cadastro';
 
 export type PedidoRouteIntent = {
   pedidoId?: string | null;
@@ -51,6 +52,19 @@ export function buildClienteRoute(
   return query
     ? `/app/clientes/${encodeURIComponent(clienteId)}?${query}`
     : `/app/clientes/${encodeURIComponent(clienteId)}`;
+}
+
+export function buildProdutoRoute(
+  produtoId: string,
+  options: { tab?: ProdutoProfileTab | null; edit?: boolean | null } = {}
+): string {
+  const params = new URLSearchParams();
+  if (options.tab) params.set('tab', options.tab);
+  if (options.edit) params.set('edit', '1');
+  const query = params.toString();
+  return query
+    ? `/app/produtos/${encodeURIComponent(produtoId)}?${query}`
+    : `/app/produtos/${encodeURIComponent(produtoId)}`;
 }
 
 export function buildPedidosRoute(intent: PedidoRouteIntent = {}): string {

@@ -8,7 +8,6 @@ import { useProdutoMutations } from '../hooks/useProdutoMutations';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
-import { ProdutoDetailPanel } from './ProdutoDetailPanel';
 import { ProdutoForm } from './ProdutoForm';
 import { ProdutoDeleteConfirmModal } from './ProdutoDeleteConfirmModal';
 import {
@@ -20,13 +19,11 @@ import {
   StatusBadge
 } from '../../../shared/ui';
 
-type Modal =
-  | { tipo: 'none' }
-  | { tipo: 'form'; produto: Produto | null }
-  | { tipo: 'detalhe'; produto: Produto };
+type Modal = { tipo: 'none' } | { tipo: 'form'; produto: Produto | null };
 
 type ProdutosPilotPageProps = {
   onRetryLoad?: () => void;
+  onOpenProduto?: (_produtoId: string, _options?: { edit?: boolean }) => void;
 };
 
 function formValuesToProduto(
@@ -67,7 +64,7 @@ function useIsMobile() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 1280px)').matches;
 }
 
-export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
+export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotPageProps) {
   const produtos = useProdutoStore((s) => s.produtos);
   const categorias = useProdutoStore(useShallow(selectCategorias));
   const parentProdutos = useProdutoStore((s) => s.parentProdutos);
@@ -204,6 +201,7 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
       <ProdutoMetrics produtos={produtos} />
 
       <FilterBar
+        className="produtos-filter-bar"
         search={{
           value: filtro.q,
           onChange: (value) => setFiltro({ q: value }),
@@ -239,14 +237,8 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onNovo={() => setModal({ tipo: 'form', produto: null })}
-          onDetalhe={(id) => {
-            const produto = produtos.find((item) => item.id === id);
-            if (produto) setModal({ tipo: 'detalhe', produto });
-          }}
-          onEditar={(id) => {
-            const produto = produtos.find((item) => item.id === id);
-            if (produto) setModal({ tipo: 'form', produto });
-          }}
+          onDetalhe={(id) => onOpenProduto?.(id)}
+          onEditar={(id) => onOpenProduto?.(id, { edit: true })}
           onMovimentar={handleMovimentar}
           onRemover={(id) => setDeleteTargetId(id)}
         />
@@ -261,53 +253,12 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onNovo={() => setModal({ tipo: 'form', produto: null })}
-          onDetalhe={(id) => {
-            const produto = produtos.find((item) => item.id === id);
-            if (produto) setModal({ tipo: 'detalhe', produto });
-          }}
-          onEditar={(id) => {
-            const produto = produtos.find((item) => item.id === id);
-            if (produto) setModal({ tipo: 'form', produto });
-          }}
+          onDetalhe={(id) => onOpenProduto?.(id)}
+          onEditar={(id) => onOpenProduto?.(id, { edit: true })}
           onMovimentar={handleMovimentar}
           onRemover={(id) => setDeleteTargetId(id)}
         />
       )}
-
-      <Drawer
-        open={modal.tipo === 'detalhe'}
-        title={modal.tipo === 'detalhe' ? modal.produto.nome : 'Produto'}
-        subtitle={
-          modal.tipo === 'detalhe'
-            ? [modal.produto.sku || 'Sem SKU', modal.produto.cat || 'Sem categoria'].join(' · ')
-            : undefined
-        }
-        action={
-          modal.tipo === 'detalhe' ? (
-            <button
-              className="btn btn-p btn-sm"
-              type="button"
-              onClick={() => setModal({ tipo: 'form', produto: modal.produto })}
-            >
-              Editar
-            </button>
-          ) : undefined
-        }
-        onClose={() => setModal({ tipo: 'none' })}
-      >
-        {modal.tipo === 'detalhe' ? (
-          <ProdutoDetailPanel
-            produto={modal.produto}
-            saldo={saldos[modal.produto.id] ?? { saldo: 0, cm: 0 }}
-            onFechar={() => setModal({ tipo: 'none' })}
-            onEditar={() => setModal({ tipo: 'form', produto: modal.produto })}
-            onMovimentar={() => {
-              setModal({ tipo: 'none' });
-              handleMovimentar(modal.produto.id);
-            }}
-          />
-        ) : null}
-      </Drawer>
 
       <Drawer
         open={modal.tipo === 'form'}
