@@ -29,11 +29,17 @@ type ProdutosPilotPageProps = {
   onRetryLoad?: () => void;
 };
 
-function formValuesToProduto(values: ProdutoFormValues, filialId: string, existing: Produto | null): Produto {
+function formValuesToProduto(
+  values: ProdutoFormValues,
+  filialId: string,
+  existing: Produto | null
+): Produto {
   const custo = parseFloat(values.custo) || 0;
   const precoVarejo = parseFloat(values.precoVarejo) || 0;
   const mkv =
-    precoVarejo > 0 && custo > 0 ? (precoVarejo / custo - 1) * 100 : parseFloat(values.markupVarejo) || 0;
+    precoVarejo > 0 && custo > 0
+      ? (precoVarejo / custo - 1) * 100
+      : parseFloat(values.markupVarejo) || 0;
 
   return {
     id: values.id ?? crypto.randomUUID(),
@@ -76,15 +82,22 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
   const setPage = useProdutoStore((s) => s.setPage);
   const setPageSize = useProdutoStore((s) => s.setPageSize);
 
-  const { submitProduto, deleteProdutoById, saving, deletingId, error: mutError } = useProdutoMutations();
+  const {
+    submitProduto,
+    deleteProdutoById,
+    saving,
+    deletingId,
+    error: mutError
+  } = useProdutoMutations();
   const filialId = useFilialStore((s) => s.filialId) ?? '';
 
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const isMobile = useIsMobile();
-  const deleteTarget =
-    deleteTargetId ? produtos.find((produto) => produto.id === deleteTargetId) ?? null : null;
+  const deleteTarget = deleteTargetId
+    ? (produtos.find((produto) => produto.id === deleteTargetId) ?? null)
+    : null;
   const activeFilterCount = [filtro.q, filtro.cat].filter(Boolean).length;
 
   useEffect(() => {
@@ -140,7 +153,11 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
       kicker="Catálogo"
       title="Produtos"
       description="Gerencie catálogo, estoque visível e ações rápidas da filial sem sair da listagem principal."
-      meta={<StatusBadge tone="info">{total} no total · página {page}</StatusBadge>}
+      meta={
+        <StatusBadge tone="info">
+          {total} no total · página {page}
+        </StatusBadge>
+      }
       actions={
         <button
           className="btn btn-p btn-sm"
@@ -207,15 +224,6 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
         ]}
         activeFilterCount={activeFilterCount}
         onClearFilters={activeFilterCount ? () => setFiltro({ q: '', cat: '' }) : undefined}
-        actions={
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
-            onClick={() => setModal({ tipo: 'form', produto: null })}
-          >
-            Novo produto
-          </button>
-        }
       />
 
       {mutError ? <ErrorState title={mutError} compact /> : null}
@@ -230,6 +238,7 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
           pageSize={pageSize}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
+          onNovo={() => setModal({ tipo: 'form', produto: null })}
           onDetalhe={(id) => {
             const produto = produtos.find((item) => item.id === id);
             if (produto) setModal({ tipo: 'detalhe', produto });
@@ -251,6 +260,7 @@ export function ProdutosPilotPage({ onRetryLoad }: ProdutosPilotPageProps) {
           pageSize={pageSize}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
+          onNovo={() => setModal({ tipo: 'form', produto: null })}
           onDetalhe={(id) => {
             const produto = produtos.find((item) => item.id === id);
             if (produto) setModal({ tipo: 'detalhe', produto });

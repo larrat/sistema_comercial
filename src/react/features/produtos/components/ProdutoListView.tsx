@@ -1,7 +1,13 @@
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoSaldo } from '../types';
 import { markupToPrice } from '../hooks/useProdutoCalculations';
-import { ActionMenu, DataTable, EmptyState, StatusBadge, type DataTableColumn } from '../../../shared/ui';
+import {
+  ActionMenu,
+  DataTable,
+  EmptyState,
+  StatusBadge,
+  type DataTableColumn
+} from '../../../shared/ui';
 
 type Props = {
   produtos: Produto[];
@@ -12,6 +18,7 @@ type Props = {
   pageSize: number;
   onPageChange: (_page: number) => void;
   onPageSizeChange: (_pageSize: number) => void;
+  onNovo: () => void;
   onDetalhe: (_id: string) => void;
   onEditar: (_id: string) => void;
   onMovimentar: (_id: string) => void;
@@ -170,7 +177,11 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
       label: 'Status',
       render: ({ prod, saldo }) => {
         const emin = prod.emin ?? 0;
-        return <StatusBadge tone={stockTone(saldo.saldo, emin)}>{stockLabel(saldo.saldo, emin)}</StatusBadge>;
+        return (
+          <StatusBadge tone={stockTone(saldo.saldo, emin)}>
+            {stockLabel(saldo.saldo, emin)}
+          </StatusBadge>
+        );
       }
     }
   ];
@@ -185,6 +196,7 @@ export function ProdutoListView({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  onNovo,
   onDetalhe,
   onEditar,
   onMovimentar,
@@ -204,12 +216,19 @@ export function ProdutoListView({
       onPageChange={onPageChange}
       onPageSizeChange={onPageSizeChange}
       emptyTitle={
-        hasFilters ? 'Nenhum produto encontrado com os filtros atuais.' : 'Nenhum produto cadastrado ainda.'
+        hasFilters
+          ? 'Nenhum produto encontrado com os filtros atuais.'
+          : 'Nenhum produto cadastrado ainda.'
       }
       emptyDescription={
         hasFilters
           ? 'Ajuste os filtros ou limpe a busca para ampliar os resultados.'
           : 'Cadastre o primeiro produto desta filial para começar.'
+      }
+      emptyAction={
+        <button className="btn btn-p btn-sm h-9" type="button" onClick={onNovo}>
+          Novo produto
+        </button>
       }
       onRowClick={(row) => onDetalhe(row.prod.id)}
       getRowClassName={(row) => (row.isVariante ? 'rf-ui-data-table__row--nested' : undefined)}
@@ -220,9 +239,18 @@ export function ProdutoListView({
           buttonTestId={`produto-menu-${row.prod.id}`}
           items={[
             { key: 'detalhes', label: 'Ver detalhes', onClick: () => onDetalhe(row.prod.id) },
-            { key: 'movimentar', label: 'Movimentar estoque', onClick: () => onMovimentar(row.prod.id) },
             { key: 'editar', label: 'Editar', onClick: () => onEditar(row.prod.id) },
-            { key: 'remover', label: 'Excluir', danger: true, onClick: () => onRemover(row.prod.id) }
+            {
+              key: 'movimentar',
+              label: 'Movimentar estoque',
+              onClick: () => onMovimentar(row.prod.id)
+            },
+            {
+              key: 'remover',
+              label: 'Excluir',
+              danger: true,
+              onClick: () => onRemover(row.prod.id)
+            }
           ]}
         />
       )}
@@ -238,6 +266,7 @@ export function ProdutoListMobile({
   page,
   pageSize,
   onPageChange,
+  onNovo,
   onDetalhe,
   onEditar,
   onMovimentar,
@@ -247,12 +276,19 @@ export function ProdutoListMobile({
     return (
       <EmptyState
         title={
-          hasFilters ? 'Nenhum produto encontrado com os filtros atuais.' : 'Nenhum produto cadastrado ainda.'
+          hasFilters
+            ? 'Nenhum produto encontrado com os filtros atuais.'
+            : 'Nenhum produto cadastrado ainda.'
         }
         description={
           hasFilters
             ? 'Ajuste os filtros ou limpe a busca para ampliar os resultados.'
             : 'Cadastre o primeiro produto desta filial para começar.'
+        }
+        action={
+          <button className="btn btn-p btn-sm h-9" type="button" onClick={onNovo}>
+            Novo produto
+          </button>
         }
       />
     );
@@ -276,7 +312,9 @@ export function ProdutoListMobile({
             <div className="mobile-card-head">
               <div style={{ minWidth: 0 }}>
                 <div className="mobile-card-title">
-                  {isVariante ? <span style={{ color: 'var(--tx3)', fontSize: 11 }}>↳ </span> : null}
+                  {isVariante ? (
+                    <span style={{ color: 'var(--tx3)', fontSize: 11 }}>↳ </span>
+                  ) : null}
                   {p.nome}
                   {isPai ? (
                     <span className="bdg bk" style={{ fontSize: 10, marginLeft: 4 }}>
@@ -307,7 +345,11 @@ export function ProdutoListMobile({
                 <b
                   style={{
                     color:
-                      s.saldo <= 0 ? 'var(--r)' : emin > 0 && s.saldo < emin ? 'var(--a)' : 'var(--tx)'
+                      s.saldo <= 0
+                        ? 'var(--r)'
+                        : emin > 0 && s.saldo < emin
+                          ? 'var(--a)'
+                          : 'var(--tx)'
                   }}
                 >
                   {fmtQ(s.saldo)} {p.un}
@@ -325,7 +367,11 @@ export function ProdutoListMobile({
                 align="right"
                 items={[
                   { key: 'editar', label: 'Editar', onClick: () => onEditar(p.id) },
-                  { key: 'movimentar', label: 'Movimentar estoque', onClick: () => onMovimentar(p.id) },
+                  {
+                    key: 'movimentar',
+                    label: 'Movimentar estoque',
+                    onClick: () => onMovimentar(p.id)
+                  },
                   { key: 'remover', label: 'Excluir', danger: true, onClick: () => onRemover(p.id) }
                 ]}
               />
@@ -339,7 +385,12 @@ export function ProdutoListMobile({
             Página {page} · {produtos.length} de {totalCount} produtos carregados
           </div>
           <div className="mobile-card-actions" style={{ justifyContent: 'space-between' }}>
-            <button className="btn btn-sm" type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+            <button
+              className="btn btn-sm"
+              type="button"
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+            >
               Anterior
             </button>
             <button

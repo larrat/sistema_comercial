@@ -9,6 +9,7 @@ import {
   markupToMargin,
   type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
+import { FormActions, FormError, FormField, FormSection } from '../../../shared/ui';
 
 type Props = {
   produto: Produto | null;
@@ -79,9 +80,11 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   const [values, setValues] = useState<ProdutoFormValues>(
     produto ? toFormValues(produto) : { ...FORM_VAZIO }
   );
+  const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
     setValues(produto ? toFormValues(produto) : { ...FORM_VAZIO });
+    setLocalError(null);
   }, [produto]);
 
   function set(patch: Partial<ProdutoFormValues>) {
@@ -94,7 +97,11 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       const { varejo, atacado } = recalcFromCost(
         custo,
         { preco: values.precoVarejo, markup: values.markupVarejo, margem: values.margemVarejo },
-        { preco: values.precoFixoAtacado, markup: values.markupAtacado, margem: values.margemAtacado }
+        {
+          preco: values.precoFixoAtacado,
+          markup: values.markupAtacado,
+          margem: values.margemAtacado
+        }
       );
       set({
         custo: raw,
@@ -179,38 +186,49 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!values.nome.trim()) {
+      setLocalError('Nome do produto é obrigatório.');
+      return;
+    }
+    if ((parseFloat(values.custo) || 0) <= 0) {
+      setLocalError('Informe o custo do produto antes de salvar.');
+      return;
+    }
+    setLocalError(null);
     onSalvar(values);
   }
 
   const preview = calcPreview(values);
-  const titulo = produto ? 'Editar produto' : 'Novo produto';
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="modal-titulo">{titulo}</div>
-
-      {/* Identificação */}
-      <div className="panel">
-        <div className="pt">Identificação</div>
+    <form className="rf-ui-stack" onSubmit={handleSubmit} data-testid="produto-form">
+      <FormSection
+        title="Essencial"
+        description="Identificação básica para encontrar e vender o produto no dia a dia."
+        aside={<span className="bdg bb">Obrigatório primeiro</span>}
+      >
         <div className="fg2">
-          <div className="fg1">
-            <label className="lbl">Nome *</label>
+          <FormField label="Nome" required>
             <input
               className="inp"
               value={values.nome}
               onChange={(e) => set({ nome: e.target.value })}
               required
               autoFocus={!produto}
+              data-testid="produto-form-nome"
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">SKU</label>
-            <input className="inp" value={values.sku} onChange={(e) => set({ sku: e.target.value })} />
-          </div>
+          </FormField>
+          <FormField label="SKU" hint="Código usado para localizar o produto rapidamente.">
+            <input
+              className="inp"
+              value={values.sku}
+              onChange={(e) => set({ sku: e.target.value })}
+              data-testid="produto-form-sku"
+            />
+          </FormField>
         </div>
         <div className="fg2" style={{ marginTop: 8 }}>
-          <div className="fg1">
-            <label className="lbl">Unidade</label>
+          <FormField label="Unidade">
             <select className="sel" value={values.un} onChange={(e) => set({ un: e.target.value })}>
               <option value="un">un</option>
               <option value="kg">kg</option>
@@ -220,55 +238,61 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               <option value="pc">pc</option>
               <option value="par">par</option>
             </select>
-          </div>
-          <div className="fg1">
-            <label className="lbl">Categoria</label>
-            <input className="inp" value={values.cat} onChange={(e) => set({ cat: e.target.value })} />
-          </div>
+          </FormField>
+          <FormField label="Categoria">
+            <input
+              className="inp"
+              value={values.cat}
+              onChange={(e) => set({ cat: e.target.value })}
+            />
+          </FormField>
         </div>
         {pais.length > 0 && (
           <div style={{ marginTop: 8 }}>
-            <label className="lbl">Variante de</label>
-            <select
-              className="sel"
-              value={values.produto_pai_id ?? ''}
-              onChange={(e) => handlePaiChange(e.target.value)}
+            <FormField
+              label="Variante de"
+              hint="Use quando este produto herda dados de uma família."
             >
-              <option value="">— produto independente —</option>
-              {pais
-                .filter((p) => p.id !== values.id)
-                .sort((a, b) => a.nome.localeCompare(b.nome))
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nome}{p.sku ? ` [${p.sku}]` : ''}
-                  </option>
-                ))}
-            </select>
+              <select
+                className="sel"
+                value={values.produto_pai_id ?? ''}
+                onChange={(e) => handlePaiChange(e.target.value)}
+              >
+                <option value="">— produto independente —</option>
+                {pais
+                  .filter((p) => p.id !== values.id)
+                  .sort((a, b) => a.nome.localeCompare(b.nome))
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nome}
+                      {p.sku ? ` [${p.sku}]` : ''}
+                    </option>
+                  ))}
+              </select>
+            </FormField>
           </div>
         )}
-      </div>
+      </FormSection>
 
-      {/* Custo */}
-      <div className="panel">
-        <div className="pt">Custo *</div>
-        <input
-          className="inp"
-          type="number"
-          min="0"
-          step="0.01"
-          value={values.custo}
-          onChange={(e) => handleCusto(e.target.value)}
-          required
-          style={{ maxWidth: 180 }}
-        />
-      </div>
+      <FormSection title="Custo" description="Base para cálculo de varejo, atacado e margem.">
+        <FormField label="Custo" required>
+          <input
+            className="inp"
+            type="number"
+            min="0"
+            step="0.01"
+            value={values.custo}
+            onChange={(e) => handleCusto(e.target.value)}
+            required
+            style={{ maxWidth: 180 }}
+            data-testid="produto-form-custo"
+          />
+        </FormField>
+      </FormSection>
 
-      {/* Precificação varejo */}
-      <div className="panel">
-        <div className="pt">Varejo</div>
+      <FormSection title="Varejo" description="Preço e margem usados na venda direta.">
         <div className="fg2">
-          <div className="fg1">
-            <label className="lbl">Preço varejo (R$)</label>
+          <FormField label="Preço varejo (R$)">
             <input
               className="inp"
               type="number"
@@ -277,9 +301,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.precoVarejo}
               onChange={(e) => handleVariavelVarejo('preco', e.target.value)}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Markup (%)</label>
+          </FormField>
+          <FormField label="Markup (%)">
             <input
               className="inp"
               type="number"
@@ -288,9 +311,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.markupVarejo}
               onChange={(e) => handleVariavelVarejo('markup', e.target.value)}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Margem (%)</label>
+          </FormField>
+          <FormField label="Margem (%)">
             <input
               className="inp"
               type="number"
@@ -299,11 +321,10 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.margemVarejo}
               onChange={(e) => handleVariavelVarejo('margem', e.target.value)}
             />
-          </div>
+          </FormField>
         </div>
         <div className="fg2" style={{ marginTop: 8 }}>
-          <div className="fg1">
-            <label className="lbl">Qtde mínima comercial</label>
+          <FormField label="Qtde mínima comercial">
             <input
               className="inp"
               type="number"
@@ -312,9 +333,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.qtmin}
               onChange={(e) => set({ qtmin: e.target.value })}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Desconto varejo (%)</label>
+          </FormField>
+          <FormField label="Desconto varejo (%)">
             <input
               className="inp"
               type="number"
@@ -324,16 +344,13 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.descontoVarejo}
               onChange={(e) => set({ descontoVarejo: e.target.value })}
             />
-          </div>
+          </FormField>
         </div>
-      </div>
+      </FormSection>
 
-      {/* Precificação atacado */}
-      <div className="panel">
-        <div className="pt">Atacado</div>
+      <FormSection title="Atacado" description="Preço e margem usados para venda em volume.">
         <div className="fg2">
-          <div className="fg1">
-            <label className="lbl">Preço fixo (R$)</label>
+          <FormField label="Preço fixo (R$)">
             <input
               className="inp"
               type="number"
@@ -342,9 +359,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.precoFixoAtacado}
               onChange={(e) => handleVariavelAtacado('preco', e.target.value)}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Markup (%)</label>
+          </FormField>
+          <FormField label="Markup (%)">
             <input
               className="inp"
               type="number"
@@ -353,9 +369,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.markupAtacado}
               onChange={(e) => handleVariavelAtacado('markup', e.target.value)}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Margem (%)</label>
+          </FormField>
+          <FormField label="Margem (%)">
             <input
               className="inp"
               type="number"
@@ -364,29 +379,27 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.margemAtacado}
               onChange={(e) => handleVariavelAtacado('margem', e.target.value)}
             />
-          </div>
+          </FormField>
         </div>
         <div style={{ marginTop: 8 }}>
-          <label className="lbl">Desconto atacado (%)</label>
-          <input
-            className="inp"
-            type="number"
-            min="0"
-            max="100"
-            step="0.1"
-            value={values.descontoAtacado}
-            onChange={(e) => set({ descontoAtacado: e.target.value })}
-            style={{ maxWidth: 180 }}
-          />
+          <FormField label="Desconto atacado (%)">
+            <input
+              className="inp"
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={values.descontoAtacado}
+              onChange={(e) => set({ descontoAtacado: e.target.value })}
+              style={{ maxWidth: 180 }}
+            />
+          </FormField>
         </div>
-      </div>
+      </FormSection>
 
-      {/* Estoque */}
-      <div className="panel">
-        <div className="pt">Estoque</div>
+      <FormSection title="Estoque" description="Parâmetros básicos para alerta e custo médio.">
         <div className="fg2">
-          <div className="fg1">
-            <label className="lbl">Mínimo de estoque</label>
+          <FormField label="Mínimo de estoque">
             <input
               className="inp"
               type="number"
@@ -395,9 +408,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.emin}
               onChange={(e) => set({ emin: e.target.value })}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Alerta de estoque</label>
+          </FormField>
+          <FormField label="Alerta de estoque">
             <input
               className="inp"
               type="number"
@@ -406,9 +418,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.esal}
               onChange={(e) => set({ esal: e.target.value })}
             />
-          </div>
-          <div className="fg1">
-            <label className="lbl">Custo médio (R$)</label>
+          </FormField>
+          <FormField label="Custo médio (R$)">
             <input
               className="inp"
               type="number"
@@ -417,43 +428,44 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               value={values.ecm}
               onChange={(e) => set({ ecm: e.target.value })}
             />
-          </div>
+          </FormField>
         </div>
-      </div>
+      </FormSection>
 
-      {/* Preview */}
       {preview && (
-        <div className="panel" style={{ background: 'var(--bg2, rgba(0,0,0,0.03))' }}>
-          <div className="pt">Preview de preços</div>
+        <FormSection title="Preview de preços">
           <div className="fg2" style={{ gap: 12 }}>
             <div>
               <div className="lbl">Varejo</div>
               <strong>{preview.pv > 0 ? fmt(preview.pv) : '-'}</strong>
               {preview.pvMin > 0 && (
-                <span style={{ color: 'var(--tx2)', fontSize: 12 }}> · com desc. {fmt(preview.pvMin)}</span>
+                <span style={{ color: 'var(--tx2)', fontSize: 12 }}>
+                  {' '}
+                  · com desc. {fmt(preview.pvMin)}
+                </span>
               )}
             </div>
             <div>
               <div className="lbl">Atacado</div>
               <strong>{preview.pa > 0 ? fmt(preview.pa) : '-'}</strong>
               {preview.paMin > 0 && (
-                <span style={{ color: 'var(--tx2)', fontSize: 12 }}> · com desc. {fmt(preview.paMin)}</span>
+                <span style={{ color: 'var(--tx2)', fontSize: 12 }}>
+                  {' '}
+                  · com desc. {fmt(preview.paMin)}
+                </span>
               )}
             </div>
           </div>
-        </div>
+        </FormSection>
       )}
 
-      {error && <div className="alert alert-error">{error}</div>}
+      <FormError message={localError || error} data-testid="produto-form-error" />
 
-      <div className="fg2" style={{ justifyContent: 'flex-end' }}>
-        <button type="button" className="btn" onClick={onCancelar} disabled={saving}>
-          Cancelar
-        </button>
-        <button type="submit" className="btn btn-p" disabled={saving}>
-          {saving ? 'Salvando...' : produto ? 'Atualizar produto' : 'Salvar produto'}
-        </button>
-      </div>
+      <FormActions
+        onCancel={onCancelar}
+        loading={saving}
+        submitLabel={produto ? 'Salvar alterações' : 'Salvar produto'}
+      />
     </form>
   );
 }
