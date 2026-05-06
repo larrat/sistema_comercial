@@ -87,6 +87,186 @@ function parseTotalFromContentRange(contentRange: string | null): number {
   return Number.isFinite(total) ? total : 0;
 }
 
+type PedidoItemRow = {
+  pedido_id?: string | null;
+  produto_id?: string | null;
+  nome?: string | null;
+  un?: string | null;
+  qty?: number | string | null;
+  preco?: number | string | null;
+  custo?: number | string | null;
+  custo_base?: number | string | null;
+  preco_base?: number | string | null;
+  orig?: string | null;
+  item?: Partial<PedidoItem> | null;
+};
+
+type PedidoItemUpsertRow = {
+  id: string;
+  filial_id: string;
+  pedido_id: string;
+  produto_id: string | null;
+  linha: number;
+  nome: string;
+  un: string;
+  qty: number;
+  preco: number;
+  custo: number;
+  custo_base?: number | null;
+  preco_base?: number | null;
+  orig: string | null;
+  item: PedidoItem;
+};
+
+function toNumber(value: unknown): number {
+  const numberValue = Number(value ?? 0);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function isPedidoItensDualWriteEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (typeof window.__SC_PEDIDO_ITENS_DUAL_WRITE__ === 'boolean') {
+    return window.__SC_PEDIDO_ITENS_DUAL_WRITE__;
+  }
+
+  const hostname = window.location?.hostname?.toLowerCase() ?? '';
+  return /\b(homolog|homologacao|staging|preview)\b/.test(hostname);
+}
+
+function buildPedidoItensUrl(url: string, filialId: string, pedidoIds: string[]): string {
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${filialId}`);
+  params.set(
+    'pedido_id',
+    `in.(${pedidoIds.map((id) => `"${id.replace(/"/g, '\\"')}"`).join(',')})`
+  );
+  params.set(
+    'select',
+    'pedido_id,produto_id,nome,un,qty,preco,custo,custo_base,preco_base,orig,item,linha'
+  );
+  params.set('order', 'pedido_id.asc,linha.asc');
+  return `${url}/rest/v1/pedido_itens?${params.toString()}`;
+}
+
+function buildPedidoItensWriteUrl(url: string): string {
+  return `${url}/rest/v1/pedido_itens`;
+}
+
+function mapPedidoItemRow(row: PedidoItemRow): PedidoItem {
+  const item = row.item && typeof row.item === 'object' ? row.item : {};
+  const prodId = row.produto_id ?? item.prodId ?? '';
+
+  return {
+    prodId,
+    nome: row.nome ?? item.nome ?? '',
+    un: row.un ?? item.un ?? 'un',
+    qty: toNumber(row.qty ?? item.qty),
+    preco: toNumber(row.preco ?? item.preco),
+    custo: toNumber(row.custo ?? item.custo),
+    custo_base:
+      row.custo_base !== null && row.custo_base !== undefined
+        ? toNumber(row.custo_base)
+        : item.custo_base,
+    preco_base:
+      row.preco_base !== null && row.preco_base !== undefined
+        ? toNumber(row.preco_base)
+        : item.preco_base,
+    orig: row.orig ?? item.orig ?? 'pedido_itens'
+  };
+}
+
+function buildPedidoItemUpsertRows(input: PedidoSaveInput): PedidoItemUpsertRow[] {
+  return input.itens.map((item, index) => ({
+    id: `${input.id}:${index + 1}`,
+    filial_id: input.filial_id,
+    pedido_id: input.id,
+    produto_id: item.prodId || null,
+    linha: index + 1,
+    nome: item.nome || '',
+    un: item.un || 'un',
+    qty: toNumber(item.qty),
+    preco: toNumber(item.preco),
+    custo: toNumber(item.custo),
+    custo_base: item.custo_base ?? null,
+    preco_base: item.preco_base ?? null,
+    orig: item.orig || null,
+    item
+  }));
+}
+
+async function upsertPedidoItensNormalizados(
+  context: PedidoApiContext,
+  input: PedidoSaveInput
+): Promise<void> {
+  const rows = buildPedidoItemUpsertRows(input);
+  if (!rows.length) return;
+
+  const res = await fetch(buildPedidoItensWriteUrl(context.url), {
+    method: 'POST',
+    headers: {
+      ...createHeaders(context.key, context.token),
+      Prefer: 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify(rows),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao gravar itens normalizados do pedido`);
+}
+
+async function listPedidoItensByPedidoIds(
+  context: PedidoApiContext,
+  pedidoIds: string[]
+): Promise<Record<string, PedidoItem[]>> {
+  const uniqueIds = Array.from(new Set(pedidoIds.filter(Boolean)));
+  const itensByPedido: Record<string, PedidoItem[]> = {};
+  if (!uniqueIds.length) return itensByPedido;
+
+  const chunks: string[][] = [];
+  for (let index = 0; index < uniqueIds.length; index += 100) {
+    chunks.push(uniqueIds.slice(index, index + 100));
+  }
+
+  for (const chunk of chunks) {
+    try {
+      const res = await fetch(buildPedidoItensUrl(context.url, context.filialId, chunk), {
+        headers: createHeaders(context.key, context.token),
+        signal: AbortSignal.timeout(12000)
+      });
+      const body = await readJson(res);
+      if (!res.ok || !Array.isArray(body)) continue;
+
+      for (const row of body as PedidoItemRow[]) {
+        if (!row.pedido_id) continue;
+        itensByPedido[row.pedido_id] = itensByPedido[row.pedido_id] ?? [];
+        itensByPedido[row.pedido_id].push(mapPedidoItemRow(row));
+      }
+    } catch {
+      // Fase 4: a tabela normalizada pode ainda nao existir em todos os ambientes.
+      // Nesses casos, a tela continua usando o agregado legado pedidos.itens.
+      continue;
+    }
+  }
+
+  return itensByPedido;
+}
+
+export async function hydratePedidosWithNormalizedItens(
+  context: PedidoApiContext,
+  pedidos: Pedido[]
+): Promise<Pedido[]> {
+  const normalized = pedidos.map(normalizePedido);
+  const itensByPedido = await listPedidoItensByPedidoIds(
+    context,
+    normalized.map((pedido) => pedido.id)
+  );
+
+  return normalized.map((pedido) => {
+    const normalizedItens = itensByPedido[pedido.id];
+    return normalizedItens?.length ? { ...pedido, itens: normalizedItens } : pedido;
+  });
+}
+
 function buildPeriodoDate(periodo: string): string | null {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -185,7 +365,7 @@ export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> 
   );
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  return Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
+  return Array.isArray(body) ? hydratePedidosWithNormalizedItens(context, body as Pedido[]) : [];
 }
 
 export async function getPedidoById(
@@ -199,7 +379,8 @@ export async function getPedidoById(
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedido`);
   const rows = Array.isArray(body) ? (body as Pedido[]) : [];
-  return rows[0] ? normalizePedido(rows[0]) : null;
+  const hydrated = await hydratePedidosWithNormalizedItens(context, rows);
+  return hydrated[0] ?? null;
 }
 
 export async function listPedidosPage(
@@ -217,7 +398,9 @@ export async function listPedidosPage(
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  const rows = Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
+  const rows = Array.isArray(body)
+    ? await hydratePedidosWithNormalizedItens(context, body as Pedido[])
+    : [];
   const total = parseTotalFromContentRange(res.headers.get('content-range'));
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   return { rows, page, pageSize, total, pageCount };
@@ -271,6 +454,8 @@ export async function getNextPedidoNumber(context: PedidoApiContext): Promise<nu
 }
 
 export async function savePedido(context: PedidoApiContext, input: PedidoSaveInput): Promise<void> {
+  // Agregado legado mantido ate o dual-write do PDV na Fase 5.
+  // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
   const payload = { ...input, itens: JSON.stringify(input.itens) };
   const res = await fetch(`${context.url}/rest/v1/pedidos`, {
     method: 'POST',
@@ -283,6 +468,14 @@ export async function savePedido(context: PedidoApiContext, input: PedidoSaveInp
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao salvar pedido`);
+
+  if (input.origem_venda === 'pdv' && isPedidoItensDualWriteEnabled()) {
+    try {
+      await upsertPedidoItensNormalizados(context, input);
+    } catch (error) {
+      console.warn('[pedidos] dual-write pedido_itens falhou; agregado legado preservado.', error);
+    }
+  }
 }
 
 export async function updatePedidoStatus(

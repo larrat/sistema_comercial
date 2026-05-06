@@ -1,5 +1,5 @@
 import type { Cliente, Pedido, Produto } from '../../../../types/domain';
-import { normalizePedido } from '../../pedidos/utils/normalizePedido';
+import { hydratePedidosWithNormalizedItens } from '../../pedidos/services/pedidosApi';
 
 export type DashboardApiContext = {
   url: string;
@@ -43,7 +43,9 @@ export async function fetchDashboardPedidos(
   );
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  return Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
+  return Array.isArray(body)
+    ? hydratePedidosWithNormalizedItens({ ...ctx, filialId }, body as Pedido[])
+    : [];
 }
 
 export async function fetchDashboardProdutos(

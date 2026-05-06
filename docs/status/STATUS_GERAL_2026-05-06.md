@@ -19,7 +19,7 @@ O legado ainda existe em `src/app`, `src/features`, `src/core`, `src/shared` e `
 | Dashboard | `/app/dashboard` | Ativo em React | Tela rica, mas grande; risco principal é manutenção visual e tamanho do componente. |
 | Clientes | `/app/clientes` e `/app/clientes/:clienteId` | Referência de padrão | Melhor tela do sistema: lista, filtros, drawer, perfil em página própria, abas e cadastro editável. |
 | Produtos | `/app/produtos` e `/app/produtos/:produtoId` | Alinhado ao padrão de Clientes | Lista com ação única, métricas lado a lado e página própria de detalhe/edição. |
-| Pedidos | `/app/pedidos` | Ativo em React | Funcional; ainda carrega padrões visuais próprios em alguns fluxos de formulário/detalhe. |
+| Pedidos | `/app/pedidos` e `/app/pedidos/:pedidoId` | Referência de padrão | Lista, detalhe em página própria, drawer, formulário e modais padronizados; normalização de itens preparada com fallback. |
 | Contas a receber | `/app/receber` | Ativo em React | Tem métricas, filtros, detalhes e modais; depende de validação real das RPCs financeiras. |
 | Estoque | `/app/estoque` | Ativo em React | Módulo consistente, com posição, histórico e movimentação por modal. |
 | Cotação | `/app/cotacao` | Ativo em React | Possui abas de fornecedores, importação e tabela. |
@@ -37,12 +37,12 @@ O legado ainda existe em `src/app`, `src/features`, `src/core`, `src/shared` e `
 
 - Clientes é o padrão mais completo para lista, detalhe e edição.
 - Produtos agora segue o mesmo padrão geral de Clientes.
+- Pedidos agora segue o padrão Clientes/Produtos para lista, detalhe, drawer, formulário e modais.
 - Estoque usa bem `PageHeader`, `StatCard`, `DataTable`, `Modal` e estados de feedback.
 - Contas a receber já usa componentes compartilhados e modais de confirmação.
 
 ### Dívidas visuais principais
 
-- Pedidos ainda tem trechos com `modal-shell-*` e fluxo visual próprio.
 - Campanhas ainda usa modais locais em parte do fluxo.
 - RCAs e Relatórios podem padronizar melhor listas/tabelas.
 - Analytics ainda é mock e não deve influenciar decisões de produto.
@@ -66,7 +66,8 @@ O legado ainda existe em `src/app`, `src/features`, `src/core`, `src/shared` e `
 
 - Pedidos têm fluxo de criação, edição, cancelamento e detalhes.
 - PDV possui carrinho, cliente, pagamento, comprovante e metadados próprios.
-- `pedido.itens` ainda parece ser estrutura agregada no registro, não normalização relacional completa.
+- `pedidos.itens` segue como agregado legado de compatibilidade.
+- `pedido_itens` foi preparada para leitura normalizada com fallback e dual-write do PDV por flag; aplicação/validação em homologação ainda precisa confirmação.
 
 ### Contas a receber
 
@@ -100,7 +101,7 @@ O legado ainda existe em `src/app`, `src/features`, `src/core`, `src/shared` e `
 |---|---|
 | `01`, `01b`, `02` | Alinhamento de schema e RLS. |
 | `03`, `03b`, `04`, `04b`, `05`, `05b`, `06` | RBAC, auditoria e funções administrativas. |
-| `07`, `08`, `17` | Pedidos e metadados de PDV. |
+| `07`, `08`, `17`, `18` | Pedidos, metadados de PDV e normalização de itens. |
 | `10`, `11`, `12` | Clientes, fidelidade e RCAs. |
 | `13`, `15`, `16` | Contas a receber, baixas parciais e RPCs de consistência. |
 | `14` | Variantes de produto. |
@@ -154,7 +155,7 @@ A documentação é rica, mas tem excesso de snapshots e planos antigos em `docs
 1. Validar em produção a nova página de Produtos e o fluxo de edição.
 2. Validar RPCs de Contas a Receber em ambiente real.
 3. Decidir se o módulo Acessos será concluído agora ou mantido como placeholder.
-4. Se Pedidos virar prioridade, começar pela Fase 0 do [plano operacional](../andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md).
+4. Aplicar e validar `sql/18_pedido_itens_normalizacao.sql` em homologação antes de ligar dual-write em produção.
 5. Reduzir o peso dos docs antigos criando uma pasta ou índice de arquivo histórico.
 
 ## Critério prático de evolução

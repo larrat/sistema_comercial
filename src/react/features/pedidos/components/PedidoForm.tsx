@@ -17,24 +17,17 @@ import { usePedidoFormData } from '../hooks/usePedidoFormData';
 import { findClienteByInput } from '../services/clientesLightApi';
 import { PedidoItemsSection } from './PedidoItemsSection';
 import { normalizePedStatus } from '../types';
-
-function today() {
-  return new Date().toISOString().split('T')[0];
-}
-
-function nextPedNum(pedidos: Pedido[]): number {
-  const nums = pedidos.map((p) => p.num).filter((n) => typeof n === 'number' && !isNaN(n));
-  return nums.length ? Math.max(...nums) + 1 : 1;
-}
-
-function formatCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function normalizePedidoPrazo(value?: string | null): string {
-  if (value === '7d' || value === '15d' || value === '30d' || value === '60d') return value;
-  return 'imediato';
-}
+import {
+  calculatePedidoTotal,
+  formatPedidoCurrency,
+  getNextPedidoNumber,
+  getTodayISODate,
+  normalizePedidoPrazo,
+  parsePedidoItens,
+  resolveRcaNome,
+  validatePedidoForm,
+  type PedidoFormErrors
+} from '../utils/pedidoRules';
 
 type Props = {
   initialPedido: Pedido | null;
@@ -42,12 +35,6 @@ type Props = {
   onSaved: (pedido: Pedido) => void;
   onCancel: () => void;
   analyticsOrigin?: string;
-};
-
-type PedidoFormErrors = {
-  cli?: string;
-  itens?: string;
-  geral?: string;
 };
 
 export function PedidoForm({
@@ -62,21 +49,11 @@ export function PedidoForm({
   const { submitPedido } = usePedidoMutations();
   const { produtos, clientes, rcas, loading: formLoading, error: formError } = usePedidoFormData();
 
-  const existingItens = initialPedido
-    ? Array.isArray(initialPedido.itens)
-      ? (initialPedido.itens as PedidoItem[])
-      : (() => {
-          try {
-            return JSON.parse(initialPedido.itens as string) as PedidoItem[];
-          } catch {
-            return [];
-          }
-        })()
-    : [];
+  const existingItens = initialPedido ? parsePedidoItens(initialPedido.itens) : [];
 
   const [cli, setCli] = useState(initialPedido?.cli ?? '');
   const [rcaId, setRcaId] = useState(initialPedido?.rca_id ?? '');
-  const [data, setData] = useState(initialPedido?.data ?? today());
+  const [data, setData] = useState(initialPedido?.data ?? getTodayISODate());
   const [status, setStatus] = useState(normalizePedStatus(initialPedido?.status) || 'orcamento');
   const [pgto, setPgto] = useState(initialPedido?.pgto ?? 'a_vista');
   const [prazo, setPrazo] = useState(initialPedido?.prazo ?? 'imediato');
@@ -88,10 +65,8 @@ export function PedidoForm({
   const [showAdvanced, setShowAdvanced] = useState(Boolean(initialPedido?.obs));
 
   const selectedCliente = useMemo(() => findClienteByInput(clientes, cli.trim()), [clientes, cli]);
-  const totalPedido = useMemo(
-    () => itens.reduce((acc, item) => acc + item.qty * item.preco, 0),
-    [itens]
-  );
+  const totalPedido = useMemo(() => calculatePedidoTotal(itens), [itens]);
+  const pedidoNumero = initialPedido?.num ?? getNextPedidoNumber(allPedidos);
 
   function addItem(item: PedidoItem) {
     setItens((prev) => [...prev, item]);
@@ -130,7 +105,9 @@ export function PedidoForm({
       setRcaId((current) => current || clientePrefill.rca_id || '');
     }
     if (clientePrefill.prazo) {
-      setPrazo((current) => (current === 'imediato' ? normalizePedidoPrazo(clientePrefill.prazo) : current));
+      setPrazo((current) =>
+        current === 'imediato' ? normalizePedidoPrazo(clientePrefill.prazo) : current
+      );
     }
   }, [clientes, initialPedido, prefillClienteId]);
 
@@ -138,54 +115,25 @@ export function PedidoForm({
     e.preventDefault();
     setErrors({});
 
-    const cliTrimmed = cli.trim();
-    if (!cliTrimmed) {
-      setErrors({ cli: 'Selecione um cliente para continuar.' });
+    const validation = validatePedidoForm(cli, clientes, itens, findClienteByInput);
+    if (validation.ok === false) {
+      setErrors(validation.errors);
       trackEvent('erro_formulario', {
         metadata: {
           origin: analyticsOrigin,
           form: 'pedido',
-          fields: ['cli'],
-          reason: 'cliente_obrigatorio'
+          fields: validation.fields,
+          reason: validation.reason
         },
         result: 'error'
       });
       return;
     }
 
-    const clienteFound = findClienteByInput(clientes, cliTrimmed);
-    if (!clienteFound) {
-      setErrors({ cli: 'Cliente inválido. Escolha um cliente já cadastrado na lista.' });
-      trackEvent('erro_formulario', {
-        metadata: {
-          origin: analyticsOrigin,
-          form: 'pedido',
-          fields: ['cli'],
-          reason: 'cliente_invalido'
-        },
-        result: 'error'
-      });
-      return;
-    }
-
-    if (itens.length === 0) {
-      setErrors({ itens: 'Adicione pelo menos 1 item antes de salvar o pedido.' });
-      trackEvent('erro_formulario', {
-        metadata: {
-          origin: analyticsOrigin,
-          form: 'pedido',
-          fields: ['itens'],
-          reason: 'itens_obrigatorios'
-        },
-        result: 'error'
-      });
-      return;
-    }
-
-    const rca = rcas.find((r) => r.id === rcaId);
-    const rcaNome = rca?.nome ?? clienteFound.rca_nome ?? '';
+    const clienteFound = validation.cliente;
+    const rcaNome = resolveRcaNome(rcas, rcaId, clienteFound);
     const id = initialPedido?.id ?? globalThis.crypto.randomUUID();
-    const num = initialPedido?.num ?? nextPedNum(allPedidos);
+    const num = pedidoNumero;
 
     const pedidoInput = {
       id,
@@ -215,7 +163,10 @@ export function PedidoForm({
         setErrors({ geral: aviso });
         emitToast(aviso, 'warning');
       } else {
-        emitToast(isEdit ? `Pedido #${num} atualizado com sucesso.` : `Pedido #${num} criado com sucesso.`, 'success');
+        emitToast(
+          isEdit ? `Pedido #${num} atualizado com sucesso.` : `Pedido #${num} criado com sucesso.`,
+          'success'
+        );
         onSaved(pedidoInput as unknown as Pedido);
       }
     } catch (err) {
@@ -228,21 +179,9 @@ export function PedidoForm({
   }
 
   const isEdit = !!initialPedido;
-  const titulo = isEdit ? `Editar pedido #${initialPedido!.num}` : 'Novo pedido';
 
   return (
-    <div className="card card-shell" data-testid="pedido-form">
-      <div className="form-shell-head">
-        <div className="form-shell-kicker">Operacao</div>
-        <div className="modal-shell-head">
-          <div className="mt">{titulo}</div>
-          <p className="form-shell-copy">
-            Preencha cliente, itens e condições do pedido com clareza. O cálculo, o status e a
-            persistência continuam iguais ao fluxo atual.
-          </p>
-        </div>
-      </div>
-
+    <div className="rf-ui-stack" data-testid="pedido-form">
       {formLoading && (
         <LoadingState
           title="Carregando dados do formulário..."
@@ -254,13 +193,13 @@ export function PedidoForm({
 
       {!formLoading && !formError && (
         <form onSubmit={(e) => void handleSubmit(e)}>
-          <div className="modal-shell-body">
+          <div className="rf-ui-stack">
             <FormError message={errors.geral} data-testid="pedido-form-error" />
 
             {status === 'entregue' && prazo === 'imediato' && (
               <div className="empty-inline form-warn-inline" data-testid="pedido-form-warn-prazo">
-                Prazo imediato não gera conta a receber automaticamente. Use 7, 15, 30 ou 60 dias
-                se precisar da geração automática.
+                Prazo imediato não gera conta a receber automaticamente. Use 7, 15, 30 ou 60 dias se
+                precisar da geração automática.
               </div>
             )}
 
@@ -270,14 +209,16 @@ export function PedidoForm({
               aside={
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge tone="info">{status || 'orcamento'}</StatusBadge>
-                  <StatusBadge tone="neutral">{tipo === 'atacado' ? 'Atacado' : 'Varejo'}</StatusBadge>
+                  <StatusBadge tone="neutral">
+                    {tipo === 'atacado' ? 'Atacado' : 'Varejo'}
+                  </StatusBadge>
                 </div>
               }
             >
               <div className="form-summary-grid">
                 <div className="form-summary-item">
                   <span className="table-cell-caption table-cell-muted">Número</span>
-                  <strong>{initialPedido?.num ?? nextPedNum(allPedidos)}</strong>
+                  <strong>{pedidoNumero}</strong>
                 </div>
                 <div className="form-summary-item">
                   <span className="table-cell-caption table-cell-muted">Itens</span>
@@ -285,7 +226,7 @@ export function PedidoForm({
                 </div>
                 <div className="form-summary-item">
                   <span className="table-cell-caption table-cell-muted">Total estimado</span>
-                  <strong>{formatCurrency(totalPedido)}</strong>
+                  <strong>{formatPedidoCurrency(totalPedido)}</strong>
                 </div>
                 <div className="form-summary-item">
                   <span className="table-cell-caption table-cell-muted">Cliente</span>
@@ -360,13 +301,13 @@ export function PedidoForm({
                 error={errors.itens}
                 hint="A composição abaixo continua usando o mesmo cálculo atual de quantidade, preço e total."
               >
-              <PedidoItemsSection
-                itens={itens}
-                produtos={produtos}
-                tipo={tipo}
-                onAdd={addItem}
-                onRemove={removeItem}
-              />
+                <PedidoItemsSection
+                  itens={itens}
+                  produtos={produtos}
+                  tipo={tipo}
+                  onAdd={addItem}
+                  onRemove={removeItem}
+                />
               </FormField>
             </FormSection>
 
@@ -468,15 +409,16 @@ export function PedidoForm({
           <div className="form-sticky-actions">
             <FormActions
               onCancel={onCancel}
+              cancelLabel="Voltar"
               loading={saving}
               submitLabel={isEdit ? 'Salvar alterações' : 'Salvar pedido'}
             >
               <>
-                <button className="btn" type="button" onClick={onCancel} disabled={saving}>
+                <button className="btn btn-sm" type="button" onClick={onCancel} disabled={saving}>
                   Voltar
                 </button>
                 <button
-                  className="btn btn-p"
+                  className="btn btn-p btn-sm"
                   type="submit"
                   disabled={saving}
                   data-testid="pedido-form-submit"

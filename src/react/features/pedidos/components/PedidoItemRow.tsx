@@ -1,4 +1,10 @@
 import type { PedidoItem } from '../../../../types/domain';
+import {
+  calculatePedidoItemLucro,
+  calculatePedidoItemMargem,
+  calculatePedidoItemSubtotal,
+  formatPedidoCurrency
+} from '../utils/pedidoRules';
 
 type Props = {
   item: PedidoItem;
@@ -7,14 +13,10 @@ type Props = {
   onRemove?: (index: number) => void;
 };
 
-function fmtCurrency(v: number) {
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
 export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
-  const subtotal = item.qty * item.preco;
-  const lucro = (item.preco - item.custo) * item.qty;
-  const margem = item.preco > 0 ? ((item.preco - item.custo) / item.preco) * 100 : 0;
+  const subtotal = calculatePedidoItemSubtotal(item);
+  const lucro = calculatePedidoItemLucro(item);
+  const margem = calculatePedidoItemMargem(item);
 
   return (
     <tr data-testid={`pedido-item-row-${index}`}>
@@ -27,13 +29,13 @@ export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
       <td>
         {item.qty} {item.un}
       </td>
-      <td className="table-cell-muted">{fmtCurrency(item.custo)}</td>
-      <td>{fmtCurrency(item.preco)}</td>
-      <td className="table-cell-strong">{fmtCurrency(subtotal)}</td>
+      <td className="table-cell-muted">{formatPedidoCurrency(item.custo)}</td>
+      <td>{formatPedidoCurrency(item.preco)}</td>
+      <td className="table-cell-strong">{formatPedidoCurrency(subtotal)}</td>
       <td
         className={`table-cell-strong ${lucro >= 0 ? 'table-cell-success' : 'table-cell-danger'}`}
       >
-        {fmtCurrency(lucro)}
+        {formatPedidoCurrency(lucro)}
       </td>
       <td className="table-cell-strong">{margem.toFixed(1)}%</td>
       {!readOnly && (

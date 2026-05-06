@@ -1,4 +1,9 @@
 import type { Produto, PedidoItem } from '../../../../types/domain';
+import {
+  calculatePedidoLucroTotal,
+  calculatePedidoTotal,
+  formatPedidoCurrency
+} from '../utils/pedidoRules';
 import { PedidoItemAdd } from './PedidoItemAdd';
 import { PedidoItemRow } from './PedidoItemRow';
 
@@ -11,13 +16,9 @@ type Props = {
   onRemove?: (index: number) => void;
 };
 
-function fmtCurrency(v: number) {
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
 export function PedidoItemsSection({ itens, produtos, tipo, readOnly, onAdd, onRemove }: Props) {
-  const total = itens.reduce((a, i) => a + i.qty * i.preco, 0);
-  const lucroTotal = itens.reduce((a, i) => a + (i.preco - i.custo) * i.qty, 0);
+  const total = calculatePedidoTotal(itens);
+  const lucroTotal = calculatePedidoLucroTotal(itens);
 
   return (
     <div data-testid="pedido-items-section">
@@ -62,7 +63,7 @@ export function PedidoItemsSection({ itens, produtos, tipo, readOnly, onAdd, onR
             <div className="fb">
               <span className="ped-total-label">Total do pedido</span>
               <span className="ped-total-value">
-                {fmtCurrency(total)} | Lucro {fmtCurrency(lucroTotal)}
+                {formatPedidoCurrency(total)} | Lucro {formatPedidoCurrency(lucroTotal)}
               </span>
             </div>
           </div>

@@ -1,23 +1,12 @@
 import { useState } from 'react';
 import type { Produto, PedidoItem } from '../../../../types/domain';
+import { calcPrecoSugerido } from '../utils/pedidoRules';
 
 type Props = {
   produtos: Produto[];
   tipo: string;
   onAdd: (item: PedidoItem) => void;
 };
-
-function calcPrecoSugerido(prod: Produto, tipo: string): number {
-  const mkv = prod.mkv ?? 0;
-  const mka = prod.mka ?? 0;
-  const pfa = prod.pfa ?? 0;
-  const custo = prod.custo ?? 0;
-
-  if (tipo === 'atacado' && (mka > 0 || pfa > 0)) {
-    return pfa > 0 ? pfa : custo * (1 + mka / 100);
-  }
-  return mkv > 0 ? custo * (1 + mkv / 100) : custo;
-}
 
 export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
   const [prodId, setProdId] = useState('');

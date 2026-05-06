@@ -1,4 +1,5 @@
 import type { Cliente, Pedido } from '../../../../types/domain';
+import { hydratePedidosWithNormalizedItens } from '../../pedidos/services/pedidosApi';
 import type { ClienteApiContext } from './clientesApi';
 
 export type ClientePedidosContext = Omit<ClienteApiContext, 'filialId'> & {
@@ -112,6 +113,11 @@ export async function listPedidosByCliente(
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos do cliente`);
 
-  const pedidos = Array.isArray(body) ? (body as Pedido[]) : [];
+  const pedidos = Array.isArray(body)
+    ? await hydratePedidosWithNormalizedItens(
+        { url: context.url, key: context.key, token: context.token, filialId: context.filialId },
+        body as Pedido[]
+      )
+    : [];
   return pedidos.filter((pedido) => belongsPedidoToCliente(pedido, cliente));
 }

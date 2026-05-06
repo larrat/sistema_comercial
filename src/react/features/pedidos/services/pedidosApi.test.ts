@@ -4,8 +4,10 @@ import type { Pedido } from '../../../../types/domain';
 import {
   buildListPedidosPageUrl,
   buildListPedidosSummaryUrl,
+  hydratePedidosWithNormalizedItens,
   listPedidosPage,
-  listPedidosSummary
+  listPedidosSummary,
+  savePedido
 } from './pedidosApi';
 
 const context = {
@@ -30,6 +32,27 @@ const PEDIDO: Pedido = {
   total: 125.5
 };
 
+function makeSaveInput(overrides: Partial<Parameters<typeof savePedido>[1]> = {}) {
+  return {
+    id: PEDIDO.id,
+    filial_id: context.filialId,
+    num: PEDIDO.num,
+    cli: PEDIDO.cli,
+    cliente_id: PEDIDO.cliente_id ?? null,
+    rca_id: null,
+    rca_nome: null,
+    data: PEDIDO.data ?? '2026-04-29',
+    status: PEDIDO.status,
+    pgto: PEDIDO.pgto ?? 'pix',
+    prazo: PEDIDO.prazo ?? 'a_vista',
+    tipo: PEDIDO.tipo ?? 'varejo',
+    obs: '',
+    itens: [],
+    total: PEDIDO.total,
+    ...overrides
+  };
+}
+
 function makeResponse(body: unknown, status = 200, headers?: HeadersInit): Response {
   return {
     ok: status >= 200 && status < 300,
@@ -42,6 +65,7 @@ function makeResponse(body: unknown, status = 200, headers?: HeadersInit): Respo
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal('fetch', vi.fn());
+  delete window.__SC_PEDIDO_ITENS_DUAL_WRITE__;
 
   if (typeof AbortSignal.timeout !== 'function') {
     Object.defineProperty(AbortSignal, 'timeout', {
@@ -94,6 +118,57 @@ describe('pedidosApi server-side listagem', () => {
     });
   });
 
+  it('prefere pedido_itens normalizado quando existe', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse([
+        {
+          pedido_id: 'p1',
+          produto_id: 'prod-1',
+          nome: 'Camisa',
+          un: 'un',
+          qty: '2',
+          preco: '50',
+          custo: '30',
+          orig: 'manual',
+          item: {}
+        }
+      ])
+    );
+
+    const result = await hydratePedidosWithNormalizedItens(context, [
+      { ...PEDIDO, itens: JSON.stringify([{ prodId: 'legacy', nome: 'Legado' }]) }
+    ]);
+
+    expect(result[0]?.itens).toEqual([
+      {
+        prodId: 'prod-1',
+        nome: 'Camisa',
+        un: 'un',
+        qty: 2,
+        preco: 50,
+        custo: 30,
+        custo_base: undefined,
+        preco_base: undefined,
+        orig: 'manual'
+      }
+    ]);
+  });
+
+  it('mantem agregado legado quando pedido_itens nao esta disponivel', async () => {
+    vi.mocked(fetch).mockRejectedValue(new Error('relation does not exist'));
+
+    const result = await hydratePedidosWithNormalizedItens(context, [
+      {
+        ...PEDIDO,
+        itens: JSON.stringify([{ prodId: 'legacy', nome: 'Legado', qty: 1, preco: 10, custo: 5 }])
+      }
+    ]);
+
+    expect(result[0]?.itens).toEqual([
+      { prodId: 'legacy', nome: 'Legado', qty: 1, preco: 10, custo: 5 }
+    ]);
+  });
+
   it('agrega resumo financeiro sem carregar pedido completo', async () => {
     vi.mocked(fetch).mockResolvedValue(
       makeResponse([
@@ -111,5 +186,118 @@ describe('pedidosApi server-side listagem', () => {
       entreguesCount: 1,
       canceladosCount: 1
     });
+  });
+
+  it('salva PDV apenas no agregado quando dual-write esta desligado', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse(null));
+
+    await savePedido(
+      context,
+      makeSaveInput({
+        itens: [
+          {
+            prodId: 'prod-1',
+            nome: 'Camisa',
+            un: 'un',
+            qty: 1,
+            preco: 50,
+            custo: 30,
+            orig: 'pdv'
+          }
+        ],
+        origem_venda: 'pdv'
+      })
+    );
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(String(vi.mocked(fetch).mock.calls[0]?.[0])).toContain('/rest/v1/pedidos');
+  });
+
+  it('faz dual-write do PDV em pedido_itens quando flag esta ligada', async () => {
+    window.__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
+    vi.mocked(fetch).mockResolvedValue(makeResponse(null));
+
+    await savePedido(
+      context,
+      makeSaveInput({
+        itens: [
+          {
+            prodId: 'prod-1',
+            nome: 'Camisa',
+            un: 'un',
+            qty: 2,
+            preco: 50,
+            custo: 30,
+            orig: 'pdv'
+          }
+        ],
+        origem_venda: 'pdv'
+      })
+    );
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(String(vi.mocked(fetch).mock.calls[0]?.[0])).toContain('/rest/v1/pedidos');
+    expect(String(vi.mocked(fetch).mock.calls[1]?.[0])).toBe(
+      'https://example.supabase.co/rest/v1/pedido_itens'
+    );
+
+    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[1]?.[1]?.body));
+    expect(body).toEqual([
+      {
+        id: 'p1:1',
+        filial_id: 'filial-1',
+        pedido_id: 'p1',
+        produto_id: 'prod-1',
+        linha: 1,
+        nome: 'Camisa',
+        un: 'un',
+        qty: 2,
+        preco: 50,
+        custo: 30,
+        custo_base: null,
+        preco_base: null,
+        orig: 'pdv',
+        item: {
+          prodId: 'prod-1',
+          nome: 'Camisa',
+          un: 'un',
+          qty: 2,
+          preco: 50,
+          custo: 30,
+          orig: 'pdv'
+        }
+      }
+    ]);
+  });
+
+  it('nao bloqueia venda PDV se dual-write normalizado falhar', async () => {
+    window.__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(makeResponse(null))
+      .mockResolvedValueOnce(makeResponse({ message: 'pedido_itens indisponivel' }, 500));
+
+    await expect(
+      savePedido(
+        context,
+        makeSaveInput({
+          itens: [
+            {
+              prodId: 'prod-1',
+              nome: 'Camisa',
+              un: 'un',
+              qty: 1,
+              preco: 50,
+              custo: 30,
+              orig: 'pdv'
+            }
+          ],
+          origem_venda: 'pdv'
+        })
+      )
+    ).resolves.toBeUndefined();
+
+    expect(warn).toHaveBeenCalledOnce();
+    warn.mockRestore();
   });
 });

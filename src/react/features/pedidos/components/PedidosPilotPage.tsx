@@ -210,22 +210,40 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         {detailPedido && <PedidoDetailPanel pedido={detailPedido} />}
       </Drawer>
 
-      {editingId && (
-        <PedidoForm
-          prefillClienteId={editingId === 'new' ? prefillClienteId : null}
-          initialPedido={editingId === 'new' ? null : editingPedido}
-          analyticsOrigin={formOrigin}
-          onSaved={(pedido) => {
-            setEditingId(null);
-            setDetailId(pedido.id);
-            setPrefillClienteId(null);
-          }}
-          onCancel={() => {
-            setEditingId(null);
-            setPrefillClienteId(null);
-          }}
-        />
-      )}
+      <Drawer
+        open={!!editingId}
+        title={
+          editingId === 'new'
+            ? 'Novo pedido'
+            : editingPedido
+              ? `Editar pedido #${editingPedido.num}`
+              : 'Editar pedido'
+        }
+        subtitle="Defina cliente, itens e condições sem alterar as regras atuais do pedido."
+        size="lg"
+        closeOnOverlayClick={!editingId || editingId === 'new' || !!editingPedido}
+        onClose={() => {
+          setEditingId(null);
+          setPrefillClienteId(null);
+        }}
+      >
+        {editingId ? (
+          <PedidoForm
+            prefillClienteId={editingId === 'new' ? prefillClienteId : null}
+            initialPedido={editingId === 'new' ? null : editingPedido}
+            analyticsOrigin={formOrigin}
+            onSaved={(pedido) => {
+              setEditingId(null);
+              setDetailId(pedido.id);
+              setPrefillClienteId(null);
+            }}
+            onCancel={() => {
+              setEditingId(null);
+              setPrefillClienteId(null);
+            }}
+          />
+        ) : null}
+      </Drawer>
     </div>
   );
 }
