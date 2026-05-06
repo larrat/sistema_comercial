@@ -1,148 +1,100 @@
 # Norte do Projeto — Sistema Comercial
 
-**Atualizado em:** 2026-04-29
+Atualizado em: 2026-05-06
 
-Este é o documento central. Ele descreve o estado real do sistema, o que estamos fazendo agora e onde encontrar cada referência ativa. Qualquer doc que não esteja listado aqui foi cancelado.
+Este é o documento executivo central. Ele diz onde o sistema está agora, quais documentos valem e quais decisões importam para continuar evoluindo sem virar reforma infinita.
 
----
+Para análise detalhada, use [status/STATUS_GERAL_2026-05-06.md](status/STATUS_GERAL_2026-05-06.md).
 
-## Estado atual do sistema
+## Princípio atual
 
-### Módulos React (migration status)
+O sistema existe para operar uma loja real.
+A próxima mudança deve resolver uma dor concreta de uso, não completar uma lista abstrata de governança.
 
-| Módulo | Status | Próxima ação |
-|--------|--------|-------------|
-| Dashboard | React-only — shell removido (2026-04-21) | Refatorar 892 linhas (alta dívida visual) |
-| Clientes | React-only — shell removido, server-side pagination (2026-04-28) | Nenhuma |
-| Pedidos | React-only — legado é stub vazio | Migrar de `modal-shell-*` para Drawer global |
-| Contas Receber | React-only — shell removido (2026-04-21) | Validar RPCs em ambiente real |
-| Produtos | React-only — shell legado removido (2026-04-29) | Nenhuma |
-| Estoque | React-only — shell legado removido (2026-04-29) | Nenhuma |
-| Cotação | Legado puro — sem React equivalente | Fase 2 da migração |
-| Relatórios | Legado puro — sem React equivalente | Fase 2 da migração |
-| RCAs / Oportunidades | Legado puro — baixa complexidade | Fase 2 da migração |
-| Campanhas | Legado puro — maior complexidade | Fase 2 da migração (última) |
+## Estado geral
 
-### RBAC / Backend
+- A aplicação principal está em React dentro de `src/react`.
+- Todas as rotas principais do menu têm página React.
+- Clientes é a tela de referência de UX/UI.
+- Produtos foi alinhado ao padrão de Clientes, com página própria de detalhe/edição.
+- O legado ainda existe no repositório, mas não é a referência para evolução de produto.
+- Banco/RLS/RBAC têm base robusta em SQL, mas algumas implantações precisam ser confirmadas em produção antes de serem marcadas como concluídas.
 
-| Item | Status |
-|------|--------|
-| RLS de produção (`02_rls_producao.sql`) | Aplicado |
-| RBAC v1 + seed (`03`, `03b`) | Aplicado |
-| Matriz de permissões publicada | Aplicada |
-| RBAC v2 admin-only (`04_rbac_v2_admin_only.sql`) | **Pendente em produção** |
-| Auditoria RBAC (`05_rbac_auditoria_acessos.sql`) | **Pendente em produção** |
-| Edge Functions (campanhas, acessos-admin) | **Não deployadas** |
+## Módulos
 
-### UI Shared Components
+| Módulo | Status atual | Próxima ação pragmática |
+|---|---|---|
+| PDV | Ativo em React | Refinar busca de produto e atalhos se atrapalhar atendimento. |
+| Dashboard | Ativo em React | Só refatorar se manutenção ficar custosa. |
+| Clientes | Referência de padrão | Manter como base de UX para cadastros importantes. |
+| Produtos | Alinhado ao padrão Clientes | Validar em produção a página de detalhe/edição. |
+| Pedidos | Ativo em React | Padronizar visual apenas se o fluxo atual atrapalhar operação. |
+| Contas a receber | Ativo em React | Validar RPCs financeiras em ambiente real. |
+| Estoque | Ativo em React | Manter integração com Produtos e PDV. |
+| Cotação | Ativo em React | Validar fluxo real de importação/tabela antes de expandir. |
+| Vendedores/RCAs | Ativo em React | Baixa prioridade; CRUD simples. |
+| Relatórios | Ativo em React | Melhorar só se o relatório real pedido pela loja exigir. |
+| Campanhas | Ativo em React | Confirmar deploy/uso real da Edge Function antes de declarar completo. |
+| Analytics | Protótipo técnico | Não tratar como módulo operacional até trocar mocks por dados reais. |
+| Filiais | Ativo em React | Sem prioridade imediata. |
+| Acessos | Placeholder React | Decidir se conclui agora ou mantém congelado. |
 
-| Componente | Status |
-|------------|--------|
-| PageHeader, FilterBar, DataTable, ActionMenu | Ativos |
-| Drawer | Ativo — revisado 2026-04-28 (size, loading, closeOnEsc, aria-labelledby) |
-| Modal, StatusBadge, EmptyState, LoadingState, ErrorState | Ativos |
-| StatCard, FormSection, FormField | Ativos — FormField ganhou `disabled` em 2026-04-28 |
-| FormActions | **Criado 2026-04-28** — padrão canônico de ações de formulário |
-| FormError | Ativo |
+## Banco e backend
 
----
+| Área | Estado |
+|---|---|
+| RLS base | Scripts existentes em `sql/01*` e `sql/02*`. |
+| RBAC v1/v2 | Scripts existentes em `sql/03*`, `sql/04*`, `sql/05*`, `sql/06*`. Confirmar produção antes de marcar tudo como concluído. |
+| Clientes/fidelidade | Scripts `sql/10`, `sql/11`, `sql/12`. |
+| Contas a receber | Scripts `sql/13`, `sql/15`, `sql/16`; RPCs críticas precisam validação real. |
+| Produtos variantes | Script `sql/14`. |
+| Pedidos/PDV | Scripts `sql/07`, `sql/08`, `sql/17`. |
+| Edge Functions | Acessos e Campanhas existem em `supabase/functions`; deploy precisa confirmação externa. |
 
-## O que estamos fazendo agora
+## UX/UI
 
-### Concluído nesta rodada (2026-04-28)
+### Padrão ativo
 
-- **Server-side pagination** — Clientes e Produtos migrados de client-side para server-side
-- **Confirm modals** — `ClienteDeleteConfirmModal`, `ContaReceberConfirmModal`, `EstoqueAdjustConfirmModal`, `ProdutoDeleteConfirmModal`
-- **UI Components** — FilterBar (`onClearFilters`, `activeFilterCount`), Drawer (size/loading/closeOnEsc/aria), FormField (`disabled`), FormActions (novo)
-- **Mapeamentos** — Pedidos, Contas Receber, Estoque, Auditoria de Ações Críticas
-- **Analytics hook** — `useAnalytics.ts` em shared/hooks
-- **Governança** — INVENTARIO_COMPONENTES_COMPARTILHADOS, CHECKLIST_PR_FRONT_BACK_UX reescritos; MATRIZ_PERMISSOES publicada
+- `PageHeader` no topo.
+- `StatCard` para métricas.
+- `FilterBar` para busca/filtros.
+- `DataTable` ou cards em lista.
+- `Modal` para confirmação.
+- `Drawer` para criação/edição rápida quando fizer sentido.
+- Página própria para detalhe rico, seguindo Clientes e Produtos.
 
-### Pendente imediato
+### Referências
 
-1. **Validar RPCs** em ambiente real: `rpc_registrar_baixa`, `rpc_estornar_baixa`, `rpc_marcar_conta_pendente`
-2. **Aplicar RBAC v2 + Auditoria** em produção (`sql/04` e `sql/05`)
-3. **Rodar CI** — lint, typecheck, test:react em ambiente com Node/npm
-
----
+- [PADRAO_TELA_CLIENTES.md](PADRAO_TELA_CLIENTES.md)
+- [design-system/UI_COMPONENTS.md](design-system/UI_COMPONENTS.md)
+- [design-system/GOVERNANCA_VISUAL.md](design-system/GOVERNANCA_VISUAL.md)
 
 ## Documentos ativos
 
-### Roadmap e execução
+| Tipo | Documento |
+|---|---|
+| Índice | [README.md](README.md) |
+| Plano enxuto | [PLANO_SIMPLES.md](PLANO_SIMPLES.md) |
+| Status atual | [status/STATUS_GERAL_2026-05-06.md](status/STATUS_GERAL_2026-05-06.md) |
+| Organização dos docs | [ORGANIZACAO_DOCUMENTACAO.md](ORGANIZACAO_DOCUMENTACAO.md) |
+| Padrão de tela | [PADRAO_TELA_CLIENTES.md](PADRAO_TELA_CLIENTES.md) |
 
-| Documento | Para que serve |
-|-----------|---------------|
-| [governanca/PLANO_REMOCAO_LEGADO.md](governanca/PLANO_REMOCAO_LEGADO.md) | Checklists granulares por módulo para remoção do legado |
-| [governanca/STATUS_REAL_2026-04-28.md](governanca/STATUS_REAL_2026-04-28.md) | Estado real do sistema — snapshot desta data |
+## Documentos históricos
 
-### Componentes e arquitetura front
+Os documentos antigos em `docs/governanca/STATUS_REAL_*`, planos de sprint e checklists de execução continuam no repositório, mas não são a fonte principal do estado atual.
 
-| Documento | Para que serve |
-|-----------|---------------|
-| [governanca/INVENTARIO_COMPONENTES_COMPARTILHADOS.md](governanca/INVENTARIO_COMPONENTES_COMPARTILHADOS.md) | Mapa de todos os shared/ui — o que usar e o que não criar |
-| [governanca/ABORDAGEM_CLIENTES_SERVER_SIDE.md](governanca/ABORDAGEM_CLIENTES_SERVER_SIDE.md) | Decisão de migração Clientes para server-side |
-| [governanca/ABORDAGEM_PRODUTOS_SERVER_SIDE.md](governanca/ABORDAGEM_PRODUTOS_SERVER_SIDE.md) | Decisão de migração Produtos para server-side |
-| [governanca/ABORDAGEM_PEDIDOS_SERVER_SIDE.md](governanca/ABORDAGEM_PEDIDOS_SERVER_SIDE.md) | Decisão de abordagem Pedidos |
+Regra: se houver conflito, vale este `NORTE.md` e o snapshot mais recente em `docs/status/`.
 
-### Mapeamentos de módulo
+## Próximas decisões úteis
 
-| Documento | Para que serve |
-|-----------|---------------|
-| [governanca/MAPEAMENTO_MODULO_PEDIDOS.md](governanca/MAPEAMENTO_MODULO_PEDIDOS.md) | Todos os arquivos e fluxo de dados de Pedidos |
-| [governanca/MAPEAMENTO_MODULO_CONTAS_RECEBER.md](governanca/MAPEAMENTO_MODULO_CONTAS_RECEBER.md) | Todos os arquivos e fluxo de dados de Contas Receber |
-| [governanca/MAPEAMENTO_MODULO_ESTOQUE.md](governanca/MAPEAMENTO_MODULO_ESTOQUE.md) | Todos os arquivos e fluxo de dados de Estoque |
-| [governanca/MAPEAMENTO_AUDITORIA_ACOES_CRITICAS.md](governanca/MAPEAMENTO_AUDITORIA_ACOES_CRITICAS.md) | Auditoria das ações críticas por módulo |
+1. Validar Produtos em produção após a criação da página própria.
+2. Validar RPCs de Contas a Receber.
+3. Decidir se Acessos será finalizado agora ou deixado como placeholder.
+4. Só depois disso avaliar padronização de Pedidos.
 
-### Backend e banco
+## O que evitar
 
-| Documento | Para que serve |
-|-----------|---------------|
-| [backend/CHECKLIST_RBAC_IMPLANTACAO.md](../backend/CHECKLIST_RBAC_IMPLANTACAO.md) | 4 itens de RBAC ainda pendentes em produção |
-| [governanca/MATRIZ_PERMISSOES.md](governanca/MATRIZ_PERMISSOES.md) | Estado real de permissões — RBAC × guards × RLS |
-| [backend/CONTRATO_MINIMO_SB_V1.md](../backend/CONTRATO_MINIMO_SB_V1.md) | Contrato do layer SB — padrão de erro e retorno |
-| [governanca/GOVERNANCA_SQL_RLS.md](governanca/GOVERNANCA_SQL_RLS.md) | Regras obrigatórias para qualquer SQL novo |
-
-### Engenharia e qualidade
-
-| Documento | Para que serve |
-|-----------|---------------|
-| [governanca/ENGINEERING_POLICY.md](governanca/ENGINEERING_POLICY.md) | Política de engenharia — tipagem, qualidade, commits, segurança |
-| [governanca/CHECKLIST_PR_FRONT_BACK_UX.md](governanca/CHECKLIST_PR_FRONT_BACK_UX.md) | Gate obrigatório em todo PR (front + back + UX) |
-| [governanca/BASELINE_TECNICO_ATUAL.md](governanca/BASELINE_TECNICO_ATUAL.md) | Auditoria técnica completa do codebase |
-| [arquitetura/TYPESCRIPT_GRADUAL.md](../arquitetura/TYPESCRIPT_GRADUAL.md) | Estratégia de adoção gradual de TypeScript |
-| [governanca/COVERAGE_THRESHOLD_PROPOSTA.md](governanca/COVERAGE_THRESHOLD_PROPOSTA.md) | Thresholds de cobertura por fase (ativo no CI) |
-
-### UX e release
-
-| Documento | Para que serve |
-|-----------|---------------|
-| [release/CHECKLIST_RELEASE_UX_UI.md](../release/CHECKLIST_RELEASE_UX_UI.md) | Gate obrigatório antes de qualquer release com UI |
-| [release/CRITERIO_ACEITE_UX_UI_POR_FEATURE.md](../release/CRITERIO_ACEITE_UX_UI_POR_FEATURE.md) | Critério de aceite por feature de produto |
-| [design-system/GOVERNANCA_VISUAL.md](../design-system/GOVERNANCA_VISUAL.md) | Regras de design system — o que usar e o que evitar |
-| [feedback/FEEDBACK_ERROS_PADRAO_V1.md](../feedback/FEEDBACK_ERROS_PADRAO_V1.md) | Padrão de mensagens de erro para o usuário |
-
----
-
-## Regras que não mudam
-
-- Todo PR passa pelo `CHECKLIST_PR_FRONT_BACK_UX.md`
-- Todo SQL novo segue a `GOVERNANCA_SQL_RLS.md`
-- Toda feature com UI passa pelo `CHECKLIST_RELEASE_UX_UI.md`
-- Nenhuma regra de negócio financeira fica só no frontend
-- Commits seguem o padrão `feat/fix/refactor/docs(escopo): mensagem`
-- Shared/ui: consultar INVENTARIO antes de criar componente novo
-- Novo módulo React = documenta abordagem → valida → remove legado
-
----
-
-## Próximas frentes (após remoção dos legados restantes)
-
-| Ordem | Frente | Estimativa |
-|-------|--------|-----------|
-| 1 | Aplicar RBAC v2 + Auditoria em produção | Imediato |
-| 2 | Validar RPCs de Contas Receber em ambiente real | Imediato |
-| 3 | React: Cotação | Mês 1 |
-| 4 | React: RCAs + Relatórios | Mês 1–2 |
-| 5 | React: Campanhas | Mês 2–3 |
-| 6 | Remover infraestrutura bridge (`src/legacy/`) | Após fase 6 |
-| 7 | CI com lint + typecheck + testes em branch protection | Antes de fase 6 |
+- Reabrir migração legado → React como projeto amplo.
+- Criar novos documentos de governança sem uma decisão prática.
+- Padronizar todos os módulos ao mesmo tempo.
+- Mexer em banco sem plano de validação e rollback.

@@ -36,6 +36,7 @@ Barra de filtros + ações. Agrupa inputs de busca, selects de filtro e botão d
 
 **Quando usar:** acima de toda lista/tabela com filtros.
 **Quando não usar:** em formulários ou seções sem filtros.
+**Variação permitida:** `className` para ajuste local de layout dos campos, como `produtos-filter-bar`.
 
 ---
 
@@ -112,6 +113,7 @@ Card de métrica/KPI. Agrupe em `rf-ui-stat-grid`, `rf-ui-stat-grid--3` ou `rf-u
 
 **Grades disponíveis:** `rf-ui-stat-grid` (4 colunas), `rf-ui-stat-grid--3` (3), `rf-ui-stat-grid--2` (2).
 Todas são responsivas: 2 colunas em ≤980px, 1 coluna em ≤600px.
+Produtos usa `rf-produtos-metrics` para manter os 3 cards lado a lado em desktop/tablet largo.
 
 ---
 

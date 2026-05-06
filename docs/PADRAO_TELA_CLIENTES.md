@@ -307,3 +307,15 @@ A pergunta é sempre: isso ajuda a atender cliente ou operar a loja melhor?
 A tela de Clientes passa a ser o padrão de referência.
 Quando houver dúvida em outra tela, seguir Clientes primeiro.
 Se a outra tela tiver uma necessidade real diferente, adaptar sem criar complexidade desnecessária.
+
+## Aplicação atual
+
+Em 06/05/2026, este padrão já foi aplicado em Produtos nos pontos principais:
+
+- Ação principal única no cabeçalho.
+- Estado vazio com ação de criação.
+- Menu de linha com ordem previsível.
+- Formulário separado em seções.
+- Página própria de detalhe e edição, seguindo a lógica do perfil de Cliente.
+
+Próximas telas só devem seguir este padrão quando houver dor real de uso.

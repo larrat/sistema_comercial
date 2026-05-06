@@ -13,7 +13,7 @@ Aplicacao SPA browser-first com runtime modular no front, Edge Functions no Supa
 - `src/styles/`
   CSS principal da aplicacao.
 - `docs/`
-  Governanca, backend, arquitetura, design system e runbooks.
+  Índice, status atual, governança, backend, arquitetura, design system e runbooks.
 - `tests/`
   Specs E2E com Playwright.
 - `scripts/`
@@ -45,4 +45,5 @@ npm run test:e2e:fase-2
 ## Observacoes
 
 - `test-results/` e `node_modules/` sao artefatos gerados.
-- A organizacao do repositorio foi consolidada em `docs/arquitetura/NOVA_ORGANIZACAO_REPOSITORIO_2026-04-08.md`.
+- A entrada atual da documentação é `docs/README.md`.
+- O snapshot mais recente do estado do sistema é `docs/status/STATUS_GERAL_2026-05-06.md`.
