@@ -7,9 +7,12 @@ type RcasState = {
   error: string | null;
   reloadKey: number;
 
-  modalOpen: boolean;
-  modalEditId: string | null;
-  modalNome: string;
+  query: string;
+  statusFilter: 'todos' | 'ativos' | 'inativos';
+
+  drawerOpen: boolean;
+  drawerEditId: string | null;
+  drawerNome: string;
   saving: boolean;
 };
 
@@ -19,9 +22,12 @@ type RcasActions = {
   setError: (e: string | null) => void;
   requestReload: () => void;
 
-  openModal: (rca?: Rca) => void;
-  closeModal: () => void;
-  setModalNome: (nome: string) => void;
+  setQuery: (q: string) => void;
+  setStatusFilter: (f: 'todos' | 'ativos' | 'inativos') => void;
+
+  openDrawer: (rca?: Rca) => void;
+  closeDrawer: () => void;
+  setDrawerNome: (nome: string) => void;
   setSaving: (v: boolean) => void;
   upsertLocal: (rca: Rca) => void;
   deactivateLocal: (id: string) => void;
@@ -33,9 +39,12 @@ export const useRcasStore = create<RcasState & RcasActions>((set) => ({
   error: null,
   reloadKey: 0,
 
-  modalOpen: false,
-  modalEditId: null,
-  modalNome: '',
+  query: '',
+  statusFilter: 'todos',
+
+  drawerOpen: false,
+  drawerEditId: null,
+  drawerNome: '',
   saving: false,
 
   setRcas: (rcas) => set({ rcas }),
@@ -43,14 +52,17 @@ export const useRcasStore = create<RcasState & RcasActions>((set) => ({
   setError: (error) => set({ error }),
   requestReload: () => set((s) => ({ reloadKey: s.reloadKey + 1 })),
 
-  openModal: (rca) =>
+  setQuery: (query) => set({ query }),
+  setStatusFilter: (statusFilter) => set({ statusFilter }),
+
+  openDrawer: (rca) =>
     set({
-      modalOpen: true,
-      modalEditId: rca?.id ?? null,
-      modalNome: rca?.nome ?? ''
+      drawerOpen: true,
+      drawerEditId: rca?.id ?? null,
+      drawerNome: rca?.nome ?? ''
     }),
-  closeModal: () => set({ modalOpen: false, modalEditId: null, modalNome: '', saving: false }),
-  setModalNome: (modalNome) => set({ modalNome }),
+  closeDrawer: () => set({ drawerOpen: false, drawerEditId: null, drawerNome: '', saving: false }),
+  setDrawerNome: (drawerNome) => set({ drawerNome }),
   setSaving: (saving) => set({ saving }),
 
   upsertLocal: (rca) =>

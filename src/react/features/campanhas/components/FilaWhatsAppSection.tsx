@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { StatusBadge, FilterBar } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import type { CampanhaEnvio } from '../../../../types/domain';
 
-function statusClass(status: string | undefined) {
-  if (status === 'enviado') return 'tone-success';
-  if (status === 'falhou') return 'tone-danger';
-  return 'tone-muted';
+function statusTone(status: string | undefined): 'success' | 'danger' | 'neutral' {
+  if (status === 'enviado') return 'success';
+  if (status === 'falhou') return 'danger';
+  return 'neutral';
 }
 
 export function FilaWhatsAppSection() {
@@ -18,10 +19,13 @@ export function FilaWhatsAppSection() {
     useCampanhasMutations();
 
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
-  const [filtroStatus, setFiltroStatus] = useState<string>('pendente');
+  const [filtroStatus, setFiltroStatus] = useState('pendente');
 
   const pendentes = envios.filter((e) => (e.status ?? 'pendente') === 'pendente');
-  const exibidos = filtroStatus === 'todos' ? envios : envios.filter((e) => (e.status ?? 'pendente') === filtroStatus);
+  const exibidos =
+    filtroStatus === 'todos'
+      ? envios
+      : envios.filter((e) => (e.status ?? 'pendente') === filtroStatus);
 
   function toggleItem(id: string) {
     setSelecionados((prev) => {
@@ -33,11 +37,9 @@ export function FilaWhatsAppSection() {
   }
 
   function toggleTodos() {
-    if (selecionados.size === exibidos.length) {
-      setSelecionados(new Set());
-    } else {
-      setSelecionados(new Set(exibidos.map((e) => e.id)));
-    }
+    setSelecionados(
+      selecionados.size === exibidos.length ? new Set() : new Set(exibidos.map((e) => e.id))
+    );
   }
 
   function campanhaNome(envio: CampanhaEnvio) {
@@ -50,8 +52,7 @@ export function FilaWhatsAppSection() {
   }
 
   function handleLoteWa() {
-    const ids = pendentes.map((e) => e.id);
-    startLote(ids);
+    startLote(pendentes.map((e) => e.id));
   }
 
   return (
@@ -59,34 +60,50 @@ export function FilaWhatsAppSection() {
       <div className="camp-section-hdr">
         <div className="ct">Fila WhatsApp</div>
         <div className="camp-section-actions">
-          <select
-            className="field-input field-input--sm"
-            value={filtroStatus}
-            onChange={(e) => setFiltroStatus(e.target.value)}
-          >
-            <option value="pendente">Pendentes ({pendentes.length})</option>
-            <option value="enviado">Enviados</option>
-            <option value="falhou">Falhou</option>
-            <option value="todos">Todos</option>
-          </select>
+          <FilterBar
+            filters={[
+              {
+                key: 'status',
+                value: filtroStatus,
+                onChange: setFiltroStatus,
+                options: [
+                  { value: 'pendente', label: `Pendentes (${pendentes.length})` },
+                  { value: 'enviado', label: 'Enviados' },
+                  { value: 'falhou', label: 'Falhou' },
+                  { value: 'todos', label: 'Todos' }
+                ]
+              }
+            ]}
+          />
           {selecionados.size > 0 && (
             <>
               <button
-                className="btn btn-sm btn-success"
-                onClick={() => { void marcarSelecionadosEnviados([...selecionados]).then(() => setSelecionados(new Set())); }}
+                className="btn btn-sm"
+                type="button"
+                onClick={() =>
+                  void marcarSelecionadosEnviados([...selecionados]).then(() =>
+                    setSelecionados(new Set())
+                  )
+                }
               >
                 Enviados ({selecionados.size})
               </button>
               <button
-                className="btn btn-sm btn-ghost tone-danger"
-                onClick={() => { void marcarSelecionadosFalhou([...selecionados]).then(() => setSelecionados(new Set())); }}
+                className="btn btn-sm"
+                type="button"
+                style={{ color: 'var(--color-danger, #dc2626)' }}
+                onClick={() =>
+                  void marcarSelecionadosFalhou([...selecionados]).then(() =>
+                    setSelecionados(new Set())
+                  )
+                }
               >
                 Falhou ({selecionados.size})
               </button>
             </>
           )}
           {pendentes.length > 0 && (
-            <button className="btn btn-sm btn-primary" onClick={handleLoteWa}>
+            <button className="btn btn-p btn-sm" type="button" onClick={handleLoteWa}>
               Enviar lote ({pendentes.length})
             </button>
           )}
@@ -95,22 +112,25 @@ export function FilaWhatsAppSection() {
 
       {exibidos.length === 0 ? (
         <div className="empty">
-          <div className="ico">WA</div>
-          <p>Nenhum envio {filtroStatus === 'todos' ? '' : `com status "${filtroStatus}"`}.</p>
+          <p>Nenhum envio{filtroStatus !== 'todos' ? ` com status "${filtroStatus}"` : ''}.</p>
         </div>
       ) : (
         <div className="camp-fila-table-wrap">
-          <table className="camp-fila-table">
+          <table className="tbl">
             <thead>
               <tr>
-                <th>
-                  <input type="checkbox" onChange={toggleTodos} checked={selecionados.size === exibidos.length && exibidos.length > 0} />
+                <th style={{ width: '36px' }}>
+                  <input
+                    type="checkbox"
+                    onChange={toggleTodos}
+                    checked={selecionados.size === exibidos.length && exibidos.length > 0}
+                  />
                 </th>
                 <th>Destino</th>
                 <th>Campanha</th>
                 <th>Status</th>
                 <th>Data ref.</th>
-                <th>Ações</th>
+                <th style={{ textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -123,42 +143,52 @@ export function FilaWhatsAppSection() {
                       onChange={() => toggleItem(envio.id)}
                     />
                   </td>
-                  <td className="camp-fila-destino">{envio.destino ?? '—'}</td>
+                  <td>{envio.destino ?? '—'}</td>
                   <td>{campanhaNome(envio)}</td>
                   <td>
-                    <span className={`camp-status-badge ${statusClass(envio.status)}`}>
+                    <StatusBadge tone={statusTone(envio.status)}>
                       {envio.status ?? 'pendente'}
-                    </span>
+                    </StatusBadge>
                   </td>
                   <td>{envio.data_ref ?? '—'}</td>
-                  <td className="camp-fila-row-actions">
-                    <button className="btn btn-xs btn-ghost" onClick={() => handlePreview(envio)}>
-                      Preview
-                    </button>
-                    {(envio.status ?? 'pendente') === 'pendente' && (
-                      <>
-                        <button
-                          className="btn btn-xs btn-success"
-                          onClick={() => { void marcarEnviado(envio); }}
-                        >
-                          Enviado
-                        </button>
-                        <button
-                          className="btn btn-xs btn-ghost tone-danger"
-                          onClick={() => { void marcarFalhou(envio); }}
-                        >
-                          Falhou
-                        </button>
-                      </>
-                    )}
-                    {envio.status && envio.status !== 'pendente' && (
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
                       <button
-                        className="btn btn-xs btn-ghost"
-                        onClick={() => { void desfazer(envio); }}
+                        className="btn btn-sm"
+                        type="button"
+                        onClick={() => handlePreview(envio)}
                       >
-                        Desfazer
+                        Preview
                       </button>
-                    )}
+                      {(envio.status ?? 'pendente') === 'pendente' && (
+                        <>
+                          <button
+                            className="btn btn-sm"
+                            type="button"
+                            onClick={() => void marcarEnviado(envio)}
+                          >
+                            Enviado
+                          </button>
+                          <button
+                            className="btn btn-sm"
+                            type="button"
+                            style={{ color: 'var(--color-danger, #dc2626)' }}
+                            onClick={() => void marcarFalhou(envio)}
+                          >
+                            Falhou
+                          </button>
+                        </>
+                      )}
+                      {envio.status && envio.status !== 'pendente' && (
+                        <button
+                          className="btn btn-sm"
+                          type="button"
+                          onClick={() => void desfazer(envio)}
+                        >
+                          Desfazer
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

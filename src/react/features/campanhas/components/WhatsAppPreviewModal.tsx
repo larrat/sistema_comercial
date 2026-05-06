@@ -1,3 +1,4 @@
+import { Modal } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 
@@ -15,100 +16,97 @@ export function WhatsAppPreviewModal() {
   const { marcarEnviado, marcarFalhou, abrirWhatsAppEAvancarLote, abrirWhatsApp } =
     useCampanhasMutations();
 
-  if (!waModal.open) return null;
-
-  const { envio, campanha } = waModal;
   const isLote = lote.active;
   const loteInfo = isLote ? `${lote.index + 1} / ${lote.ids.length}` : null;
 
   function handleClose() {
-    if (isLote) {
-      cancelarLote();
-    } else {
-      closeWaModal();
-    }
+    if (isLote) cancelarLote();
+    else closeWaModal();
   }
 
+  if (!waModal.open) return null;
+
+  const { envio, campanha } = waModal;
+
   function copiarMensagem() {
-    if (envio.mensagem) {
-      void navigator.clipboard.writeText(envio.mensagem);
-    }
+    if (envio.mensagem) void navigator.clipboard.writeText(envio.mensagem);
   }
 
   function copiarNumero() {
-    if (envio.destino) {
-      void navigator.clipboard.writeText(envio.destino.replace(/\D/g, ''));
-    }
+    if (envio.destino) void navigator.clipboard.writeText(envio.destino.replace(/\D/g, ''));
   }
 
   async function handleEnviadoEAvancar() {
     await marcarEnviado(envio);
-    if (isLote) {
-      abrirWhatsAppEAvancarLote(envio);
-    } else {
-      closeWaModal();
-    }
+    if (isLote) abrirWhatsAppEAvancarLote(envio);
+    else closeWaModal();
   }
 
   async function handleFalhouEAvancar() {
     await marcarFalhou(envio);
-    if (isLote) {
-      useCampanhasStore.getState().avancarLote();
-    } else {
-      closeWaModal();
-    }
+    if (isLote) useCampanhasStore.getState().avancarLote();
+    else closeWaModal();
   }
 
+  const title = campanha?.nome
+    ? `${campanha.nome}${loteInfo ? ` — ${loteInfo}` : ''}`
+    : 'WhatsApp Preview';
+
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-box modal-box--wa" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-hdr">
-          <span>
-            {campanha?.nome ?? 'WhatsApp Preview'}
-            {loteInfo && <span className="camp-lote-badge">{loteInfo}</span>}
-          </span>
-          <button className="modal-close" onClick={handleClose}>✕</button>
-        </div>
-
-        <div className="form-body">
-          <div className="camp-wa-destino">
-            <span className="camp-field-label">Para:</span>
-            <strong>{fmtNum(envio.destino)}</strong>
-            <button className="btn btn-xs btn-ghost" onClick={copiarNumero}>Copiar</button>
-          </div>
-
-          <div className="camp-wa-msg-box">
-            <pre className="camp-wa-msg">{envio.mensagem || '(sem mensagem)'}</pre>
-          </div>
-
-          <div className="camp-wa-actions-row">
-            <button
-              className="btn btn-primary"
-              onClick={() => { isLote ? abrirWhatsAppEAvancarLote(envio) : abrirWhatsApp(envio); }}
-            >
-              Abrir WhatsApp{isLote ? ' e avançar' : ''}
-            </button>
-            <button className="btn btn-ghost" onClick={copiarMensagem}>
-              Copiar mensagem
-            </button>
-          </div>
-        </div>
-
-        <div className="modal-ftr">
+    <Modal
+      open={waModal.open}
+      title={title}
+      onClose={handleClose}
+      closeOnOverlay={!isLote}
+      footer={
+        <>
           <button
-            className="btn btn-ghost tone-danger"
-            onClick={() => { void handleFalhouEAvancar(); }}
+            className="btn btn-sm"
+            type="button"
+            style={{ color: 'var(--color-danger, #dc2626)' }}
+            onClick={() => void handleFalhouEAvancar()}
           >
-            Marcar falhou{isLote ? ' e avançar' : ''}
+            Falhou{isLote ? ' e avançar' : ''}
           </button>
           <button
-            className="btn btn-success"
-            onClick={() => { void handleEnviadoEAvancar(); }}
+            className="btn btn-p btn-sm"
+            type="button"
+            onClick={() => void handleEnviadoEAvancar()}
           >
             Enviado{isLote ? ' e avançar' : ''}
           </button>
+        </>
+      }
+    >
+      <div className="fg">
+        <div className="camp-wa-destino">
+          <span className="fl">Para:</span>
+          <strong>{fmtNum(envio.destino)}</strong>
+          <button className="btn btn-sm" type="button" onClick={copiarNumero}>
+            Copiar número
+          </button>
+        </div>
+
+        <div className="camp-wa-msg-box">
+          <pre className="camp-wa-msg">{envio.mensagem || '(sem mensagem)'}</pre>
+        </div>
+
+        <div className="camp-wa-actions-row">
+          <button
+            className="btn btn-p btn-sm"
+            type="button"
+            onClick={() => {
+              if (isLote) abrirWhatsAppEAvancarLote(envio);
+              else abrirWhatsApp(envio);
+            }}
+          >
+            Abrir WhatsApp{isLote ? ' e avançar' : ''}
+          </button>
+          <button className="btn btn-sm" type="button" onClick={copiarMensagem}>
+            Copiar mensagem
+          </button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

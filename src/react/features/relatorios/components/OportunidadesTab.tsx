@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
-import { EmptyState, StatCard } from '../../../shared/ui';
+import { DataTable, EmptyState, FilterBar, StatCard } from '../../../shared/ui';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { computeOportunidades, syncHistorico } from '../utils/oportunidadesJogos';
 import type { OportunidadeJogo } from '../../../../types/domain';
+
+type GrupoRow = { mesRef: string; total: number; validadas: number };
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
@@ -97,6 +99,10 @@ export function OportunidadesTab() {
     if (item.validada) grupos[key].validadas += 1;
   });
 
+  const gruposData: GrupoRow[] = Object.entries(grupos)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mesRef, dados]) => ({ mesRef, ...dados }));
+
   const pendentesLista = oportunidadesAtuais
     .map((item) => histCompleto.find((h) => h.id === item.id) || item)
     .filter((item) => !item.validada);
@@ -153,65 +159,78 @@ export function OportunidadesTab() {
 
       {/* Resumo por mês */}
       <div className="card card-shell">
-        <div className="toolbar toolbar-shell toolbar-shell--section">
-          <div className="ct ct-inline">Resumo por mês</div>
-          <div className="toolbar-main">
-            <select
-              className="inp sel select-w-sm"
-              value={filtroAno}
-              onChange={(e) => setFiltroAno(e.target.value)}
-            >
-              <option value="">Todos os anos</option>
-              {anos.map((ano) => (
-                <option key={ano} value={ano}>{ano}</option>
-              ))}
-            </select>
-            <select
-              className="inp sel select-w-md"
-              value={filtroMes}
-              onChange={(e) => setFiltroMes(e.target.value)}
-            >
-              <option value="">Todos os meses</option>
-              {MESES.map((mes, idx) => (
-                <option key={mes} value={String(idx + 1).padStart(2, '0')}>{mes}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        {Object.keys(grupos).length > 0 ? (
-          <div className="tw">
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th>Período</th>
-                  <th className="table-align-center">Oportunidades</th>
-                  <th className="table-align-center">Validadas</th>
-                  <th className="table-align-center">Pendentes</th>
-                  <th className="table-align-right">Conversão</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(grupos)
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([mesRef, dados]) => {
-                    const pend = dados.total - dados.validadas;
-                    const t = dados.total > 0 ? (dados.validadas / dados.total) * 100 : 0;
-                    return (
-                      <tr key={mesRef}>
-                        <td className="table-cell-strong">{fmtPeriodo(mesRef)}</td>
-                        <td className="table-align-center">{dados.total}</td>
-                        <td className="table-align-center table-cell-success table-cell-strong">{dados.validadas}</td>
-                        <td className="table-align-center">{pend}</td>
-                        <td className="table-align-right table-cell-strong">{pct(t)}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <EmptyState title="Sem oportunidades registradas no filtro." compact />
-        )}
+        <div className="ct">Resumo por mês</div>
+        <FilterBar
+          filters={[
+            {
+              key: 'ano',
+              value: filtroAno,
+              onChange: setFiltroAno,
+              options: [
+                { value: '', label: 'Todos os anos' },
+                ...anos.map((ano) => ({ value: ano, label: ano }))
+              ]
+            },
+            {
+              key: 'mes',
+              value: filtroMes,
+              onChange: setFiltroMes,
+              options: [
+                { value: '', label: 'Todos os meses' },
+                ...MESES.map((mes, idx) => ({
+                  value: String(idx + 1).padStart(2, '0'),
+                  label: mes
+                }))
+              ]
+            }
+          ]}
+          activeFilterCount={(filtroAno ? 1 : 0) + (filtroMes ? 1 : 0)}
+          onClearFilters={() => {
+            setFiltroAno('');
+            setFiltroMes('');
+          }}
+        />
+        <DataTable
+          columns={[
+            {
+              key: 'periodo',
+              header: 'Período',
+              render: (row: GrupoRow) => (
+                <strong>{fmtPeriodo(row.mesRef)}</strong>
+              )
+            },
+            {
+              key: 'total',
+              header: 'Oportunidades',
+              align: 'center',
+              render: (row: GrupoRow) => row.total
+            },
+            {
+              key: 'validadas',
+              header: 'Validadas',
+              align: 'center',
+              className: 'table-cell-success table-cell-strong',
+              render: (row: GrupoRow) => row.validadas
+            },
+            {
+              key: 'pendentes',
+              header: 'Pendentes',
+              align: 'center',
+              render: (row: GrupoRow) => row.total - row.validadas
+            },
+            {
+              key: 'conversao',
+              header: 'Conversão',
+              align: 'right',
+              className: 'table-cell-strong',
+              render: (row: GrupoRow) =>
+                pct(row.total > 0 ? (row.validadas / row.total) * 100 : 0)
+            }
+          ]}
+          rows={gruposData}
+          rowKey={(row) => row.mesRef}
+          emptyTitle="Sem oportunidades registradas no filtro."
+        />
       </div>
 
       {/* Grid: pendentes + validadas */}

@@ -1,4 +1,4 @@
-import { EmptyState, PageHeader } from '../../../shared/ui';
+import { EmptyState, ErrorState, PageHeader } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { OportunidadesTab } from './OportunidadesTab';
 import { PerformanceTab } from './PerformanceTab';
@@ -26,7 +26,7 @@ export function RelatoriosPage() {
         description="Oportunidades por jogos, performance comercial e análise da base de clientes."
       />
 
-      {error && <div className="rf-error-banner">{error}</div>}
+      {error && <ErrorState title={error} compact />}
 
       <div className="tabs rel-tabs">
         {TABS.map((tab) => (

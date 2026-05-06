@@ -1,24 +1,26 @@
-import { Modal } from '../../../shared/ui';
+import { Drawer } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 
-export function RcaModal() {
-  const modalOpen = useRcasStore((s) => s.modalOpen);
-  const modalNome = useRcasStore((s) => s.modalNome);
+export function RcaDrawer() {
+  const drawerOpen = useRcasStore((s) => s.drawerOpen);
+  const drawerNome = useRcasStore((s) => s.drawerNome);
+  const drawerEditId = useRcasStore((s) => s.drawerEditId);
   const saving = useRcasStore((s) => s.saving);
-  const setModalNome = useRcasStore((s) => s.setModalNome);
-  const closeModal = useRcasStore((s) => s.closeModal);
+  const setDrawerNome = useRcasStore((s) => s.setDrawerNome);
+  const closeDrawer = useRcasStore((s) => s.closeDrawer);
   const { salvar } = useRcasMutations();
 
   return (
-    <Modal
-      open={modalOpen}
-      title="Vendedor"
-      onClose={closeModal}
-      closeOnOverlay={!saving}
+    <Drawer
+      open={drawerOpen}
+      title={drawerEditId ? 'Editar vendedor' : 'Novo vendedor'}
+      size="sm"
+      closeOnOverlayClick={!saving}
+      onClose={closeDrawer}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={closeModal} disabled={saving}>
+          <button className="btn btn-sm" type="button" onClick={closeDrawer} disabled={saving}>
             Cancelar
           </button>
           <button
@@ -27,7 +29,7 @@ export function RcaModal() {
             onClick={() => void salvar()}
             disabled={saving}
           >
-            {saving ? 'Salvando…' : 'Salvar vendedor'}
+            {saving ? 'Salvando…' : 'Salvar'}
           </button>
         </>
       }
@@ -39,8 +41,8 @@ export function RcaModal() {
             className="inp"
             autoFocus
             placeholder="Ex: João Silva"
-            value={modalNome}
-            onChange={(e) => setModalNome(e.target.value)}
+            value={drawerNome}
+            onChange={(e) => setDrawerNome(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') void salvar();
             }}
@@ -48,6 +50,6 @@ export function RcaModal() {
           />
         </div>
       </div>
-    </Modal>
+    </Drawer>
   );
 }

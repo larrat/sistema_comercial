@@ -26,10 +26,10 @@ export function useRcasMutations() {
   const filialId = useFilialStore((s) => s.filialId) ?? '';
 
   const rcas = useRcasStore((s) => s.rcas);
-  const modalEditId = useRcasStore((s) => s.modalEditId);
-  const modalNome = useRcasStore((s) => s.modalNome);
+  const drawerEditId = useRcasStore((s) => s.drawerEditId);
+  const drawerNome = useRcasStore((s) => s.drawerNome);
   const setSaving = useRcasStore((s) => s.setSaving);
-  const closeModal = useRcasStore((s) => s.closeModal);
+  const closeDrawer = useRcasStore((s) => s.closeDrawer);
   const upsertLocal = useRcasStore((s) => s.upsertLocal);
   const deactivateLocal = useRcasStore((s) => s.deactivateLocal);
 
@@ -39,14 +39,14 @@ export function useRcasMutations() {
   }
 
   async function salvar() {
-    const nome = modalNome.trim();
+    const nome = drawerNome.trim();
     if (!nome) {
       emitToast('Informe o nome do vendedor.', 'warning');
       return;
     }
 
     const duplicado = rcas.find(
-      (r) => r.nome.trim().toLowerCase() === nome.toLowerCase() && r.id !== modalEditId
+      (r) => r.nome.trim().toLowerCase() === nome.toLowerCase() && r.id !== drawerEditId
     );
     if (duplicado) {
       emitToast(`Vendedor já existe: ${duplicado.nome}.`, 'warning');
@@ -56,7 +56,7 @@ export function useRcasMutations() {
     setSaving(true);
     try {
       const rca: Rca = {
-        id: modalEditId ?? uid(),
+        id: drawerEditId ?? uid(),
         filial_id: filialId,
         nome,
         inicial: buildInicial(nome),
@@ -64,8 +64,11 @@ export function useRcasMutations() {
       };
       const saved = await upsertRca(getCtx(), rca);
       upsertLocal(saved);
-      closeModal();
-      emitToast(`Vendedor ${modalEditId ? 'atualizado' : 'cadastrado'}: ${saved.nome}.`, 'success');
+      closeDrawer();
+      emitToast(
+        `Vendedor ${drawerEditId ? 'atualizado' : 'cadastrado'}: ${saved.nome}.`,
+        'success'
+      );
     } catch (e) {
       emitToast(e instanceof Error ? e.message : 'Erro ao salvar vendedor.', 'error');
     } finally {
