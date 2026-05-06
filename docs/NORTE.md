@@ -28,7 +28,7 @@ A próxima mudança deve resolver uma dor concreta de uso, não completar uma li
 | Dashboard | Ativo em React | Só refatorar se manutenção ficar custosa. |
 | Clientes | Referência de padrão | Manter como base de UX para cadastros importantes. |
 | Produtos | Alinhado ao padrão Clientes | Validar em produção a página de detalhe/edição. |
-| Pedidos | Ativo em React | Padronizar visual apenas se o fluxo atual atrapalhar operação. |
+| Pedidos | Ativo em React | Plano faseado criado; só iniciar Fase 0 com aprovação explícita. |
 | Contas a receber | Ativo em React | Validar RPCs financeiras em ambiente real. |
 | Estoque | Ativo em React | Manter integração com Produtos e PDV. |
 | Cotação | Ativo em React | Validar fluxo real de importação/tabela antes de expandir. |
@@ -77,6 +77,7 @@ A próxima mudança deve resolver uma dor concreta de uso, não completar uma li
 | Plano enxuto | [PLANO_SIMPLES.md](PLANO_SIMPLES.md) |
 | Status atual | [status/STATUS_GERAL_2026-05-06.md](status/STATUS_GERAL_2026-05-06.md) |
 | Organização dos docs | [ORGANIZACAO_DOCUMENTACAO.md](ORGANIZACAO_DOCUMENTACAO.md) |
+| Plano em andamento | [andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md](andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md) |
 | Padrão de tela | [PADRAO_TELA_CLIENTES.md](PADRAO_TELA_CLIENTES.md) |
 
 ## Documentos históricos
@@ -90,7 +91,7 @@ Regra: se houver conflito, vale este `NORTE.md` e o snapshot mais recente em `do
 1. Validar Produtos em produção após a criação da página própria.
 2. Validar RPCs de Contas a Receber.
 3. Decidir se Acessos será finalizado agora ou deixado como placeholder.
-4. Só depois disso avaliar padronização de Pedidos.
+4. Se Pedidos virar prioridade, aprovar explicitamente a Fase 0 do plano operacional antes de qualquer código.
 
 ## O que evitar
 

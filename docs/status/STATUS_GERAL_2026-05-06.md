@@ -154,7 +154,7 @@ A documentação é rica, mas tem excesso de snapshots e planos antigos em `docs
 1. Validar em produção a nova página de Produtos e o fluxo de edição.
 2. Validar RPCs de Contas a Receber em ambiente real.
 3. Decidir se o módulo Acessos será concluído agora ou mantido como placeholder.
-4. Padronizar Pedidos usando o padrão Clientes/Produtos.
+4. Se Pedidos virar prioridade, começar pela Fase 0 do [plano operacional](../andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md).
 5. Reduzir o peso dos docs antigos criando uma pasta ou índice de arquivo histórico.
 
 ## Critério prático de evolução

@@ -66,7 +66,7 @@ Exemplos atuais:
 - RBAC v2 e auditoria em produção, se houver segundo usuário.
 - Validação real de RPCs de Contas a Receber.
 - Módulo Acessos.
-- Padronização futura de Pedidos, se voltar a atrapalhar.
+- Plano operacional de padronização de Pedidos: `docs/andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md`.
 
 ### 5. Concluído / histórico
 

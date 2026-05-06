@@ -12,6 +12,12 @@ Use este arquivo para saber qual documento ainda vale e qual é apenas históric
 | [status/STATUS_GERAL_2026-05-06.md](status/STATUS_GERAL_2026-05-06.md) | Análise geral atual do sistema, telas, regras, UX/UI e banco. |
 | [ORGANIZACAO_DOCUMENTACAO.md](ORGANIZACAO_DOCUMENTACAO.md) | Como separar docs por tipo/status sem quebrar tudo. |
 
+## Em andamento
+
+| Documento | Uso |
+|---|---|
+| [andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md](andamento/PLANO_OPERACIONAL_PADRONIZACAO_PEDIDOS.md) | Plano faseado para padronizar Pedidos sem regredir Clientes, Produtos, Receber, Estoque e PDV. |
+
 ## Referências de UX/UI
 
 | Documento | Uso |
