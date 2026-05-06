@@ -7,6 +7,7 @@ import {
   DataTable,
   FilterBar,
   PageHeader,
+  StatCard,
   StatusBadge
 } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -140,6 +141,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   );
 
   const hasAnyFilter = !!(filtro.q || filtro.status || filtro.pgto || filtro.periodo);
+  const activeFilterCount = [filtro.q, filtro.status, filtro.pgto, filtro.periodo].filter(
+    Boolean
+  ).length;
 
   function handleClearFilters() {
     clearFiltro();
@@ -188,49 +192,43 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   }, [activeTab, filtro.pgto, filtro.periodo, filtro.q, filtro.sort, filtro.status, trackEvent]);
 
   return (
-    <div className="screen-content" data-testid="pedido-list-view">
+    <div className="rf-ui-stack" data-testid="pedido-list-view">
       <PageHeader
         kicker="Comercial"
         title="Pedidos"
         description="Acompanhe os pedidos por etapa operacional, revise a carteira e abra detalhes sem sair da listagem."
         actions={
-          <button
-            className="btn btn-p btn-sm"
-            onClick={onNovoPedido}
-            data-testid="pedido-novo-btn"
-          >
+          <button className="btn btn-p btn-sm" onClick={onNovoPedido} data-testid="pedido-novo-btn">
             Novo pedido
           </button>
         }
         meta={
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge tone="info">{TABS.find((tab) => tab.id === activeTab)?.label ?? 'Pedidos'}</StatusBadge>
-            <StatusBadge tone="neutral">{total} filtrados · página {page}</StatusBadge>
+            <StatusBadge tone="info">
+              {TABS.find((tab) => tab.id === activeTab)?.label ?? 'Pedidos'}
+            </StatusBadge>
+            <StatusBadge tone="neutral">
+              {total} filtrados · página {page}
+            </StatusBadge>
           </div>
         }
       />
 
-      <div className="ped-stats-bar">
-        <div className="ped-stat">
-          <span className="ped-stat-value">{stats.emAbertoCount}</span>
-          <span className="ped-stat-label">Em aberto</span>
-        </div>
-        <div className="ped-stat-divider" />
-        <div className="ped-stat">
-          <span className="ped-stat-value">{fmtCurrency(stats.valorEmAberto)}</span>
-          <span className="ped-stat-label">Valor em aberto</span>
-        </div>
-        <div className="ped-stat-divider" />
-        <div className="ped-stat">
-          <span className="ped-stat-value">{stats.entreguesCount}</span>
-          <span className="ped-stat-label">Entregues</span>
-        </div>
-        <div className="ped-stat-divider" />
-        <div className="ped-stat">
-          <span className="ped-stat-value">{stats.canceladosCount}</span>
-          <span className="ped-stat-label">Cancelados</span>
-        </div>
-      </div>
+      <section className="rf-ui-stat-grid pedidos-metrics" aria-label="Resumo de pedidos">
+        <StatCard
+          label="Pedidos"
+          value={stats.total}
+          description={`${total} resultado(s) no filtro atual`}
+        />
+        <StatCard
+          label="Em aberto"
+          value={stats.emAbertoCount}
+          description={fmtCurrency(stats.valorEmAberto)}
+          tone={stats.emAbertoCount > 0 ? 'warning' : 'default'}
+        />
+        <StatCard label="Entregues" value={stats.entreguesCount} tone="success" />
+        <StatCard label="Cancelados" value={stats.canceladosCount} tone="danger" />
+      </section>
 
       <div className="tabs">
         {TABS.map((tab) => (
@@ -246,13 +244,13 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
       </div>
 
       <FilterBar
+        className="pedidos-filter-bar"
         search={{
           value: filtro.q,
           onChange: (value) => setFiltro({ q: value }),
           placeholder: 'N.º ou cliente...',
           ariaLabel: 'Buscar pedidos',
-          testId: 'pedido-busca',
-          className: 'inp ped-search'
+          testId: 'pedido-busca'
         }}
         filters={[
           ...(activeTab === 'emaberto'
@@ -263,8 +261,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                   onChange: (value: string) => setFiltro({ status: value }),
                   options: STATUS_OPTIONS,
                   ariaLabel: 'Filtrar por status',
-                  testId: 'pedido-filtro-status',
-                  className: 'inp sel ped-filter-sel'
+                  testId: 'pedido-filtro-status'
                 }
               ]
             : []),
@@ -273,22 +270,22 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             value: filtro.pgto,
             onChange: (value: string) => setFiltro({ pgto: value }),
             options: PGTO_OPTIONS,
-            ariaLabel: 'Filtrar por forma de pagamento',
-            className: 'inp sel ped-filter-sel'
+            ariaLabel: 'Filtrar por forma de pagamento'
           },
           {
             key: 'periodo',
             value: filtro.periodo,
             onChange: (value: string) => setFiltro({ periodo: value }),
             options: PERIODO_OPTIONS,
-            ariaLabel: 'Filtrar por período',
-            className: 'inp sel ped-filter-sel'
+            ariaLabel: 'Filtrar por período'
           }
         ]}
+        activeFilterCount={activeFilterCount}
+        onClearFilters={hasAnyFilter ? handleClearFilters : undefined}
         actions={
-          <>
+          <div className="pedidos-filter-bar__sort">
             <select
-              className="inp sel ped-filter-sel"
+              className="inp sel"
               value={filtro.sort}
               onChange={(e) => setFiltro({ sort: e.target.value as 'data_desc' | 'data_asc' })}
               aria-label="Ordenar pedidos"
@@ -299,12 +296,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                 </option>
               ))}
             </select>
-            {hasAnyFilter ? (
-              <button className="btn btn-sm" onClick={handleClearFilters}>
-                Limpar filtros
-              </button>
-            ) : null}
-          </>
+          </div>
         }
       />
 
@@ -313,7 +305,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         data={pedidos}
         rowKey={(pedido) => pedido.id}
         loading={storeStatus === 'loading' || storeStatus === 'idle'}
-        error={storeStatus === 'error' ? storeError ?? 'Erro ao carregar pedidos.' : undefined}
+        error={storeStatus === 'error' ? (storeError ?? 'Erro ao carregar pedidos.') : undefined}
         onRetry={onRetry}
         emptyTitle={hasAnyFilter ? 'Nenhum resultado encontrado.' : 'Sem pedidos nesta aba.'}
         emptyDescription={
@@ -351,7 +343,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
               return (
                 <div className="rf-ui-stack" style={{ gap: 2 }}>
                   <span className="table-cell-strong">#{pedido.num}</span>
-                  {pgtoLabel ? <span className="table-cell-caption table-cell-muted">{pgtoLabel}</span> : null}
+                  {pgtoLabel ? (
+                    <span className="table-cell-caption table-cell-muted">{pgtoLabel}</span>
+                  ) : null}
                 </div>
               );
             }
@@ -365,7 +359,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                 <div className="rf-ui-stack" style={{ gap: 2 }}>
                   <span className="table-cell-strong">{pedido.cli || '—'}</span>
                   <div className="flex flex-wrap items-center gap-2">
-                    {pedido.tipo === 'atacado' ? <StatusBadge tone="info">Atacado</StatusBadge> : null}
+                    {pedido.tipo === 'atacado' ? (
+                      <StatusBadge tone="info">Atacado</StatusBadge>
+                    ) : null}
                     {pedido.rca_nome ? (
                       <span className="table-cell-caption table-cell-muted">{pedido.rca_nome}</span>
                     ) : null}
@@ -398,7 +394,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             key: 'valor',
             label: 'Valor',
             align: 'right',
-            render: (pedido) => <span className="table-cell-strong">{fmtCurrency(pedido.total ?? 0)}</span>
+            render: (pedido) => (
+              <span className="table-cell-strong">{fmtCurrency(pedido.total ?? 0)}</span>
+            )
           }
         ]}
         renderActions={(pedido) => {

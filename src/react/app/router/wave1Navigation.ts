@@ -68,6 +68,10 @@ export function buildProdutoRoute(
 }
 
 export function buildPedidosRoute(intent: PedidoRouteIntent = {}): string {
+  if (intent.pedidoId && intent.view === 'detail') {
+    return `/app/pedidos/${encodeURIComponent(intent.pedidoId)}`;
+  }
+
   const params = new URLSearchParams();
   if (intent.pedidoId) params.set('pedido', intent.pedidoId);
   if (intent.clienteId) params.set('cliente', intent.clienteId);

@@ -7,6 +7,7 @@ import { ContasReceberRoutePage } from '../../features/contas-receber/pages/Cont
 import { DashboardRoutePage } from '../../features/dashboard/pages/DashboardRoutePage';
 import { CotacaoRoutePage } from '../../features/cotacao/pages/CotacaoRoutePage';
 import { EstoqueRoutePage } from '../../features/estoque/pages/EstoqueRoutePage';
+import { PedidoProfileRoutePage } from '../../features/pedidos/pages/PedidoProfileRoutePage';
 import { PedidosRoutePage } from '../../features/pedidos/pages/PedidosRoutePage';
 import { PdvRoutePage } from '../../features/pedidos/pages/PdvRoutePage';
 import { ProdutoProfileRoutePage } from '../../features/produtos/pages/ProdutoProfileRoutePage';
@@ -54,6 +55,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="estoque" element={<EstoqueRoutePage />} />
             <Route path="cotacao" element={<CotacaoRoutePage />} />
             <Route path="pedidos" element={<PedidosRoutePage />} />
+            <Route path="pedidos/:pedidoId" element={<PedidoProfileRoutePage />} />
             <Route path="receber" element={<ContasReceberRoutePage />} />
             <Route path="produtos" element={<ProdutosRoutePage />} />
             <Route path="produtos/:produtoId" element={<ProdutoProfileRoutePage />} />

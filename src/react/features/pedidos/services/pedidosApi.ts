@@ -171,6 +171,10 @@ export function buildGetUltimoPedidoNumeroUrl(url: string, filialId: string): st
   return `${url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(filialId)}&select=num&order=num.desc&limit=1`;
 }
 
+export function buildGetPedidoByIdUrl(url: string, filialId: string, pedidoId: string): string {
+  return `${url}/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoId)}&filial_id=eq.${encodeURIComponent(filialId)}&limit=1`;
+}
+
 export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> {
   const res = await fetch(
     `${context.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(context.filialId)}&order=num.desc`,
@@ -182,6 +186,20 @@ export async function listPedidos(context: PedidoApiContext): Promise<Pedido[]> 
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
   return Array.isArray(body) ? (body as Pedido[]).map(normalizePedido) : [];
+}
+
+export async function getPedidoById(
+  context: PedidoApiContext,
+  pedidoId: string
+): Promise<Pedido | null> {
+  const res = await fetch(buildGetPedidoByIdUrl(context.url, context.filialId, pedidoId), {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar pedido`);
+  const rows = Array.isArray(body) ? (body as Pedido[]) : [];
+  return rows[0] ? normalizePedido(rows[0]) : null;
 }
 
 export async function listPedidosPage(

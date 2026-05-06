@@ -918,6 +918,20 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   width: 100%;
 }
 
+.pedidos-filter-bar .rf-ui-filter-bar__fields {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) repeat(3, minmax(160px, 220px)) auto;
+}
+
+.pedidos-filter-bar input,
+.pedidos-filter-bar select {
+  width: 100%;
+}
+
+.pedidos-filter-bar__sort {
+  min-width: 180px;
+}
+
 .rf-dash-context-panel {
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1188,6 +1202,10 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
     grid-template-columns: minmax(220px, 1fr) minmax(200px, 280px);
   }
 
+  .pedidos-filter-bar .rf-ui-filter-bar__fields {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+
   .rf-ui-stat-grid--5 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1203,7 +1221,8 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   .rf-ui-stat-grid--2,
   .rf-ui-stat-grid--5,
   .rf-produtos-metrics,
-  .produtos-filter-bar .rf-ui-filter-bar__fields {
+  .produtos-filter-bar .rf-ui-filter-bar__fields,
+  .pedidos-filter-bar .rf-ui-filter-bar__fields {
     grid-template-columns: 1fr;
   }
 }

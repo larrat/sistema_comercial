@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/shallow';
-import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
+import {
+  postLegacyBridgeMessage,
+  subscribeLegacyBridgeMessages
+} from '../../../app/legacy/bridgeMessaging';
 import { Drawer } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
@@ -25,6 +29,7 @@ type PedidosPilotPageProps = {
 };
 
 export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageProps) {
+  const navigate = useNavigate();
   const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
   const summary = usePedidoStore((s) => s.summary);
   const activeTab = usePedidoStore((s) => s.activeTab);
@@ -122,8 +127,9 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
 
   // Publica estado ao bridge legado
   useEffect(() => {
-    const filtersActive = [filtro.q, filtro.status, filtro.pgto, filtro.periodo].filter(Boolean)
-      .length;
+    const filtersActive = [filtro.q, filtro.status, filtro.pgto, filtro.periodo].filter(
+      Boolean
+    ).length;
     const view = editingId ? 'form' : detailId ? 'detail' : 'list';
     postLegacyBridgeMessage({
       source: MESSAGE_SOURCE,
@@ -176,17 +182,27 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         size="lg"
         action={
           detailPedido ? (
-            <button
-              className="btn btn-sm"
-              type="button"
-              data-testid="pedido-detail-editar"
-              onClick={() => {
-                setDetailId(null);
-                setEditingId(detailPedido.id);
-              }}
-            >
-              Editar
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                className="btn btn-sm"
+                type="button"
+                data-testid="pedido-detail-full-page"
+                onClick={() => navigate(`/app/pedidos/${encodeURIComponent(detailPedido.id)}`)}
+              >
+                Abrir página completa
+              </button>
+              <button
+                className="btn btn-sm"
+                type="button"
+                data-testid="pedido-detail-editar"
+                onClick={() => {
+                  setDetailId(null);
+                  setEditingId(detailPedido.id);
+                }}
+              >
+                Editar
+              </button>
+            </div>
           ) : undefined
         }
         onClose={() => setDetailId(null)}
