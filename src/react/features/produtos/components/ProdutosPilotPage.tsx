@@ -105,10 +105,10 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   }, []);
 
   const paisSemSelf = useMemo(
-    () =>
-      modal.tipo === 'form' && modal.produto
-        ? parentProdutos.filter((p) => p.id !== modal.produto.id)
-        : parentProdutos,
+    () => {
+      const produtoAtual = modal.tipo === 'form' ? modal.produto : null;
+      return produtoAtual ? parentProdutos.filter((p) => p.id !== produtoAtual.id) : parentProdutos;
+    },
     [modal, parentProdutos]
   );
 
@@ -127,7 +127,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   async function handleRemover(id: string) {
     try {
       await deleteProdutoById(id);
-      if (modal.tipo !== 'none' && modal.produto.id === id) {
+      if (modal.tipo === 'form' && modal.produto?.id === id) {
         setModal({ tipo: 'none' });
       }
       setDeleteTargetId(null);

@@ -8,7 +8,7 @@ export type ClienteApiContext = {
 };
 
 export type ClienteWriteInput = Partial<Cliente> & Pick<Cliente, 'nome'>;
-export type ClienteWritePayload = Omit<Partial<Cliente>, 'nome'> & {
+export type ClienteWritePayload = Omit<Partial<Cliente>, 'nome' | 'data_aniversario'> & {
   id: string;
   filial_id: string;
   nome: string;

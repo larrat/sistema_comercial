@@ -33,6 +33,7 @@ export function useEstoqueData() {
       return;
     }
 
+    const activeFilialId = filialId;
     let cancelled = false;
 
     async function load() {
@@ -43,7 +44,7 @@ export function useEstoqueData() {
           url: config.url,
           key: config.key,
           token,
-          filialId
+          filialId: activeFilialId
         };
 
         const [produtos, movimentacoes] = await Promise.all([
@@ -66,7 +67,9 @@ export function useEstoqueData() {
       } catch (error) {
         if (cancelled) return;
         const message =
-          error instanceof Error ? error.message : 'Não foi possível carregar a posição de estoque.';
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível carregar a posição de estoque.';
         setStatus('error', message);
       }
     }

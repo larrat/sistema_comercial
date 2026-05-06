@@ -49,12 +49,7 @@ function getJogoDate(jogo: JogoAgenda | null | undefined): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function buildOpportunityId(
-  fid: string,
-  cliente: Cliente,
-  time: string,
-  jogo: JogoAgenda
-): string {
+function buildOpportunityId(fid: string, cliente: Cliente, time: string, jogo: JogoAgenda): string {
   const base = [
     fid,
     String(cliente.id || cliente.nome || ''),
@@ -69,10 +64,22 @@ function buildOpportunityId(
   return `opp-${Math.abs(hash)}`;
 }
 
+function toOportunidadeJogo(jogo: JogoAgenda): OportunidadeJogo['jogo'] {
+  return {
+    titulo: jogo.titulo,
+    data_hora: jogo.data_hora ?? undefined,
+    mandante: jogo.mandante ?? null,
+    visitante: jogo.visitante ?? null,
+    campeonato: jogo.campeonato ?? null
+  };
+}
+
 function getStore(): Record<string, OportunidadeJogo[]> {
   try {
     const parsed: unknown = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-    return parsed && typeof parsed === 'object' ? (parsed as Record<string, OportunidadeJogo[]>) : {};
+    return parsed && typeof parsed === 'object'
+      ? (parsed as Record<string, OportunidadeJogo[]>)
+      : {};
   } catch {
     return {};
   }
@@ -121,7 +128,7 @@ export function computeOportunidades(
           cliente: cliente.nome || 'Cliente',
           time,
           jogo_id: jogo.id || null,
-          jogo,
+          jogo: toOportunidadeJogo(jogo),
           data,
           mes_ref: `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}`,
           ano_ref: String(data.getFullYear())
@@ -148,15 +155,14 @@ export function syncHistorico(fid: string, oportunidades: OportunidadeJogo[]): O
       time: item.time,
       jogo_id: item.jogo_id || null,
       jogo_titulo:
-        item.jogo?.titulo ||
-        `${item.jogo?.mandante || ''} x ${item.jogo?.visitante || ''}`.trim(),
+        item.jogo?.titulo || `${item.jogo?.mandante || ''} x ${item.jogo?.visitante || ''}`.trim(),
       jogo_campeonato: item.jogo?.campeonato || null,
-      jogo_data_hora: item.jogo?.data_hora || null,
+      jogo_data_hora: item.jogo?.data_hora ?? undefined,
       mes_ref: item.mes_ref,
       ano_ref: item.ano_ref,
       criado_em: prev?.criado_em || new Date().toISOString(),
       validada: Boolean(prev?.validada),
-      validada_em: prev?.validada_em || null,
+      validada_em: prev?.validada_em || undefined,
       pedido_id: prev?.pedido_id || null,
       pedido_num: prev?.pedido_num || null,
       pedido_total: prev?.pedido_total || null,

@@ -27,6 +27,7 @@ export function useCotacaoData() {
       return;
     }
 
+    const activeFilialId = filialId;
     let cancelled = false;
 
     async function load() {
@@ -37,7 +38,7 @@ export function useCotacaoData() {
           url: config.url,
           key: config.key,
           token,
-          filialId
+          filialId: activeFilialId
         });
 
         if (cancelled) return;

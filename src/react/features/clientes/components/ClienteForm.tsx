@@ -7,6 +7,7 @@ import {
   FormField,
   FormSection
 } from '../../../shared/ui';
+import type { AnalyticsMetadata } from '../../../shared/lib/analytics';
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { useRcas } from '../hooks/useRcas';
 
@@ -171,7 +172,7 @@ export function ClienteForm({
 
     setLocalError(null);
 
-    const trackingMetadata = initialCliente
+    const trackingMetadata: Record<string, AnalyticsMetadata> = initialCliente
       ? {
           origin: analyticsOrigin,
           changed_fields: getChangedFieldNames(),
