@@ -737,6 +737,24 @@
   flex: 1;
 }
 
+.rf-ui-filter-bar__fields > input,
+.rf-ui-filter-bar__fields > select {
+  width: auto;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.rf-ui-filter-bar__fields > input[type='search'],
+.rf-ui-filter-bar__fields > input:not([type]) {
+  min-width: 180px;
+  max-width: 280px;
+  flex: 1 1 180px;
+}
+
+.rf-ui-filter-bar__fields > select {
+  min-width: 120px;
+}
+
 .rf-ui-data-table {
   overflow: auto;
   border: 1px solid var(--line);

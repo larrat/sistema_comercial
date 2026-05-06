@@ -371,9 +371,7 @@ export function ClientesPilotPage({
                   onChange: (value) => setFiltro({ q: value }),
                   placeholder: 'Buscar cliente...',
                   ariaLabel: 'Buscar clientes',
-                  testId: 'busca-input',
-                  className:
-                    'h-9 w-[280px] rounded-md border border-gray-300 px-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-400 focus:outline-none'
+                  testId: 'busca-input'
                 }}
                 filters={[
                   {
