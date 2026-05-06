@@ -16,7 +16,7 @@ import { PedidoItemsSection } from './PedidoItemsSection';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoBaixaModal } from './PedidoBaixaModal';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
-import { StatusBadge } from '../../../shared/ui';
+import { FormError, StatusBadge } from '../../../shared/ui';
 import type { StatusBadgeTone } from '../../../shared/ui';
 
 type Props = {
@@ -298,15 +298,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
                     {baixaLoading ? 'Recebendo…' : 'Receber tudo'}
                   </button>
                 </div>
-                {baixaError && (
-                  <div
-                    className="bdg br"
-                    style={{ marginTop: '0.4rem', display: 'block' }}
-                    data-testid="pedido-detail-baixa-error"
-                  >
-                    {baixaError}
-                  </div>
-                )}
+                <FormError message={baixaError} data-testid="pedido-detail-baixa-error" />
               </div>
             )}
 
@@ -390,12 +382,13 @@ export function PedidoDetailPanel({ pedido }: Props) {
         )}
       </div>
       {contaMsg && (
-        <div
-          className={`bdg ${contaMsg.startsWith('Conta') ? 'bg' : 'br'}`}
-          style={{ marginTop: '0.5rem', display: 'block', padding: '0.5rem' }}
-        >
-          {contaMsg}
-        </div>
+        contaMsg.startsWith('Conta') ? (
+          <div style={{ marginTop: '0.5rem' }}>
+            <StatusBadge tone="success">{contaMsg}</StatusBadge>
+          </div>
+        ) : (
+          <FormError message={contaMsg} />
+        )
       )}
       <PedidoCancelConfirmModal
         open={showCancelConfirm}
