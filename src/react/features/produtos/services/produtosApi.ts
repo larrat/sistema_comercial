@@ -1,4 +1,4 @@
-import type { Produto } from '../../../../types/domain';
+import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import type { ProdutoWriteInput } from '../types';
 
 export type ProdutoApiContext = {
@@ -69,7 +69,7 @@ function createProdutoQueryParams(
   const params = new URLSearchParams();
   params.set('filial_id', `eq.${filialId}`);
   params.set('order', 'nome');
-  const conditions: string[] = [];
+  const conditions: string[] = ['produto_pai_id.is.null'];
 
   const cat = String(filters.cat || '').trim();
   if (cat) {
@@ -223,4 +223,65 @@ export async function deleteProduto(context: ProdutoApiContext, produtoId: strin
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao remover produto`);
+}
+
+export async function listVariantesByPaiId(
+  context: ProdutoApiContext,
+  paiId: string
+): Promise<Produto[]> {
+  const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&produto_pai_id=eq.${encodeURIComponent(paiId)}&order=nome`;
+  const res = await fetch(url, {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar variantes`);
+  return Array.isArray(body) ? (body as Produto[]) : [];
+}
+
+export async function listMovimentacoesByProdutoIds(
+  context: ProdutoApiContext,
+  produtoIds: string[]
+): Promise<MovimentoEstoque[]> {
+  if (!produtoIds.length) return [];
+  const ids = produtoIds.map((id) => `"${id.replace(/"/g, '\\"')}"`).join(',');
+  const url = `${context.url}/rest/v1/movimentacoes?filial_id=eq.${encodeURIComponent(context.filialId)}&prod_id=in.(${ids})&order=ts.asc`;
+  const res = await fetch(url, {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar movimentações das variantes`);
+  return Array.isArray(body) ? (body as MovimentoEstoque[]) : [];
+}
+
+export type VendaVarianteRow = {
+  produto_id: string;
+  qty: number;
+  preco: number;
+  criado_em: string;
+};
+
+export async function listPedidoItensByProdutoIds(
+  context: ProdutoApiContext,
+  produtoIds: string[],
+  fromDate?: string
+): Promise<VendaVarianteRow[]> {
+  if (!produtoIds.length) return [];
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${context.filialId}`);
+  params.set(
+    'produto_id',
+    `in.(${produtoIds.map((id) => `"${id.replace(/"/g, '\\"')}"`).join(',')})`
+  );
+  params.set('select', 'produto_id,qty,preco,criado_em');
+  if (fromDate) params.set('criado_em', `gte.${fromDate}`);
+  const url = `${context.url}/rest/v1/pedido_itens?${params.toString()}`;
+  const res = await fetch(url, {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(15000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar vendas das variantes`);
+  return Array.isArray(body) ? (body as VendaVarianteRow[]) : [];
 }

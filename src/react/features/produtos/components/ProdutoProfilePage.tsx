@@ -8,8 +8,9 @@ import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
 import { useProdutoMutations } from '../hooks/useProdutoMutations';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
 import { ProdutoForm } from './ProdutoForm';
+import { ProdutoVariantesTab } from './ProdutoVariantesTab';
 
-type ProdutoProfileTab = 'resumo' | 'precificacao' | 'estoque' | 'cadastro';
+type ProdutoProfileTab = 'resumo' | 'precificacao' | 'estoque' | 'cadastro' | 'variantes';
 
 type Props = {
   produto: Produto;
@@ -28,15 +29,17 @@ type KpiCard = {
   tone?: 'positive' | 'negative' | 'neutral';
 };
 
-const PROFILE_TABS: Array<{ id: ProdutoProfileTab; label: string }> = [
+const BASE_TABS: Array<{ id: ProdutoProfileTab; label: string }> = [
   { id: 'resumo', label: 'Resumo' },
   { id: 'precificacao', label: 'Precificação' },
   { id: 'estoque', label: 'Estoque' },
   { id: 'cadastro', label: 'Cadastro' }
 ];
 
+const ALL_TAB_IDS: ProdutoProfileTab[] = ['resumo', 'precificacao', 'estoque', 'cadastro', 'variantes'];
+
 function normalizeTab(value: string | null): ProdutoProfileTab {
-  return PROFILE_TABS.some((tab) => tab.id === value) ? (value as ProdutoProfileTab) : 'resumo';
+  return ALL_TAB_IDS.includes(value as ProdutoProfileTab) ? (value as ProdutoProfileTab) : 'resumo';
 }
 
 function toNumber(value?: number | null): number {
@@ -192,6 +195,10 @@ export function ProdutoProfilePage({
   const { submitProduto, saving, error: mutationError } = useProdutoMutations();
 
   const activeTab = normalizeTab(searchParams.get('tab'));
+  const isPai = !produto.produto_pai_id;
+  const profileTabs = isPai
+    ? [...BASE_TABS, { id: 'variantes' as const, label: 'Variantes' }]
+    : BASE_TABS;
   const stockStatus = getStockStatus(produto, saldo);
   const precos = useMemo(() => getPrecos(produto), [produto]);
   const kpis = useMemo(() => buildKpis(produto, saldo), [produto, saldo]);
@@ -319,7 +326,7 @@ export function ProdutoProfilePage({
       </section>
 
       <div className="rf-cliente-profile__tabs">
-        {PROFILE_TABS.map((tab) => (
+        {profileTabs.map((tab) => (
           <button
             key={tab.id}
             className={`rf-cliente-profile__tab${activeTab === tab.id ? ' is-active' : ''}`}
@@ -585,6 +592,12 @@ export function ProdutoProfilePage({
               <FormError message={mutationError} />
             </section>
           )}
+        </section>
+      ) : null}
+
+      {activeTab === 'variantes' && isPai ? (
+        <section className="rf-cliente-profile__tab-panel">
+          <ProdutoVariantesTab produto={produto} />
         </section>
       ) : null}
     </main>
