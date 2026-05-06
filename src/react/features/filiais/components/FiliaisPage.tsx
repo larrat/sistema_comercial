@@ -2,7 +2,7 @@ import { useFiliaisStore } from '../store/useFiliaisStore';
 import { useFiliaisData } from '../hooks/useFiliaisData';
 import { FilialCard } from './FilialCard';
 import { FilialModal } from './FilialModal';
-import { EmptyState, PageHeader, StatCard } from '../../../shared/ui';
+import { EmptyState, ErrorState, PageHeader, StatCard } from '../../../shared/ui';
 
 export function FiliaisPage() {
   useFiliaisData();
@@ -33,7 +33,7 @@ export function FiliaisPage() {
         }
       />
 
-      {error && <div className="rf-error-banner">{error}</div>}
+      {error && <ErrorState title={error} compact />}
 
       <section className="rf-ui-stat-grid--2">
         <StatCard label="Filiais" value={filiais.length} />

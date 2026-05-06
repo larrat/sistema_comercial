@@ -58,7 +58,6 @@ export function useFornecedorMutations() {
   }
 
   async function removerFornecedor(id: string) {
-    if (!window.confirm('Remover fornecedor?')) return;
     try {
       await deleteFornecedor(ctx, id);
       requestReload();
@@ -79,9 +78,7 @@ export function usePrecoCotacaoMutation() {
   const [errorCells, setErrorCells] = useState<Record<string, string | null>>({});
   const seqRef = useRef<Record<string, number>>({});
 
-  function clonePrecos(
-    source: ReturnType<typeof useCotacaoStore.getState>['precos']
-  ) {
+  function clonePrecos(source: ReturnType<typeof useCotacaoStore.getState>['precos']) {
     const next = { ...source };
     Object.keys(next).forEach((produtoId) => {
       next[produtoId] = { ...next[produtoId] };

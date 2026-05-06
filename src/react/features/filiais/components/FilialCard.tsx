@@ -23,11 +23,11 @@ export function FilialCard({ filial }: Props) {
       {localidade && <div className="filial-card-meta">{localidade}</div>}
       {filial.endereco && <div className="filial-card-meta">{filial.endereco}</div>}
       <div className="filial-card-actions">
-        <button className="btn btn-xs btn-ghost" onClick={() => openEdit(filial)}>
+        <button className="btn btn-sm" onClick={() => openEdit(filial)}>
           Editar
         </button>
         <button
-          className="btn btn-xs btn-ghost tone-danger"
+          className="btn btn-r btn-sm"
           onClick={() => void remover(filial.id)}
         >
           Remover

@@ -5,7 +5,8 @@ import {
   FilterBar,
   DataTable,
   ActionMenu,
-  StatusBadge
+  StatusBadge,
+  Modal
 } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
@@ -33,6 +34,7 @@ export function CampanhasPage() {
   const [query, setQuery] = useState('');
   const [tipoFilter, setTipoFilter] = useState('todos');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [confirmarRemocao, setConfirmarRemocao] = useState<Campanha | null>(null);
 
   const { remover, gerarFila } = useCampanhasMutations();
 
@@ -182,9 +184,7 @@ export function CampanhasPage() {
                 key: 'remover',
                 label: 'Remover',
                 danger: true,
-                onClick: () => {
-                  if (window.confirm(`Remover a campanha "${c.nome}"?`)) void remover(c.id);
-                }
+                onClick: () => setConfirmarRemocao(c)
               }
             ]}
           />
@@ -196,6 +196,34 @@ export function CampanhasPage() {
 
       <CampanhaDrawer />
       <WhatsAppPreviewModal />
+
+      <Modal
+        open={confirmarRemocao !== null}
+        title="Remover campanha"
+        onClose={() => setConfirmarRemocao(null)}
+        footer={
+          <>
+            <button className="btn btn-sm" type="button" onClick={() => setConfirmarRemocao(null)}>
+              Cancelar
+            </button>
+            <button
+              className="btn btn-r btn-sm"
+              type="button"
+              onClick={() => {
+                if (confirmarRemocao) void remover(confirmarRemocao.id);
+                setConfirmarRemocao(null);
+              }}
+            >
+              Remover
+            </button>
+          </>
+        }
+      >
+        <p>
+          Tem certeza que deseja remover a campanha{' '}
+          <strong>"{confirmarRemocao?.nome}"</strong>? Esta ação não pode ser desfeita.
+        </p>
+      </Modal>
     </main>
   );
 }

@@ -297,7 +297,7 @@ function DashboardContextStats({
           description="Total de pedidos registrados na filial"
           foot={
             <button
-              className="btn btn-ghost btn-xs"
+              className="btn btn-sm"
               type="button"
               onClick={() => goToPage('pedidos', onNavigatePage)}
             >
@@ -311,7 +311,7 @@ function DashboardContextStats({
           description="Catálogo ativo com controle de estoque"
           foot={
             <button
-              className="btn btn-ghost btn-xs"
+              className="btn btn-sm"
               type="button"
               onClick={() => goToPage('produtos', onNavigatePage)}
             >
@@ -325,7 +325,7 @@ function DashboardContextStats({
           description="Base de clientes cadastrada na filial"
           foot={
             <button
-              className="btn btn-ghost btn-xs"
+              className="btn btn-sm"
               type="button"
               onClick={() => goToPage('clientes', onNavigatePage)}
             >
@@ -340,7 +340,7 @@ function DashboardContextStats({
           description="Pedidos entregues na data de hoje"
           foot={
             <button
-              className="btn btn-ghost btn-xs"
+              className="btn btn-sm"
               type="button"
               onClick={() => goToPage('pedidos', onNavigatePage)}
             >

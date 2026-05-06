@@ -319,7 +319,7 @@ function BaixaParcialModal({
         </div>
       </div>
 
-      {error ? <div className="rf-error-banner">{error}</div> : null}
+      {error ? <ErrorState title={error} compact /> : null}
 
       <div className="form-row">
         <label className="form-label">Valor recebido</label>

@@ -37,13 +37,6 @@ export function useEstoqueMutations() {
     const custo = toNumber(draft.custo);
     const saldoReal = toNumber(draft.saldoReal);
 
-    if ((draft.tipo === 'saida' || draft.tipo === 'transf') && quantidade > currentSaldo) {
-      const confirmed = window.confirm(
-        `Saldo atual: ${currentSaldo}. Registrar ${draft.tipo === 'transf' ? 'a transferência' : 'a saída'} assim mesmo?`
-      );
-      if (!confirmed) return false;
-    }
-
     try {
       const validated = validateMovimentacao({
         prod_id: draft.produtoId,
@@ -94,9 +87,7 @@ export function useEstoqueMutations() {
               prod_id: draft.produtoId,
               tipo: 'entrada',
               data: draft.data,
-              obs:
-                transferNote ||
-                `Transferência recebida da filial ${filialId}`,
+              obs: transferNote || `Transferência recebida da filial ${filialId}`,
               ts: transferTs,
               custo: currentCm,
               ...(validated.qty !== undefined ? { qty: validated.qty } : {})

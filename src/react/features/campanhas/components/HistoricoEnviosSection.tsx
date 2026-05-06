@@ -1,4 +1,4 @@
-import { StatusBadge } from '../../../shared/ui';
+import { EmptyState, StatusBadge } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 
 function fmtDate(v: string | null | undefined): string {
@@ -33,9 +33,7 @@ export function HistoricoEnviosSection() {
     return (
       <div className="card card-shell camp-section">
         <div className="ct">Histórico de envios</div>
-        <div className="empty">
-          <p>Nenhum envio registrado ainda.</p>
-        </div>
+        <EmptyState title="Nenhum envio registrado ainda." compact />
       </div>
     );
   }

@@ -45,6 +45,7 @@ export function EstoqueMovementModal() {
     'idle'
   );
   const [confirmAdjustOpen, setConfirmAdjustOpen] = useState(false);
+  const [saldoWarningOpen, setSaldoWarningOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const produtos = snapshot?.produtos || [];
@@ -142,6 +143,12 @@ export function EstoqueMovementModal() {
   function handlePrimaryAction() {
     if (draft.tipo === 'ajuste') {
       setConfirmAdjustOpen(true);
+      return;
+    }
+
+    const quantidade = toNumber(draft.quantidade);
+    if ((draft.tipo === 'saida' || draft.tipo === 'transf') && quantidade > atual.saldo) {
+      setSaldoWarningOpen(true);
       return;
     }
 
@@ -370,6 +377,34 @@ export function EstoqueMovementModal() {
           </div>
         ) : null}
         </div>
+      </Modal>
+
+      <Modal
+        open={saldoWarningOpen}
+        title="Saldo insuficiente"
+        onClose={() => setSaldoWarningOpen(false)}
+        footer={
+          <>
+            <button className="btn btn-sm" type="button" onClick={() => setSaldoWarningOpen(false)}>
+              Cancelar
+            </button>
+            <button
+              className="btn btn-r btn-sm"
+              type="button"
+              onClick={() => {
+                setSaldoWarningOpen(false);
+                void submitMovement();
+              }}
+            >
+              Registrar assim mesmo
+            </button>
+          </>
+        }
+      >
+        <p>
+          O saldo atual é <strong>{fmtQuantity(atual.saldo)}</strong>. Confirma registrar{' '}
+          {draft.tipo === 'transf' ? 'a transferência' : 'a saída'} mesmo assim?
+        </p>
       </Modal>
 
       <EstoqueAdjustConfirmModal

@@ -1,6 +1,7 @@
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoSaldo } from '../types';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
+import { StatusBadge } from '../../../shared/ui';
 
 type Props = {
   produto: Produto;
@@ -44,11 +45,11 @@ export function ProdutoDetailPanel({ produto: p, saldo: s, onFechar, onEditar, o
         </div>
         <div className="prod-detail-status">
           {s.saldo <= 0 ? (
-            <span className="bdg br">Zerado</span>
+            <StatusBadge tone="danger">Zerado</StatusBadge>
           ) : emin > 0 && s.saldo < emin ? (
-            <span className="bdg ba">Baixo</span>
+            <StatusBadge tone="warning">Baixo</StatusBadge>
           ) : (
-            <span className="bdg bg">OK</span>
+            <StatusBadge tone="success">OK</StatusBadge>
           )}
         </div>
       </div>

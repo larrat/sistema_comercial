@@ -77,31 +77,54 @@ Itens abaixo foram avaliados e formalizados como exceção — não requerem spr
 - **Motivo:** `.bdg br/.bdg ba/.bdg bb` para "Hoje" / "Esta semana" / "Validada" — chips de urgência contextual, não status de entidade. `StatusBadge` resolve status; esses chips são UI de contexto
 - **Reavaliar:** se criado componente `ContextBadge` para chips de urgência
 
-### B5 — Classes de botão não-padronizadas em CampanhasPage
-- **Arquivo:** `src/react/features/campanhas/components/CampanhasPage.tsx`
-- **Motivo:** `btn-ghost`, `btn-primary`, `btn-xs` são padrão anterior ao design system unificado. Não causa regressão funcional
-- **Reavaliar:** quando Campanhas for revisada por sprint de produto
+### B5 — Classes de botão não-padronizadas — **CORRIGIDO em 2026-05-06**
+- **Arquivos corrigidos:**
+  - `src/react/features/campanhas/components/CampanhasPage.tsx` — `btn-ghost`/`btn-primary`/`btn-xs` → `btn btn-p`/`btn btn-sm`
+  - `src/react/features/rcas/components/RcasPage.tsx` — padronizado durante refatoração para DataTable
+  - `src/react/features/filiais/components/FilialCard.tsx` — `btn btn-xs btn-ghost` → `btn btn-sm`; `btn-xs btn-ghost tone-danger` → `btn btn-r btn-sm`
+  - `src/react/features/dashboard/components/DashboardPilotPage.tsx` — 4 ocorrências de `btn btn-ghost btn-xs` → `btn btn-sm`
+  - `src/react/features/clientes/components/ClientesPilotPage.tsx` — `btn btn-ghost btn-sm h-9` → `btn btn-sm h-9`
+  - `src/react/app/ui/AppErrorBoundary.tsx` — `btn btn-ghost` → `btn btn-sm`
+- **Status:** todas as ocorrências de `btn-ghost`/`btn-xs`/`btn-primary`/`btn-danger` eliminadas do codebase
 
-### B6 — `window.confirm()` em CampanhasPage (exclusão de campanha)
-- **Arquivo:** `src/react/features/campanhas/components/CampanhasPage.tsx`
-- **Motivo:** padrão anterior. Confirmação destrutiva deveria usar `<Modal>` com `btn-r`
-- **Reavaliar:** quando Campanhas for revisada por sprint de produto — prioridade real
+### B6 — `window.confirm()` em confirmações destrutivas — **CORRIGIDO em 2026-05-06**
+- **Arquivos corrigidos:**
+  - `src/react/features/campanhas/components/CampanhasPage.tsx` — exclusão de campanha: `window.confirm` → `<Modal>` com estado `confirmarRemocao: Campanha | null`, botão `btn btn-r btn-sm`
+  - `src/react/features/cotacao/components/CotacaoFornecedoresPage.tsx` — remoção de fornecedor: `window.confirm` removido do hook, confirmação movida para o componente com `<Modal>` + `btn btn-r btn-sm`
+  - `src/react/features/cotacao/hooks/useCotacaoMutations.ts` — `window.confirm` removido de `removerFornecedor`
+  - `src/react/features/estoque/components/EstoqueMovementModal.tsx` — saldo insuficiente: `window.confirm` → `<Modal>` com estado `saldoWarningOpen`, botão "Registrar assim mesmo" com `btn btn-r btn-sm`
+  - `src/react/features/estoque/hooks/useEstoqueMutations.ts` — `window.confirm` removido de `saveMovement`
+- **Status:** `window.confirm()` eliminado de todo o codebase
 
 ---
 
-## Registro de novas inconsistências
+## Registro de novas inconsistências encontradas e corrigidas em 2026-05-06
 
-Toda inconsistência encontrada fora do escopo de um PR vai nesta lista.
-Não corrigir inline no PR corrente — registrar aqui com prioridade e reavaliar na próxima sprint de polish.
+Itens detectados durante auditoria abrangente do codebase React e corrigidos na mesma sessão.
+
+### N1 — `div.rf-error-banner` em vez de `<ErrorState>` — **CORRIGIDO em 2026-05-06**
+- **Arquivos:** `FiliaisPage.tsx`, `ContasReceberPilotPage.tsx`
+- **Fix:** adicionado import `ErrorState`, substituído `<div className="rf-error-banner">` por `<ErrorState title={error} compact />`
+
+### N2 — `div.empty` em FilaWhatsAppSection e HistoricoEnviosSection — **CORRIGIDO em 2026-05-06**
+- **Arquivos:** `src/react/features/campanhas/components/FilaWhatsAppSection.tsx`, `HistoricoEnviosSection.tsx`
+- **Fix:** estados vazios substituídos por `<EmptyState title="..." compact />`
+
+### N3 — `bdg br/ba/bg` para status de estoque em ProdutoDetailPanel — **CORRIGIDO em 2026-05-06**
+- **Arquivo:** `src/react/features/produtos/components/ProdutoDetailPanel.tsx`
+- **Fix:** adicionado import `StatusBadge`; `bdg br` (Zerado) → `tone="danger"`, `bdg ba` (Baixo) → `tone="warning"`, `bdg bg` (OK) → `tone="success"`
 
 ---
 
 ## Status da trilha UX
 
 A trilha de consolidação visual UX-1 a UX-10 foi encerrada na rodada UX-11 (2026-04-27).
+A rodada de auditoria abrangente foi concluída em 2026-05-06.
 
 - Todos os itens de prioridade alta foram corrigidos (A1, A2)
 - Todos os itens de prioridade média foram corrigidos ou decididos (M1–M6)
-- Os itens B1–B6 são exceções formalizadas ou débito consciente sem prioridade imediata
+- B5 e B6 corrigidos em 2026-05-06 (varredura de todo o codebase)
+- N1, N2, N3 detectados e corrigidos em 2026-05-06
+- Os itens B1–B4 são exceções formalizadas — não requerem correção
 
 **Não há mais rodadas especiais de UX.** Toda manutenção futura segue `GOVERNANCA_VISUAL.md`.

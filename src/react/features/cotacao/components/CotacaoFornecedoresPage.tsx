@@ -1,4 +1,5 @@
-import { EmptyState, FormSection } from '../../../shared/ui';
+import { useState } from 'react';
+import { EmptyState, FormSection, Modal } from '../../../shared/ui';
 import { useFornecedorMutations } from '../hooks/useCotacaoMutations';
 import { useCotacaoStore } from '../store/useCotacaoStore';
 import { FornecedorForm } from './FornecedorForm';
@@ -10,6 +11,9 @@ export function CotacaoFornecedoresPage() {
   const precos = useCotacaoStore((s) => s.precos);
   const openFornModal = useCotacaoStore((s) => s.openFornModal);
   const { removerFornecedor } = useFornecedorMutations();
+
+  const [confirmarRemocaoId, setConfirmarRemocaoId] = useState<string | null>(null);
+  const fornecedorParaRemover = fornecedores.find((f) => f.id === confirmarRemocaoId);
 
   return (
     <FormSection
@@ -32,11 +36,39 @@ export function CotacaoFornecedoresPage() {
           produtos={produtos}
           precos={precos}
           onNovo={openFornModal}
-          onRemover={(id) => void removerFornecedor(id)}
+          onRemover={(id) => setConfirmarRemocaoId(id)}
         />
       )}
 
       <FornecedorForm />
+
+      <Modal
+        open={confirmarRemocaoId !== null}
+        title="Remover fornecedor"
+        onClose={() => setConfirmarRemocaoId(null)}
+        footer={
+          <>
+            <button className="btn btn-sm" type="button" onClick={() => setConfirmarRemocaoId(null)}>
+              Cancelar
+            </button>
+            <button
+              className="btn btn-r btn-sm"
+              type="button"
+              onClick={() => {
+                if (confirmarRemocaoId) void removerFornecedor(confirmarRemocaoId);
+                setConfirmarRemocaoId(null);
+              }}
+            >
+              Remover
+            </button>
+          </>
+        }
+      >
+        <p>
+          Tem certeza que deseja remover o fornecedor{' '}
+          <strong>"{fornecedorParaRemover?.nome ?? ''}"</strong>? Esta ação não pode ser desfeita.
+        </p>
+      </Modal>
     </FormSection>
   );
 }

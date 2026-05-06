@@ -406,7 +406,7 @@ export function ClientesPilotPage({
                       </button>
                     ) : null}
                     <button
-                      className="btn btn-ghost btn-sm h-9"
+                      className="btn btn-sm h-9"
                       type="button"
                       onClick={() => {
                         void exportarCsvAtual();

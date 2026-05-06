@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StatusBadge, FilterBar } from '../../../shared/ui';
+import { EmptyState, StatusBadge, FilterBar } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import type { CampanhaEnvio } from '../../../../types/domain';
@@ -111,9 +111,10 @@ export function FilaWhatsAppSection() {
       </div>
 
       {exibidos.length === 0 ? (
-        <div className="empty">
-          <p>Nenhum envio{filtroStatus !== 'todos' ? ` com status "${filtroStatus}"` : ''}.</p>
-        </div>
+        <EmptyState
+          title={`Nenhum envio${filtroStatus !== 'todos' ? ` com status "${filtroStatus}"` : ''}.`}
+          compact
+        />
       ) : (
         <div className="camp-fila-table-wrap">
           <table className="tbl">

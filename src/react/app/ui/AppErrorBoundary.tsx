@@ -29,7 +29,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             <div className="ico">!</div>
             <p>Algo deu errado. Recarregue a página para continuar.</p>
             <button
-              className="btn btn-ghost"
+              className="btn btn-sm"
               style={{ marginTop: 16 }}
               onClick={() => window.location.reload()}
             >
