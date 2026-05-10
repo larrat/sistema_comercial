@@ -16,7 +16,7 @@ import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { usePedidoFormData } from '../hooks/usePedidoFormData';
 import { findClienteByInput } from '../services/clientesLightApi';
 import { PedidoItemsSection } from './PedidoItemsSection';
-import { normalizePedStatus } from '../types';
+import { PEDIDO_STATUS_LABEL, normalizePedStatus } from '../types';
 import {
   calculatePedidoTotal,
   formatPedidoCurrency,
@@ -196,19 +196,22 @@ export function PedidoForm({
           <div className="rf-ui-stack">
             <FormError message={errors.geral} data-testid="pedido-form-error" />
 
-            {status === 'entregue' && prazo === 'imediato' && (
-              <div className="empty-inline form-warn-inline" data-testid="pedido-form-warn-prazo">
-                Prazo imediato não gera conta a receber automaticamente. Use 7, 15, 30 ou 60 dias se
-                precisar da geração automática.
-              </div>
-            )}
+            {normalizePedStatus(status) === 'entregue_aguardando_pagamento' &&
+              prazo === 'imediato' && (
+                <div className="empty-inline form-warn-inline" data-testid="pedido-form-warn-prazo">
+                  Prazo imediato não gera conta a receber automaticamente. Use 7, 15, 30 ou 60 dias
+                  se precisar da geração automática.
+                </div>
+              )}
 
             <FormSection
               title="Resumo rápido"
               description="Acompanhe o tamanho do pedido enquanto preenche os campos principais."
               aside={
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge tone="info">{status || 'orcamento'}</StatusBadge>
+                  <StatusBadge tone="info">
+                    {PEDIDO_STATUS_LABEL[normalizePedStatus(status)] ?? status ?? 'orcamento'}
+                  </StatusBadge>
                   <StatusBadge tone="neutral">
                     {tipo === 'atacado' ? 'Atacado' : 'Varejo'}
                   </StatusBadge>
@@ -324,10 +327,15 @@ export function PedidoForm({
                     onChange={(e) => setStatus(e.target.value)}
                     data-testid="pedido-form-status"
                   >
-                    <option value="orcamento">Orcamento</option>
+                    <option value="orcamento">Orçamento</option>
                     <option value="confirmado">Confirmado</option>
-                    <option value="em_separacao">Em separacao</option>
-                    <option value="entregue">Entregue</option>
+                    <option value="em_separacao">Em separação</option>
+                    <option value="em_andamento">Em andamento</option>
+                    <option value="entregue_aguardando_pagamento">
+                      Entregue · aguardando pagamento
+                    </option>
+                    <option value="pago_aguardando_entrega">Pago · aguardando entrega</option>
+                    <option value="concluido">Concluído</option>
                     <option value="cancelado">Cancelado</option>
                   </select>
                 </FormField>

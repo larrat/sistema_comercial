@@ -98,7 +98,7 @@ describe('usePedidoStore', () => {
     });
 
     const { result } = renderHook(() => usePedidoStore((s) => s));
-    act(() => result.current.upsertPedido({ ...PEDIDOS[0], status: 'entregue' }));
+    act(() => result.current.upsertPedido({ ...PEDIDOS[0], status: 'concluido' }));
 
     expect(result.current.summary).toEqual({
       total: 1,

@@ -182,6 +182,8 @@ export type Pedido = {
   venda_fechada?: boolean;
   venda_fechada_em?: string | null;
   venda_fechada_por?: string | null;
+  entregue_em?: string | null;
+  entregue_por?: string | null;
 };
 
 export type ContaReceber = {

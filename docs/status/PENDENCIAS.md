@@ -42,3 +42,13 @@ Nenhuma pendência nova de produto foi gerada. A fase ficou limitada a formulár
 |---|---|
 | Ligar `window.__SC_PEDIDO_ITENS_DUAL_WRITE__ = true` em homologação e fechar 10+ vendas simuladas pelo PDV. | A validação exige ambiente real/homologação com banco aplicado; o ambiente local não tem alvo/credencial configurado. |
 | Decidir quando habilitar dual-write em produção. | Só pode ser decidido depois da validação de homologação confirmar Receber, Estoque, comprovante e `pedido_itens`. |
+
+## 2026-05-10 — Separação entrega/pagamento
+
+| Pendência | Por que está fora do escopo atual |
+|---|---|
+| Aplicar `sql/19_entrega_pagamento_pedidos.sql` em homologação e preencher a validação cruzada de 20 pedidos. | O ambiente local não tem alvo/credencial de homologação configurado. |
+| Revisar Dashboard para substituir contagens diretas de `status === 'entregue'` pelos novos status. | A especificação mandou verificar e reportar impactos indiretos, não alterar Dashboard. |
+| Revisar Relatórios para substituir métricas baseadas diretamente em `status === 'entregue'`. | A especificação mandou verificar e reportar impactos indiretos, não alterar Relatórios. |
+| Decidir evolução futura do PDV para gravar eventos/status novos. | Esta execução proibiu alterações no PDV. |
+| Definir campo/regra para diferenciar "à vista pago no pedido" de "à vista pago na entrega". | O schema atual não expõe essa diferença de forma explícita; criar campo novo exigiria decisão de negócio. |

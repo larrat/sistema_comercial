@@ -18,6 +18,7 @@ import { PedidoBaixaModal } from './PedidoBaixaModal';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
 import { FormError, StatusBadge } from '../../../shared/ui';
 import type { StatusBadgeTone } from '../../../shared/ui';
+import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 
 type Props = {
   pedido: Pedido;
@@ -103,13 +104,20 @@ function readContaFinanceira(
 }
 
 export function PedidoDetailPanel({ pedido }: Props) {
-  const { avancarStatus, cancelarPedido, reabrirPedido, gerarContaManual, inFlight } =
-    usePedidoMutations();
+  const {
+    avancarStatus,
+    confirmarEntrega,
+    cancelarPedido,
+    reabrirPedido,
+    gerarContaManual,
+    inFlight
+  } = usePedidoMutations();
   const filialId = useFilialStore((state) => state.filialId);
   const session = useAuthStore((state) => state.session);
   const [contaMsg, setContaMsg] = useState<string | null>(null);
   const [showBaixaForm, setShowBaixaForm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showEntregaConfirm, setShowEntregaConfirm] = useState(false);
   const [baixaLoading, setBaixaLoading] = useState(false);
   const [baixaError, setBaixaError] = useState<string | null>(null);
   const [contaState, setContaState] = useState<{
@@ -119,6 +127,8 @@ export function PedidoDetailPanel({ pedido }: Props) {
   const status = normalizePedStatus(pedido.status);
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
+  const isDeliveryAction =
+    nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
   const isInFlight = inFlight.has(pedido.id);
   const itens = parseItens(pedido);
   const conta = contaState.conta;
@@ -341,13 +351,19 @@ export function PedidoDetailPanel({ pedido }: Props) {
           <button
             className="btn btn-sm btn-p"
             disabled={isInFlight}
-            onClick={() => void avancarStatus(pedido)}
+            onClick={() => {
+              if (isDeliveryAction) {
+                setShowEntregaConfirm(true);
+                return;
+              }
+              void avancarStatus(pedido);
+            }}
             data-testid="pedido-detail-avancar"
           >
             {isInFlight ? 'Aguarde…' : acaoLabel}
           </button>
         )}
-        {status !== 'cancelado' && status !== 'entregue' && (
+        {status !== 'cancelado' && status !== 'concluido' && (
           <button
             className="btn btn-sm btn-r"
             disabled={isInFlight}
@@ -367,7 +383,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
             Reabrir
           </button>
         )}
-        {status === 'entregue' && !conta && (
+        {status === 'entregue_aguardando_pagamento' && !conta && (
           <button
             className="btn btn-sm btn-p"
             disabled={isInFlight}
@@ -381,15 +397,14 @@ export function PedidoDetailPanel({ pedido }: Props) {
           </button>
         )}
       </div>
-      {contaMsg && (
-        contaMsg.startsWith('Conta') ? (
+      {contaMsg &&
+        (contaMsg.startsWith('Conta') ? (
           <div style={{ marginTop: '0.5rem' }}>
             <StatusBadge tone="success">{contaMsg}</StatusBadge>
           </div>
         ) : (
           <FormError message={contaMsg} />
-        )
-      )}
+        ))}
       <PedidoCancelConfirmModal
         open={showCancelConfirm}
         pedido={pedido}
@@ -399,6 +414,20 @@ export function PedidoDetailPanel({ pedido }: Props) {
         }}
         onConfirm={() => {
           void cancelarPedido(pedido).then(() => setShowCancelConfirm(false));
+        }}
+      />
+      <PedidoEntregaConfirmModal
+        open={showEntregaConfirm}
+        pedido={pedido}
+        submitting={isInFlight}
+        onClose={() => {
+          if (!isInFlight) setShowEntregaConfirm(false);
+        }}
+        onConfirm={() => {
+          void confirmarEntrega(pedido).then(() => {
+            setShowEntregaConfirm(false);
+            void refreshContaFinanceira();
+          });
         }}
       />
       <PedidoBaixaModal

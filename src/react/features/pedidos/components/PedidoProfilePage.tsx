@@ -5,8 +5,15 @@ import type { ContaReceber, ContaReceberBaixa, Pedido, PedidoItem } from '../../
 import { EmptyState, ErrorState, LoadingState, StatusBadge } from '../../../shared/ui';
 import type { PedidoFinanceiroState } from '../hooks/usePedidoProfile';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
-import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
+import {
+  ACAO_LABEL,
+  NEXT_STATUS,
+  PEDIDO_STATUS_LABEL,
+  PEDIDO_STATUS_TONE,
+  normalizePedStatus
+} from '../types';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
+import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 import { PedidoItemsSection } from './PedidoItemsSection';
 
 type PedidoProfileTab = 'itens' | 'pagamento' | 'logistica' | 'historico' | 'cadastro';
@@ -35,22 +42,6 @@ const PROFILE_TABS: Array<{ id: PedidoProfileTab; label: string }> = [
   { id: 'historico', label: 'Histórico' },
   { id: 'cadastro', label: 'Cadastro' }
 ];
-
-const STATUS_LABEL: Record<string, string> = {
-  orcamento: 'Orçamento',
-  confirmado: 'Confirmado',
-  em_separacao: 'Em separação',
-  entregue: 'Entregue',
-  cancelado: 'Cancelado'
-};
-
-const STATUS_TONE: Record<string, 'neutral' | 'info' | 'warning' | 'success' | 'danger'> = {
-  orcamento: 'neutral',
-  confirmado: 'info',
-  em_separacao: 'warning',
-  entregue: 'success',
-  cancelado: 'danger'
-};
 
 const PGTO_LABEL: Record<string, string> = {
   a_vista: 'À vista',
@@ -141,9 +132,9 @@ function buildKpis(pedido: Pedido, itens: PedidoItem[], conta: ContaReceber | nu
     },
     {
       label: 'Status',
-      value: STATUS_LABEL[status] || status || '—',
+      value: PEDIDO_STATUS_LABEL[status] || status || '—',
       subtitle: pedido.venda_fechada ? 'Venda fechada' : 'Fluxo comercial',
-      tone: status === 'cancelado' ? 'negative' : status === 'entregue' ? 'positive' : 'neutral'
+      tone: status === 'cancelado' ? 'negative' : status === 'concluido' ? 'positive' : 'neutral'
     },
     {
       label: 'Pagamento',
@@ -219,15 +210,24 @@ export function PedidoProfilePage({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showEntregaConfirm, setShowEntregaConfirm] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const { avancarStatus, cancelarPedido, reabrirPedido, gerarContaManual, inFlight } =
-    usePedidoMutations();
+  const {
+    avancarStatus,
+    confirmarEntrega,
+    cancelarPedido,
+    reabrirPedido,
+    gerarContaManual,
+    inFlight
+  } = usePedidoMutations();
 
   const activeTab = normalizeTab(searchParams.get('tab'));
   const status = normalizePedStatus(pedido.status);
-  const statusTone = STATUS_TONE[status] ?? 'neutral';
+  const statusTone = PEDIDO_STATUS_TONE[status] ?? 'neutral';
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
+  const isDeliveryAction =
+    nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
   const isInFlight = inFlight.has(pedido.id);
   const itens = useMemo(() => parseItens(pedido), [pedido]);
   const kpis = useMemo(
@@ -250,9 +250,19 @@ export function PedidoProfilePage({
 
   async function handleAvancar() {
     if (!nextStatus) return;
+    if (isDeliveryAction) {
+      setShowEntregaConfirm(true);
+      return;
+    }
     await avancarStatus(pedido);
     updateLocalStatus(nextStatus);
-    if (nextStatus === 'entregue') void onReloadFinanceiro?.();
+  }
+
+  async function handleConfirmarEntrega() {
+    const updated = await confirmarEntrega(pedido);
+    if (updated) onPedidoChanged?.(updated);
+    setShowEntregaConfirm(false);
+    void onReloadFinanceiro?.();
   }
 
   async function handleCancelar() {
@@ -309,7 +319,7 @@ export function PedidoProfilePage({
             <div className="rf-cliente-profile__title-row">
               <h1>Pedido #{pedido.num}</h1>
               <span className={`rf-cliente-profile__pill is-${statusTone}`}>
-                {STATUS_LABEL[status] || status || '—'}
+                {PEDIDO_STATUS_LABEL[status] || status || '—'}
               </span>
               {pedido.tipo ? (
                 <span className="rf-cliente-profile__pill is-info">
@@ -345,7 +355,7 @@ export function PedidoProfilePage({
               Reabrir
             </button>
           ) : null}
-          {status !== 'cancelado' && status !== 'entregue' ? (
+          {status !== 'cancelado' && status !== 'concluido' ? (
             <button
               className="btn btn-sm btn-r"
               type="button"
@@ -443,7 +453,7 @@ export function PedidoProfilePage({
                     Leitura da conta a receber relacionada ao pedido.
                   </p>
                 </div>
-                {status === 'entregue' && !financeiro.conta ? (
+                {status === 'entregue_aguardando_pagamento' && !financeiro.conta ? (
                   <button
                     className="btn btn-sm btn-p"
                     type="button"
@@ -497,8 +507,10 @@ export function PedidoProfilePage({
             </div>
             <InfoTable
               rows={[
-                { label: 'Status operacional', value: STATUS_LABEL[status] || status },
+                { label: 'Status operacional', value: PEDIDO_STATUS_LABEL[status] || status },
                 { label: 'Origem da venda', value: pedido.origem_venda },
+                { label: 'Entrega confirmada em', value: formatDateTime(pedido.entregue_em) },
+                { label: 'Entrega confirmada por', value: pedido.entregue_por },
                 {
                   label: 'Tipo',
                   value:
@@ -529,7 +541,9 @@ export function PedidoProfilePage({
                   { label: 'Venda fechada', value: pedido.venda_fechada ? 'Sim' : 'Não' },
                   { label: 'Fechada em', value: formatDateTime(pedido.venda_fechada_em) },
                   { label: 'Fechada por', value: pedido.venda_fechada_por },
-                  { label: 'Status atual', value: STATUS_LABEL[status] || status }
+                  { label: 'Entrega confirmada em', value: formatDateTime(pedido.entregue_em) },
+                  { label: 'Entrega confirmada por', value: pedido.entregue_por },
+                  { label: 'Status atual', value: PEDIDO_STATUS_LABEL[status] || status }
                 ]}
               />
             </section>
@@ -573,7 +587,7 @@ export function PedidoProfilePage({
               <InfoTable
                 rows={[
                   { label: 'RCA ID', value: pedido.rca_id },
-                  { label: 'Status', value: STATUS_LABEL[status] || status },
+                  { label: 'Status', value: PEDIDO_STATUS_LABEL[status] || status },
                   { label: 'Pagamento', value: PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto },
                   { label: 'Prazo', value: PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo },
                   { label: 'Tipo', value: pedido.tipo },
@@ -593,6 +607,15 @@ export function PedidoProfilePage({
           if (!isInFlight) setShowCancelConfirm(false);
         }}
         onConfirm={() => void handleCancelar()}
+      />
+      <PedidoEntregaConfirmModal
+        open={showEntregaConfirm}
+        pedido={pedido}
+        submitting={isInFlight}
+        onClose={() => {
+          if (!isInFlight) setShowEntregaConfirm(false);
+        }}
+        onConfirm={() => void handleConfirmarEntrega()}
       />
     </main>
   );

@@ -495,3 +495,18 @@ export async function updatePedidoStatus(
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao atualizar status do pedido`);
 }
+
+export async function marcarPedidoEntregue(
+  context: PedidoApiContext,
+  pedidoId: string
+): Promise<Pedido> {
+  const res = await fetch(`${context.url}/rest/v1/rpc/pedido_marcar_entregue`, {
+    method: 'POST',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({ p_pedido_id: pedidoId }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao confirmar entrega`);
+  return normalizePedido(body as Pedido);
+}

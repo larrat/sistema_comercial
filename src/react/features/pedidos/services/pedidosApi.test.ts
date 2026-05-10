@@ -7,6 +7,7 @@ import {
   hydratePedidosWithNormalizedItens,
   listPedidosPage,
   listPedidosSummary,
+  marcarPedidoEntregue,
   savePedido
 } from './pedidosApi';
 
@@ -181,9 +182,9 @@ describe('pedidosApi server-side listagem', () => {
 
     await expect(listPedidosSummary(context)).resolves.toEqual({
       total: 4,
-      emAbertoCount: 2,
-      valorEmAberto: 150,
-      entreguesCount: 1,
+      emAbertoCount: 3,
+      valorEmAberto: 230,
+      entreguesCount: 0,
       canceladosCount: 1
     });
   });
@@ -299,5 +300,30 @@ describe('pedidosApi server-side listagem', () => {
 
     expect(warn).toHaveBeenCalledOnce();
     warn.mockRestore();
+  });
+
+  it('confirma entrega via RPC e retorna pedido normalizado', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse({
+        ...PEDIDO,
+        status: 'concluido',
+        entregue_em: '2026-05-10T10:00:00Z',
+        itens: JSON.stringify([{ prodId: 'prod-1', nome: 'Camisa', qty: 1, preco: 50, custo: 30 }])
+      })
+    );
+
+    const result = await marcarPedidoEntregue(context, 'p1');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://example.supabase.co/rest/v1/rpc/pedido_marcar_entregue',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ p_pedido_id: 'p1' })
+      })
+    );
+    expect(result.status).toBe('concluido');
+    expect(result.itens).toEqual([
+      { prodId: 'prod-1', nome: 'Camisa', qty: 1, preco: 50, custo: 30 }
+    ]);
   });
 });

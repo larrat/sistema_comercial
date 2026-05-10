@@ -3,7 +3,12 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { trackEvent, type AnalyticsMetadata } from '../../../shared/lib/analytics';
 import { usePedidoStore } from '../store/usePedidoStore';
-import { savePedido, updatePedidoStatus, type PedidoSaveInput } from '../services/pedidosApi';
+import {
+  marcarPedidoEntregue,
+  savePedido,
+  updatePedidoStatus,
+  type PedidoSaveInput
+} from '../services/pedidosApi';
 import {
   gerarContaSeNecessario,
   gerarContaForcado,
@@ -68,6 +73,52 @@ export function usePedidoMutations() {
         };
         gerarContaSeNecessario(context, contaInput, next, current).catch(() => undefined);
       }
+    } finally {
+      setInFlight(pedido.id, false);
+    }
+  }
+
+  async function confirmarEntrega(pedido: {
+    id: string;
+    status: string;
+    num?: number;
+    cli?: string;
+    pgto?: string;
+    total?: number;
+    [key: string]: unknown;
+  }) {
+    const current = normalizePedStatus(pedido.status);
+    if (
+      ![
+        'em_andamento',
+        'orcamento',
+        'confirmado',
+        'em_separacao',
+        'pago_aguardando_entrega'
+      ].includes(current) ||
+      inFlight.has(pedido.id)
+    ) {
+      return null;
+    }
+
+    const context = resolveContext();
+    setInFlight(pedido.id, true);
+    try {
+      const updated = await marcarPedidoEntregue(context, pedido.id);
+      upsertPedido(updated as Parameters<typeof upsertPedido>[0]);
+      trackEvent({
+        event_name: 'pedido_entrega_confirmada',
+        module: 'pedidos',
+        user_id: userId,
+        tenant_id: filialId ?? null,
+        metadata: {
+          origin: 'pedido_delivery_modal',
+          previous_status: current,
+          next_status: normalizePedStatus(updated.status)
+        },
+        result: 'success'
+      });
+      return updated;
     } finally {
       setInFlight(pedido.id, false);
     }
@@ -212,5 +263,13 @@ export function usePedidoMutations() {
     }
   }
 
-  return { avancarStatus, cancelarPedido, reabrirPedido, submitPedido, gerarContaManual, inFlight };
+  return {
+    avancarStatus,
+    confirmarEntrega,
+    cancelarPedido,
+    reabrirPedido,
+    submitPedido,
+    gerarContaManual,
+    inFlight
+  };
 }

@@ -12,13 +12,21 @@ import {
 } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
-import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus, type PedidoTab } from '../types';
+import {
+  ACAO_LABEL,
+  NEXT_STATUS,
+  PEDIDO_STATUS_LABEL,
+  PEDIDO_STATUS_TONE,
+  normalizePedStatus,
+  type PedidoTab
+} from '../types';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
+import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 
 const TABS: { id: PedidoTab; label: string }[] = [
   { id: 'emaberto', label: 'Em Aberto' },
-  { id: 'entregues', label: 'Entregues' },
+  { id: 'entregues', label: 'Concluídos' },
   { id: 'cancelados', label: 'Cancelados' }
 ];
 
@@ -26,7 +34,12 @@ const STATUS_OPTIONS = [
   { value: '', label: 'Status' },
   { value: 'orcamento', label: 'Orçamento' },
   { value: 'confirmado', label: 'Confirmado' },
-  { value: 'em_separacao', label: 'Em separação' }
+  { value: 'em_separacao', label: 'Em separação' },
+  { value: 'em_andamento', label: 'Em andamento' },
+  { value: 'entregue_aguardando_pagamento', label: 'Entregue · aguardando pagamento' },
+  { value: 'pago_aguardando_entrega', label: 'Pago · aguardando entrega' },
+  { value: 'concluido', label: 'Concluído' },
+  { value: 'cancelado', label: 'Cancelado' }
 ];
 
 const PGTO_OPTIONS = [
@@ -49,22 +62,6 @@ const SORT_OPTIONS = [
   { value: 'data_desc', label: 'Mais recentes' },
   { value: 'data_asc', label: 'Mais antigos' }
 ];
-
-const STATUS_TONE: Record<string, 'neutral' | 'info' | 'warning' | 'success' | 'danger'> = {
-  orcamento: 'neutral',
-  confirmado: 'info',
-  em_separacao: 'warning',
-  entregue: 'success',
-  cancelado: 'danger'
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  orcamento: 'Orçamento',
-  confirmado: 'Confirmado',
-  em_separacao: 'Em separação',
-  entregue: 'Entregue',
-  cancelado: 'Cancelado'
-};
 
 const PGTO_LABEL: Record<string, string> = {
   a_vista: 'À vista',
@@ -118,10 +115,12 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   const storeStatus = usePedidoStore((s) => s.status);
   const storeError = usePedidoStore((s) => s.error);
   const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
-  const { avancarStatus, cancelarPedido, reabrirPedido, inFlight } = usePedidoMutations();
+  const { avancarStatus, confirmarEntrega, cancelarPedido, reabrirPedido, inFlight } =
+    usePedidoMutations();
   const { trackEvent } = useAnalytics({ module: 'pedidos' });
 
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
+  const [entregaTargetId, setEntregaTargetId] = useState<string | null>(null);
   const lastFilterKeyRef = useRef<string>('');
 
   const stats = summary;
@@ -138,6 +137,10 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   const cancelTarget = useMemo(
     () => pedidos.find((pedido) => pedido.id === cancelTargetId) ?? null,
     [pedidos, cancelTargetId]
+  );
+  const entregaTarget = useMemo(
+    () => pedidos.find((pedido) => pedido.id === entregaTargetId) ?? null,
+    [pedidos, entregaTargetId]
   );
 
   const hasAnyFilter = !!(filtro.q || filtro.status || filtro.pgto || filtro.periodo);
@@ -226,7 +229,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
           description={fmtCurrency(stats.valorEmAberto)}
           tone={stats.emAbertoCount > 0 ? 'warning' : 'default'}
         />
-        <StatCard label="Entregues" value={stats.entreguesCount} tone="success" />
+        <StatCard label="Concluídos" value={stats.entreguesCount} tone="success" />
         <StatCard label="Cancelados" value={stats.canceladosCount} tone="danger" />
       </section>
 
@@ -314,7 +317,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             : activeTab === 'emaberto'
               ? 'Nenhum pedido em aberto. Crie um novo para começar.'
               : activeTab === 'entregues'
-                ? 'Pedidos entregues aparecerão aqui.'
+                ? 'Pedidos concluídos aparecerão aqui.'
                 : 'Pedidos cancelados aparecerão aqui.'
         }
         emptyAction={
@@ -380,8 +383,8 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             label: 'Status',
             render: (pedido) => {
               const status = normalizePedStatus(pedido.status);
-              const badgeTone = STATUS_TONE[status] ?? 'neutral';
-              const statusLabel = STATUS_LABEL[status] || status || '—';
+              const badgeTone = PEDIDO_STATUS_TONE[status] ?? 'neutral';
+              const statusLabel = PEDIDO_STATUS_LABEL[status] || status || '—';
               return <StatusBadge tone={badgeTone}>{statusLabel}</StatusBadge>;
             }
           },
@@ -403,7 +406,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
           const status = normalizePedStatus(pedido.status);
           const nextStatus = NEXT_STATUS[status];
           const acaoLabel = ACAO_LABEL[status];
-          const isTerminal = status === 'entregue' || status === 'cancelado';
+          const isDeliveryAction =
+            nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
+          const isTerminal = status === 'concluido' || status === 'cancelado';
           const isBusy = inFlight.has(pedido.id);
 
           return (
@@ -414,6 +419,10 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                   disabled={isBusy}
                   onClick={(event) => {
                     event.stopPropagation();
+                    if (isDeliveryAction) {
+                      setEntregaTargetId(pedido.id);
+                      return;
+                    }
                     void avancarStatus(pedido);
                   }}
                   data-testid={`pedido-acao-avancar-${pedido.id}`}
@@ -466,6 +475,18 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         onConfirm={() => {
           if (!cancelTarget) return;
           void cancelarPedido(cancelTarget).then(() => setCancelTargetId(null));
+        }}
+      />
+      <PedidoEntregaConfirmModal
+        open={!!entregaTarget}
+        pedido={entregaTarget}
+        submitting={entregaTarget ? inFlight.has(entregaTarget.id) : false}
+        onClose={() => {
+          if (!entregaTarget || !inFlight.has(entregaTarget.id)) setEntregaTargetId(null);
+        }}
+        onConfirm={() => {
+          if (!entregaTarget) return;
+          void confirmarEntrega(entregaTarget).then(() => setEntregaTargetId(null));
         }}
       />
     </div>

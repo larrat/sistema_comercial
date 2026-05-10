@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Pedido } from '../../../../types/domain';
-import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
+import {
+  ACAO_LABEL,
+  NEXT_STATUS,
+  PEDIDO_STATUS_LABEL,
+  PEDIDO_STATUS_TONE,
+  normalizePedStatus
+} from '../types';
 import { StatusBadge } from '../../../shared/ui';
-import type { StatusBadgeTone } from '../../../shared/ui';
 
 type Props = {
   pedido: Pedido;
@@ -11,22 +16,6 @@ type Props = {
   onCancelar: () => void;
   onReabrir: () => void;
   onDetalhe: (id: string) => void;
-};
-
-const STATUS_TONE: Record<string, StatusBadgeTone> = {
-  orcamento: 'neutral',
-  confirmado: 'info',
-  em_separacao: 'warning',
-  entregue: 'success',
-  cancelado: 'danger'
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  orcamento: 'Orçamento',
-  confirmado: 'Confirmado',
-  em_separacao: 'Em separação',
-  entregue: 'Entregue',
-  cancelado: 'Cancelado'
 };
 
 const PGTO_LABEL: Record<string, string> = {
@@ -60,7 +49,14 @@ function getItemCount(itens: Pedido['itens']): number {
   return 0;
 }
 
-export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, onDetalhe }: Props) {
+export function PedidoRow({
+  pedido,
+  inFlight,
+  onAvancar,
+  onCancelar,
+  onReabrir,
+  onDetalhe
+}: Props) {
   const [pendingCancel, setPendingCancel] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const prevStatusRef = useRef(pedido.status);
@@ -75,14 +71,14 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
   }, [pedido.status]);
 
   const status = normalizePedStatus(pedido.status);
-  const badgeTone = STATUS_TONE[status] ?? 'neutral';
-  const statusLabel = STATUS_LABEL[status] ?? status;
+  const badgeTone = PEDIDO_STATUS_TONE[status] ?? 'neutral';
+  const statusLabel = PEDIDO_STATUS_LABEL[status] ?? status;
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
   const itemCount = getItemCount(pedido.itens);
   const pgtoLabel = pedido.pgto ? (PGTO_LABEL[pedido.pgto] ?? pedido.pgto) : null;
 
-  const isTerminal = status === 'entregue' || status === 'cancelado';
+  const isTerminal = status === 'concluido' || status === 'cancelado';
 
   return (
     <div
@@ -111,9 +107,7 @@ export function PedidoRow({ pedido, inFlight, onAvancar, onCancelar, onReabrir, 
                 Atacado
               </span>
             )}
-            {pedido.rca_nome && (
-              <span className="ped-meta-text">{pedido.rca_nome}</span>
-            )}
+            {pedido.rca_nome && <span className="ped-meta-text">{pedido.rca_nome}</span>}
           </div>
         )}
       </div>
