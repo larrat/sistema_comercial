@@ -23,7 +23,10 @@ export const TAB_STATUSES: Record<PedidoTab, string[]> = {
     'em_separacao',
     'em_andamento',
     'entregue_aguardando_pagamento',
-    'pago_aguardando_entrega'
+    'pago_aguardando_entrega',
+    // Compatibilidade: pedidos antigos ainda podem estar com status legado no banco.
+    'entregue',
+    'pago'
   ],
   entregues: ['concluido'],
   cancelados: ['cancelado']

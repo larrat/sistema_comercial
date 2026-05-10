@@ -101,6 +101,22 @@ describe('pedidosApi server-side listagem', () => {
     expect(url).toContain('limit=20&offset=40');
   });
 
+  it('inclui status legados na aba em aberto para pedidos anteriores a entrega/pagamento v2', () => {
+    const url = decodeURIComponent(
+      buildListPedidosPageUrl(context.url, context.filialId, {
+        page: 1,
+        pageSize: 20,
+        tab: 'emaberto'
+      })
+    );
+
+    expect(url).toContain('status=in.');
+    expect(url).toContain('entregue_aguardando_pagamento');
+    expect(url).toContain('pago_aguardando_entrega');
+    expect(url).toContain('entregue');
+    expect(url).toContain('pago');
+  });
+
   it('monta URL de resumo enxuto da carteira', () => {
     expect(buildListPedidosSummaryUrl(context.url, context.filialId)).toBe(
       'https://example.supabase.co/rest/v1/pedidos?filial_id=eq.filial-1&select=status,total'
