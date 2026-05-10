@@ -2918,6 +2918,133 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   color: #a32d2d;
 }
 
+.pedido-inline-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  border: 0.5px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 3px 6px;
+  font: inherit;
+}
+
+.pedido-inline-value:hover {
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--panel) 70%, var(--bg) 30%);
+}
+
+.pedido-inline-input {
+  width: 96px;
+  min-height: 30px;
+  padding: 4px 8px;
+}
+
+.pedido-inline-saving {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.pedido-items-actions {
+  justify-content: flex-start;
+}
+
+.produto-variant-tab {
+  gap: 12px;
+}
+
+.produto-variant-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.produto-variant-periods {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.produto-variant-table td,
+.produto-variant-table th {
+  padding-right: 14px;
+}
+
+.produto-variant-progress {
+  width: min(180px, 100%);
+  height: 5px;
+  margin-top: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 74%, var(--line) 26%);
+  overflow: hidden;
+}
+
+.produto-variant-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.produto-variant-total-row td {
+  background: color-mix(in srgb, var(--panel) 78%, var(--line) 22%);
+  border-top: 1px solid var(--line);
+}
+
+.produto-variant-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.produto-variant-chart {
+  height: 230px;
+}
+
+.produto-variant-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 10px 12px;
+  border: 0.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.produto-variant-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.produto-variant-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .produto-variant-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .produto-variant-periods {
+    justify-content: flex-start;
+  }
+
+  .produto-variant-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .rf-cliente-profile__chart {
   width: 100%;
   margin-top: 12px;

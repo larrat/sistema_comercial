@@ -4,7 +4,11 @@ import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { trackEvent, type AnalyticsMetadata } from '../../../shared/lib/analytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import {
+  adicionarPedidoItem,
+  atualizarPedidoItem,
+  getNextPedidoNumber,
   marcarPedidoEntregue,
+  removerPedidoItem,
   savePedido,
   updatePedidoStatus,
   type PedidoSaveInput
@@ -166,14 +170,16 @@ export function usePedidoMutations() {
   async function submitPedido(
     input: Omit<PedidoSaveInput, 'filial_id'>,
     tracking?: PedidoSubmitTracking
-  ): Promise<string | null> {
+  ): Promise<{ aviso: string | null; pedido: PedidoSaveInput }> {
     const context = resolveContext();
 
     const pedidos = usePedidoStore.getState().pedidos;
     const existing = pedidos.find((p) => p.id === input.id);
     const statusAnterior = existing ? normalizePedStatus(existing.status) : '';
+    const shouldAllocateNumber = !existing && input.origem_venda !== 'pdv';
+    const num = shouldAllocateNumber ? await getNextPedidoNumber(context) : input.num;
 
-    const full: PedidoSaveInput = { ...input, filial_id: context.filialId };
+    const full: PedidoSaveInput = { ...input, num, filial_id: context.filialId };
     await savePedido(context, full);
     upsertPedido(full as Parameters<typeof upsertPedido>[0]);
 
@@ -206,7 +212,7 @@ export function usePedidoMutations() {
           },
           result: 'partial'
         });
-        return warning;
+        return { aviso: warning, pedido: full };
       }
     }
 
@@ -223,7 +229,7 @@ export function usePedidoMutations() {
       },
       result: 'success'
     });
-    return null;
+    return { aviso: null, pedido: full };
   }
 
   /**
@@ -263,6 +269,34 @@ export function usePedidoMutations() {
     }
   }
 
+  async function atualizarItemPedido(
+    pedidoId: string,
+    itemId: string,
+    patch: { quantidade?: number; precoUnitario?: number }
+  ) {
+    const context = resolveContext();
+    const updated = await atualizarPedidoItem(context, pedidoId, itemId, patch);
+    upsertPedido(updated as Parameters<typeof upsertPedido>[0]);
+    return updated;
+  }
+
+  async function removerItemPedido(pedidoId: string, itemId: string) {
+    const context = resolveContext();
+    const updated = await removerPedidoItem(context, pedidoId, itemId);
+    upsertPedido(updated as Parameters<typeof upsertPedido>[0]);
+    return updated;
+  }
+
+  async function adicionarItemPedido(
+    pedidoId: string,
+    item: { prodId: string; qty: number; preco: number }
+  ) {
+    const context = resolveContext();
+    const updated = await adicionarPedidoItem(context, pedidoId, item);
+    upsertPedido(updated as Parameters<typeof upsertPedido>[0]);
+    return updated;
+  }
+
   return {
     avancarStatus,
     confirmarEntrega,
@@ -270,6 +304,9 @@ export function usePedidoMutations() {
     reabrirPedido,
     submitPedido,
     gerarContaManual,
+    atualizarItemPedido,
+    removerItemPedido,
+    adicionarItemPedido,
     inFlight
   };
 }

@@ -260,12 +260,15 @@ export type VendaVarianteRow = {
   qty: number;
   preco: number;
   criado_em: string;
+  pedido_data?: string | null;
+  pedido_status?: string | null;
 };
 
 export async function listPedidoItensByProdutoIds(
   context: ProdutoApiContext,
   produtoIds: string[],
-  fromDate?: string
+  fromDate?: string,
+  toDate?: string
 ): Promise<VendaVarianteRow[]> {
   if (!produtoIds.length) return [];
   const params = new URLSearchParams();
@@ -274,8 +277,10 @@ export async function listPedidoItensByProdutoIds(
     'produto_id',
     `in.(${produtoIds.map((id) => `"${id.replace(/"/g, '\\"')}"`).join(',')})`
   );
-  params.set('select', 'produto_id,qty,preco,criado_em');
-  if (fromDate) params.set('criado_em', `gte.${fromDate}`);
+  params.set('select', 'produto_id,qty,preco,criado_em,pedidos!inner(data,status)');
+  if (fromDate) params.append('criado_em', `gte.${fromDate}`);
+  if (toDate) params.append('criado_em', `lte.${toDate}`);
+  params.set('pedidos.status', 'not.eq.cancelado');
   const url = `${context.url}/rest/v1/pedido_itens?${params.toString()}`;
   const res = await fetch(url, {
     headers: createHeaders(context.key, context.token),
@@ -283,5 +288,16 @@ export async function listPedidoItensByProdutoIds(
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao carregar vendas das variantes`);
-  return Array.isArray(body) ? (body as VendaVarianteRow[]) : [];
+  if (!Array.isArray(body)) return [];
+  return body.map((row) => {
+    const item = row as VendaVarianteRow & { pedidos?: { data?: string; status?: string } | null };
+    return {
+      produto_id: item.produto_id,
+      qty: item.qty,
+      preco: item.preco,
+      criado_em: item.criado_em,
+      pedido_data: item.pedidos?.data ?? null,
+      pedido_status: item.pedidos?.status ?? null
+    };
+  });
 }

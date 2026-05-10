@@ -5,6 +5,7 @@ import {
   buildListProdutosPageUrl,
   buildProdutoByIdUrl,
   deleteProduto,
+  listPedidoItensByProdutoIds,
   listProdutoCategorias,
   listProdutoById,
   listProdutoPais,
@@ -213,5 +214,40 @@ describe('deleteProduto', () => {
   it('lança erro quando API retorna status de erro', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse({ message: 'Não encontrado' }, 404));
     await expect(deleteProduto(context, 'p1')).rejects.toThrow('Não encontrado');
+  });
+});
+
+describe('variantes', () => {
+  it('consulta vendas de variantes em pedido_itens com filtro de período e status', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse([
+        {
+          produto_id: 'var-1',
+          qty: '2',
+          preco: '50',
+          criado_em: '2026-05-10T10:00:00Z',
+          pedidos: { data: '2026-05-10', status: 'concluido' }
+        }
+      ])
+    );
+
+    const result = await listPedidoItensByProdutoIds(
+      context,
+      ['var-1', 'var-2'],
+      '2026-04-10',
+      '2026-05-10'
+    );
+
+    const [url] = vi.mocked(fetch).mock.calls[0];
+    expect(String(url)).toContain('/rest/v1/pedido_itens?');
+    expect(String(url)).toContain('produto_id=in.');
+    expect(String(url)).toContain('criado_em=gte.2026-04-10');
+    expect(String(url)).toContain('criado_em=lte.2026-05-10');
+    expect(String(url)).toContain('pedidos.status=not.eq.cancelado');
+    expect(result[0]).toMatchObject({
+      produto_id: 'var-1',
+      pedido_data: '2026-05-10',
+      pedido_status: 'concluido'
+    });
   });
 });

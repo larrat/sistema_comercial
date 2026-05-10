@@ -52,3 +52,30 @@ Nenhuma pendência nova de produto foi gerada. A fase ficou limitada a formulár
 | Revisar Relatórios para substituir métricas baseadas diretamente em `status === 'entregue'`. | A especificação mandou verificar e reportar impactos indiretos, não alterar Relatórios. |
 | Decidir evolução futura do PDV para gravar eventos/status novos. | Esta execução proibiu alterações no PDV. |
 | Definir campo/regra para diferenciar "à vista pago no pedido" de "à vista pago na entrega". | O schema atual não expõe essa diferença de forma explícita; criar campo novo exigiria decisão de negócio. |
+
+## 2026-05-10 — Navegação e edição de itens de Pedidos
+
+| Pendência | Por que está fora do escopo atual |
+|---|---|
+| Aplicar `sql/20_pedido_itens_edicao.sql` em homologação antes de validar edição inline. | O ambiente local não tem alvo/credencial de homologação configurado; aplicar banco sem alvo explícito seria risco desnecessário. |
+| Decidir se editar itens deve atualizar automaticamente contas a receber vinculadas. | A especificação proibiu alterar Receber automaticamente e pediu registrar a decisão para o humano. |
+| Definir regra de estoque para item adicionado/removido em pedido já existente. | Não há RPC existente de adição de item de pedido que registre movimentação de estoque; implementar baixa/estorno automática exigiria decisão de negócio. |
+| Revisar Dashboard e Relatórios para consumir `pedido_itens`/status normalizado de forma consistente. | A especificação mandou verificar impactos indiretos e reportar, não alterar esses módulos. |
+| Avaliar se produto precisa de campo explícito de ativo/inativo para validar `pedido_item_adicionar`. | O schema atual de `produtos` usado pelo frontend não expõe um campo `ativo`; a RPC valida existência e filial, mas não filtra ativo. |
+
+## 2026-05-10 — Aba Variantes de Produtos
+
+| Pendência | Por que está fora do escopo atual |
+|---|---|
+| Aplicar e validar `sql/18_pedido_itens_normalizacao.sql` em homologação para alimentar os gráficos de vendas por variante. | A aba lê `pedido_itens`; sem a migration aplicada, vendas/receita ficam zeradas por fallback seguro. |
+| Criar posição histórica de estoque (`estoque_posicao` ou equivalente) se a loja precisar de saldo médio/final real por período. | O schema atual não expõe tabela histórica de posição; a aba usa saldo atual ajustado por movimentações disponíveis e documenta a limitação. |
+| Revisar se o filtro de vendas deve usar `pedidos.data` ou `pedido_itens.criado_em` como data oficial. | O serviço tenta juntar com `pedidos`, mas o filtro HTTP ainda é aplicado em `pedido_itens.criado_em`; mudar a data oficial exige decisão de negócio e validação de dados. |
+
+## 2026-05-10 — Correção pedidos venda_fechada/Bruno/numeração
+
+| Pendência | Por que está fora do escopo atual |
+|---|---|
+| Executar `sql/manual/2026-05-10_corrigir_pedidos_venda_fechada_bruno.sql` em homologação bloco a bloco, validando cada SELECT antes de UPDATE/INSERT. | Não há alvo/credencial de homologação configurado nesta sessão; rodar sem confirmar ambiente seria risco operacional. |
+| Confirmar com Lucas Larrat se o pedido do Bruno teve 4 unidades ou 2 unidades antes de aplicar o Bloco 4. | A especificação proíbe corrigir o item duplicado sem confirmação humana do cenário correto. |
+| Aplicar `sql/21_pedidos_numero_atomico.sql` em homologação depois de resolver duplicidades existentes. | A migration cria índice único apenas se não houver duplicidade; precisa da correção manual prévia. |
+| Fazer baixas retroativas uma a uma via `rpc_registrar_baixa`, depois de o humano confirmar quais valores realmente entraram. | Baixa financeira não pode ser inferida em lote pelo sistema. |

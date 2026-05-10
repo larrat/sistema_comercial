@@ -88,8 +88,10 @@ function parseTotalFromContentRange(contentRange: string | null): number {
 }
 
 type PedidoItemRow = {
+  id?: string | null;
   pedido_id?: string | null;
   produto_id?: string | null;
+  linha?: number | string | null;
   nome?: string | null;
   un?: string | null;
   qty?: number | string | null;
@@ -142,7 +144,7 @@ function buildPedidoItensUrl(url: string, filialId: string, pedidoIds: string[])
   );
   params.set(
     'select',
-    'pedido_id,produto_id,nome,un,qty,preco,custo,custo_base,preco_base,orig,item,linha'
+    'id,pedido_id,produto_id,nome,un,qty,preco,custo,custo_base,preco_base,orig,item,linha'
   );
   params.set('order', 'pedido_id.asc,linha.asc');
   return `${url}/rest/v1/pedido_itens?${params.toString()}`;
@@ -157,6 +159,8 @@ function mapPedidoItemRow(row: PedidoItemRow): PedidoItem {
   const prodId = row.produto_id ?? item.prodId ?? '';
 
   return {
+    item_id: row.id ?? item.item_id,
+    linha: row.linha !== null && row.linha !== undefined ? toNumber(row.linha) : item.linha,
     prodId,
     nome: row.nome ?? item.nome ?? '',
     un: row.un ?? item.un ?? 'un',
@@ -442,6 +446,21 @@ export async function listPedidosSummary(context: PedidoApiContext): Promise<Ped
 }
 
 export async function getNextPedidoNumber(context: PedidoApiContext): Promise<number> {
+  try {
+    const res = await fetch(`${context.url}/rest/v1/rpc/next_pedido_num`, {
+      method: 'POST',
+      headers: createHeaders(context.key, context.token),
+      body: JSON.stringify({ p_filial_id: context.filialId }),
+      signal: AbortSignal.timeout(12000)
+    });
+    const body = await readJson(res);
+    ensureOk(res, body, `Erro ${res.status} ao calcular proximo pedido`);
+    const next = Number(body);
+    if (Number.isFinite(next) && next > 0) return next;
+  } catch (error) {
+    console.warn('[pedidos] next_pedido_num indisponivel; usando fallback legado.', error);
+  }
+
   const res = await fetch(buildGetUltimoPedidoNumeroUrl(context.url, context.filialId), {
     headers: createHeaders(context.key, context.token),
     signal: AbortSignal.timeout(12000)
@@ -508,5 +527,64 @@ export async function marcarPedidoEntregue(
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao confirmar entrega`);
+  return normalizePedido(body as Pedido);
+}
+
+export async function atualizarPedidoItem(
+  context: PedidoApiContext,
+  pedidoId: string,
+  itemId: string,
+  patch: { quantidade?: number; precoUnitario?: number }
+): Promise<Pedido> {
+  const res = await fetch(`${context.url}/rest/v1/rpc/pedido_item_atualizar`, {
+    method: 'POST',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({
+      p_pedido_id: pedidoId,
+      p_item_id: itemId,
+      p_quantidade: patch.quantidade ?? null,
+      p_preco_unitario: patch.precoUnitario ?? null
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao atualizar item do pedido`);
+  return normalizePedido(body as Pedido);
+}
+
+export async function removerPedidoItem(
+  context: PedidoApiContext,
+  pedidoId: string,
+  itemId: string
+): Promise<Pedido> {
+  const res = await fetch(`${context.url}/rest/v1/rpc/pedido_item_remover`, {
+    method: 'POST',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({ p_pedido_id: pedidoId, p_item_id: itemId }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao remover item do pedido`);
+  return normalizePedido(body as Pedido);
+}
+
+export async function adicionarPedidoItem(
+  context: PedidoApiContext,
+  pedidoId: string,
+  item: Pick<PedidoItem, 'prodId' | 'qty' | 'preco'>
+): Promise<Pedido> {
+  const res = await fetch(`${context.url}/rest/v1/rpc/pedido_item_adicionar`, {
+    method: 'POST',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({
+      p_pedido_id: pedidoId,
+      p_produto_id: item.prodId,
+      p_quantidade: item.qty,
+      p_preco_unitario: item.preco
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao adicionar item ao pedido`);
   return normalizePedido(body as Pedido);
 }

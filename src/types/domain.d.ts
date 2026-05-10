@@ -150,6 +150,8 @@ export type Cliente = {
 };
 
 export type PedidoItem = {
+  item_id?: Id;
+  linha?: number;
   prodId: Id;
   nome: string;
   un: string;

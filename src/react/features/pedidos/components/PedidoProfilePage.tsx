@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { ContaReceber, ContaReceberBaixa, Pedido, PedidoItem } from '../../../../types/domain';
-import { EmptyState, ErrorState, LoadingState, StatusBadge } from '../../../shared/ui';
+import { useRoleStore } from '../../../app/useRoleStore';
+import { EmptyState, ErrorState, LoadingState } from '../../../shared/ui';
 import type { PedidoFinanceiroState } from '../hooks/usePedidoProfile';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import {
@@ -14,9 +15,9 @@ import {
 } from '../types';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
-import { PedidoItemsSection } from './PedidoItemsSection';
+import { PedidoItensTab } from './PedidoItensTab';
 
-type PedidoProfileTab = 'itens' | 'pagamento' | 'logistica' | 'historico' | 'cadastro';
+type PedidoProfileTab = 'itens' | 'financeiro' | 'historico' | 'cadastro';
 
 type Props = {
   pedido: Pedido;
@@ -37,11 +38,12 @@ type KpiCard = {
 
 const PROFILE_TABS: Array<{ id: PedidoProfileTab; label: string }> = [
   { id: 'itens', label: 'Itens' },
-  { id: 'pagamento', label: 'Pagamento' },
-  { id: 'logistica', label: 'Entrega/Logística' },
+  { id: 'financeiro', label: 'Financeiro' },
   { id: 'historico', label: 'Histórico' },
   { id: 'cadastro', label: 'Cadastro' }
 ];
+
+const EDITABLE_ITEM_STATUSES = new Set(['em_andamento', 'em_separacao', 'pago_aguardando_entrega']);
 
 const PGTO_LABEL: Record<string, string> = {
   a_vista: 'À vista',
@@ -209,6 +211,7 @@ export function PedidoProfilePage({
 }: Props) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const userRole = useRoleStore((state) => state.role);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showEntregaConfirm, setShowEntregaConfirm] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -230,6 +233,7 @@ export function PedidoProfilePage({
     nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
   const isInFlight = inFlight.has(pedido.id);
   const itens = useMemo(() => parseItens(pedido), [pedido]);
+  const canEditItens = userRole === 'admin' && EDITABLE_ITEM_STATUSES.has(status);
   const kpis = useMemo(
     () => buildKpis(pedido, itens, financeiro.conta),
     [financeiro.conta, itens, pedido]
@@ -288,7 +292,7 @@ export function PedidoProfilePage({
       <main className="rf-content rf-ui-stack rf-cliente-profile rf-pedido-profile">
         <LoadingState
           title="Carregando pedido..."
-          description="Estamos reunindo itens, pagamento, logística e cadastro do pedido."
+          description="Estamos reunindo itens, financeiro, histórico e cadastro do pedido."
         />
       </main>
     );
@@ -406,49 +410,22 @@ export function PedidoProfilePage({
 
       {activeTab === 'itens' ? (
         <section className="rf-cliente-profile__tab-panel">
-          <section className="rf-cliente-profile__card">
-            <div className="rf-cliente-profile__card-head">
-              <div>
-                <h3 className="rf-cliente-profile__card-title">Itens do pedido</h3>
-                <p className="rf-cliente-profile__card-subtitle">
-                  Mesma composição exibida no detalhe antigo.
-                </p>
-              </div>
-            </div>
-            <PedidoItemsSection
-              itens={itens}
-              produtos={[]}
-              tipo={pedido.tipo ?? 'varejo'}
-              readOnly
-            />
-          </section>
+          <PedidoItensTab
+            pedido={pedido}
+            itens={itens}
+            canEdit={canEditItens}
+            onPedidoChanged={onPedidoChanged}
+          />
         </section>
       ) : null}
 
-      {activeTab === 'pagamento' ? (
+      {activeTab === 'financeiro' ? (
         <section className="rf-cliente-profile__tab-panel">
-          <div className="rf-cliente-profile__summary-grid">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Condição de pagamento</h3>
-              </div>
-              <InfoTable
-                rows={[
-                  { label: 'Forma', value: PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto },
-                  { label: 'Prazo', value: PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo },
-                  { label: 'Total', value: formatCurrency(pedido.total) },
-                  {
-                    label: 'Metadados',
-                    value: pedido.pgto_meta ? JSON.stringify(pedido.pgto_meta) : null
-                  }
-                ]}
-              />
-            </section>
-
+          <div className="rf-cliente-profile__tab-stack">
             <section className="rf-cliente-profile__card">
               <div className="rf-cliente-profile__card-head">
                 <div>
-                  <h3 className="rf-cliente-profile__card-title">Financeiro vinculado</h3>
+                  <h3 className="rf-cliente-profile__card-title">Contas a receber vinculadas</h3>
                   <p className="rf-cliente-profile__card-subtitle">
                     Leitura da conta a receber relacionada ao pedido.
                   </p>
@@ -495,36 +472,8 @@ export function PedidoProfilePage({
               )}
               {actionMessage ? <p className="table-cell-muted">{actionMessage}</p> : null}
             </section>
-          </div>
-        </section>
-      ) : null}
 
-      {activeTab === 'logistica' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <section className="rf-cliente-profile__card">
-            <div className="rf-cliente-profile__card-head">
-              <h3 className="rf-cliente-profile__card-title">Entrega e logística</h3>
-            </div>
-            <InfoTable
-              rows={[
-                { label: 'Status operacional', value: PEDIDO_STATUS_LABEL[status] || status },
-                { label: 'Origem da venda', value: pedido.origem_venda },
-                { label: 'Entrega confirmada em', value: formatDateTime(pedido.entregue_em) },
-                { label: 'Entrega confirmada por', value: pedido.entregue_por },
-                {
-                  label: 'Tipo',
-                  value:
-                    pedido.tipo === 'atacado'
-                      ? 'Atacado'
-                      : pedido.tipo === 'varejo'
-                        ? 'Varejo'
-                        : pedido.tipo
-                },
-                { label: 'Data do pedido', value: formatDate(pedido.data) },
-                { label: 'Observação', value: pedido.obs }
-              ]}
-            />
-          </section>
+          </div>
         </section>
       ) : null}
 

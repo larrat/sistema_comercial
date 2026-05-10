@@ -2,12 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Pedido } from '../../../../types/domain';
 import {
+  adicionarPedidoItem,
+  atualizarPedidoItem,
   buildListPedidosPageUrl,
   buildListPedidosSummaryUrl,
+  getNextPedidoNumber,
   hydratePedidosWithNormalizedItens,
   listPedidosPage,
   listPedidosSummary,
   marcarPedidoEntregue,
+  removerPedidoItem,
   savePedido
 } from './pedidosApi';
 
@@ -101,6 +105,32 @@ describe('pedidosApi server-side listagem', () => {
     expect(buildListPedidosSummaryUrl(context.url, context.filialId)).toBe(
       'https://example.supabase.co/rest/v1/pedidos?filial_id=eq.filial-1&select=status,total'
     );
+  });
+
+  it('calcula proximo numero de pedido via RPC atomica', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse(43));
+
+    await expect(getNextPedidoNumber(context)).resolves.toBe(43);
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://example.supabase.co/rest/v1/rpc/next_pedido_num',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ p_filial_id: 'filial-1' })
+      })
+    );
+  });
+
+  it('mantem fallback legado de numero quando RPC atomica nao existe', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(makeResponse({ message: 'function not found' }, 404))
+      .mockResolvedValueOnce(makeResponse([{ num: 42 }]));
+
+    await expect(getNextPedidoNumber(context)).resolves.toBe(43);
+
+    expect(String(vi.mocked(fetch).mock.calls[1]?.[0])).toContain('/rest/v1/pedidos?');
+    warn.mockRestore();
   });
 
   it('lista página atual com total', async () => {
@@ -325,5 +355,72 @@ describe('pedidosApi server-side listagem', () => {
     expect(result.itens).toEqual([
       { prodId: 'prod-1', nome: 'Camisa', qty: 1, preco: 50, custo: 30 }
     ]);
+  });
+
+  it('atualiza item de pedido via RPC e normaliza retorno', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse({
+        ...PEDIDO,
+        total: 100,
+        itens: JSON.stringify([
+          { item_id: 'p1:1', prodId: 'prod-1', nome: 'Camisa', qty: 2, preco: 50, custo: 30 }
+        ])
+      })
+    );
+
+    const result = await atualizarPedidoItem(context, 'p1', 'p1:1', {
+      quantidade: 2,
+      precoUnitario: 50
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://example.supabase.co/rest/v1/rpc/pedido_item_atualizar',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          p_pedido_id: 'p1',
+          p_item_id: 'p1:1',
+          p_quantidade: 2,
+          p_preco_unitario: 50
+        })
+      })
+    );
+    expect(result.total).toBe(100);
+    expect(result.itens).toEqual([
+      { item_id: 'p1:1', prodId: 'prod-1', nome: 'Camisa', qty: 2, preco: 50, custo: 30 }
+    ]);
+  });
+
+  it('remove item de pedido via RPC', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse({ ...PEDIDO, itens: [] }));
+
+    await removerPedidoItem(context, 'p1', 'p1:1');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://example.supabase.co/rest/v1/rpc/pedido_item_remover',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ p_pedido_id: 'p1', p_item_id: 'p1:1' })
+      })
+    );
+  });
+
+  it('adiciona item de pedido via RPC usando produto, quantidade e preço', async () => {
+    vi.mocked(fetch).mockResolvedValue(makeResponse({ ...PEDIDO, itens: [] }));
+
+    await adicionarPedidoItem(context, 'p1', { prodId: 'prod-2', qty: 1, preco: 25 });
+
+    expect(fetch).toHaveBeenCalledWith(
+      'https://example.supabase.co/rest/v1/rpc/pedido_item_adicionar',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          p_pedido_id: 'p1',
+          p_produto_id: 'prod-2',
+          p_quantidade: 1,
+          p_preco_unitario: 25
+        })
+      })
+    );
   });
 });

@@ -154,20 +154,22 @@ export function PedidoForm({
 
     setSaving(true);
     try {
-      const aviso = await submitPedido(pedidoInput, {
+      const result = await submitPedido(pedidoInput, {
         metadata: {
           origin: analyticsOrigin
         }
       });
-      if (aviso) {
-        setErrors({ geral: aviso });
-        emitToast(aviso, 'warning');
+      if (result.aviso) {
+        setErrors({ geral: result.aviso });
+        emitToast(result.aviso, 'warning');
       } else {
         emitToast(
-          isEdit ? `Pedido #${num} atualizado com sucesso.` : `Pedido #${num} criado com sucesso.`,
+          isEdit
+            ? `Pedido #${result.pedido.num} atualizado com sucesso.`
+            : `Pedido #${result.pedido.num} criado com sucesso.`,
           'success'
         );
-        onSaved(pedidoInput as unknown as Pedido);
+        onSaved(result.pedido as unknown as Pedido);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar pedido.';

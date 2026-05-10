@@ -10,7 +10,6 @@ import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
 import { PedidoForm } from './PedidoForm';
-import { PedidoDetailPanel } from './PedidoDetailPanel';
 import type { Pedido } from '../../../../types/domain';
 import type { PedidoTab } from '../types';
 
@@ -44,7 +43,6 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
   const { trackEvent } = useAnalytics({ module: 'pedidos' });
 
   const [editingId, setEditingId] = useState<string | null>(null); // 'new' | pedidoId | null
-  const [detailId, setDetailId] = useState<string | null>(null);
   const [formOrigin, setFormOrigin] = useState<string>('unknown');
   const [prefillClienteId, setPrefillClienteId] = useState<string | null>(null);
 
@@ -54,13 +52,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     [pedidos, editingId]
   );
 
-  const detailPedido = useMemo<Pedido | null>(
-    () => (detailId ? (pedidos.find((p) => p.id === detailId) ?? null) : null),
-    [pedidos, detailId]
-  );
-
   function openNewPedido(origin = 'list_button', clienteId: string | null = null) {
-    setDetailId(null);
     setEditingId('new');
     setFormOrigin(origin);
     setPrefillClienteId(clienteId);
@@ -89,19 +81,18 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         return;
       }
       if (data.type === 'pedidos:editar' && data.id) {
-        setDetailId(null);
         setEditingId(String(data.id));
         setPrefillClienteId(null);
         return;
       }
       if (data.type === 'pedidos:detalhe' && data.id) {
         setEditingId(null);
-        setDetailId(String(data.id));
         setPrefillClienteId(null);
+        navigate(`/app/pedidos/${encodeURIComponent(String(data.id))}`);
         return;
       }
     });
-  }, [setActiveTab, clearFiltro]);
+  }, [setActiveTab, clearFiltro, navigate]);
 
   useEffect(() => {
     if (!routeIntent) return;
@@ -114,23 +105,22 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     if (!routeIntent.pedidoId) return;
 
     if (routeIntent.view === 'edit') {
-      setDetailId(null);
       setEditingId(routeIntent.pedidoId);
       setPrefillClienteId(null);
       return;
     }
 
     setEditingId(null);
-    setDetailId(routeIntent.pedidoId);
     setPrefillClienteId(null);
-  }, [routeIntent?.clienteId, routeIntent?.pedidoId, routeIntent?.view]);
+    navigate(`/app/pedidos/${encodeURIComponent(routeIntent.pedidoId)}`);
+  }, [navigate, routeIntent?.clienteId, routeIntent?.pedidoId, routeIntent?.view]);
 
   // Publica estado ao bridge legado
   useEffect(() => {
     const filtersActive = [filtro.q, filtro.status, filtro.pgto, filtro.periodo].filter(
       Boolean
     ).length;
-    const view = editingId ? 'form' : detailId ? 'detail' : 'list';
+    const view = editingId ? 'form' : 'list';
     postLegacyBridgeMessage({
       source: MESSAGE_SOURCE,
       type: 'pedidos:state',
@@ -143,8 +133,8 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         totalPedidos: summary.total,
         page,
         totalFiltrados: total,
-        selectedId: editingId === 'new' ? '' : editingId || detailId || '',
-        selectedNum: editingPedido?.num ?? detailPedido?.num ?? null
+        selectedId: editingId === 'new' ? '' : editingId || '',
+        selectedNum: editingPedido?.num ?? null
       }
     });
   }, [
@@ -160,9 +150,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
     page,
     total,
     editingId,
-    detailId,
-    editingPedido?.num,
-    detailPedido?.num
+    editingPedido?.num
   ]);
 
   return (
@@ -172,43 +160,9 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
         onNovoPedido={() => openNewPedido('list_button')}
         onDetalhe={(id) => {
           setEditingId(null);
-          setDetailId(id);
+          navigate(`/app/pedidos/${encodeURIComponent(id)}`);
         }}
       />
-
-      <Drawer
-        open={!!detailPedido && !editingId}
-        title={detailPedido ? `Pedido #${detailPedido.num}` : ''}
-        size="lg"
-        action={
-          detailPedido ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                className="btn btn-sm"
-                type="button"
-                data-testid="pedido-detail-full-page"
-                onClick={() => navigate(`/app/pedidos/${encodeURIComponent(detailPedido.id)}`)}
-              >
-                Abrir página completa
-              </button>
-              <button
-                className="btn btn-sm"
-                type="button"
-                data-testid="pedido-detail-editar"
-                onClick={() => {
-                  setDetailId(null);
-                  setEditingId(detailPedido.id);
-                }}
-              >
-                Editar
-              </button>
-            </div>
-          ) : undefined
-        }
-        onClose={() => setDetailId(null)}
-      >
-        {detailPedido && <PedidoDetailPanel pedido={detailPedido} />}
-      </Drawer>
 
       <Drawer
         open={!!editingId}
@@ -234,8 +188,8 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
             analyticsOrigin={formOrigin}
             onSaved={(pedido) => {
               setEditingId(null);
-              setDetailId(pedido.id);
               setPrefillClienteId(null);
+              navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
             }}
             onCancel={() => {
               setEditingId(null);

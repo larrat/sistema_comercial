@@ -437,7 +437,8 @@ export function PdvPage() {
     options: { silent?: boolean } = {}
   ) {
     try {
-      return await submitPedido(payload);
+      const result = await submitPedido(payload);
+      return result.aviso;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao salvar venda.';
       if (!isPdvMetadataMissingError(message)) throw error;
@@ -458,10 +459,11 @@ export function PdvPage() {
         );
       }
 
-      return submitPedido({
+      const result = await submitPedido({
         ...fallback,
         obs: fallbackObs
       });
+      return result.aviso;
     }
   }
 
