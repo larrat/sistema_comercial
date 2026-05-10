@@ -79,3 +79,11 @@ Nenhuma pendência nova de produto foi gerada. A fase ficou limitada a formulár
 | Confirmar com Lucas Larrat se o pedido do Bruno teve 4 unidades ou 2 unidades antes de aplicar o Bloco 4. | A especificação proíbe corrigir o item duplicado sem confirmação humana do cenário correto. |
 | Aplicar `sql/21_pedidos_numero_atomico.sql` em homologação depois de resolver duplicidades existentes. | A migration cria índice único apenas se não houver duplicidade; precisa da correção manual prévia. |
 | Fazer baixas retroativas uma a uma via `rpc_registrar_baixa`, depois de o humano confirmar quais valores realmente entraram. | Baixa financeira não pode ser inferida em lote pelo sistema. |
+
+## 2026-05-10 — Pós-SQL informado pelo operador
+
+| Pendência | Por que ainda existe |
+|---|---|
+| Executar validação funcional em tela após os SQLs aplicados. | A sessão local validou código e build, mas não acessou o banco real nem a interface de homologação autenticada. |
+| Conferir dados corrigidos em Receber, pedidos do Bruno/Marcio e numeração nova. | O operador informou que rodou o banco; falta confirmar resultado funcional e financeiro nos dados reais. |
+| Se a validação passar, commitar o pacote de SQL/código/docs. | Ainda há mudanças locais não commitadas desta rodada. |

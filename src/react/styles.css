@@ -901,6 +901,9 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-ui-stat-grid,
+.rf-ui-stat-grid--2,
+.rf-ui-stat-grid--3,
+.rf-ui-stat-grid--5,
 .rf-ui-stack {
   display: grid;
   gap: 16px;
