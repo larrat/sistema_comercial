@@ -321,48 +321,6 @@ function DashboardCard({
   );
 }
 
-function DashboardContextStats({
-  pedidosCount,
-  produtosCount,
-  clientesCount,
-  entreguesHoje,
-  onNavigatePage
-}: {
-  pedidosCount: number;
-  produtosCount: number;
-  clientesCount: number;
-  entreguesHoje: number;
-  onNavigatePage?: (page: string) => void;
-}) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      <StatCard
-        label="Pedidos"
-        value={pedidosCount}
-        tone="blue"
-        onClick={() => goToPage('pedidos', onNavigatePage)}
-      />
-      <StatCard
-        label="Catálogo"
-        value={produtosCount}
-        tone="emerald"
-        onClick={() => goToPage('produtos', onNavigatePage)}
-      />
-      <StatCard
-        label="Clientes"
-        value={clientesCount}
-        tone="amber"
-        onClick={() => goToPage('clientes', onNavigatePage)}
-      />
-      <StatCard
-        label="Hoje"
-        value={entreguesHoje}
-        tone={entreguesHoje > 0 ? 'success' : 'default'}
-        onClick={() => goToPage('pedidos', onNavigatePage)}
-      />
-    </div>
-  );
-}
 
 function PeriodSelector({
   periodo,
@@ -432,72 +390,6 @@ function DashboardViewSelector({
   );
 }
 
-function DashKpis({
-  fat,
-  lucro,
-  mg,
-  tk,
-  abertos,
-  entreguesCount,
-  allPedsCount,
-  metaPacing,
-  META_MENSAL_BASE
-}: {
-  fat: number;
-  lucro: number;
-  mg: number;
-  tk: number;
-  abertos: number;
-  entreguesCount: number;
-  allPedsCount: number;
-  metaPacing: number;
-  META_MENSAL_BASE: number;
-}) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" data-testid="dash-kpis">
-      <StatCard
-        label="Faturamento"
-        value={fmt(fat)}
-        description={`${entreguesCount} ${plural(entreguesCount, 'pedido entregue', 'pedidos entregues')}`}
-        tone="amber"
-      />
-      <StatCard
-        label="Lucro bruto"
-        value={fmt(lucro)}
-        description={lucro >= 0 ? 'Operação saudável' : 'Abaixo do esperado'}
-        tone={lucro >= 0 ? 'success' : 'danger'}
-      />
-      <StatCard
-        label="Margem"
-        value={pct(mg)}
-        description={mg >= 15 ? 'Boa zona de margem' : mg >= 8 ? 'Atenção' : 'Revisar mix e preço'}
-        tone={mg >= 15 ? 'success' : mg >= 8 ? 'warning' : 'danger'}
-      />
-      <StatCard
-        label="Ticket médio"
-        value={fmt(tk)}
-        description={`Média de ${allPedsCount} ${plural(allPedsCount, 'pedido', 'pedidos')} no período`}
-      />
-      <StatCard
-        label="Em aberto"
-        value={abertos}
-        description="Orçamentos e pedidos confirmados"
-        tone={abertos > 0 ? 'warning' : 'default'}
-      />
-      <div className="flex flex-col gap-2 p-5 bg-white border border-slate-200 rounded-lg shadow-sm">
-        <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] mb-1">Pacing Mensal</div>
-        <div className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{metaPacing.toFixed(1)}%</div>
-        <div className="text-[11px] font-medium text-slate-400 mt-1">Meta: {fmt(META_MENSAL_BASE)}</div>
-        <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-          <div 
-            className={`h-full rounded-full transition-all duration-1000 ${metaPacing >= 100 ? 'bg-[#4B5320]' : 'bg-[#C5A059]'}`} 
-            style={{ width: `${Math.min(metaPacing, 100)}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function DashAlerts({
   crit,
@@ -1129,26 +1021,72 @@ export function DashboardPilotPage({
             description="Panorama executivo do período selecionado, sem estimativas artificiais e sem trocar a origem dos dados."
           >
             <div className="flex flex-col gap-6">
-              <DashboardContextStats
-                pedidosCount={pedidos.length}
-                produtosCount={produtos.length}
-                clientesCount={clientes.length}
-                entreguesHoje={derived.entreguesHoje}
-                sourceSummary={sourceSummary}
-                onNavigatePage={onNavigatePage}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <StatCard
+                label="Pedidos"
+                value={pedidos.length}
+                tone="blue"
+                onClick={() => goToPage('pedidos', onNavigatePage)}
               />
-
-              <DashKpis
-                fat={derived.fat}
-                lucro={derived.lucro}
-                mg={derived.mg}
-                tk={pedidos.length > 0 ? derived.fat / pedidos.length : 0}
-                abertos={derived.abertos}
-                entreguesCount={derived.entregues.length}
-                allPedsCount={pedidos.length}
-                metaPacing={derived.metaPacing}
-                META_MENSAL_BASE={derived.META_MENSAL_BASE}
+              <StatCard
+                label="Catálogo"
+                value={produtos.length}
+                tone="emerald"
+                onClick={() => goToPage('produtos', onNavigatePage)}
               />
+              <StatCard
+                label="Clientes"
+                value={clientes.length}
+                tone="amber"
+                onClick={() => goToPage('clientes', onNavigatePage)}
+              />
+              <StatCard
+                label="Hoje"
+                value={derived.entreguesHoje}
+                tone={derived.entreguesHoje > 0 ? 'success' : 'default'}
+                onClick={() => goToPage('pedidos', onNavigatePage)}
+              />
+              <StatCard
+                label="Faturamento"
+                value={fmt(derived.fat)}
+                description={`${derived.entregues.length} ${plural(derived.entregues.length, 'pedido entregue', 'pedidos entregues')}`}
+                tone="amber"
+              />
+              <StatCard
+                label="Lucro bruto"
+                value={fmt(derived.lucro)}
+                description={derived.lucro >= 0 ? 'Operação saudável' : 'Abaixo do esperado'}
+                tone={derived.lucro >= 0 ? 'success' : 'danger'}
+              />
+              <StatCard
+                label="Margem"
+                value={pct(derived.mg)}
+                description={derived.mg >= 15 ? 'Boa zona de margem' : derived.mg >= 8 ? 'Atenção' : 'Revisar mix e preço'}
+                tone={derived.mg >= 15 ? 'success' : derived.mg >= 8 ? 'warning' : 'danger'}
+              />
+              <StatCard
+                label="Ticket médio"
+                value={fmt(pedidos.length > 0 ? derived.fat / pedidos.length : 0)}
+                description={`Média de ${pedidos.length} ${plural(pedidos.length, 'pedido', 'pedidos')} no período`}
+              />
+              <StatCard
+                label="Em aberto"
+                value={derived.abertos}
+                description="Orçamentos e pedidos confirmados"
+                tone={derived.abertos > 0 ? 'warning' : 'default'}
+              />
+              <div className="flex flex-col gap-2 !p-8 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] mb-1">Pacing Mensal</div>
+                <div className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{derived.metaPacing.toFixed(1)}%</div>
+                <div className="text-[11px] font-medium text-slate-400 mt-1">Meta: {fmt(derived.META_MENSAL_BASE)}</div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${derived.metaPacing >= 100 ? 'bg-[#4B5320]' : 'bg-[#C5A059]'}`} 
+                    style={{ width: `${Math.min(derived.metaPacing, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
             </div>
           </DashboardSection>
 
