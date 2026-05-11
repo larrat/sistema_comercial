@@ -1,4 +1,5 @@
 import { useEffect, useId, type MouseEvent, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 type ModalProps = {
   open: boolean;
@@ -39,10 +40,10 @@ export function Modal({
     event.stopPropagation();
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay rf-ui-modal-overlay" onClick={handleOverlayClick}>
       <div
-        className="modal-box rf-ui-modal"
+        className="modal-box modal-panel rf-ui-modal"
         onClick={stopPropagation}
         role="dialog"
         aria-modal="true"
@@ -52,6 +53,7 @@ export function Modal({
         <div className="rf-ui-modal__body">{children}</div>
         {footer ? <div className="rf-ui-modal__footer">{footer}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
