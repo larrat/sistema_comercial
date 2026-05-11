@@ -154,16 +154,14 @@ function buildKpis(pedido: Pedido, itens: PedidoItem[], conta: ContaReceber | nu
 
 function InfoTable({ rows }: { rows: Array<{ label: string; value: string | null | undefined }> }) {
   return (
-    <div className="rf-cliente-profile__info-table">
+    <div className="flex flex-col divide-y divide-slate-100">
       {rows.map((row) => (
-        <div key={row.label} className="rf-cliente-profile__info-row">
-          <span className="rf-cliente-profile__info-label">{row.label}</span>
+        <div key={row.label} className="flex flex-col sm:flex-row sm:justify-between py-3 gap-1">
+          <span className="text-sm text-slate-500 font-medium">{row.label}</span>
           <span
-            className={
-              row.value
-                ? 'rf-cliente-profile__info-value'
-                : 'rf-cliente-profile__info-value is-muted'
-            }
+            className={`text-sm text-right ${
+              row.value ? 'text-slate-900 font-medium' : 'text-slate-400'
+            }`}
           >
             {row.value || '—'}
           </span>
@@ -177,21 +175,21 @@ function BaixasTable({ baixas }: { baixas: ContaReceberBaixa[] }) {
   if (!baixas.length) return <EmptyState title="Nenhuma baixa registrada." compact />;
 
   return (
-    <div className="rf-cliente-profile__table-wrap">
-      <table className="rf-cliente-profile__table">
+    <div className="overflow-x-auto">
+      <table className="w-full text-left text-sm text-slate-600">
         <thead>
-          <tr>
-            <th>Valor</th>
-            <th>Recebido em</th>
-            <th>Observação</th>
+          <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+            <th className="py-3 pr-4 font-medium">Valor</th>
+            <th className="py-3 pr-4 font-medium">Recebido em</th>
+            <th className="py-3 font-medium">Observação</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100">
           {baixas.map((baixa) => (
-            <tr key={baixa.id}>
-              <td>{formatCurrency(baixa.valor)}</td>
-              <td>{formatDateTime(baixa.recebido_em)}</td>
-              <td>{baixa.observacao || '—'}</td>
+            <tr key={baixa.id} className="hover:bg-slate-50 transition-colors">
+              <td className="py-3 pr-4 font-medium text-slate-900">{formatCurrency(baixa.valor)}</td>
+              <td className="py-3 pr-4">{formatDateTime(baixa.recebido_em)}</td>
+              <td className="py-3">{baixa.observacao || '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -289,7 +287,7 @@ export function PedidoProfilePage({
 
   if (loadingPedido) {
     return (
-      <main className="rf-content rf-ui-stack rf-cliente-profile rf-pedido-profile">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <LoadingState
           title="Carregando pedido..."
           description="Estamos reunindo itens, financeiro, histórico e cadastro do pedido."
@@ -300,45 +298,54 @@ export function PedidoProfilePage({
 
   return (
     <main
-      className="rf-content rf-ui-stack rf-cliente-profile rf-pedido-profile"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6"
       data-testid="pedido-profile-page"
     >
-      <div className="rf-cliente-profile__breadcrumb">
+      <div className="flex items-center gap-2 text-sm text-slate-500">
         <button
-          className="rf-cliente-profile__back"
+          className="hover:text-slate-900 transition-colors"
           type="button"
           onClick={() => navigate('/app/pedidos')}
         >
           Voltar
         </button>
-        <span>Pedidos / #{pedido.num}</span>
+        <span>/ Pedidos / #{pedido.num}</span>
       </div>
 
       {error ? <ErrorState title={error} compact onRetry={onReload} /> : null}
 
-      <section className="rf-cliente-profile__hero">
-        <div className="rf-cliente-profile__hero-main">
-          <div className="rf-cliente-profile__avatar">{getInitials(pedido.cli)}</div>
-          <div className="rf-cliente-profile__hero-copy">
-            <div className="rf-cliente-profile__title-row">
-              <h1>Pedido #{pedido.num}</h1>
-              <span className={`rf-cliente-profile__pill is-${statusTone}`}>
+      <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between gap-6">
+        <div className="flex items-center gap-5 min-w-0">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-xl font-bold shadow-inner shrink-0">
+            {getInitials(pedido.cli)}
+          </div>
+          <div className="flex flex-col gap-2 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-slate-900 leading-tight m-0">Pedido #{pedido.num}</h1>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold
+                ${statusTone === 'success' ? 'bg-emerald-100 text-emerald-800' : ''}
+                ${statusTone === 'danger' ? 'bg-rose-100 text-rose-800' : ''}
+                ${statusTone === 'warning' ? 'bg-amber-100 text-amber-800' : ''}
+                ${statusTone === 'info' ? 'bg-blue-100 text-blue-800' : ''}
+                ${statusTone === 'neutral' ? 'bg-slate-100 text-slate-700' : ''}
+                ${!['success', 'danger', 'warning', 'info', 'neutral'].includes(statusTone) ? 'bg-slate-100 text-slate-700' : ''}
+              `}>
                 {PEDIDO_STATUS_LABEL[status] || status || '—'}
               </span>
               {pedido.tipo ? (
-                <span className="rf-cliente-profile__pill is-info">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
                   {pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}
                 </span>
               ) : null}
             </div>
-            <p className="rf-cliente-profile__meta-line">
+            <p className="text-sm text-slate-500 m-0">
               {pedido.cli || 'Cliente não informado'} · {formatDate(pedido.data)} ·{' '}
               {pedido.rca_nome || 'Sem vendedor'}
             </p>
           </div>
         </div>
 
-        <div className="rf-cliente-profile__hero-actions">
+        <div className="flex items-center gap-2 flex-wrap md:justify-end shrink-0">
           {nextStatus && acaoLabel ? (
             <button
               className="btn btn-sm btn-p"
@@ -381,13 +388,17 @@ export function PedidoProfilePage({
         </div>
       </section>
 
-      <section className="rf-cliente-profile__kpis">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((card) => (
-          <article key={card.label} className="rf-cliente-profile__kpi-card">
-            <div className="rf-cliente-profile__kpi-label">{card.label}</div>
-            <div className="rf-cliente-profile__kpi-value">{card.value}</div>
+          <article key={card.label} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+            <div className="text-sm font-medium text-slate-500 mb-1">{card.label}</div>
+            <div className="text-2xl font-bold text-slate-900 leading-tight">{card.value}</div>
             <div
-              className={`rf-cliente-profile__kpi-subtitle${card.tone ? ` is-${card.tone}` : ''}`}
+              className={`text-xs mt-2 font-medium ${
+                card.tone === 'positive' ? 'text-emerald-600' :
+                card.tone === 'negative' ? 'text-rose-600' :
+                'text-slate-500'
+              }`}
             >
               {card.subtitle}
             </div>
@@ -395,21 +406,31 @@ export function PedidoProfilePage({
         ))}
       </section>
 
-      <div className="rf-cliente-profile__tabs">
-        {PROFILE_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            className={`rf-cliente-profile__tab${activeTab === tab.id ? ' is-active' : ''}`}
-            type="button"
-            onClick={() => setTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="inline-flex items-center p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 shadow-inner w-full md:w-auto self-start overflow-x-auto hide-scrollbar">
+        {PROFILE_TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              className={`
+                relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap
+                ${
+                  isActive
+                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/50'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                }
+              `}
+              type="button"
+              onClick={() => setTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'itens' ? (
-        <section className="rf-cliente-profile__tab-panel">
+        <section className="flex flex-col gap-4">
           <PedidoItensTab
             pedido={pedido}
             itens={itens}
@@ -420,13 +441,13 @@ export function PedidoProfilePage({
       ) : null}
 
       {activeTab === 'financeiro' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <div className="rf-cliente-profile__tab-stack">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
+              <div className="flex justify-between items-start gap-4">
                 <div>
-                  <h3 className="rf-cliente-profile__card-title">Contas a receber vinculadas</h3>
-                  <p className="rf-cliente-profile__card-subtitle">
+                  <h3 className="text-sm font-semibold text-slate-900 m-0">Contas a receber vinculadas</h3>
+                  <p className="text-sm text-slate-500 mt-1 mb-0">
                     Leitura da conta a receber relacionada ao pedido.
                   </p>
                 </div>
@@ -470,19 +491,18 @@ export function PedidoProfilePage({
               ) : (
                 <EmptyState title="Nenhuma conta a receber vinculada." compact />
               )}
-              {actionMessage ? <p className="table-cell-muted">{actionMessage}</p> : null}
+              {actionMessage ? <p className="text-sm text-slate-500">{actionMessage}</p> : null}
             </section>
-
           </div>
         </section>
       ) : null}
 
       {activeTab === 'historico' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <div className="rf-cliente-profile__tab-stack">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Histórico do pedido</h3>
+        <section className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
+              <div className="flex justify-between items-center gap-4">
+                <h3 className="text-sm font-semibold text-slate-900 m-0">Histórico do pedido</h3>
               </div>
               <InfoTable
                 rows={[
@@ -497,9 +517,9 @@ export function PedidoProfilePage({
               />
             </section>
 
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Baixas financeiras</h3>
+            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
+              <div className="flex justify-between items-center gap-4">
+                <h3 className="text-sm font-semibold text-slate-900 m-0">Baixas financeiras</h3>
               </div>
               {financeiro.loading ? (
                 <LoadingState title="Carregando baixas..." compact />
@@ -512,17 +532,17 @@ export function PedidoProfilePage({
       ) : null}
 
       {activeTab === 'cadastro' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <section className="rf-cliente-profile__card">
-            <div className="rf-cliente-profile__card-head">
+        <section className="flex flex-col gap-6">
+          <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
+            <div className="flex justify-between items-start gap-4">
               <div>
-                <h3 className="rf-cliente-profile__card-title">Cadastro do pedido</h3>
-                <p className="rf-cliente-profile__card-subtitle">
+                <h3 className="text-sm font-semibold text-slate-900 m-0">Cadastro do pedido</h3>
+                <p className="text-sm text-slate-500 mt-1 mb-0">
                   Dados brutos principais disponíveis na origem atual.
                 </p>
               </div>
             </div>
-            <div className="rf-cliente-profile__cadastro-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-2">
               <InfoTable
                 rows={[
                   { label: 'ID', value: pedido.id },

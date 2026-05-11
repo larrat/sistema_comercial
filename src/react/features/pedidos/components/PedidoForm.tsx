@@ -220,22 +220,22 @@ export function PedidoForm({
                 </div>
               }
             >
-              <div className="form-summary-grid">
-                <div className="form-summary-item">
-                  <span className="table-cell-caption table-cell-muted">Número</span>
-                  <strong>{pedidoNumero}</strong>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-500 font-medium">Número</span>
+                  <strong className="text-slate-900">{pedidoNumero}</strong>
                 </div>
-                <div className="form-summary-item">
-                  <span className="table-cell-caption table-cell-muted">Itens</span>
-                  <strong>{itens.length}</strong>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-500 font-medium">Itens</span>
+                  <strong className="text-slate-900">{itens.length}</strong>
                 </div>
-                <div className="form-summary-item">
-                  <span className="table-cell-caption table-cell-muted">Total estimado</span>
-                  <strong>{formatPedidoCurrency(totalPedido)}</strong>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-500 font-medium">Total estimado</span>
+                  <strong className="text-slate-900">{formatPedidoCurrency(totalPedido)}</strong>
                 </div>
-                <div className="form-summary-item">
-                  <span className="table-cell-caption table-cell-muted">Cliente</span>
-                  <strong>{selectedCliente?.nome || 'Não selecionado'}</strong>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-500 font-medium">Cliente</span>
+                  <strong className="text-slate-900 truncate">{selectedCliente?.nome || 'Não selecionado'}</strong>
                 </div>
               </div>
             </FormSection>
@@ -245,7 +245,7 @@ export function PedidoForm({
               description="Defina cliente, data, vendedor e os itens que entram no pedido."
               aside={<span className="bdg bb">Prioridade</span>}
             >
-              <div className="grid grid-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   label="Cliente"
                   htmlFor="pedido-form-cliente"
@@ -320,7 +320,7 @@ export function PedidoForm({
               title="Condições do pedido"
               description="Ajuste status, pagamento, prazo e tipo de venda sem disputar espaço com os itens."
             >
-              <div className="grid grid-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField label="Status" htmlFor="pedido-form-status-input">
                   <select
                     id="pedido-form-status-input"
@@ -416,7 +416,7 @@ export function PedidoForm({
             </details>
           </div>
 
-          <div className="form-sticky-actions">
+          <div className="sticky bottom-0 z-10 pt-4 pb-2 mt-6 bg-white border-t border-slate-200">
             <FormActions
               onCancel={onCancel}
               cancelLabel="Voltar"

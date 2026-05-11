@@ -195,7 +195,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   }, [activeTab, filtro.pgto, filtro.periodo, filtro.q, filtro.sort, filtro.status, trackEvent]);
 
   return (
-    <div className="rf-ui-stack" data-testid="pedido-list-view">
+    <div className="flex flex-col gap-6" data-testid="pedido-list-view">
       <PageHeader
         kicker="Comercial"
         title="Pedidos"
@@ -217,7 +217,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         }
       />
 
-      <section className="rf-ui-stat-grid pedidos-metrics" aria-label="Resumo de pedidos">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Resumo de pedidos">
         <StatCard
           label="Pedidos"
           value={stats.total}
@@ -233,17 +233,33 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         <StatCard label="Cancelados" value={stats.canceladosCount} tone="danger" />
       </section>
 
-      <div className="tabs">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            className={`tb${activeTab === tab.id ? ' on' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-            <span className="tab-count">{tabCounts[tab.id]}</span>
-          </button>
-        ))}
+      <div className="inline-flex items-center p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 shadow-inner w-full md:w-auto self-start overflow-x-auto hide-scrollbar">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              className={`
+                relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap
+                ${
+                  isActive
+                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/50'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                }
+              `}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  isActive ? 'bg-slate-100 text-slate-600' : 'bg-slate-200/50 text-slate-500'
+                }`}
+              >
+                {tabCounts[tab.id]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <FilterBar
