@@ -2,17 +2,17 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    environment: 'node',
-    include: ['src/pilot/clientes/**/*.test.ts'],
+    environment: 'jsdom',
+    include: ['src/react/features/clientes/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'html'],
       reportsDirectory: 'coverage/pilot-clientes',
-      include: ['src/pilot/clientes/**/*.js', 'src/pilot/clientes/ui/**/*.ts'],
+      include: ['src/react/features/clientes/**/*.ts', 'src/react/features/clientes/**/*.tsx'],
       exclude: [
-        'src/pilot/clientes/**/*.test.ts',
-        'src/pilot/clientes/index.ts',
-        'src/pilot/clientes/types.ts'
+        'src/react/features/clientes/**/*.test.ts',
+        'src/react/features/clientes/**/index.ts',
+        'src/react/features/clientes/types.ts'
       ],
       thresholds: {
         lines: 60,
