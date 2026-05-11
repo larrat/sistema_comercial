@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import type { AppBootstrapState } from '../hooks/useAppBootstrap';
+import { ClienteCreateRoutePage } from '../../features/clientes/pages/ClienteCreateRoutePage';
 import { ClienteProfileRoutePage } from '../../features/clientes/pages/ClienteProfileRoutePage';
 import { ClientesRoutePage } from '../../features/clientes/pages/ClientesRoutePage';
 import { ContasReceberRoutePage } from '../../features/contas-receber/pages/ContasReceberRoutePage';
@@ -51,6 +52,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="pdv" element={<PdvRoutePage />} />
             <Route path="dashboard" element={<DashboardRoutePage />} />
             <Route path="clientes" element={<ClientesRoutePage />} />
+            <Route path="clientes/novo" element={<ClienteCreateRoutePage />} />
             <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />
             <Route path="estoque" element={<EstoqueRoutePage />} />
             <Route path="cotacao" element={<CotacaoRoutePage />} />

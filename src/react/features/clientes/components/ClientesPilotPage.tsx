@@ -41,6 +41,7 @@ const STATUS_BADGE: Record<string, { label: string; tone: 'success' | 'neutral' 
 
 type ClientesPilotPageProps = {
   onOpenCliente?: (clienteId: string, options?: { tab?: ClienteProfileTab; origin?: string }) => void;
+  onNewCliente?: () => void;
   onRetryLoad?: () => void;
   onLoadFilteredAll?: () => Promise<Cliente[]>;
   onLoadSegmentClientes?: () => Promise<Cliente[]>;
@@ -48,6 +49,7 @@ type ClientesPilotPageProps = {
 
 export function ClientesPilotPage({
   onOpenCliente,
+  onNewCliente,
   onRetryLoad,
   onLoadFilteredAll,
   onLoadSegmentClientes
@@ -181,6 +183,15 @@ export function ClientesPilotPage({
 
   function openNewCliente(origin = 'header_button') {
     setSurfaceTab('lista');
+    trackEvent('cliente_novo_aberto', {
+      metadata: { origin, surface: 'page' },
+      result: 'success'
+    });
+    if (onNewCliente) {
+      setEditingId(null);
+      onNewCliente();
+      return;
+    }
     setEditingId('new');
     setEditorOrigin(origin);
     trackDrawerOpen('create', origin);
@@ -291,7 +302,7 @@ export function ClientesPilotPage({
         openDetail(String(data.id), 'cadastro', 'legacy_bridge');
       }
     });
-  }, [clearFiltro, onOpenCliente]);
+  }, [clearFiltro, onOpenCliente, onNewCliente]);
 
   useEffect(() => {
     postLegacyBridgeMessage({

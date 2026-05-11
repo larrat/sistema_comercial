@@ -3140,6 +3140,106 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   gap: 12px;
 }
 
+.rf-cliente-create {
+  display: grid;
+  gap: 16px;
+}
+
+.rf-cliente-create__layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.rf-cliente-create__rail,
+.rf-cliente-create__form {
+  background: var(--panel);
+  border: 0.5px solid var(--line);
+  border-radius: 12px;
+}
+
+.rf-cliente-create__rail {
+  position: sticky;
+  top: 16px;
+  display: grid;
+  gap: 24px;
+  padding: 20px;
+}
+
+.rf-cliente-create__rail-kicker {
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rf-cliente-create__steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rf-cliente-create__steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.rf-cliente-create__steps li::before {
+  content: counter(list-item);
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rf-cliente-create__steps li.is-active {
+  color: var(--ok);
+}
+
+.rf-cliente-create__steps li.is-active::before {
+  content: '✓';
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+}
+
+.rf-cliente-create__progress {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel) 75%, var(--bg));
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rf-cliente-create__progress strong {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.rf-cliente-create__form {
+  padding: 18px;
+}
+
+.rf-cliente-create__form > .rf-ui-stack {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
 @media (max-width: 1100px) {
   .rf-cliente-profile__kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3158,8 +3258,13 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   }
 
   .rf-cliente-profile__summary-grid,
-  .rf-cliente-profile__cadastro-grid {
+  .rf-cliente-profile__cadastro-grid,
+  .rf-cliente-create__layout {
     grid-template-columns: 1fr;
+  }
+
+  .rf-cliente-create__rail {
+    position: static;
   }
 }
 
@@ -3176,6 +3281,11 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   .rf-cliente-profile__table th,
   .rf-cliente-profile__table td {
     padding-right: 12px;
+  }
+
+  .rf-cliente-create__rail,
+  .rf-cliente-create__form {
+    padding: 14px;
   }
 }
 

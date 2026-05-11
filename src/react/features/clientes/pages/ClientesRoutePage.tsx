@@ -16,9 +16,14 @@ export function ClientesRoutePage() {
     [navigate]
   );
 
+  const handleNewCliente = useCallback(() => {
+    navigate('/app/clientes/novo');
+  }, [navigate]);
+
   return (
     <ClientesPilotPage
       onOpenCliente={handleOpenCliente}
+      onNewCliente={handleNewCliente}
       onRetryLoad={reload}
       onLoadFilteredAll={loadFilteredAll}
       onLoadSegmentClientes={ensureSegmentClientes}
