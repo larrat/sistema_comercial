@@ -110,7 +110,7 @@ function computeDerivedData(
     return a + itens.reduce((b, i) => b + (i.preco - i.custo) * i.qty, 0);
   }, 0);
   const mg = fat > 0 ? (lucro / fat) * 100 : 0;
-  const tk = entregues.length ? fat / entregues.length : 0;
+  const tk = pedidos.length ? fat / pedidos.length : 0;
   const abertos = pedidos.filter((p) =>
     ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)
   ).length;
@@ -335,7 +335,7 @@ function DashboardContextStats({
   onNavigatePage?: (page: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       <StatCard
         label="Pedidos"
         value={pedidosCount}
@@ -384,7 +384,7 @@ function PeriodSelector({
         return (
           <button
             key={p.value}
-            className={`px-6 py-2.5 text-[11px] font-bold tracking-tight rounded-lg transition-all ${
+            className={`px-8 py-2.5 text-[11px] font-bold tracking-tight rounded-lg transition-all ${
               isActive
                 ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
                 : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
@@ -415,7 +415,7 @@ function DashboardViewSelector({
           return (
             <button
               key={value}
-              className={`px-8 py-3 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all ${
+              className={`px-10 py-3 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-lg'
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
@@ -454,7 +454,7 @@ function DashKpis({
   META_MENSAL_BASE: number;
 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4" data-testid="dash-kpis">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4" data-testid="dash-kpis">
       <StatCard
         label="Faturamento"
         value={fmt(fat)}
@@ -1142,7 +1142,7 @@ export function DashboardPilotPage({
                 fat={derived.fat}
                 lucro={derived.lucro}
                 mg={derived.mg}
-                tk={derived.tk}
+                tk={pedidos.length > 0 ? derived.fat / pedidos.length : 0}
                 abertos={derived.abertos}
                 entreguesCount={derived.entregues.length}
                 allPedsCount={pedidos.length}
