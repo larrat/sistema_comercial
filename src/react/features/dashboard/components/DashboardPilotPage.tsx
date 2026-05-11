@@ -458,7 +458,7 @@ function DashKpis({
       <StatCard
         label="Faturamento"
         value={fmt(fat)}
-        description={`${entreguesCount} ${plural(entreguesCount, 'pedido', 'pedidos')} entregues`}
+        description={`${entreguesCount} ${plural(entreguesCount, 'pedido entregue', 'pedidos entregues')}`}
         tone="amber"
       />
       <StatCard
@@ -476,7 +476,7 @@ function DashKpis({
       <StatCard
         label="Ticket médio"
         value={fmt(tk)}
-        description={`Média de ${allPedsCount} pedido(s) no período`}
+        description={`Média de ${allPedsCount} ${plural(allPedsCount, 'pedido', 'pedidos')} no período`}
       />
       <StatCard
         label="Em aberto"
