@@ -378,16 +378,16 @@ function PeriodSelector({
     { value: 'tudo', label: 'Tudo' }
   ];
   return (
-    <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200/60 w-fit" data-testid="dash-period-selector">
+    <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-fit shadow-inner" data-testid="dash-period-selector">
       {periods.map((p) => {
         const isActive = periodo === p.value;
         return (
           <button
             key={p.value}
-            className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+            className={`px-5 py-2 text-[11px] font-bold tracking-tight rounded-lg transition-all ${
               isActive
-                ? 'bg-white text-slate-800 font-semibold shadow-sm ring-1 ring-slate-900/5'
-                : 'text-slate-500 font-medium hover:text-slate-700 hover:bg-slate-200/50'
+                ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
             }`}
             onClick={() => onChange(p.value)}
             type="button"
@@ -408,17 +408,17 @@ function DashboardViewSelector({
   onChange: (view: DashboardView) => void;
 }) {
   return (
-    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200" aria-label="Mudar objetivo do painel">
+    <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner" aria-label="Mudar objetivo do painel">
       {(Object.entries(DASHBOARD_VIEW_LABELS) as Array<[DashboardView, string]>).map(
         ([value, label]) => {
           const isActive = view === value;
           return (
             <button
               key={value}
-              className={`px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all ${
+              className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all ${
                 isActive
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
+                  ? 'bg-slate-900 text-white shadow-lg'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
               onClick={() => onChange(value)}
               type="button"
@@ -1039,11 +1039,11 @@ export function DashboardPilotPage({
           </div>
           
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-lg border border-slate-200 shadow-sm">
-              <Building2 size={16} className="text-slate-400" />
+            <div className="flex items-center gap-4 px-6 py-3 bg-white rounded-xl border border-slate-200 shadow-sm">
+              <Building2 size={18} className="text-[#C5A059]" />
               <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1">Filial Ativa</span>
-                <span className="text-sm font-bold text-slate-800">{currentFilialName}</span>
+                <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1.5">Filial Ativa</span>
+                <span className="text-sm font-bold text-slate-800 tracking-tight">{currentFilialName}</span>
               </div>
             </div>
             <PeriodSelector periodo={periodo} onChange={setPeriodo} />
@@ -1052,13 +1052,13 @@ export function DashboardPilotPage({
 
         <div className="flex flex-col items-end gap-6">
           <div className="flex items-center gap-4">
-            <div className="flex -space-x-1">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm" title="Pedidos"><ShoppingBag size={14} /></div>
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm" title="Produtos"><Package size={14} /></div>
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm" title="Clientes"><Users size={14} /></div>
+            <div className="flex -space-x-2 mr-2">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50" title="Pedidos"><ShoppingBag size={16} /></div>
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50" title="Produtos"><Package size={16} /></div>
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50" title="Clientes"><Users size={16} /></div>
             </div>
             <button
-              className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg transition-all shadow-md active:scale-95 text-[11px] uppercase tracking-widest disabled:opacity-50 group"
+              className="flex items-center gap-3 px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-95 text-[11px] uppercase tracking-[0.2em] disabled:opacity-50 group"
               type="button"
               onClick={onReload}
               disabled={status === 'loading'}
