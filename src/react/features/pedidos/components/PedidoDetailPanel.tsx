@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { D } from '../../../../app/store.js';
-import { emitLegacyEvent, subscribeLegacyEvent } from '../../../app/legacy/events';
 import {
   listBaixas,
   listContas,
@@ -88,20 +86,6 @@ function getContaStatusTone(conta: ContaReceber | null): StatusBadgeTone {
   return 'neutral';
 }
 
-function readContaFinanceira(
-  filialId: string | null,
-  pedidoId: string
-): { conta: ContaReceber | null; baixas: ContaReceberBaixa[] } {
-  if (!filialId) return { conta: null, baixas: [] };
-  const contas = D.contasReceber?.[filialId] || [];
-  const conta = contas.find((item) => item.pedido_id === pedidoId) || null;
-  const baixas = conta
-    ? (D.contasReceberBaixas?.[filialId] || [])
-        .filter((item) => item.conta_receber_id === conta.id)
-        .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')))
-    : [];
-  return { conta, baixas };
-}
 
 export function PedidoDetailPanel({ pedido }: Props) {
   const {
@@ -123,7 +107,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
   const [contaState, setContaState] = useState<{
     conta: ContaReceber | null;
     baixas: ContaReceberBaixa[];
-  }>(() => readContaFinanceira(filialId, pedido.id));
+  }>({ conta: null, baixas: [] });
   const status = normalizePedStatus(pedido.status);
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
@@ -137,35 +121,25 @@ export function PedidoDetailPanel({ pedido }: Props) {
   const valorEmAberto = getValorEmAberto(conta);
 
   async function refreshContaFinanceira() {
-    if (!filialId || !session?.access_token) {
-      setContaState(readContaFinanceira(filialId, pedido.id));
-      return;
-    }
+    if (!filialId || !session?.access_token) return;
 
     try {
       const ctx = buildCrCtx();
       const [contas, baixas] = await Promise.all([listContas(ctx), listBaixas(ctx)]);
-      if (!D.contasReceber) D.contasReceber = {};
-      if (!D.contasReceberBaixas) D.contasReceberBaixas = {};
-      D.contasReceber[filialId] = contas;
-      D.contasReceberBaixas[filialId] = baixas;
-      setContaState(readContaFinanceira(filialId, pedido.id));
+      const conta = contas.find((item) => item.pedido_id === pedido.id) ?? null;
+      const contaBaixas = conta
+        ? baixas
+            .filter((item) => item.conta_receber_id === conta.id)
+            .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')))
+        : [];
+      setContaState({ conta, baixas: contaBaixas });
     } catch {
-      setContaState(readContaFinanceira(filialId, pedido.id));
+      // mantém estado atual
     }
   }
 
   useEffect(() => {
-    const sync = () => {
-      void refreshContaFinanceira();
-    };
     void refreshContaFinanceira();
-    const unsubscribeSync = subscribeLegacyEvent('sc:contas-receber-sync', sync);
-    const unsubscribeCreated = subscribeLegacyEvent('sc:conta-receber-criada', sync);
-    return () => {
-      unsubscribeSync();
-      unsubscribeCreated();
-    };
   }, [filialId, pedido.id, session?.access_token]);
 
   function buildCrCtx() {
@@ -190,7 +164,6 @@ export function PedidoDetailPanel({ pedido }: Props) {
         observacao: null
       });
       await refreshContaFinanceira();
-      emitLegacyEvent('sc:contas-receber-sync');
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar recebimento');
     } finally {
@@ -211,7 +184,6 @@ export function PedidoDetailPanel({ pedido }: Props) {
       });
       setShowBaixaForm(false);
       await refreshContaFinanceira();
-      emitLegacyEvent('sc:contas-receber-sync');
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar baixa');
     } finally {

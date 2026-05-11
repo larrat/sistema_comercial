@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { Produto } from '../../../../types/domain';
-import { emitLegacyEvent } from '../../../app/legacy/events';
+import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { EmptyState, ErrorState, FormError, LoadingState } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
 import { useProdutoMutations } from '../hooks/useProdutoMutations';
@@ -301,7 +301,7 @@ export function ProdutoProfilePage({
           <button
             className="btn btn-sm"
             type="button"
-            onClick={() => emitLegacyEvent('sc:abrir-mov-produto', { id: produto.id })}
+            onClick={() => useInterModuleStore.getState().navegarParaMovProduto(produto.id)}
           >
             Movimentar estoque
           </button>

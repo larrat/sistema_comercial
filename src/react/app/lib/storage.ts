@@ -1,4 +1,5 @@
-export const LEGACY_STORAGE_KEYS = {
+/** Chaves do localStorage usadas pela aplicação. */
+export const STORAGE_KEYS = {
   authSession: 'sc_auth_session_v1',
   filialId: 'sc_filial_id',
   userRole: 'sc_user_role',

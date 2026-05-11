@@ -1,5 +1,5 @@
 import { useFilialStore } from '../../../app/useFilialStore';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { saveValidacao } from '../utils/oportunidadesJogos';
 import type { Pedido } from '../../../../types/domain';
@@ -30,7 +30,7 @@ export function useRelatoriosMutations() {
 
     closeValidacao();
     requestReload();
-    emitToast('Oportunidade validada com sucesso.', 'success');
+    useToastStore.getState().addToast('Oportunidade validada com sucesso.', 'success');
   }
 
   return { salvarValidacao };

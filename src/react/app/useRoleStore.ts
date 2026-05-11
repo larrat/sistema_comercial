@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 import type { AppUserRole } from './hooks/useCurrentUserRole';
-import { LEGACY_STORAGE_KEYS, readStorageString, removeStorageKey, writeStorageString } from './legacy/storage';
+import { STORAGE_KEYS, readStorageString, removeStorageKey, writeStorageString } from './lib/storage';
 
 const APP_ROLES: AppUserRole[] = ['operador', 'gerente', 'admin'];
 
@@ -24,18 +24,18 @@ export const useRoleStore = create<RoleStoreState & RoleStoreActions>((set) => (
   role: null,
 
   hydrate: () => {
-    const raw = readStorageString(LEGACY_STORAGE_KEYS.userRole);
+    const raw = readStorageString(STORAGE_KEYS.userRole);
     set({ role: raw ? normalizeRole(raw) : null });
   },
 
   setRole: (role) => {
     const normalized = normalizeRole(role);
-    writeStorageString(LEGACY_STORAGE_KEYS.userRole, normalized);
+    writeStorageString(STORAGE_KEYS.userRole, normalized);
     set({ role: normalized });
   },
 
   clearRole: () => {
-    removeStorageKey(LEGACY_STORAGE_KEYS.userRole);
+    removeStorageKey(STORAGE_KEYS.userRole);
     set({ role: null });
   }
 }));

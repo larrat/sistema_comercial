@@ -1,24 +1,28 @@
 /**
- * Lê a configuração do Supabase das mesmas fontes que o legado usa.
- * A compatibilidade fica centralizada em adapters explícitos de globals/storage.
+ * Lê a configuração do Supabase a partir de variáveis injetadas pelo index.html
+ * (window.__SC_SUPABASE_URL__ / window.__SC_SUPABASE_KEY__) ou do localStorage,
+ * com fallback para os valores de produção hardcoded.
  */
 
-import {
-  allowLegacySupabaseDefaults,
-  getLegacySupabaseWindowKey,
-  getLegacySupabaseWindowUrl
-} from './legacy/globals';
-import { LEGACY_STORAGE_KEYS, readStorageString } from './legacy/storage';
+import { STORAGE_KEYS, readStorageString } from './lib/storage';
 
-const LEGACY_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
-const LEGACY_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
+const DEFAULT_URL = 'https://eiycrokqwhmfmjackjni.supabase.co';
+const DEFAULT_KEY = 'sb_publishable_Hc1MlzrIX9c79PEHiylpTA_9787bYHJ';
 
-function resolve(fromWindow: string | null, storageKey: string, legacyValue: string): string {
-  if (fromWindow) return fromWindow;
-  const fromStorage = readStorageString(storageKey);
+function resolveUrl(): string {
+  if (typeof window !== 'undefined' && typeof window.__SC_SUPABASE_URL__ === 'string' && window.__SC_SUPABASE_URL__)
+    return window.__SC_SUPABASE_URL__;
+  const fromStorage = readStorageString(STORAGE_KEYS.supabaseUrl);
   if (fromStorage) return fromStorage;
-  if (allowLegacySupabaseDefaults()) return legacyValue;
-  return '';
+  return DEFAULT_URL;
+}
+
+function resolveKey(): string {
+  if (typeof window !== 'undefined' && typeof window.__SC_SUPABASE_KEY__ === 'string' && window.__SC_SUPABASE_KEY__)
+    return window.__SC_SUPABASE_KEY__;
+  const fromStorage = readStorageString(STORAGE_KEYS.supabaseKey);
+  if (fromStorage) return fromStorage;
+  return DEFAULT_KEY;
 }
 
 export type SupabaseConfig = {
@@ -28,7 +32,7 @@ export type SupabaseConfig = {
 };
 
 export function getSupabaseConfig(): SupabaseConfig {
-  const url = resolve(getLegacySupabaseWindowUrl(), LEGACY_STORAGE_KEYS.supabaseUrl, LEGACY_URL);
-  const key = resolve(getLegacySupabaseWindowKey(), LEGACY_STORAGE_KEYS.supabaseKey, LEGACY_KEY);
+  const url = resolveUrl();
+  const key = resolveKey();
   return { url, key, ready: !!(url && key) };
 }

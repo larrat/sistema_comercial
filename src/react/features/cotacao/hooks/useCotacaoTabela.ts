@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useCotacaoConfigMutation, usePrecoCotacaoMutation } from './useCotacaoMutations';
 import { useCotacaoStore } from '../store/useCotacaoStore';
 
@@ -46,7 +46,7 @@ export function useCotacaoTabela() {
 
   function exportCsv() {
     if (!produtos.length || !fornecedores.length) {
-      emitToast('Nao ha dados suficientes para exportar a cotacao.', 'warning');
+      useToastStore.getState().addToast('Nao ha dados suficientes para exportar a cotacao.', 'warning');
       return;
     }
     exportCsvFile('cotacao.csv', exportRows);

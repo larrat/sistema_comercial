@@ -1,7 +1,7 @@
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import type { Produto } from '../../../../types/domain';
 import {
   getCotacaoLayout,
@@ -74,7 +74,7 @@ export function useCotacaoImport() {
   async function handleFile(file: File, fornecedorId: string) {
     const forn = fornecedores.find((f) => f.id === fornecedorId);
     if (!forn) {
-      emitToast('Selecione um fornecedor primeiro.', 'warning');
+      useToastStore.getState().addToast('Selecione um fornecedor primeiro.', 'warning');
       return;
     }
 
@@ -88,12 +88,12 @@ export function useCotacaoImport() {
         sheets = parseXlsx(buffer);
       }
     } catch {
-      emitToast('Erro ao ler o arquivo.', 'error');
+      useToastStore.getState().addToast('Erro ao ler o arquivo.', 'error');
       return;
     }
 
     if (!sheets.length) {
-      emitToast('Planilha vazia.', 'warning');
+      useToastStore.getState().addToast('Planilha vazia.', 'warning');
       return;
     }
 
@@ -117,12 +117,12 @@ export function useCotacaoImport() {
     if (!sheet) return;
 
     if (config?.locked) {
-      emitToast('A cotação está travada. Destrave antes de importar.', 'warning');
+      useToastStore.getState().addToast('A cotação está travada. Destrave antes de importar.', 'warning');
       return;
     }
 
     if (!draft.mes) {
-      emitToast('Informe o mês da cotação.', 'warning');
+      useToastStore.getState().addToast('Informe o mês da cotação.', 'warning');
       return;
     }
     let produtos: Produto[] = [];
@@ -130,7 +130,7 @@ export function useCotacaoImport() {
       setImportProgress(10, 'Carregando produtos...');
       produtos = await listProdutos(ctx);
     } catch (err) {
-      emitToast(err instanceof Error ? err.message : 'Erro ao carregar produtos para importação.', 'error');
+      useToastStore.getState().addToast(err instanceof Error ? err.message : 'Erro ao carregar produtos para importação.', 'error');
       clearImportProgress();
       return;
     }
@@ -149,20 +149,20 @@ export function useCotacaoImport() {
       clearImportProgress();
       requestReload();
       if (result.resumo.status === 'partial') {
-        emitToast(
+        useToastStore.getState().addToast(
           `Importação concluída com falhas parciais: ${result.resumo.atualizados} atualizados, ${result.resumo.novos} novos e ${result.resumo.falhas} falhas.`,
           'warning'
         );
       } else if (result.resumo.status === 'failed') {
-        emitToast('Importação processada, mas nenhuma etapa foi concluída com sucesso.', 'error');
+        useToastStore.getState().addToast('Importação processada, mas nenhuma etapa foi concluída com sucesso.', 'error');
       } else {
-        emitToast(
+        useToastStore.getState().addToast(
           `Importação concluída: ${result.resumo.atualizados} atualizados, ${result.resumo.novos} novos na cotação.`,
           'success'
         );
       }
     } catch (err) {
-      emitToast(err instanceof Error ? err.message : 'Erro na importação.', 'error');
+      useToastStore.getState().addToast(err instanceof Error ? err.message : 'Erro na importação.', 'error');
       clearImportProgress();
     }
   }

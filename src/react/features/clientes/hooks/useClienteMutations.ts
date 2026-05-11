@@ -1,8 +1,7 @@
 import { useState } from 'react';
 
 import type { Cliente } from '../../../../types/domain';
-import { emitToast } from '../../../app/legacy/events';
-import { emitLegacyEvent } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
@@ -57,11 +56,12 @@ export function useClienteMutations() {
         filial_id: context.filialId
       };
       upsertCliente(normalized as Cliente);
-      emitLegacyEvent('sc:cliente-salvo', normalized);
-      emitToast(
-        input.id ? `Cliente atualizado: ${normalized.nome}.` : `Cliente cadastrado: ${normalized.nome}.`,
-        'success'
-      );
+      useToastStore
+        .getState()
+        .addToast(
+          input.id ? `Cliente atualizado: ${normalized.nome}.` : `Cliente cadastrado: ${normalized.nome}.`,
+          'success'
+        );
       if (tracking) {
         trackEvent({
           event_name: tracking.eventName,
@@ -79,7 +79,7 @@ export function useClienteMutations() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar cliente.';
       setError(message);
-      emitToast(message, 'error');
+      useToastStore.getState().addToast(message, 'error');
       if (tracking) {
         trackEvent({
           event_name: tracking.eventName,
@@ -108,12 +108,11 @@ export function useClienteMutations() {
     try {
       await deleteCliente(context, clienteId);
       removeCliente(clienteId);
-      emitLegacyEvent('sc:cliente-removido', { id: clienteId });
-      emitToast('Cliente removido.', 'success');
+      useToastStore.getState().addToast('Cliente removido.', 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao remover cliente.';
       setError(message);
-      emitToast(message, 'error');
+      useToastStore.getState().addToast(message, 'error');
       throw err;
     } finally {
       setDeletingId(null);

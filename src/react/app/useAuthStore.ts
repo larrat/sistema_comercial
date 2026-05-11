@@ -1,24 +1,23 @@
 /**
- * Store de autenticação React — compartilha sessão com o legado.
+ * Store de autenticação React.
  *
- * Usa a mesma chave de localStorage (sc_auth_session_v1) que o legado,
- * de modo que login/logout em qualquer lado reflete no outro sem re-bootstrap.
+ * Persiste a sessão em localStorage (sc_auth_session_v1).
  */
 
 import { create } from 'zustand';
 import type { AuthSession } from '../../types/domain';
-import { LEGACY_STORAGE_KEYS, readStorageJson, removeStorageKey, writeStorageJson } from './legacy/storage';
+import { STORAGE_KEYS, readStorageJson, removeStorageKey, writeStorageJson } from './lib/storage';
 import { getSupabaseConfig } from './supabaseConfig';
 
 function readSession(): AuthSession | null {
-  return readStorageJson<AuthSession>(LEGACY_STORAGE_KEYS.authSession);
+  return readStorageJson<AuthSession>(STORAGE_KEYS.authSession);
 }
 
 function writeSession(session: AuthSession | null): void {
   if (!session) {
-    removeStorageKey(LEGACY_STORAGE_KEYS.authSession);
+    removeStorageKey(STORAGE_KEYS.authSession);
   } else {
-    writeStorageJson(LEGACY_STORAGE_KEYS.authSession, session);
+    writeStorageJson(STORAGE_KEYS.authSession, session);
   }
 }
 

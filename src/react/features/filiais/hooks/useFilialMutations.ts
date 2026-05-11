@@ -1,6 +1,6 @@
 import { useAuthStore } from '../../../app/useAuthStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useFiliaisStore } from '../store/useFiliaisStore';
 import { upsertFilial, deleteFilial } from '../services/filiaisApi';
 
@@ -21,7 +21,7 @@ export function useFilialMutations() {
   async function salvar() {
     const nome = form.nome.trim();
     if (!nome) {
-      emitToast('Informe o nome da filial.', 'warning');
+      useToastStore.getState().addToast('Informe o nome da filial.', 'warning');
       return;
     }
 
@@ -29,7 +29,7 @@ export function useFilialMutations() {
       (f) => f.nome.trim().toLowerCase() === nome.toLowerCase() && f.id !== modalEditId
     );
     if (duplicado) {
-      emitToast(`Filial já existe: ${duplicado.nome}.`, 'warning');
+      useToastStore.getState().addToast(`Filial já existe: ${duplicado.nome}.`, 'warning');
       return;
     }
 
@@ -46,9 +46,9 @@ export function useFilialMutations() {
       const saved = await upsertFilial(getCtx(), filial);
       upsertLocal(saved);
       closeModal();
-      emitToast(`Filial ${modalEditId ? 'atualizada' : 'criada'}: ${saved.nome}.`, 'success');
+      useToastStore.getState().addToast(`Filial ${modalEditId ? 'atualizada' : 'criada'}: ${saved.nome}.`, 'success');
     } catch (e) {
-      emitToast(e instanceof Error ? e.message : 'Erro ao salvar filial.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao salvar filial.', 'error');
     } finally {
       setSaving(false);
     }
@@ -66,9 +66,9 @@ export function useFilialMutations() {
     try {
       await deleteFilial(getCtx(), id);
       removeLocal(id);
-      emitToast('Filial removida.', 'success');
+      useToastStore.getState().addToast('Filial removida.', 'success');
     } catch (e) {
-      emitToast(e instanceof Error ? e.message : 'Erro ao remover filial.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao remover filial.', 'error');
     }
   }
 

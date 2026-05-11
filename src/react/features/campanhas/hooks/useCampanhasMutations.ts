@@ -1,7 +1,7 @@
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import {
   upsertCampanha,
@@ -41,9 +41,9 @@ export function useCampanhasMutations() {
         exists ? campanhas.map((c) => (c.id === saved.id ? saved : c)) : [saved, ...campanhas]
       );
       closeCampModal();
-      emitToast('Campanha salva com sucesso.', 'success');
+      useToastStore.getState().addToast('Campanha salva com sucesso.', 'success');
     } catch (e) {
-      emitToast(e instanceof Error ? e.message : 'Erro ao salvar campanha.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao salvar campanha.', 'error');
     } finally {
       setSaving(false);
     }
@@ -54,9 +54,9 @@ export function useCampanhasMutations() {
     try {
       await deleteCampanha(ctx, id);
       setCampanhas(campanhas.filter((c) => c.id !== id));
-      emitToast('Campanha removida.', 'success');
+      useToastStore.getState().addToast('Campanha removida.', 'success');
     } catch (e) {
-      emitToast(e instanceof Error ? e.message : 'Erro ao remover campanha.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao remover campanha.', 'error');
     }
   }
 
@@ -69,14 +69,14 @@ export function useCampanhasMutations() {
       if (win) {
         win.close();
       }
-      emitToast(
+      useToastStore.getState().addToast(
         `Fila gerada: ${result.criados} envios criados, ${result.ignorados} ignorados.`,
         'success'
       );
       requestReload();
     } catch (e) {
       if (win) win.close();
-      emitToast(e instanceof Error ? e.message : 'Erro ao gerar fila.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao gerar fila.', 'error');
     }
   }
 
@@ -92,7 +92,7 @@ export function useCampanhasMutations() {
       });
     } catch {
       patchEnvioLocal(envio.id, prev);
-      emitToast('Erro ao marcar como enviado.', 'error');
+      useToastStore.getState().addToast('Erro ao marcar como enviado.', 'error');
     }
   }
 
@@ -104,7 +104,7 @@ export function useCampanhasMutations() {
       await patchEnvioStatus(ctx, envio.id, { status: 'falhou', erro });
     } catch {
       patchEnvioLocal(envio.id, prev);
-      emitToast('Erro ao registrar falha.', 'error');
+      useToastStore.getState().addToast('Erro ao registrar falha.', 'error');
     }
   }
 
@@ -116,7 +116,7 @@ export function useCampanhasMutations() {
       await patchEnvioStatus(ctx, envio.id, { status: 'pendente', enviado_em: null, erro: null });
     } catch {
       patchEnvioLocal(envio.id, prev);
-      emitToast('Erro ao desfazer status.', 'error');
+      useToastStore.getState().addToast('Erro ao desfazer status.', 'error');
     }
   }
 

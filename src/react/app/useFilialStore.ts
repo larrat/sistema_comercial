@@ -1,15 +1,14 @@
 /**
- * Store de filial ativa React — sincroniza com o legado.
+ * Store de filial ativa React.
  *
- * O legado persiste a filial escolhida em localStorage (sc_filial_id).
- * Este store lê e escreve na mesma chave para manter coerência.
+ * Persiste a filial escolhida em localStorage (sc_filial_id).
  */
 
 import { create } from 'zustand';
-import { LEGACY_STORAGE_KEYS, readStorageString, removeStorageKey, writeStorageString } from './legacy/storage';
+import { STORAGE_KEYS, readStorageString, removeStorageKey, writeStorageString } from './lib/storage';
 
 function readFilialId(): string | null {
-  return readStorageString(LEGACY_STORAGE_KEYS.filialId);
+  return readStorageString(STORAGE_KEYS.filialId);
 }
 
 export type FilialStoreState = {
@@ -30,12 +29,12 @@ export const useFilialStore = create<FilialStoreState & FilialStoreActions>((set
   },
 
   setFilial: (filialId) => {
-    writeStorageString(LEGACY_STORAGE_KEYS.filialId, filialId);
+    writeStorageString(STORAGE_KEYS.filialId, filialId);
     set({ filialId });
   },
 
   clearFilial: () => {
-    removeStorageKey(LEGACY_STORAGE_KEYS.filialId);
+    removeStorageKey(STORAGE_KEYS.filialId);
     set({ filialId: null });
   }
 }));

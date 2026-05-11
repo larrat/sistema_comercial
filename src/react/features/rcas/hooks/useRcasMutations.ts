@@ -1,7 +1,7 @@
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useRcasStore } from '../store/useRcasStore';
 import { upsertRca, deactivateRca } from '../services/rcasApi';
 import type { Rca } from '../../../../types/domain';
@@ -41,7 +41,7 @@ export function useRcasMutations() {
   async function salvar() {
     const nome = drawerNome.trim();
     if (!nome) {
-      emitToast('Informe o nome do vendedor.', 'warning');
+      useToastStore.getState().addToast('Informe o nome do vendedor.', 'warning');
       return;
     }
 
@@ -49,7 +49,7 @@ export function useRcasMutations() {
       (r) => r.nome.trim().toLowerCase() === nome.toLowerCase() && r.id !== drawerEditId
     );
     if (duplicado) {
-      emitToast(`Vendedor já existe: ${duplicado.nome}.`, 'warning');
+      useToastStore.getState().addToast(`Vendedor já existe: ${duplicado.nome}.`, 'warning');
       return;
     }
 
@@ -65,12 +65,12 @@ export function useRcasMutations() {
       const saved = await upsertRca(getCtx(), rca);
       upsertLocal(saved);
       closeDrawer();
-      emitToast(
+      useToastStore.getState().addToast(
         `Vendedor ${drawerEditId ? 'atualizado' : 'cadastrado'}: ${saved.nome}.`,
         'success'
       );
     } catch (e) {
-      emitToast(e instanceof Error ? e.message : 'Erro ao salvar vendedor.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao salvar vendedor.', 'error');
     } finally {
       setSaving(false);
     }
@@ -80,9 +80,9 @@ export function useRcasMutations() {
     try {
       await deactivateRca(getCtx(), id);
       deactivateLocal(id);
-      emitToast('Vendedor desativado.', 'success');
+      useToastStore.getState().addToast('Vendedor desativado.', 'success');
     } catch (e) {
-      emitToast(e instanceof Error ? e.message : 'Erro ao desativar vendedor.', 'error');
+      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao desativar vendedor.', 'error');
     }
   }
 

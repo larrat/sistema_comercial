@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { emitLegacyEvent, subscribeLegacyEvent } from '../../../app/legacy/events';
+import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
 import { useProdutoStore, selectCategorias } from '../store/useProdutoStore';
@@ -96,13 +96,13 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     ? (produtos.find((produto) => produto.id === deleteTargetId) ?? null)
     : null;
   const activeFilterCount = [filtro.q, filtro.cat].filter(Boolean).length;
+  const abrirNovoProduto = useInterModuleStore((s) => s.abrirNovoProduto);
 
   useEffect(() => {
-    function handleAbrirNovo() {
-      setModal({ tipo: 'form', produto: null });
-    }
-    return subscribeLegacyEvent('sc:abrir-novo-produto', handleAbrirNovo);
-  }, []);
+    if (!abrirNovoProduto) return;
+    useInterModuleStore.getState().clearNovoProduto();
+    setModal({ tipo: 'form', produto: null });
+  }, [abrirNovoProduto]);
 
   const paisSemSelf = useMemo(
     () => {
@@ -142,7 +142,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   }
 
   function handleMovimentar(id: string) {
-    emitLegacyEvent('sc:abrir-mov-produto', { id });
+    useInterModuleStore.getState().navegarParaMovProduto(id);
   }
 
   const pageHeader = (

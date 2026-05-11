@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import {
   upsertFornecedor,
   deleteFornecedor,
@@ -35,7 +35,7 @@ export function useFornecedorMutations() {
   async function salvarFornecedor() {
     const { nome, contato, prazo } = fornModal.draft;
     if (!nome.trim()) {
-      emitToast('Informe o nome do fornecedor.', 'warning');
+      useToastStore.getState().addToast('Informe o nome do fornecedor.', 'warning');
       return;
     }
     setSaving(true);
@@ -49,9 +49,9 @@ export function useFornecedorMutations() {
       });
       closeFornModal();
       requestReload();
-      emitToast('Fornecedor salvo.', 'success');
+      useToastStore.getState().addToast('Fornecedor salvo.', 'success');
     } catch (err) {
-      emitToast(err instanceof Error ? err.message : 'Erro ao salvar fornecedor.', 'error');
+      useToastStore.getState().addToast(err instanceof Error ? err.message : 'Erro ao salvar fornecedor.', 'error');
     } finally {
       setSaving(false);
     }
@@ -61,9 +61,9 @@ export function useFornecedorMutations() {
     try {
       await deleteFornecedor(ctx, id);
       requestReload();
-      emitToast('Fornecedor removido.', 'success');
+      useToastStore.getState().addToast('Fornecedor removido.', 'success');
     } catch (err) {
-      emitToast(err instanceof Error ? err.message : 'Erro ao remover fornecedor.', 'error');
+      useToastStore.getState().addToast(err instanceof Error ? err.message : 'Erro ao remover fornecedor.', 'error');
     }
   }
 
@@ -88,7 +88,7 @@ export function usePrecoCotacaoMutation() {
 
   async function atualizarPreco(produtoId: string, fornecedorId: string, valor: string) {
     if (config?.locked) {
-      emitToast('A cotacao esta travada para edicao.', 'warning');
+      useToastStore.getState().addToast('A cotacao esta travada para edicao.', 'warning');
       return;
     }
 
@@ -121,7 +121,7 @@ export function usePrecoCotacaoMutation() {
           ...state,
           [key]: err instanceof Error ? err.message : 'Erro ao salvar preco.'
         }));
-        emitToast('Erro ao salvar preço.', 'error');
+        useToastStore.getState().addToast('Erro ao salvar preço.', 'error');
       }
     } else {
       delete novo[produtoId]?.[fornecedorId];
@@ -142,7 +142,7 @@ export function usePrecoCotacaoMutation() {
           ...state,
           [key]: err instanceof Error ? err.message : 'Erro ao remover preco.'
         }));
-        emitToast('Erro ao remover preço.', 'error');
+        useToastStore.getState().addToast('Erro ao remover preço.', 'error');
       }
     }
   }
@@ -163,10 +163,10 @@ export function useCotacaoConfigMutation() {
     setSaving(true);
     try {
       await upsertCotacaoConfig(ctx, next);
-      emitToast(next.locked ? 'Cotação travada.' : 'Cotação destravada.', 'info');
+      useToastStore.getState().addToast(next.locked ? 'Cotação travada.' : 'Cotação destravada.', 'info');
     } catch (err) {
       setConfig(current);
-      emitToast(err instanceof Error ? err.message : 'Erro ao salvar configuração.', 'error');
+      useToastStore.getState().addToast(err instanceof Error ? err.message : 'Erro ao salvar configuração.', 'error');
     } finally {
       setSaving(false);
     }

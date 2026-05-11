@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
@@ -388,7 +388,7 @@ export function PdvPage() {
       removePdvSaleFromQueue(context.filialId, current.queueId);
       const remaining = countPdvQueue(context.filialId);
       setPendingQueueCount(remaining);
-      emitToast('Venda pendente enviada com sucesso.', 'success');
+      useToastStore.getState().addToast('Venda pendente enviada com sucesso.', 'success');
       if (remaining > 0) window.setTimeout(() => void processQueue(), 250);
     } catch {
       setPendingQueueCount(countPdvQueue(context.filialId));
@@ -453,7 +453,7 @@ export function PdvPage() {
         .join('\n');
 
       if (!options.silent) {
-        emitToast(
+        useToastStore.getState().addToast(
           'Metadados do PDV ainda não existem no banco. Salvando a venda no modo compatível.',
           'warning'
         );
@@ -470,12 +470,12 @@ export function PdvPage() {
   async function handleFinalizeSale() {
     if (!canFinalize) return;
     if (paymentMethod === 'misto' && !mixedValidation.isValid) {
-      emitToast('A soma do pagamento misto precisa bater com o total da venda.', 'warning');
+      useToastStore.getState().addToast('A soma do pagamento misto precisa bater com o total da venda.', 'warning');
       setMixedModalOpen(true);
       return;
     }
     if (paymentMethod === 'fiado' && !selectedCliente) {
-      emitToast('Fiado precisa de cliente vinculado.', 'warning');
+      useToastStore.getState().addToast('Fiado precisa de cliente vinculado.', 'warning');
       return;
     }
 
@@ -513,8 +513,8 @@ export function PdvPage() {
     setSaving(true);
     try {
       const warning = await submitPdvPayload(payload);
-      if (warning) emitToast(warning, 'warning');
-      emitToast('Venda finalizada. O PDV já está pronto para a próxima.', 'success');
+      if (warning) useToastStore.getState().addToast(warning, 'warning');
+      useToastStore.getState().addToast('Venda finalizada. O PDV já está pronto para a próxima.', 'success');
       setLastCompletedSale({
         numero: payload.num,
         total: payload.total,
@@ -534,7 +534,7 @@ export function PdvPage() {
           createdAt: new Date().toISOString()
         });
         setPendingQueueCount(countPdvQueue(filialId));
-        emitToast('Venda guardada na fila local. Vamos reenviar quando a rede voltar.', 'warning');
+        useToastStore.getState().addToast('Venda guardada na fila local. Vamos reenviar quando a rede voltar.', 'warning');
         setLastCompletedSale({
           numero: payload.num,
           total: payload.total,
@@ -546,7 +546,7 @@ export function PdvPage() {
         setReceiptOpen(true);
         resetCurrentSale();
       } else {
-        emitToast(message, 'error');
+        useToastStore.getState().addToast(message, 'error');
       }
     } finally {
       setSaving(false);

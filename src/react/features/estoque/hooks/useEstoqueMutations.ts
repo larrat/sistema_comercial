@@ -1,5 +1,5 @@
-import { validateMovimentacao } from '../../../../core/validators/index.js';
-import { emitToast } from '../../../app/legacy/events';
+import { validateMovimentacao } from '../utils/validators';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
@@ -29,7 +29,7 @@ export function useEstoqueMutations() {
     const config = getSupabaseConfig();
 
     if (!filialId || !token || !config.ready) {
-      emitToast('Sessão ou filial indisponível para salvar movimentação.', 'error');
+      useToastStore.getState().addToast('Sessão ou filial indisponível para salvar movimentação.', 'error');
       return false;
     }
 
@@ -48,12 +48,12 @@ export function useEstoqueMutations() {
       if (draft.tipo === 'transf') {
         const destinationFilialId = String(draft.destinoFilialId || '').trim();
         if (!destinationFilialId) {
-          emitToast('Selecione a filial de destino para concluir a transferência.', 'error');
+          useToastStore.getState().addToast('Selecione a filial de destino para concluir a transferência.', 'error');
           return false;
         }
 
         if (destinationFilialId === filialId) {
-          emitToast('A filial de destino precisa ser diferente da filial atual.', 'error');
+          useToastStore.getState().addToast('A filial de destino precisa ser diferente da filial atual.', 'error');
           return false;
         }
 
@@ -121,7 +121,7 @@ export function useEstoqueMutations() {
 
       closeMovementModal();
       requestReload();
-      emitToast(
+      useToastStore.getState().addToast(
         draft.tipo === 'transf' ? 'Transferência registrada.' : 'Movimentação registrada.',
         'success'
       );
@@ -133,7 +133,7 @@ export function useEstoqueMutations() {
           : draft.tipo === 'transf'
             ? 'Não foi possível concluir a transferência.'
             : 'Não foi possível registrar a movimentação.';
-      emitToast(message, 'error');
+      useToastStore.getState().addToast(message, 'error');
       return false;
     }
   }
@@ -143,7 +143,7 @@ export function useEstoqueMutations() {
     const config = getSupabaseConfig();
 
     if (!filialId || !token || !config.ready) {
-      emitToast('Sessão ou filial indisponível para excluir movimentação.', 'error');
+      useToastStore.getState().addToast('Sessão ou filial indisponível para excluir movimentação.', 'error');
       return false;
     }
 
@@ -159,12 +159,12 @@ export function useEstoqueMutations() {
       );
 
       requestReload();
-      emitToast('Movimentação excluída.', 'success');
+      useToastStore.getState().addToast('Movimentação excluída.', 'success');
       return true;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Não foi possível excluir a movimentação.';
-      emitToast(message, 'error');
+      useToastStore.getState().addToast(message, 'error');
       return false;
     }
   }

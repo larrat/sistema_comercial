@@ -9,7 +9,7 @@ import {
   StatusBadge
 } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
@@ -161,9 +161,9 @@ export function PedidoForm({
       });
       if (result.aviso) {
         setErrors({ geral: result.aviso });
-        emitToast(result.aviso, 'warning');
+        useToastStore.getState().addToast(result.aviso, 'warning');
       } else {
-        emitToast(
+        useToastStore.getState().addToast(
           isEdit
             ? `Pedido #${result.pedido.num} atualizado com sucesso.`
             : `Pedido #${result.pedido.num} criado com sucesso.`,
@@ -174,7 +174,7 @@ export function PedidoForm({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar pedido.';
       setErrors({ geral: message });
-      emitToast(message, 'error');
+      useToastStore.getState().addToast(message, 'error');
     } finally {
       setSaving(false);
     }

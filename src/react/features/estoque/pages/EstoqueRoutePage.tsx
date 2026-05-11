@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { subscribeLegacyEvent } from '../../../app/legacy/events';
+import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { useEstoqueStore } from '../store/useEstoqueStore';
 import { EstoquePage } from '../components/EstoquePage';
 import { useEstoqueData } from '../hooks/useEstoqueData';
@@ -9,12 +9,13 @@ export function EstoqueRoutePage() {
   useEstoqueData();
 
   const openMovementModal = useEstoqueStore((s) => s.openMovementModal);
+  const abrirMovProdutoId = useInterModuleStore((s) => s.abrirMovProdutoId);
 
   useEffect(() => {
-    return subscribeLegacyEvent('sc:abrir-mov-produto', (detail) => {
-      openMovementModal(detail?.id || '');
-    });
-  }, [openMovementModal]);
+    if (!abrirMovProdutoId) return;
+    useInterModuleStore.getState().clearMovProduto();
+    openMovementModal(abrirMovProdutoId);
+  }, [abrirMovProdutoId, openMovementModal]);
 
   return <EstoquePage />;
 }

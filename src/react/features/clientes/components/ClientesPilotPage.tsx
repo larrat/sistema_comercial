@@ -14,10 +14,7 @@ import {
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import type { ClienteProfileTab } from '../../../app/router/wave1Navigation';
-import {
-  postLegacyBridgeMessage,
-  subscribeLegacyBridgeMessages
-} from '../../../app/legacy/bridgeMessaging';
+
 import type { Cliente } from '../../../../types/domain';
 import {
   selectFilteredClientes,
@@ -29,8 +26,6 @@ import { ClienteForm } from './ClienteForm';
 import { ClienteDeleteConfirmModal } from './ClienteDeleteConfirmModal';
 import { ClienteSegmentView } from './ClienteSegmentView';
 
-const MESSAGE_SOURCE = 'clientes-react-pilot';
-const COMMAND_SOURCE = 'clientes-legacy-shell';
 type SurfaceTab = 'lista' | 'segmentos';
 
 const STATUS_BADGE: Record<string, { label: string; tone: 'success' | 'neutral' | 'info' }> = {
@@ -239,96 +234,6 @@ export function ClientesPilotPage({
     }
   ]);
 
-  useEffect(() => {
-    return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
-      if (data.type === 'clientes:novo') {
-        openNewCliente('legacy_bridge');
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-segmentos') {
-        setEditingId(null);
-        setSurfaceTab('segmentos');
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-detalhe' && data.id) {
-        openDetail(String(data.id), normalizeClienteProfileTab(data.tab), 'legacy_bridge');
-        return;
-      }
-
-      if (data.type === 'clientes:editar' && data.id) {
-        openEditCliente(String(data.id), 'legacy_bridge');
-        return;
-      }
-
-      if (data.type === 'clientes:excluir' && data.id) {
-        void handleExcluir(String(data.id));
-        return;
-      }
-
-      if (data.type === 'clientes:limpar-filtros') {
-        clearFiltro();
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-lista') {
-        setEditingId(null);
-        setSurfaceTab('lista');
-        return;
-      }
-
-      if (data.type === 'clientes:exportar-csv') {
-        void exportarCsvAtual();
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-resumo' && data.id) {
-        openDetail(String(data.id), 'resumo', 'legacy_bridge');
-        return;
-      }
-
-      if ((data.type === 'clientes:abrir-abertas' || data.type === 'clientes:abrir-fechadas') && data.id) {
-        openDetail(String(data.id), 'pedidos', 'legacy_bridge');
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-notas' && data.id) {
-        openDetail(String(data.id), 'notas', 'legacy_bridge');
-        return;
-      }
-
-      if (data.type === 'clientes:abrir-fidelidade' && data.id) {
-        openDetail(String(data.id), 'cadastro', 'legacy_bridge');
-      }
-    });
-  }, [clearFiltro, onOpenCliente, onNewCliente]);
-
-  useEffect(() => {
-    postLegacyBridgeMessage({
-      source: MESSAGE_SOURCE,
-      type: 'clientes:state',
-      state: {
-        view: editingId ? 'form' : 'list',
-        status: deletingId ? 'deleting' : error ? 'error' : 'ready',
-        count: total,
-        filtersActive: [filtro.q, filtro.seg, filtro.status].filter(Boolean).length,
-        selectedId: editingId === 'new' ? '' : editingId || '',
-        selectedName: editingCliente?.nome || '',
-        surfaceTab
-      }
-    });
-  }, [
-    deletingId,
-    editingId,
-    error,
-    filtro.q,
-    filtro.seg,
-    filtro.status,
-    editingCliente?.nome,
-    surfaceTab,
-    total
-  ]);
 
   return (
     <main className="rf-content rf-ui-stack" data-testid="clientes-pilot-page">

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { getWave1RouteByLegacyPage } from '../../../app/router/wave1Navigation';
 import { DashboardPilotPage } from '../components/DashboardPilotPage';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -18,7 +18,7 @@ export function DashboardRoutePage() {
         return;
       }
 
-      emitToast(
+      useToastStore.getState().addToast(
         `A navegação para "${page}" ainda depende do shell legado e não foi conectada nesta onda.`,
         'warning'
       );

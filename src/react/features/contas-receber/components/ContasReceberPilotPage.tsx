@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { postLegacyBridgeMessage, subscribeLegacyBridgeMessages } from '../../../app/legacy/bridgeMessaging';
-import { emitToast } from '../../../app/legacy/events';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
 import {
@@ -26,8 +25,6 @@ import {
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
 
-const MESSAGE_SOURCE = 'receber-react-pilot';
-const COMMAND_SOURCE = 'receber-legacy-shell';
 
 type ContasReceberPilotPageProps = {
   routeIntent?: {
@@ -648,34 +645,17 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
   const activeFilterCount = (searchQuery ? 1 : 0) + (activeTab !== 'pendentes' ? 1 : 0);
 
   useEffect(() => {
-    return subscribeLegacyBridgeMessages(COMMAND_SOURCE, (data) => {
-      if (data.type === 'receber:set-tab' && data.tab) {
-        setActiveTab(data.tab as CrTab);
-      }
-    });
-  }, [setActiveTab]);
-
-  useEffect(() => {
     if (!routeIntent?.contaId) return;
     setDetailContaId(routeIntent.contaId);
   }, [routeIntent?.contaId]);
 
-  useEffect(() => {
-    const count = contas.filter((c) => getStatusEfetivo(c) !== 'recebido').length;
-    postLegacyBridgeMessage({
-      source: MESSAGE_SOURCE,
-      type: 'receber:state',
-      state: { tab: activeTab, status, count }
-    });
-  }, [activeTab, status, contas]);
-
   async function handleReceber(contaId: string) {
     const result = await marcarRecebido(contaId);
     if (!result.ok) {
-      emitToast(result.error ?? 'Não foi possível registrar o recebimento agora.', 'error');
+      useToastStore.getState().addToast(result.error ?? 'Não foi possível registrar o recebimento agora.', 'error');
       return false;
     }
-    emitToast('Recebimento concluído. A conta já foi atualizada.', 'success');
+    useToastStore.getState().addToast('Recebimento concluído. A conta já foi atualizada.', 'success');
     return true;
   }
 
@@ -698,27 +678,27 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
       setModalError(result.error ?? 'Erro ao registrar baixa.');
       return;
     }
-    emitToast('Baixa registrada. Os valores da conta já foram atualizados.', 'success');
+    useToastStore.getState().addToast('Baixa registrada. Os valores da conta já foram atualizados.', 'success');
     setBaixaParcialContaId(null);
   }
 
   async function handleDesfazer(contaId: string) {
     const result = await marcarPendente(contaId);
     if (!result.ok) {
-      emitToast(result.error ?? 'Não foi possível reabrir a conta agora.', 'error');
+      useToastStore.getState().addToast(result.error ?? 'Não foi possível reabrir a conta agora.', 'error');
       return false;
     }
-    emitToast('Conta reaberta com sucesso. Ela voltou para pendente.', 'success');
+    useToastStore.getState().addToast('Conta reaberta com sucesso. Ela voltou para pendente.', 'success');
     return true;
   }
 
   async function handleEstornar(contaId: string, baixaId: string) {
     const result = await estornarBaixa(contaId, baixaId);
     if (!result.ok) {
-      emitToast(result.error ?? 'Não foi possível estornar a baixa agora.', 'error');
+      useToastStore.getState().addToast(result.error ?? 'Não foi possível estornar a baixa agora.', 'error');
       return false;
     }
-    emitToast('Baixa estornada. Os totais da conta já foram recalculados.', 'success');
+    useToastStore.getState().addToast('Baixa estornada. Os totais da conta já foram recalculados.', 'success');
     return true;
   }
 

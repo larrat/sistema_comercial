@@ -1,7 +1,5 @@
 import type { PedidoApiContext } from './pedidosApi';
 import { normalizePedStatus } from '../types';
-import { D } from '../../../../app/store.js';
-import { emitLegacyEvent } from '../../../app/legacy/events';
 import type { ContaReceber } from '../../../../types/domain';
 
 const PRAZO_DIAS: Record<string, number> = {
@@ -49,17 +47,6 @@ async function inserirConta(
     const text = await res.text().catch(() => '');
     throw new Error(`Falha ao salvar conta a receber: ${res.status} ${text}`);
   }
-
-  if (!D.contasReceber) D.contasReceber = {};
-  const contasFilial = /** @type {ContaReceber[]} */ (D.contasReceber[context.filialId] || []);
-  const nextConta = conta;
-  D.contasReceber[context.filialId] = contasFilial.some((item) => item.id === nextConta.id)
-    ? contasFilial.map((item) => (item.id === nextConta.id ? { ...item, ...nextConta } : item))
-    : [nextConta, ...contasFilial];
-
-  // Notifica a aplicação para atualizar a visão local imediatamente.
-  emitLegacyEvent('sc:conta-receber-criada', conta);
-  emitLegacyEvent('sc:contas-receber-sync');
 }
 
 /**
