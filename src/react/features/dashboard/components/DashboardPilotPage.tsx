@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useCurrentUserRole } from '../../../app/hooks/useCurrentUserRole';
 import { useFilialStore } from '../../../app/useFilialStore';
-import type { Cliente, Pedido, Produto } from '../../../../types/domain';
+import type { Cliente, Filial, Pedido, Produto } from '../../../../types/domain';
 import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
 import {
   EmptyState,
@@ -13,6 +13,10 @@ import {
 } from '../../../shared/ui';
 import { SystemBarChart } from '../../../app/components/charts';
 import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield } from 'lucide-react';
+import { listUserFiliais } from '../../auth/services/authApi';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
+
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
@@ -466,7 +470,7 @@ function DashKpis({
       <StatCard
         label="Ticket médio"
         value={fmt(tk)}
-        description={`Base de ${allPedsCount} pedido(s)`}
+        description={`Média de ${allPedsCount} pedido(s) no período`}
       />
       <StatCard
         label="Em aberto"
@@ -476,7 +480,7 @@ function DashKpis({
       />
       <div className="flex flex-col gap-1 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
         <div className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Pacing Mensal</div>
-        <div className="text-2xl font-black text-slate-900 tracking-tight">{Math.round(metaPacing)}%</div>
+        <div className="text-2xl font-black text-slate-900 tracking-tight">{metaPacing.toFixed(1)}%</div>
         <div className="text-xs text-slate-500 mt-1">Rumo à meta de {fmt(META_MENSAL_BASE)}</div>
         <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
           <div 
@@ -962,7 +966,28 @@ export function DashboardPilotPage({
   const error = useDashboardStore((s) => s.error);
   const setPeriodo = useDashboardStore((s) => s.setPeriodo);
   const filialId = useFilialStore((s) => s.filialId);
+  const session = useAuthStore((s) => s.session);
+  const [filiais, setFiliais] = useState<Filial[]>([]);
   const userRole = useCurrentUserRole();
+
+  useEffect(() => {
+    async function loadFiliais() {
+      if (!session?.access_token) return;
+      const userId = String((session.user as Record<string, unknown>)?.id ?? '');
+      const cfg = getSupabaseConfig();
+      if (!cfg.ready || !userId) return;
+      try {
+        const data = await listUserFiliais({ url: cfg.url, key: cfg.key }, session.access_token, userId);
+        setFiliais(data);
+      } catch (e) {
+        console.error('Erro ao carregar filiais no dashboard:', e);
+      }
+    }
+    void loadFiliais();
+  }, [session]);
+
+  const currentFilialName = filiais.find((f) => f.id === filialId)?.nome ?? filialId ?? 'Nenhuma Selecionada';
+  
   const viewStorageKey = getDashboardViewStorageKey(userRole, filialId);
   const [view, setView] = useState<DashboardView>(() =>
     readStoredDashboardView(viewStorageKey, getPreferredDashboardView(userRole))
@@ -1032,7 +1057,7 @@ export function DashboardPilotPage({
             <Building2 size={16} className="text-slate-400" />
             <div className="flex flex-col">
               <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-0.5">Filial</span>
-              <span className="text-xs font-bold text-slate-800 truncate">{filialId ?? 'Nenhuma Selecionada'}</span>
+              <span className="text-xs font-bold text-slate-800 truncate">{currentFilialName}</span>
             </div>
           </div>
           <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
