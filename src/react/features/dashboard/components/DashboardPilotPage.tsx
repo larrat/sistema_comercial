@@ -12,7 +12,7 @@ import {
   StatusBadge
 } from '../../../shared/ui';
 import { SystemBarChart } from '../../../app/components/charts';
-import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield, ShoppingBag, Package, Users } from 'lucide-react';
 import { listUserFiliais } from '../../auth/services/authApi';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
@@ -56,6 +56,11 @@ function fmt(v: number) {
 function pct(v: number) {
   return `${v.toFixed(1)}%`;
 }
+
+function plural(count: number, singular: string, pluralStr: string) {
+  return count === 1 ? singular : pluralStr;
+}
+
 
 function getRange(periodo: Periodo): [Date, Date] {
   const now = new Date();
@@ -279,10 +284,10 @@ function DashboardSection({
   children: ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-6 mb-10">
-      <div className="flex flex-col gap-1.5 border-l-4 border-blue-600 pl-4 py-1">
-        <h3 className="text-2xl font-black tracking-tight text-slate-900 leading-none">{title}</h3>
-        <p className="text-sm font-medium text-slate-400">{description}</p>
+    <section className="flex flex-col gap-6 mb-12">
+      <div className="flex flex-col gap-1 border-l-[3px] border-slate-900 pl-4 py-0.5">
+        <h3 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{title}</h3>
+        <p className="text-[12px] font-medium text-slate-400">{description}</p>
       </div>
       {children}
     </section>
@@ -301,10 +306,10 @@ function DashboardCard({
   action?: ReactNode;
 }) {
   return (
-    <section className={`bg-white border border-slate-200/60 rounded-[2rem] p-6 md:p-8 shadow-sm flex flex-col gap-6 ${className}`.trim()}>
+    <section className={`bg-white border border-slate-200/80 rounded-lg p-6 shadow-sm flex flex-col gap-6 ${className}`.trim()}>
       <div className="flex items-center justify-between gap-4">
-        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-3">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
+        <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
+          <div className="w-1 h-3 bg-slate-900 rounded-full" />
           {title}
         </div>
         {action && <div className="shrink-0">{action}</div>}
@@ -403,17 +408,17 @@ function DashboardViewSelector({
   onChange: (view: DashboardView) => void;
 }) {
   return (
-    <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200/60 w-fit" aria-label="Mudar objetivo do painel">
+    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200" aria-label="Mudar objetivo do painel">
       {(Object.entries(DASHBOARD_VIEW_LABELS) as Array<[DashboardView, string]>).map(
         ([value, label]) => {
           const isActive = view === value;
           return (
             <button
               key={value}
-              className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+              className={`px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-md transition-all ${
                 isActive
-                  ? 'bg-white text-slate-800 font-semibold shadow-sm ring-1 ring-slate-900/5'
-                  : 'text-slate-500 font-medium hover:text-slate-700 hover:bg-slate-200/50'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
               }`}
               onClick={() => onChange(value)}
               type="button"
@@ -453,7 +458,8 @@ function DashKpis({
       <StatCard
         label="Faturamento"
         value={fmt(fat)}
-        description={`${entreguesCount} pedido(s) entregue(s) no período`}
+        description={`${entreguesCount} ${plural(entreguesCount, 'pedido', 'pedidos')} entregues`}
+        tone="amber"
       />
       <StatCard
         label="Lucro bruto"
@@ -478,13 +484,13 @@ function DashKpis({
         description="Orçamentos e pedidos confirmados"
         tone={abertos > 0 ? 'warning' : 'default'}
       />
-      <div className="flex flex-col gap-1 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Pacing Mensal</div>
-        <div className="text-2xl font-black text-slate-900 tracking-tight">{metaPacing.toFixed(1)}%</div>
-        <div className="text-xs text-slate-500 mt-1">Rumo à meta de {fmt(META_MENSAL_BASE)}</div>
-        <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+      <div className="flex flex-col gap-2 p-5 bg-white border border-slate-200 rounded-lg shadow-sm">
+        <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] mb-1">Pacing Mensal</div>
+        <div className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{metaPacing.toFixed(1)}%</div>
+        <div className="text-[11px] font-medium text-slate-400 mt-1">Meta: {fmt(META_MENSAL_BASE)}</div>
+        <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
           <div 
-            className={`h-full rounded-full transition-all ${metaPacing >= 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+            className={`h-full rounded-full transition-all duration-1000 ${metaPacing >= 100 ? 'bg-[#4B5320]' : 'bg-[#C5A059]'}`} 
             style={{ width: `${Math.min(metaPacing, 100)}%` }}
           />
         </div>
@@ -525,12 +531,12 @@ function DashAlerts({
   return (
     <div className="flex flex-col gap-3" data-testid="dash-alerts">
       {crit.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm">
+        <div className="flex flex-col gap-2 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm">
           <div className="flex items-center gap-2 text-red-800 font-bold">
             <AlertCircle size={18} strokeWidth={2.5} /> Estoque crítico
           </div>
           <div className="text-sm text-red-900/80 leading-relaxed">
-            {crit.length} produto{crit.length !== 1 ? 's' : ''} zerado{crit.length !== 1 ? 's' : ''}.{' '}
+            {crit.length} {plural(crit.length, 'produto zerado', 'produtos zerados')}.{' '}
             {crit.slice(0, 3).map((p) => p.nome).join(', ')}{crit.length > 3 ? '...' : ''}
           </div>
           <div className="mt-2">
@@ -545,12 +551,12 @@ function DashAlerts({
         </div>
       )}
       {baixo.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
+        <div className="flex flex-col gap-2 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
           <div className="flex items-center gap-2 text-amber-800 font-bold">
             <AlertTriangle size={18} strokeWidth={2.5} /> Estoque em atenção
           </div>
           <div className="text-sm text-amber-900/80 leading-relaxed">
-            {baixo.length} item{baixo.length !== 1 ? 'ns' : ''} abaixo do mínimo.{' '}
+            {baixo.length} {plural(baixo.length, 'item', 'itens')} abaixo do mínimo.{' '}
             {baixo.slice(0, 3).map((p) => p.nome).join(', ')}{baixo.length > 3 ? '...' : ''}
           </div>
           <div className="mt-2">
@@ -565,7 +571,7 @@ function DashAlerts({
         </div>
       )}
       {anivProximos.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-emerald-50 border border-emerald-200 rounded-xl shadow-sm">
+        <div className="flex flex-col gap-2 p-4 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
           <div className="flex items-center gap-2 text-emerald-800 font-bold">
             <Gift size={18} strokeWidth={2.5} /> Aniversários próximos
           </div>
@@ -594,12 +600,12 @@ function DashAlerts({
         </div>
       )}
       {churnRisk.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-rose-50 border border-rose-200 rounded-xl shadow-sm">
+        <div className="flex flex-col gap-2 p-4 bg-rose-50 border border-rose-200 rounded-lg shadow-sm">
           <div className="flex items-center gap-2 text-rose-800 font-bold">
             <UserMinus size={18} strokeWidth={2.5} /> Risco de Churn
           </div>
           <div className="text-sm text-rose-900/80 leading-relaxed">
-            {churnRisk.length} cliente{churnRisk.length !== 1 ? 's' : ''} sem comprar há mais de 60 dias.{' '}
+            {churnRisk.length} {plural(churnRisk.length, 'cliente', 'clientes')} sem comprar há mais de 60 dias.{' '}
             {churnRisk.slice(0, 3).map((c) => c.nome.split(' ')[0]).join(', ')}{churnRisk.length > 3 ? '...' : ''}
           </div>
           <div className="mt-2">
@@ -614,12 +620,12 @@ function DashAlerts({
         </div>
       )}
       {orcamentosTravados.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-orange-50 border border-orange-200 rounded-xl shadow-sm">
+        <div className="flex flex-col gap-2 p-4 bg-orange-50 border border-orange-200 rounded-lg shadow-sm">
           <div className="flex items-center gap-2 text-orange-800 font-bold">
             <Clock size={18} strokeWidth={2.5} /> Orçamentos Travados
           </div>
           <div className="text-sm text-orange-900/80 leading-relaxed">
-            {orcamentosTravados.length} orçamento{orcamentosTravados.length !== 1 ? 's' : ''} parado{orcamentosTravados.length !== 1 ? 's' : ''} há mais de 7 dias.{' '}
+            {orcamentosTravados.length} {plural(orcamentosTravados.length, 'orçamento parado', 'orçamentos parados')} há mais de 7 dias.{' '}
             Total travado: {fmtCurrency.format(orcamentosTravados.reduce((a, b) => a + (b.total || 0), 0))}
           </div>
           <div className="mt-2">
@@ -857,7 +863,7 @@ function DashboardRoleSummary({
         {
           label: 'Mix ativo',
           value: pct(derived.mixAtivoPct),
-          hint: `${pedidosCount} pedido(s) alimentando a leitura atual.`,
+          hint: `${pedidosCount} ${plural(pedidosCount, 'pedido alimentando', 'pedidos alimentando')} a leitura atual.`,
           cta: 'Ajustar acessos',
           page: 'acessos'
         }
@@ -868,22 +874,22 @@ function DashboardRoleSummary({
   const focus = focusByRole[role];
 
   return (
-    <section className="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
+    <section className="relative overflow-hidden bg-slate-900 rounded-lg p-8 md:p-12 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
       {/* Elementos decorativos de fundo */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/20" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/10 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/20" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/10" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/10" />
       
-      <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 pb-8 border-b border-white/5">
+      <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 pb-8 border-b border-white/10">
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#C5A059]">
             <Shield size={12} strokeWidth={3} />
             {ROLE_LABELS[role]} · {DASHBOARD_VIEW_LABELS[view]}
           </div>
-          <h3 className="text-3xl font-black tracking-tight text-white">{focus.title}</h3>
+          <h3 className="text-3xl font-bold tracking-tight text-white">{focus.title}</h3>
           <p className="text-slate-400 max-w-lg text-sm leading-relaxed">{focus.copy}</p>
         </div>
         <div className="shrink-0">
-          <div className="px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-xs font-bold tracking-widest uppercase text-white shadow-inner">
+          <div className="px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg text-xs font-bold tracking-widest uppercase text-white shadow-inner">
             {ROLE_LABELS[role]}
           </div>
         </div>
@@ -892,11 +898,11 @@ function DashboardRoleSummary({
       <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
         {focus.items.map((item) => (
           <div key={item.label} className="flex flex-col gap-3 group/item">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover/item:text-blue-400 transition-colors">{item.label}</div>
-            <div className="text-4xl font-black text-white tracking-tighter transition-transform group-hover/item:translate-x-1">{item.value}</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover/item:text-[#C5A059] transition-colors">{item.label}</div>
+            <div className="text-4xl font-bold text-white tracking-tighter transition-transform group-hover/item:translate-x-1">{item.value}</div>
             <div className="text-xs text-slate-400 leading-relaxed mb-4">{item.hint}</div>
             <button
-              className="mt-auto self-start px-5 py-2.5 bg-white/5 hover:bg-white text-slate-300 hover:text-slate-900 text-xs font-bold rounded-xl transition-all border border-white/10 hover:border-white shadow-sm active:scale-95"
+              className="mt-auto self-start px-5 py-2.5 bg-white/5 hover:bg-white text-slate-300 hover:text-slate-900 text-xs font-bold rounded-lg transition-all border border-white/10 hover:border-white shadow-sm active:scale-95"
               type="button"
               onClick={() => goToPage(item.page, onNavigatePage)}
             >
@@ -939,8 +945,9 @@ function DashboardInsightGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.title} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col gap-2">
-          <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2 before:content-[''] before:block before:w-2 before:h-2 before:bg-blue-500 before:rounded-sm">
+        <div key={card.title} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
+            <div className="w-1 h-3 bg-slate-900 rounded-full" />
             {card.title}
           </div>
           <div className="text-2xl font-black text-slate-900 tracking-tight">{card.value}</div>
@@ -1020,53 +1027,46 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-6 md:p-10 max-w-7xl mx-auto gap-10" data-testid="dashboard-pilot-page">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
-            <LayoutDashboard size={12} strokeWidth={3} />
-            Executivo
-          </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 max-w-md text-sm leading-relaxed">
-            Panorama em tempo real da filial ativa com base em pedidos, produtos e clientes.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex -space-x-2 mr-2">
-            <div className="w-8 h-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700 shadow-sm" title="Pedidos">P</div>
-            <div className="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-700 shadow-sm" title="Produtos">PR</div>
-            <div className="w-8 h-8 rounded-full border-2 border-white bg-amber-100 flex items-center justify-center text-[10px] font-bold text-amber-700 shadow-sm" title="Clientes">C</div>
-          </div>
-          <button
-            className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/10 hover:shadow-blue-500/20 active:scale-95 text-sm disabled:opacity-50 group"
-            type="button"
-            onClick={onReload}
-            disabled={status === 'loading'}
-          >
-            <Clock size={16} className={status === 'loading' ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
-            {status === 'loading' ? 'Sincronizando...' : 'Atualizar Dados'}
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900/5 backdrop-blur-sm p-2 rounded-2xl border border-slate-200/60 shadow-sm ring-4 ring-slate-900/5">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
-          <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-200 shadow-sm min-w-[200px]">
-            <Building2 size={16} className="text-slate-400" />
-            <div className="flex flex-col">
-              <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-0.5">Filial</span>
-              <span className="text-xs font-bold text-slate-800 truncate">{currentFilialName}</span>
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-8 md:p-12 max-w-7xl mx-auto gap-12" data-testid="dashboard-pilot-page">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 border-b border-slate-200 pb-10">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              <LayoutDashboard size={12} strokeWidth={3} />
+              Gestão Executiva
             </div>
+            <h1 className="text-4xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
           </div>
-          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+          
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-white rounded-lg border border-slate-200 shadow-sm">
+              <Building2 size={16} className="text-slate-400" />
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1">Filial Ativa</span>
+                <span className="text-sm font-bold text-slate-800">{currentFilialName}</span>
+              </div>
+            </div>
             <PeriodSelector periodo={periodo} onChange={setPeriodo} />
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-          <div className="px-3 py-1.5 text-[9px] font-black uppercase text-slate-400 border-r border-slate-100 mr-1">Visão</div>
+
+        <div className="flex flex-col items-end gap-6">
+          <div className="flex items-center gap-4">
+            <div className="flex -space-x-1">
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm" title="Pedidos"><ShoppingBag size={14} /></div>
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm" title="Produtos"><Package size={14} /></div>
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm" title="Clientes"><Users size={14} /></div>
+            </div>
+            <button
+              className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg transition-all shadow-md active:scale-95 text-[11px] uppercase tracking-widest disabled:opacity-50 group"
+              type="button"
+              onClick={onReload}
+              disabled={status === 'loading'}
+            >
+              <Clock size={14} className={status === 'loading' ? 'animate-spin' : ''} />
+              {status === 'loading' ? 'Sincronizando' : 'Atualizar Dados'}
+            </button>
+          </div>
           <DashboardViewSelector view={view} onChange={setView} />
         </div>
       </div>

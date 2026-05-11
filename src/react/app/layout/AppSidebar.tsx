@@ -84,7 +84,7 @@ export function AppSidebar() {
       <div className="flex-shrink-0 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg shrink-0">
               <Store size={22} strokeWidth={2} />
             </div>
             {!collapsed && (
@@ -110,7 +110,7 @@ export function AppSidebar() {
         <div className="flex justify-center pb-6">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-all shadow-inner"
+            className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-all shadow-inner"
             onClick={toggleCollapsed}
           >
             <ChevronRight size={18} />
@@ -138,10 +138,10 @@ export function AppSidebar() {
                     key={item.id}
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group
+                      `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 relative group
                       ${
                         isActive
-                          ? 'bg-gradient-to-r from-blue-600/15 to-indigo-600/5 text-blue-400 font-bold shadow-sm'
+                          ? 'bg-slate-800 text-white font-bold shadow-sm'
                           : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
@@ -154,9 +154,9 @@ export function AppSidebar() {
                           strokeWidth={isActive ? 2.5 : 2} 
                           className={`flex-shrink-0 transition-transform ${!isActive && 'group-hover:scale-110'}`} 
                         />
-                        {!collapsed && <span className="truncate text-sm">{item.label}</span>}
+                        {!collapsed && <span className="truncate text-sm tracking-tight">{item.label}</span>}
                         {isActive && (
-                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[#C5A059] rounded-r-full shadow-[0_0_12px_rgba(197,160,89,0.5)]" />
                         )}
                       </>
                     )}
@@ -168,10 +168,10 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className="flex-shrink-0 p-4 mt-auto border-t border-slate-800/50">
+      <div className="flex-shrink-0 p-4 mt-auto border-t border-slate-800/30">
         <button
           type="button"
-          className="flex items-center justify-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all group active:scale-95"
+          className="flex items-center justify-center w-full gap-3 px-4 py-3 rounded-lg text-sm font-bold text-slate-500 hover:bg-white/5 hover:text-white transition-all group active:scale-95"
           onClick={handleLogout}
         >
           <LogOut size={collapsed ? 22 : 18} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
