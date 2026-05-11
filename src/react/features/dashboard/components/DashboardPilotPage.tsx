@@ -12,7 +12,7 @@ import {
   StatusBadge
 } from '../../../shared/ui';
 import { SystemBarChart } from '../../../app/components/charts';
-import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield } from 'lucide-react';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
