@@ -306,7 +306,7 @@ function DashboardCard({
   action?: ReactNode;
 }) {
   return (
-    <section className={`bg-white border border-slate-200/80 rounded-xl p-8 md:p-10 shadow-sm flex flex-col gap-6 ${className}`.trim()}>
+    <section className={`bg-white border border-slate-200/80 rounded-xl px-10 py-12 shadow-sm flex flex-col gap-8 ${className}`.trim()}>
       <div className="flex items-center justify-between gap-4">
         <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
           <div className="w-1 h-3 bg-slate-900 rounded-full" />
@@ -874,12 +874,12 @@ function DashboardRoleSummary({
   const focus = focusByRole[role];
 
   return (
-    <section className="relative overflow-hidden bg-slate-900 rounded-xl p-10 md:p-16 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
+    <section className="relative overflow-hidden bg-slate-900 rounded-xl px-12 py-16 md:px-20 md:py-24 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
       {/* Elementos decorativos de fundo */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/10" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/10" />
       
-      <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 pb-8 border-b border-white/10">
+      <div className="relative flex flex-col md:flex-row md:items-start justify-between gap-8 mb-12 pb-10 border-b border-white/10">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#C5A059]">
             <Shield size={12} strokeWidth={3} />
@@ -945,7 +945,7 @@ function DashboardInsightGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.title} className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col gap-3">
+        <div key={card.title} className="bg-white border border-slate-200 rounded-xl px-10 py-12 shadow-sm flex flex-col gap-4">
           <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
             <div className="w-1 h-3 bg-slate-900 rounded-full" />
             {card.title}
@@ -1027,7 +1027,7 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-8 md:p-12 max-w-7xl mx-auto gap-12" data-testid="dashboard-pilot-page">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full px-10 py-16 md:px-16 md:py-20 max-w-7xl mx-auto gap-16" data-testid="dashboard-pilot-page">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 border-b border-slate-200 pb-10">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">

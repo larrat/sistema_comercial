@@ -33,7 +33,7 @@ export function StatCard({ label, value, description, foot, tone = 'default', on
   return (
     <section 
       onClick={onClick}
-      className={`p-8 rounded-xl border shadow-sm transition-all flex flex-col items-center text-center gap-3 ${toneClasses[tone]} ${onClick ? 'cursor-pointer hover:shadow-md hover:translate-y-[-2px] active:translate-y-0' : ''}`}
+      className={`px-10 py-12 rounded-xl border shadow-sm transition-all flex flex-col items-center text-center gap-4 ${toneClasses[tone]} ${onClick ? 'cursor-pointer hover:shadow-md hover:translate-y-[-2px] active:translate-y-0' : ''}`}
     >
       <div className={`text-[10px] font-black uppercase tracking-[0.15em] mb-1 ${labelToneClasses[tone]}`}>
         {label}
