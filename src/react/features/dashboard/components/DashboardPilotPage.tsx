@@ -275,10 +275,10 @@ function DashboardSection({
   children: ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-5 mb-8">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-xl font-bold tracking-tight text-slate-900">{title}</h3>
-        <p className="text-sm text-slate-500">{description}</p>
+    <section className="flex flex-col gap-6 mb-10">
+      <div className="flex flex-col gap-1.5 border-l-4 border-blue-600 pl-4 py-1">
+        <h3 className="text-2xl font-black tracking-tight text-slate-900 leading-none">{title}</h3>
+        <p className="text-sm font-medium text-slate-400">{description}</p>
       </div>
       {children}
     </section>
@@ -297,12 +297,13 @@ function DashboardCard({
   action?: ReactNode;
 }) {
   return (
-    <section className={`bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col gap-4 ${className}`.trim()}>
+    <section className={`bg-white border border-slate-200/60 rounded-[2rem] p-6 md:p-8 shadow-sm flex flex-col gap-6 ${className}`.trim()}>
       <div className="flex items-center justify-between gap-4">
-        <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2 before:content-[''] before:block before:w-2 before:h-2 before:bg-blue-500 before:rounded-sm">
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-3">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
           {title}
         </div>
-        {action && <div>{action}</div>}
+        {action && <div className="shrink-0">{action}</div>}
       </div>
       <div className="flex-1 overflow-hidden min-h-0">
         {children}
@@ -316,83 +317,40 @@ function DashboardContextStats({
   produtosCount,
   clientesCount,
   entreguesHoje,
-  sourceSummary,
   onNavigatePage
 }: {
   pedidosCount: number;
   produtosCount: number;
   clientesCount: number;
   entreguesHoje: number;
-  sourceSummary: string;
   onNavigatePage?: (page: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-4 mb-6">
-      <div className="flex">
-        <span className="text-xs font-medium text-slate-600 bg-slate-100/80 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-          {sourceSummary}
-        </span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Pedidos na base"
-          value={pedidosCount}
-          description="Total de pedidos registrados na filial"
-          foot={
-            <button
-              className="btn btn-sm"
-              type="button"
-              onClick={() => goToPage('pedidos', onNavigatePage)}
-            >
-              Abrir pedidos
-            </button>
-          }
-        />
-        <StatCard
-          label="Produtos monitorados"
-          value={produtosCount}
-          description="Catálogo ativo com controle de estoque"
-          foot={
-            <button
-              className="btn btn-sm"
-              type="button"
-              onClick={() => goToPage('produtos', onNavigatePage)}
-            >
-              Abrir produtos
-            </button>
-          }
-        />
-        <StatCard
-          label="Clientes monitorados"
-          value={clientesCount}
-          description="Base de clientes cadastrada na filial"
-          foot={
-            <button
-              className="btn btn-sm"
-              type="button"
-              onClick={() => goToPage('clientes', onNavigatePage)}
-            >
-              Abrir clientes
-            </button>
-          }
-        />
-        <StatCard
-          label="Entregues hoje"
-          value={entreguesHoje}
-          tone={entreguesHoje > 0 ? 'success' : 'default'}
-          description="Pedidos entregues na data de hoje"
-          foot={
-            <button
-              className="btn btn-sm"
-              type="button"
-              onClick={() => goToPage('pedidos', onNavigatePage)}
-            >
-              Ver pedidos
-            </button>
-          }
-        />
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard
+        label="Pedidos"
+        value={pedidosCount}
+        tone="blue"
+        onClick={() => goToPage('pedidos', onNavigatePage)}
+      />
+      <StatCard
+        label="Catálogo"
+        value={produtosCount}
+        tone="emerald"
+        onClick={() => goToPage('produtos', onNavigatePage)}
+      />
+      <StatCard
+        label="Clientes"
+        value={clientesCount}
+        tone="amber"
+        onClick={() => goToPage('clientes', onNavigatePage)}
+      />
+      <StatCard
+        label="Hoje"
+        value={entreguesHoje}
+        tone={entreguesHoje > 0 ? 'success' : 'default'}
+        onClick={() => goToPage('pedidos', onNavigatePage)}
+      />
     </div>
   );
 }
@@ -906,31 +864,35 @@ function DashboardRoleSummary({
   const focus = focusByRole[role];
 
   return (
-    <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-md text-white mb-8">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6 pb-6 border-b border-white/10">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
-            {ROLE_LABELS[role]} · modo {DASHBOARD_VIEW_LABELS[view]}
+    <section className="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
+      {/* Elementos decorativos de fundo */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/20" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/10 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/20" />
+      
+      <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 pb-8 border-b border-white/5">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">
+            <Shield size={12} strokeWidth={3} />
+            {ROLE_LABELS[role]} · {DASHBOARD_VIEW_LABELS[view]}
           </div>
-          <h3 className="text-xl font-bold tracking-tight text-white">{focus.title}</h3>
-          <p className="text-sm text-slate-300 mt-1">{focus.copy}</p>
+          <h3 className="text-3xl font-black tracking-tight text-white">{focus.title}</h3>
+          <p className="text-slate-400 max-w-lg text-sm leading-relaxed">{focus.copy}</p>
         </div>
         <div className="shrink-0">
-          <StatusBadge
-            tone={role === 'admin' ? 'danger' : role === 'gerente' ? 'warning' : 'success'}
-          >
+          <div className="px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl text-xs font-bold tracking-widest uppercase text-white shadow-inner">
             {ROLE_LABELS[role]}
-          </StatusBadge>
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
         {focus.items.map((item) => (
-          <div key={item.label} className="flex flex-col gap-2">
-            <div className="text-sm font-semibold text-slate-400">{item.label}</div>
-            <div className="text-2xl font-black text-white tracking-tight">{item.value}</div>
-            <div className="text-xs text-slate-300 leading-relaxed mb-2">{item.hint}</div>
+          <div key={item.label} className="flex flex-col gap-3 group/item">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover/item:text-blue-400 transition-colors">{item.label}</div>
+            <div className="text-4xl font-black text-white tracking-tighter transition-transform group-hover/item:translate-x-1">{item.value}</div>
+            <div className="text-xs text-slate-400 leading-relaxed mb-4">{item.hint}</div>
             <button
-              className="mt-auto self-start px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors"
+              className="mt-auto self-start px-5 py-2.5 bg-white/5 hover:bg-white text-slate-300 hover:text-slate-900 text-xs font-bold rounded-xl transition-all border border-white/10 hover:border-white shadow-sm active:scale-95"
               type="button"
               onClick={() => goToPage(item.page, onNavigatePage)}
             >
@@ -1033,47 +995,54 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-4 md:p-8 max-w-7xl mx-auto gap-8" data-testid="dashboard-pilot-page">
-      <PageHeader
-        kicker="Dashboard"
-        title="Painel executivo"
-        description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema."
-        actions={
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-6 md:p-10 max-w-7xl mx-auto gap-10" data-testid="dashboard-pilot-page">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">
+            <LayoutDashboard size={12} strokeWidth={3} />
+            Executivo
+          </div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Dashboard</h1>
+          <p className="text-slate-500 max-w-md text-sm leading-relaxed">
+            Panorama em tempo real da filial ativa com base em pedidos, produtos e clientes.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex -space-x-2 mr-2">
+            <div className="w-8 h-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700 shadow-sm" title="Pedidos">P</div>
+            <div className="w-8 h-8 rounded-full border-2 border-white bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-700 shadow-sm" title="Produtos">PR</div>
+            <div className="w-8 h-8 rounded-full border-2 border-white bg-amber-100 flex items-center justify-center text-[10px] font-bold text-amber-700 shadow-sm" title="Clientes">C</div>
+          </div>
           <button
-            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-slate-900/10 hover:shadow-blue-500/20 active:scale-95 text-sm disabled:opacity-50 group"
             type="button"
             onClick={onReload}
             disabled={status === 'loading'}
           >
-            {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
+            <Clock size={16} className={status === 'loading' ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+            {status === 'loading' ? 'Sincronizando...' : 'Atualizar Dados'}
           </button>
-        }
-        meta={
-          <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge tone="info">{periodoLabels[periodo]}</StatusBadge>
-            <StatusBadge tone="neutral">{DASHBOARD_VIEW_LABELS[view]}</StatusBadge>
-            <StatusBadge tone="success">Dados reais</StatusBadge>
-          </div>
-        }
-      />
-
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm -mt-2">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
-          <div className="flex flex-col gap-0.5 min-w-[140px]">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Filial e Período</span>
-            <span className="text-sm font-semibold text-slate-700 truncate max-w-[200px]">
-              {filialId ?? '—'} · {periodoLabels[periodo]}
-            </span>
-          </div>
-          <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-          <PeriodSelector periodo={periodo} onChange={setPeriodo} />
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0">
-          <div className="h-8 w-px bg-slate-200 hidden lg:block"></div>
-          <div className="flex flex-col gap-0.5 items-end">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Objetivo do Painel</span>
-            <DashboardViewSelector view={view} onChange={setView} />
+      </div>
+
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900/5 backdrop-blur-sm p-2 rounded-2xl border border-slate-200/60 shadow-sm ring-4 ring-slate-900/5">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
+          <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-200 shadow-sm min-w-[200px]">
+            <Building2 size={16} className="text-slate-400" />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-0.5">Filial</span>
+              <span className="text-xs font-bold text-slate-800 truncate">{filialId ?? 'Nenhuma Selecionada'}</span>
+            </div>
           </div>
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+            <PeriodSelector periodo={periodo} onChange={setPeriodo} />
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+          <div className="px-3 py-1.5 text-[9px] font-black uppercase text-slate-400 border-r border-slate-100 mr-1">Visão</div>
+          <DashboardViewSelector view={view} onChange={setView} />
         </div>
       </div>
 

@@ -76,51 +76,61 @@ export function AppSidebar() {
 
   return (
     <aside
-      className={`flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 transition-all duration-300 z-40 relative shadow-2xl shadow-slate-900/20 ${
-        collapsed ? 'w-16' : 'w-[260px]'
+      className={`flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 transition-all duration-300 z-40 relative shadow-2xl ${
+        collapsed ? 'w-20' : 'w-[280px]'
       }`}
       aria-label="Navegação principal"
     >
-      <div className="flex-shrink-0 p-4 border-b border-slate-800/80">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3 overflow-hidden" aria-hidden={collapsed}>
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600 text-white flex-shrink-0 shadow-sm shadow-blue-900/50">
-              <Store size={18} strokeWidth={2} />
+      <div className="flex-shrink-0 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 shrink-0">
+              <Store size={22} strokeWidth={2} />
             </div>
             {!collapsed && (
-              <div className="font-space font-bold text-base text-slate-100 tracking-tight whitespace-nowrap">
-                Sistema Comercial
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-base text-slate-100 tracking-tight leading-none">Sistema</span>
+                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.2em] mt-1">Comercial</span>
               </div>
             )}
           </div>
-          <button
-            type="button"
-            className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            onClick={toggleCollapsed}
-            aria-label={collapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
-            title={collapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
-          >
-            {collapsed ? <ChevronRight size={16} strokeWidth={2.5} /> : <ChevronLeft size={16} strokeWidth={2.5} />}
-          </button>
+          {!collapsed && (
+            <button
+              type="button"
+              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-100 transition-all group"
+              onClick={toggleCollapsed}
+            >
+              <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="p-3">
-        <FilialSwitcher />
-      </div>
+      {collapsed && (
+        <div className="flex justify-center pb-6">
+          <button
+            type="button"
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-all shadow-inner"
+            onClick={toggleCollapsed}
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      )}
 
-      <nav className="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-5 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+
+
+      <nav className="flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-8 scrollbar-hide">
         {groups.map((group) => (
-          <div key={group.label} className="flex flex-col gap-1">
-            {collapsed ? (
-              <div className="h-px bg-slate-800 my-2 mx-1 opacity-60" aria-hidden="true" />
-            ) : (
-              <div className="px-2 mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+          <div key={group.label} className="flex flex-col gap-2">
+            {!collapsed && (
+              <div className="px-3 mb-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-600">
                 {group.label}
               </div>
             )}
+            {collapsed && <div className="h-px bg-slate-800/50 mx-2 mb-2" />}
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
               {group.items.map((item) => {
                 const Icon = iconByPath[item.path] ?? Circle;
                 return (
@@ -128,16 +138,28 @@ export function AppSidebar() {
                     key={item.id}
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 border border-transparent ${
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 relative group
+                      ${
                         isActive
-                          ? 'bg-blue-600/10 text-blue-400 font-medium border-blue-600/20 shadow-sm'
-                          : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                          ? 'bg-gradient-to-r from-blue-600/15 to-indigo-600/5 text-blue-400 font-bold shadow-sm'
+                          : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
                     title={collapsed ? item.label : undefined}
                   >
-                    <Icon size={18} strokeWidth={2} className="flex-shrink-0" />
-                    {!collapsed && <span className="truncate whitespace-nowrap text-sm">{item.label}</span>}
+                    {({ isActive }) => (
+                      <>
+                        <Icon 
+                          size={collapsed ? 22 : 18} 
+                          strokeWidth={isActive ? 2.5 : 2} 
+                          className={`flex-shrink-0 transition-transform ${!isActive && 'group-hover:scale-110'}`} 
+                        />
+                        {!collapsed && <span className="truncate text-sm">{item.label}</span>}
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
+                        )}
+                      </>
+                    )}
                   </NavLink>
                 );
               })}
@@ -146,19 +168,14 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className="flex-shrink-0 p-3 mt-auto border-t border-slate-800/80">
+      <div className="flex-shrink-0 p-4 mt-auto border-t border-slate-800/50">
         <button
           type="button"
-          className="flex items-center justify-center w-full gap-2 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+          className="flex items-center justify-center w-full gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all group active:scale-95"
           onClick={handleLogout}
-          title={collapsed ? 'Sair' : undefined}
         >
-          {collapsed ? <LogOut size={18} strokeWidth={2} /> : (
-            <>
-              <LogOut size={16} strokeWidth={2} />
-              <span className="font-medium">Sair da Conta</span>
-            </>
-          )}
+          <LogOut size={collapsed ? 22 : 18} strokeWidth={2.5} className="group-hover:translate-x-1 transition-transform" />
+          {!collapsed && <span>Sair da Conta</span>}
         </button>
       </div>
     </aside>

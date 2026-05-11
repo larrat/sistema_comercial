@@ -7,7 +7,7 @@ import { AppTopbar } from './AppTopbar';
 
 export function AppShell() {
   return (
-    <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
       <AppSidebar />
       <div className="flex flex-1 flex-col min-w-0 transition-all duration-300">
         <AppTopbar />
