@@ -12,6 +12,7 @@ import {
   StatusBadge
 } from '../../../shared/ui';
 import { SystemBarChart } from '../../../app/components/charts';
+import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock } from 'lucide-react';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const MES_LABEL = [
@@ -151,6 +152,36 @@ function computeDerivedData(
   const mixAtivoPct =
     produtos.length > 0 ? (produtosComSaldo / Math.max(produtos.length, 1)) * 100 : 0;
 
+  const sessentaDiasAtras = new Date(hoje);
+  sessentaDiasAtras.setDate(hoje.getDate() - 60);
+
+  const ultimosPedidos: Record<string, Date> = {};
+  pedidos.forEach((p) => {
+    if (p.status === 'entregue' && p.cliente_id && p.data) {
+      const d = new Date(`${p.data}T00:00:00`);
+      if (!ultimosPedidos[p.cliente_id] || d > ultimosPedidos[p.cliente_id]) {
+        ultimosPedidos[p.cliente_id] = d;
+      }
+    }
+  });
+
+  const churnRisk = clientes.filter((c) => {
+    const lastDate = ultimosPedidos[c.id];
+    return lastDate && lastDate < sessentaDiasAtras;
+  });
+
+  const seteDiasAtras = new Date(hoje);
+  seteDiasAtras.setDate(hoje.getDate() - 7);
+  
+  const orcamentosTravados = pedidos.filter((p) => {
+    if (p.status !== 'orcamento' || !p.data) return false;
+    const d = new Date(`${p.data}T00:00:00`);
+    return d < seteDiasAtras;
+  });
+
+  const META_MENSAL_BASE = 5000;
+  const metaPacing = (fat / META_MENSAL_BASE) * 100;
+
   const pq: Record<string, number> = {};
   entregues.forEach((p) => {
     (Array.isArray(p.itens) ? p.itens : []).forEach((i) => {
@@ -200,7 +231,11 @@ function computeDerivedData(
     estoqueSaudavelPct,
     taxaEntrega,
     coberturaContatoPct,
-    mixAtivoPct
+    mixAtivoPct,
+    churnRisk,
+    orcamentosTravados,
+    metaPacing,
+    META_MENSAL_BASE
   };
 }
 
@@ -240,10 +275,10 @@ function DashboardSection({
   children: ReactNode;
 }) {
   return (
-    <section className="dash-section">
-      <div className="dash-section-head">
-        <h3>{title}</h3>
-        <p>{description}</p>
+    <section className="flex flex-col gap-5 mb-8">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-xl font-bold tracking-tight text-slate-900">{title}</h3>
+        <p className="text-sm text-slate-500">{description}</p>
       </div>
       {children}
     </section>
@@ -262,12 +297,16 @@ function DashboardCard({
   action?: ReactNode;
 }) {
   return (
-    <section className={`card card-shell dash-bento-card ${className}`.trim()}>
-      <div className="dash-bento-card__head">
-        <div className="ct">{title}</div>
-        {action ? <div className="dash-bento-card__action">{action}</div> : null}
+    <section className={`bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col gap-4 ${className}`.trim()}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2 before:content-[''] before:block before:w-2 before:h-2 before:bg-blue-500 before:rounded-sm">
+          {title}
+        </div>
+        {action && <div>{action}</div>}
       </div>
-      {children}
+      <div className="flex-1 overflow-hidden min-h-0">
+        {children}
+      </div>
     </section>
   );
 }
@@ -288,9 +327,14 @@ function DashboardContextStats({
   onNavigatePage?: (page: string) => void;
 }) {
   return (
-    <div className="rf-dash-context-panel">
-      <p className="rf-dash-context-panel__source">{sourceSummary}</p>
-      <div className="rf-ui-stat-grid">
+    <div className="flex flex-col gap-4 mb-6">
+      <div className="flex">
+        <span className="text-xs font-medium text-slate-600 bg-slate-100/80 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+          {sourceSummary}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Pedidos na base"
           value={pedidosCount}
@@ -367,17 +411,24 @@ function PeriodSelector({
     { value: 'tudo', label: 'Tudo' }
   ];
   return (
-    <div className="pseg" data-testid="dash-period-selector">
-      {periods.map((p) => (
-        <button
-          key={p.value}
-          className={periodo === p.value ? 'on' : ''}
-          onClick={() => onChange(p.value)}
-          type="button"
-        >
-          {p.label}
-        </button>
-      ))}
+    <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200/60 w-fit" data-testid="dash-period-selector">
+      {periods.map((p) => {
+        const isActive = periodo === p.value;
+        return (
+          <button
+            key={p.value}
+            className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+              isActive
+                ? 'bg-white text-slate-800 font-semibold shadow-sm ring-1 ring-slate-900/5'
+                : 'text-slate-500 font-medium hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+            onClick={() => onChange(p.value)}
+            type="button"
+          >
+            {p.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -390,18 +441,25 @@ function DashboardViewSelector({
   onChange: (view: DashboardView) => void;
 }) {
   return (
-    <div className="dash-view-selector" aria-label="Mudar objetivo do painel">
+    <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200/60 w-fit" aria-label="Mudar objetivo do painel">
       {(Object.entries(DASHBOARD_VIEW_LABELS) as Array<[DashboardView, string]>).map(
-        ([value, label]) => (
-          <button
-            key={value}
-            className={view === value ? 'on' : ''}
-            onClick={() => onChange(value)}
-            type="button"
-          >
-            {label}
-          </button>
-        )
+        ([value, label]) => {
+          const isActive = view === value;
+          return (
+            <button
+              key={value}
+              className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+                isActive
+                  ? 'bg-white text-slate-800 font-semibold shadow-sm ring-1 ring-slate-900/5'
+                  : 'text-slate-500 font-medium hover:text-slate-700 hover:bg-slate-200/50'
+              }`}
+              onClick={() => onChange(value)}
+              type="button"
+            >
+              {label}
+            </button>
+          );
+        }
       )}
     </div>
   );
@@ -414,7 +472,9 @@ function DashKpis({
   tk,
   abertos,
   entreguesCount,
-  allPedsCount
+  allPedsCount,
+  metaPacing,
+  META_MENSAL_BASE
 }: {
   fat: number;
   lucro: number;
@@ -423,9 +483,11 @@ function DashKpis({
   abertos: number;
   entreguesCount: number;
   allPedsCount: number;
+  metaPacing: number;
+  META_MENSAL_BASE: number;
 }) {
   return (
-    <div className="rf-ui-stat-grid rf-ui-stat-grid--5" data-testid="dash-kpis">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4" data-testid="dash-kpis">
       <StatCard
         label="Faturamento"
         value={fmt(fat)}
@@ -454,6 +516,17 @@ function DashKpis({
         description="Orçamentos e pedidos confirmados"
         tone={abertos > 0 ? 'warning' : 'default'}
       />
+      <div className="flex flex-col gap-1 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Pacing Mensal</div>
+        <div className="text-2xl font-black text-slate-900 tracking-tight">{Math.round(metaPacing)}%</div>
+        <div className="text-xs text-slate-500 mt-1">Rumo à meta de {fmt(META_MENSAL_BASE)}</div>
+        <div className="w-full h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
+          <div 
+            className={`h-full rounded-full transition-all ${metaPacing >= 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+            style={{ width: `${Math.min(metaPacing, 100)}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -462,16 +535,20 @@ function DashAlerts({
   crit,
   baixo,
   anivProximos,
+  churnRisk,
+  orcamentosTravados,
   hoje,
   onNavigatePage
 }: {
   crit: Produto[];
   baixo: Produto[];
   anivProximos: Array<Cliente & { _anivData: Date }>;
+  churnRisk: Cliente[];
+  orcamentosTravados: Pedido[];
   hoje: Date;
   onNavigatePage?: (page: string) => void;
 }) {
-  if (!crit.length && !baixo.length && !anivProximos.length) {
+  if (!crit.length && !baixo.length && !anivProximos.length && !churnRisk.length && !orcamentosTravados.length) {
     return (
       <EmptyState
         compact
@@ -481,25 +558,22 @@ function DashAlerts({
     );
   }
 
+  const fmtCurrency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
   return (
-    <div data-testid="dash-alerts">
+    <div className="flex flex-col gap-3" data-testid="dash-alerts">
       {crit.length > 0 && (
-        <div className="alert al-r dash-alert-card">
-          <div className="dash-alert-card__title">
-            <b>Estoque crítico</b>
+        <div className="flex flex-col gap-2 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 text-red-800 font-bold">
+            <AlertCircle size={18} strokeWidth={2.5} /> Estoque crítico
           </div>
-          <div className="dash-alert-card__copy">
-            {crit.length} produto{crit.length !== 1 ? 's' : ''} zerado
-            {crit.length !== 1 ? 's' : ''}.{' '}
-            {crit
-              .slice(0, 3)
-              .map((p) => p.nome)
-              .join(', ')}
-            {crit.length > 3 ? '...' : ''}
+          <div className="text-sm text-red-900/80 leading-relaxed">
+            {crit.length} produto{crit.length !== 1 ? 's' : ''} zerado{crit.length !== 1 ? 's' : ''}.{' '}
+            {crit.slice(0, 3).map((p) => p.nome).join(', ')}{crit.length > 3 ? '...' : ''}
           </div>
-          <div style={{ marginTop: 10 }}>
+          <div className="mt-2">
             <button
-              className="btn btn-sm"
+              className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 text-xs font-semibold rounded-lg transition-colors"
               type="button"
               onClick={() => goToPage('estoque', onNavigatePage)}
             >
@@ -509,21 +583,17 @@ function DashAlerts({
         </div>
       )}
       {baixo.length > 0 && (
-        <div className="alert al-a dash-alert-card">
-          <div className="dash-alert-card__title">
-            <b>Estoque em atenção</b>
+        <div className="flex flex-col gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 text-amber-800 font-bold">
+            <AlertTriangle size={18} strokeWidth={2.5} /> Estoque em atenção
           </div>
-          <div className="dash-alert-card__copy">
+          <div className="text-sm text-amber-900/80 leading-relaxed">
             {baixo.length} item{baixo.length !== 1 ? 'ns' : ''} abaixo do mínimo.{' '}
-            {baixo
-              .slice(0, 3)
-              .map((p) => p.nome)
-              .join(', ')}
-            {baixo.length > 3 ? '...' : ''}
+            {baixo.slice(0, 3).map((p) => p.nome).join(', ')}{baixo.length > 3 ? '...' : ''}
           </div>
-          <div style={{ marginTop: 10 }}>
+          <div className="mt-2">
             <button
-              className="btn btn-sm"
+              className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-semibold rounded-lg transition-colors"
               type="button"
               onClick={() => goToPage('estoque', onNavigatePage)}
             >
@@ -533,26 +603,70 @@ function DashAlerts({
         </div>
       )}
       {anivProximos.length > 0 && (
-        <div className="alert al-g">
-          <b>Aniversários próximos:</b>{' '}
-          {anivProximos
-            .slice(0, 3)
-            .map((c) => {
-              const dias = Math.round((c._anivData.getTime() - hoje.getTime()) / 86400000);
-              const nome = c.apelido || c.nome;
-              if (dias === 0) return `${nome} hoje`;
-              if (dias === 1) return `${nome} amanhã`;
-              return `${nome} em ${dias} dias`;
-            })
-            .join(', ')}
-          {anivProximos.length > 3 ? '...' : ''}
-          <div style={{ marginTop: 10 }}>
+        <div className="flex flex-col gap-2 p-4 bg-emerald-50 border border-emerald-200 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 text-emerald-800 font-bold">
+            <Gift size={18} strokeWidth={2.5} /> Aniversários próximos
+          </div>
+          <div className="text-sm text-emerald-900/80 leading-relaxed">
+            {anivProximos
+              .slice(0, 3)
+              .map((c) => {
+                const dias = Math.round((c._anivData.getTime() - hoje.getTime()) / 86400000);
+                const nome = c.apelido || c.nome;
+                if (dias === 0) return `${nome} hoje`;
+                if (dias === 1) return `${nome} amanhã`;
+                return `${nome} em ${dias} dias`;
+              })
+              .join(', ')}
+            {anivProximos.length > 3 ? '...' : ''}
+          </div>
+          <div className="mt-2">
             <button
-              className="btn btn-sm"
+              className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-semibold rounded-lg transition-colors"
               type="button"
               onClick={() => goToPage('clientes', onNavigatePage)}
             >
               Abrir clientes
+            </button>
+          </div>
+        </div>
+      )}
+      {churnRisk.length > 0 && (
+        <div className="flex flex-col gap-2 p-4 bg-rose-50 border border-rose-200 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 text-rose-800 font-bold">
+            <UserMinus size={18} strokeWidth={2.5} /> Risco de Churn
+          </div>
+          <div className="text-sm text-rose-900/80 leading-relaxed">
+            {churnRisk.length} cliente{churnRisk.length !== 1 ? 's' : ''} sem comprar há mais de 60 dias.{' '}
+            {churnRisk.slice(0, 3).map((c) => c.nome.split(' ')[0]).join(', ')}{churnRisk.length > 3 ? '...' : ''}
+          </div>
+          <div className="mt-2">
+            <button
+              className="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-semibold rounded-lg transition-colors"
+              type="button"
+              onClick={() => goToPage('clientes', onNavigatePage)}
+            >
+              Recuperar clientes
+            </button>
+          </div>
+        </div>
+      )}
+      {orcamentosTravados.length > 0 && (
+        <div className="flex flex-col gap-2 p-4 bg-orange-50 border border-orange-200 rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 text-orange-800 font-bold">
+            <Clock size={18} strokeWidth={2.5} /> Orçamentos Travados
+          </div>
+          <div className="text-sm text-orange-900/80 leading-relaxed">
+            {orcamentosTravados.length} orçamento{orcamentosTravados.length !== 1 ? 's' : ''} parado{orcamentosTravados.length !== 1 ? 's' : ''} há mais de 7 dias.{' '}
+            Total travado: {fmtCurrency.format(orcamentosTravados.reduce((a, b) => a + (b.total || 0), 0))}
+          </div>
+          <div className="mt-2">
+            <button
+              className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs font-semibold rounded-lg transition-colors"
+              type="button"
+              onClick={() => goToPage('pedidos', onNavigatePage)}
+            >
+              Revisar pipeline
             </button>
           </div>
         </div>
@@ -611,20 +725,26 @@ function DashStatusPedidos({ stMap }: { stMap: Record<string, number> }) {
   };
   const total = Object.values(stMap).reduce((a, v) => a + v, 0);
   return (
-    <div data-testid="dash-status-pedidos">
+    <div className="flex flex-col gap-3" data-testid="dash-status-pedidos">
       {Object.entries(labels).map(([key, label]) => {
         const count = stMap[key] ?? 0;
         const pctVal = total > 0 ? (count / total) * 100 : 0;
+        
+        let colorClass = 'bg-blue-500';
+        if (key === 'entregue') colorClass = 'bg-emerald-500';
+        else if (key === 'cancelado') colorClass = 'bg-slate-300';
+        else if (key === 'em_separacao') colorClass = 'bg-amber-400';
+
         return (
-          <div key={key} className="dash-status-row">
-            <span className="dash-status-label">{label}</span>
-            <span className="dash-status-bar">
-              <span
-                className={`dash-status-fill dash-status-fill--${key}`}
+          <div key={key} className="flex items-center gap-3 text-sm group">
+            <span className="w-28 text-slate-600 font-medium truncate group-hover:text-slate-900 transition-colors">{label}</span>
+            <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
                 style={{ width: `${pctVal}%` }}
               />
-            </span>
-            <span className="dash-status-count">{count}</span>
+            </div>
+            <span className="w-10 text-right font-semibold text-slate-700 tabular-nums">{count}</span>
           </div>
         );
       })}
@@ -649,19 +769,19 @@ function DashTopProdutos({
     );
   }
   return (
-    <div data-testid="dash-top-produtos">
+    <div className="flex flex-col gap-3" data-testid="dash-top-produtos">
       {topProdutos.map(([nome, fat]) => (
-        <div key={nome} className="dash-top-row">
-          <span className="dash-top-label" title={nome}>
-            {nome.length > 28 ? `${nome.slice(0, 28)}…` : nome}
+        <div key={nome} className="flex items-center gap-3 text-sm group">
+          <span className="w-36 text-slate-600 font-medium truncate group-hover:text-slate-900 transition-colors" title={nome}>
+            {nome}
           </span>
-          <span className="dash-top-bar">
-            <span
-              className="dash-top-fill"
+          <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-500 rounded-full transition-all duration-500"
               style={{ width: `${Math.max(4, (fat / maxFat) * 100)}%` }}
             />
-          </span>
-          <span className="dash-top-value">{fmt(fat)}</span>
+          </div>
+          <span className="w-20 text-right font-semibold text-slate-700 tabular-nums">{fmt(fat)}</span>
         </div>
       ))}
     </div>
@@ -786,29 +906,31 @@ function DashboardRoleSummary({
   const focus = focusByRole[role];
 
   return (
-    <section className="dash-role-summary card card-shell dash-bento-card">
-      <div className="dash-role-summary__head">
+    <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-md text-white mb-8">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6 pb-6 border-b border-white/10">
         <div>
-          <div className="dash-role-summary__eyebrow">
+          <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">
             {ROLE_LABELS[role]} · modo {DASHBOARD_VIEW_LABELS[view]}
           </div>
-          <h3>{focus.title}</h3>
-          <p>{focus.copy}</p>
+          <h3 className="text-xl font-bold tracking-tight text-white">{focus.title}</h3>
+          <p className="text-sm text-slate-300 mt-1">{focus.copy}</p>
         </div>
-        <StatusBadge
-          tone={role === 'admin' ? 'danger' : role === 'gerente' ? 'warning' : 'success'}
-        >
-          {ROLE_LABELS[role]}
-        </StatusBadge>
+        <div className="shrink-0">
+          <StatusBadge
+            tone={role === 'admin' ? 'danger' : role === 'gerente' ? 'warning' : 'success'}
+          >
+            {ROLE_LABELS[role]}
+          </StatusBadge>
+        </div>
       </div>
-      <div className="dash-role-summary__grid">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {focus.items.map((item) => (
-          <div key={item.label} className="dash-role-summary__item">
-            <div className="dash-role-summary__label">{item.label}</div>
-            <div className="dash-role-summary__value">{item.value}</div>
-            <div className="dash-role-summary__hint">{item.hint}</div>
+          <div key={item.label} className="flex flex-col gap-2">
+            <div className="text-sm font-semibold text-slate-400">{item.label}</div>
+            <div className="text-2xl font-black text-white tracking-tight">{item.value}</div>
+            <div className="text-xs text-slate-300 leading-relaxed mb-2">{item.hint}</div>
             <button
-              className="btn btn-sm"
+              className="mt-auto self-start px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg transition-colors"
               type="button"
               onClick={() => goToPage(item.page, onNavigatePage)}
             >
@@ -849,12 +971,14 @@ function DashboardInsightGrid({
   ];
 
   return (
-    <div className="dash-insight-grid">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.title} className="card card-shell dash-bento-card dash-insight-card">
-          <div className="ct">{card.title}</div>
-          <div className="dash-insight-card__value">{card.value}</div>
-          <div className="dash-insight-card__hint">{card.hint}</div>
+        <div key={card.title} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col gap-2">
+          <div className="text-xs font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2 before:content-[''] before:block before:w-2 before:h-2 before:bg-blue-500 before:rounded-sm">
+            {card.title}
+          </div>
+          <div className="text-2xl font-black text-slate-900 tracking-tight">{card.value}</div>
+          <div className="text-xs text-slate-500 leading-relaxed">{card.hint}</div>
         </div>
       ))}
     </div>
@@ -909,33 +1033,35 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="dash-bento-page" data-testid="dashboard-pilot-page">
-      <PageHeader
-        kicker="Dashboard"
-        title="Painel executivo"
-        description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema. Sem métricas estimadas ou mockadas."
-        actions={
-          <button
-            className="btn btn-sm"
-            type="button"
-            onClick={onReload}
-            disabled={status === 'loading'}
-          >
-            {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
-          </button>
-        }
-        meta={
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' }}>
-            <StatusBadge tone="info">{periodoLabels[periodo]}</StatusBadge>
-            <StatusBadge tone="neutral">{DASHBOARD_VIEW_LABELS[view]}</StatusBadge>
-            <StatusBadge tone="success">Dados reais</StatusBadge>
-          </div>
-        }
-      />
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-4 md:p-8 max-w-7xl mx-auto" data-testid="dashboard-pilot-page">
+      <div className="mb-6">
+        <PageHeader
+          kicker="Dashboard"
+          title="Painel executivo"
+          description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema. Sem métricas estimadas ou mockadas."
+          actions={
+            <button
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
+              type="button"
+              onClick={onReload}
+              disabled={status === 'loading'}
+            >
+              {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
+            </button>
+          }
+          meta={
+            <div className="flex flex-wrap items-center gap-2 justify-end mt-4">
+              <StatusBadge tone="info">{periodoLabels[periodo]}</StatusBadge>
+              <StatusBadge tone="neutral">{DASHBOARD_VIEW_LABELS[view]}</StatusBadge>
+              <StatusBadge tone="success">Dados reais</StatusBadge>
+            </div>
+          }
+        />
+      </div>
 
-      <div className="page-controls-bar toolbar toolbar-shell toolbar-shell--page">
-        <div className="fg2 dash-page-toolbar">
-          <span className="table-cell-muted dash-page-toolbar__meta">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-3 px-4 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <span className="text-sm font-semibold text-slate-400">
             {filialId ?? '—'} · {periodoLabels[periodo]}
           </span>
           <PeriodSelector periodo={periodo} onChange={setPeriodo} />
@@ -1000,7 +1126,7 @@ export function DashboardPilotPage({
             title="Visão geral da filial"
             description="Panorama executivo do período selecionado, sem estimativas artificiais e sem trocar a origem dos dados."
           >
-            <div className="dash-bento-panel dash-bento-panel--overview">
+            <div className="flex flex-col gap-6">
               <DashboardContextStats
                 pedidosCount={pedidos.length}
                 produtosCount={produtos.length}
@@ -1018,6 +1144,8 @@ export function DashboardPilotPage({
                 abertos={derived.abertos}
                 entreguesCount={derived.entregues.length}
                 allPedsCount={pedidos.length}
+                metaPacing={derived.metaPacing}
+                META_MENSAL_BASE={derived.META_MENSAL_BASE}
               />
             </div>
           </DashboardSection>
@@ -1037,21 +1165,23 @@ export function DashboardPilotPage({
               title="Decisões de hoje"
               description="Fila comercial, ruptura de estoque e relacionamento que pedem ação imediata."
             >
-              <div className="dash-bento-grid dash-bento-grid--ops">
-                <DashboardCard title="Alertas e atenção" className="dash-bento-card--alerts-panel">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DashboardCard title="Alertas e atenção">
                   <DashAlerts
                     crit={derived.crit}
                     baixo={derived.baixo}
                     anivProximos={derived.anivProximos}
+                    churnRisk={derived.churnRisk}
+                    orcamentosTravados={derived.orcamentosTravados}
                     hoje={derived.hoje}
                     onNavigatePage={onNavigatePage}
                   />
                 </DashboardCard>
-                <div className="dash-bento-stack">
-                  <DashboardCard title="Status dos pedidos" className="dash-bento-card--status">
+                <div className="flex flex-col gap-6">
+                  <DashboardCard title="Status dos pedidos">
                     <DashStatusPedidos stMap={derived.stMap} />
                   </DashboardCard>
-                  <DashboardCard title="Top produtos" className="dash-bento-card--top">
+                  <DashboardCard title="Top produtos">
                     <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
                   </DashboardCard>
                 </div>
@@ -1076,18 +1206,18 @@ export function DashboardPilotPage({
                 />
               )}
 
-              <div className="dash-bento-grid dash-bento-grid--analysis">
-                <DashboardCard title="Faturamento e lucro" className="dash-bento-card--chart">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <DashboardCard title="Faturamento e lucro" className="lg:col-span-2">
                   <DashChart
                     chartKeys={derived.chartKeys}
                     grupos={derived.grupos}
                   />
                 </DashboardCard>
-                <div className="dash-bento-stack">
-                  <DashboardCard title="Status dos pedidos" className="dash-bento-card--status">
+                <div className="flex flex-col gap-6">
+                  <DashboardCard title="Status dos pedidos">
                     <DashStatusPedidos stMap={derived.stMap} />
                   </DashboardCard>
-                  <DashboardCard title="Top produtos" className="dash-bento-card--top">
+                  <DashboardCard title="Top produtos">
                     <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
                   </DashboardCard>
                 </div>
