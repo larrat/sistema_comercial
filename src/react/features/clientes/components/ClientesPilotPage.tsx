@@ -236,7 +236,7 @@ export function ClientesPilotPage({
 
 
   return (
-    <main className="rf-content rf-ui-stack" data-testid="clientes-pilot-page">
+    <main className="max-w-7xl mx-auto flex flex-col gap-6 w-full px-4 sm:px-6 lg:px-8 py-8" data-testid="clientes-pilot-page">
       <PageHeader
         kicker="Relacionamento"
         title="Clientes"
@@ -260,16 +260,24 @@ export function ClientesPilotPage({
 
       {error ? <ErrorState title={error} compact data-testid="cliente-pilot-error" /> : null}
 
-      <div className="tabs" data-testid="cliente-surface-tabs">
+      <div className="flex bg-slate-100/80 p-1 rounded-lg w-fit self-start shadow-inner" data-testid="cliente-surface-tabs">
         <button
-          className={`tb ${surfaceTab === 'lista' ? 'on' : ''}`}
+          className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ${
+            surfaceTab === 'lista'
+              ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+          }`}
           type="button"
           onClick={() => setSurfaceTab('lista')}
         >
           Lista
         </button>
         <button
-          className={`tb ${surfaceTab === 'segmentos' ? 'on' : ''}`}
+          className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ${
+            surfaceTab === 'segmentos'
+              ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+          }`}
           type="button"
           onClick={() => setSurfaceTab('segmentos')}
         >
@@ -336,7 +344,6 @@ export function ClientesPilotPage({
 
             <div data-testid="cliente-list">
               <DataTable
-                className="clientes-data-table"
                 data={clientes}
                 rowKey={(cliente) => cliente.id}
                 loading={storeStatus === 'loading'}

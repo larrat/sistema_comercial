@@ -223,13 +223,13 @@ export function ClienteForm({
   }
 
   return (
-    <form className="rf-ui-stack" onSubmit={handleSubmit} data-testid="cliente-form">
+    <form className="flex flex-col gap-8" onSubmit={handleSubmit} data-testid="cliente-form">
       <FormSection
         title="Essencial"
         description="Identificação e contato para o time conseguir atender e vender."
         aside={<span className="bdg bb">Obrigatório primeiro</span>}
       >
-        <div className="grid grid-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField label="Nome / Razão social" htmlFor="cliente-nome" required>
             <input
               id="cliente-nome"
@@ -255,7 +255,7 @@ export function ClienteForm({
           </FormField>
         </div>
 
-        <div className="grid grid-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             label="CPF / CNPJ"
             htmlFor="cliente-doc"
@@ -299,7 +299,7 @@ export function ClienteForm({
           </FormField>
         </div>
 
-        <div className="grid grid-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField label="Telefone" htmlFor="cliente-tel">
             <input
               id="cliente-tel"
@@ -347,7 +347,7 @@ export function ClienteForm({
         title="Comercial"
         description="Organize quem atende, qual segmento e quais condições básicas valem para esse cliente."
       >
-        <div className="grid grid-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField label="Responsável / Comprador" htmlFor="cliente-resp">
             <input
               id="cliente-resp"
@@ -375,7 +375,7 @@ export function ClienteForm({
           </FormField>
         </div>
 
-        <div className="grid grid-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <FormField label="Segmento" htmlFor="cliente-seg">
             <input
               id="cliente-seg"
@@ -428,7 +428,7 @@ export function ClienteForm({
       </FormSection>
 
       <FormSection title="Localização e observações">
-        <div className="grid grid-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField label="Cidade" htmlFor="cliente-cidade">
             <input
               id="cliente-cidade"
@@ -452,7 +452,7 @@ export function ClienteForm({
           </FormField>
         </div>
 
-        <div className="grid grid-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField label="Data de aniversário" htmlFor="cliente-aniv">
             <input
               id="cliente-aniv"

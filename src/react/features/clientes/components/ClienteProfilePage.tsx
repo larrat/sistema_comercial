@@ -268,11 +268,11 @@ function ClienteInfoTable({
   rows: Array<{ label: string; value: string | null | undefined; muted?: boolean }>;
 }) {
   return (
-    <div className="rf-cliente-profile__info-table">
-      {rows.map((row) => (
-        <div key={row.label} className="rf-cliente-profile__info-row">
-          <span className="rf-cliente-profile__info-label">{row.label}</span>
-          <span className={row.value ? 'rf-cliente-profile__info-value' : 'rf-cliente-profile__info-value is-muted'}>
+    <div className="flex flex-col">
+      {rows.map((row, i) => (
+        <div key={row.label} className={`flex items-center justify-between py-3 ${i !== rows.length - 1 ? 'border-b border-slate-100' : ''}`}>
+          <span className="text-sm font-medium text-slate-500">{row.label}</span>
+          <span className={`text-sm font-semibold text-right ${row.value ? 'text-slate-900' : 'text-slate-400 italic'}`}>
             {row.value || 'Não informado'}
           </span>
         </div>
@@ -287,15 +287,15 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
   const count = series.reduce((sum, month) => sum + month.count, 0);
 
   return (
-    <section className="rf-cliente-profile__card">
-      <div className="rf-cliente-profile__card-head">
+    <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="rf-cliente-profile__card-title">Histórico de compras</h3>
-          <p className="rf-cliente-profile__card-subtitle">
+          <h3 className="text-lg font-bold text-slate-900 tracking-tight">Histórico de compras</h3>
+          <p className="text-sm font-medium text-slate-500 mt-1">
             {formatCurrency(total)} · {count} pedido(s)
           </p>
         </div>
-        <span className="rf-cliente-profile__pill is-neutral">12 MESES</span>
+        <span className="px-2 py-1 text-[10px] font-bold tracking-widest text-slate-500 bg-slate-100 rounded-md">12 MESES</span>
       </div>
 
       {count === 0 ? (
@@ -305,12 +305,12 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
           compact
         />
       ) : (
-        <div className="rf-cliente-profile__chart">
+        <div className="w-full mt-2">
           <SystemBarChart
             data={series}
             xKey="label"
-            series={[{ key: 'total', label: 'Compras', color: 'var(--color-accent)' }]}
-            height={140}
+            series={[{ key: 'total', label: 'Compras', color: '#3b82f6' }]}
+            height={160}
             hideYAxis
             ariaLabel="Histórico de compras dos últimos 12 meses"
             valueFormatter={(value) => formatCurrency(Number(value || 0))}
@@ -334,29 +334,38 @@ function PedidosTable({
     return <EmptyState title={emptyTitle} compact />;
   }
 
+  const PILL_COLORS: Record<string, string> = {
+    warning: 'bg-amber-100 text-amber-800',
+    info: 'bg-blue-100 text-blue-800',
+    purple: 'bg-purple-100 text-purple-800',
+    danger: 'bg-rose-100 text-rose-800',
+    success: 'bg-emerald-100 text-emerald-800',
+    neutral: 'bg-slate-100 text-slate-800'
+  };
+
   return (
-    <div className="rf-cliente-profile__table-wrap">
-      <table className="rf-cliente-profile__table">
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
           <tr>
-            <th>Pedido</th>
-            <th>Descrição</th>
-            <th>Valor</th>
-            <th>Status</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Pedido</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Descrição</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Valor</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100">
           {pedidos.map((pedido) => (
-            <tr key={pedido.id}>
-              <td>
-                <button className="rf-cliente-profile__link-btn" type="button" onClick={() => onOpenPedido(pedido.id)}>
+            <tr key={pedido.id} className="hover:bg-slate-50/50 transition-colors">
+              <td className="px-4 py-3">
+                <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors" type="button" onClick={() => onOpenPedido(pedido.id)}>
                   #{pedido.num}
                 </button>
               </td>
-              <td>{pedido.tipo === 'atacado' ? 'Atacado' : 'Pedido comercial'}</td>
-              <td>{formatCurrency(Number(pedido.total || 0))}</td>
-              <td>
-                <span className={`rf-cliente-profile__pill is-${getPedidoStatusPill(pedido.status)}`}>
+              <td className="px-4 py-3 text-sm text-slate-600">{pedido.tipo === 'atacado' ? 'Atacado' : 'Pedido comercial'}</td>
+              <td className="px-4 py-3 text-sm font-semibold text-slate-900">{formatCurrency(Number(pedido.total || 0))}</td>
+              <td className="px-4 py-3">
+                <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${PILL_COLORS[getPedidoStatusPill(pedido.status)] || PILL_COLORS.neutral}`}>
                   {pedido.status || 'Em andamento'}
                 </span>
               </td>
@@ -381,31 +390,39 @@ function FinanceiroTable({
     return <EmptyState title={emptyTitle} compact />;
   }
 
+  const STATUS_COLORS: Record<string, string> = {
+    vencida: 'bg-rose-100 text-rose-800',
+    a_vencer: 'bg-amber-100 text-amber-800',
+    recebida: 'bg-emerald-100 text-emerald-800'
+  };
+
   return (
-    <div className="rf-cliente-profile__table-wrap">
-      <table className="rf-cliente-profile__table">
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Descrição</th>
-            <th>Valor</th>
-            <th>Status</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Data</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Descrição</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Valor</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100">
           {contas.map((conta) => {
             const status = getContaStatus(conta);
             return (
-              <tr key={conta.id}>
-                <td className={status === 'vencida' ? 'is-danger' : ''}>{formatCompactDate(conta.vencimento)}</td>
-                <td>
-                  <button className="rf-cliente-profile__link-btn" type="button" onClick={() => onOpenConta(conta.id)}>
+              <tr key={conta.id} className="hover:bg-slate-50/50 transition-colors">
+                <td className={`px-4 py-3 text-sm font-medium ${status === 'vencida' ? 'text-rose-600' : 'text-slate-600'}`}>
+                  {formatCompactDate(conta.vencimento)}
+                </td>
+                <td className="px-4 py-3">
+                  <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors" type="button" onClick={() => onOpenConta(conta.id)}>
                     {conta.pedido_num ? `Pedido #${conta.pedido_num}` : 'Conta avulsa'}
                   </button>
                 </td>
-                <td>{formatCurrency(getContaValorEmAberto(conta))}</td>
-                <td>
-                  <span className={`rf-cliente-profile__pill is-${status === 'vencida' ? 'danger' : status === 'a_vencer' ? 'warning' : 'success'}`}>
+                <td className="px-4 py-3 text-sm font-semibold text-slate-900">{formatCurrency(getContaValorEmAberto(conta))}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${STATUS_COLORS[status]}`}>
                     {status === 'vencida' ? 'Vencida' : status === 'a_vencer' ? 'A vencer' : 'Recebida'}
                   </span>
                 </td>
@@ -497,7 +514,7 @@ export function ClienteProfilePage({
 
   if (loadingCliente) {
     return (
-      <main className="rf-content rf-ui-stack rf-cliente-profile">
+      <main className="max-w-7xl mx-auto flex flex-col gap-6 w-full px-4 sm:px-6 lg:px-8 py-8">
         <LoadingState
           title="Carregando cliente..."
           description="Estamos reunindo cadastro, pedidos, financeiro e notas para abrir a visão completa."
@@ -507,32 +524,35 @@ export function ClienteProfilePage({
   }
 
   return (
-    <main className="rf-content rf-ui-stack rf-cliente-profile" data-testid="cliente-profile-page">
-      <div className="rf-cliente-profile__breadcrumb">
-        <button className="rf-cliente-profile__back" type="button" onClick={() => navigate('/app/clientes')}>
+    <main className="max-w-7xl mx-auto flex flex-col gap-6 w-full px-4 sm:px-6 lg:px-8 py-8" data-testid="cliente-profile-page">
+      <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-2">
+        <button className="hover:text-slate-900 transition-colors" type="button" onClick={() => navigate('/app/clientes')}>
           Voltar
         </button>
-        <span>Clientes / {cliente.nome}</span>
+        <span>/</span>
+        <span className="text-slate-900">Clientes / {cliente.nome}</span>
       </div>
 
-      <section className="rf-cliente-profile__hero">
-        <div className="rf-cliente-profile__hero-main">
-          <div className="rf-cliente-profile__avatar">{getInitials(cliente.nome)}</div>
-          <div className="rf-cliente-profile__hero-copy">
-            <div className="rf-cliente-profile__title-row">
-              <h1>{cliente.nome}</h1>
-              <span className={`rf-cliente-profile__pill is-${cliente.status === 'ativo' ? 'success' : 'neutral'}`}>
+      <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 md:items-center justify-between">
+        <div className="flex items-center gap-6">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-2xl font-bold text-white shadow-inner">
+            {getInitials(cliente.nome)}
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">{cliente.nome}</h1>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cliente.status === 'ativo' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}`}>
                 {cliente.status === 'inativo' ? 'Inativo' : 'Ativo'}
               </span>
               {cliente.optin_marketing ? (
-                <span className="rf-cliente-profile__pill is-purple">MKT</span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">MKT</span>
               ) : null}
             </div>
-            <p className="rf-cliente-profile__meta-line">{renderMetadataLine(cliente, allPedidos)}</p>
+            <p className="text-sm font-medium text-slate-500">{renderMetadataLine(cliente, allPedidos)}</p>
           </div>
         </div>
 
-        <div className="rf-cliente-profile__hero-actions">
+        <div className="flex items-center gap-3">
           <button
             className="btn btn-sm"
             type="button"
@@ -571,21 +591,25 @@ export function ClienteProfilePage({
         </div>
       </section>
 
-      <section className="rf-cliente-profile__kpis">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((card) => (
-          <article key={card.label} className="rf-cliente-profile__kpi-card">
-            <div className="rf-cliente-profile__kpi-label">{card.label}</div>
-            <div className="rf-cliente-profile__kpi-value">{card.value}</div>
-            <div className={`rf-cliente-profile__kpi-subtitle${card.tone ? ` is-${card.tone}` : ''}`}>{card.subtitle}</div>
+          <article key={card.label} className="flex flex-col gap-1 p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div className="text-sm font-semibold text-slate-500">{card.label}</div>
+            <div className="text-2xl font-bold text-slate-900">{card.value}</div>
+            <div className={`text-xs font-medium mt-1 ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-500'}`}>{card.subtitle}</div>
           </article>
         ))}
       </section>
 
-      <div className="rf-cliente-profile__tabs">
+      <div className="flex bg-slate-100/80 p-1 rounded-lg w-fit shadow-inner overflow-x-auto">
         {PROFILE_TABS.map((tab) => (
           <button
             key={tab.id}
-            className={`rf-cliente-profile__tab${activeTab === tab.id ? ' is-active' : ''}`}
+            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
             type="button"
             onClick={() => setTab(tab.id)}
           >
@@ -595,14 +619,14 @@ export function ClienteProfilePage({
       </div>
 
       {activeTab === 'resumo' ? (
-        <section className="rf-cliente-profile__summary-grid">
-          <div className="rf-cliente-profile__summary-main">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-6 lg:col-span-2">
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="rf-cliente-profile__card-title">Pedidos em aberto</h3>
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Pedidos em aberto</h3>
                 </div>
-                <button className="rf-cliente-profile__link-btn" type="button" onClick={() => setTab('pedidos')}>
+                <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors" type="button" onClick={() => setTab('pedidos')}>
                   Ver todos
                 </button>
               </div>
@@ -619,15 +643,13 @@ export function ClienteProfilePage({
               )}
             </section>
 
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <div>
-                  <h3 className="rf-cliente-profile__card-title">Contas a receber</h3>
-                  <p className="rf-cliente-profile__card-subtitle">
-                    {contasPendentes.length} pendente(s) ·{' '}
-                    {contasPendentes.filter((conta) => getContaStatus(conta) === 'vencida').length} vencida(s)
-                  </p>
-                </div>
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Contas a receber</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  {contasPendentes.length} pendente(s) ·{' '}
+                  {contasPendentes.filter((conta) => getContaStatus(conta) === 'vencida').length} vencida(s)
+                </p>
               </div>
               {contasLoading ? (
                 <LoadingState title="Carregando contas..." compact />
@@ -645,10 +667,10 @@ export function ClienteProfilePage({
             <SimpleBarsChart pedidos={allPedidos} />
           </div>
 
-          <aside className="rf-cliente-profile__summary-side">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Contato</h3>
+          <aside className="flex flex-col gap-6">
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Contato</h3>
               </div>
               <ClienteInfoTable
                 rows={[
@@ -660,9 +682,9 @@ export function ClienteProfilePage({
               />
             </section>
 
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Comercial</h3>
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Comercial</h3>
               </div>
               <ClienteInfoTable
                 rows={[
@@ -674,40 +696,40 @@ export function ClienteProfilePage({
               />
             </section>
 
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Última nota</h3>
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Última nota</h3>
               </div>
               {notasLoading ? (
                 <LoadingState title="Carregando nota..." compact />
               ) : notasError ? (
                 <ErrorState title={notasError} compact />
               ) : ultimaNota ? (
-                <div className="rf-cliente-profile__note-card">
-                  <div className="rf-cliente-profile__note-meta">
-                    {formatDateLong(ultimaNota.data)} · autoria não disponível na origem atual
+                <div className="bg-amber-50/50 border border-amber-100/50 rounded-xl p-4">
+                  <div className="text-xs font-semibold text-amber-800/60 uppercase tracking-widest mb-2">
+                    {formatDateLong(ultimaNota.data)}
                   </div>
-                  <p>{ultimaNota.texto}</p>
+                  <p className="text-sm font-medium text-amber-900/80 leading-relaxed">{ultimaNota.texto}</p>
                 </div>
               ) : (
                 <EmptyState title="Nenhuma nota registrada." compact />
               )}
             </section>
           </aside>
-        </section>
+        </div>
       ) : null}
 
       {activeTab === 'pedidos' ? (
-        <section className="rf-cliente-profile__tab-panel">
+        <section className="flex flex-col gap-6">
           {pedidosLoading ? (
             <LoadingState title="Carregando pedidos..." />
           ) : pedidosError ? (
             <ErrorState title={pedidosError} />
           ) : (
-            <div className="rf-cliente-profile__tab-stack">
-              <section className="rf-cliente-profile__card">
-                <div className="rf-cliente-profile__card-head">
-                  <h3 className="rf-cliente-profile__card-title">Pedidos em aberto</h3>
+            <div className="flex flex-col lg:flex-row gap-6">
+              <section className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Pedidos em aberto</h3>
                 </div>
                 <PedidosTable
                   pedidos={pedidosAbertos}
@@ -715,9 +737,9 @@ export function ClienteProfilePage({
                   onOpenPedido={(pedidoId) => navigate(buildPedidosRoute({ pedidoId, view: 'detail' }))}
                 />
               </section>
-              <section className="rf-cliente-profile__card">
-                <div className="rf-cliente-profile__card-head">
-                  <h3 className="rf-cliente-profile__card-title">Histórico de pedidos</h3>
+              <section className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Histórico de pedidos</h3>
                 </div>
                 <PedidosTable
                   pedidos={pedidosFechados}
@@ -731,15 +753,15 @@ export function ClienteProfilePage({
       ) : null}
 
       {activeTab === 'financeiro' ? (
-        <section className="rf-cliente-profile__tab-panel">
+        <section className="flex flex-col gap-6">
           {contasLoading ? (
             <LoadingState title="Carregando financeiro..." />
           ) : contasError ? (
             <ErrorState title={contasError} />
           ) : (
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Contas a receber</h3>
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Contas a receber</h3>
               </div>
               <FinanceiroTable
                 contas={contas}
@@ -752,22 +774,22 @@ export function ClienteProfilePage({
       ) : null}
 
       {activeTab === 'notas' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <section className="rf-cliente-profile__card">
-            <div className="rf-cliente-profile__card-head">
-              <h3 className="rf-cliente-profile__card-title">Notas comerciais</h3>
+        <section className="flex flex-col gap-6">
+          <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Notas comerciais</h3>
             </div>
-            <div className="rf-cliente-profile__notes-compose">
+            <div className="flex flex-col gap-3 mb-8">
               <textarea
-                className="inp"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-4 outline-none resize-y transition-all"
                 rows={4}
-                placeholder="Registrar observação comercial"
+                placeholder="Registrar observação comercial..."
                 value={notaDraft}
                 onChange={(event) => setNotaDraft(event.target.value)}
               />
               <FormError message={notaError || notasError} />
-              <div className="rf-cliente-profile__notes-actions">
-                <button className="btn btn-sm" type="button" disabled={notaSaving} onClick={() => void handleSubmitNota()}>
+              <div className="flex justify-end mt-1">
+                <button className="btn btn-p btn-sm" type="button" disabled={notaSaving} onClick={() => void handleSubmitNota()}>
                   {notaSaving ? 'Salvando…' : 'Salvar nota'}
                 </button>
               </div>
@@ -775,11 +797,11 @@ export function ClienteProfilePage({
             {notasLoading ? (
               <LoadingState title="Carregando notas..." compact />
             ) : notasOrdenadas.length ? (
-              <div className="rf-cliente-profile__notes-list">
+              <div className="flex flex-col gap-4">
                 {notasOrdenadas.map((nota, index) => (
-                  <article key={`${nota.data}-${index}`} className="rf-cliente-profile__note-row">
-                    <div className="rf-cliente-profile__note-meta">{formatDateLong(nota.data)}</div>
-                    <p>{nota.texto}</p>
+                  <article key={`${nota.data}-${index}`} className="bg-amber-50/50 border border-amber-100/50 rounded-xl p-4">
+                    <div className="text-xs font-semibold text-amber-800/60 uppercase tracking-widest mb-2">{formatDateLong(nota.data)}</div>
+                    <p className="text-sm font-medium text-amber-900/80 leading-relaxed">{nota.texto}</p>
                   </article>
                 ))}
               </div>
@@ -791,9 +813,9 @@ export function ClienteProfilePage({
       ) : null}
 
       {activeTab === 'cadastro' ? (
-        <section className="rf-cliente-profile__tab-panel">
+        <section className="flex flex-col gap-6">
           {editingCadastro ? (
-            <section className="rf-cliente-profile__card">
+            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
               <ClienteForm
                 initialCliente={cliente}
                 analyticsOrigin="cliente_profile_page"
