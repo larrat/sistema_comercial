@@ -16,16 +16,16 @@ export function PageHeader({
   meta
 }: PageHeaderProps) {
   return (
-    <header className="rf-ui-page-header">
-      <div className="rf-ui-page-header__copy">
-        {kicker ? <div className="rf-ui-page-header__kicker">{kicker}</div> : null}
-        <h1 className="rf-ui-page-header__title">{title}</h1>
-        {description ? <p className="rf-ui-page-header__description">{description}</p> : null}
+    <header className="flex flex-col md:flex-row md:items-start justify-between gap-4 p-5 md:p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
+      <div className="flex flex-col gap-1 min-w-0 flex-1">
+        {kicker ? <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{kicker}</div> : null}
+        <h1 className="text-2xl font-bold text-slate-900 leading-tight m-0 truncate">{title}</h1>
+        {description ? <p className="text-sm text-slate-500 mt-1 mb-0">{description}</p> : null}
       </div>
       {(actions || meta) && (
-        <div className="rf-ui-page-header__meta">
-          {actions ? <div className="rf-ui-page-header__actions">{actions}</div> : null}
-          {meta ? <div className="rf-ui-page-header__extra">{meta}</div> : null}
+        <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+          {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+          {meta ? <div className="flex flex-wrap items-center gap-2">{meta}</div> : null}
         </div>
       )}
     </header>

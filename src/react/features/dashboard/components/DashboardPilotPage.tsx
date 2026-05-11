@@ -1033,40 +1033,48 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-4 md:p-8 max-w-7xl mx-auto" data-testid="dashboard-pilot-page">
-      <div className="mb-6">
-        <PageHeader
-          kicker="Dashboard"
-          title="Painel executivo"
-          description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema. Sem métricas estimadas ou mockadas."
-          actions={
-            <button
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
-              type="button"
-              onClick={onReload}
-              disabled={status === 'loading'}
-            >
-              {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
-            </button>
-          }
-          meta={
-            <div className="flex flex-wrap items-center gap-2 justify-end mt-4">
-              <StatusBadge tone="info">{periodoLabels[periodo]}</StatusBadge>
-              <StatusBadge tone="neutral">{DASHBOARD_VIEW_LABELS[view]}</StatusBadge>
-              <StatusBadge tone="success">Dados reais</StatusBadge>
-            </div>
-          }
-        />
-      </div>
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full p-4 md:p-8 max-w-7xl mx-auto gap-8" data-testid="dashboard-pilot-page">
+      <PageHeader
+        kicker="Dashboard"
+        title="Painel executivo"
+        description="Leitura da filial ativa com base em pedidos, produtos e clientes já carregados no sistema."
+        actions={
+          <button
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50"
+            type="button"
+            onClick={onReload}
+            disabled={status === 'loading'}
+          >
+            {status === 'loading' ? 'Atualizando...' : 'Atualizar dados'}
+          </button>
+        }
+        meta={
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge tone="info">{periodoLabels[periodo]}</StatusBadge>
+            <StatusBadge tone="neutral">{DASHBOARD_VIEW_LABELS[view]}</StatusBadge>
+            <StatusBadge tone="success">Dados reais</StatusBadge>
+          </div>
+        }
+      />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-3 px-4 rounded-xl border border-slate-200 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <span className="text-sm font-semibold text-slate-400">
-            {filialId ?? '—'} · {periodoLabels[periodo]}
-          </span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm -mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+          <div className="flex flex-col gap-0.5 min-w-[140px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Filial e Período</span>
+            <span className="text-sm font-semibold text-slate-700 truncate max-w-[200px]">
+              {filialId ?? '—'} · {periodoLabels[periodo]}
+            </span>
+          </div>
+          <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
           <PeriodSelector periodo={periodo} onChange={setPeriodo} />
         </div>
-        <DashboardViewSelector view={view} onChange={setView} />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0">
+          <div className="h-8 w-px bg-slate-200 hidden lg:block"></div>
+          <div className="flex flex-col gap-0.5 items-end">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Objetivo do Painel</span>
+            <DashboardViewSelector view={view} onChange={setView} />
+          </div>
+        </div>
       </div>
 
       {status === 'loading' && (
