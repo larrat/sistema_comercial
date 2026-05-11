@@ -306,7 +306,7 @@ function DashboardCard({
   action?: ReactNode;
 }) {
   return (
-    <section className={`bg-white border border-slate-200/80 rounded-xl px-10 py-12 shadow-sm flex flex-col gap-8 ${className}`.trim()}>
+    <section className={`bg-white border border-slate-200/80 rounded-xl px-12 py-14 shadow-sm flex flex-col gap-10 overflow-hidden ${className}`.trim()}>
       <div className="flex items-center justify-between gap-4">
         <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
           <div className="w-1 h-3 bg-slate-900 rounded-full" />
@@ -378,13 +378,13 @@ function PeriodSelector({
     { value: 'tudo', label: 'Tudo' }
   ];
   return (
-    <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-fit shadow-inner" data-testid="dash-period-selector">
+    <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 w-fit shadow-inner overflow-hidden" data-testid="dash-period-selector">
       {periods.map((p) => {
         const isActive = periodo === p.value;
         return (
           <button
             key={p.value}
-            className={`px-5 py-2 text-[11px] font-bold tracking-tight rounded-lg transition-all ${
+            className={`px-6 py-2.5 text-[11px] font-bold tracking-tight rounded-lg transition-all ${
               isActive
                 ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
                 : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
@@ -408,14 +408,14 @@ function DashboardViewSelector({
   onChange: (view: DashboardView) => void;
 }) {
   return (
-    <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200 shadow-inner" aria-label="Mudar objetivo do painel">
+    <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 shadow-inner overflow-hidden" aria-label="Mudar objetivo do painel">
       {(Object.entries(DASHBOARD_VIEW_LABELS) as Array<[DashboardView, string]>).map(
         ([value, label]) => {
           const isActive = view === value;
           return (
             <button
               key={value}
-              className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all ${
+              className={`px-8 py-3 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-lg'
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
@@ -874,7 +874,7 @@ function DashboardRoleSummary({
   const focus = focusByRole[role];
 
   return (
-    <section className="relative overflow-hidden bg-slate-900 rounded-xl px-12 py-16 md:px-20 md:py-24 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
+    <section className="relative overflow-hidden bg-slate-900 rounded-xl px-16 py-20 md:px-24 md:py-28 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
       {/* Elementos decorativos de fundo */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/10" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/10" />
@@ -945,7 +945,7 @@ function DashboardInsightGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.title} className="bg-white border border-slate-200 rounded-xl px-10 py-12 shadow-sm flex flex-col gap-4">
+        <div key={card.title} className="bg-white border border-slate-200 rounded-xl px-12 py-14 shadow-sm flex flex-col gap-6 overflow-hidden">
           <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
             <div className="w-1 h-3 bg-slate-900 rounded-full" />
             {card.title}
@@ -1027,7 +1027,7 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full px-10 py-16 md:px-16 md:py-20 max-w-7xl mx-auto gap-16" data-testid="dashboard-pilot-page">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full px-12 py-20 md:px-20 md:py-24 max-w-7xl mx-auto gap-20" data-testid="dashboard-pilot-page">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 border-b border-slate-200 pb-10">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
@@ -1039,7 +1039,7 @@ export function DashboardPilotPage({
           </div>
           
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-4 px-6 py-3 bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-5 px-8 py-4 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <Building2 size={18} className="text-[#C5A059]" />
               <div className="flex flex-col">
                 <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1.5">Filial Ativa</span>
