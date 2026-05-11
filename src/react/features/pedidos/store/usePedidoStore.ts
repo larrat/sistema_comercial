@@ -120,6 +120,29 @@ export function selectPedidosForTab(state: PedidoStoreState): Pedido[] {
   return list;
 }
 
+function pedidoMatchesCurrentView(
+  pedido: Pedido,
+  activeTab: PedidoTab,
+  filtro: PedidoFiltro
+): boolean {
+  const normalizedStatus = normalizePedStatus(pedido.status);
+  if (!TAB_STATUSES[activeTab].includes(normalizedStatus)) return false;
+
+  if (filtro.status && normalizedStatus !== normalizePedStatus(filtro.status)) return false;
+  if (filtro.pgto && pedido.pgto !== filtro.pgto) return false;
+
+  if (filtro.q) {
+    const q = filtro.q.toLowerCase();
+    const matchesCliente = String(pedido.cli ?? '')
+      .toLowerCase()
+      .includes(q);
+    const matchesNumero = String(pedido.num ?? '').includes(q);
+    if (!matchesCliente && !matchesNumero) return false;
+  }
+
+  return true;
+}
+
 export const usePedidoStore = create<PedidoStoreState & PedidoStoreActions>((set) => ({
   pedidos: [],
   summary: { ...EMPTY_SUMMARY },
@@ -145,11 +168,22 @@ export const usePedidoStore = create<PedidoStoreState & PedidoStoreActions>((set
   upsertPedido: (pedido) =>
     set((state) => {
       const previous = state.pedidos.find((p) => p.id === pedido.id) ?? null;
+      const belongsToCurrentView = pedidoMatchesCurrentView(pedido, state.activeTab, state.filtro);
       const pedidos = previous
-        ? state.pedidos.map((p) => (p.id === pedido.id ? pedido : p))
-        : [pedido, ...state.pedidos].slice(0, Math.max(1, state.pageSize));
+        ? belongsToCurrentView
+          ? state.pedidos.map((p) => (p.id === pedido.id ? pedido : p))
+          : state.pedidos.filter((p) => p.id !== pedido.id)
+        : belongsToCurrentView
+          ? [pedido, ...state.pedidos].slice(0, Math.max(1, state.pageSize))
+          : state.pedidos;
       const summary = adjustSummary(state.summary, previous, pedido);
-      const total = previous ? state.total : state.total + 1;
+      const total = previous
+        ? belongsToCurrentView
+          ? state.total
+          : Math.max(0, state.total - 1)
+        : belongsToCurrentView
+          ? state.total + 1
+          : state.total;
       return {
         pedidos,
         summary,

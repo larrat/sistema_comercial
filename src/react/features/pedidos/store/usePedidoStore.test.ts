@@ -108,4 +108,27 @@ describe('usePedidoStore', () => {
       canceladosCount: 0
     });
   });
+
+  it('upsertPedido remove da página atual quando novo status sai da aba ativa', () => {
+    usePedidoStore.setState({
+      pedidos: [PEDIDOS[0]],
+      summary: {
+        total: 1,
+        emAbertoCount: 1,
+        valorEmAberto: 120,
+        entreguesCount: 0,
+        canceladosCount: 0
+      },
+      activeTab: 'emaberto',
+      total: 1,
+      pageCount: 1
+    });
+
+    const { result } = renderHook(() => usePedidoStore((s) => s));
+    act(() => result.current.upsertPedido({ ...PEDIDOS[0], status: 'concluido' }));
+
+    expect(result.current.pedidos).toEqual([]);
+    expect(result.current.total).toBe(0);
+    expect(result.current.summary.entreguesCount).toBe(1);
+  });
 });
