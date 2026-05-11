@@ -306,7 +306,7 @@ function DashboardCard({
   action?: ReactNode;
 }) {
   return (
-    <section className={`bg-white border border-slate-200/80 rounded-lg p-6 shadow-sm flex flex-col gap-6 ${className}`.trim()}>
+    <section className={`bg-white border border-slate-200/80 rounded-xl p-8 md:p-10 shadow-sm flex flex-col gap-6 ${className}`.trim()}>
       <div className="flex items-center justify-between gap-4">
         <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
           <div className="w-1 h-3 bg-slate-900 rounded-full" />
@@ -874,7 +874,7 @@ function DashboardRoleSummary({
   const focus = focusByRole[role];
 
   return (
-    <section className="relative overflow-hidden bg-slate-900 rounded-lg p-8 md:p-12 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
+    <section className="relative overflow-hidden bg-slate-900 rounded-xl p-10 md:p-16 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
       {/* Elementos decorativos de fundo */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/10" />
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/10" />
@@ -945,7 +945,7 @@ function DashboardInsightGrid({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {cards.map((card) => (
-        <div key={card.title} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2">
+        <div key={card.title} className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm flex flex-col gap-3">
           <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
             <div className="w-1 h-3 bg-slate-900 rounded-full" />
             {card.title}
