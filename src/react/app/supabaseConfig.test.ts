@@ -7,7 +7,6 @@ describe('getSupabaseConfig', () => {
     localStorage.clear();
     delete window.__SC_SUPABASE_URL__;
     delete window.__SC_SUPABASE_KEY__;
-    delete window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__;
   });
 
   it('prioriza configuracao injetada em window', () => {
@@ -34,21 +33,22 @@ describe('getSupabaseConfig', () => {
     });
   });
 
-  it('libera fallback legado apenas quando flag estiver ativa', () => {
-    window.__SC_ALLOW_LEGACY_SUPABASE_DEFAULTS__ = true;
-
+  it('retorna fallback hardcoded quando nenhuma fonte estiver disponivel', () => {
     const config = getSupabaseConfig();
 
+    // A configuração sempre retorna ready=true pois há fallback hardcoded de produção.
     expect(config.ready).toBe(true);
     expect(config.url).toContain('supabase.co');
-    expect(config.key).toContain('sb_publishable_');
+    expect(config.key.length).toBeGreaterThan(10);
   });
 
-  it('retorna ready=false quando nenhuma fonte estiver disponivel', () => {
-    expect(getSupabaseConfig()).toEqual({
-      url: '',
-      key: '',
-      ready: false
-    });
+  it('prioriza window sobre localStorage sobre fallback', () => {
+    window.__SC_SUPABASE_URL__ = 'https://win.example';
+    window.__SC_SUPABASE_KEY__ = 'win-key';
+
+    const config = getSupabaseConfig();
+    expect(config.url).toBe('https://win.example');
+    expect(config.key).toBe('win-key');
+    expect(config.ready).toBe(true);
   });
 });

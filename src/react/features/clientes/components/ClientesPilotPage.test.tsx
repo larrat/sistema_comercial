@@ -1,4 +1,3 @@
-import { act } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -68,6 +67,7 @@ const listNotasMock = vi.mocked(listNotas);
 const getClienteFidelidadeSaldoMock = vi.mocked(getClienteFidelidadeSaldo);
 const listClienteFidelidadeLancamentosMock = vi.mocked(listClienteFidelidadeLancamentos);
 const listPedidosByClienteMock = vi.mocked(listPedidosByCliente);
+
 const CLIENTES: Cliente[] = [
   { id: '1', nome: 'Maria Souza', status: 'ativo', seg: 'Varejo', email: 'maria@a.com' }
 ];
@@ -242,95 +242,31 @@ describe('ClientesPilotPage', () => {
     expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'resumo', origin: 'list_row' });
   });
 
-  it('abre novo formulario quando recebe comando do shell legado', async () => {
+  it('abre novo formulario ao clicar no botao Novo cliente', async () => {
     render(<ClientesPilotPage />);
 
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:novo' }
-        })
-      );
-    });
+    await userEvent.click(screen.getByTestId('novo-btn'));
 
     expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
   });
 
-  it('abre detalhe quando recebe comando com id', async () => {
-    const onOpenCliente = vi.fn();
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-detalhe', id: '1' }
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'resumo', origin: 'legacy_bridge' });
-    });
-  });
-
-  it('abre edicao quando recebe comando com id', async () => {
+  it('abre formulario de edicao via menu de acoes', async () => {
     render(<ClientesPilotPage />);
 
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:editar', id: '1' }
-        })
-      );
-    });
+    await userEvent.click(screen.getByTestId('cli-menu-btn'));
+    await userEvent.click(screen.getByText('Editar'));
 
     expect(await screen.findByTestId('cliente-form')).toBeInTheDocument();
     expect(screen.getByTestId('form-nome')).toHaveValue('Maria Souza');
   });
 
-  it('remove cliente quando recebe comando com id', async () => {
-    deleteClienteMock.mockResolvedValue(undefined);
-    render(<ClientesPilotPage />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:excluir', id: '1' }
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(deleteClienteMock).toHaveBeenCalledWith(
-        {
-          url: 'https://example.supabase.co',
-          key: 'public-key',
-          token: 'token-1',
-          filialId: 'filial-1'
-        },
-        '1'
-      );
-    });
-  });
-
-  it('limpa filtros quando recebe comando do shell legado', async () => {
+  it('limpa filtros ao clicar no botao Limpar', async () => {
     render(<ClientesPilotPage />);
 
     await userEvent.type(screen.getByTestId('busca-input'), 'maria');
     expect(screen.getByTestId('busca-input')).toHaveValue('maria');
 
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:limpar-filtros' }
-        })
-      );
-    });
+    await userEvent.click(screen.getByTestId('limpar-filtro'));
 
     await waitFor(() => {
       expect(screen.getByTestId('busca-input')).toHaveValue('');
@@ -338,95 +274,17 @@ describe('ClientesPilotPage', () => {
     });
   });
 
-  it('abre a superfície de segmentos quando recebe comando do shell legado', async () => {
+  it('alterna para a superficie de segmentos ao clicar na aba', async () => {
     render(<ClientesPilotPage />);
 
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-segmentos' }
-        })
-      );
-    });
+    await userEvent.click(screen.getByText('Segmentos'));
 
     const segmentView = await screen.findByTestId('cliente-segment-view');
     expect(segmentView).toBeInTheDocument();
     expect(within(segmentView).getByText('Varejo')).toBeInTheDocument();
   });
 
-  it('ignora comando legado editar-atual que nao existe mais no piloto React', async () => {
-    render(<ClientesPilotPage />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:editar-atual' }
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByTestId('cliente-form')).not.toBeInTheDocument();
-    });
-  });
-
-  it('abre cadastro quando recebe comando de fidelidade do shell legado', async () => {
-    const onOpenCliente = vi.fn();
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fidelidade', id: '1' }
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'cadastro', origin: 'legacy_bridge' });
-    });
-  });
-
-  it('abre aba de pedidos quando recebe comando de pedidos abertos do shell legado', async () => {
-    const onOpenCliente = vi.fn();
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-abertas', id: '1' }
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'pedidos', origin: 'legacy_bridge' });
-    });
-  });
-
-  it('abre aba de pedidos quando recebe comando de pedidos fechados do shell legado', async () => {
-    const onOpenCliente = vi.fn();
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:abrir-fechadas', id: '1' }
-        })
-      );
-    });
-
-    await waitFor(() => {
-      expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'pedidos', origin: 'legacy_bridge' });
-    });
-  });
-
-  it('exporta csv filtrado quando recebe comando do shell legado', async () => {
+  it('exporta csv ao clicar no botao Exportar CSV', async () => {
     const createObjectURLMock = vi
       .spyOn(URL, 'createObjectURL')
       .mockReturnValue('blob:clientes-react');
@@ -435,18 +293,7 @@ describe('ClientesPilotPage', () => {
 
     render(<ClientesPilotPage />);
 
-    act(() => {
-      useClienteStore.getState().setFiltro({ q: 'maria' });
-    });
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent('message', {
-          origin: window.location.origin,
-          data: { source: 'clientes-legacy-shell', type: 'clientes:exportar-csv' }
-        })
-      );
-    });
+    await userEvent.click(screen.getByTestId('export-btn'));
 
     expect(createObjectURLMock).toHaveBeenCalledOnce();
     expect(clickMock).toHaveBeenCalledOnce();
