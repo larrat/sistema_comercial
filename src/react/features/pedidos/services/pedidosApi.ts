@@ -2,6 +2,12 @@ import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { TAB_STATUSES, normalizePedStatus, type PedidoSummary, type PedidoTab } from '../types';
 import { normalizePedido } from '../utils/normalizePedido';
 
+declare global {
+  interface Window {
+    __SC_PEDIDO_ITENS_DUAL_WRITE__?: boolean;
+  }
+}
+
 export type PedidoSaveInput = {
   id: string;
   filial_id: string;

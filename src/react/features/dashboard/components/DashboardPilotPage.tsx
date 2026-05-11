@@ -1238,6 +1238,8 @@ export function DashboardPilotPage({
                   crit={derived.crit}
                   baixo={derived.baixo}
                   anivProximos={derived.anivProximos}
+                  churnRisk={derived.churnRisk}
+                  orcamentosTravados={derived.orcamentosTravados}
                   hoje={derived.hoje}
                   onNavigatePage={onNavigatePage}
                 />

@@ -70,7 +70,7 @@ function makeResponse(body: unknown, status = 200, headers?: HeadersInit): Respo
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal('fetch', vi.fn());
-  delete window.__SC_PEDIDO_ITENS_DUAL_WRITE__;
+  delete (window as any).__SC_PEDIDO_ITENS_DUAL_WRITE__;
 
   if (typeof AbortSignal.timeout !== 'function') {
     Object.defineProperty(AbortSignal, 'timeout', {
@@ -261,7 +261,7 @@ describe('pedidosApi server-side listagem', () => {
   });
 
   it('faz dual-write do PDV em pedido_itens quando flag esta ligada', async () => {
-    window.__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
+    (window as any).__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
     vi.mocked(fetch).mockResolvedValue(makeResponse(null));
 
     await savePedido(
@@ -318,7 +318,7 @@ describe('pedidosApi server-side listagem', () => {
   });
 
   it('nao bloqueia venda PDV se dual-write normalizado falhar', async () => {
-    window.__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
+    (window as any).__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.mocked(fetch)
       .mockResolvedValueOnce(makeResponse(null))

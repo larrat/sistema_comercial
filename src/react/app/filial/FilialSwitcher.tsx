@@ -77,7 +77,6 @@ export function FilialSwitcher() {
   }
 
   return (
-  return (
     <>
       <div className="flex flex-col gap-1 items-end">
         <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mr-1">Filial ativa</div>
