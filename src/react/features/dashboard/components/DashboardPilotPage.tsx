@@ -707,8 +707,8 @@ function DashChart({
         valueFormatter={(value) => fmt(Number(value || 0))}
         ariaLabel="Faturamento e lucro por período"
         series={[
-          { key: 'fat', label: 'Faturamento', color: 'var(--color-accent)' },
-          { key: 'lucro', label: 'Lucro', color: 'var(--color-success)' }
+          { key: 'fat', label: 'Faturamento', color: '#3b82f6' },
+          { key: 'lucro', label: 'Lucro', color: '#10b981' }
         ]}
       />
     </div>

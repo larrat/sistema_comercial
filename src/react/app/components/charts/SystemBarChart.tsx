@@ -52,9 +52,9 @@ export function SystemBarChart<T extends ChartRow>({
   }
 
   return (
-    <div className="rf-ui-chart" style={{ height }} role="img" aria-label={ariaLabel}>
+    <div className="w-full" style={{ height }} role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 6, right: 0, left: 0, bottom: 0 }}>
           <defs>
             {series.map((item, index) => (
               <linearGradient
@@ -66,29 +66,28 @@ export function SystemBarChart<T extends ChartRow>({
                 y2="1"
               >
                 <stop offset="0%" stopColor={item.color} stopOpacity="1" />
-                <stop offset="100%" stopColor={item.color} stopOpacity="0.55" />
+                <stop offset="100%" stopColor={item.color} stopOpacity="0.6" />
               </linearGradient>
             ))}
           </defs>
-          <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="2 4" />
           <XAxis
             dataKey={xKey as string}
             axisLine={false}
             tickLine={false}
-            tickMargin={10}
-            tick={{ fontSize: 10, fill: 'var(--color-text-3)' }}
+            tickMargin={12}
+            tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 500 }}
           />
           <YAxis hide={hideYAxis} axisLine={false} tickLine={false} />
           {series.length > 1 ? (
             <Legend
               verticalAlign="top"
-              align="center"
+              align="right"
               iconType="circle"
-              wrapperStyle={{ fontSize: 11, color: 'var(--color-text-2)', paddingBottom: '8px' }}
+              wrapperStyle={{ fontSize: 12, color: '#64748b', paddingBottom: '16px', fontWeight: 500 }}
             />
           ) : null}
           <Tooltip
-            cursor={{ fill: 'rgba(148, 163, 184, 0.08)' }}
+            cursor={{ fill: '#f1f5f9' }}
             content={<ChartTooltip valueFormatter={valueFormatter} />}
           />
           {series.map((item, index) => (
@@ -97,9 +96,10 @@ export function SystemBarChart<T extends ChartRow>({
               dataKey={item.key as string}
               name={item.label}
               fill={`url(#${gradientId}-bar-${index})`}
-              radius={[4, 4, 0, 0]}
-              maxBarSize={22}
-              isAnimationActive={false}
+              radius={[6, 6, 6, 6]}
+              maxBarSize={16}
+              isAnimationActive={true}
+              animationDuration={800}
             />
           ))}
         </BarChart>
