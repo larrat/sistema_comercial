@@ -11,8 +11,10 @@ import {
   YAxis,
   Pie,
   PieChart,
-  Cell
+  Cell,
+  Sector
 } from 'recharts';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle,
   ArrowUpRight,
@@ -52,6 +54,7 @@ export function DashboardPilotPage() {
   } = useDashboardStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activePieIndex, setActivePieIndex] = useState(-1);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -179,6 +182,34 @@ export function DashboardPilotPage() {
   }, [stats.vendasReais]);
 
   const topProductsColors = ['#0F172A', '#C5A059', '#10B981', '#6366F1', '#F59E0B'];
+
+  const renderActiveShape = (props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    return (
+      <g>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius + 8}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          style={{ filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.1))' }}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={outerRadius + 12}
+          outerRadius={outerRadius + 14}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+          opacity={0.3}
+        />
+      </g>
+    );
+  };
 
   const statusDistribution = useMemo(() => {
     const dist: Record<string, number> = {};
@@ -530,6 +561,8 @@ export function DashboardPilotPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
+                      activeIndex={activePieIndex}
+                      activeShape={renderActiveShape}
                       data={topProducts}
                       cx="50%"
                       cy="50%"
@@ -539,6 +572,8 @@ export function DashboardPilotPage() {
                       dataKey="receita"
                       nameKey="nome"
                       stroke="none"
+                      onMouseEnter={(_, index) => setActivePieIndex(index)}
+                      onMouseLeave={() => setActivePieIndex(-1)}
                     >
                       {topProducts.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={topProductsColors[index % topProductsColors.length]} />
@@ -580,14 +615,20 @@ export function DashboardPilotPage() {
                 {topProducts.map((p, i) => {
                   const total = topProducts.reduce((acc, x) => acc + x.receita, 0);
                   const perc = total > 0 ? (p.receita / total) * 100 : 0;
+                  const isActive = activePieIndex === i;
                   return (
-                    <div key={i} className="flex items-center justify-between group">
+                    <div 
+                      key={i} 
+                      className={`flex items-center justify-between group transition-all duration-300 ${isActive ? 'translate-x-1' : ''}`}
+                      onMouseEnter={() => setActivePieIndex(i)}
+                      onMouseLeave={() => setActivePieIndex(-1)}
+                    >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: topProductsColors[i % topProductsColors.length] }} />
-                        <span className="text-[10px] font-bold text-slate-700 truncate uppercase tracking-tight">{p.nome}</span>
+                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-transform ${isActive ? 'scale-150' : ''}`} style={{ background: topProductsColors[i % topProductsColors.length] }} />
+                        <span className={`text-[10px] font-bold truncate uppercase tracking-tight transition-colors ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>{p.nome}</span>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
-                        <span className="text-[10px] font-black text-slate-900">{perc.toFixed(1)}%</span>
+                        <span className={`text-[10px] font-black transition-colors ${isActive ? 'text-[#C5A059]' : 'text-slate-900'}`}>{perc.toFixed(1)}%</span>
                         <span className="text-[9px] font-medium text-slate-400 min-w-[50px] text-right">{fmt(p.receita)}</span>
                       </div>
                     </div>
