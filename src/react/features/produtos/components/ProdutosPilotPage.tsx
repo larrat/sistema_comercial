@@ -61,7 +61,7 @@ function formValuesToProduto(
     emin: parseFloat(values.emin) || 0,
     esal: parseFloat(values.esal) || 0,
     ecm: parseFloat(values.ecm) || custo,
-    hist_cot: existing?.hist_cot ?? []
+    hist_cot: existing?.hist_cot || []
   };
 }
 
@@ -150,8 +150,8 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
           );
           if (devePropagarFilhos) {
             await submitCascadeFilhos(existing.id, {
-              cat: values.cat?.trim(),
-              un: values.un?.trim()
+              cat: values.cat?.trim() || null,
+              un: values.un?.trim() || 'un'
             });
           }
         }

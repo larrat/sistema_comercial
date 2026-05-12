@@ -192,7 +192,13 @@ export function ProdutoProfilePage({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingCadastro, setEditingCadastro] = useState(searchParams.get('edit') === '1');
-  const { submitProduto, saving, error: mutationError } = useProdutoMutations();
+  const {
+    submitProduto,
+    submitCascadeRename,
+    submitCascadeFilhos,
+    saving,
+    error: mutationError
+  } = useProdutoMutations();
 
   const activeTab = normalizeTab(searchParams.get('tab'));
   const isPai = !produto.produto_pai_id;
@@ -258,8 +264,8 @@ export function ProdutoProfilePage({
       );
       if (devePropagarFilhos) {
         await submitCascadeFilhos(produto.id, {
-          cat: values.cat?.trim(),
-          un: values.un?.trim()
+          cat: values.cat?.trim() || null,
+          un: values.un?.trim() || 'un'
         });
       }
     }
