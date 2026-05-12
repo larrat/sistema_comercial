@@ -160,7 +160,6 @@ export function DashboardPilotPage() {
       items.forEach(item => {
         if (!item.prodId) return;
         
-        // Tenta encontrar info do pai/filho no cadastro de produtos
         const prodInfo = produtos.find(pr => pr.id === item.prodId);
         const paiInfo = prodInfo?.produto_pai_id ? produtos.find(pr => pr.id === prodInfo.produto_pai_id) : null;
         
@@ -171,16 +170,24 @@ export function DashboardPilotPage() {
         if (!productSales[key]) {
           productSales[key] = { 
             nome: mainName, 
-            variant: variantName,
+            variants: new Set([variantName || 'Base']),
             receita: 0,
             isChild: !!paiInfo
           };
+        } else if (paiInfo) {
+          productSales[key].variants.add(variantName || 'Base');
         }
         productSales[key].receita += Number(item.preco || 0) * Number(item.qty || 0);
       });
     });
     
     return Object.values(productSales)
+      .map(p => ({
+        ...p,
+        variantDisplay: p.variants.size > 1 
+          ? `${p.variants.size} variantes vendidas` 
+          : Array.from(p.variants)[0] === 'Base' ? '' : Array.from(p.variants)[0]
+      }))
       .sort((a, b) => b.receita - a.receita)
       .slice(0, 5);
   }, [stats.vendasReais, produtos]);
@@ -534,16 +541,16 @@ export function DashboardPilotPage() {
                 <div key={i} className="flex items-start justify-between group">
                   <div className="flex-1 min-w-0 pr-6">
                     <p className="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight leading-tight mb-1">{p.nome}</p>
-                    {p.variant ? (
-                      <p className="text-[9px] font-semibold text-slate-400 truncate uppercase tracking-wider">{p.variant}</p>
+                    {p.variantDisplay ? (
+                      <p className="text-[9px] font-semibold text-slate-400 truncate uppercase tracking-wider">{p.variantDisplay}</p>
                     ) : (
                       <p className="text-[9px] font-medium text-slate-300 italic">Produto Base</p>
                     )}
                   </div>
-                  <div className="flex flex-col items-end">
+                  <div className="flex flex-col items-end flex-shrink-0 text-right min-w-[100px]">
                     <p className="text-[12px] font-black text-slate-900 leading-none mb-1.5">{fmt(p.receita)}</p>
-                    <div className="w-16 h-[3px] bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#C5A059] rounded-full" style={{ width: `${100 - i * 15}%` }} />
+                    <div className="w-full h-[3px] bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#C5A059] rounded-full ml-auto" style={{ width: `${100 - i * 15}%` }} />
                     </div>
                   </div>
                 </div>
