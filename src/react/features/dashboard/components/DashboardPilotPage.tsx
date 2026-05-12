@@ -24,6 +24,10 @@ import {
   RefreshCw,
   TrendingUp
 } from 'lucide-react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
 
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -42,6 +46,33 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   concluido: { label: 'Concluído', color: '#10B981' },
   cancelado: { label: 'Cancelado', color: '#EF4444' }
 };
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+function PremiumTooltip({ children, content }: { children: React.ReactNode; content: string }) {
+  return (
+    <TooltipPrimitive.Provider delayDuration={200}>
+      <TooltipPrimitive.Root>
+        <TooltipPrimitive.Trigger asChild>
+          {children}
+        </TooltipPrimitive.Trigger>
+        <TooltipPrimitive.Portal>
+          <TooltipPrimitive.Content
+            side="top"
+            align="center"
+            sideOffset={5}
+            className="z-[9999] overflow-hidden rounded-xl bg-slate-900 px-3 py-1.5 text-[10px] font-bold text-white shadow-2xl animate-in fade-in zoom-in duration-200"
+          >
+            {content}
+            <TooltipPrimitive.Arrow className="fill-slate-900" />
+          </TooltipPrimitive.Content>
+        </TooltipPrimitive.Portal>
+      </TooltipPrimitive.Root>
+    </TooltipPrimitive.Provider>
+  );
+}
 
 export function DashboardPilotPage() {
   const { reload } = useDashboardData();
@@ -548,7 +579,9 @@ export function DashboardPilotPage() {
               return (
                 <div key={key} className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: config.color }} />
-                  <span className="text-[11px] font-medium text-slate-600 w-[100px] truncate">{config.label}</span>
+                  <PremiumTooltip content={config.label}>
+                    <span className="text-[11px] font-medium text-slate-600 w-[100px] truncate cursor-help">{config.label}</span>
+                  </PremiumTooltip>
                   <div className="flex-1 h-[5px] bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${perc}%`, background: config.color }} />
                   </div>
@@ -630,7 +663,9 @@ export function DashboardPilotPage() {
                     >
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-transform ${isActive ? 'scale-150' : ''}`} style={{ background: topProductsColors[i % topProductsColors.length] }} />
-                        <span className={`text-[10px] font-bold truncate uppercase tracking-tight transition-colors ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>{p.nome}</span>
+                        <PremiumTooltip content={p.nome}>
+                          <span className={`text-[10px] font-bold truncate uppercase tracking-tight transition-colors cursor-help ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>{p.nome}</span>
+                        </PremiumTooltip>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
                         <span className={`text-[10px] font-black transition-colors ${isActive ? 'text-[#C5A059]' : 'text-slate-900'}`}>{perc.toFixed(1)}%</span>
