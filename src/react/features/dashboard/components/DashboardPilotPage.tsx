@@ -124,7 +124,7 @@ export function DashboardPilotPage() {
     
     let lucroTotal = 0;
     vendasReais.forEach(p => {
-      const items = (p.itens || []) as PedidoItem[];
+      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
       items.forEach(item => {
         const preco = Number(item.preco || 0);
         const custo = Number(item.custo || 0);
@@ -154,7 +154,7 @@ export function DashboardPilotPage() {
     
     // IMPORTANTE: O gráfico deve usar a MESMA base das stats (vendasReais) para ser "Certeiro"
     stats.vendasReais.forEach(p => {
-      const date = new Date(p.data || p.criado_em || '');
+      const date = new Date(p.data || '');
       let key = '';
       let label = '';
       
@@ -173,7 +173,7 @@ export function DashboardPilotPage() {
       if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0 };
       groups[key].faturamento += Number(p.total || 0);
       
-      const items = (p.itens || []) as PedidoItem[];
+      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
       items.forEach(item => {
         groups[key].lucro += (Number(item.preco || 0) - Number(item.custo || 0)) * Number(item.qty || 0);
       });
@@ -199,7 +199,7 @@ export function DashboardPilotPage() {
       end = new Date(now.getFullYear(), 11, 31);
     } else {
       if (!pedidos.length) return 'Todo o período';
-      const dates = pedidos.map(p => new Date(p.data || p.criado_em || ''));
+      const dates = pedidos.map(p => new Date(p.data || ''));
       start = new Date(Math.min(...dates.map(d => d.getTime())));
       end = new Date(Math.max(...dates.map(d => d.getTime())));
     }
@@ -212,7 +212,7 @@ export function DashboardPilotPage() {
     const productSales: Record<string, { nome: string; receita: number }> = {};
     
     stats.vendasReais.forEach(p => {
-      const items = (p.itens || []) as PedidoItem[];
+      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
         
@@ -282,12 +282,13 @@ export function DashboardPilotPage() {
     const comContato = clientes.filter(c => c.whatsapp || c.email).length;
     
     const totalProdutos = produtos.length;
-    const comEstoque = produtos.filter(p => Number(p.saldo_atual || 0) > 0).length;
+    const comEstoque = produtos.filter(p => Number(p.esal || 0) > 0).length;
     
     const produtosVendidos = new Set();
     pedidos.forEach(p => {
       if (p.status === 'cancelado') return;
-      (p.itens || []).forEach((i: any) => produtosVendidos.add(i.prodId));
+      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
+      items.forEach(i => produtosVendidos.add(i.prodId));
     });
 
     const validPedidos = pedidos.filter(p => p.status !== 'cancelado');
@@ -306,7 +307,7 @@ export function DashboardPilotPage() {
     const total = clientes.length;
     const comWhats = clientes.filter(c => c.whatsapp).length;
     const comEmail = clientes.filter(c => c.email).length;
-    const optIn = clientes.filter(c => c.participa_campanhas).length;
+    const optIn = clientes.filter(c => c.optin_marketing).length;
     
     const compradores = new Set();
     pedidos.forEach(p => {
@@ -388,8 +389,8 @@ export function DashboardPilotPage() {
     return list;
   }, [pedidos, stats, healthMetrics, contasReceber]);
 
-  if (status === 'loading') return <LoadingState message="Consolidando indicadores..." />;
-  if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" message={error || ''} onRetry={reload} />;
+  if (status === 'loading') return <LoadingState description="Consolidando indicadores..." />;
+  if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
 
   const getHealthTone = (val: number, thresholds: [number, number]) => {
     if (val >= thresholds[0]) return 'success';
@@ -601,7 +602,7 @@ export function DashboardPilotPage() {
                   data={chartData} 
                   margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
                   onMouseMove={(state) => {
-                    if (state.activeTooltipIndex !== undefined) {
+                    if (state && state.activeTooltipIndex !== undefined) {
                       setActiveBarIndex(state.activeTooltipIndex);
                     }
                   }}
@@ -720,7 +721,7 @@ export function DashboardPilotPage() {
                       dataKey="receita"
                       nameKey="nome"
                       stroke="none"
-                      onMouseEnter={(_, index) => setActivePieIndex(index)}
+                      onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
                       onMouseLeave={() => setActivePieIndex(-1)}
                     >
                       {topProducts.map((_, index) => (
