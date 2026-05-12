@@ -2915,3 +2915,270 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .table-cell-muted {
   color: #94a3b8;
 }
+
+/* ── Novo Cadastro de Cliente (Industrial Premium) ─────────────────────── */
+
+.rf-cliente-novo-page {
+  min-height: 100vh;
+  background-color: #f8fafc; /* tertiary background */
+  display: flex;
+  flex-direction: column;
+}
+
+.rf-cliente-novo-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+}
+
+.rf-cliente-novo-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  flex: 1;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.rf-cliente-novo-sidebar {
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  padding: 32px;
+  border-right: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.rf-cliente-novo-main {
+  padding: 32px 48px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 960px;
+}
+
+.rf-section-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 32px;
+  transition: all 0.3s ease;
+  scroll-margin-top: 96px;
+}
+
+.rf-section-card.is-focused {
+  border-color: #0f172a;
+  box-shadow:
+    0 10px 25px -5px rgb(0 0 0 / 0.05),
+    0 8px 10px -6px rgb(0 0 0 / 0.05);
+}
+
+.rf-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+/* Sidebar Nav Items */
+.rf-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rf-nav-item:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.rf-nav-item.is-active {
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: inset 3px 0 0 #0f172a;
+}
+
+.rf-nav-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.rf-nav-icon.is-done {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rf-nav-item.is-active .rf-nav-icon {
+  background: #0f172a;
+  color: white;
+}
+
+/* Tags */
+.rf-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.rf-tag:hover {
+  background: #e2e8f0;
+}
+
+.rf-tag.is-active {
+  background: #0f172a;
+  color: white;
+}
+
+.rf-tag-add {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.rf-tag-add:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+/* Toggle Switch */
+.toggle {
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.toggle:checked {
+  background: #10b981;
+}
+
+.toggle::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s;
+}
+
+.toggle:checked::before {
+  left: 18px;
+}
+
+/* Utils */
+.btn-ghost {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.btn-primary {
+  background: #0f172a;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #1e293b;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.inp-sm {
+  padding: 4px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+.inp-sm:focus {
+  border-color: #0f172a;
+}

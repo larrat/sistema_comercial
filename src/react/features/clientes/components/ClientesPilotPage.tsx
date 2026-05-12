@@ -182,14 +182,10 @@ export function ClientesPilotPage({
       metadata: { origin, surface: 'page' },
       result: 'success'
     });
+    setEditingId(null);
     if (onNewCliente) {
-      setEditingId(null);
       onNewCliente();
-      return;
     }
-    setEditingId('new');
-    setEditorOrigin(origin);
-    trackDrawerOpen('create', origin);
   }
 
   function openEditCliente(clienteId: string, origin = 'row_menu') {
@@ -463,19 +459,18 @@ export function ClientesPilotPage({
       {deletingId ? <LoadingState title="Removendo cliente..." compact /> : null}
 
       <Drawer
-        open={!!editingId}
-        title={editingId === 'new' ? 'Novo cliente' : 'Editar cliente'}
+        open={!!editingId && editingId !== 'new'}
+        title="Editar cliente"
         onClose={() => setEditingId(null)}
         closeOnOverlayClick={!deletingId}
       >
         <ClienteForm
-          initialCliente={editingId === 'new' ? null : editingCliente}
+          initialCliente={editingCliente}
           analyticsOrigin={editorOrigin}
-          onSaved={(cliente) => {
+          onSaved={() => {
             setSurfaceTab('lista');
             setEditingId(null);
             onRetryLoad?.();
-            openDetail(cliente.id, 'resumo', 'save_success');
           }}
           onCancel={() => setEditingId(null)}
         />
