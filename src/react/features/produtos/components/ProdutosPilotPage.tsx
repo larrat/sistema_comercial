@@ -284,17 +284,17 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
             </div>
           ) : (
             <button
-              className="btn btn-sm flex items-center gap-2 hover:bg-slate-100 transition-colors"
+              className="rf-btn-premium gap-2"
               type="button"
               onClick={handleSanitize}
               title="Corrigir resquícios e erros de cadastro"
             >
-              <Wrench className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Sanear Dados</span>
+              <Wrench className="w-4 h-4 text-[#C5A059]" />
+              <span>Sanear Dados</span>
             </button>
           )}
           <button
-            className="btn btn-p btn-sm"
+            className="rf-btn-premium rf-btn-premium--primary"
             type="button"
             onClick={() => setModal({ tipo: 'form', produto: null })}
           >
