@@ -12,7 +12,8 @@ import {
   Pie,
   PieChart,
   Cell,
-  Sector
+  Sector,
+  Rectangle
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -55,6 +56,7 @@ export function DashboardPilotPage() {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activePieIndex, setActivePieIndex] = useState(-1);
+  const [activeBarIndex, setActiveBarIndex] = useState<number | null>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -467,30 +469,35 @@ export function DashboardPilotPage() {
               <ResponsiveContainer width="100%" height={340}>
                 <BarChart 
                   data={chartData} 
-                  margin={{ top: 20, right: 40, left: 20, bottom: 0 }}
-                  barCategoryGap={chartData.length < 5 ? "30%" : "15%"}
-                  barGap={8}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  onMouseMove={(state) => {
+                    if (state.activeTooltipIndex !== undefined) {
+                      setActiveBarIndex(state.activeTooltipIndex);
+                    }
+                  }}
+                  onMouseLeave={() => setActiveBarIndex(null)}
                 >
                   <defs>
-                    <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C5A059" stopOpacity={1}/>
-                      <stop offset="95%" stopColor="#C5A059" stopOpacity={0.8}/>
+                    <linearGradient id="barGradientFat" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#C5A059" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#C5A059" stopOpacity={0.2}/>
                     </linearGradient>
-                    <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={1}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.8}/>
+                    <linearGradient id="barGradientLuc" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} 
+                    tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 600 }}
+                    dy={10}
                   />
                   <YAxis hide />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }}
+                    cursor={{ fill: 'rgba(241, 245, 249, 0.4)', radius: [12, 12, 0, 0] }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
@@ -500,21 +507,19 @@ export function DashboardPilotPage() {
                                 {payload[0].payload.name}
                               </p>
                             </div>
-                            
-                            <div className="flex flex-col gap-4 items-center">
+                            <div className="space-y-4">
                               <div className="flex flex-col items-center">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Faturamento Bruto</span>
-                                <span className="text-xl font-black text-[#C5A059] leading-none tracking-tight">{fmt(payload[0].value as number)}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Faturamento Bruto</span>
+                                <p className="text-xl font-black text-[#C5A059] leading-none">{fmt(payload[0].value as number)}</p>
                               </div>
                               <div className="flex flex-col items-center">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Lucro Operacional</span>
-                                <span className="text-xl font-black text-[#10B981] leading-none tracking-tight">{fmt(payload[1].value as number)}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lucro Operacional</span>
+                                <p className="text-xl font-black text-[#10B981] leading-none">{fmt(payload[1].value as number)}</p>
                               </div>
                             </div>
-
-                            <div className="mt-5 pt-4 border-t border-slate-50 flex items-center justify-center gap-1.5 opacity-40">
-                              <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
-                              <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Analítico Nexus v3</span>
+                            <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-center gap-2 opacity-30">
+                              <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
                             </div>
                           </div>
                         );
