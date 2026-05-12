@@ -147,9 +147,9 @@ export function toClienteWritePayload(
   filialId: string
 ): ClienteWritePayload {
   const aniversario = String(input.data_aniversario || '').trim();
-  const trimOrNull = (v?: string | null) => {
+  const trimOrUndef = (v?: string | null) => {
     const s = String(v || '').trim();
-    return s || null;
+    return s || undefined;
   };
 
   return {
@@ -158,22 +158,22 @@ export function toClienteWritePayload(
     nome: input.nome.trim(),
     rca_id: input.rca_id ?? null,
     rca_nome: input.rca_nome ?? null,
-    apelido: trimOrNull(input.apelido),
-    doc: trimOrNull(input.doc),
+    apelido: trimOrUndef(input.apelido),
+    doc: trimOrUndef(input.doc),
     tipo: input.tipo ?? 'PJ',
     status: input.status ?? 'ativo',
-    tel: trimOrNull(input.tel),
-    whatsapp: trimOrNull(input.whatsapp),
-    email: trimOrNull(input.email),
+    tel: trimOrUndef(input.tel),
+    whatsapp: trimOrUndef(input.whatsapp),
+    email: trimOrUndef(input.email),
     data_aniversario: aniversario || null,
-    time: trimOrNull(input.time),
-    resp: trimOrNull(input.resp),
-    seg: trimOrNull(input.seg),
+    time: typeof input.time === 'string' ? trimOrUndef(input.time) : input.time,
+    resp: trimOrUndef(input.resp),
+    seg: trimOrUndef(input.seg),
     tab: input.tab ?? 'padrao',
     prazo: input.prazo ?? 'a_vista',
-    cidade: trimOrNull(input.cidade),
-    estado: trimOrNull(input.estado),
-    obs: trimOrNull(input.obs),
+    cidade: trimOrUndef(input.cidade),
+    estado: trimOrUndef(input.estado),
+    obs: trimOrUndef(input.obs),
     optin_marketing: !!input.optin_marketing,
     optin_email: !!input.optin_email,
     optin_sms: !!input.optin_sms

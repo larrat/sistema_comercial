@@ -60,9 +60,9 @@ export function PedidoProfileRoutePage() {
       pedido={pedido}
       financeiro={financeiro}
       loadingPedido={loading}
-      error={error}
+      _error={error}
       onPedidoChanged={setPedido}
-      onReload={reload}
+      _onReload={reload}
       onReloadFinanceiro={reloadFinanceiro}
     />
   );

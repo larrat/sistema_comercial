@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Cliente, Pedido, Produto, ContaReceber } from '../../../../types/domain';
+import type { Cliente, Pedido, Produto, ContaReceber, Filial } from '../../../../types/domain';
 import { readStorageString, writeStorageString } from '../../../app/lib/storage';
 
 export type Periodo = 'semana' | 'mes' | 'ano' | 'tudo';

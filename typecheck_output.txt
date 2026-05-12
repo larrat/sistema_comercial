@@ -1,0 +1,17 @@
+
+> typecheck
+> tsc --project tsconfig.json --noEmit
+
+src/react/features/dashboard/components/DashboardPilotPage.tsx(614,41): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'SetStateAction<number>'.
+  Type 'string' is not assignable to type 'SetStateAction<number>'.
+src/react/features/dashboard/components/DashboardPilotPage.tsx(721,23): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(outsideProps: Props<{ nome: string; receita: number; }, any>): ReactElement<unknown, string | JSXElementConstructor<any>>', gave the following error.
+    Type '{ children: Element[]; activeIndex: number; activeShape: (props: any) => Element; data: { nome: string; receita: number; }[]; cx: string; cy: string; innerRadius: number; outerRadius: number; ... 5 more ...; onMouseLeave: () => void; }' is not assignable to type 'IntrinsicAttributes & PieSvgAttributes & PieProps<{ nome: string; receita: number; }, any>'.
+      Property 'activeIndex' does not exist on type 'IntrinsicAttributes & PieSvgAttributes & PieProps<{ nome: string; receita: number; }, any>'.
+  Overload 2 of 2, '(outsideProps: Props<any, any>): ReactElement<unknown, string | JSXElementConstructor<any>>', gave the following error.
+    Type '{ children: Element[]; activeIndex: number; activeShape: (props: any) => Element; data: { nome: string; receita: number; }[]; cx: string; cy: string; innerRadius: number; outerRadius: number; ... 5 more ...; onMouseLeave: () => void; }' is not assignable to type 'IntrinsicAttributes & PieSvgAttributes & PieProps<any, any>'.
+      Property 'activeIndex' does not exist on type 'IntrinsicAttributes & PieSvgAttributes & PieProps<any, any>'.
+src/react/features/pedidos/components/PedidoProfilePage.tsx(121,3): error TS2339: Property '_error' does not exist on type 'Props'.
+src/react/features/pedidos/components/PedidoProfilePage.tsx(123,3): error TS2339: Property '_onReload' does not exist on type 'Props'.
+src/react/features/produtos/services/produtosApi.test.ts(178,20): error TS2339: Property 'custo' does not exist on type 'Produto | Produto[]'.
+  Property 'custo' does not exist on type 'Produto[]'.

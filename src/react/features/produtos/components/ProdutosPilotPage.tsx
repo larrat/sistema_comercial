@@ -23,9 +23,9 @@ import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useToastStore } from '../../../app/lib/useToastStore';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
-const pageContainer = {
+const pageContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -36,12 +36,12 @@ const pageContainer = {
   }
 };
 
-const pageItem = {
+const pageItem: Variants = {
   hidden: { y: 15, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 260, damping: 25 }
+    transition: { type: 'spring' as const, stiffness: 260, damping: 25 }
   }
 };
 
@@ -442,6 +442,6 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
           if (deleteTarget) void handleRemover(deleteTarget.id);
         }}
       />
-    </main>
+    </motion.main>
   );
 }

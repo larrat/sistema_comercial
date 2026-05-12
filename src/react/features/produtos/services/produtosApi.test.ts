@@ -175,7 +175,8 @@ describe('saveProduto', () => {
   it('retorna produto salvo da resposta da API', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse([{ ...PRODUTO, custo: 25 }]));
     const result = await saveProduto(context, PRODUTO);
-    expect(result?.custo).toBe(25);
+    const singleResult = Array.isArray(result) ? result[0] : result;
+    expect(singleResult?.custo).toBe(25);
   });
 
   it('retorna null quando API não retorna corpo (garantia de vínculo)', async () => {

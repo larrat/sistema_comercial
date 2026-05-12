@@ -42,7 +42,8 @@ export function useProdutoMutations() {
     setError(null);
 
     try {
-      const saved = await saveProduto(context, input);
+      const savedResponse = await saveProduto(context, input);
+      const saved = Array.isArray(savedResponse) ? savedResponse[0] : savedResponse;
       const normalized =
         saved ??
         ({

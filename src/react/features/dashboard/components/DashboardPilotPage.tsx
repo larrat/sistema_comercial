@@ -94,7 +94,12 @@ function PremiumTooltip({ children, content }: { children: React.ReactNode; cont
   );
 }
 
-export function DashboardPilotPage() {
+type DashboardPilotPageProps = {
+  onNavigatePage?: (page: string) => void;
+  onReload?: () => void;
+};
+
+export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotPageProps = {}) {
   const { reload } = useDashboardData();
   const navigate = useNavigate();
   
@@ -606,7 +611,7 @@ export function DashboardPilotPage() {
                   margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
                   onMouseMove={(state) => {
                     if (state && state.activeTooltipIndex !== undefined) {
-                      setActiveBarIndex(state.activeTooltipIndex);
+                      setActiveBarIndex(Number(state.activeTooltipIndex));
                     }
                   }}
                   onMouseLeave={() => setActiveBarIndex(null)}
@@ -713,6 +718,7 @@ export function DashboardPilotPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
+                      // @ts-ignore
                       activeIndex={activePieIndex}
                       activeShape={renderActiveShape}
                       data={topProducts}

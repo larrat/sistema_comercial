@@ -28,10 +28,11 @@ type Props = {
   pedido: Pedido;
   financeiro: PedidoFinanceiroState;
   loadingPedido?: boolean;
-  error?: string | null;
   onPedidoChanged?: (pedido: Pedido) => void;
   onReload?: () => Promise<Pedido | null>;
   onReloadFinanceiro?: () => Promise<void>;
+  _error?: string | null;
+  _onReload?: () => Promise<Pedido | null>;
 };
 
 const PROFILE_TABS: Array<{ id: PedidoProfileTab; label: string }> = [

@@ -1,11 +1,11 @@
 import type { Produto } from '../../../../types/domain';
 import { StatCard } from '../../../shared/ui';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import ReactCountUp from 'react-countup';
 
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -15,12 +15,12 @@ const container = {
   }
 };
 
-const item = {
+const item: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 300, damping: 24 }
+    transition: { type: 'spring' as const, stiffness: 300, damping: 24 }
   }
 };
 
