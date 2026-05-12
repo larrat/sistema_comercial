@@ -19,13 +19,13 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={compact ? 'empty-inline rf-ui-empty-state' : 'empty rf-ui-empty-state'}
+      className={`flex flex-col items-center justify-center text-center ${compact ? 'py-8' : 'py-16'} px-6`}
       data-testid={testId}
     >
-      {icon ? <div className="rf-ui-empty-state__icon">{icon}</div> : null}
-      <p className="rf-ui-empty-state__title">{title}</p>
-      {description ? <p className="table-cell-caption table-cell-muted">{description}</p> : null}
-      {action ? <div className="rf-ui-empty-state__action">{action}</div> : null}
+      {icon ? <div className="text-2xl text-slate-400 mb-3">{icon}</div> : null}
+      <p className="text-sm font-semibold text-slate-600 m-0">{title}</p>
+      {description ? <p className="text-xs text-slate-400 mt-1.5 max-w-md">{description}</p> : null}
+      {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }

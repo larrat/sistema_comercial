@@ -23,18 +23,18 @@ export function ErrorState({
 }: ErrorStateProps) {
   return (
     <div
-      className={compact ? 'empty-inline rf-ui-error-state' : 'empty rf-ui-error-state'}
+      className={`flex flex-col items-center justify-center text-center ${compact ? 'py-8' : 'py-16'} px-6`}
       data-testid={testId}
       role="alert"
     >
-      <p className="rf-ui-error-state__title">{title}</p>
-      {description ? <p className="table-cell-caption table-cell-muted">{description}</p> : null}
+      <p className="text-sm font-semibold text-rose-600 m-0">{title}</p>
+      {description ? <p className="text-xs text-slate-400 mt-1.5 max-w-md">{description}</p> : null}
       {technicalMessage ? (
-        <p className="rf-ui-error-state__technical">{technicalMessage}</p>
+        <p className="text-[11px] text-slate-400/75 mt-1 font-mono">{technicalMessage}</p>
       ) : null}
-      {action ? <div className="rf-ui-error-state__action">{action}</div> : null}
+      {action ? <div className="mt-4">{action}</div> : null}
       {!action && onRetry ? (
-        <div className="rf-ui-error-state__action">
+        <div className="mt-4">
           <button type="button" className="btn btn-sm" onClick={onRetry}>
             {retryLabel}
           </button>
