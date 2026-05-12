@@ -149,12 +149,13 @@ export function AppSidebar() {
                         <Icon 
                           size={collapsed ? 24 : 18} 
                           strokeWidth={isActive ? 2.5 : 2} 
-                          className={`flex-shrink-0 transition-transform ${!isActive && 'group-hover:scale-110'}`} 
+                          className={`flex-shrink-0 transition-all duration-300 ${
+                            isActive 
+                              ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)]' 
+                              : 'group-hover:scale-110'
+                          }`} 
                         />
                         {!collapsed && <span className="truncate text-sm tracking-tight">{item.label}</span>}
-                        {isActive && (
-                          <div className={`absolute top-1/2 -translate-y-1/2 w-1.5 h-6 bg-[#C5A059] rounded-r-full shadow-[0_0_12px_rgba(197,160,89,0.5)] ${collapsed ? 'left-0' : '-left-1'}`} />
-                        )}
                       </>
                     )}
                   </NavLink>
