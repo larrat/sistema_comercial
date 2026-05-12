@@ -153,6 +153,8 @@ export function DashboardPilotPage() {
   }, [pedidos, periodo]);
 
   const topProducts = useMemo(() => {
+    const productSales: Record<string, { nome: string; receita: number }> = {};
+    
     stats.vendasReais.forEach(p => {
       const items = (p.itens || []) as PedidoItem[];
       items.forEach(item => {
