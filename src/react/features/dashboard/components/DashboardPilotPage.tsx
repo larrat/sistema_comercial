@@ -128,7 +128,7 @@ export function DashboardPilotPage() {
       const items = (p.itens || []) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
-        if (!productSales[item.prodId]) productSales[item.prodId] = { nome: item.prodNome || 'Produto', receita: 0 };
+        if (!productSales[item.prodId]) productSales[item.prodId] = { nome: item.nome || 'Produto', receita: 0 };
         productSales[item.prodId].receita += Number(item.preco || 0) * Number(item.qty || 0);
       });
     });
@@ -165,7 +165,8 @@ export function DashboardPilotPage() {
       contato: totalClientes > 0 ? (comContato / totalClientes) * 100 : 0,
       estoque: totalProdutos > 0 ? (comEstoque / totalProdutos) * 100 : 0,
       mix: totalProdutos > 0 ? (produtosVendidos.size / totalProdutos) * 100 : 0,
-      entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0
+      entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0,
+      zeroStockCount: totalProdutos - comEstoque
     };
   }, [clientes, produtos, pedidos]);
 
@@ -191,16 +192,26 @@ export function DashboardPilotPage() {
   }, [clientes, pedidos]);
 
   const alerts = useMemo(() => {
-    const list = [];
-    
-    const semBaixa = pedidos.filter(p => p.status === 'entregue_aguardando_pagamento').length;
-    if (semBaixa > 0) {
+    const semBaixaPedidos = pedidos.filter(p => p.status === 'entregue_aguardando_pagamento');
+    if (semBaixaPedidos.length > 0) {
+      const p = semBaixaPedidos[0];
+      const clienteNome = clientes.find(c => c.id === p.cliente_id)?.nome || 'Cliente';
       list.push({
         id: 'sem-baixa',
-        title: `${semBaixa} pedidos entregues sem baixa`,
-        desc: `R$ ${fmt(stats.valorEmAberto)} em aberto no período`,
-        link: '/app/receber',
+        title: `${semBaixaPedidos.length} pedido${semBaixaPedidos.length > 1 ? 's' : ''} entregue${semBaixaPedidos.length > 1 ? 's' : ''} sem baixa`,
+        desc: `${clienteNome} · R$ ${fmt(p.total)} em aberto`,
+        link: `/app/pedidos/${p.id}`,
         tone: 'warning'
+      });
+    }
+
+    if (healthMetrics.zeroStockCount > 0) {
+      list.push({
+        id: 'estoque-zero',
+        title: `Estoque zerado em ${healthMetrics.zeroStockCount} produtos`,
+        desc: 'Nenhum produto com saldo disponível',
+        link: '/app/estoque',
+        tone: 'danger'
       });
     }
 
@@ -287,7 +298,7 @@ export function DashboardPilotPage() {
         </article>
 
         {visao !== 'operacional' && (
-          <article className="rf-dash-card">
+          <article className="rf-dash-card is-success">
             <span className="rf-stat-label">Lucro bruto</span>
             <span className="rf-stat-value !text-emerald-600">{fmt(stats.lucroTotal)}</span>
             <span className="rf-stat-sub success">
@@ -302,22 +313,22 @@ export function DashboardPilotPage() {
           <span className="rf-stat-sub muted">{stats.totalPedidos} pedido(s) no período</span>
         </article>
 
-        <article className="rf-dash-card">
+        <article className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : ''}`}>
           <span className="rf-stat-label">Em aberto</span>
           <span className={`rf-stat-value ${stats.valorEmAberto > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
             {fmt(stats.valorEmAberto)}
           </span>
           <span className={`rf-stat-sub ${stats.valorEmAberto > 0 ? 'warning' : 'success'}`}>
-            {stats.pedidosPendentes} pedido(s) pendente(s)
+            {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
           </span>
         </article>
 
         {visao !== 'operacional' && (
-          <article className="rf-dash-card">
+          <article className={`rf-dash-card ${!data?.filial?.meta_mensal ? 'is-warning' : ''}`}>
             <span className="rf-stat-label">Pacing mensal</span>
             {data?.filial?.meta_mensal ? (
               <>
-                <span className={`rf-stat-value ${stats.faturamento >= data.filial.meta_mensal ? 'text-emerald-600' : 'text-amber-600'}`}>
+                <span className={`rf-stat-value ${stats.faturamento >= data.filial.meta_mensal ? '!text-emerald-600' : '!text-amber-600'}`}>
                   {((stats.faturamento / data.filial.meta_mensal) * 100).toFixed(1)}%
                 </span>
                 <span className="rf-stat-sub muted">Meta: {fmt(data.filial.meta_mensal)}</span>
@@ -385,7 +396,7 @@ export function DashboardPilotPage() {
         <article className="rf-dash-card overflow-hidden">
           <div className="rf-dash-card__header">
             <h2 className="rf-dash-card__title">Status dos pedidos</h2>
-            <span className="badge badge-sm bg-blue-50 text-blue-600 border-blue-100">{pedidos.length}</span>
+            <span className="badge badge-sm bg-blue-50 text-blue-600 border-blue-100">{pedidos.length} total</span>
           </div>
           
           <div className="flex flex-col gap-3 mt-2">
@@ -418,7 +429,7 @@ export function DashboardPilotPage() {
                       <span className="font-bold text-slate-900">{fmt(p.receita)}</span>
                     </div>
                     <div className="h-[4px] bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-400 rounded-full" style={{ width: `${perc}%` }} />
+                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${perc}%` }} />
                     </div>
                   </div>
                 );

@@ -1858,10 +1858,26 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   background: var(--color-background-primary);
   border: 1px solid var(--color-border-tertiary);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.rf-dash-card.is-success {
+  background: #ecfdf5;
+  border-color: #10b981;
+}
+
+.rf-dash-card.is-warning {
+  background: #fffbeb;
+  border-color: #f59e0b;
+}
+
+.rf-dash-card.is-danger {
+  background: #fef2f2;
+  border-color: #ef4444;
 }
 
 .rf-dash-card__header {
@@ -1892,10 +1908,12 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-stat-label {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--color-text-tertiary);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .rf-stat-sub {
