@@ -28,12 +28,12 @@ const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' 
 const fmt = (v: number) => BRL.format(v || 0);
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  orcamento: { label: 'Orçamento', color: '#888' },
-  em_separacao: { label: 'Em separação', color: '#378ADD' },
-  entregue_aguardando_pagamento: { label: 'Entregue · aguardando pgto', color: '#C47B0A' },
-  pago_aguardando_entrega: { label: 'Pago · aguardando entrega', color: '#7F77DD' },
-  concluido: { label: 'Concluído', color: '#1D9E75' },
-  cancelado: { label: 'Cancelado', color: '#C0392B' }
+  orcamento: { label: 'Orçamento', color: '#94A3B8' },
+  em_separacao: { label: 'Em separação', color: '#C5A059' },
+  entregue_aguardando_pagamento: { label: 'Entregue · aguardando pgto', color: '#F59E0B' },
+  pago_aguardando_entrega: { label: 'Pago · aguardando entrega', color: '#6366F1' },
+  concluido: { label: 'Concluído', color: '#10B981' },
+  cancelado: { label: 'Cancelado', color: '#EF4444' }
 };
 
 export function DashboardPilotPage() {
@@ -209,10 +209,22 @@ export function DashboardPilotPage() {
     if (healthMetrics.zeroStockCount > 0) {
       list.push({
         id: 'estoque-zero',
-        title: `Estoque zerado em ${healthMetrics.zeroStockCount} produtos`,
-        desc: 'Nenhum produto com saldo disponível',
+        title: `Ruptura detectada em ${healthMetrics.zeroStockCount} itens`,
+        desc: 'Nexus AI: Risco de perda de venda imediata',
         link: '/app/estoque',
-        tone: 'danger'
+        tone: 'danger',
+        isPredictive: true
+      });
+    }
+
+    if (filial?.meta_mensal && stats.faturamento < filial.meta_mensal * 0.5) {
+      list.push({
+        id: 'meta-risco',
+        title: 'Meta mensal em risco',
+        desc: 'Nexus AI: Projeção atual indica 15% abaixo do alvo',
+        link: '/app/dashboard',
+        tone: 'warning',
+        isPredictive: true
       });
     }
 
@@ -220,9 +232,10 @@ export function DashboardPilotPage() {
       list.push({
         id: 'mix-baixo',
         title: 'Mix ativo crítico',
-        desc: 'Menos de 10% dos produtos ativos tiveram saída no período',
+        desc: 'Baixa diversificação de portfólio no período',
         link: '/app/produtos',
-        tone: 'danger'
+        tone: 'danger',
+        isPredictive: false
       });
     }
 
@@ -301,9 +314,9 @@ export function DashboardPilotPage() {
         {visao !== 'operacional' && (
           <article className="rf-dash-card is-success">
             <span className="rf-stat-label">Lucro bruto</span>
-            <span className="rf-stat-value !text-emerald-600">{fmt(stats.lucroTotal)}</span>
-            <span className="rf-stat-sub success">
-              <TrendingUp size={12} /> Margem {stats.margem.toFixed(1)}%
+            <span className="rf-stat-value text-emerald-600">{fmt(stats.lucroTotal)}</span>
+            <span className="rf-stat-sub success font-bold">
+              <TrendingUp size={12} strokeWidth={3} /> Margem {stats.margem.toFixed(1)}%
             </span>
           </article>
         )}
@@ -314,12 +327,12 @@ export function DashboardPilotPage() {
           <span className="rf-stat-sub muted">{stats.totalPedidos} pedido(s) no período</span>
         </article>
 
-        <article className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : ''}`}>
+        <article className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : 'is-warning'}`}>
           <span className="rf-stat-label">Em aberto</span>
-          <span className={`rf-stat-value ${stats.valorEmAberto > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
+          <span className={`rf-stat-value ${stats.valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
             {fmt(stats.valorEmAberto)}
           </span>
-          <span className={`rf-stat-sub ${stats.valorEmAberto > 0 ? 'warning' : 'success'}`}>
+          <span className={`rf-stat-sub ${stats.valorEmAberto > 0 ? 'warning' : 'success'} font-bold`}>
             {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
           </span>
         </article>
@@ -353,9 +366,9 @@ export function DashboardPilotPage() {
                 <h2 className="rf-dash-card__title">Faturamento e Lucro</h2>
                 <p className="rf-dash-card__subtitle">Visão por período selecionado</p>
               </div>
-              <div className="flex gap-4 text-[10px] font-semibold uppercase tracking-wider">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#378ADD]" /> Faturamento</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1D9E75]" /> Lucro</span>
+              <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#C5A059]" /> Faturamento</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#10B981]" /> Lucro</span>
               </div>
             </div>
             <div className="flex-1 mt-4">
@@ -386,8 +399,8 @@ export function DashboardPilotPage() {
                       return null;
                     }}
                   />
-                  <Bar dataKey="faturamento" fill="#378ADD" radius={[3, 3, 0, 0]} barSize={20} />
-                  <Bar dataKey="lucro" fill="#1D9E75" radius={[3, 3, 0, 0]} barSize={20} />
+                  <Bar dataKey="faturamento" fill="#C5A059" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="lucro" fill="#10B981" radius={[4, 4, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -525,15 +538,20 @@ export function DashboardPilotPage() {
 
           <div className="rf-dash-list mt-2">
             {alerts.length > 0 ? alerts.map(a => (
-              <div key={a.id} className="rf-dash-list-item">
-                <div className={`rf-dash-list-item__icon ${a.tone === 'danger' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}`}>
-                  {a.tone === 'danger' ? <AlertCircle size={18} /> : <ArrowUpRight size={18} />}
+              <div key={a.id} className="rf-dash-list-item group">
+                <div className={`rf-dash-list-item__icon ${a.tone === 'danger' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'} ${a.isPredictive ? 'ring-2 ring-[#C5A059]/20' : ''}`}>
+                  {a.isPredictive ? <ArrowUpRight size={18} className="text-[#C5A059]" /> : a.tone === 'danger' ? <AlertCircle size={18} /> : <ArrowUpRight size={18} />}
                 </div>
                 <div className="rf-dash-list-item__content">
-                  <p className="rf-dash-list-item__title">{a.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="rf-dash-list-item__title">{a.title}</p>
+                    {a.isPredictive && (
+                      <span className="text-[8px] font-black bg-[#C5A059] text-white px-1.5 py-0.5 rounded-sm tracking-tighter">NEXUS AI</span>
+                    )}
+                  </div>
                   <p className="rf-dash-list-item__desc">{a.desc}</p>
                 </div>
-                <a href={a.link} className="rf-dash-list-item__action">Ver</a>
+                <a href={a.link} className="rf-dash-list-item__action hover:bg-slate-100 px-3 py-1 rounded-md transition-colors">Ver</a>
               </div>
             )) : (
               <div className="flex flex-col items-center justify-center py-8 text-center gap-2">

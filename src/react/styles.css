@@ -1,16 +1,36 @@
-@import 'tailwindcss';
+:root {
+  --color-background-primary: #ffffff;
+  --color-background-tertiary: #f8fafc;
+  --color-sidebar-bg: #0f172a;
+  --color-brand-gold: #c5a059;
 
-/*
-  Re-exporta os tokens do design system legado para que os
-  componentes React possam consumir via var(--token).
-  O arquivo canônico continua sendo src/styles/style.css.
-*/
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94a3b8;
+
+  --color-border-primary: #e2e8f0;
+  --color-border-tertiary: rgba(226, 232, 240, 0.5);
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --font-sans: 'Manrope', 'Inter', sans-serif;
+  --radius-xl: 12px;
+}
+
 @import '../styles/style.css';
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background-tertiary);
+  color: var(--color-text-primary);
+}
 
 .rf-content {
   padding: 24px;
   display: grid;
-  gap: 16px;
+  gap: 24px;
 }
 
 .rf-content__grid {
@@ -167,41 +187,102 @@
   border-color: color-mix(in srgb, var(--err) 55%, var(--line) 45%);
 }
 
-.rf-ui-page-header {
+.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.tbl th {
+  background: var(--color-background-tertiary);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-primary);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tbl td {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+  transition: background 0.2s;
+}
+
+.tbl tr:hover td {
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.tbl tr:last-child td {
+  border-bottom: none;
+}
+
+.rf-ui-data-table {
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.rf-ui-data-table__pagination {
+  padding: 16px 24px;
+  background: var(--color-background-tertiary);
+  border-top: 1px solid var(--color-border-primary);
   display: flex;
+  align-items: center;
   justify-content: space-between;
+}
+.rf-ui-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rf-ui-drawer {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+  width: min(600px, 100%);
+  height: 100%;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  animation: drawerIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.rf-ui-drawer__head {
+  padding: 32px;
+  border-bottom: 1px solid var(--color-border-primary);
+  display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 20px 24px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
+  justify-content: space-between;
 }
 
-.rf-ui-page-header__copy {
-  min-width: 0;
-}
-
-.rf-ui-page-header__kicker,
-.rf-ui-stat-card__label,
-.rf-ui-form-section__description,
-.rf-ui-empty-state__title {
-  letter-spacing: 0;
-}
-
-.rf-ui-page-header__kicker {
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-
-.rf-ui-page-header__title,
-.rf-ui-form-section__title,
-.rf-ui-modal__title,
 .rf-ui-drawer__title {
   margin: 0;
-  font-size: 20px;
-  line-height: 1.2;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
 }
 
 .rf-ui-page-header__description {
@@ -1429,6 +1510,16 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .btn-primary:hover:not(:disabled) {
   filter: brightness(1.08);
 }
+.btn-p {
+  background: var(--color-brand-gold);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 1px 3px 0 rgba(197, 160, 89, 0.3);
+}
+.btn-p:hover:not(:disabled) {
+  background: #b08d4a;
+  color: #ffffff;
+}
 .btn-ghost {
   background: transparent;
   border-color: var(--line);
@@ -1855,29 +1946,41 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-dash-card {
-  background: var(--color-background-primary);
-  border: 1px solid var(--color-border-tertiary);
-  border-radius: 12px;
-  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-  transition: all 0.2s ease;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rf-dash-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .rf-dash-card.is-success {
-  background: #ecfdf5;
-  border-color: #10b981;
+  background: rgba(236, 253, 245, 0.85);
+  border-color: var(--color-success);
 }
 
 .rf-dash-card.is-warning {
-  background: #fffbeb;
-  border-color: #f59e0b;
+  background: rgba(255, 251, 235, 0.85);
+  border-color: var(--color-warning);
 }
 
 .rf-dash-card.is-danger {
-  background: #fef2f2;
-  border-color: #ef4444;
+  background: rgba(254, 242, 242, 0.85);
+  border-color: var(--color-danger);
 }
 
 .rf-dash-card__header {
@@ -1901,15 +2004,16 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-stat-value {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--color-text-primary);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
 }
 
 .rf-stat-label {
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-text-tertiary);

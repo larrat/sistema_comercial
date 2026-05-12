@@ -88,7 +88,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-lg text-white tracking-tight leading-none">Antigravity</span>
+              <span className="font-extrabold text-lg text-white tracking-tight leading-none">Nexus</span>
               <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.25em] mt-1.5 opacity-80">Industrial</span>
             </div>
           )}
@@ -142,7 +142,7 @@ export function AppSidebar() {
                       ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-4 py-3 w-full'}
                       ${
                         isActive
-                           ? 'bg-slate-800/80 text-white font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]'
+                           ? 'bg-slate-800/80 text-[#C5A059] font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
                            : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
