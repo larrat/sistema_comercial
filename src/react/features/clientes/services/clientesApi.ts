@@ -147,28 +147,33 @@ export function toClienteWritePayload(
   filialId: string
 ): ClienteWritePayload {
   const aniversario = String(input.data_aniversario || '').trim();
+  const trimOrNull = (v?: string | null) => {
+    const s = String(v || '').trim();
+    return s || null;
+  };
+
   return {
     id: input.id ?? globalThis.crypto.randomUUID(),
     filial_id: filialId,
     nome: input.nome.trim(),
     rca_id: input.rca_id ?? null,
     rca_nome: input.rca_nome ?? null,
-    apelido: input.apelido ?? '',
-    doc: input.doc ?? '',
+    apelido: trimOrNull(input.apelido),
+    doc: trimOrNull(input.doc),
     tipo: input.tipo ?? 'PJ',
     status: input.status ?? 'ativo',
-    tel: input.tel ?? '',
-    whatsapp: input.whatsapp ?? '',
-    email: input.email ?? '',
+    tel: trimOrNull(input.tel),
+    whatsapp: trimOrNull(input.whatsapp),
+    email: trimOrNull(input.email),
     data_aniversario: aniversario || null,
-    time: input.time ?? '',
-    resp: input.resp ?? '',
-    seg: input.seg ?? '',
+    time: trimOrNull(input.time),
+    resp: trimOrNull(input.resp),
+    seg: trimOrNull(input.seg),
     tab: input.tab ?? 'padrao',
     prazo: input.prazo ?? 'a_vista',
-    cidade: input.cidade ?? '',
-    estado: input.estado ?? '',
-    obs: input.obs ?? '',
+    cidade: trimOrNull(input.cidade),
+    estado: trimOrNull(input.estado),
+    obs: trimOrNull(input.obs),
     optin_marketing: !!input.optin_marketing,
     optin_email: !!input.optin_email,
     optin_sms: !!input.optin_sms
