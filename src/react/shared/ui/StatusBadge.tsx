@@ -8,11 +8,11 @@ type StatusBadgeProps = {
 };
 
 const toneClasses: Record<StatusBadgeTone, string> = {
-  neutral: 'bg-slate-100 text-slate-600 ring-slate-200/60',
-  info: 'bg-blue-50 text-blue-700 ring-blue-200/60',
-  success: 'bg-emerald-50 text-emerald-700 ring-emerald-200/60',
-  warning: 'bg-amber-50 text-amber-700 ring-amber-200/60',
-  danger: 'bg-rose-50 text-rose-700 ring-rose-200/60'
+  neutral: 'bg-slate-400/10 text-slate-600 ring-slate-400/20',
+  info: 'bg-blue-500/10 text-blue-700 ring-blue-500/20',
+  success: 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/20',
+  warning: 'bg-amber-500/10 text-amber-700 ring-amber-500/20',
+  danger: 'bg-rose-500/10 text-rose-700 ring-rose-500/20'
 };
 
 export function StatusBadge({ children, tone = 'neutral' }: StatusBadgeProps) {

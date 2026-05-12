@@ -217,8 +217,18 @@ body {
   transition: background 0.2s;
 }
 
+.tbl tr {
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.2s ease;
+}
+
 .tbl tr:hover td {
-  background: rgba(248, 250, 252, 0.8);
+  background: rgba(248, 250, 252, 0.95);
+}
+
+.tbl tr:hover {
+  transform: translateX(2px);
 }
 
 .tbl tr:last-child td {
@@ -230,7 +240,11 @@ body {
   border: 1px solid var(--color-border-primary);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.05),
+    0 2px 4px -2px rgb(0 0 0 / 0.05),
+    inset 0 0 0 1px rgb(255 255 255 / 0.5);
+  backdrop-filter: blur(8px);
 }
 
 .rf-ui-data-table__pagination {
@@ -307,9 +321,11 @@ body {
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .rf-ui-filter-bar__fields,

@@ -23,6 +23,27 @@ import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useToastStore } from '../../../app/lib/useToastStore';
+import { motion } from 'framer-motion';
+
+const pageContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const pageItem = {
+  hidden: { y: 15, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 260, damping: 25 }
+  }
+};
 
 type Modal = { tipo: 'none' } | { tipo: 'form'; produto: Produto | null };
 
@@ -312,70 +333,83 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   }
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-      {pageHeader}
+    <motion.main 
+      className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8"
+      variants={pageContainer}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div variants={pageItem}>
+        {pageHeader}
+      </motion.div>
 
-      <ProdutoMetrics produtos={produtos} />
+      <motion.div variants={pageItem}>
+        <ProdutoMetrics produtos={produtos} />
+      </motion.div>
 
-      <FilterBar
-        className="produtos-filter-bar"
-        search={{
-          value: filtro.q,
-          onChange: (value) => setFiltro({ q: value }),
-          placeholder: 'Buscar por nome ou SKU...',
-          ariaLabel: 'Buscar produtos'
-        }}
-        filters={[
-          {
-            key: 'categoria',
-            value: filtro.cat,
-            onChange: (value) => setFiltro({ cat: value }),
-            ariaLabel: 'Filtrar por categoria',
-            options: [
-              { value: '', label: 'Todas as categorias' },
-              ...categorias.map((categoria) => ({ value: categoria, label: categoria }))
-            ]
-          }
-        ]}
-        activeFilterCount={activeFilterCount}
-        onClearFilters={activeFilterCount ? () => setFiltro({ q: '', cat: '' }) : undefined}
-      />
-
-      {mutError ? <ErrorState title={mutError} compact /> : null}
-
-      {isMobile ? (
-        <ProdutoListMobile
-          produtos={produtos}
-          saldos={saldos}
-          totalCount={total}
-          hasFilters={activeFilterCount > 0}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          onNovo={() => setModal({ tipo: 'form', produto: null })}
-          onDetalhe={(id) => onOpenProduto?.(id)}
-          onEditar={(id) => onOpenProduto?.(id, { edit: true })}
-          onMovimentar={handleMovimentar}
-          onRemover={(id) => setDeleteTargetId(id)}
+      <motion.div variants={pageItem}>
+        <FilterBar
+          className="produtos-filter-bar"
+          search={{
+            value: filtro.q,
+            onChange: (value) => setFiltro({ q: value }),
+            placeholder: 'Buscar por nome ou SKU...',
+            ariaLabel: 'Buscar produtos'
+          }}
+          filters={[
+            {
+              key: 'categoria',
+              value: filtro.cat,
+              onChange: (value) => setFiltro({ cat: value }),
+              ariaLabel: 'Filtrar por categoria',
+              options: [
+                { value: '', label: 'Todas as categorias' },
+                ...categorias.map((categoria) => ({ value: categoria, label: categoria }))
+              ]
+            }
+          ]}
+          activeFilterCount={activeFilterCount}
+          onClearFilters={activeFilterCount ? () => setFiltro({ q: '', cat: '' }) : undefined}
         />
-      ) : (
-        <ProdutoListView
-          produtos={produtos}
-          saldos={saldos}
-          totalCount={total}
-          hasFilters={activeFilterCount > 0}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-          onNovo={() => setModal({ tipo: 'form', produto: null })}
-          onDetalhe={(id) => onOpenProduto?.(id)}
-          onEditar={(id) => onOpenProduto?.(id, { edit: true })}
-          onMovimentar={handleMovimentar}
-          onRemover={(id) => setDeleteTargetId(id)}
-        />
-      )}
+      </motion.div>
+
+      <motion.div variants={pageItem}>
+        {mutError ? <ErrorState title={mutError} compact /> : null}
+
+        {isMobile ? (
+          <ProdutoListMobile
+            produtos={produtos}
+            saldos={saldos}
+            totalCount={total}
+            hasFilters={activeFilterCount > 0}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            onNovo={() => setModal({ tipo: 'form', produto: null })}
+            onDetalhe={(id) => onOpenProduto?.(id)}
+            onEditar={(id) => onOpenProduto?.(id, { edit: true })}
+            onMovimentar={handleMovimentar}
+            onRemover={(id) => setDeleteTargetId(id)}
+          />
+        ) : (
+          <ProdutoListView
+            produtos={produtos}
+            saldos={saldos}
+            totalCount={total}
+            hasFilters={activeFilterCount > 0}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+            onNovo={() => setModal({ tipo: 'form', produto: null })}
+            onDetalhe={(id) => onOpenProduto?.(id)}
+            onEditar={(id) => onOpenProduto?.(id, { edit: true })}
+            onMovimentar={handleMovimentar}
+            onRemover={(id) => setDeleteTargetId(id)}
+          />
+        )}
+      </motion.div>
 
       <Drawer
         open={modal.tipo === 'form'}

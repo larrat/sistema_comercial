@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Search } from 'lucide-react';
 
 type FilterBarOption = {
   value: string;
@@ -60,20 +61,26 @@ export function FilterBar({
         {hasConfigMode ? (
           <>
             {search ? (
-              <input
-                className={search.className ?? 'inp'}
-                type="search"
-                value={search.value}
-                onChange={(event) => search.onChange(event.target.value)}
-                placeholder={search.placeholder ?? 'Buscar...'}
-                aria-label={search.ariaLabel ?? 'Buscar'}
-                data-testid={search.testId}
-              />
+              <div className="relative flex items-center group" style={{ minWidth: 240, flex: 1 }}>
+                <Search 
+                  className="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-brand-gold transition-colors" 
+                  aria-hidden="true" 
+                />
+                <input
+                  className={`${search.className ?? 'inp'} !pl-10 !h-10 w-full bg-white/50 backdrop-blur-sm border-slate-200 focus:border-brand-gold focus:ring-brand-gold/20 transition-all`}
+                  type="search"
+                  value={search.value}
+                  onChange={(event) => search.onChange(event.target.value)}
+                  placeholder={search.placeholder ?? 'Buscar...'}
+                  aria-label={search.ariaLabel ?? 'Buscar'}
+                  data-testid={search.testId}
+                />
+              </div>
             ) : null}
             {filters.map((filter) => (
               <select
                 key={filter.key}
-                className={filter.className ?? 'inp sel'}
+                className={`${filter.className ?? 'inp sel'} !h-10 bg-white/50 backdrop-blur-sm border-slate-200 focus:border-brand-gold transition-all`}
                 value={filter.value}
                 onChange={(event) => filter.onChange(event.target.value)}
                 aria-label={filter.ariaLabel ?? filter.label ?? `Filtro ${filter.key}`}

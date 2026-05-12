@@ -146,9 +146,11 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
       render: ({ prod }) => {
         const { varejo, atacado } = calcPrecos(prod);
         return (
-          <div className="rf-ui-stack" style={{ gap: 4 }}>
-            <div className="table-cell-strong">{varejo > 0 ? fmt(varejo) : '—'}</div>
-            <div className="table-cell-caption table-cell-muted">
+          <div className="rf-ui-stack" style={{ gap: 2 }}>
+            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-primary)' }}>
+              {varejo > 0 ? fmt(varejo) : '—'}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', fontWeight: 500 }}>
               Atacado: {atacado > 0 ? fmt(atacado) : '—'}
             </div>
           </div>
@@ -161,12 +163,12 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
       render: ({ prod, saldo }) => {
         const emin = prod.emin ?? 0;
         return (
-          <div className="rf-ui-stack" style={{ gap: 4 }}>
-            <div className="table-cell-strong">
-              {fmtQ(saldo.saldo)} {prod.un}
+          <div className="rf-ui-stack" style={{ gap: 2 }}>
+            <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+              {fmtQ(saldo.saldo)} <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>{prod.un}</span>
             </div>
-            <div className="table-cell-caption table-cell-muted">
-              Min. {emin > 0 ? `${fmtQ(emin)} ${prod.un}` : '—'}
+            <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
+              Mín: {emin > 0 ? `${fmtQ(emin)} ${prod.un}` : '—'}
             </div>
           </div>
         );
