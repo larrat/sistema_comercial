@@ -8,6 +8,7 @@ export type ProdutoFiltro = {
 export type ProdutoSaldo = {
   saldo: number;
   cm: number;
+  ult?: string | null;
 };
 
 export type ProdutoFormValues = {

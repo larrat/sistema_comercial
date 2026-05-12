@@ -574,6 +574,19 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   gap: 16px;
 }
 
+.rf-ui-form-section__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.rf-ui-form-section__description {
+  font-size: 13px;
+  color: #64748b;
+  margin: 4px 0 0;
+}
+
 .rf-ui-form-field {
   display: grid;
   gap: 6px;
@@ -3701,5 +3714,98 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   color: #ef4444;
 }
 .rf-kpi-sub.muted {
+  color: #94a3b8;
+}
+
+/* --- PREMIUM V3 ENHANCEMENTS --- */
+
+.rf-card-premium {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rf-card-premium:hover {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.rf-card-premium__head {
+  padding: 24px 24px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.rf-card-premium__body {
+  padding: 24px;
+}
+
+.rf-card-premium__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.rf-card-premium__subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 4px 0 0;
+}
+
+.rf-section-label-premium {
+  font-size: 10px;
+  font-weight: 900;
+  color: #c5a059;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.rf-badge-premium {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.rf-badge-premium--gold {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.rf-badge-premium--slate {
+  background: #0f172a;
+  color: white;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+
+.rf-input-premium {
+  width: 100%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.rf-input-premium:focus {
+  border-color: #c5a059;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1);
+}
+
+.rf-input-premium::placeholder {
   color: #94a3b8;
 }

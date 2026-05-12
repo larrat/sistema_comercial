@@ -37,14 +37,14 @@ export function FormActions({
           {onCancel ? (
             <button
               type="button"
-              className="btn btn-sm"
+              className="rf-btn-premium"
               onClick={onCancel}
               disabled={loading || disabled}
             >
               {cancelLabel}
             </button>
           ) : null}
-          <button type="submit" className="btn btn-p btn-sm" disabled={loading || disabled}>
+          <button type="submit" className="rf-btn-premium rf-btn-premium--primary" disabled={loading || disabled}>
             {loading ? 'Salvando…' : submitLabel}
           </button>
         </>

@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ChevronLeft, 
+  Package, 
+  Settings, 
+  TrendingUp, 
+  Layers, 
+  Database,
+  ArrowUpRight,
+  History,
+  ShieldCheck,
+  Zap
+} from 'lucide-react';
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
@@ -100,49 +113,24 @@ function buildKpis(produto: Produto, saldo: ProdutoSaldo): KpiCard[] {
       subtitle: 'Base de cálculo'
     },
     {
-      label: 'Varejo',
-      value: varejo > 0 ? formatCurrency(varejo) : 'Sem preço',
-      subtitle: margemVarejo > 0 ? `${formatPercent(margemVarejo)} margem` : 'Sem regra',
-      tone: margemVarejo > 0 ? 'positive' : 'neutral'
+      label: 'Venda Varejo',
+      value: varejo > 0 ? formatCurrency(varejo) : '—',
+      subtitle: varejo > 0 ? `Margem ${formatPercent(margemVarejo)}` : 'Não definido',
+      tone: varejo > 0 ? 'positive' : 'neutral'
     },
     {
-      label: 'Atacado',
-      value: atacado > 0 ? formatCurrency(atacado) : 'Sem preço',
-      subtitle: atacado > 0 ? 'Preço em volume' : 'Sem regra'
+      label: 'Venda Atacado',
+      value: atacado > 0 ? formatCurrency(atacado) : '—',
+      subtitle: atacado > 0 ? 'Tabela atacado' : 'Não definido',
+      tone: atacado > 0 ? 'positive' : 'neutral'
     },
     {
-      label: 'Saldo',
+      label: 'Estoque',
       value: `${formatQuantity(saldo.saldo)} ${produto.un || 'un'}`,
-      subtitle:
-        minimo > 0 ? `Mínimo ${formatQuantity(minimo)} ${produto.un || 'un'}` : 'Sem mínimo',
+      subtitle: getStockStatus(produto, saldo).label,
       tone: saldoTone
     }
   ];
-}
-
-function ProdutoInfoTable({
-  rows
-}: {
-  rows: Array<{ label: string; value: string | null | undefined }>;
-}) {
-  return (
-    <div className="rf-cliente-profile__info-table">
-      {rows.map((row) => (
-        <div key={row.label} className="rf-cliente-profile__info-row">
-          <span className="rf-cliente-profile__info-label">{row.label}</span>
-          <span
-            className={
-              row.value
-                ? 'rf-cliente-profile__info-value'
-                : 'rf-cliente-profile__info-value is-muted'
-            }
-          >
-            {row.value || 'Não informado'}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
 }
 
 function formValuesToProduto(
@@ -183,9 +171,9 @@ function formValuesToProduto(
 export function ProdutoProfilePage({
   produto,
   pais,
-  saldo = { saldo: 0, cm: 0 },
+  saldo = { saldo: 0, cm: 0, ult: null },
   loadingProduto = false,
-  error,
+  error = null,
   onProdutoSaved,
   onReload
 }: Props) {
@@ -201,13 +189,10 @@ export function ProdutoProfilePage({
   } = useProdutoMutations();
 
   const activeTab = normalizeTab(searchParams.get('tab'));
-  const isPai = !produto.produto_pai_id;
-  const profileTabs = isPai
-    ? [...BASE_TABS, { id: 'variantes' as const, label: 'Variantes' }]
-    : BASE_TABS;
-  const stockStatus = getStockStatus(produto, saldo);
   const precos = useMemo(() => getPrecos(produto), [produto]);
   const kpis = useMemo(() => buildKpis(produto, saldo), [produto, saldo]);
+  const stockStatus = getStockStatus(produto, saldo);
+  
   const sortedHist = useMemo(
     () =>
       [...(produto.hist_cot ?? [])].sort((a, b) =>
@@ -283,356 +268,395 @@ export function ProdutoProfilePage({
 
   if (loadingProduto) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <LoadingState
-          title="Carregando produto..."
-          description="Estamos reunindo cadastro, preço e estoque para abrir a visão completa."
-        />
+      <main className="max-w-[1600px] mx-auto px-8 py-8 w-full">
+        <LoadingState title="Carregando detalhes do produto..." />
       </main>
     );
   }
 
+  const profileTabs = [...BASE_TABS];
+  if (!produto.produto_pai_id) {
+    profileTabs.splice(1, 0, { id: 'variantes', label: 'Variantes' });
+  }
+
   return (
-    <main
-      className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8"
+    <motion.main 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8"
       data-testid="produto-profile-page"
     >
-      <div className="rf-cliente-profile__breadcrumb">
-        <button
-          className="rf-cliente-profile__back"
-          type="button"
-          onClick={() => navigate('/app/produtos')}
-        >
-          Voltar
-        </button>
-        <span>Produtos / {produto.nome}</span>
+      {/* Top Header / Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Link to="/app/produtos" className="flex items-center gap-1.5 text-slate-400 hover:text-slate-900 transition-colors">
+            <ChevronLeft className="w-4 h-4" />
+            Produtos
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-900 font-semibold">{produto.sku || `#${produto.id.slice(0,6)}`}</span>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <button 
+            className="rf-btn-premium gap-2"
+            onClick={() => window.print()}
+          >
+            <Database className="w-4 h-4 text-[#C5A059]" />
+            Relatório
+          </button>
+        </div>
       </div>
 
       {error ? <ErrorState title={error} compact onRetry={onReload} /> : null}
 
-      <section className="rf-cliente-profile__hero">
-        <div className="rf-cliente-profile__hero-main">
-          <div className="rf-cliente-profile__avatar">{getInitials(produto.nome)}</div>
-          <div className="rf-cliente-profile__hero-copy">
-            <div className="rf-cliente-profile__title-row">
-              <h1>{produto.nome}</h1>
-              <span className={`rf-cliente-profile__pill is-${stockStatus.tone}`}>
+      {/* Hero Section */}
+      <section className="flex items-center gap-6">
+        <div className="w-20 h-20 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-[#1E293B] opacity-0 group-hover:opacity-5 transition-opacity" />
+          <Package className="w-10 h-10 text-slate-400" />
+        </div>
+        
+        <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight m-0">{produto.nome}</h1>
+              <span className={`rf-badge-premium ${stockStatus.tone === 'success' ? 'rf-badge-premium--gold' : 'rf-badge-premium--slate'}`}>
                 {stockStatus.label}
               </span>
-              {produto.produto_pai_id ? (
-                <span className="rf-cliente-profile__pill is-info">Variante</span>
-              ) : null}
+              {produto.produto_pai_id && (
+                <span className="rf-badge-premium bg-slate-100 text-slate-600">Variante</span>
+              )}
             </div>
-            <p className="rf-cliente-profile__meta-line">
-              {produto.sku || 'Sem SKU'} · {produto.cat || 'Sem categoria'} · Unidade{' '}
-              {produto.un || 'un'}
-            </p>
+            
+            <div className="flex items-center gap-3">
+              <button
+                className="rf-btn-premium gap-2"
+                onClick={() => useInterModuleStore.getState().navegarParaMovProduto(produto.id)}
+              >
+                <Layers className="w-4 h-4 text-[#C5A059]" />
+                Movimentar estoque
+              </button>
+              <button className="rf-btn-premium rf-btn-premium--primary" onClick={startEdit}>
+                Editar cadastro
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="rf-cliente-profile__hero-actions">
-          <button
-            className="btn btn-sm"
-            type="button"
-            onClick={() => useInterModuleStore.getState().navegarParaMovProduto(produto.id)}
-          >
-            Movimentar estoque
-          </button>
-          <button className="btn btn-p btn-sm" type="button" onClick={startEdit}>
-            Editar cadastro
-          </button>
+          <p className="text-sm text-slate-500 font-medium">
+            {produto.cat || 'Sem categoria'} · {produto.un} · SKU: {produto.sku || '—'}
+          </p>
         </div>
       </section>
 
-      <section className="rf-cliente-profile__kpis">
-        {kpis.map((card) => (
-          <article key={card.label} className="rf-cliente-profile__kpi-card">
-            <div className="rf-cliente-profile__kpi-label">{card.label}</div>
-            <div className="rf-cliente-profile__kpi-value">{card.value}</div>
-            <div
-              className={`rf-cliente-profile__kpi-subtitle${card.tone ? ` is-${card.tone}` : ''}`}
-            >
-              {card.subtitle}
+      {/* KPI Grid */}
+      <section className="rf-kpi-grid">
+        {kpis.map((card, idx) => (
+          <motion.article 
+            key={card.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+            className="rf-card-premium p-6 flex flex-col gap-2 group"
+          >
+            <span className="rf-section-label-premium">{card.label}</span>
+            <div className="flex items-end justify-between">
+              <span className="text-2xl font-bold text-slate-900">{card.value}</span>
+              <TrendingUp className="w-4 h-4 text-[#C5A059] opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
-          </article>
+            <span className={`text-[11px] font-bold ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+              {card.subtitle}
+            </span>
+          </motion.article>
         ))}
       </section>
 
-      <div className="rf-cliente-profile__tabs">
-        {profileTabs.map((tab) => (
+      {/* Premium Tabs */}
+      <nav className="rf-tabs-premium">
+        {profileTabs.map(tab => (
           <button
             key={tab.id}
-            className={`rf-cliente-profile__tab${activeTab === tab.id ? ' is-active' : ''}`}
-            type="button"
             onClick={() => setTab(tab.id)}
+            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
+            {activeTab === tab.id && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0F172A]"
+              />
+            )}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {activeTab === 'resumo' ? (
-        <section className="rf-cliente-profile__summary-grid">
-          <div className="rf-cliente-profile__summary-main">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <div>
-                  <h3 className="rf-cliente-profile__card-title">Resumo comercial</h3>
-                  <p className="rf-cliente-profile__card-subtitle">
-                    Preço, margem e condição básica do produto.
-                  </p>
+      {/* Tab Content with AnimatePresence */}
+      <section className="min-h-[500px]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'resumo' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 flex flex-col gap-8">
+                  <article className="rf-card-premium">
+                    <div className="rf-card-premium__head">
+                      <div>
+                        <span className="rf-section-label-premium">Análise Financeira</span>
+                        <h3 className="rf-card-premium__title">Resumo Comercial</h3>
+                      </div>
+                      <Settings className="w-4 h-4 text-slate-300" />
+                    </div>
+                    <div className="rf-card-premium__body">
+                      <ProdutoInfoTable
+                        rows={[
+                          { label: 'Custo Base', value: formatCurrency(precos.custo) },
+                          {
+                            label: 'Venda Varejo',
+                            value: precos.varejo > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold">{formatCurrency(precos.varejo)}</span>
+                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-bold">
+                                  {formatPercent(precos.margemVarejo)}
+                                </span>
+                              </div>
+                            ) : null
+                          },
+                          {
+                            label: 'Venda Atacado',
+                            value: precos.atacado > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold">{formatCurrency(precos.atacado)}</span>
+                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">
+                                  {formatPercent(precos.margemAtacado)}
+                                </span>
+                              </div>
+                            ) : null
+                          },
+                          {
+                            label: 'Qtde mínima',
+                            value: toNumber(produto.qtmin) > 0 ? `${formatQuantity(toNumber(produto.qtmin))} ${produto.un}` : null
+                          }
+                        ]}
+                      />
+                    </div>
+                  </article>
+
+                  <article className="rf-card-premium">
+                    <div className="rf-card-premium__head">
+                      <div>
+                        <span className="rf-section-label-premium">Operacional</span>
+                        <h3 className="rf-card-premium__title">Gestão de Estoque</h3>
+                      </div>
+                      <Layers className="w-4 h-4 text-slate-300" />
+                    </div>
+                    <div className="rf-card-premium__body">
+                      <ProdutoInfoTable
+                        rows={[
+                          {
+                            label: 'Saldo em Mão',
+                            value: (
+                              <span className={`font-bold ${saldo.saldo <= 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                                {formatQuantity(saldo.saldo)} {produto.un}
+                              </span>
+                            )
+                          },
+                          { label: 'Ponto de Pedido (Mín)', value: `${formatQuantity(toNumber(produto.emin))} ${produto.un}` },
+                          { label: 'Alerta Reposição', value: toNumber(produto.esal) > 0 ? `${formatQuantity(toNumber(produto.esal))} ${produto.un}` : null },
+                          { label: 'Custo Médio (CM)', value: formatCurrency(saldo.cm || toNumber(produto.ecm) || precos.custo) }
+                        ]}
+                      />
+                    </div>
+                  </article>
+
+                  <article className="rf-card-premium">
+                    <div className="rf-card-premium__head">
+                      <div>
+                        <span className="rf-section-label-premium">Identificação</span>
+                        <h3 className="rf-card-premium__title">Cadastro Base</h3>
+                      </div>
+                      <Database className="w-4 h-4 text-slate-300" />
+                    </div>
+                    <div className="rf-card-premium__body">
+                      <ProdutoInfoTable
+                        rows={[
+                          { label: 'SKU', value: produto.sku },
+                          { label: 'Categoria', value: produto.cat },
+                          { label: 'Código Barras', value: produto.codigo_barras },
+                          { label: 'Ref. Fornecedor', value: produto.codigo_fornecedor }
+                        ]}
+                      />
+                    </div>
+                  </article>
                 </div>
-              </div>
-              <ProdutoInfoTable
-                rows={[
-                  { label: 'Custo', value: formatCurrency(precos.custo) },
-                  {
-                    label: 'Varejo',
-                    value: precos.varejo > 0 ? formatCurrency(precos.varejo) : null
-                  },
-                  {
-                    label: 'Margem varejo',
-                    value: precos.margemVarejo > 0 ? formatPercent(precos.margemVarejo) : null
-                  },
-                  {
-                    label: 'Atacado',
-                    value: precos.atacado > 0 ? formatCurrency(precos.atacado) : null
-                  },
-                  {
-                    label: 'Qtde mínima',
-                    value:
-                      toNumber(produto.qtmin) > 0
-                        ? `${formatQuantity(toNumber(produto.qtmin))} ${produto.un}`
-                        : null
-                  }
-                ]}
-              />
-            </section>
 
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <div>
-                  <h3 className="rf-cliente-profile__card-title">Estoque</h3>
-                  <p className="rf-cliente-profile__card-subtitle">
-                    Saldo e referência de reposição.
-                  </p>
+                <aside className="flex flex-col gap-6">
+                  <article className="rf-card-premium bg-[#0F172A] text-white overflow-hidden relative">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                      <TrendingUp className="w-24 h-24" />
+                    </div>
+                    <div className="p-6 flex flex-col gap-6 relative z-10">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Performance</span>
+                        <h3 className="text-lg font-bold text-white">Giro e Saúde</h3>
+                      </div>
+                      
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-slate-400">Última Venda</span>
+                          <span className="text-xs font-semibold">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : '—'}</span>
+                        </div>
+                        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#C5A059] w-[65%]" />
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-relaxed">
+                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de {produto.emin} {produto.un}.
+                        </p>
+                      </div>
+
+                      <button className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2">
+                        Ver histórico completo
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </article>
+
+                  <article className="rf-card-premium">
+                    <div className="rf-card-premium__head">
+                      <div>
+                        <span className="rf-section-label-premium">Mercado</span>
+                        <h3 className="rf-card-premium__title">Histórico de Custo</h3>
+                      </div>
+                      <History className="w-4 h-4 text-slate-300" />
+                    </div>
+                    <div className="rf-card-premium__body p-0">
+                      {sortedHist.length ? (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-[11px] border-collapse">
+                            <thead>
+                              <tr className="border-b border-slate-50">
+                                <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider">Mês</th>
+                                <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider">Preço</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {sortedHist.slice(0, 5).map((item, index) => (
+                                <tr key={`${item.mes}-${index}`} className="border-b border-slate-50/50 last:border-0 hover:bg-slate-50 transition-colors">
+                                  <td className="px-4 py-3 text-slate-600 font-medium">
+                                    {String(item.mes ?? '').split('-').reverse().join('/')}
+                                  </td>
+                                  <td className="px-4 py-3 text-slate-900 font-bold">
+                                    {formatCurrency(toNumber(item.preco))}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="p-8 text-center text-slate-400 italic text-xs">Sem histórico registrado.</div>
+                      )}
+                    </div>
+                  </article>
+                </aside>
+              </div>
+            )}
+
+            {activeTab === 'precificacao' && (
+              <article className="rf-card-premium">
+                <div className="rf-card-premium__head">
+                  <h3 className="rf-card-premium__title">Análise de Formação de Preço</h3>
                 </div>
-              </div>
-              <ProdutoInfoTable
-                rows={[
-                  {
-                    label: 'Saldo atual',
-                    value: `${formatQuantity(saldo.saldo)} ${produto.un || 'un'}`
-                  },
-                  {
-                    label: 'Mínimo',
-                    value:
-                      toNumber(produto.emin) > 0
-                        ? `${formatQuantity(toNumber(produto.emin))} ${produto.un}`
-                        : null
-                  },
-                  {
-                    label: 'Alerta',
-                    value:
-                      toNumber(produto.esal) > 0
-                        ? `${formatQuantity(toNumber(produto.esal))} ${produto.un}`
-                        : null
-                  },
-                  {
-                    label: 'Custo médio',
-                    value: formatCurrency(saldo.cm || toNumber(produto.ecm) || precos.custo)
-                  }
-                ]}
-              />
-            </section>
-          </div>
-
-          <aside className="rf-cliente-profile__summary-side">
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Cadastro</h3>
-              </div>
-              <ProdutoInfoTable
-                rows={[
-                  { label: 'SKU', value: produto.sku },
-                  { label: 'Categoria', value: produto.cat },
-                  { label: 'Unidade', value: produto.un },
-                  { label: 'Código barras', value: produto.codigo_barras },
-                  { label: 'Fornecedor', value: produto.codigo_fornecedor }
-                ]}
-              />
-            </section>
-
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <h3 className="rf-cliente-profile__card-title">Histórico de custo</h3>
-              </div>
-              {sortedHist.length ? (
-                <div className="rf-cliente-profile__table-wrap">
-                  <table className="rf-cliente-profile__table">
-                    <thead>
-                      <tr>
-                        <th>Mês</th>
-                        <th>Fornecedor</th>
-                        <th>Preço</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedHist.slice(0, 5).map((item, index) => (
-                        <tr key={`${item.mes}-${index}`}>
-                          <td>
-                            {String(item.mes ?? '')
-                              .split('-')
-                              .reverse()
-                              .join('/')}
-                          </td>
-                          <td>{item.forn || '—'}</td>
-                          <td>{formatCurrency(toNumber(item.preco))}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="rf-card-premium__body">
+                  <ProdutoInfoTable
+                    rows={[
+                      { label: 'Custo de Compra', value: formatCurrency(precos.custo) },
+                      { label: 'Markup Varejo', value: formatPercent(toNumber(produto.mkv)) },
+                      { label: 'Markup Atacado', value: formatPercent(toNumber(produto.mka)) },
+                      { label: 'Desconto Máx Varejo', value: formatPercent(toNumber(produto.dv)) },
+                      { label: 'Desconto Máx Atacado', value: formatPercent(toNumber(produto.da)) }
+                    ]}
+                  />
                 </div>
-              ) : (
-                <EmptyState title="Sem histórico de custo." compact />
-              )}
-            </section>
-          </aside>
-        </section>
-      ) : null}
+              </article>
+            )}
 
-      {activeTab === 'precificacao' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <section className="rf-cliente-profile__card">
-            <div className="rf-cliente-profile__card-head">
-              <h3 className="rf-cliente-profile__card-title">Precificação</h3>
-            </div>
-            <ProdutoInfoTable
-              rows={[
-                { label: 'Custo', value: formatCurrency(precos.custo) },
-                {
-                  label: 'Markup varejo',
-                  value: toNumber(produto.mkv) > 0 ? formatPercent(toNumber(produto.mkv)) : null
-                },
-                {
-                  label: 'Preço varejo',
-                  value: precos.varejo > 0 ? formatCurrency(precos.varejo) : null
-                },
-                {
-                  label: 'Margem varejo',
-                  value: precos.margemVarejo > 0 ? formatPercent(precos.margemVarejo) : null
-                },
-                {
-                  label: 'Markup atacado',
-                  value: toNumber(produto.mka) > 0 ? formatPercent(toNumber(produto.mka)) : null
-                },
-                {
-                  label: 'Preço atacado',
-                  value: precos.atacado > 0 ? formatCurrency(precos.atacado) : null
-                },
-                { label: 'Desconto varejo', value: formatPercent(toNumber(produto.dv)) },
-                { label: 'Desconto atacado', value: formatPercent(toNumber(produto.da)) }
-              ]}
-            />
-          </section>
-        </section>
-      ) : null}
+            {activeTab === 'estoque' && (
+              <article className="rf-card-premium">
+                <div className="rf-card-premium__head">
+                  <h3 className="rf-card-premium__title">Auditoria de Estoque</h3>
+                </div>
+                <div className="rf-card-premium__body">
+                  <p className="text-slate-500 text-sm">Registro cronológico de entradas, saídas e ajustes.</p>
+                </div>
+              </article>
+            )}
 
-      {activeTab === 'estoque' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <section className="rf-cliente-profile__card">
-            <div className="rf-cliente-profile__card-head">
-              <h3 className="rf-cliente-profile__card-title">Estoque</h3>
-            </div>
-            <ProdutoInfoTable
-              rows={[
-                { label: 'Status', value: stockStatus.label },
-                {
-                  label: 'Saldo atual',
-                  value: `${formatQuantity(saldo.saldo)} ${produto.un || 'un'}`
-                },
-                {
-                  label: 'Estoque mínimo',
-                  value:
-                    toNumber(produto.emin) > 0
-                      ? `${formatQuantity(toNumber(produto.emin))} ${produto.un}`
-                      : null
-                },
-                {
-                  label: 'Alerta',
-                  value:
-                    toNumber(produto.esal) > 0
-                      ? `${formatQuantity(toNumber(produto.esal))} ${produto.un}`
-                      : null
-                },
-                {
-                  label: 'Custo médio',
-                  value: formatCurrency(saldo.cm || toNumber(produto.ecm) || precos.custo)
-                }
-              ]}
-            />
-          </section>
-        </section>
-      ) : null}
+            {activeTab === 'cadastro' && (
+              <article className="rf-card-premium">
+                <div className="rf-card-premium__head">
+                  <h3 className="rf-card-premium__title">{editingCadastro ? 'Edição do Produto' : 'Detalhes Cadastrais'}</h3>
+                  {!editingCadastro && (
+                    <button className="rf-btn-premium" onClick={startEdit}>Editar</button>
+                  )}
+                </div>
+                <div className="rf-card-premium__body">
+                  {editingCadastro ? (
+                    <ProdutoForm
+                      produto={produto}
+                      pais={pais}
+                      saving={saving}
+                      error={mutationError}
+                      onSalvar={(values) => void handleSalvar(values)}
+                      onCancelar={() => {
+                        setEditingCadastro(false);
+                        setSearchParams((current) => {
+                          const next = new URLSearchParams(current);
+                          next.set('tab', 'cadastro');
+                          next.delete('edit');
+                          return next;
+                        });
+                      }}
+                    />
+                  ) : (
+                    <ProdutoInfoTable
+                      rows={[
+                        { label: 'Nome Completo', value: produto.nome },
+                        { label: 'SKU / Código', value: produto.sku },
+                        { label: 'Unidade Padrão', value: produto.un },
+                        { label: 'Categoria Master', value: produto.cat },
+                        { label: 'Descrição Pública', value: produto.descricao_padrao || '—' }
+                      ]}
+                    />
+                  )}
+                </div>
+              </article>
+            )}
 
-      {activeTab === 'cadastro' ? (
-        <section className="rf-cliente-profile__tab-panel">
-          {editingCadastro ? (
-            <section className="rf-cliente-profile__card">
-              <ProdutoForm
+            {activeTab === 'variantes' && (
+              <ProdutoVariantesTab
                 produto={produto}
-                pais={pais}
-                saving={saving}
-                error={mutationError}
-                onSalvar={(values) => void handleSalvar(values)}
-                onCancelar={() => {
-                  setEditingCadastro(false);
-                  setSearchParams((current) => {
-                    const next = new URLSearchParams(current);
-                    next.set('tab', 'cadastro');
-                    next.delete('edit');
-                    return next;
-                  });
-                }}
               />
-            </section>
-          ) : (
-            <section className="rf-cliente-profile__card">
-              <div className="rf-cliente-profile__card-head">
-                <div>
-                  <h3 className="rf-cliente-profile__card-title">Cadastro</h3>
-                  <p className="rf-cliente-profile__card-subtitle">
-                    Revise os dados principais do produto.
-                  </p>
-                </div>
-                <button className="btn btn-sm" type="button" onClick={startEdit}>
-                  Editar cadastro
-                </button>
-              </div>
-              <ProdutoInfoTable
-                rows={[
-                  { label: 'Nome', value: produto.nome },
-                  { label: 'SKU', value: produto.sku },
-                  { label: 'Unidade', value: produto.un },
-                  { label: 'Categoria', value: produto.cat },
-                  {
-                    label: 'Produto pai',
-                    value: pais.find((item) => item.id === produto.produto_pai_id)?.nome
-                  },
-                  { label: 'Descrição', value: produto.descricao_padrao }
-                ]}
-              />
-              <FormError message={mutationError} />
-            </section>
-          )}
-        </section>
-      ) : null}
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </section>
+    </motion.main>
+  );
+}
 
-      {activeTab === 'variantes' && isPai ? (
-        <section className="rf-cliente-profile__tab-panel">
-          <ProdutoVariantesTab produto={produto} />
-        </section>
-      ) : null}
-    </main>
+function ProdutoInfoTable({ rows }: { rows: Array<{ label: string; value: React.ReactNode }> }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {rows.map((row, idx) => (
+        <div key={idx} className="flex items-center justify-between py-1 border-b border-slate-50/50 last:border-0">
+          <span className="text-sm text-slate-500 font-medium">{row.label}</span>
+          <div className="text-sm font-semibold text-slate-900">{row.value || '—'}</div>
+        </div>
+      ))}
+    </div>
   );
 }

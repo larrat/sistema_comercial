@@ -9,12 +9,12 @@ type FormSectionProps = {
 
 export function FormSection({ title, description, aside, children }: FormSectionProps) {
   return (
-    <section className="card-shell rf-ui-form-section">
+    <section className="rf-card-premium rf-ui-form-section">
       <div className="rf-ui-form-section__head">
         <div>
           <h2 className="rf-ui-form-section__title">{title}</h2>
           {description ? (
-            <p className="rf-ui-form-section__description table-cell-caption table-cell-muted">
+            <p className="rf-ui-form-section__description">
               {description}
             </p>
           ) : null}

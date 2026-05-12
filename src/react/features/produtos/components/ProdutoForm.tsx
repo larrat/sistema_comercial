@@ -210,7 +210,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         <div className="fg2">
           <FormField label="Nome" required>
             <input
-              className="inp"
+              className="rf-input-premium"
               value={values.nome}
               onChange={(e) => set({ nome: e.target.value })}
               required
@@ -220,7 +220,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="SKU" hint="Código usado para localizar o produto rapidamente.">
             <input
-              className="inp"
+              className="rf-input-premium"
               value={values.sku}
               onChange={(e) => set({ sku: e.target.value })}
               data-testid="produto-form-sku"
@@ -241,7 +241,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Categoria">
             <input
-              className="inp"
+              className="rf-input-premium"
               value={values.cat}
               onChange={(e) => set({ cat: e.target.value })}
             />
@@ -254,7 +254,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               hint="Use quando este produto herda dados de uma família."
             >
               <select
-                className="sel"
+                className="rf-input-premium"
                 value={values.produto_pai_id ?? ''}
                 onChange={(e) => handlePaiChange(e.target.value)}
               >
@@ -294,7 +294,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         <div className="fg2">
           <FormField label="Preço varejo (R$)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.01"
@@ -304,7 +304,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Markup (%)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.1"
@@ -314,7 +314,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Margem (%)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.1"
@@ -326,7 +326,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         <div className="fg2" style={{ marginTop: 8 }}>
           <FormField label="Qtde mínima comercial">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.001"
@@ -336,7 +336,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Desconto varejo (%)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               max="100"
@@ -352,7 +352,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         <div className="fg2">
           <FormField label="Preço fixo (R$)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.01"
@@ -362,7 +362,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Markup (%)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.1"
@@ -372,7 +372,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Margem (%)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.1"
@@ -384,7 +384,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         <div style={{ marginTop: 8 }}>
           <FormField label="Desconto atacado (%)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               max="100"
@@ -401,7 +401,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         <div className="fg2">
           <FormField label="Mínimo de estoque">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.001"
@@ -411,7 +411,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Alerta de estoque">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.001"
@@ -421,7 +421,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </FormField>
           <FormField label="Custo médio (R$)">
             <input
-              className="inp"
+              className="rf-input-premium"
               type="number"
               min="0"
               step="0.01"
