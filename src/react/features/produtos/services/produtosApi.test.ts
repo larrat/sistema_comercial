@@ -178,10 +178,10 @@ describe('saveProduto', () => {
     expect(result?.custo).toBe(25);
   });
 
-  it('retorna produto com id original quando API não retorna corpo', async () => {
+  it('retorna null quando API não retorna corpo (garantia de vínculo)', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse(null));
     const result = await saveProduto(context, { ...PRODUTO, id: 'p1' });
-    expect(result?.id).toBe('p1');
+    expect(result).toBeNull();
   });
 
   it('retorna null quando input não tem id e API não retorna corpo', async () => {
