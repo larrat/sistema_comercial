@@ -13,8 +13,11 @@ import {
   PieChart,
   Cell,
   Sector,
-  Rectangle
+  Rectangle,
+  Area,
+  AreaChart
 } from 'recharts';
+import CountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle,
@@ -398,9 +401,20 @@ export function DashboardPilotPage() {
     <div className="rf-dashboard">
       {/* Topbar */}
       <header className="rf-dashboard-topbar">
-        <h1 className="rf-dashboard-title">Dashboard</h1>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          <h1 className="rf-dashboard-title">Dashboard</h1>
+        </motion.div>
         
-        <div className="rf-dashboard-filters">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="rf-dashboard-filters"
+        >
           <div className="rf-pill-group">
             {(['semana', 'mes', 'ano', 'tudo'] as Periodo[]).map(p => (
               <button 
@@ -429,51 +443,117 @@ export function DashboardPilotPage() {
             <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
             {isRefreshing ? 'Atualizando...' : 'Atualizar'}
           </button>
-        </div>
+        </motion.div>
       </header>
 
       {/* Linha 1: Stat Cards */}
-      <section className="rf-dashboard-row rf-dashboard-row--1">
-        <article className="rf-dash-card">
+      <motion.section 
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.1 }
+          }
+        }}
+        className="rf-dashboard-row rf-dashboard-row--1"
+      >
+        <motion.article 
+          variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+          className="rf-dash-card"
+        >
           <span className="rf-stat-label">Faturamento</span>
-          <span className="rf-stat-value">{fmt(stats.faturamento)}</span>
+          <div className="rf-stat-value">
+            <CountUp 
+              end={stats.faturamento} 
+              decimals={2} 
+              decimal="," 
+              prefix="R$ " 
+              duration={2} 
+              separator="."
+            />
+          </div>
           <span className="rf-stat-sub muted">{stats.pedidosEntregues} entregue(s) no período</span>
-        </article>
+        </motion.article>
 
         {visao !== 'operacional' && (
-          <article className="rf-dash-card is-success">
+          <motion.article 
+            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+            className="rf-dash-card is-success"
+          >
             <span className="rf-stat-label">Lucro bruto</span>
-            <span className="rf-stat-value text-emerald-600">{fmt(stats.lucroTotal)}</span>
+            <div className="rf-stat-value text-emerald-600">
+              <CountUp 
+                end={stats.lucroTotal} 
+                decimals={2} 
+                decimal="," 
+                prefix="R$ " 
+                duration={2.5} 
+                separator="."
+              />
+            </div>
             <span className="rf-stat-sub success font-bold">
               <TrendingUp size={12} strokeWidth={3} /> Margem {stats.margem.toFixed(1)}%
             </span>
-          </article>
+          </motion.article>
         )}
 
-        <article className="rf-dash-card">
+        <motion.article 
+          variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+          className="rf-dash-card"
+        >
           <span className="rf-stat-label">Ticket médio</span>
-          <span className="rf-stat-value">{fmt(stats.ticketMedio)}</span>
+          <div className="rf-stat-value">
+            <CountUp 
+              end={stats.ticketMedio} 
+              decimals={2} 
+              decimal="," 
+              prefix="R$ " 
+              duration={2.2} 
+              separator="."
+            />
+          </div>
           <span className="rf-stat-sub muted">{stats.totalPedidos} pedido(s) no período</span>
-        </article>
+        </motion.article>
 
-        <article className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : 'is-warning'}`}>
+        <motion.article 
+          variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+          className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : 'is-warning'}`}
+        >
           <span className="rf-stat-label">Em aberto</span>
-          <span className={`rf-stat-value ${stats.valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-            {fmt(stats.valorEmAberto)}
-          </span>
+          <div className={`rf-stat-value ${stats.valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+            <CountUp 
+              end={stats.valorEmAberto} 
+              decimals={2} 
+              decimal="," 
+              prefix="R$ " 
+              duration={2.4} 
+              separator="."
+            />
+          </div>
           <span className={`rf-stat-sub ${stats.valorEmAberto > 0 ? 'warning' : 'success'} font-bold`}>
             {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
           </span>
-        </article>
+        </motion.article>
 
         {visao !== 'operacional' && (
-          <article className={`rf-dash-card ${!filial?.meta_mensal ? 'is-warning' : ''}`}>
+          <motion.article 
+            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+            className={`rf-dash-card ${!filial?.meta_mensal ? 'is-warning' : ''}`}
+          >
             <span className="rf-stat-label">Pacing mensal</span>
             {filial?.meta_mensal ? (
               <>
-                <span className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {((stats.faturamento / filial.meta_mensal) * 100).toFixed(1)}%
-                </span>
+                <div className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  <CountUp 
+                    end={(stats.faturamento / filial.meta_mensal) * 100} 
+                    decimals={1} 
+                    decimal="," 
+                    suffix="%" 
+                    duration={2.6} 
+                  />
+                </div>
                 <span className="rf-stat-sub muted">Meta: {fmt(filial.meta_mensal)}</span>
               </>
             ) : (
@@ -482,14 +562,19 @@ export function DashboardPilotPage() {
                 <span className="rf-stat-sub muted">Meta não configurada</span>
               </>
             )}
-          </article>
+          </motion.article>
         )}
-      </section>
+      </motion.section>
 
       {/* Linha 2: Gráfico + Status */}
       <section className="rf-dashboard-row rf-dashboard-row--2">
         {visao !== 'operacional' && (
-          <article className="rf-dash-card">
+          <motion.article 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="rf-dash-card"
+          >
             <div className="rf-dash-card__header flex-row items-center !mb-6">
               <div className="flex-1">
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-0.5">Faturamento e Lucro</h2>
@@ -512,9 +597,9 @@ export function DashboardPilotPage() {
             </div>
             <div className="flex-1 mt-6 min-h-[340px]">
               <ResponsiveContainer width="100%" height={340}>
-                <BarChart 
+                <AreaChart 
                   data={chartData} 
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
                   onMouseMove={(state) => {
                     if (state.activeTooltipIndex !== undefined) {
                       setActiveBarIndex(state.activeTooltipIndex);
@@ -523,13 +608,13 @@ export function DashboardPilotPage() {
                   onMouseLeave={() => setActiveBarIndex(null)}
                 >
                   <defs>
-                    <linearGradient id="barGradientFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C5A059" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#C5A059" stopOpacity={0.2}/>
+                    <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#C5A059" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#C5A059" stopOpacity={0}/>
                     </linearGradient>
-                    <linearGradient id="barGradientLuc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.2}/>
+                    <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
@@ -542,7 +627,6 @@ export function DashboardPilotPage() {
                   />
                   <YAxis hide />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(241, 245, 249, 0.4)', radius: [12, 12, 0, 0] }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
@@ -562,22 +646,34 @@ export function DashboardPilotPage() {
                                 <p className="text-xl font-black text-[#10B981] leading-none">{fmt(payload[1].value as number)}</p>
                               </div>
                             </div>
-                            <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-center gap-2 opacity-30">
-                              <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
-                            </div>
                           </TooltipShell>
                         );
                       }
                       return null;
                     }}
                   />
-                  <Bar dataKey="faturamento" fill="url(#colorFat)" radius={[8, 8, 0, 0]} barSize={chartData.length < 3 ? 48 : 32} />
-                  <Bar dataKey="lucro" fill="url(#colorLuc)" radius={[8, 8, 0, 0]} barSize={chartData.length < 3 ? 48 : 32} />
-                </BarChart>
+                  <Area 
+                    type="monotone" 
+                    dataKey="faturamento" 
+                    stroke="#C5A059" 
+                    strokeWidth={4}
+                    fillOpacity={1} 
+                    fill="url(#colorFat)" 
+                    animationDuration={1500}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="lucro" 
+                    stroke="#10B981" 
+                    strokeWidth={4}
+                    fillOpacity={1} 
+                    fill="url(#colorLuc)" 
+                    animationDuration={2000}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
-          </article>
+          </motion.article>
         )}
 
         <article className="rf-dash-card overflow-hidden">
