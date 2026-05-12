@@ -57,13 +57,16 @@ export function DashboardPilotPage() {
 
   // --- Cálculos ---
   const stats = useMemo(() => {
-    const validPedidos = pedidos.filter(p => !['cancelado', 'em_andamento'].includes(p.status));
-    const finishedPedidos = pedidos.filter(p => ['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido'].includes(p.status));
+    // Vendas Reais: Apenas pedidos que já saíram do orçamento/andamento/separação e não foram cancelados
+    // Idealmente: entregue, pago ou concluído.
+    const statusVenda = ['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido'];
+    const vendasReais = pedidos.filter(p => statusVenda.includes(p.status));
     
-    const faturamento = finishedPedidos.reduce((acc, p) => acc + Number(p.total || 0), 0);
+    // Todos os pedidos que não foram cancelados (para ticket médio operacional se necessário, mas usaremos vendas reais por consistência)
+    const faturamento = vendasReais.reduce((acc, p) => acc + Number(p.total || 0), 0);
     
     let lucroTotal = 0;
-    validPedidos.forEach(p => {
+    vendasReais.forEach(p => {
       const items = (p.itens || []) as PedidoItem[];
       items.forEach(item => {
         const preco = Number(item.preco || 0);
@@ -73,17 +76,18 @@ export function DashboardPilotPage() {
       });
     });
 
-    const ticketMedio = validPedidos.length > 0 ? faturamento / validPedidos.length : 0;
+    const ticketMedio = vendasReais.length > 0 ? faturamento / vendasReais.length : 0;
     const valorEmAberto = contasReceber.reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
     
     return {
+      vendasReais,
       faturamento,
       lucroTotal,
       margem: faturamento > 0 ? (lucroTotal / faturamento) * 100 : 0,
       ticketMedio,
       valorEmAberto,
-      totalPedidos: validPedidos.length,
-      pedidosEntregues: finishedPedidos.length,
+      totalPedidos: vendasReais.length,
+      pedidosEntregues: vendasReais.length, // Já filtrado por status real de venda
       pedidosPendentes: contasReceber.length
     };
   }, [pedidos, contasReceber]);
@@ -91,8 +95,8 @@ export function DashboardPilotPage() {
   const chartData = useMemo(() => {
     const groups: Record<string, { name: string; faturamento: number; lucro: number }> = {};
     
-    pedidos.forEach(p => {
-      if (p.status === 'cancelado') return;
+    // IMPORTANTE: O gráfico deve usar a MESMA base das stats (vendasReais) para ser "Certeiro"
+    stats.vendasReais.forEach(p => {
       const date = new Date(p.data || p.criado_em || '');
       let key = '';
       let label = '';
@@ -119,7 +123,7 @@ export function DashboardPilotPage() {
     });
 
     return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
-  }, [pedidos, periodo]);
+  }, [stats.vendasReais, periodo]);
 
   const periodoDatas = useMemo(() => {
     const now = new Date();
@@ -149,8 +153,7 @@ export function DashboardPilotPage() {
 
   const topProducts = useMemo(() => {
     const productSales: Record<string, { nome: string; receita: number }> = {};
-    pedidos.forEach(p => {
-      if (p.status === 'cancelado') return;
+    stats.vendasReais.forEach(p => {
       const items = (p.itens || []) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
@@ -161,7 +164,7 @@ export function DashboardPilotPage() {
     return Object.values(productSales)
       .sort((a, b) => b.receita - a.receita)
       .slice(0, 5);
-  }, [pedidos]);
+  }, [stats.vendasReais]);
 
   const statusDistribution = useMemo(() => {
     const dist: Record<string, number> = {};
