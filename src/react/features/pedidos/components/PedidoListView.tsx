@@ -6,9 +6,6 @@ import {
   ActionMenu,
   DataTable,
   FilterBar,
-  PageHeader,
-  SegmentedControl,
-  StatCard,
   StatusBadge
 } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -316,8 +313,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
           </div>
         }
       />
+    </div>
 
-      <DataTable
+    <DataTable
         className="pedidos-data-table"
         data={pedidos}
         rowKey={(pedido) => pedido.id}

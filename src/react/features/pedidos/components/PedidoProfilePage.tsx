@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
-import type { ContaReceber, ContaReceberBaixa, Pedido, PedidoItem } from '../../../../types/domain';
+import type { ContaReceber, Pedido, PedidoItem } from '../../../../types/domain';
 import { useRoleStore } from '../../../app/useRoleStore';
-import { EmptyState, ErrorState, LoadingState, StatusBadge, Modal } from '../../../shared/ui';
+import { EmptyState, LoadingState, StatusBadge } from '../../../shared/ui';
 import type { PedidoFinanceiroState } from '../hooks/usePedidoProfile';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { useContasReceberMutations } from '../../contas-receber/hooks/useContasReceberMutations';
@@ -17,8 +17,6 @@ import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoItensTab } from './PedidoItensTab';
 import { PedidoTimeline, type TimelineEvent } from './PedidoTimeline';
 import {
-  calculatePedidoItemLucro,
-  calculatePedidoItemMargem,
   calculatePedidoLucroTotal,
   calculatePedidoTotal,
   formatPedidoCurrency
@@ -120,9 +118,9 @@ export function PedidoProfilePage({
   pedido,
   financeiro,
   loadingPedido = false,
-  error,
+  _error,
   onPedidoChanged,
-  onReload,
+  _onReload,
   onReloadFinanceiro
 }: Props) {
   const navigate = useNavigate();
