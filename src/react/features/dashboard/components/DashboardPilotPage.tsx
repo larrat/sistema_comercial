@@ -548,9 +548,20 @@ export function DashboardPilotPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl border border-white/10 backdrop-blur-md">
-                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">{payload[0].name}</p>
-                              <p className="text-sm font-black">{fmt(payload[0].value as number)}</p>
+                            <div className="bg-white/95 backdrop-blur-2xl p-5 border border-white/60 rounded-3xl shadow-[0_30px_60px_-12px_rgba(15,23,42,0.12)] ring-1 ring-black/5 min-w-[180px] animate-in fade-in zoom-in duration-200">
+                              <div className="flex flex-col items-center mb-3 pb-2 border-b border-slate-100">
+                                <p className="font-black text-slate-900 text-[10px] uppercase tracking-[0.15em] text-center leading-tight">
+                                  {payload[0].name}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-center">
+                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Participação</span>
+                                <p className="text-lg font-black text-slate-900 leading-none">{fmt(payload[0].value as number)}</p>
+                              </div>
+                              <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-center gap-1.5 opacity-30">
+                                <div className="w-1 h-1 rounded-full bg-slate-400" />
+                                <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
+                              </div>
                             </div>
                           );
                         }
