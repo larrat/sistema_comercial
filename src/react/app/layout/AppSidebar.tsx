@@ -116,17 +116,17 @@ export function AppSidebar() {
         </div>
       )}
 
-      <nav className={`flex-1 overflow-y-auto flex flex-col gap-6 scrollbar-hide ${collapsed ? 'px-2' : 'px-4'} py-2`}>
+      <nav className={`flex-1 overflow-y-auto flex flex-col gap-6 scrollbar-hide ${collapsed ? 'items-center px-0' : 'px-4'} py-2`}>
         {groups.map((group) => (
-          <div key={group.label} className="flex flex-col gap-1.5">
+          <div key={group.label} className={`flex flex-col gap-1.5 ${collapsed ? 'items-center w-full' : ''}`}>
             {!collapsed && (
               <div className="px-3 mb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-600">
                 {group.label}
               </div>
             )}
-            {collapsed && <div className="h-px bg-slate-800/50 mx-2 mb-1" />}
+            {collapsed && <div className="h-px bg-slate-800/50 w-8 mb-1" />}
 
-            <div className="flex flex-col gap-1">
+            <div className={`flex flex-col gap-1 ${collapsed ? 'items-center w-full' : ''}`}>
               {group.items.map((item) => {
                 const Icon = iconByPath[item.path] ?? Circle;
                 return (
@@ -135,7 +135,7 @@ export function AppSidebar() {
                     to={item.path}
                     className={({ isActive }) =>
                       `flex items-center rounded-lg transition-all duration-300 relative group
-                      ${collapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-3 px-3 py-2.5 w-full'}
+                      ${collapsed ? 'justify-center w-10 h-10' : 'gap-3 px-3 py-2.5 w-full'}
                       ${
                         isActive
                           ? 'bg-slate-800 text-white font-bold shadow-sm'
