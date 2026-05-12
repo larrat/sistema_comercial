@@ -9,6 +9,7 @@ export type FilialFormState = {
   estado: string;
   endereco: string;
   cor: string;
+  meta_mensal: string;
 };
 
 export type FiliaisStoreState = {
@@ -40,7 +41,8 @@ const emptyForm = (): FilialFormState => ({
   cidade: '',
   estado: '',
   endereco: '',
-  cor: DEFAULT_COR
+  cor: DEFAULT_COR,
+  meta_mensal: ''
 });
 
 export const useFiliaisStore = create<FiliaisStoreState & FiliaisStoreActions>((set) => ({
@@ -73,7 +75,8 @@ export const useFiliaisStore = create<FiliaisStoreState & FiliaisStoreActions>((
         cidade: filial.cidade ?? '',
         estado: filial.estado ?? '',
         endereco: filial.endereco ?? '',
-        cor: filial.cor ?? DEFAULT_COR
+        cor: filial.cor ?? DEFAULT_COR,
+        meta_mensal: filial.meta_mensal ? String(filial.meta_mensal) : ''
       }
     }),
 

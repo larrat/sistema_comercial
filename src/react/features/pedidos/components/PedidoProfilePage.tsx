@@ -260,20 +260,22 @@ export function PedidoProfilePage({
     <main className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8" data-testid="pedido-profile-page">
       {/* Topbar / Breadcrumb */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-          <Link to="/app/pedidos" className="hover:text-slate-900 transition-colors">Pedidos</Link>
-          <span>/</span>
-          <span className="text-slate-900">#{pedido.num}</span>
+        <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+          <Link to="/app/pedidos" className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
+            <span className="text-base">←</span> Pedidos
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-900 font-semibold">#{pedido.num}</span>
         </div>
         <div className="flex items-center gap-3">
           {status !== 'cancelado' && status !== 'concluido' && (
-            <button className="btn-danger btn-sm" type="button" onClick={() => setShowCancelConfirm(true)}>
+            <button className="btn btn-outline btn-sm border-slate-200 text-slate-600 hover:bg-slate-50" type="button" onClick={() => setShowCancelConfirm(true)}>
               Cancelar pedido
             </button>
           )}
           {['orcamento', 'confirmado', 'em_separacao'].includes(status) && (
             <button 
-              className="btn-ghost" 
+              className="btn btn-outline btn-sm border-slate-200 text-slate-900 font-semibold hover:bg-slate-50" 
               onClick={() => navigate(`/app/pedidos?pedido=${encodeURIComponent(pedido.id)}&view=edit`)}
             >
               Editar
@@ -284,12 +286,12 @@ export function PedidoProfilePage({
 
       {/* Header */}
       <section className="flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${getAvatarColor(pedido.cli)}`}>
+        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm ${getAvatarColor(pedido.cli)}`}>
           {getInitials(pedido.cli)}
         </div>
         <div className="flex flex-col">
-          <div className="flex items-center gap-3">
-            <h1 className="text-base font-semibold text-slate-900 m-0">Pedido #{pedido.num}</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-xl font-bold text-slate-900 m-0">Pedido #{pedido.num}</h1>
             <StatusBadge tone={statusTone}>
               {PEDIDO_STATUS_LABEL[status] || status}
             </StatusBadge>
@@ -299,7 +301,7 @@ export function PedidoProfilePage({
               </StatusBadge>
             )}
           </div>
-          <div className="text-xs text-slate-500 mt-1">
+          <div className="text-sm text-slate-500 font-medium">
             {pedido.cli} · {formatDate(pedido.data)} · {pedido.rca_nome || 'Sem vendedor'}
           </div>
         </div>
@@ -310,7 +312,7 @@ export function PedidoProfilePage({
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Total do pedido</span>
           <span className="rf-kpi-value">{formatPedidoCurrency(total)}</span>
-          <span className="rf-kpi-sub muted">{itens.length} item(ns) · {itens.reduce((acc, i) => acc + Number(i.qty), 0)} unidade(s)</span>
+          <span className="rf-kpi-sub muted">{itens.length} item · {itens.reduce((acc, i) => acc + Number(i.qty), 0)} unidades</span>
         </article>
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Lucro</span>
@@ -319,7 +321,7 @@ export function PedidoProfilePage({
         </article>
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Pagamento</span>
-          <span className="rf-kpi-value !text-[15px]">
+          <span className="rf-kpi-value">
             {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
           </span>
           <span className="rf-kpi-sub muted">
@@ -344,7 +346,7 @@ export function PedidoProfilePage({
       </section>
 
       {/* Tabs */}
-      <nav className="rf-tabs-premium">
+      <nav className="rf-tabs-premium mb-0">
         {PROFILE_TABS.map(tab => (
           <button
             key={tab.id}
@@ -367,11 +369,11 @@ export function PedidoProfilePage({
               onPedidoChanged={onPedidoChanged}
             />
             
-            {/* Resumo Financeiro na aba Itens */}
+            {/* Unified Sections: Financeiro e Histórico */}
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold text-slate-900 m-0">Financeiro do pedido</h3>
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-base font-bold text-slate-900 m-0">Financeiro do pedido</h3>
+                <div className="flex items-center gap-3">
                   {status === 'entregue_aguardando_pagamento' && !financeiro.conta && (
                     <button className="btn btn-sm btn-p" onClick={handleGerarConta}>Gerar conta</button>
                   )}
@@ -382,24 +384,32 @@ export function PedidoProfilePage({
                   ) : <StatusBadge tone="neutral">Sem conta vinculada</StatusBadge>}
                 </div>
               </div>
+
               {financeiro.conta ? (
-                <div className="flex justify-between items-center py-2">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-900">
+                <div className="flex justify-between items-center py-1">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-bold text-slate-900">
                       {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
                     </span>
-                    <span className="text-[11px] text-slate-500">Vencimento {formatDate(financeiro.conta.vencimento)}</span>
+                    <span className="text-xs text-slate-500 font-medium">Vence {formatDate(financeiro.conta.vencimento)}</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-semibold text-slate-900">{formatPedidoCurrency(financeiro.conta.valor)}</span>
-                    <StatusBadge tone={financeiro.conta.status === 'recebido' ? 'success' : 'warning'}>
-                      {financeiro.conta.status === 'recebido' ? 'Baixado' : 'Em aberto'}
-                    </StatusBadge>
+                  <div className="flex items-center gap-6">
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-base font-bold text-slate-900">{formatPedidoCurrency(financeiro.conta.valor)}</span>
+                      <StatusBadge tone={financeiro.conta.status === 'recebido' ? 'success' : 'warning'}>
+                        {financeiro.conta.status === 'recebido' ? 'Baixado' : 'Em aberto'}
+                      </StatusBadge>
+                    </div>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-4 text-sm text-slate-400">Nenhuma conta a receber vinculada a este pedido.</div>
               )}
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <h3 className="text-base font-bold text-slate-900 m-0 mb-6">Histórico</h3>
+              <PedidoTimeline events={timelineEvents} />
             </div>
           </div>
         )}

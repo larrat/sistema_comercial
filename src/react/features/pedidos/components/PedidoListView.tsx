@@ -196,58 +196,78 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   }, [activeTab, filtro.pgto, filtro.periodo, filtro.q, filtro.sort, filtro.status, trackEvent]);
 
   return (
-    <div className="flex flex-col gap-8" data-testid="pedido-list-view">
-      <PageHeader
-        kicker="Comercial"
-        title="Pedidos"
-        description="Acompanhe os pedidos por etapa operacional, revise a carteira e abra detalhes sem sair da listagem."
-        actions={
-          <div className="flex items-center gap-3">
-            <button className="btn btn-p btn-sm" onClick={onNovoPedido} data-testid="pedido-novo-btn">
-              Novo pedido
-            </button>
-          </div>
-        }
-      />
-
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <SegmentedControl
-          options={TABS.map(t => ({ ...t, label: `${t.label} (${tabCounts[t.id]})` }))}
-          activeId={activeTab}
-          onChange={(id) => setActiveTab(id as PedidoTab)}
-        />
-        
-        <div className="flex items-center gap-2">
-          <StatusBadge tone="neutral">
-            {total} filtrados · página {page}
-          </StatusBadge>
+    <div className="flex flex-col gap-6" data-testid="pedido-list-view">
+      {/* Topbar / Header */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div className="flex flex-col">
+          <h1 className="text-xl font-bold text-slate-900 m-0">Pedidos</h1>
+          <p className="text-sm text-slate-500 font-medium">Acompanhe e gerencie a carteira de vendas</p>
         </div>
-      </div>
+        <div className="flex items-center gap-3">
+          <button className="btn btn-p" onClick={onNovoPedido} data-testid="pedido-novo-btn">
+            Novo pedido
+          </button>
+        </div>
+      </header>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Resumo de pedidos">
-        <StatCard
-          label="Pedidos"
-          value={stats.total}
-          description={`${total} resultado(s) no filtro atual`}
-        />
-        <StatCard
-          label="Em aberto"
-          value={stats.emAbertoCount}
-          description={fmtCurrency(stats.valorEmAberto)}
-          tone={stats.emAbertoCount > 0 ? 'warning' : 'default'}
-        />
-        <StatCard label="Concluídos" value={stats.entreguesCount} tone="success" />
-        <StatCard label="Cancelados" value={stats.canceladosCount} tone="danger" />
+      {/* KPI Grid */}
+      <section className="rf-kpi-grid mb-2">
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Total em pedidos</span>
+          <span className="rf-kpi-value">{stats.total}</span>
+          <span className="rf-kpi-sub muted">{total} filtrados no período</span>
+        </article>
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Aguardando</span>
+          <span className={`rf-kpi-value ${stats.emAbertoCount > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
+            {stats.emAbertoCount}
+          </span>
+          <span className={`rf-kpi-sub ${stats.emAbertoCount > 0 ? 'warning' : 'success'}`}>
+            {fmtCurrency(stats.valorEmAberto)} em aberto
+          </span>
+        </article>
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Concluídos</span>
+          <span className="rf-kpi-value !text-emerald-600">{stats.entreguesCount}</span>
+          <span className="rf-kpi-sub success">Operação saudável</span>
+        </article>
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Cancelados</span>
+          <span className="rf-kpi-value !text-rose-600">{stats.canceladosCount}</span>
+          <span className="rf-kpi-sub muted">Taxa de rejeição</span>
+        </article>
       </section>
 
-      <FilterBar
-        className="pedidos-filter-bar"
-        search={{
-          value: filtro.q,
-          onChange: (value) => setFiltro({ q: value }),
-          placeholder: 'N.º ou cliente...',
-          ariaLabel: 'Buscar pedidos',
-          testId: 'pedido-busca'
+      {/* Control Center: Tabs & Filters */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-2">
+          <nav className="rf-pill-group">
+            {TABS.map(t => (
+              <button 
+                key={t.id}
+                className={`rf-pill ${activeTab === t.id ? 'is-active' : ''}`}
+                onClick={() => setActiveTab(t.id)}
+              >
+                {t.label} <span className="ml-1 opacity-50">({tabCounts[t.id]})</span>
+              </button>
+            ))}
+          </nav>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Página {page} · {total} resultados
+            </span>
+          </div>
+        </div>
+
+        <FilterBar
+          className="pedidos-filter-bar !border-none !p-0 !bg-transparent"
+          search={{
+            value: filtro.q,
+            onChange: (value) => setFiltro({ q: value }),
+            placeholder: 'N.º ou cliente...',
+            ariaLabel: 'Buscar pedidos',
+            testId: 'pedido-busca'
         }}
         filters={[
           ...(activeTab === 'emaberto'

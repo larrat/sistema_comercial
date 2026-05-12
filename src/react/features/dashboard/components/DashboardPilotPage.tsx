@@ -315,8 +315,19 @@ export function DashboardPilotPage() {
         {visao !== 'operacional' && (
           <article className="rf-dash-card">
             <span className="rf-stat-label">Pacing mensal</span>
-            <span className="rf-stat-value text-slate-400">—%</span>
-            <span className="rf-stat-sub muted">Meta não configurada</span>
+            {data?.filial?.meta_mensal ? (
+              <>
+                <span className={`rf-stat-value ${stats.faturamento >= data.filial.meta_mensal ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {((stats.faturamento / data.filial.meta_mensal) * 100).toFixed(1)}%
+                </span>
+                <span className="rf-stat-sub muted">Meta: {fmt(data.filial.meta_mensal)}</span>
+              </>
+            ) : (
+              <>
+                <span className="rf-stat-value text-slate-400">—%</span>
+                <span className="rf-stat-sub muted">Meta não configurada</span>
+              </>
+            )}
           </article>
         )}
       </section>

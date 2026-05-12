@@ -3432,12 +3432,12 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-timeline-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: #f1f5f9;
   border: 2px solid white;
-  box-shadow: 0 0 0 1px #cbd5e1;
+  box-shadow: 0 0 0 1px #e2e8f0;
   z-index: 1;
 }
 
@@ -3450,7 +3450,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   width: 2px;
   flex: 1;
   background: #f1f5f9;
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .rf-timeline-item.is-pending .rf-timeline-line {

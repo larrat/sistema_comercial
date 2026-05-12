@@ -181,37 +181,35 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
   }
 
   return (
-    <section className="rf-cliente-profile__card" data-testid="pedido-itens-tab">
-      <div className="rf-cliente-profile__card-head">
-        <div>
-          <h3 className="rf-cliente-profile__card-title">Itens do pedido</h3>
-          <p className="rf-cliente-profile__card-subtitle">
-            {canEdit
-              ? 'Admin pode ajustar quantidade, preço, remover ou adicionar itens.'
-              : 'Tabela somente leitura para este usuário ou status.'}
-          </p>
-        </div>
+    <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm" data-testid="pedido-itens-tab">
+      <div className="flex items-center justify-between p-6">
+        <h3 className="text-base font-bold text-slate-900 m-0">Itens do pedido</h3>
+        {!canEdit && (
+          <span className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-slate-100">
+            Somente leitura
+          </span>
+        )}
       </div>
 
-      {error ? <div className="empty-inline form-warn-inline">{error}</div> : null}
+      {error ? <div className="mx-6 mb-4 p-3 bg-rose-50 text-rose-700 text-xs rounded-lg border border-rose-100">{error}</div> : null}
 
       {itens.length === 0 ? (
-        <div className="empty-inline">Nenhum item.</div>
+        <div className="p-8 text-center text-slate-400 text-sm">Nenhum item adicionado a este pedido.</div>
       ) : (
         <>
-          <div className="rf-cliente-profile__table-wrap">
-            <table className="rf-cliente-profile__table ped-items-table">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
               <thead>
-                <tr>
-                  <th>Produto</th>
-                  <th>Origem</th>
-                  <th>Qtd</th>
-                  <th>Custo</th>
-                  <th>Preço</th>
-                  <th>Subtotal</th>
-                  <th>Lucro</th>
-                  <th>Margem</th>
-                  {canEdit ? <th /> : null}
+                <tr className="border-y border-slate-100 bg-slate-50/50">
+                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Produto</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Origem</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Qtd</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Custo</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subtotal</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lucro</th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Margem</th>
+                  {canEdit ? <th className="px-3 py-3" /> : null}
                 </tr>
               </thead>
               <tbody>
@@ -223,36 +221,32 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
                   const canRemove = canEdit && itens.length > 1;
 
                   return (
-                    <tr key={itemId} data-testid={`pedido-profile-item-${index}`}>
-                      <td className="table-cell-strong">{item.nome}</td>
-                      <td>
-                        <span className={`bdg ${item.orig === 'estoque' ? 'bg' : 'bb'}`}>
+                    <tr key={itemId} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors" data-testid={`pedido-profile-item-${index}`}>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">{item.nome}</td>
+                      <td className="px-3 py-4">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.orig === 'estoque' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'}`}>
                           {item.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}
                         </span>
                       </td>
-                      <td>{renderEditableCell(item, index, 'qty')}</td>
-                      <td className="table-cell-muted">{formatPedidoCurrency(item.custo)}</td>
-                      <td>{renderEditableCell(item, index, 'preco')}</td>
-                      <td className="table-cell-strong">{formatPedidoCurrency(subtotal)}</td>
-                      <td
-                        className={`table-cell-strong ${
-                          lucro >= 0 ? 'table-cell-success' : 'table-cell-danger'
-                        }`}
-                      >
+                      <td className="px-3 py-4 text-sm text-slate-600">{renderEditableCell(item, index, 'qty')}</td>
+                      <td className="px-3 py-4 text-sm text-slate-400">{formatPedidoCurrency(item.custo)}</td>
+                      <td className="px-3 py-4 text-sm text-slate-600 font-medium">{renderEditableCell(item, index, 'preco')}</td>
+                      <td className="px-3 py-4 text-sm font-semibold text-slate-900">{formatPedidoCurrency(subtotal)}</td>
+                      <td className={`px-3 py-4 text-sm font-semibold ${lucro >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {formatPedidoCurrency(lucro)}
                       </td>
-                      <td className="table-cell-strong">{margem.toFixed(1)}%</td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{margem.toFixed(1)}%</td>
                       {canEdit ? (
-                        <td>
+                        <td className="px-3 py-4">
                           {canRemove ? (
                             <button
-                              className="btn btn-sm"
+                              className="text-slate-300 hover:text-rose-500 transition-colors"
                               type="button"
                               title="Remover item"
                               onClick={() => setRemoveTarget({ item, index })}
                               disabled={savingKey === `${itemId}:remove`}
                             >
-                              Remover
+                              ✕
                             </button>
                           ) : null}
                         </td>
@@ -264,12 +258,19 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
             </table>
           </div>
 
-          <div className="panel ped-total-panel">
-            <div className="fb">
-              <span className="ped-total-label">Total do pedido</span>
-              <span className="ped-total-value">
-                {formatPedidoCurrency(total)} | Lucro {formatPedidoCurrency(lucroTotal)}
-              </span>
+          <div className="flex items-center justify-between p-6 bg-slate-50/30 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-medium">
+              {itens.length} produto{itens.length !== 1 ? 's' : ''} · {itens.reduce((acc, i) => acc + Number(i.qty), 0)} unidades
+            </span>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">Lucro total</span>
+                <span className="text-sm font-bold text-emerald-600">{formatPedidoCurrency(lucroTotal)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500">Total</span>
+                <span className="text-sm font-bold text-slate-900">{formatPedidoCurrency(total)}</span>
+              </div>
             </div>
           </div>
         </>

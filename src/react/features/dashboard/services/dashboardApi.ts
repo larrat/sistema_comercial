@@ -1,4 +1,4 @@
-import type { Cliente, Pedido, Produto, ContaReceber } from '../../../../types/domain';
+import type { Cliente, Pedido, Produto, ContaReceber, Filial } from '../../../../types/domain';
 import { hydratePedidosWithNormalizedItens } from '../../pedidos/services/pedidosApi';
 
 export type DashboardApiContext = {
@@ -12,6 +12,7 @@ export type DashboardAggregates = {
   produtos: Produto[];
   clientes: Cliente[];
   contasReceber: ContaReceber[];
+  filial?: Filial;
 };
 
 function createHeaders(key: string, token: string): HeadersInit {
@@ -100,10 +101,17 @@ export async function fetchDashboardData(
       const body = await readJson(r);
       ensureOk(r, body, 'Erro ao carregar contas a receber');
       return body as ContaReceber[];
+    }),
+    fetch(`${ctx.url}/rest/v1/filiais?id=eq.${encodeURIComponent(filialId)}&select=*`, {
+      headers: { ...headers, Prefer: 'plurality=singular' }
+    }).then(async (r) => {
+      const body = await readJson(r);
+      ensureOk(r, body, 'Erro ao carregar filial');
+      return body as Filial;
     })
   ]);
 
   const pedidos = await hydratePedidosWithNormalizedItens({ ...ctx, filialId }, pedidosRaw);
 
-  return { pedidos, produtos, clientes, contasReceber };
+  return { pedidos, produtos, clientes, contasReceber, filial };
 }

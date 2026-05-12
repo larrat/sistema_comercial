@@ -87,7 +87,7 @@ export function FilialModal() {
         </div>
       </div>
 
-      <div className="fg">
+      <div className="fg c2">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div>
             <div className="fl">Cor</div>
@@ -110,6 +110,17 @@ export function FilialModal() {
               marginTop: 20,
               flexShrink: 0
             }}
+          />
+        </div>
+        <div>
+          <div className="fl">Meta Mensal (R$)</div>
+          <input
+            type="number"
+            className="inp"
+            placeholder="Ex: 50000"
+            value={form.meta_mensal}
+            onChange={(e) => setForm({ meta_mensal: e.target.value })}
+            disabled={saving}
           />
         </div>
       </div>

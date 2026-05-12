@@ -31,6 +31,7 @@ export type Filial = {
   estado?: string;
   endereco?: string;
   cor?: string;
+  meta_mensal?: number;
   criado_em?: string;
 };
 

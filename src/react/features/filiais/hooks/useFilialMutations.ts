@@ -41,14 +41,19 @@ export function useFilialMutations() {
         cidade: form.cidade.trim() || undefined,
         estado: form.estado.trim() || undefined,
         endereco: form.endereco.trim() || undefined,
-        cor: form.cor || '#163F80'
+        cor: form.cor || '#163F80',
+        meta_mensal: form.meta_mensal ? parseFloat(form.meta_mensal) : undefined
       };
       const saved = await upsertFilial(getCtx(), filial);
       upsertLocal(saved);
       closeModal();
-      useToastStore.getState().addToast(`Filial ${modalEditId ? 'atualizada' : 'criada'}: ${saved.nome}.`, 'success');
+      useToastStore
+        .getState()
+        .addToast(`Filial ${modalEditId ? 'atualizada' : 'criada'}: ${saved.nome}.`, 'success');
     } catch (e) {
-      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao salvar filial.', 'error');
+      useToastStore
+        .getState()
+        .addToast(e instanceof Error ? e.message : 'Erro ao salvar filial.', 'error');
     } finally {
       setSaving(false);
     }
@@ -68,7 +73,9 @@ export function useFilialMutations() {
       removeLocal(id);
       useToastStore.getState().addToast('Filial removida.', 'success');
     } catch (e) {
-      useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao remover filial.', 'error');
+      useToastStore
+        .getState()
+        .addToast(e instanceof Error ? e.message : 'Erro ao remover filial.', 'error');
     }
   }
 

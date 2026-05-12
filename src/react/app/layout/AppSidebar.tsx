@@ -83,13 +83,13 @@ export function AppSidebar() {
     >
       <div className={`flex-shrink-0 flex items-center h-[88px] ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>
         <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center' : ''}`}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg shrink-0">
-            <Store size={22} strokeWidth={2} />
+          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-xl border border-white/5 shrink-0">
+            <Store size={24} strokeWidth={2.5} />
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="font-bold text-base text-slate-100 tracking-tight leading-none">Sistema</span>
-              <span className="text-[10px] font-medium text-slate-500 uppercase tracking-[0.2em] mt-1">Comercial</span>
+              <span className="font-extrabold text-lg text-white tracking-tight leading-none">Antigravity</span>
+              <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.25em] mt-1.5 opacity-80">Industrial</span>
             </div>
           )}
         </div>
@@ -138,28 +138,31 @@ export function AppSidebar() {
                     key={item.id}
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center rounded-lg transition-all duration-300 relative group
-                      ${collapsed ? 'justify-center w-10 h-10' : 'gap-3 px-3 py-2.5 w-full'}
+                      `flex items-center rounded-xl transition-all duration-300 relative group
+                      ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-4 py-3 w-full'}
                       ${
                         isActive
-                          ? 'bg-slate-800 text-white font-bold shadow-sm'
-                          : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
+                           ? 'bg-slate-800/80 text-white font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]'
+                           : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
                     title={collapsed ? item.label : undefined}
                   >
                     {({ isActive }) => (
                       <>
+                        {isActive && (
+                          <div className={`absolute left-0 w-1 bg-[#C5A059] rounded-r-full transition-all duration-500 ${collapsed ? 'h-6' : 'h-5'}`} />
+                        )}
                         <Icon 
-                          size={collapsed ? 22 : 18} 
+                          size={collapsed ? 24 : 18} 
                           strokeWidth={isActive ? 2.5 : 2} 
                           className={`flex-shrink-0 transition-all duration-300 ${
                             isActive 
-                              ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)]' 
-                              : 'group-hover:scale-110'
+                              ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]' 
+                              : 'group-hover:scale-110 group-hover:text-slate-300'
                           }`} 
                         />
-                        {!collapsed && <span className="truncate text-[15px] tracking-tight">{item.label}</span>}
+                        {!collapsed && <span className="truncate text-[14px] tracking-tight">{item.label}</span>}
                       </>
                     )}
                   </NavLink>
@@ -170,14 +173,14 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className={`flex-shrink-0 mt-auto border-t border-slate-800/30 ${collapsed ? 'p-2' : 'p-4'}`}>
+      <div className={`flex-shrink-0 mt-auto border-t border-slate-800/50 ${collapsed ? 'p-3' : 'p-4'}`}>
         <button
           type="button"
-          className={`flex items-center justify-center gap-3 rounded-lg text-sm font-bold text-slate-500 hover:bg-white/5 hover:text-white transition-all group active:scale-95 ${collapsed ? 'w-12 h-12 mx-auto' : 'w-full px-4 py-3'}`}
+          className={`flex items-center justify-center gap-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-white/5 hover:text-rose-400 transition-all group active:scale-95 ${collapsed ? 'w-12 h-12 mx-auto' : 'w-full px-4 py-3.5'}`}
           onClick={handleLogout}
           title={collapsed ? "Sair da Conta" : undefined}
         >
-          <LogOut size={collapsed ? 22 : 18} strokeWidth={2.5} className={`flex-shrink-0 ${!collapsed && 'group-hover:translate-x-1 transition-transform'}`} />
+          <LogOut size={collapsed ? 24 : 18} strokeWidth={2.5} className={`flex-shrink-0 ${!collapsed && 'group-hover:translate-x-1 transition-transform'}`} />
           {!collapsed && <span>Sair da Conta</span>}
         </button>
       </div>

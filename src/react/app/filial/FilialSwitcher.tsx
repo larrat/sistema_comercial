@@ -81,14 +81,14 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
   return (
     <>
       <div className={`flex flex-col gap-1 ${collapsed ? 'items-center' : 'items-start'} w-full`}>
-        {!collapsed && <div className={`text-[10px] uppercase font-bold tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-500'} ml-1`}>Filial ativa</div>}
+        {!collapsed && <div className={`text-[10px] uppercase font-black tracking-[0.15em] ${isDark ? 'text-slate-600' : 'text-slate-500'} ml-1 mb-1`}>Filial ativa</div>}
         <button
-          className={`flex items-center justify-center gap-2 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed group ${
+          className={`flex items-center justify-center gap-2 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed group ${
             collapsed 
-              ? `w-10 h-10 ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`
-              : `w-full px-3 py-2 border shadow-sm ${
+              ? `w-12 h-12 ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`
+              : `w-full px-4 py-3 border shadow-sm ${
                   isDark 
-                    ? 'bg-slate-800/50 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500' 
+                    ? 'bg-slate-800/40 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500' 
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-blue-200 focus-visible:ring-blue-500'
                 }`
           }`}
@@ -99,11 +99,11 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
           aria-expanded={open}
           title={collapsed ? displayName : "Trocar filial ativa"}
         >
-          <Building size={collapsed ? 20 : 16} className={`${isDark ? 'text-[#C5A059]' : 'text-blue-600'} flex-shrink-0`} />
+          <Building size={collapsed ? 24 : 16} className={`${isDark ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.3)]' : 'text-blue-600'} flex-shrink-0`} />
           {!collapsed && (
             <>
-              <span className="flex-1 text-sm font-semibold truncate text-left">{displayName}</span>
-              <ChevronDown size={14} className={`${isDark ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-blue-500'} transition-colors`} />
+              <span className="flex-1 text-[14px] font-bold tracking-tight truncate text-left">{displayName}</span>
+              <ChevronDown size={14} className={`${isDark ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-blue-500'} transition-colors`} />
             </>
           )}
         </button>
