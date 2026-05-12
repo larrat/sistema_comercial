@@ -51,6 +51,18 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Shell único para padronizar TODOS os tooltips do sistema
+function TooltipShell({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn(
+      "bg-white/95 backdrop-blur-2xl p-5 border border-white/60 rounded-[24px] shadow-[0_25px_50px_-12px_rgba(15,23,42,0.15)] ring-1 ring-black/5 animate-in fade-in zoom-in duration-200",
+      className
+    )}>
+      {children}
+    </div>
+  );
+}
+
 function PremiumTooltip({ children, content }: { children: React.ReactNode; content: string }) {
   return (
     <TooltipPrimitive.Provider delayDuration={200}>
@@ -62,11 +74,13 @@ function PremiumTooltip({ children, content }: { children: React.ReactNode; cont
           <TooltipPrimitive.Content
             side="top"
             align="center"
-            sideOffset={5}
-            className="z-[9999] overflow-hidden rounded-xl bg-slate-900 px-3 py-1.5 text-[10px] font-bold text-white shadow-2xl animate-in fade-in zoom-in duration-200"
+            sideOffset={8}
+            className="z-[9999]"
           >
-            {content}
-            <TooltipPrimitive.Arrow className="fill-slate-900" />
+            <TooltipShell className="p-3 rounded-xl min-w-[120px]">
+              <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight text-center">{content}</p>
+              <TooltipPrimitive.Arrow className="fill-white/90" />
+            </TooltipShell>
           </TooltipPrimitive.Content>
         </TooltipPrimitive.Portal>
       </TooltipPrimitive.Root>
@@ -532,7 +546,7 @@ export function DashboardPilotPage() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white/95 backdrop-blur-2xl p-6 border border-white/60 rounded-3xl shadow-[0_40px_80px_-15px_rgba(15,23,42,0.15)] ring-1 ring-black/5 min-w-[200px] animate-in fade-in zoom-in duration-200">
+                          <TooltipShell className="min-w-[200px]">
                             <div className="flex flex-col items-center mb-4 pb-3 border-b border-slate-100">
                               <p className="font-black text-slate-900 text-[12px] uppercase tracking-[0.2em] text-center">
                                 {payload[0].payload.name}
@@ -552,7 +566,7 @@ export function DashboardPilotPage() {
                               <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                               <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
                             </div>
-                          </div>
+                          </TooltipShell>
                         );
                       }
                       return null;
@@ -621,7 +635,7 @@ export function DashboardPilotPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-2xl p-4 border border-white/60 rounded-3xl shadow-[0_20px_40px_-10px_rgba(15,23,42,0.1)] ring-1 ring-black/5 min-w-[160px] animate-in fade-in zoom-in duration-200">
+                            <TooltipShell className="min-w-[160px] p-4">
                               <div className="flex flex-col items-center mb-2 pb-2 border-b border-slate-100">
                                 <p className="font-black text-slate-900 text-[9px] uppercase tracking-[0.1em] text-center leading-tight">
                                   {payload[0].name}
@@ -635,7 +649,7 @@ export function DashboardPilotPage() {
                                 <div className="w-0.5 h-0.5 rounded-full bg-slate-400" />
                                 <span className="text-[6px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
                               </div>
-                            </div>
+                            </TooltipShell>
                           );
                         }
                         return null;
