@@ -3182,3 +3182,137 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .inp-sm:focus {
   border-color: #0f172a;
 }
+
+/* ── Detalhe de Pedido (Industrial Premium) ────────────────────────────── */
+
+.rf-timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.rf-timeline-item {
+  display: flex;
+  gap: 16px;
+}
+
+.rf-timeline-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.rf-timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px #cbd5e1;
+  z-index: 1;
+}
+
+.rf-timeline-dot.is-done {
+  background: #0f172a;
+  box-shadow: 0 0 0 1px #0f172a;
+}
+
+.rf-timeline-line {
+  width: 2px;
+  flex: 1;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+.rf-timeline-item.is-pending .rf-timeline-line {
+  background: repeating-linear-gradient(
+    to bottom,
+    #f1f5f9,
+    #f1f5f9 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+/* Modernized Tabs (Line only) */
+.rf-tabs-premium {
+  display: flex;
+  gap: 32px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.rf-tab-item {
+  padding: 12px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.rf-tab-item:hover {
+  color: #0f172a;
+}
+
+.rf-tab-item.is-active {
+  color: #0f172a;
+}
+
+.rf-tab-item.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #0f172a;
+}
+
+/* Kpi Cards (Detail view) */
+.rf-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.rf-kpi-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rf-kpi-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.rf-kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.rf-kpi-sub {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.rf-kpi-sub.success {
+  color: #10b981;
+}
+.rf-kpi-sub.warning {
+  color: #f59e0b;
+}
+.rf-kpi-sub.danger {
+  color: #ef4444;
+}
+.rf-kpi-sub.muted {
+  color: #94a3b8;
+}

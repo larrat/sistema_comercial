@@ -1,21 +1,28 @@
 import { useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 import type { ContaReceber, ContaReceberBaixa, Pedido, PedidoItem } from '../../../../types/domain';
 import { useRoleStore } from '../../../app/useRoleStore';
-import { EmptyState, ErrorState, LoadingState } from '../../../shared/ui';
+import { EmptyState, ErrorState, LoadingState, StatusBadge, Modal } from '../../../shared/ui';
 import type { PedidoFinanceiroState } from '../hooks/usePedidoProfile';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { useContasReceberMutations } from '../../contas-receber/hooks/useContasReceberMutations';
+import { ContaReceberConfirmModal } from '../../contas-receber/components/ContaReceberConfirmModal';
 import {
-  ACAO_LABEL,
-  NEXT_STATUS,
   PEDIDO_STATUS_LABEL,
   PEDIDO_STATUS_TONE,
   normalizePedStatus
 } from '../types';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
-import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 import { PedidoItensTab } from './PedidoItensTab';
+import { PedidoTimeline, type TimelineEvent } from './PedidoTimeline';
+import {
+  calculatePedidoItemLucro,
+  calculatePedidoItemMargem,
+  calculatePedidoLucroTotal,
+  calculatePedidoTotal,
+  formatPedidoCurrency
+} from '../utils/pedidoRules';
 
 type PedidoProfileTab = 'itens' | 'financeiro' | 'historico' | 'cadastro';
 
@@ -29,21 +36,12 @@ type Props = {
   onReloadFinanceiro?: () => Promise<void>;
 };
 
-type KpiCard = {
-  label: string;
-  value: string;
-  subtitle: string;
-  tone?: 'positive' | 'negative' | 'neutral';
-};
-
 const PROFILE_TABS: Array<{ id: PedidoProfileTab; label: string }> = [
   { id: 'itens', label: 'Itens' },
   { id: 'financeiro', label: 'Financeiro' },
   { id: 'historico', label: 'Histórico' },
   { id: 'cadastro', label: 'Cadastro' }
 ];
-
-const EDITABLE_ITEM_STATUSES = new Set(['em_andamento', 'em_separacao', 'pago_aguardando_entrega']);
 
 const PGTO_LABEL: Record<string, string> = {
   a_vista: 'À vista',
@@ -64,10 +62,6 @@ const PRAZO_LABEL: Record<string, string> = {
 
 function normalizeTab(value: string | null): PedidoProfileTab {
   return PROFILE_TABS.some((tab) => tab.id === value) ? (value as PedidoProfileTab) : 'itens';
-}
-
-function formatCurrency(value?: number | null): string {
-  return (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function formatDate(value?: string | null): string {
@@ -91,6 +85,20 @@ function getInitials(value: string) {
   return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
+function getAvatarColor(name: string) {
+  const colors = [
+    'bg-blue-50 text-blue-600',
+    'bg-emerald-50 text-emerald-600',
+    'bg-indigo-50 text-indigo-600',
+    'bg-purple-50 text-purple-600',
+    'bg-amber-50 text-amber-600',
+    'bg-rose-50 text-rose-600',
+    'bg-slate-50 text-slate-600'
+  ];
+  const charCode = (name || '').charCodeAt(0) || 0;
+  return colors[charCode % colors.length];
+}
+
 function parseItens(pedido: Pedido): PedidoItem[] {
   if (Array.isArray(pedido.itens)) return pedido.itens as PedidoItem[];
   try {
@@ -101,101 +109,11 @@ function parseItens(pedido: Pedido): PedidoItem[] {
   }
 }
 
-function getValorRecebido(conta: ContaReceber | null): number {
-  if (!conta) return 0;
-  if (Number.isFinite(Number(conta.valor_recebido))) return Number(conta.valor_recebido);
-  return conta.status === 'recebido' ? Number(conta.valor || 0) : 0;
-}
-
 function getValorEmAberto(conta: ContaReceber | null): number {
   if (!conta) return 0;
   if (Number.isFinite(Number(conta.valor_em_aberto))) return Number(conta.valor_em_aberto);
-  return Math.max(0, Number(conta.valor || 0) - getValorRecebido(conta));
-}
-
-function getContaStatusLabel(conta: ContaReceber | null): string {
-  if (!conta) return 'Sem conta';
-  const aberto = getValorEmAberto(conta);
-  if (aberto <= 0 || conta.status === 'recebido') return 'Recebido';
-  if (getValorRecebido(conta) > 0 || conta.status === 'parcial') return 'Parcial';
-  return 'Pendente';
-}
-
-function buildKpis(pedido: Pedido, itens: PedidoItem[], conta: ContaReceber | null): KpiCard[] {
-  const quantidade = itens.reduce((total, item) => total + Number(item.qty || 0), 0);
-  const valorEmAberto = getValorEmAberto(conta);
-  const status = normalizePedStatus(pedido.status);
-
-  return [
-    {
-      label: 'Total',
-      value: formatCurrency(pedido.total),
-      subtitle: `${itens.length} item(ns) · ${quantidade || 0} unidade(s)`
-    },
-    {
-      label: 'Status',
-      value: PEDIDO_STATUS_LABEL[status] || status || '—',
-      subtitle: pedido.venda_fechada ? 'Venda fechada' : 'Fluxo comercial',
-      tone: status === 'cancelado' ? 'negative' : status === 'concluido' ? 'positive' : 'neutral'
-    },
-    {
-      label: 'Pagamento',
-      value: PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—',
-      subtitle: PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? 'Sem prazo'
-    },
-    {
-      label: 'Em aberto',
-      value: formatCurrency(valorEmAberto),
-      subtitle: getContaStatusLabel(conta),
-      tone: valorEmAberto > 0 ? 'negative' : conta ? 'positive' : 'neutral'
-    }
-  ];
-}
-
-function InfoTable({ rows }: { rows: Array<{ label: string; value: string | null | undefined }> }) {
-  return (
-    <div className="flex flex-col divide-y divide-slate-100">
-      {rows.map((row) => (
-        <div key={row.label} className="flex flex-col sm:flex-row sm:justify-between py-3 gap-1">
-          <span className="text-sm text-slate-500 font-medium">{row.label}</span>
-          <span
-            className={`text-sm text-right ${
-              row.value ? 'text-slate-900 font-medium' : 'text-slate-400'
-            }`}
-          >
-            {row.value || '—'}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function BaixasTable({ baixas }: { baixas: ContaReceberBaixa[] }) {
-  if (!baixas.length) return <EmptyState title="Nenhuma baixa registrada." compact />;
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm text-slate-600">
-        <thead>
-          <tr className="border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
-            <th className="py-3 pr-4 font-medium">Valor</th>
-            <th className="py-3 pr-4 font-medium">Recebido em</th>
-            <th className="py-3 font-medium">Observação</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {baixas.map((baixa) => (
-            <tr key={baixa.id} className="hover:bg-slate-50 transition-colors">
-              <td className="py-3 pr-4 font-medium text-slate-900">{formatCurrency(baixa.valor)}</td>
-              <td className="py-3 pr-4">{formatDateTime(baixa.recebido_em)}</td>
-              <td className="py-3">{baixa.observacao || '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const recebido = Number(conta.valor_recebido || 0);
+  return Math.max(0, Number(conta.valor || 0) - recebido);
 }
 
 export function PedidoProfilePage({
@@ -211,31 +129,21 @@ export function PedidoProfilePage({
   const [searchParams, setSearchParams] = useSearchParams();
   const userRole = useRoleStore((state) => state.role);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [showEntregaConfirm, setShowEntregaConfirm] = useState(false);
+  const [showBaixaConfirm, setShowBaixaConfirm] = useState(false);
+  const { cancelarPedido, gerarContaManual, inFlight } = usePedidoMutations();
+  const { registrarBaixa } = useContasReceberMutations();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const {
-    avancarStatus,
-    confirmarEntrega,
-    cancelarPedido,
-    reabrirPedido,
-    gerarContaManual,
-    inFlight
-  } = usePedidoMutations();
 
   const activeTab = normalizeTab(searchParams.get('tab'));
   const status = normalizePedStatus(pedido.status);
   const statusTone = PEDIDO_STATUS_TONE[status] ?? 'neutral';
-  const nextStatus = NEXT_STATUS[status];
-  const acaoLabel = ACAO_LABEL[status];
-  const isDeliveryAction =
-    nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
-  const isInFlight = inFlight.has(pedido.id);
+  const isInFlight = inFlight.has(pedido.id) || financeiro.loading;
+  
   const itens = useMemo(() => parseItens(pedido), [pedido]);
-  const canEditItens = userRole === 'admin' && EDITABLE_ITEM_STATUSES.has(status);
-  const kpis = useMemo(
-    () => buildKpis(pedido, itens, financeiro.conta),
-    [financeiro.conta, itens, pedido]
-  );
+  const total = calculatePedidoTotal(itens);
+  const lucroTotal = calculatePedidoLucroTotal(itens);
+  const margemTotal = total > 0 ? (lucroTotal / total) * 100 : 0;
+  const valorEmAberto = getValorEmAberto(financeiro.conta);
 
   function setTab(tab: PedidoProfileTab) {
     setSearchParams((current) => {
@@ -246,36 +154,25 @@ export function PedidoProfilePage({
     });
   }
 
-  function updateLocalStatus(next: string) {
-    onPedidoChanged?.({ ...pedido, status: next });
-  }
-
-  async function handleAvancar() {
-    if (!nextStatus) return;
-    if (isDeliveryAction) {
-      setShowEntregaConfirm(true);
-      return;
-    }
-    await avancarStatus(pedido);
-    updateLocalStatus(nextStatus);
-  }
-
-  async function handleConfirmarEntrega() {
-    const updated = await confirmarEntrega(pedido);
-    if (updated) onPedidoChanged?.(updated);
-    setShowEntregaConfirm(false);
-    void onReloadFinanceiro?.();
-  }
-
   async function handleCancelar() {
     await cancelarPedido(pedido);
-    updateLocalStatus('cancelado');
+    onPedidoChanged?.({ ...pedido, status: 'cancelado' });
     setShowCancelConfirm(false);
   }
 
-  async function handleReabrir() {
-    await reabrirPedido(pedido);
-    updateLocalStatus('orcamento');
+  async function handleConfirmarBaixa() {
+    if (!financeiro.conta) return;
+    const aberto = getValorEmAberto(financeiro.conta);
+    const result = await registrarBaixa(
+      financeiro.conta.id,
+      aberto,
+      new Date().toISOString(),
+      'Baixa via detalhe do pedido'
+    );
+    if (result.ok) {
+      void onReloadFinanceiro?.();
+      setShowBaixaConfirm(false);
+    }
   }
 
   async function handleGerarConta() {
@@ -285,307 +182,353 @@ export function PedidoProfilePage({
     void onReloadFinanceiro?.();
   }
 
+  const timelineEvents = useMemo(() => {
+    const events: TimelineEvent[] = [
+      {
+        id: 'create',
+        title: 'Pedido criado',
+        timestamp: pedido.data,
+        isDone: true
+      }
+    ];
+
+    if (pedido.venda_fechada_em) {
+      events.push({
+        id: 'closed',
+        title: 'Venda fechada',
+        timestamp: pedido.venda_fechada_em,
+        user: pedido.venda_fechada_por,
+        isDone: true
+      });
+    }
+
+    if (pedido.entregue_em) {
+      events.push({
+        id: 'delivery',
+        title: 'Marcado como entregue',
+        timestamp: pedido.entregue_em,
+        user: pedido.entregue_por,
+        isDone: true
+      });
+    }
+
+    financeiro.baixas.forEach(baixa => {
+      events.push({
+        id: baixa.id,
+        title: 'Pagamento baixado',
+        timestamp: baixa.recebido_em,
+        description: baixa.observacao,
+        isDone: true
+      });
+    });
+
+    if (status === 'concluido') {
+      events.push({
+        id: 'concluido',
+        title: 'Pedido concluído',
+        timestamp: financeiro.conta?.recebido_em || pedido.entregue_em || null,
+        isDone: true
+      });
+    } else if (status === 'cancelado') {
+      events.push({
+        id: 'cancelado',
+        title: 'Pedido cancelado',
+        timestamp: new Date().toISOString(), // Fallback
+        isDone: true
+      });
+    } else {
+      events.push({
+        id: 'pending',
+        title: 'Aguardando próximo evento',
+        timestamp: null,
+        isDone: false
+      });
+    }
+
+    return events.sort((a, b) => {
+      if (!a.timestamp) return 1;
+      if (!b.timestamp) return -1;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+  }, [pedido, financeiro, status]);
+
   if (loadingPedido) {
-    return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <LoadingState
-          title="Carregando pedido..."
-          description="Estamos reunindo itens, financeiro, histórico e cadastro do pedido."
-        />
-      </main>
-    );
+    return <main className="max-w-[1600px] mx-auto px-8 py-8 w-full"><LoadingState title="Carregando pedido..." /></main>;
   }
 
   return (
-    <main
-      className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8"
-      data-testid="pedido-profile-page"
-    >
-      <div className="flex items-center gap-2 text-sm text-slate-500">
-        <button
-          className="hover:text-slate-900 transition-colors"
-          type="button"
-          onClick={() => navigate('/app/pedidos')}
-        >
-          Voltar
-        </button>
-        <span>/ Pedidos / #{pedido.num}</span>
+    <main className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8" data-testid="pedido-profile-page">
+      {/* Topbar / Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+          <Link to="/app/pedidos" className="hover:text-slate-900 transition-colors">Pedidos</Link>
+          <span>/</span>
+          <span className="text-slate-900">#{pedido.num}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {status !== 'cancelado' && status !== 'concluido' && (
+            <button className="btn-danger btn-sm" type="button" onClick={() => setShowCancelConfirm(true)}>
+              Cancelar pedido
+            </button>
+          )}
+          {['orcamento', 'confirmado', 'em_separacao'].includes(status) && (
+            <button 
+              className="btn-ghost" 
+              onClick={() => navigate(`/app/pedidos?pedido=${encodeURIComponent(pedido.id)}&view=edit`)}
+            >
+              Editar
+            </button>
+          )}
+        </div>
       </div>
 
-      {error ? <ErrorState title={error} compact onRetry={onReload} /> : null}
-
-      <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between gap-6">
-        <div className="flex items-center gap-5 min-w-0">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-xl font-bold shadow-inner shrink-0">
-            {getInitials(pedido.cli)}
+      {/* Header */}
+      <section className="flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${getAvatarColor(pedido.cli)}`}>
+          {getInitials(pedido.cli)}
+        </div>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <h1 className="text-base font-semibold text-slate-900 m-0">Pedido #{pedido.num}</h1>
+            <StatusBadge tone={statusTone}>
+              {PEDIDO_STATUS_LABEL[status] || status}
+            </StatusBadge>
+            {pedido.tipo && (
+              <StatusBadge tone="neutral">
+                {pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}
+              </StatusBadge>
+            )}
           </div>
-          <div className="flex flex-col gap-2 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-slate-900 leading-tight m-0">Pedido #{pedido.num}</h1>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold
-                ${statusTone === 'success' ? 'bg-emerald-100 text-emerald-800' : ''}
-                ${statusTone === 'danger' ? 'bg-rose-100 text-rose-800' : ''}
-                ${statusTone === 'warning' ? 'bg-amber-100 text-amber-800' : ''}
-                ${statusTone === 'info' ? 'bg-blue-100 text-blue-800' : ''}
-                ${statusTone === 'neutral' ? 'bg-slate-100 text-slate-700' : ''}
-                ${!['success', 'danger', 'warning', 'info', 'neutral'].includes(statusTone) ? 'bg-slate-100 text-slate-700' : ''}
-              `}>
-                {PEDIDO_STATUS_LABEL[status] || status || '—'}
+          <div className="text-xs text-slate-500 mt-1">
+            {pedido.cli} · {formatDate(pedido.data)} · {pedido.rca_nome || 'Sem vendedor'}
+          </div>
+        </div>
+      </section>
+
+      {/* Stat Cards */}
+      <section className="rf-kpi-grid">
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Total do pedido</span>
+          <span className="rf-kpi-value">{formatPedidoCurrency(total)}</span>
+          <span className="rf-kpi-sub muted">{itens.length} item(ns) · {itens.reduce((acc, i) => acc + Number(i.qty), 0)} unidade(s)</span>
+        </article>
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Lucro</span>
+          <span className="rf-kpi-value !text-emerald-600">{formatPedidoCurrency(lucroTotal)}</span>
+          <span className="rf-kpi-sub success">Margem {margemTotal.toFixed(1)}%</span>
+        </article>
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Pagamento</span>
+          <span className="rf-kpi-value !text-[15px]">
+            {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
+          </span>
+          <span className="rf-kpi-sub muted">
+            {pedido.prazo === 'imediato' ? 'À vista' : `Vence ${formatDate(financeiro.conta?.vencimento)}`}
+          </span>
+        </article>
+        <article className="rf-kpi-card">
+          <span className="rf-kpi-label">Em aberto</span>
+          {financeiro.loading ? (
+            <span className="rf-kpi-value animate-pulse text-slate-300">...</span>
+          ) : (
+            <>
+              <span className={`rf-kpi-value ${valorEmAberto > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
+                {formatPedidoCurrency(valorEmAberto)}
               </span>
-              {pedido.tipo ? (
-                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
-                  {pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}
-                </span>
-              ) : null}
-            </div>
-            <p className="text-sm text-slate-500 m-0">
-              {pedido.cli || 'Cliente não informado'} · {formatDate(pedido.data)} ·{' '}
-              {pedido.rca_nome || 'Sem vendedor'}
-            </p>
-          </div>
-        </div>
+              <span className={`rf-kpi-sub ${valorEmAberto > 0 ? 'warning' : 'success'}`}>
+                {financeiro.conta ? (valorEmAberto > 0 ? 'Pendente' : 'Quitado') : 'Sem conta vinculada'}
+              </span>
+            </>
+          )}
+        </article>
+      </section>
 
-        <div className="flex items-center gap-2 flex-wrap md:justify-end shrink-0">
-          {nextStatus && acaoLabel ? (
-            <button
-              className="btn btn-sm btn-p"
-              type="button"
-              disabled={isInFlight}
-              onClick={() => void handleAvancar()}
-            >
-              {isInFlight ? 'Aguarde…' : acaoLabel}
-            </button>
-          ) : null}
-          {status === 'cancelado' ? (
-            <button
-              className="btn btn-sm"
-              type="button"
-              disabled={isInFlight}
-              onClick={() => void handleReabrir()}
-            >
-              Reabrir
-            </button>
-          ) : null}
-          {status !== 'cancelado' && status !== 'concluido' ? (
-            <button
-              className="btn btn-sm btn-r"
-              type="button"
-              disabled={isInFlight}
-              onClick={() => setShowCancelConfirm(true)}
-            >
-              Cancelar
-            </button>
-          ) : null}
+      {/* Tabs */}
+      <nav className="rf-tabs-premium">
+        {PROFILE_TABS.map(tab => (
           <button
-            className="btn btn-sm"
-            type="button"
-            onClick={() =>
-              navigate(`/app/pedidos?pedido=${encodeURIComponent(pedido.id)}&view=edit`)
-            }
+            key={tab.id}
+            onClick={() => setTab(tab.id)}
+            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
           >
-            Editar
+            {tab.label}
           </button>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((card) => (
-          <article key={card.label} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-            <div className="text-sm font-medium text-slate-500 mb-1">{card.label}</div>
-            <div className="text-2xl font-bold text-slate-900 leading-tight">{card.value}</div>
-            <div
-              className={`text-xs mt-2 font-medium ${
-                card.tone === 'positive' ? 'text-emerald-600' :
-                card.tone === 'negative' ? 'text-rose-600' :
-                'text-slate-500'
-              }`}
-            >
-              {card.subtitle}
-            </div>
-          </article>
         ))}
+      </nav>
+
+      {/* Tab Content */}
+      <section className="min-h-[400px]">
+        {activeTab === 'itens' && (
+          <div className="flex flex-col gap-6">
+            <PedidoItensTab
+              pedido={pedido}
+              itens={itens}
+              canEdit={userRole === 'admin' && ['orcamento', 'confirmado', 'em_separacao'].includes(status)}
+              onPedidoChanged={onPedidoChanged}
+            />
+            
+            {/* Resumo Financeiro na aba Itens */}
+            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-slate-900 m-0">Financeiro do pedido</h3>
+                <div className="flex items-center gap-2">
+                  {status === 'entregue_aguardando_pagamento' && !financeiro.conta && (
+                    <button className="btn btn-sm btn-p" onClick={handleGerarConta}>Gerar conta</button>
+                  )}
+                  {financeiro.conta ? (
+                    <StatusBadge tone={valorEmAberto > 0 ? 'warning' : 'success'}>
+                      {valorEmAberto > 0 ? '1 pendência' : 'Quitado'}
+                    </StatusBadge>
+                  ) : <StatusBadge tone="neutral">Sem conta vinculada</StatusBadge>}
+                </div>
+              </div>
+              {financeiro.conta ? (
+                <div className="flex justify-between items-center py-2">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-900">
+                      {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
+                    </span>
+                    <span className="text-[11px] text-slate-500">Vencimento {formatDate(financeiro.conta.vencimento)}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-semibold text-slate-900">{formatPedidoCurrency(financeiro.conta.valor)}</span>
+                    <StatusBadge tone={financeiro.conta.status === 'recebido' ? 'success' : 'warning'}>
+                      {financeiro.conta.status === 'recebido' ? 'Baixado' : 'Em aberto'}
+                    </StatusBadge>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-sm text-slate-400">Nenhuma conta a receber vinculada a este pedido.</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'financeiro' && (
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            {!financeiro.conta ? (
+              <EmptyState title="Nenhuma conta vinculada." compact />
+            ) : (
+              <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-900">
+                      {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
+                    </span>
+                    <span className="text-xs text-slate-500">Vencimento: {formatDate(financeiro.conta.vencimento)}</span>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="flex flex-col items-end">
+                      <span className="text-sm font-bold text-slate-900">{formatPedidoCurrency(financeiro.conta.valor)}</span>
+                      <StatusBadge tone={valorEmAberto > 0 ? 'warning' : 'success'}>
+                        {valorEmAberto > 0 ? 'Em aberto' : 'Liquidado'}
+                      </StatusBadge>
+                    </div>
+                    {valorEmAberto > 0 ? (
+                      <button className="btn btn-sm btn-p" onClick={() => setShowBaixaConfirm(true)}>Baixar</button>
+                    ) : status === 'entregue_aguardando_pagamento' && !financeiro.conta ? (
+                      <button className="btn btn-sm btn-p" onClick={handleGerarConta}>Gerar conta</button>
+                    ) : null}
+                  </div>
+                </div>
+                
+                {actionMessage && (
+                  <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-100">
+                    {actionMessage}
+                  </div>
+                )}
+                
+                <div className="flex flex-col gap-2 pt-4 bg-slate-50 p-4 rounded-lg">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Total do pedido</span>
+                    <span className="font-semibold">{formatPedidoCurrency(total)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500">Total recebido</span>
+                    <span className="font-semibold text-emerald-600">{formatPedidoCurrency(total - valorEmAberto)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t border-slate-200 pt-2 mt-2">
+                    <span className="font-bold text-slate-900">Total em aberto</span>
+                    <span className={`font-bold ${valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {formatPedidoCurrency(valorEmAberto)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'historico' && (
+          <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+            <PedidoTimeline events={timelineEvents} />
+          </div>
+        )}
+
+        {activeTab === 'cadastro' && (
+          <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+            <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Cliente</span>
+                <Link to={`/app/clientes/${pedido.cliente_id}`} className="text-sm font-semibold text-blue-600 hover:underline">
+                  {pedido.cli}
+                </Link>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Vendedor</span>
+                <span className="text-sm font-semibold text-slate-900">{pedido.rca_nome || '—'}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Tipo</span>
+                <span className="text-sm font-semibold text-slate-900">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Forma de pagamento</span>
+                <span className="text-sm font-semibold text-slate-900">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Prazo</span>
+                <span className="text-sm font-semibold text-slate-900">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Data do pedido</span>
+                <span className="text-sm font-semibold text-slate-900">{formatDate(pedido.data)}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Criado por</span>
+                <span className="text-sm font-semibold text-slate-900">{pedido.venda_fechada_por || '—'}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-500 uppercase">Observação</span>
+                <span className="text-sm text-slate-700">{pedido.obs || '—'}</span>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
-      <div className="inline-flex items-center p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 shadow-inner w-full md:w-auto self-start overflow-x-auto hide-scrollbar">
-        {PROFILE_TABS.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              className={`
-                relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap
-                ${
-                  isActive
-                    ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/50'
-                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-                }
-              `}
-              type="button"
-              onClick={() => setTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {activeTab === 'itens' ? (
-        <section className="flex flex-col gap-4">
-          <PedidoItensTab
-            pedido={pedido}
-            itens={itens}
-            canEdit={canEditItens}
-            onPedidoChanged={onPedidoChanged}
-          />
-        </section>
-      ) : null}
-
-      {activeTab === 'financeiro' ? (
-        <section className="flex flex-col gap-6">
-          <div className="flex flex-col gap-6">
-            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
-              <div className="flex justify-between items-start gap-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-900 m-0">Contas a receber vinculadas</h3>
-                  <p className="text-sm text-slate-500 mt-1 mb-0">
-                    Leitura da conta a receber relacionada ao pedido.
-                  </p>
-                </div>
-                {status === 'entregue_aguardando_pagamento' && !financeiro.conta ? (
-                  <button
-                    className="btn btn-sm btn-p"
-                    type="button"
-                    disabled={isInFlight}
-                    onClick={() => void handleGerarConta()}
-                  >
-                    {isInFlight ? 'Gerando…' : 'Gerar conta'}
-                  </button>
-                ) : null}
-              </div>
-              {financeiro.loading ? (
-                <LoadingState title="Carregando financeiro..." compact />
-              ) : financeiro.error ? (
-                <ErrorState title={financeiro.error} compact onRetry={onReloadFinanceiro} />
-              ) : financeiro.conta ? (
-                <InfoTable
-                  rows={[
-                    { label: 'Status', value: getContaStatusLabel(financeiro.conta) },
-                    { label: 'Vencimento', value: formatDate(financeiro.conta.vencimento) },
-                    { label: 'Valor', value: formatCurrency(financeiro.conta.valor) },
-                    {
-                      label: 'Recebido',
-                      value: formatCurrency(getValorRecebido(financeiro.conta))
-                    },
-                    {
-                      label: 'Em aberto',
-                      value: formatCurrency(getValorEmAberto(financeiro.conta))
-                    },
-                    {
-                      label: 'Último recebimento',
-                      value: formatDateTime(
-                        financeiro.conta.ultimo_recebimento_em || financeiro.conta.recebido_em
-                      )
-                    }
-                  ]}
-                />
-              ) : (
-                <EmptyState title="Nenhuma conta a receber vinculada." compact />
-              )}
-              {actionMessage ? <p className="text-sm text-slate-500">{actionMessage}</p> : null}
-            </section>
-          </div>
-        </section>
-      ) : null}
-
-      {activeTab === 'historico' ? (
-        <section className="flex flex-col gap-6">
-          <div className="flex flex-col gap-6">
-            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
-              <div className="flex justify-between items-center gap-4">
-                <h3 className="text-sm font-semibold text-slate-900 m-0">Histórico do pedido</h3>
-              </div>
-              <InfoTable
-                rows={[
-                  { label: 'Criado/data', value: formatDate(pedido.data) },
-                  { label: 'Venda fechada', value: pedido.venda_fechada ? 'Sim' : 'Não' },
-                  { label: 'Fechada em', value: formatDateTime(pedido.venda_fechada_em) },
-                  { label: 'Fechada por', value: pedido.venda_fechada_por },
-                  { label: 'Entrega confirmada em', value: formatDateTime(pedido.entregue_em) },
-                  { label: 'Entrega confirmada por', value: pedido.entregue_por },
-                  { label: 'Status atual', value: PEDIDO_STATUS_LABEL[status] || status }
-                ]}
-              />
-            </section>
-
-            <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
-              <div className="flex justify-between items-center gap-4">
-                <h3 className="text-sm font-semibold text-slate-900 m-0">Baixas financeiras</h3>
-              </div>
-              {financeiro.loading ? (
-                <LoadingState title="Carregando baixas..." compact />
-              ) : (
-                <BaixasTable baixas={financeiro.baixas} />
-              )}
-            </section>
-          </div>
-        </section>
-      ) : null}
-
-      {activeTab === 'cadastro' ? (
-        <section className="flex flex-col gap-6">
-          <section className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4">
-            <div className="flex justify-between items-start gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 m-0">Cadastro do pedido</h3>
-                <p className="text-sm text-slate-500 mt-1 mb-0">
-                  Dados brutos principais disponíveis na origem atual.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mt-2">
-              <InfoTable
-                rows={[
-                  { label: 'ID', value: pedido.id },
-                  { label: 'Número', value: String(pedido.num) },
-                  { label: 'Filial', value: pedido.filial_id },
-                  { label: 'Cliente', value: pedido.cli },
-                  { label: 'Cliente ID', value: pedido.cliente_id },
-                  { label: 'Vendedor', value: pedido.rca_nome }
-                ]}
-              />
-              <InfoTable
-                rows={[
-                  { label: 'RCA ID', value: pedido.rca_id },
-                  { label: 'Status', value: PEDIDO_STATUS_LABEL[status] || status },
-                  { label: 'Pagamento', value: PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto },
-                  { label: 'Prazo', value: PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo },
-                  { label: 'Tipo', value: pedido.tipo },
-                  { label: 'Origem', value: pedido.origem_venda }
-                ]}
-              />
-            </div>
-          </section>
-        </section>
-      ) : null}
-
+      {/* Modals */}
       <PedidoCancelConfirmModal
         open={showCancelConfirm}
         pedido={pedido}
         submitting={isInFlight}
-        onClose={() => {
-          if (!isInFlight) setShowCancelConfirm(false);
-        }}
-        onConfirm={() => void handleCancelar()}
+        onClose={() => !isInFlight && setShowCancelConfirm(false)}
+        onConfirm={handleCancelar}
       />
-      <PedidoEntregaConfirmModal
-        open={showEntregaConfirm}
-        pedido={pedido}
-        submitting={isInFlight}
-        onClose={() => {
-          if (!isInFlight) setShowEntregaConfirm(false);
-        }}
-        onConfirm={() => void handleConfirmarEntrega()}
-      />
+
+      {financeiro.conta && (
+        <ContaReceberConfirmModal
+          open={showBaixaConfirm}
+          title={`Liquidar pedido #${pedido.num}`}
+          description="Confirmar o recebimento total deste pedido? A conta será baixada e o status do pedido atualizado para concluído."
+          contaLabel={`${pedido.cli} — Pedido #${pedido.num}`}
+          valorLabel={formatPedidoCurrency(valorEmAberto)}
+          confirmLabel="Confirmar recebimento"
+          submitting={isInFlight}
+          onClose={() => !isInFlight && setShowBaixaConfirm(false)}
+          onConfirm={handleConfirmarBaixa}
+        />
+      )}
     </main>
   );
 }

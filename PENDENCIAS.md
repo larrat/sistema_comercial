@@ -12,11 +12,16 @@ Conforme a Regra Absoluta nº 5, os seguintes campos foram omitidos da implement
    - `Número / Complemento`
    - _Nota: Atualmente o sistema possui apenas `cidade` e `estado`._
 
-2. **Comercial:**
+2. **Comercial (Clientes):**
    - `Limite de crédito`
 
-3. **Responsável / Comprador:**
+3. **Responsável / Comprador (Clientes):**
    - Na especificação, foi solicitado um `select` com usuários da filial. Como o módulo de Acessos/Usuários está "Em implantação", mantivemos este campo como `input` de texto livre para não bloquear o cadastro.
+
+## Detalhe de Pedido (Modernização)
+
+1. **Edição de Custo:**
+   - O mockup solicita que o campo "Custo" seja editável inline na tabela de itens. No entanto, a RPC atual (`pedido_item_atualizar`) aceita apenas `quantidade` e `preco_unitario`. O campo "Custo" foi mantido como **somente leitura** para evitar inconsistências.
 
 ## Ajustes de Mapeamento
 
