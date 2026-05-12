@@ -17,8 +17,11 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import CountUp from 'react-countup';
+import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Fallback para garantir que CountUp seja um componente válido em produção (Vercel)
+const CountUp = (ReactCountUp as any).default || ReactCountUp;
 import {
   AlertCircle,
   ArrowUpRight,
