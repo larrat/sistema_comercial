@@ -342,7 +342,7 @@ export function DashboardPilotPage() {
             <span className="rf-stat-label">Pacing mensal</span>
             {filial?.meta_mensal ? (
               <>
-                <span className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? '!text-emerald-600' : '!text-amber-600'}`}>
+                <span className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? 'text-emerald-600' : 'text-amber-600'}`}>
                   {((stats.faturamento / filial.meta_mensal) * 100).toFixed(1)}%
                 </span>
                 <span className="rf-stat-sub muted">Meta: {fmt(filial.meta_mensal)}</span>
@@ -546,7 +546,7 @@ export function DashboardPilotPage() {
                   <div className="flex items-center gap-2">
                     <p className="rf-dash-list-item__title">{a.title}</p>
                     {a.isPredictive && (
-                      <span className="text-[8px] font-black bg-[#C5A059] text-white px-1.5 py-0.5 rounded-sm tracking-tighter">NEXUS AI</span>
+                      <span className="rf-badge-ai">NEXUS AI</span>
                     )}
                   </div>
                   <p className="rf-dash-list-item__desc">{a.desc}</p>
