@@ -190,6 +190,14 @@ export function DashboardPilotPage() {
     pedidos.forEach(p => {
       dist[p.status] = (dist[p.status] || 0) + 1;
     });
+    
+    // Identifica se há algum status não mapeado no STATUS_CONFIG
+    const knownKeys = Object.keys(STATUS_CONFIG);
+    const otherCount = pedidos.filter(p => !knownKeys.includes(p.status)).length;
+    if (otherCount > 0) {
+      dist['outros'] = otherCount;
+    }
+    
     return dist;
   }, [pedidos]);
 
@@ -503,12 +511,12 @@ export function DashboardPilotPage() {
           </div>
           
           <div className="flex flex-col gap-3 mt-2">
-            {Object.entries(STATUS_CONFIG).map(([key, config]) => {
+            {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
               const count = statusDistribution[key] || 0;
               const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
               return (
                 <div key={key} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full" style={{ background: config.color }} />
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: config.color }} />
                   <span className="text-[11px] font-medium text-slate-600 w-[100px] truncate">{config.label}</span>
                   <div className="flex-1 h-[5px] bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${perc}%`, background: config.color }} />
@@ -519,26 +527,23 @@ export function DashboardPilotPage() {
             })}
           </div>
 
-          <div className="mt-6 pt-6 border-t border-slate-100">
-            <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest mb-4">Top produtos faturados</h3>
-            <div className="flex flex-col gap-3">
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 text-center">Produtos mais faturados</h3>
+            <div className="flex flex-col gap-4">
               {topProducts.length > 0 ? topProducts.map((p, i) => (
-                <div key={i} className="group flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div className="flex-1 min-w-0 pr-4">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight">{p.nome}</p>
-                      {p.isChild && (
-                        <span className="text-[8px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">Variante</span>
-                      )}
-                    </div>
-                    {p.variant && (
-                      <p className="text-[9px] font-medium text-slate-500 truncate mt-0.5">{p.variant}</p>
+                <div key={i} className="flex items-start justify-between group">
+                  <div className="flex-1 min-w-0 pr-6">
+                    <p className="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight leading-tight mb-1">{p.nome}</p>
+                    {p.variant ? (
+                      <p className="text-[9px] font-semibold text-slate-400 truncate uppercase tracking-wider">{p.variant}</p>
+                    ) : (
+                      <p className="text-[9px] font-medium text-slate-300 italic">Produto Base</p>
                     )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-[11px] font-black text-slate-900">{fmt(p.receita)}</p>
-                    <div className="w-12 h-1 bg-slate-100 rounded-full mt-1.5 overflow-hidden ml-auto">
-                      <div className="h-full bg-[#C5A059]" style={{ width: `${100 - i * 15}%` }} />
+                  <div className="flex flex-col items-end">
+                    <p className="text-[12px] font-black text-slate-900 leading-none mb-1.5">{fmt(p.receita)}</p>
+                    <div className="w-16 h-[3px] bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#C5A059] rounded-full" style={{ width: `${100 - i * 15}%` }} />
                     </div>
                   </div>
                 </div>
