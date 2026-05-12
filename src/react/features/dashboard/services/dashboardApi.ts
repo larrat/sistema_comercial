@@ -1,10 +1,17 @@
-import type { Cliente, Pedido, Produto } from '../../../../types/domain';
+import type { Cliente, Pedido, Produto, ContaReceber } from '../../../../types/domain';
 import { hydratePedidosWithNormalizedItens } from '../../pedidos/services/pedidosApi';
 
 export type DashboardApiContext = {
   url: string;
   key: string;
   token: string;
+};
+
+export type DashboardAggregates = {
+  pedidos: Pedido[];
+  produtos: Produto[];
+  clientes: Cliente[];
+  contasReceber: ContaReceber[];
 };
 
 function createHeaders(key: string, token: string): HeadersInit {
@@ -33,43 +40,70 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
   throw new Error(fallback);
 }
 
-export async function fetchDashboardPedidos(
-  ctx: DashboardApiContext,
-  filialId: string
-): Promise<Pedido[]> {
-  const res = await fetch(
-    `${ctx.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(filialId)}&order=data.desc`,
-    { headers: createHeaders(ctx.key, ctx.token), signal: AbortSignal.timeout(15000) }
-  );
-  const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao carregar pedidos`);
-  return Array.isArray(body)
-    ? hydratePedidosWithNormalizedItens({ ...ctx, filialId }, body as Pedido[])
-    : [];
+export function buildDateRange(periodo: string): [string | null, string] {
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+
+  if (periodo === 'semana') {
+    const start = new Date(now);
+    start.setDate(now.getDate() - 7);
+    return [start.toISOString().slice(0, 10), today];
+  }
+  if (periodo === 'mes') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return [start.toISOString().slice(0, 10), today];
+  }
+  if (periodo === 'ano') {
+    const start = new Date(now.getFullYear(), 0, 1);
+    return [start.toISOString().slice(0, 10), today];
+  }
+  return [null, today];
 }
 
-export async function fetchDashboardProdutos(
+export async function fetchDashboardData(
   ctx: DashboardApiContext,
-  filialId: string
-): Promise<Produto[]> {
-  const res = await fetch(
-    `${ctx.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(filialId)}&order=nome.asc`,
-    { headers: createHeaders(ctx.key, ctx.token), signal: AbortSignal.timeout(15000) }
-  );
-  const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao carregar produtos`);
-  return Array.isArray(body) ? (body as Produto[]) : [];
-}
+  filialId: string,
+  periodo: string
+): Promise<DashboardAggregates> {
+  const [startDate, endDate] = buildDateRange(periodo);
+  const headers = createHeaders(ctx.key, ctx.token);
+  const commonParams = `filial_id=eq.${encodeURIComponent(filialId)}`;
 
-export async function fetchDashboardClientes(
-  ctx: DashboardApiContext,
-  filialId: string
-): Promise<Cliente[]> {
-  const res = await fetch(
-    `${ctx.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(filialId)}&order=nome.asc`,
-    { headers: createHeaders(ctx.key, ctx.token), signal: AbortSignal.timeout(15000) }
-  );
-  const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao carregar clientes`);
-  return Array.isArray(body) ? (body as Cliente[]) : [];
+  const dateFilter = startDate ? `&data=gte.${startDate}&data=lte.${endDate}` : '';
+  const crDateFilter = startDate ? `&vencimento=gte.${startDate}` : ''; // Simplified for dashboard
+
+  const [pedidosRaw, produtos, clientes, contasReceber] = await Promise.all([
+    fetch(`${ctx.url}/rest/v1/pedidos?${commonParams}${dateFilter}&order=data.desc`, {
+      headers
+    }).then(async (r) => {
+      const body = await readJson(r);
+      ensureOk(r, body, 'Erro ao carregar pedidos');
+      return body as Pedido[];
+    }),
+    fetch(`${ctx.url}/rest/v1/produtos?${commonParams}&order=nome.asc`, { headers }).then(
+      async (r) => {
+        const body = await readJson(r);
+        ensureOk(r, body, 'Erro ao carregar produtos');
+        return body as Produto[];
+      }
+    ),
+    fetch(`${ctx.url}/rest/v1/clientes?${commonParams}&status=eq.ativo&order=nome.asc`, {
+      headers
+    }).then(async (r) => {
+      const body = await readJson(r);
+      ensureOk(r, body, 'Erro ao carregar clientes');
+      return body as Cliente[];
+    }),
+    fetch(`${ctx.url}/rest/v1/contas_receber?${commonParams}${crDateFilter}&status=eq.em_aberto`, {
+      headers
+    }).then(async (r) => {
+      const body = await readJson(r);
+      ensureOk(r, body, 'Erro ao carregar contas a receber');
+      return body as ContaReceber[];
+    })
+  ]);
+
+  const pedidos = await hydratePedidosWithNormalizedItens({ ...ctx, filialId }, pedidosRaw);
+
+  return { pedidos, produtos, clientes, contasReceber };
 }

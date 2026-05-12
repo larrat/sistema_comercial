@@ -1,15 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useDashboardStore } from '../store/useDashboardStore';
-import {
-  fetchDashboardClientes,
-  fetchDashboardPedidos,
-  fetchDashboardProdutos
-} from '../services/dashboardApi';
+import { fetchDashboardData } from '../services/dashboardApi';
 
 export function useDashboardData() {
+  const periodo = useDashboardStore((s) => s.periodo);
   const setData = useDashboardStore((s) => s.setData);
   const setStatus = useDashboardStore((s) => s.setStatus);
 
@@ -17,9 +14,9 @@ export function useDashboardData() {
   const authStatus = useAuthStore((s) => s.status);
   const filialId = useFilialStore((s) => s.filialId);
 
-  const fetchedRef = useRef(false);
+  const lastFetchRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (authStatus === 'unknown') return;
     if (authStatus === 'unauthenticated' || !session?.access_token) {
       setStatus('error', 'Sessão expirada. Faça login novamente.');
@@ -36,48 +33,31 @@ export function useDashboardData() {
       return;
     }
 
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
+    const fetchKey = `${filialId}:${periodo}`;
+    if (lastFetchRef.current === fetchKey) return;
+    lastFetchRef.current = fetchKey;
 
     setStatus('loading');
 
     const ctx = { url, key, token: session.access_token };
 
-    Promise.all([
-      fetchDashboardPedidos(ctx, filialId),
-      fetchDashboardProdutos(ctx, filialId),
-      fetchDashboardClientes(ctx, filialId)
-    ])
-      .then(([pedidos, produtos, clientes]) => {
-        setData({ pedidos, produtos, clientes });
-      })
-      .catch((err: unknown) => {
-        fetchedRef.current = false;
-        setStatus('error', err instanceof Error ? err.message : 'Erro ao carregar dados.');
-      });
-  }, [authStatus, session, filialId, setData, setStatus]);
+    try {
+      const data = await fetchDashboardData(ctx, filialId, periodo);
+      setData(data);
+    } catch (err: unknown) {
+      lastFetchRef.current = null;
+      setStatus('error', err instanceof Error ? err.message : 'Erro ao carregar dados.');
+    }
+  }, [authStatus, session, filialId, periodo, setData, setStatus]);
 
-  function reload() {
-    fetchedRef.current = false;
-    if (!session?.access_token || !filialId) return;
-    const { url, key, ready } = getSupabaseConfig();
-    if (!ready) return;
+  useEffect(() => {
+    void load();
+  }, [load]);
 
-    setStatus('loading');
-    fetchedRef.current = true;
-
-    const ctx = { url, key, token: session.access_token };
-    Promise.all([
-      fetchDashboardPedidos(ctx, filialId),
-      fetchDashboardProdutos(ctx, filialId),
-      fetchDashboardClientes(ctx, filialId)
-    ])
-      .then(([pedidos, produtos, clientes]) => setData({ pedidos, produtos, clientes }))
-      .catch((err: unknown) => {
-        fetchedRef.current = false;
-        setStatus('error', err instanceof Error ? err.message : 'Erro ao recarregar dados.');
-      });
-  }
+  const reload = useCallback(() => {
+    lastFetchRef.current = null;
+    void load();
+  }, [load]);
 
   return { reload };
 }

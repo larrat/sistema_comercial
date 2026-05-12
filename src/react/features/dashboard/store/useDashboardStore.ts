@@ -1,33 +1,67 @@
 import { create } from 'zustand';
-import type { Cliente, Pedido, Produto } from '../../../../types/domain';
+import type { Cliente, Pedido, Produto, ContaReceber } from '../../../../types/domain';
+import { readStorageString, writeStorageString } from '../../../app/lib/storage';
 
 export type Periodo = 'semana' | 'mes' | 'ano' | 'tudo';
+export type Visao = 'operacional' | 'gerencial' | 'analitico';
 
 type DashboardStoreState = {
   periodo: Periodo;
+  visao: Visao;
   pedidos: Pedido[];
   produtos: Produto[];
   clientes: Cliente[];
+  contasReceber: ContaReceber[];
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
 };
 
 type DashboardStoreActions = {
   setPeriodo: (p: Periodo) => void;
-  setData: (data: { pedidos: Pedido[]; produtos: Produto[]; clientes: Cliente[] }) => void;
+  setVisao: (v: Visao) => void;
+  setData: (data: {
+    pedidos: Pedido[];
+    produtos: Produto[];
+    clientes: Cliente[];
+    contasReceber: ContaReceber[];
+  }) => void;
   setStatus: (s: DashboardStoreState['status'], error?: string) => void;
 };
 
+const STORAGE_KEYS = {
+  periodo: 'sc_dashboard_periodo',
+  visao: 'sc_dashboard_visao'
+};
+
+function getInitialPeriodo(): Periodo {
+  const saved = readStorageString(STORAGE_KEYS.periodo);
+  return (saved as Periodo) || 'mes';
+}
+
+function getInitialVisao(): Visao {
+  const saved = readStorageString(STORAGE_KEYS.visao);
+  return (saved as Visao) || 'analitico';
+}
+
 export const useDashboardStore = create<DashboardStoreState & DashboardStoreActions>((set) => ({
-  periodo: 'mes',
+  periodo: getInitialPeriodo(),
+  visao: getInitialVisao(),
   pedidos: [],
   produtos: [],
   clientes: [],
+  contasReceber: [],
   status: 'idle',
   error: null,
 
-  setPeriodo: (periodo) => set({ periodo }),
-  setData: ({ pedidos, produtos, clientes }) =>
-    set({ pedidos, produtos, clientes, status: 'ready', error: null }),
+  setPeriodo: (periodo) => {
+    writeStorageString(STORAGE_KEYS.periodo, periodo);
+    set({ periodo });
+  },
+  setVisao: (visao) => {
+    writeStorageString(STORAGE_KEYS.visao, visao);
+    set({ visao });
+  },
+  setData: ({ pedidos, produtos, clientes, contasReceber }) =>
+    set({ pedidos, produtos, clientes, contasReceber, status: 'ready', error: null }),
   setStatus: (status, error) => set({ status, error: error ?? null })
 }));

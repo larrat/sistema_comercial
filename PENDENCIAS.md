@@ -23,6 +23,11 @@ Conforme a Regra Absoluta nº 5, os seguintes campos foram omitidos da implement
 1. **Edição de Custo:**
    - O mockup solicita que o campo "Custo" seja editável inline na tabela de itens. No entanto, a RPC atual (`pedido_item_atualizar`) aceita apenas `quantidade` e `preco_unitario`. O campo "Custo" foi mantido como **somente leitura** para evitar inconsistências.
 
+## Dashboard (Redesign)
+
+1. **Metas Mensais:**
+   - O campo `meta_mensal` solicitado na especificação não existe no banco de dados atual. O card de "Pacing mensal" exibe "Meta não configurada" por enquanto.
+
 ## Ajustes de Mapeamento
 
 - **Aceita WhatsApp:** Mapeado para o campo `optin_sms`.

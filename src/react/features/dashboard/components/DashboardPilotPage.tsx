@@ -1,1189 +1,531 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useCurrentUserRole } from '../../../app/hooks/useCurrentUserRole';
-import { useFilialStore } from '../../../app/useFilialStore';
-import type { Cliente, Filial, Pedido, Produto } from '../../../../types/domain';
-import { useDashboardStore, type Periodo } from '../store/useDashboardStore';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageHeader,
-  StatCard,
-  StatusBadge
-} from '../../../shared/ui';
-import { SystemBarChart } from '../../../app/components/charts';
-import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield, ShoppingBag, Package, Users, RefreshCw } from 'lucide-react';
-import { listUserFiliais } from '../../auth/services/authApi';
-import { useAuthStore } from '../../../app/useAuthStore';
-import { getSupabaseConfig } from '../../../app/supabaseConfig';
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from 'recharts';
+import {
+  AlertCircle,
+  ArrowUpRight,
+  CheckCircle2,
+  ChevronRight,
+  RefreshCw,
+  TrendingUp
+} from 'lucide-react';
 
+import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
+import { useDashboardData } from '../hooks/useDashboardData';
+import { LoadingState, ErrorState, StatusBadge } from '../../../shared/ui';
+import type { Pedido, PedidoItem } from '../../../../types/domain';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const MES_LABEL = [
-  'Jan',
-  'Fev',
-  'Mar',
-  'Abr',
-  'Mai',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Set',
-  'Out',
-  'Nov',
-  'Dez'
-];
+const fmt = (v: number) => BRL.format(v || 0);
 
-type DashboardView = 'operacional' | 'gerencial' | 'analitico';
-type DashboardRole = 'operador' | 'gerente' | 'admin';
-
-const DASHBOARD_VIEW_LABELS: Record<DashboardView, string> = {
-  operacional: 'Operacional',
-  gerencial: 'Gerencial',
-  analitico: 'Analítico'
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  orcamento: { label: 'Orçamento', color: '#888' },
+  em_separacao: { label: 'Em separação', color: '#378ADD' },
+  entregue_aguardando_pagamento: { label: 'Entregue · aguardando pgto', color: '#C47B0A' },
+  pago_aguardando_entrega: { label: 'Pago · aguardando entrega', color: '#7F77DD' },
+  concluido: { label: 'Concluído', color: '#1D9E75' },
+  cancelado: { label: 'Cancelado', color: '#C0392B' }
 };
 
-const ROLE_LABELS: Record<DashboardRole, string> = {
-  operador: 'Operação',
-  gerente: 'Gestão',
-  admin: 'Administração'
-};
-
-function fmt(v: number) {
-  return BRL.format(Number(v || 0));
-}
-
-function pct(v: number) {
-  return `${v.toFixed(1)}%`;
-}
-
-function plural(count: number, singular: string, pluralStr: string) {
-  return count === 1 ? singular : pluralStr;
-}
-
-
-function getRange(periodo: Periodo): [Date, Date] {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  if (periodo === 'semana') {
-    const d = new Date(now);
-    d.setDate(d.getDate() - d.getDay() + 1);
-    d.setHours(0, 0, 0, 0);
-    return [d, now];
-  }
-  if (periodo === 'mes') return [new Date(y, m, 1), now];
-  if (periodo === 'ano') return [new Date(y, 0, 1), now];
-  return [new Date(2000, 0, 1), now];
-}
-
-function inRange(ds: string | undefined, range: [Date, Date]): boolean {
-  if (!ds) return false;
-  const d = new Date(`${ds}T00:00:00`);
-  return d >= range[0] && d <= range[1];
-}
-
-function getProxAnivDate(dataAniversario: string | undefined, baseDate: Date): Date | null {
-  if (!dataAniversario) return null;
-  const parts = dataAniversario.split('-');
-  if (parts.length < 3) return null;
-  const month = parseInt(parts[1], 10) - 1;
-  const day = parseInt(parts[2], 10);
-  if (Number.isNaN(month) || Number.isNaN(day)) return null;
-  let aniv = new Date(baseDate.getFullYear(), month, day);
-  if (aniv < baseDate) aniv = new Date(baseDate.getFullYear() + 1, month, day);
-  return aniv;
-}
-
-function computeDerivedData(
-  pedidos: Pedido[],
-  produtos: Produto[],
-  clientes: Cliente[],
-  periodo: Periodo
-) {
-  const range = getRange(periodo);
-  const entregues = pedidos.filter((p) => p.status === 'entregue' && inRange(p.data, range));
-
-  const fat = entregues.reduce((a, p) => a + (p.total || 0), 0);
-  const lucro = entregues.reduce((a, p) => {
-    const itens = Array.isArray(p.itens) ? p.itens : [];
-    return a + itens.reduce((b, i) => b + (i.preco - i.custo) * i.qty, 0);
-  }, 0);
-  const mg = fat > 0 ? (lucro / fat) * 100 : 0;
-  const tk = pedidos.length ? fat / pedidos.length : 0;
-  const abertos = pedidos.filter((p) =>
-    ['orcamento', 'confirmado', 'em_separacao'].includes(p.status)
-  ).length;
-
-  const crit = produtos.filter((p) => (p.emin ?? 0) > 0 && (p.esal ?? 0) <= 0);
-  const baixo = produtos.filter(
-    (p) => (p.emin ?? 0) > 0 && (p.esal ?? 0) > 0 && (p.esal ?? 0) < (p.emin ?? 0)
-  );
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const limite = new Date(hoje);
-  limite.setDate(limite.getDate() + 7);
-
-  const anivProximos = clientes
-    .map((c) => {
-      const data = getProxAnivDate(c.data_aniversario, hoje);
-      if (!data || data > limite) return null;
-      return { ...c, _anivData: data };
-    })
-    .filter((c): c is Cliente & { _anivData: Date } => c !== null)
-    .sort((a, b) => a._anivData.getTime() - b._anivData.getTime());
-
-  const stMap: Record<string, number> = {
-    orcamento: 0,
-    confirmado: 0,
-    em_separacao: 0,
-    entregue: 0,
-    cancelado: 0
-  };
-  pedidos.forEach((p) => {
-    if (p.status in stMap) stMap[p.status]++;
-  });
-
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const entreguesHoje = entregues.filter((p) => p.data === todayIso).length;
-  const pipelineValue = pedidos
-    .filter((p) => ['orcamento', 'confirmado', 'em_separacao'].includes(p.status))
-    .reduce((sum, pedido) => sum + (pedido.total || 0), 0);
-  const clientesComContato = clientes.filter((c) => c.tel || c.whatsapp || c.email).length;
-  const produtosComSaldo = produtos.filter((p) => (p.esal ?? 0) > 0).length;
-  const estoqueSaudavel = Math.max(produtos.length - crit.length - baixo.length, 0);
-  const estoqueSaudavelPct = produtos.length > 0 ? (estoqueSaudavel / produtos.length) * 100 : 100;
-  const taxaEntrega =
-    pedidos.length > 0 ? ((stMap.entregue ?? 0) / Math.max(pedidos.length, 1)) * 100 : 0;
-  const coberturaContatoPct =
-    clientes.length > 0 ? (clientesComContato / Math.max(clientes.length, 1)) * 100 : 0;
-  const mixAtivoPct =
-    produtos.length > 0 ? (produtosComSaldo / Math.max(produtos.length, 1)) * 100 : 0;
-
-  const sessentaDiasAtras = new Date(hoje);
-  sessentaDiasAtras.setDate(hoje.getDate() - 60);
-
-  const ultimosPedidos: Record<string, Date> = {};
-  pedidos.forEach((p) => {
-    if (p.status === 'entregue' && p.cliente_id && p.data) {
-      const d = new Date(`${p.data}T00:00:00`);
-      if (!ultimosPedidos[p.cliente_id] || d > ultimosPedidos[p.cliente_id]) {
-        ultimosPedidos[p.cliente_id] = d;
-      }
-    }
-  });
-
-  const churnRisk = clientes.filter((c) => {
-    const lastDate = ultimosPedidos[c.id];
-    return lastDate && lastDate < sessentaDiasAtras;
-  });
-
-  const seteDiasAtras = new Date(hoje);
-  seteDiasAtras.setDate(hoje.getDate() - 7);
+export function DashboardPilotPage() {
+  const { reload } = useDashboardData();
+  const navigate = useNavigate();
   
-  const orcamentosTravados = pedidos.filter((p) => {
-    if (p.status !== 'orcamento' || !p.data) return false;
-    const d = new Date(`${p.data}T00:00:00`);
-    return d < seteDiasAtras;
-  });
+  const { 
+    periodo, setPeriodo, 
+    visao, setVisao,
+    pedidos, produtos, clientes, contasReceber,
+    status, error 
+  } = useDashboardStore();
 
-  const META_MENSAL_BASE = 5000;
-  const metaPacing = (fat / META_MENSAL_BASE) * 100;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const pq: Record<string, number> = {};
-  entregues.forEach((p) => {
-    (Array.isArray(p.itens) ? p.itens : []).forEach((i) => {
-      pq[i.nome] = (pq[i.nome] ?? 0) + i.qty * i.preco;
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await reload();
+    setIsRefreshing(false);
+  };
+
+  // --- Cálculos ---
+  const stats = useMemo(() => {
+    const validPedidos = pedidos.filter(p => !['cancelado', 'em_andamento'].includes(p.status));
+    const finishedPedidos = pedidos.filter(p => ['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido'].includes(p.status));
+    
+    const faturamento = finishedPedidos.reduce((acc, p) => acc + Number(p.total || 0), 0);
+    
+    let lucroTotal = 0;
+    validPedidos.forEach(p => {
+      const items = (p.itens || []) as PedidoItem[];
+      items.forEach(item => {
+        const preco = Number(item.preco || 0);
+        const custo = Number(item.custo || 0);
+        const qty = Number(item.qty || 0);
+        lucroTotal += (preco - custo) * qty;
+      });
     });
-  });
-  const topProdutos = Object.entries(pq)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-  const maxTopFat = topProdutos[0]?.[1] || 1;
 
-  const grupos: Record<string, { fat: number; lucro: number }> = {};
-  entregues.forEach((p) => {
-    const d = new Date(`${p.data ?? ''}T00:00:00`);
-    const k =
-      periodo === 'ano'
-        ? `${MES_LABEL[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`
-        : (p.data ?? '');
-    if (!grupos[k]) grupos[k] = { fat: 0, lucro: 0 };
-    grupos[k].fat += p.total || 0;
-    const itens = Array.isArray(p.itens) ? p.itens : [];
-    grupos[k].lucro += itens.reduce((a, i) => a + (i.preco - i.custo) * i.qty, 0);
-  });
-  const chartKeys = Object.keys(grupos).sort().slice(-10);
-  const maxChartFat = Math.max(...chartKeys.map((k) => grupos[k].fat), 1);
+    const ticketMedio = validPedidos.length > 0 ? faturamento / validPedidos.length : 0;
+    const valorEmAberto = contasReceber.reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
+    
+    return {
+      faturamento,
+      lucroTotal,
+      margem: faturamento > 0 ? (lucroTotal / faturamento) * 100 : 0,
+      ticketMedio,
+      valorEmAberto,
+      totalPedidos: validPedidos.length,
+      pedidosEntregues: finishedPedidos.length,
+      pedidosPendentes: contasReceber.length
+    };
+  }, [pedidos, contasReceber]);
 
-  return {
-    entregues,
-    fat,
-    lucro,
-    mg,
-    tk,
-    abertos,
-    crit,
-    baixo,
-    anivProximos,
-    stMap,
-    topProdutos,
-    maxTopFat,
-    grupos,
-    chartKeys,
-    maxChartFat,
-    hoje,
-    entreguesHoje,
-    pipelineValue,
-    clientesComContato,
-    estoqueSaudavelPct,
-    taxaEntrega,
-    coberturaContatoPct,
-    mixAtivoPct,
-    churnRisk,
-    orcamentosTravados,
-    metaPacing,
-    META_MENSAL_BASE
-  };
-}
-
-function getPreferredDashboardView(role: DashboardRole): DashboardView {
-  if (role === 'admin') return 'analitico';
-  if (role === 'gerente') return 'gerencial';
-  return 'operacional';
-}
-
-function getDashboardViewStorageKey(role: DashboardRole, filialId: string | null): string {
-  return `sc_dashboard_view_v1:${role}:${filialId || 'sem-filial'}`;
-}
-
-function readStoredDashboardView(key: string, fallback: DashboardView): DashboardView {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw === 'operacional' || raw === 'gerencial' || raw === 'analitico') return raw;
-  } catch {
-    // ignore invalid storage
-  }
-  return fallback;
-}
-
-function goToPage(page: string, onNavigatePage?: (page: string) => void) {
-  if (onNavigatePage) {
-    onNavigatePage(page);
-  }
-}
-
-function DashboardSection({
-  title,
-  description,
-  children
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-6 mb-12">
-      <div className="flex flex-col gap-1 border-l-[3px] border-slate-900 pl-4 py-0.5">
-        <h3 className="text-xl font-bold tracking-tight text-slate-800 leading-none">{title}</h3>
-        <p className="text-[12px] font-medium text-slate-400">{description}</p>
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function DashboardCard({
-  title,
-  children,
-  className = '',
-  action
-}: {
-  title: string;
-  children: ReactNode;
-  className?: string;
-  action?: ReactNode;
-}) {
-  return (
-    <section className={`bg-white border border-slate-200/80 rounded-xl !p-8 shadow-sm flex flex-col gap-6 overflow-hidden ${className}`.trim()}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
-          <div className="w-1 h-3 bg-slate-900 rounded-full" />
-          {title}
-        </div>
-        {action && <div className="shrink-0">{action}</div>}
-      </div>
-      <div className="flex-1 overflow-hidden min-h-0">
-        {children}
-      </div>
-    </section>
-  );
-}
-
-
-function PeriodSelector({
-  periodo,
-  onChange
-}: {
-  periodo: Periodo;
-  onChange: (p: Periodo) => void;
-}) {
-  const periods: { value: Periodo; label: string }[] = [
-    { value: 'semana', label: 'Semana' },
-    { value: 'mes', label: 'Mês' },
-    { value: 'ano', label: 'Ano' },
-    { value: 'tudo', label: 'Tudo' }
-  ];
-  return (
-    <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 w-fit shadow-inner overflow-hidden" data-testid="dash-period-selector">
-      {periods.map((p) => {
-        const isActive = periodo === p.value;
-        return (
-          <button
-            key={p.value}
-            className={`px-8 py-2.5 text-[11px] font-bold tracking-tight rounded-lg transition-all ${
-              isActive
-                ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'
-            }`}
-            onClick={() => onChange(p.value)}
-            type="button"
-          >
-            {p.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function DashboardViewSelector({
-  view,
-  onChange
-}: {
-  view: DashboardView;
-  onChange: (view: DashboardView) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 shadow-inner overflow-hidden" aria-label="Mudar objetivo do painel">
-      {(Object.entries(DASHBOARD_VIEW_LABELS) as Array<[DashboardView, string]>).map(
-        ([value, label]) => {
-          const isActive = view === value;
-          return (
-            <button
-              key={value}
-              className={`px-10 py-3 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all ${
-                isActive
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
-              }`}
-              onClick={() => onChange(value)}
-              type="button"
-            >
-              {label}
-            </button>
-          );
-        }
-      )}
-    </div>
-  );
-}
-
-
-function DashAlerts({
-  crit,
-  baixo,
-  anivProximos,
-  churnRisk,
-  orcamentosTravados,
-  hoje,
-  onNavigatePage
-}: {
-  crit: Produto[];
-  baixo: Produto[];
-  anivProximos: Array<Cliente & { _anivData: Date }>;
-  churnRisk: Cliente[];
-  orcamentosTravados: Pedido[];
-  hoje: Date;
-  onNavigatePage?: (page: string) => void;
-}) {
-  if (!crit.length && !baixo.length && !anivProximos.length && !churnRisk.length && !orcamentosTravados.length) {
-    return (
-      <EmptyState
-        compact
-        title="Sem alertas no momento."
-        description="A operação da filial está estável na leitura atual."
-      />
-    );
-  }
-
-  const fmtCurrency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-
-  return (
-    <div className="flex flex-col gap-3" data-testid="dash-alerts">
-      {crit.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2 text-red-800 font-bold">
-            <AlertCircle size={18} strokeWidth={2.5} /> Estoque crítico
-          </div>
-          <div className="text-sm text-red-900/80 leading-relaxed">
-            {crit.length} {plural(crit.length, 'produto zerado', 'produtos zerados')}.{' '}
-            {crit.slice(0, 3).map((p) => p.nome).join(', ')}{crit.length > 3 ? '...' : ''}
-          </div>
-          <div className="mt-2">
-            <button
-              className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 text-xs font-semibold rounded-lg transition-colors"
-              type="button"
-              onClick={() => goToPage('estoque', onNavigatePage)}
-            >
-              Ver estoque
-            </button>
-          </div>
-        </div>
-      )}
-      {baixo.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2 text-amber-800 font-bold">
-            <AlertTriangle size={18} strokeWidth={2.5} /> Estoque em atenção
-          </div>
-          <div className="text-sm text-amber-900/80 leading-relaxed">
-            {baixo.length} {plural(baixo.length, 'item', 'itens')} abaixo do mínimo.{' '}
-            {baixo.slice(0, 3).map((p) => p.nome).join(', ')}{baixo.length > 3 ? '...' : ''}
-          </div>
-          <div className="mt-2">
-            <button
-              className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-semibold rounded-lg transition-colors"
-              type="button"
-              onClick={() => goToPage('estoque', onNavigatePage)}
-            >
-              Revisar estoque
-            </button>
-          </div>
-        </div>
-      )}
-      {anivProximos.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2 text-emerald-800 font-bold">
-            <Gift size={18} strokeWidth={2.5} /> Aniversários próximos
-          </div>
-          <div className="text-sm text-emerald-900/80 leading-relaxed">
-            {anivProximos
-              .slice(0, 3)
-              .map((c) => {
-                const dias = Math.round((c._anivData.getTime() - hoje.getTime()) / 86400000);
-                const nome = c.apelido || c.nome;
-                if (dias === 0) return `${nome} hoje`;
-                if (dias === 1) return `${nome} amanhã`;
-                return `${nome} em ${dias} dias`;
-              })
-              .join(', ')}
-            {anivProximos.length > 3 ? '...' : ''}
-          </div>
-          <div className="mt-2">
-            <button
-              className="px-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-semibold rounded-lg transition-colors"
-              type="button"
-              onClick={() => goToPage('clientes', onNavigatePage)}
-            >
-              Abrir clientes
-            </button>
-          </div>
-        </div>
-      )}
-      {churnRisk.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-rose-50 border border-rose-200 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2 text-rose-800 font-bold">
-            <UserMinus size={18} strokeWidth={2.5} /> Risco de Churn
-          </div>
-          <div className="text-sm text-rose-900/80 leading-relaxed">
-            {churnRisk.length} {plural(churnRisk.length, 'cliente', 'clientes')} sem comprar há mais de 60 dias.{' '}
-            {churnRisk.slice(0, 3).map((c) => c.nome.split(' ')[0]).join(', ')}{churnRisk.length > 3 ? '...' : ''}
-          </div>
-          <div className="mt-2">
-            <button
-              className="px-3 py-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-semibold rounded-lg transition-colors"
-              type="button"
-              onClick={() => goToPage('clientes', onNavigatePage)}
-            >
-              Recuperar clientes
-            </button>
-          </div>
-        </div>
-      )}
-      {orcamentosTravados.length > 0 && (
-        <div className="flex flex-col gap-2 p-4 bg-orange-50 border border-orange-200 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2 text-orange-800 font-bold">
-            <Clock size={18} strokeWidth={2.5} /> Orçamentos Travados
-          </div>
-          <div className="text-sm text-orange-900/80 leading-relaxed">
-            {orcamentosTravados.length} {plural(orcamentosTravados.length, 'orçamento parado', 'orçamentos parados')} há mais de 7 dias.{' '}
-            Total travado: {fmtCurrency.format(orcamentosTravados.reduce((a, b) => a + (b.total || 0), 0))}
-          </div>
-          <div className="mt-2">
-            <button
-              className="px-3 py-1.5 bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs font-semibold rounded-lg transition-colors"
-              type="button"
-              onClick={() => goToPage('pedidos', onNavigatePage)}
-            >
-              Revisar pipeline
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function DashChart({
-  chartKeys,
-  grupos
-}: {
-  chartKeys: string[];
-  grupos: Record<string, { fat: number; lucro: number }>;
-}) {
-  if (!chartKeys.length) {
-    return (
-      <EmptyState
-        compact
-        title="Sem pedidos entregues no período."
-        description="Assim que houver entregas, a curva de faturamento e lucro aparece aqui."
-      />
-    );
-  }
-
-  const data = chartKeys.map((k) => ({
-    periodo: k,
-    fat: grupos[k].fat,
-    lucro: grupos[k].lucro
-  }));
-
-  return (
-    <div data-testid="dash-chart">
-      <SystemBarChart
-        data={data}
-        xKey="periodo"
-        height={180}
-        valueFormatter={(value) => fmt(Number(value || 0))}
-        ariaLabel="Faturamento e lucro por período"
-        series={[
-          { key: 'fat', label: 'Faturamento', color: '#3b82f6' },
-          { key: 'lucro', label: 'Lucro', color: '#10b981' }
-        ]}
-      />
-    </div>
-  );
-}
-
-function DashStatusPedidos({ stMap }: { stMap: Record<string, number> }) {
-  const labels: Record<string, string> = {
-    orcamento: 'Orçamento',
-    confirmado: 'Confirmado',
-    em_separacao: 'Em separação',
-    entregue: 'Entregue',
-    cancelado: 'Cancelado'
-  };
-  const total = Object.values(stMap).reduce((a, v) => a + v, 0);
-  return (
-    <div className="flex flex-col gap-3" data-testid="dash-status-pedidos">
-      {Object.entries(labels).map(([key, label]) => {
-        const count = stMap[key] ?? 0;
-        const pctVal = total > 0 ? (count / total) * 100 : 0;
-        
-        let colorClass = 'bg-blue-500';
-        if (key === 'entregue') colorClass = 'bg-emerald-500';
-        else if (key === 'cancelado') colorClass = 'bg-slate-300';
-        else if (key === 'em_separacao') colorClass = 'bg-amber-400';
-
-        return (
-          <div key={key} className="flex items-center gap-3 text-sm group">
-            <span className="w-28 text-slate-600 font-medium truncate group-hover:text-slate-900 transition-colors">{label}</span>
-            <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
-                style={{ width: `${pctVal}%` }}
-              />
-            </div>
-            <span className="w-10 text-right font-semibold text-slate-700 tabular-nums">{count}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function DashTopProdutos({
-  topProdutos,
-  maxFat
-}: {
-  topProdutos: Array<[string, number]>;
-  maxFat: number;
-}) {
-  if (!topProdutos.length) {
-    return (
-      <EmptyState
-        compact
-        title="Sem dados no período."
-        description="Os produtos com maior faturamento aparecem aqui quando houver vendas entregues."
-      />
-    );
-  }
-  return (
-    <div className="flex flex-col gap-3" data-testid="dash-top-produtos">
-      {topProdutos.map(([nome, fat]) => (
-        <div key={nome} className="flex items-center gap-3 text-sm group">
-          <span className="w-36 text-slate-600 font-medium truncate group-hover:text-slate-900 transition-colors" title={nome}>
-            {nome}
-          </span>
-          <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-500"
-              style={{ width: `${Math.max(4, (fat / maxFat) * 100)}%` }}
-            />
-          </div>
-          <span className="w-20 text-right font-semibold text-slate-700 tabular-nums">{fmt(fat)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DashboardRoleSummary({
-  role,
-  view,
-  derived,
-  pedidosCount,
-  produtosCount,
-  clientesCount,
-  onNavigatePage
-}: {
-  role: DashboardRole;
-  view: DashboardView;
-  derived: ReturnType<typeof computeDerivedData>;
-  pedidosCount: number;
-  produtosCount: number;
-  clientesCount: number;
-  onNavigatePage?: (page: string) => void;
-}) {
-  const focusByRole: Record<
-    DashboardRole,
-    {
-      title: string;
-      copy: string;
-      items: Array<{ label: string; value: string; hint: string; cta: string; page: string }>;
-    }
-  > = {
-    operador: {
-      title: 'Seu foco hoje',
-      copy: 'Leitura direta para agir mais rápido na operação do dia.',
-      items: [
-        {
-          label: 'Fila em aberto',
-          value: String(derived.abertos),
-          hint:
-            derived.abertos > 0
-              ? `${fmt(derived.pipelineValue)} aguardando avanço.`
-              : 'Sem fila pendente agora.',
-          cta: 'Abrir pedidos',
-          page: 'pedidos'
-        },
-        {
-          label: 'Estoque crítico',
-          value: String(derived.crit.length),
-          hint:
-            derived.crit.length > 0
-              ? 'Há itens zerados pedindo reposição.'
-              : 'Sem ruptura crítica neste momento.',
-          cta: 'Ver estoque',
-          page: 'estoque'
-        },
-        {
-          label: 'Base ativa',
-          value: `${produtosCount} / ${clientesCount}`,
-          hint: 'Produtos e clientes já prontos para vender.',
-          cta: 'Ver clientes',
-          page: 'clientes'
-        }
-      ]
-    },
-    gerente: {
-      title: 'Resumo para gestão',
-      copy: 'O que mais influencia ritmo, resultado e acompanhamento da filial.',
-      items: [
-        {
-          label: 'Faturamento',
-          value: fmt(derived.fat),
-          hint: `${derived.entreguesHoje} entrega(s) concluída(s) hoje.`,
-          cta: 'Ver relatórios',
-          page: 'relatorios'
-        },
-        {
-          label: 'Margem',
-          value: pct(derived.mg),
-          hint:
-            derived.mg >= 15 ? 'Margem em zona confortável.' : 'Vale revisar mix, preço e custo.',
-          cta: 'Ver análises',
-          page: 'gerencial'
-        },
-        {
-          label: 'Pipeline',
-          value: fmt(derived.pipelineValue),
-          hint: `${derived.abertos} pedido(s) ainda em aberto.`,
-          cta: 'Acompanhar pedidos',
-          page: 'pedidos'
-        }
-      ]
-    },
-    admin: {
-      title: 'Visão de escala e controle',
-      copy: 'Sinais de maturidade da base e pontos que pedem padronização.',
-      items: [
-        {
-          label: 'Contato da base',
-          value: pct(derived.coberturaContatoPct),
-          hint: `${derived.clientesComContato} de ${clientesCount} clientes com canal preenchido.`,
-          cta: 'Revisar clientes',
-          page: 'clientes'
-        },
-        {
-          label: 'Estoque saudável',
-          value: pct(derived.estoqueSaudavelPct),
-          hint: 'Percentual do catálogo fora da zona de risco.',
-          cta: 'Revisar estoque',
-          page: 'estoque'
-        },
-        {
-          label: 'Mix ativo',
-          value: pct(derived.mixAtivoPct),
-          hint: `${pedidosCount} ${plural(pedidosCount, 'pedido alimentando', 'pedidos alimentando')} a leitura atual.`,
-          cta: 'Ajustar acessos',
-          page: 'acessos'
-        }
-      ]
-    }
-  };
-
-  const focus = focusByRole[role];
-
-  return (
-    <section className="relative overflow-hidden bg-slate-900 rounded-xl !p-12 md:!p-16 shadow-2xl shadow-slate-900/40 text-white mb-12 group">
-      {/* Elementos decorativos de fundo */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[80px] -mr-32 -mt-32 transition-all group-hover:bg-blue-600/10" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/5 rounded-full blur-[60px] -ml-24 -mb-24 transition-all group-hover:bg-indigo-600/10" />
+  const chartData = useMemo(() => {
+    const groups: Record<string, { name: string; faturamento: number; lucro: number }> = {};
+    
+    pedidos.forEach(p => {
+      if (p.status === 'cancelado') return;
+      const date = new Date(p.data || p.criado_em || '');
+      let key = '';
+      let label = '';
       
-      <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8 pb-6 border-b border-white/10">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#C5A059]">
-            <Shield size={12} strokeWidth={3} />
-            {ROLE_LABELS[role]} · {DASHBOARD_VIEW_LABELS[view]}
-          </div>
-          <h3 className="text-3xl font-bold tracking-tight text-white">{focus.title}</h3>
-          <p className="text-slate-400 max-w-lg text-sm leading-relaxed">{focus.copy}</p>
-        </div>
-        <div className="shrink-0">
-          <div className="px-5 py-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg text-[10px] font-black tracking-[0.2em] uppercase text-white shadow-inner">
-            {ROLE_LABELS[role]}
-          </div>
-        </div>
-      </div>
-
-      <div className="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-        {focus.items.map((item) => (
-          <div key={item.label} className="flex flex-col gap-3 group/item">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover/item:text-[#C5A059] transition-colors">{item.label}</div>
-            <div className="text-4xl font-bold text-white tracking-tighter transition-transform group-hover/item:translate-x-1">{item.value}</div>
-            <div className="text-xs text-slate-400 leading-relaxed mb-4">{item.hint}</div>
-            <button
-              className="mt-auto self-start px-5 py-2.5 bg-white/5 hover:bg-white text-slate-300 hover:text-slate-900 text-xs font-bold rounded-lg transition-all border border-white/10 hover:border-white shadow-sm active:scale-95"
-              type="button"
-              onClick={() => goToPage(item.page, onNavigatePage)}
-            >
-              {item.cta}
-            </button>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function DashboardInsightGrid({
-  derived,
-  clientesCount,
-  produtosCount
-}: {
-  derived: ReturnType<typeof computeDerivedData>;
-  clientesCount: number;
-  produtosCount: number;
-}) {
-  const cards = [
-    {
-      title: 'Cobertura de contato',
-      value: pct(derived.coberturaContatoPct),
-      hint: `${derived.clientesComContato} de ${clientesCount} clientes com telefone, WhatsApp ou e-mail.`
-    },
-    {
-      title: 'Taxa de entrega',
-      value: pct(derived.taxaEntrega),
-      hint: 'Participação de pedidos entregues dentro da base observada.'
-    },
-    {
-      title: 'Catálogo ativo',
-      value: pct(derived.mixAtivoPct),
-      hint: `${produtosCount} produtos no catálogo e ${derived.crit.length + derived.baixo.length} em atenção.`
-    }
-  ];
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      {cards.map((card) => (
-        <div key={card.title} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col gap-4 overflow-hidden">
-          <div className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 flex items-center gap-2">
-            <div className="w-1 h-3 bg-slate-900 rounded-full" />
-            {card.title}
-          </div>
-          <div className="text-2xl font-black text-slate-900 tracking-tight">{card.value}</div>
-          <div className="text-xs text-slate-500 leading-relaxed">{card.hint}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export function DashboardPilotPage({
-  onNavigatePage,
-  onReload
-}: {
-  onNavigatePage?: (page: string) => void;
-  onReload?: () => void;
-}) {
-  const periodo = useDashboardStore((s) => s.periodo);
-  const pedidos = useDashboardStore((s) => s.pedidos);
-  const produtos = useDashboardStore((s) => s.produtos);
-  const clientes = useDashboardStore((s) => s.clientes);
-  const status = useDashboardStore((s) => s.status);
-  const error = useDashboardStore((s) => s.error);
-  const setPeriodo = useDashboardStore((s) => s.setPeriodo);
-  const filialId = useFilialStore((s) => s.filialId);
-  const session = useAuthStore((s) => s.session);
-  const [filiais, setFiliais] = useState<Filial[]>([]);
-  const userRole = useCurrentUserRole();
-
-  useEffect(() => {
-    async function loadFiliais() {
-      if (!session?.access_token) return;
-      const userId = String((session.user as Record<string, unknown>)?.id ?? '');
-      const cfg = getSupabaseConfig();
-      if (!cfg.ready || !userId) return;
-      try {
-        const data = await listUserFiliais({ url: cfg.url, key: cfg.key }, session.access_token, userId);
-        setFiliais(data);
-      } catch (e) {
-        console.error('Erro ao carregar filiais no dashboard:', e);
+      if (periodo === 'semana') {
+        key = date.toISOString().slice(0, 10);
+        label = `${date.getDate()}/${date.getMonth() + 1}`;
+      } else if (periodo === 'mes') {
+        const week = Math.ceil(date.getDate() / 7);
+        key = `W${week}`;
+        label = `Semana ${week}`;
+      } else {
+        key = date.toISOString().slice(0, 7);
+        label = date.toLocaleString('pt-BR', { month: 'short' });
       }
+
+      if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0 };
+      groups[key].faturamento += Number(p.total || 0);
+      
+      const items = (p.itens || []) as PedidoItem[];
+      items.forEach(item => {
+        groups[key].lucro += (Number(item.preco || 0) - Number(item.custo || 0)) * Number(item.qty || 0);
+      });
+    });
+
+    return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
+  }, [pedidos, periodo]);
+
+  const topProducts = useMemo(() => {
+    const productSales: Record<string, { nome: string; receita: number }> = {};
+    pedidos.forEach(p => {
+      if (p.status === 'cancelado') return;
+      const items = (p.itens || []) as PedidoItem[];
+      items.forEach(item => {
+        if (!item.prodId) return;
+        if (!productSales[item.prodId]) productSales[item.prodId] = { nome: item.prodNome || 'Produto', receita: 0 };
+        productSales[item.prodId].receita += Number(item.preco || 0) * Number(item.qty || 0);
+      });
+    });
+    return Object.values(productSales)
+      .sort((a, b) => b.receita - a.receita)
+      .slice(0, 5);
+  }, [pedidos]);
+
+  const statusDistribution = useMemo(() => {
+    const dist: Record<string, number> = {};
+    pedidos.forEach(p => {
+      dist[p.status] = (dist[p.status] || 0) + 1;
+    });
+    return dist;
+  }, [pedidos]);
+
+  const healthMetrics = useMemo(() => {
+    const totalClientes = clientes.length;
+    const comContato = clientes.filter(c => c.whatsapp || c.email).length;
+    
+    const totalProdutos = produtos.length;
+    const comEstoque = produtos.filter(p => Number(p.saldo_atual || 0) > 0).length;
+    
+    const produtosVendidos = new Set();
+    pedidos.forEach(p => {
+      if (p.status === 'cancelado') return;
+      (p.itens || []).forEach((i: any) => produtosVendidos.add(i.prodId));
+    });
+
+    const validPedidos = pedidos.filter(p => p.status !== 'cancelado');
+    const entregues = validPedidos.filter(p => ['entregue_aguardando_pagamento', 'concluido'].includes(p.status)).length;
+
+    return {
+      contato: totalClientes > 0 ? (comContato / totalClientes) * 100 : 0,
+      estoque: totalProdutos > 0 ? (comEstoque / totalProdutos) * 100 : 0,
+      mix: totalProdutos > 0 ? (produtosVendidos.size / totalProdutos) * 100 : 0,
+      entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0
+    };
+  }, [clientes, produtos, pedidos]);
+
+  const customerMetrics = useMemo(() => {
+    const total = clientes.length;
+    const comWhats = clientes.filter(c => c.whatsapp).length;
+    const comEmail = clientes.filter(c => c.email).length;
+    const optIn = clientes.filter(c => c.participa_campanhas).length;
+    
+    const compradores = new Set();
+    pedidos.forEach(p => {
+      if (p.status !== 'cancelado') compradores.add(p.cliente_id);
+    });
+
+    return {
+      total,
+      comWhats,
+      comEmail,
+      optIn,
+      compraram: compradores.size,
+      coberturaWhats: total > 0 ? (comWhats / total) * 100 : 0
+    };
+  }, [clientes, pedidos]);
+
+  const alerts = useMemo(() => {
+    const list = [];
+    
+    const semBaixa = pedidos.filter(p => p.status === 'entregue_aguardando_pagamento').length;
+    if (semBaixa > 0) {
+      list.push({
+        id: 'sem-baixa',
+        title: `${semBaixa} pedidos entregues sem baixa`,
+        desc: `R$ ${fmt(stats.valorEmAberto)} em aberto no período`,
+        link: '/app/receber',
+        tone: 'warning'
+      });
     }
-    void loadFiliais();
-  }, [session]);
 
-  const currentFilialName = filiais.find((f) => f.id === filialId)?.nome ?? filialId ?? 'Nenhuma Selecionada';
-  
-  const viewStorageKey = getDashboardViewStorageKey(userRole, filialId);
-  const [view, setView] = useState<DashboardView>(() =>
-    readStoredDashboardView(viewStorageKey, getPreferredDashboardView(userRole))
-  );
+    if (healthMetrics.mix < 10 && stats.totalPedidos > 0) {
+      list.push({
+        id: 'mix-baixo',
+        title: 'Mix ativo crítico',
+        desc: 'Menos de 10% dos produtos ativos tiveram saída no período',
+        link: '/app/produtos',
+        tone: 'danger'
+      });
+    }
 
-  useEffect(() => {
-    setView(readStoredDashboardView(viewStorageKey, getPreferredDashboardView(userRole)));
-  }, [userRole, viewStorageKey]);
+    const vencidas = contasReceber.filter(c => c.vencimento && new Date(c.vencimento) < new Date()).length;
+    if (vencidas > 0) {
+      const valorVencido = contasReceber
+        .filter(c => c.vencimento && new Date(c.vencimento) < new Date())
+        .reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
+      list.push({
+        id: 'contas-vencidas',
+        title: `${vencidas} conta(s) vencida(s)`,
+        desc: `R$ ${fmt(valorVencido)} em atraso`,
+        link: '/app/receber',
+        tone: 'danger'
+      });
+    }
 
-  useEffect(() => {
-    localStorage.setItem(viewStorageKey, view);
-  }, [view, viewStorageKey]);
+    return list;
+  }, [pedidos, stats, healthMetrics, contasReceber]);
 
-  const derived = useMemo(
-    () => computeDerivedData(pedidos, produtos, clientes, periodo),
-    [pedidos, produtos, clientes, periodo]
-  );
+  if (status === 'loading') return <LoadingState message="Consolidando indicadores..." />;
+  if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" message={error || ''} onRetry={reload} />;
 
-  const periodoLabels: Record<Periodo, string> = {
-    semana: 'Esta semana',
-    mes: 'Este mês',
-    ano: 'Este ano',
-    tudo: 'Todos os períodos'
+  const getHealthTone = (val: number, thresholds: [number, number]) => {
+    if (val >= thresholds[0]) return 'success';
+    if (val >= thresholds[1]) return 'warning';
+    return 'danger';
   };
 
-  const showOperational = view === 'operacional';
-  const showManagerial = view === 'gerencial';
-  const showAnalytical = view === 'analitico';
-  const hasAnyBaseData = pedidos.length > 0 || produtos.length > 0 || clientes.length > 0;
-  const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
-
   return (
-    <div className="flex flex-col min-h-screen w-full px-8 py-8 lg:px-12 max-w-[1600px] mx-auto gap-8" data-testid="dashboard-pilot-page">
-      <div className="flex flex-col gap-6 border-b border-slate-200 pb-6 pt-0">
+    <div className="rf-dashboard">
+      {/* Topbar */}
+      <header className="rf-dashboard-topbar">
+        <h1 className="rf-dashboard-title">Dashboard</h1>
         
-        {/* Top Row: Titles & Primary Actions */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-              <LayoutDashboard size={12} strokeWidth={3} />
-              Gestão Executiva
+        <div className="rf-dashboard-filters">
+          <div className="rf-pill-group">
+            {(['semana', 'mes', 'ano', 'tudo'] as Periodo[]).map(p => (
+              <button 
+                key={p} 
+                className={`rf-pill ${periodo === p ? 'is-active' : ''}`}
+                onClick={() => setPeriodo(p)}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="rf-pill-group">
+            {(['operacional', 'gerencial', 'analitico'] as Visao[]).map(v => (
+              <button 
+                key={v} 
+                className={`rf-pill ${visao === v ? 'is-active' : ''}`}
+                onClick={() => setVisao(v)}
+              >
+                {v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <button className="btn btn-sm btn-ghost" onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+          </button>
+        </div>
+      </header>
+
+      {/* Linha 1: Stat Cards */}
+      <section className="rf-dashboard-row rf-dashboard-row--1">
+        <article className="rf-dash-card">
+          <span className="rf-stat-label">Faturamento</span>
+          <span className="rf-stat-value">{fmt(stats.faturamento)}</span>
+          <span className="rf-stat-sub muted">{stats.pedidosEntregues} entregue(s) no período</span>
+        </article>
+
+        {visao !== 'operacional' && (
+          <article className="rf-dash-card">
+            <span className="rf-stat-label">Lucro bruto</span>
+            <span className="rf-stat-value !text-emerald-600">{fmt(stats.lucroTotal)}</span>
+            <span className="rf-stat-sub success">
+              <TrendingUp size={12} /> Margem {stats.margem.toFixed(1)}%
+            </span>
+          </article>
+        )}
+
+        <article className="rf-dash-card">
+          <span className="rf-stat-label">Ticket médio</span>
+          <span className="rf-stat-value">{fmt(stats.ticketMedio)}</span>
+          <span className="rf-stat-sub muted">{stats.totalPedidos} pedido(s) no período</span>
+        </article>
+
+        <article className="rf-dash-card">
+          <span className="rf-stat-label">Em aberto</span>
+          <span className={`rf-stat-value ${stats.valorEmAberto > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
+            {fmt(stats.valorEmAberto)}
+          </span>
+          <span className={`rf-stat-sub ${stats.valorEmAberto > 0 ? 'warning' : 'success'}`}>
+            {stats.pedidosPendentes} pedido(s) pendente(s)
+          </span>
+        </article>
+
+        {visao !== 'operacional' && (
+          <article className="rf-dash-card">
+            <span className="rf-stat-label">Pacing mensal</span>
+            <span className="rf-stat-value text-slate-400">—%</span>
+            <span className="rf-stat-sub muted">Meta não configurada</span>
+          </article>
+        )}
+      </section>
+
+      {/* Linha 2: Gráfico + Status */}
+      <section className="rf-dashboard-row rf-dashboard-row--2">
+        {visao !== 'operacional' && (
+          <article className="rf-dash-card">
+            <div className="rf-dash-card__header">
+              <div>
+                <h2 className="rf-dash-card__title">Faturamento e Lucro</h2>
+                <p className="rf-dash-card__subtitle">Visão por período selecionado</p>
+              </div>
+              <div className="flex gap-4 text-[10px] font-semibold uppercase tracking-wider">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#378ADD]" /> Faturamento</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1D9E75]" /> Lucro</span>
+              </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+            <div className="flex-1 mt-4">
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#94a3b8' }} 
+                  />
+                  <YAxis hide />
+                  <Tooltip 
+                    cursor={{ fill: '#f8fafc' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-xl text-xs">
+                            <p className="font-bold mb-2 text-slate-900 border-b pb-1">{payload[0].payload.name}</p>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-blue-600 font-semibold">Fat: {fmt(payload[0].value as number)}</span>
+                              <span className="text-emerald-600 font-semibold">Luc: {fmt(payload[1].value as number)}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="faturamento" fill="#378ADD" radius={[3, 3, 0, 0]} barSize={20} />
+                  <Bar dataKey="lucro" fill="#1D9E75" radius={[3, 3, 0, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+        )}
+
+        <article className="rf-dash-card overflow-hidden">
+          <div className="rf-dash-card__header">
+            <h2 className="rf-dash-card__title">Status dos pedidos</h2>
+            <span className="badge badge-sm bg-blue-50 text-blue-600 border-blue-100">{pedidos.length}</span>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex -space-x-2 mr-2">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50 z-10" title="Pedidos"><ShoppingBag size={16} /></div>
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50 z-20" title="Produtos"><Package size={16} /></div>
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50 z-30" title="Clientes"><Users size={16} /></div>
-            </div>
-            <button
-              className="flex items-center gap-3 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-95 text-[11px] uppercase tracking-[0.2em] disabled:opacity-50 group"
-              type="button"
-              onClick={onReload}
-              disabled={status === 'loading'}
-            >
-              <RefreshCw size={14} className={status === 'loading' ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
-              <span className="hidden sm:inline">Atualizar Dados</span>
-              <span className="sm:hidden">Atualizar</span>
-            </button>
+          <div className="flex flex-col gap-3 mt-2">
+            {Object.entries(STATUS_CONFIG).map(([key, config]) => {
+              const count = statusDistribution[key] || 0;
+              const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
+              return (
+                <div key={key} className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full" style={{ background: config.color }} />
+                  <span className="text-[11px] font-medium text-slate-600 w-[100px] truncate">{config.label}</span>
+                  <div className="flex-1 h-[5px] bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${perc}%`, background: config.color }} />
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-900 w-4 text-right">{count}</span>
+                </div>
+              );
+            })}
           </div>
-        </div>
 
-        {/* Bottom Row: Unified Command Center (Filters & Views) */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-          <PeriodSelector periodo={periodo} onChange={setPeriodo} />
-          <DashboardViewSelector view={view} onChange={setView} />
-        </div>
-        
-      </div>
-
-      {status === 'loading' && (
-        <LoadingState
-          title="Carregando indicadores do dashboard..."
-          description="Estamos reunindo pedidos, produtos e clientes da filial ativa para montar a leitura executiva."
-          data-testid="dash-pilot-loading"
-        />
-      )}
-
-      {status === 'error' && (
-        <ErrorState
-          title="Não foi possível carregar o dashboard."
-          description="A leitura executiva depende das bases de pedidos, produtos e clientes da filial ativa."
-          technicalMessage={error ?? undefined}
-          onRetry={onReload}
-          data-testid="dash-pilot-error"
-        />
-      )}
-
-      {status === 'ready' && !hasAnyBaseData && (
-        <EmptyState
-          title="Ainda não há base suficiente para montar o dashboard."
-          description="Assim que a filial tiver pedidos, produtos ou clientes cadastrados, os indicadores executivos passam a aparecer aqui."
-          action={
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                className="btn btn-sm"
-                type="button"
-                onClick={() => goToPage('clientes', onNavigatePage)}
-              >
-                Abrir clientes
-              </button>
-              <button
-                className="btn btn-sm"
-                type="button"
-                onClick={() => goToPage('produtos', onNavigatePage)}
-              >
-                Abrir produtos
-              </button>
-              <button
-                className="btn btn-sm"
-                type="button"
-                onClick={() => goToPage('pedidos', onNavigatePage)}
-              >
-                Abrir pedidos
-              </button>
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <h3 className="rf-dash-card__title mb-4">Top produtos</h3>
+            <div className="flex flex-col gap-3">
+              {topProducts.length > 0 ? topProducts.map((p, i) => {
+                const max = topProducts[0].receita;
+                const perc = max > 0 ? (p.receita / max) * 100 : 0;
+                return (
+                  <div key={i} className="flex flex-col gap-1">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="font-medium text-slate-700 truncate max-w-[180px]">{p.nome}</span>
+                      <span className="font-bold text-slate-900">{fmt(p.receita)}</span>
+                    </div>
+                    <div className="h-[4px] bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-slate-400 rounded-full" style={{ width: `${perc}%` }} />
+                    </div>
+                  </div>
+                );
+              }) : <p className="text-center text-xs text-slate-400 py-4">Nenhum produto vendido no período.</p>}
             </div>
-          }
-          data-testid="dash-pilot-empty"
-        />
-      )}
+          </div>
+        </article>
+      </section>
 
-      {status === 'ready' && (
-        <>
-          <DashboardSection
-            title="Visão geral da filial"
-            description="Panorama executivo do período selecionado, sem estimativas artificiais e sem trocar a origem dos dados."
-          >
-            <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <StatCard
-                label="Pedidos"
-                value={pedidos.length}
-                tone="blue"
-                onClick={() => goToPage('pedidos', onNavigatePage)}
-              />
-              <StatCard
-                label="Catálogo"
-                value={produtos.length}
-                tone="emerald"
-                onClick={() => goToPage('produtos', onNavigatePage)}
-              />
-              <StatCard
-                label="Clientes"
-                value={clientes.length}
-                tone="amber"
-                onClick={() => goToPage('clientes', onNavigatePage)}
-              />
-              <StatCard
-                label="Hoje"
-                value={derived.entreguesHoje}
-                tone={derived.entreguesHoje > 0 ? 'success' : 'default'}
-                onClick={() => goToPage('pedidos', onNavigatePage)}
-              />
-              <StatCard
-                label="Faturamento"
-                value={fmt(derived.fat)}
-                description={`${derived.entregues.length} ${plural(derived.entregues.length, 'pedido entregue', 'pedidos entregues')}`}
-                tone="amber"
-              />
-              <StatCard
-                label="Lucro bruto"
-                value={fmt(derived.lucro)}
-                description={derived.lucro >= 0 ? 'Operação saudável' : 'Abaixo do esperado'}
-                tone={derived.lucro >= 0 ? 'success' : 'danger'}
-              />
-              <StatCard
-                label="Margem"
-                value={pct(derived.mg)}
-                description={derived.mg >= 15 ? 'Boa zona de margem' : derived.mg >= 8 ? 'Atenção' : 'Revisar mix e preço'}
-                tone={derived.mg >= 15 ? 'success' : derived.mg >= 8 ? 'warning' : 'danger'}
-              />
-              <StatCard
-                label="Ticket médio"
-                value={fmt(pedidos.length > 0 ? derived.fat / pedidos.length : 0)}
-                description={`Média de ${pedidos.length} ${plural(pedidos.length, 'pedido', 'pedidos')} no período`}
-              />
-              <StatCard
-                label="Em aberto"
-                value={derived.abertos}
-                description="Orçamentos e pedidos confirmados"
-                tone={derived.abertos > 0 ? 'warning' : 'default'}
-              />
-              <div className="flex flex-col gap-2 !p-8 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                <div className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em] mb-1">Pacing Mensal</div>
-                <div className="text-3xl font-bold text-slate-800 tracking-tight leading-none">{derived.metaPacing.toFixed(1)}%</div>
-                <div className="text-[11px] font-medium text-slate-400 mt-1">Meta: {fmt(derived.META_MENSAL_BASE)}</div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-1000 ${derived.metaPacing >= 100 ? 'bg-[#4B5320]' : 'bg-[#C5A059]'}`} 
-                    style={{ width: `${Math.min(derived.metaPacing, 100)}%` }}
-                  />
-                </div>
+      {/* Linha 3: Saúde + Clientes + Alertas */}
+      <section className="rf-dashboard-row rf-dashboard-row--3">
+        {visao !== 'operacional' && (
+          <article className="rf-dash-card">
+            <div className="rf-dash-card__header">
+              <div>
+                <h2 className="rf-dash-card__title">Saúde da operação</h2>
+                <p className="rf-dash-card__subtitle">Sinais de maturidade da base</p>
               </div>
             </div>
+            <div className="flex flex-col gap-4 mt-2">
+              {[
+                { label: 'Contato da base', sub: 'WhatsApp ou e-mail', val: healthMetrics.contato, th: [80, 50] },
+                { label: 'Estoque saudável', sub: 'Produtos com saldo > 0', val: healthMetrics.estoque, th: [90, 70] },
+                { label: 'Mix ativo', sub: 'Saída no período', val: healthMetrics.mix, th: [30, 10] },
+                { label: 'Taxa de entrega', sub: 'Pedidos concluídos', val: healthMetrics.entrega, th: [70, 40] }
+              ].map(m => (
+                <div key={m.label} className="flex justify-between items-center">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800">{m.label}</p>
+                    <p className="text-[10px] text-slate-500">{m.sub}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs font-bold text-slate-900">{m.val.toFixed(1)}%</span>
+                    <StatusBadge tone={getHealthTone(m.val, m.th as [number, number])}>
+                      {m.val >= m.th[0] ? 'Saudável' : m.val >= m.th[1] ? 'Atenção' : 'Crítico'}
+                    </StatusBadge>
+                  </div>
+                </div>
+              ))}
             </div>
-          </DashboardSection>
+          </article>
+        )}
 
-          <DashboardRoleSummary
-            role={userRole}
-            view={view}
-            derived={derived}
-            pedidosCount={pedidos.length}
-            produtosCount={produtos.length}
-            clientesCount={clientes.length}
-            onNavigatePage={onNavigatePage}
-          />
-
-          {showOperational && (
-            <DashboardSection
-              title="Decisões de hoje"
-              description="Fila comercial, ruptura de estoque e relacionamento que pedem ação imediata."
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <DashboardCard title="Alertas e atenção">
-                  <DashAlerts
-                    crit={derived.crit}
-                    baixo={derived.baixo}
-                    anivProximos={derived.anivProximos}
-                    churnRisk={derived.churnRisk}
-                    orcamentosTravados={derived.orcamentosTravados}
-                    hoje={derived.hoje}
-                    onNavigatePage={onNavigatePage}
-                  />
-                </DashboardCard>
-                <div className="flex flex-col gap-6">
-                  <DashboardCard title="Status dos pedidos">
-                    <DashStatusPedidos stMap={derived.stMap} />
-                  </DashboardCard>
-                  <DashboardCard title="Top produtos">
-                    <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
-                  </DashboardCard>
-                </div>
+        {visao === 'analitico' && (
+          <article className="rf-dash-card">
+            <div className="rf-dash-card__header">
+              <div>
+                <h2 className="rf-dash-card__title">Base de clientes</h2>
+                <p className="rf-dash-card__subtitle">{customerMetrics.total} clientes ativos</p>
               </div>
-            </DashboardSection>
-          )}
-
-          {(showManagerial || showAnalytical) && (
-            <DashboardSection
-              title={showAnalytical ? 'Leitura analítica' : 'Leitura gerencial'}
-              description={
-                showAnalytical
-                  ? 'Profundidade para identificar padrão, cobertura e consistência operacional com base nos dados atuais.'
-                  : 'Resultado, tendência e distribuição do desempenho comercial no período selecionado.'
-              }
-            >
-              {showAnalytical && (
-                <DashboardInsightGrid
-                  derived={derived}
-                  clientesCount={clientes.length}
-                  produtosCount={produtos.length}
-                />
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <DashboardCard title="Faturamento e lucro" className="lg:col-span-2">
-                  <DashChart
-                    chartKeys={derived.chartKeys}
-                    grupos={derived.grupos}
-                  />
-                </DashboardCard>
-                <div className="flex flex-col gap-6">
-                  <DashboardCard title="Status dos pedidos">
-                    <DashStatusPedidos stMap={derived.stMap} />
-                  </DashboardCard>
-                  <DashboardCard title="Top produtos">
-                    <DashTopProdutos topProdutos={derived.topProdutos} maxFat={derived.maxTopFat} />
-                  </DashboardCard>
+              <StatusBadge tone="success">{customerMetrics.coberturaWhats.toFixed(0)}% alcançável</StatusBadge>
+            </div>
+            
+            <div className="flex flex-col gap-5 mt-2">
+              {[
+                { label: 'Com WhatsApp', val: customerMetrics.comWhats, color: '#1D9E75' },
+                { label: 'Com e-mail', val: customerMetrics.comEmail, color: '#378ADD' },
+                { label: 'Opt-in campanhas', val: customerMetrics.optIn, color: '#7F77DD' },
+                { label: 'Compraram no período', val: customerMetrics.compraram, color: '#C47B0A' }
+              ].map(m => (
+                <div key={m.label} className="rf-dash-progress-row">
+                  <div className="rf-dash-progress-info">
+                    <span className="rf-dash-progress-label">{m.label}</span>
+                    <span className="rf-dash-progress-value">{m.val} / {customerMetrics.total}</span>
+                  </div>
+                  <div className="rf-dash-progress-bar">
+                    <div 
+                      className="rf-dash-progress-fill" 
+                      style={{ width: `${(m.val / customerMetrics.total) * 100}%`, background: m.color }} 
+                    />
+                  </div>
                 </div>
-              </div>
-            </DashboardSection>
-          )}
+              ))}
+            </div>
 
-          {showAnalytical && (
-            <DashboardSection
-              title="Sinais operacionais de apoio"
-              description="Contexto que ajuda a explicar resultado e orientar ajuste fino."
-            >
-              <DashboardCard
-                title="Alertas complementares"
-                className="dash-bento-card--alerts-panel"
-              >
-                <DashAlerts
-                  crit={derived.crit}
-                  baixo={derived.baixo}
-                  anivProximos={derived.anivProximos}
-                  churnRisk={derived.churnRisk}
-                  orcamentosTravados={derived.orcamentosTravados}
-                  hoje={derived.hoje}
-                  onNavigatePage={onNavigatePage}
-                />
-              </DashboardCard>
-            </DashboardSection>
-          )}
-        </>
-      )}
+            <div className="rf-dash-footer">
+              <a href="/app/clientes" className="rf-dash-link">Ver clientes <ChevronRight size={14} /></a>
+            </div>
+          </article>
+        )}
+
+        <article className="rf-dash-card">
+          <div className="rf-dash-card__header">
+            <div>
+              <h2 className="rf-dash-card__title">Alertas e pendências</h2>
+              <p className="rf-dash-card__subtitle">Ações que precisam de atenção</p>
+            </div>
+            <span className={`badge badge-sm ${alerts.length > 0 ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+              {alerts.length}
+            </span>
+          </div>
+
+          <div className="rf-dash-list mt-2">
+            {alerts.length > 0 ? alerts.map(a => (
+              <div key={a.id} className="rf-dash-list-item">
+                <div className={`rf-dash-list-item__icon ${a.tone === 'danger' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}`}>
+                  {a.tone === 'danger' ? <AlertCircle size={18} /> : <ArrowUpRight size={18} />}
+                </div>
+                <div className="rf-dash-list-item__content">
+                  <p className="rf-dash-list-item__title">{a.title}</p>
+                  <p className="rf-dash-list-item__desc">{a.desc}</p>
+                </div>
+                <a href={a.link} className="rf-dash-list-item__action">Ver</a>
+              </div>
+            )) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+                <CheckCircle2 size={32} className="text-emerald-500" />
+                <p className="text-xs font-semibold text-slate-900">Nenhuma pendência no momento</p>
+                <p className="text-[10px] text-slate-500">Operação estável e saudável.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="rf-dash-footer">
+            <span className="text-[10px] text-slate-400">Última atualização: {new Date().toLocaleTimeString()}</span>
+          </div>
+        </article>
+      </section>
     </div>
   );
 }
