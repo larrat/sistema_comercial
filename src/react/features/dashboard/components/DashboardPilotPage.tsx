@@ -919,41 +919,44 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-screen w-full px-6 py-8 lg:px-10 max-w-[1600px] mx-auto gap-8" data-testid="dashboard-pilot-page">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-slate-200 pb-6 pt-0">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
+    <div className="flex flex-col min-h-screen w-full px-8 py-8 lg:px-12 max-w-[1600px] mx-auto gap-8" data-testid="dashboard-pilot-page">
+      <div className="flex flex-col gap-6 border-b border-slate-200 pb-6 pt-0">
+        
+        {/* Top Row: Titles & Primary Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
               <LayoutDashboard size={12} strokeWidth={3} />
               Gestão Executiva
             </div>
-            <h1 className="text-4xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
           </div>
           
-          <div className="flex flex-wrap items-center gap-4">
-            <PeriodSelector periodo={periodo} onChange={setPeriodo} />
-          </div>
-        </div>
-
-        <div className="flex flex-col items-end gap-6">
           <div className="flex items-center gap-4">
-            <div className="flex -space-x-2 mr-2">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50" title="Pedidos"><ShoppingBag size={16} /></div>
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50" title="Produtos"><Package size={16} /></div>
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50" title="Clientes"><Users size={16} /></div>
+            <div className="hidden sm:flex -space-x-2 mr-2">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50 z-10" title="Pedidos"><ShoppingBag size={16} /></div>
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50 z-20" title="Produtos"><Package size={16} /></div>
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 border border-slate-200 shadow-sm ring-4 ring-slate-50 z-30" title="Clientes"><Users size={16} /></div>
             </div>
             <button
-              className="flex items-center gap-3 px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-95 text-[11px] uppercase tracking-[0.2em] disabled:opacity-50 group"
+              className="flex items-center gap-3 px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-xl shadow-slate-900/20 active:scale-95 text-[11px] uppercase tracking-[0.2em] disabled:opacity-50 group"
               type="button"
               onClick={onReload}
               disabled={status === 'loading'}
             >
-              <Clock size={14} className={status === 'loading' ? 'animate-spin' : ''} />
-              {status === 'loading' ? 'Sincronizando' : 'Atualizar Dados'}
+              <RefreshCw size={14} className={status === 'loading' ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'} />
+              <span className="hidden sm:inline">Atualizar Dados</span>
+              <span className="sm:hidden">Atualizar</span>
             </button>
           </div>
+        </div>
+
+        {/* Bottom Row: Unified Command Center (Filters & Views) */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
+          <PeriodSelector periodo={periodo} onChange={setPeriodo} />
           <DashboardViewSelector view={view} onChange={setView} />
         </div>
+        
       </div>
 
       {status === 'loading' && (
