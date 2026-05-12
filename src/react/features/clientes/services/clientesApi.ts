@@ -13,6 +13,19 @@ export type ClienteWritePayload = Omit<Partial<Cliente>, 'nome' | 'data_aniversa
   filial_id: string;
   nome: string;
   data_aniversario: string | null;
+  rca_id: string | null;
+  rca_nome: string | null;
+  apelido: string | null;
+  doc: string | null;
+  tel: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  time: string | string[] | null;
+  resp: string | null;
+  seg: string | null;
+  cidade: string | null;
+  estado: string | null;
+  obs: string | null;
 };
 export type ClienteListFilters = {
   q?: string;
@@ -147,9 +160,9 @@ export function toClienteWritePayload(
   filialId: string
 ): ClienteWritePayload {
   const aniversario = String(input.data_aniversario || '').trim();
-  const trimOrUndef = (v?: string | null) => {
+  const trimOrNull = (v?: string | null) => {
     const s = String(v || '').trim();
-    return s || undefined;
+    return s || null;
   };
 
   return {
@@ -158,22 +171,22 @@ export function toClienteWritePayload(
     nome: input.nome.trim(),
     rca_id: input.rca_id ?? null,
     rca_nome: input.rca_nome ?? null,
-    apelido: trimOrUndef(input.apelido),
-    doc: trimOrUndef(input.doc),
+    apelido: trimOrNull(input.apelido),
+    doc: trimOrNull(input.doc),
     tipo: input.tipo ?? 'PJ',
     status: input.status ?? 'ativo',
-    tel: trimOrUndef(input.tel),
-    whatsapp: trimOrUndef(input.whatsapp),
-    email: trimOrUndef(input.email),
+    tel: trimOrNull(input.tel),
+    whatsapp: trimOrNull(input.whatsapp),
+    email: trimOrNull(input.email),
     data_aniversario: aniversario || null,
-    time: typeof input.time === 'string' ? trimOrUndef(input.time) : input.time,
-    resp: trimOrUndef(input.resp),
-    seg: trimOrUndef(input.seg),
+    time: typeof input.time === 'string' ? trimOrNull(input.time) : (input.time ?? null),
+    resp: trimOrNull(input.resp),
+    seg: trimOrNull(input.seg),
     tab: input.tab ?? 'padrao',
     prazo: input.prazo ?? 'a_vista',
-    cidade: trimOrUndef(input.cidade),
-    estado: trimOrUndef(input.estado),
-    obs: trimOrUndef(input.obs),
+    cidade: trimOrNull(input.cidade),
+    estado: trimOrNull(input.estado),
+    obs: trimOrNull(input.obs),
     optin_marketing: !!input.optin_marketing,
     optin_email: !!input.optin_email,
     optin_sms: !!input.optin_sms
