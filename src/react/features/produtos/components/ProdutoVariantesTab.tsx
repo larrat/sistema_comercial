@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Bar,
   BarChart,
@@ -24,6 +25,23 @@ import {
   listVariantesByPaiId,
   type VendaVarianteRow
 } from '../services/produtosApi';
+
+const container = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 }
+  }
+};
+
+const item = {
+  hidden: { y: 15, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 260, damping: 25 }
+  }
+};
 
 const PERIODOS = [30, 90, 365] as const;
 type Periodo = (typeof PERIODOS)[number];
@@ -507,8 +525,13 @@ export function ProdutoVariantesTab({ produto }: Props) {
   }
 
   return (
-    <div className="rf-ui-stack produto-variant-tab">
-      <section className="rf-cliente-profile__card produto-variant-head">
+    <motion.div 
+      className="rf-ui-stack produto-variant-tab"
+      variants={container}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.section variants={item} className="rf-cliente-profile__card produto-variant-head">
         <div>
           <h3 className="rf-cliente-profile__card-title">Variantes ({variantes.length})</h3>
           <p className="rf-cliente-profile__card-subtitle">
@@ -517,16 +540,16 @@ export function ProdutoVariantesTab({ produto }: Props) {
           </p>
         </div>
         {periodSelector}
-      </section>
+      </motion.section>
 
-      <section className="rf-ui-stats-grid">
+      <motion.section variants={item} className="rf-ui-stats-grid">
         <StatCard label="Saldo total (pai)" value={`${fmtQ(totalSaldo)} ${produto.un || 'un'}`} foot="Soma das variantes" />
         <StatCard label="Qtde vendida" value={fmtQ(totalVendido)} foot={PERIOD_CONFIG[periodo].label} />
         <StatCard label="Receita" value={fmtCurrency(totalReceita)} foot={PERIOD_CONFIG[periodo].label} />
         <StatCard label="Giro médio" value={fmtDays(giroMedio)} foot="Dias de estoque" tone={giroMedio === null ? 'warning' : 'default'} />
-      </section>
+      </motion.section>
 
-      <section className="rf-cliente-profile__card">
+      <motion.section variants={item} className="rf-cliente-profile__card">
         <div className="rf-cliente-profile__card-head">
           <h3 className="rf-cliente-profile__card-title">Tabela de variantes</h3>
         </div>
@@ -579,9 +602,9 @@ export function ProdutoVariantesTab({ produto }: Props) {
             </tbody>
           </table>
         </div>
-      </section>
+      </motion.section>
 
-      <div className="produto-variant-charts-grid">
+      <motion.div variants={item} className="produto-variant-charts-grid">
         <StackedVariantChart
           title="Qtde vendida por mês"
           data={qtySeriesData}
@@ -613,7 +636,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
           suffix=" dias"
           showSemVenda
         />
-      </div>
+      </motion.div>
 
       <div className="produto-variant-legend" aria-label="Legenda das variantes">
         {metrics.map((row) => (
