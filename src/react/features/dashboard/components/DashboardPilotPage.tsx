@@ -438,22 +438,21 @@ export function DashboardPilotPage() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white/95 backdrop-blur-2xl p-6 border border-white/60 rounded-3xl shadow-[0_40px_80px_-15px_rgba(15,23,42,0.2)] ring-1 ring-black/5 min-w-[220px] animate-in fade-in zoom-in duration-200">
-                            <div className="relative flex flex-col items-center mb-5 pb-4 border-b border-slate-100">
-                              <span className="absolute -top-2 right-0 text-[7px] font-black bg-slate-900 text-white px-2 py-0.5 rounded-full tracking-tighter">DATA POINT</span>
-                              <p className="font-black text-slate-900 text-[13px] uppercase tracking-[0.2em] text-center">
+                          <div className="bg-white/95 backdrop-blur-2xl p-6 border border-white/60 rounded-3xl shadow-[0_40px_80px_-15px_rgba(15,23,42,0.15)] ring-1 ring-black/5 min-w-[200px] animate-in fade-in zoom-in duration-200">
+                            <div className="flex flex-col items-center mb-4 pb-3 border-b border-slate-100">
+                              <p className="font-black text-slate-900 text-[12px] uppercase tracking-[0.2em] text-center">
                                 {payload[0].payload.name}
                               </p>
                             </div>
                             
-                            <div className="flex flex-col gap-5 items-center">
+                            <div className="flex flex-col gap-4 items-center">
                               <div className="flex flex-col items-center">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Faturamento Bruto</span>
-                                <span className="text-2xl font-black text-[#C5A059] leading-none tracking-tight">{fmt(payload[0].value as number)}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Faturamento Bruto</span>
+                                <span className="text-xl font-black text-[#C5A059] leading-none tracking-tight">{fmt(payload[0].value as number)}</span>
                               </div>
                               <div className="flex flex-col items-center">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.25em] mb-1.5">Lucro Operacional</span>
-                                <span className="text-2xl font-black text-[#10B981] leading-none tracking-tight">{fmt(payload[1].value as number)}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Lucro Operacional</span>
+                                <span className="text-xl font-black text-[#10B981] leading-none tracking-tight">{fmt(payload[1].value as number)}</span>
                               </div>
                             </div>
 
@@ -467,8 +466,8 @@ export function DashboardPilotPage() {
                       return null;
                     }}
                   />
-                  <Bar dataKey="faturamento" fill="url(#colorFat)" radius={[8, 8, 0, 0]} barSize={chartData.length < 3 ? 60 : 32} />
-                  <Bar dataKey="lucro" fill="url(#colorLuc)" radius={[8, 8, 0, 0]} barSize={chartData.length < 3 ? 60 : 32} />
+                  <Bar dataKey="faturamento" fill="url(#colorFat)" radius={[8, 8, 0, 0]} barSize={chartData.length < 3 ? 48 : 32} />
+                  <Bar dataKey="lucro" fill="url(#colorLuc)" radius={[8, 8, 0, 0]} barSize={chartData.length < 3 ? 48 : 32} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
