@@ -169,7 +169,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   if (status === 'loading') {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         {pageHeader}
         <ProdutoMetrics produtos={produtos} />
         <LoadingState
@@ -182,7 +182,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   if (status === 'error') {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         {pageHeader}
         <ProdutoMetrics produtos={produtos} />
         <ErrorState
@@ -195,7 +195,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   }
 
   return (
-    <main className="rf-content rf-ui-stack">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
       {pageHeader}
 
       <ProdutoMetrics produtos={produtos} />
