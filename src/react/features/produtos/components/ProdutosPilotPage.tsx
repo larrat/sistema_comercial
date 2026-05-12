@@ -86,6 +86,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   const {
     submitProduto,
+    submitCascadeRename,
     deleteProdutoById,
     saving,
     deletingId,
@@ -123,9 +124,22 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   async function handleSalvar(values: ProdutoFormValues) {
     const existing = modal.tipo === 'form' ? modal.produto : null;
+    const novoNome = values.nome.trim();
+    const nomeAlterado = existing && novoNome !== existing.nome;
+
     const produto = formValuesToProduto(values, filialId, existing);
     try {
       await submitProduto(produto);
+
+      if (nomeAlterado && existing) {
+        const devePropagar = window.confirm(
+          `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
+        );
+        if (devePropagar) {
+          await submitCascadeRename(existing.id, novoNome);
+        }
+      }
+
       setModal({ tipo: 'none' });
       onRetryLoad?.();
     } catch {

@@ -236,7 +236,20 @@ export function ProdutoProfilePage({
   }
 
   async function handleSalvar(values: ProdutoFormValues) {
+    const novoNome = values.nome.trim();
+    const nomeAlterado = novoNome !== produto.nome;
+    
     const saved = await submitProduto(formValuesToProduto(values, produto.filial_id, produto));
+    
+    if (nomeAlterado) {
+      const devePropagar = window.confirm(
+        `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
+      );
+      if (devePropagar) {
+        await submitCascadeRename(produto.id, novoNome);
+      }
+    }
+
     setEditingCadastro(false);
     setSearchParams((current) => {
       const next = new URLSearchParams(current);

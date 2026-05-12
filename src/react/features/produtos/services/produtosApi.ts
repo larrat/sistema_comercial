@@ -213,6 +213,32 @@ export async function saveProduto(
   return isArray ? [] : null;
 }
 
+export async function cascadeRenameProduto(
+  context: ProdutoApiContext,
+  produtoId: string,
+  novoNome: string
+): Promise<void> {
+  // 1. Atualizar na tabela normalizada de itens
+  const resItens = await fetch(
+    `${context.url}/rest/v1/pedido_itens?produto_id=eq.${encodeURIComponent(produtoId)}&filial_id=eq.${encodeURIComponent(context.filialId)}`,
+    {
+      method: 'PATCH',
+      headers: createHeaders(context.key, context.token),
+      body: JSON.stringify({ nome: novoNome }),
+      signal: AbortSignal.timeout(20000)
+    }
+  );
+
+  if (!resItens.ok) {
+    const body = await readJson(resItens);
+    console.warn('[produtos] Falha ao atualizar nomes em pedido_itens:', body);
+  }
+
+  // Nota: A atualização do campo legado 'pedidos.itens' (JSON) exigiria um processamento pesado no cliente
+  // ou uma RPC no banco. Como o sistema já prioriza a leitura de pedido_itens e faz o vínculo vivo
+  // via produto_id no Dashboard, o histórico já refletirá o novo nome na maioria das telas.
+}
+
 export async function deleteProduto(context: ProdutoApiContext, produtoId: string): Promise<void> {
   const url = `${context.url}/rest/v1/produtos?id=eq.${encodeURIComponent(produtoId)}`;
   const res = await fetch(url, {

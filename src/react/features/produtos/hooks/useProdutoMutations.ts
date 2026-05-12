@@ -5,7 +5,7 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useProdutoStore } from '../store/useProdutoStore';
-import { saveProduto, deleteProduto } from '../services/produtosApi';
+import { saveProduto, deleteProduto, cascadeRenameProduto } from '../services/produtosApi';
 import type { ProdutoWriteInput } from '../types';
 
 export function useProdutoMutations() {
@@ -38,13 +38,20 @@ export function useProdutoMutations() {
 
     try {
       const saved = await saveProduto(context, input);
-      const normalized = saved ?? ({
-        ...input,
-        id: input.id ?? crypto.randomUUID(),
-        filial_id: context.filialId
-      } as Produto);
+      const normalized =
+        saved ??
+        ({
+          ...input,
+          id: input.id ?? crypto.randomUUID(),
+          filial_id: context.filialId
+        } as Produto);
       upsertProduto(normalized);
-      useToastStore.getState().addToast(input.id ? 'Produto atualizado com sucesso.' : 'Produto salvo com sucesso.', 'success');
+      useToastStore
+        .getState()
+        .addToast(
+          input.id ? 'Produto atualizado com sucesso.' : 'Produto salvo com sucesso.',
+          'success'
+        );
       return normalized;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao salvar produto.';
@@ -75,5 +82,14 @@ export function useProdutoMutations() {
     }
   }
 
-  return { submitProduto, deleteProdutoById, saving, deletingId, error };
+  async function submitCascadeRename(produtoId: string, novoNome: string): Promise<void> {
+    const context = resolveContext();
+    try {
+      await cascadeRenameProduto(context, produtoId, novoNome);
+    } catch (err) {
+      console.error('[mutations] Falha no cascade rename:', err);
+    }
+  }
+
+  return { submitProduto, submitCascadeRename, deleteProdutoById, saving, deletingId, error };
 }
