@@ -87,6 +87,15 @@ export function useProdutoMutations() {
     }
   }
 
+  async function submitCascadeRename(produtoId: string, novoNome: string): Promise<void> {
+    const context = resolveContext();
+    try {
+      await cascadeRenameProduto(context, produtoId, novoNome);
+    } catch (err) {
+      console.error('[mutations] Falha no cascade rename:', err);
+    }
+  }
+
   async function submitCascadeFilhos(paiId: string, data: Partial<Produto>): Promise<void> {
     const context = resolveContext();
     try {
