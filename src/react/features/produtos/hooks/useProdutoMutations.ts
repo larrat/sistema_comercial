@@ -5,7 +5,12 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useProdutoStore } from '../store/useProdutoStore';
-import { saveProduto, deleteProduto, cascadeRenameProduto } from '../services/produtosApi';
+import {
+  saveProduto,
+  deleteProduto,
+  cascadeRenameProduto,
+  cascadeUpdateFilhos
+} from '../services/produtosApi';
 import type { ProdutoWriteInput } from '../types';
 
 export function useProdutoMutations() {
@@ -82,14 +87,22 @@ export function useProdutoMutations() {
     }
   }
 
-  async function submitCascadeRename(produtoId: string, novoNome: string): Promise<void> {
+  async function submitCascadeFilhos(paiId: string, data: Partial<Produto>): Promise<void> {
     const context = resolveContext();
     try {
-      await cascadeRenameProduto(context, produtoId, novoNome);
+      await cascadeUpdateFilhos(context, paiId, data);
     } catch (err) {
-      console.error('[mutations] Falha no cascade rename:', err);
+      console.error('[mutations] Falha no cascade filhos:', err);
     }
   }
 
-  return { submitProduto, submitCascadeRename, deleteProdutoById, saving, deletingId, error };
+  return {
+    submitProduto,
+    submitCascadeRename,
+    submitCascadeFilhos,
+    deleteProdutoById,
+    saving,
+    deletingId,
+    error
+  };
 }

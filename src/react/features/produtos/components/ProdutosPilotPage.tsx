@@ -87,6 +87,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   const {
     submitProduto,
     submitCascadeRename,
+    submitCascadeFilhos,
     deleteProdutoById,
     saving,
     deletingId,
@@ -126,17 +127,33 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     const existing = modal.tipo === 'form' ? modal.produto : null;
     const novoNome = values.nome.trim();
     const nomeAlterado = existing && novoNome !== existing.nome;
+    const catAlterada = existing && (values.cat || '').trim() !== (existing.cat || '');
+    const unAlterada = existing && (values.un || '').trim() !== (existing.un || '');
 
     const produto = formValuesToProduto(values, filialId, existing);
     try {
       await submitProduto(produto);
 
-      if (nomeAlterado && existing) {
-        const devePropagar = window.confirm(
-          `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
-        );
-        if (devePropagar) {
-          await submitCascadeRename(existing.id, novoNome);
+      if (existing) {
+        if (nomeAlterado) {
+          const devePropagar = window.confirm(
+            `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
+          );
+          if (devePropagar) {
+            await submitCascadeRename(existing.id, novoNome);
+          }
+        }
+
+        if (!existing.produto_pai_id && (catAlterada || unAlterada)) {
+          const devePropagarFilhos = window.confirm(
+            `A classificação do produto foi alterada. Deseja replicar a Categoria e Unidade para todas as variantes (filhos)?`
+          );
+          if (devePropagarFilhos) {
+            await submitCascadeFilhos(existing.id, {
+              cat: values.cat?.trim(),
+              un: values.un?.trim()
+            });
+          }
         }
       }
 

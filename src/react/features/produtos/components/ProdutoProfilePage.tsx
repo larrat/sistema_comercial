@@ -238,6 +238,8 @@ export function ProdutoProfilePage({
   async function handleSalvar(values: ProdutoFormValues) {
     const novoNome = values.nome.trim();
     const nomeAlterado = novoNome !== produto.nome;
+    const catAlterada = (values.cat || '').trim() !== (produto.cat || '');
+    const unAlterada = (values.un || '').trim() !== (produto.un || '');
     
     const saved = await submitProduto(formValuesToProduto(values, produto.filial_id, produto));
     
@@ -247,6 +249,18 @@ export function ProdutoProfilePage({
       );
       if (devePropagar) {
         await submitCascadeRename(produto.id, novoNome);
+      }
+    }
+
+    if (!produto.produto_pai_id && (catAlterada || unAlterada)) {
+      const devePropagarFilhos = window.confirm(
+        `A classificação do produto foi alterada. Deseja replicar a Categoria e Unidade para todas as variantes (filhos)?`
+      );
+      if (devePropagarFilhos) {
+        await submitCascadeFilhos(produto.id, {
+          cat: values.cat?.trim(),
+          un: values.un?.trim()
+        });
       }
     }
 

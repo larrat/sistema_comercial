@@ -239,6 +239,27 @@ export async function cascadeRenameProduto(
   // via produto_id no Dashboard, o histórico já refletirá o novo nome na maioria das telas.
 }
 
+export async function cascadeUpdateFilhos(
+  context: ProdutoApiContext,
+  paiId: string,
+  data: Partial<Produto>
+): Promise<void> {
+  const res = await fetch(
+    `${context.url}/rest/v1/produtos?produto_pai_id=eq.${encodeURIComponent(paiId)}&filial_id=eq.${encodeURIComponent(context.filialId)}`,
+    {
+      method: 'PATCH',
+      headers: createHeaders(context.key, context.token),
+      body: JSON.stringify(data),
+      signal: AbortSignal.timeout(20000)
+    }
+  );
+
+  if (!res.ok) {
+    const body = await readJson(res);
+    console.warn('[produtos] Falha ao propagar atualização para filhos:', body);
+  }
+}
+
 export async function deleteProduto(context: ProdutoApiContext, produtoId: string): Promise<void> {
   const url = `${context.url}/rest/v1/produtos?id=eq.${encodeURIComponent(produtoId)}`;
   const res = await fetch(url, {
