@@ -121,6 +121,16 @@ export function DashboardPilotPage() {
     return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
   }, [pedidos, periodo]);
 
+  const periodoDatas = useMemo(() => {
+    if (!pedidos.length) return '';
+    const dates = pedidos.map(p => new Date(p.data || p.criado_em || ''));
+    const min = new Date(Math.min(...dates.map(d => d.getTime())));
+    const max = new Date(Math.max(...dates.map(d => d.getTime())));
+    
+    const fmtDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return `${fmtDate(min)} — ${fmtDate(max)}`;
+  }, [pedidos]);
+
   const topProducts = useMemo(() => {
     const productSales: Record<string, { nome: string; receita: number }> = {};
     pedidos.forEach(p => {
@@ -364,7 +374,11 @@ export function DashboardPilotPage() {
             <div className="rf-dash-card__header flex-row items-center !mb-6">
               <div className="flex-1">
                 <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-0.5">Faturamento e Lucro</h2>
-                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest opacity-80">Projeção por período</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest opacity-80">Projeção por período</p>
+                  <span className="w-1 h-1 rounded-full bg-slate-300" />
+                  <span className="text-[9px] font-bold text-[#C5A059] uppercase tracking-tighter bg-[#C5A059]/10 px-1.5 py-0.5 rounded">{periodoDatas}</span>
+                </div>
               </div>
               <div className="flex gap-5 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
                 <span className="flex items-center gap-2">
@@ -377,34 +391,34 @@ export function DashboardPilotPage() {
                 </span>
               </div>
             </div>
-            <div className="flex-1 mt-4">
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={chartData}>
+            <div className="flex-1 mt-6">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 10, fill: '#94a3b8' }} 
+                    tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} 
                   />
                   <YAxis hide />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
+                    cursor={{ fill: 'rgba(241, 245, 249, 0.4)' }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white/90 backdrop-blur-md p-4 border border-white/40 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] ring-1 ring-black/5 min-w-[160px]">
-                            <p className="font-black mb-3 text-slate-900 border-b border-slate-100 pb-2 text-[10px] uppercase tracking-widest">
+                          <div className="bg-white/95 backdrop-blur-xl p-4 border border-white/40 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] ring-1 ring-black/5 min-w-[180px]">
+                            <p className="font-black mb-3 text-slate-900 border-b border-slate-100 pb-2 text-[11px] uppercase tracking-[0.1em]">
                               {payload[0].payload.name}
                             </p>
-                            <div className="flex flex-col gap-2">
-                              <div className="flex items-center justify-between gap-4">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">Fat</span>
-                                <span className="text-xs font-black text-[#C5A059]">{fmt(payload[0].value as number)}</span>
+                            <div className="flex flex-col gap-2.5">
+                              <div className="flex items-center justify-between gap-6">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Faturamento</span>
+                                <span className="text-sm font-black text-[#C5A059]">{fmt(payload[0].value as number)}</span>
                               </div>
-                              <div className="flex items-center justify-between gap-4">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">Luc</span>
-                                <span className="text-xs font-black text-[#10B981]">{fmt(payload[1].value as number)}</span>
+                              <div className="flex items-center justify-between gap-6">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lucro Bruto</span>
+                                <span className="text-sm font-black text-[#10B981]">{fmt(payload[1].value as number)}</span>
                               </div>
                             </div>
                           </div>
@@ -413,8 +427,8 @@ export function DashboardPilotPage() {
                       return null;
                     }}
                   />
-                  <Bar dataKey="faturamento" fill="#C5A059" radius={[4, 4, 0, 0]} barSize={16} />
-                  <Bar dataKey="lucro" fill="#10B981" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="faturamento" fill="#C5A059" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="lucro" fill="#10B981" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
