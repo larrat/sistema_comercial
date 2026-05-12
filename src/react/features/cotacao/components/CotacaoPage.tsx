@@ -17,7 +17,7 @@ export function CotacaoPage({ activeTab }: Props) {
   const error = useCotacaoStore((s) => s.error);
 
   return (
-    <main className="rf-content rf-ui-stack">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
       <PageHeader
         kicker="Compras"
         title="Compras / Cotação"

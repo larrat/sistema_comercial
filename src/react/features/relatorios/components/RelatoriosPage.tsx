@@ -19,7 +19,7 @@ export function RelatoriosPage() {
   const error = useRelatoriosStore((s) => s.error);
 
   return (
-    <main className="rf-content rf-ui-stack rel-bento-page">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
       <PageHeader
         kicker="Análise"
         title="Relatórios"

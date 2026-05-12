@@ -15,7 +15,7 @@ export function ProdutoProfileRoutePage() {
 
   if (!produtoId) {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <div className="card-shell">
           <p>Produto não informado.</p>
           <button className="btn btn-sm" type="button" onClick={handleBack}>
@@ -28,7 +28,7 @@ export function ProdutoProfileRoutePage() {
 
   if (!produto && error) {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <div className="card-shell rf-ui-stack">
           <p>{error}</p>
           <div className="fg2">
@@ -46,7 +46,7 @@ export function ProdutoProfileRoutePage() {
 
   if (!produto) {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <div className="card-shell">
           <p>Carregando produto...</p>
         </div>

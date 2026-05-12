@@ -250,7 +250,7 @@ export function ProdutoProfilePage({
 
   if (loadingProduto) {
     return (
-      <main className="rf-content rf-ui-stack rf-cliente-profile rf-produto-profile">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <LoadingState
           title="Carregando produto..."
           description="Estamos reunindo cadastro, preço e estoque para abrir a visão completa."
@@ -261,7 +261,7 @@ export function ProdutoProfilePage({
 
   return (
     <main
-      className="rf-content rf-ui-stack rf-cliente-profile rf-produto-profile"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6"
       data-testid="produto-profile-page"
     >
       <div className="rf-cliente-profile__breadcrumb">

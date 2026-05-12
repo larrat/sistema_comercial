@@ -751,7 +751,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
 
   if (status === 'loading') {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <PageHeader
           kicker="Financeiro"
           title="Contas a Receber"
@@ -775,7 +775,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
 
   if (status === 'error') {
     return (
-      <main className="rf-content rf-ui-stack">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
         <PageHeader
           kicker="Financeiro"
           title="Contas a Receber"
@@ -799,7 +799,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
   }
 
   return (
-    <main className="rf-content rf-ui-stack">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
       <PageHeader
         kicker="Financeiro"
         title="Contas a Receber"
