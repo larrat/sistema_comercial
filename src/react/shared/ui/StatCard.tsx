@@ -5,7 +5,7 @@ type StatCardProps = {
   value: ReactNode;
   description?: ReactNode;
   foot?: ReactNode;
-  tone?: 'default' | 'success' | 'warning' | 'danger' | 'blue' | 'emerald' | 'amber';
+  tone?: 'default' | 'success' | 'warning' | 'danger' | 'blue' | 'emerald' | 'amber' | 'blue_to_pink';
   onClick?: () => void;
 };
 
@@ -18,6 +18,7 @@ export function StatCard({ label, value, description, foot, tone = 'default', on
     blue: 'bg-slate-50 border-slate-200 text-slate-800',
     emerald: 'bg-[#F2F4EF] border-[#4B5320]/20 text-[#4B5320]',
     amber: 'bg-[#FAF6EF] border-[#C5A059]/20 text-[#C5A059]', // Matte Gold soft background
+    blue_to_pink: 'bg-white border-transparent relative before:absolute before:inset-0 before:p-[1px] before:bg-gradient-to-br before:from-[#3B82F6] before:to-[#EC4899] before:rounded-xl before:-z-10 text-slate-900',
   };
 
   const labelToneClasses = {
@@ -28,6 +29,7 @@ export function StatCard({ label, value, description, foot, tone = 'default', on
     blue: 'text-slate-500',
     emerald: 'text-[#4B5320]/70',
     amber: 'text-[#C5A059]',
+    blue_to_pink: 'text-indigo-600 font-bold',
   };
 
   return (

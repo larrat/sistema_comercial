@@ -42,18 +42,21 @@ export function ProdutoMetrics({ produtos }: Props) {
       <motion.div variants={item}>
         <StatCard 
           label="Produtos" 
+          tone="blue"
           value={<CountUp end={produtos.length} duration={1.5} />} 
         />
       </motion.div>
       <motion.div variants={item}>
         <StatCard 
           label="Categorias" 
+          tone="blue"
           value={<CountUp end={categorias} duration={1.5} />} 
         />
       </motion.div>
       <motion.div variants={item}>
         <StatCard 
           label="Com precificação" 
+          tone="blue_to_pink"
           value={<CountUp end={comPrecificacao} duration={1.5} />} 
         />
       </motion.div>

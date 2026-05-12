@@ -8,6 +8,8 @@ import {
   StatusBadge,
   type DataTableColumn
 } from '../../../shared/ui';
+import { Package } from 'lucide-react';
+import type { StatusBadgeTone } from '../../../shared/ui/StatusBadge';
 
 type Props = {
   produtos: Produto[];
@@ -80,10 +82,10 @@ function fmtQ(v: number): string {
   return v % 1 === 0 ? String(v) : v.toFixed(3);
 }
 
-function stockTone(saldo: number, emin: number): 'danger' | 'warning' | 'success' {
-  if (saldo <= 0) return 'danger';
+function stockTone(saldo: number, emin: number): StatusBadgeTone {
+  if (saldo <= 0) return 'vibrant-pink';
   if (emin > 0 && saldo < emin) return 'warning';
-  return 'success';
+  return 'vibrant-blue';
 }
 
 function stockLabel(saldo: number, emin: number): string {
@@ -233,7 +235,9 @@ export function ProdutoListView({
         </button>
       }
       onRowClick={(row) => onDetalhe(row.prod.id)}
-      getRowClassName={(row) => (row.isVariante ? 'rf-ui-data-table__row--nested' : undefined)}
+      getRowClassName={(row) => 
+        `rf-ui-data-table__row--premium ${row.isVariante ? 'rf-ui-data-table__row--nested' : ''}`
+      }
       columns={columns}
       renderActions={(row) => (
         <ActionMenu
@@ -308,9 +312,12 @@ export function ProdutoListMobile({
         return (
           <div
             key={p.id}
-            className="mobile-card"
-            style={isVariante ? { marginLeft: 16, borderLeft: '3px solid var(--b2)' } : undefined}
+            className="rf-card-premium p-4 flex flex-col gap-4 relative overflow-hidden"
+            style={isVariante ? { marginLeft: 16, borderLeft: '4px solid #8B5CF6' } : { borderLeft: '4px solid #3B82F6' }}
           >
+            <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
+               <Package className="w-12 h-12" />
+            </div>
             <div className="mobile-card-head">
               <div style={{ minWidth: 0 }}>
                 <div className="mobile-card-title">
