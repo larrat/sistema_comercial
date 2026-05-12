@@ -153,44 +153,27 @@ export function DashboardPilotPage() {
   }, [pedidos, periodo]);
 
   const topProducts = useMemo(() => {
-    const productSales: Record<string, { nome: string; variant?: string; receita: number; isChild: boolean }> = {};
-    
     stats.vendasReais.forEach(p => {
       const items = (p.itens || []) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
         
-        const prodInfo = produtos.find(pr => pr.id === item.prodId);
-        const paiInfo = prodInfo?.produto_pai_id ? produtos.find(pr => pr.id === prodInfo.produto_pai_id) : null;
-        
-        const mainName = paiInfo ? paiInfo.nome : (item.nome || 'Produto');
-        const variantName = paiInfo ? item.nome.replace(paiInfo.nome, '').replace(/^[·\-\s]+/, '') : '';
-        const key = paiInfo ? paiInfo.id : item.prodId;
-
-        if (!productSales[key]) {
-          productSales[key] = { 
-            nome: mainName, 
-            variants: new Set([variantName || 'Base']),
-            receita: 0,
-            isChild: !!paiInfo
+        if (!productSales[item.prodId]) {
+          productSales[item.prodId] = { 
+            nome: item.nome || 'Produto', 
+            receita: 0
           };
-        } else if (paiInfo) {
-          productSales[key].variants.add(variantName || 'Base');
         }
-        productSales[key].receita += Number(item.preco || 0) * Number(item.qty || 0);
+        productSales[item.prodId].receita += Number(item.preco || 0) * Number(item.qty || 0);
       });
     });
     
     return Object.values(productSales)
-      .map(p => ({
-        ...p,
-        variantDisplay: p.variants.size > 1 
-          ? `${p.variants.size} variantes vendidas` 
-          : Array.from(p.variants)[0] === 'Base' ? '' : Array.from(p.variants)[0]
-      }))
       .sort((a, b) => b.receita - a.receita)
       .slice(0, 5);
-  }, [stats.vendasReais, produtos]);
+  }, [stats.vendasReais]);
+
+  const topProductsColors = ['#0F172A', '#C5A059', '#10B981', '#6366F1', '#F59E0B'];
 
   const statusDistribution = useMemo(() => {
     const dist: Record<string, number> = {};
@@ -535,28 +518,66 @@ export function DashboardPilotPage() {
           </div>
 
           <div className="mt-8 pt-6 border-t border-slate-100">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 text-center">Produtos mais faturados</h3>
-            <div className="flex flex-col gap-4">
-              {topProducts.length > 0 ? topProducts.map((p, i) => (
-                <div key={i} className="flex items-start justify-between group">
-                  <div className="flex-1 min-w-0 pr-6">
-                    <p className="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight leading-tight mb-1">{p.nome}</p>
-                    {p.variantDisplay ? (
-                      <p className="text-[9px] font-semibold text-slate-400 truncate uppercase tracking-wider">{p.variantDisplay}</p>
-                    ) : (
-                      <p className="text-[9px] font-medium text-slate-300 italic">Produto Base</p>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end flex-shrink-0 text-right min-w-[100px]">
-                    <p className="text-[12px] font-black text-slate-900 leading-none mb-1.5">{fmt(p.receita)}</p>
-                    <div className="w-full h-[3px] bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#C5A059] rounded-full ml-auto" style={{ width: `${100 - i * 15}%` }} />
-                    </div>
-                  </div>
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 text-center">Mix de Vendas (Revenue Share)</h3>
+            
+            <div className="flex flex-col gap-6">
+              <div className="h-[180px] w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={topProducts}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={75}
+                      paddingAngle={4}
+                      dataKey="receita"
+                      nameKey="nome"
+                      stroke="none"
+                    >
+                      {topProducts.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={topProductsColors[index % topProductsColors.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl border border-white/10 backdrop-blur-md">
+                              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">{payload[0].name}</p>
+                              <p className="text-sm font-black">{fmt(payload[0].value as number)}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Total Top 5</span>
+                  <span className="text-sm font-black text-slate-900">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
                 </div>
-              )) : (
-                <p className="text-[10px] text-slate-400 italic text-center py-4">Nenhuma venda no período</p>
-              )}
+              </div>
+
+              <div className="flex flex-col gap-2.5">
+                {topProducts.map((p, i) => {
+                  const total = topProducts.reduce((acc, x) => acc + x.receita, 0);
+                  const perc = total > 0 ? (p.receita / total) * 100 : 0;
+                  return (
+                    <div key={i} className="flex items-center justify-between group">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: topProductsColors[i % topProductsColors.length] }} />
+                        <span className="text-[10px] font-bold text-slate-700 truncate uppercase tracking-tight">{p.nome}</span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <span className="text-[10px] font-black text-slate-900">{perc.toFixed(1)}%</span>
+                        <span className="text-[9px] font-medium text-slate-400 min-w-[50px] text-right">{fmt(p.receita)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </article>
