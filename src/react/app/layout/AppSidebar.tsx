@@ -135,7 +135,7 @@ export function AppSidebar() {
                     to={item.path}
                     className={({ isActive }) =>
                       `flex items-center rounded-lg transition-all duration-300 relative group
-                      ${collapsed ? 'justify-center w-12 h-12 mx-auto' : 'gap-3 px-3 py-2.5 w-full'}
+                      ${collapsed ? 'justify-center w-10 h-10 mx-auto' : 'gap-3 px-3 py-2.5 w-full'}
                       ${
                         isActive
                           ? 'bg-slate-800 text-white font-bold shadow-sm'
@@ -147,7 +147,7 @@ export function AppSidebar() {
                     {({ isActive }) => (
                       <>
                         <Icon 
-                          size={collapsed ? 24 : 18} 
+                          size={collapsed ? 22 : 18} 
                           strokeWidth={isActive ? 2.5 : 2} 
                           className={`flex-shrink-0 transition-all duration-300 ${
                             isActive 
