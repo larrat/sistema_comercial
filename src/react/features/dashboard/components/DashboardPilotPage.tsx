@@ -192,6 +192,7 @@ export function DashboardPilotPage() {
   }, [clientes, pedidos]);
 
   const alerts = useMemo(() => {
+    const list = [];
     const semBaixaPedidos = pedidos.filter(p => p.status === 'entregue_aguardando_pagamento');
     if (semBaixaPedidos.length > 0) {
       const p = semBaixaPedidos[0];
