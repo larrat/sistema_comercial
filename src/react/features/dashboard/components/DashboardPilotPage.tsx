@@ -8,7 +8,10 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
+  Pie,
+  PieChart,
+  Cell
 } from 'recharts';
 import {
   AlertCircle,
