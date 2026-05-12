@@ -1,4 +1,4 @@
-import { EmptyState, ErrorState, PageHeader } from '../../../shared/ui';
+import { EmptyState, ErrorState, PageHeader, SegmentedControl } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { OportunidadesTab } from './OportunidadesTab';
 import { PerformanceTab } from './PerformanceTab';
@@ -19,7 +19,7 @@ export function RelatoriosPage() {
   const error = useRelatoriosStore((s) => s.error);
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
       <PageHeader
         kicker="Análise"
         title="Relatórios"
@@ -28,17 +28,12 @@ export function RelatoriosPage() {
 
       {error && <ErrorState title={error} compact />}
 
-      <div className="tabs rel-tabs">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`tb${activeTab === tab.id ? ' on' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex items-center justify-start">
+        <SegmentedControl
+          options={TABS}
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as RelatoriosTab)}
+        />
       </div>
 
       {loading && <EmptyState title="Carregando dados..." compact />}

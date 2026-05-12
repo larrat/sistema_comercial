@@ -63,7 +63,7 @@ export function AnalyticsPage() {
   const maxDuration = topSlowActions[0]?.durationMs ?? 1;
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6" data-testid="analytics-page">
+    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8" data-testid="analytics-page">
       <section className="rf-ui-stat-grid rf-ui-stat-grid--2">
         <StatCard label="Ações registradas" value={kpis.total} />
         <StatCard label="Tempo médio" value={`${kpis.avgDuration}ms`} />

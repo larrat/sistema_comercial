@@ -12,6 +12,7 @@ import {
   LoadingState,
   Modal,
   PageHeader,
+  SegmentedControl,
   StatCard,
   StatusBadge
 } from '../../../shared/ui';
@@ -751,7 +752,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
 
   if (status === 'loading') {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <PageHeader
           kicker="Financeiro"
           title="Contas a Receber"
@@ -775,7 +776,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
 
   if (status === 'error') {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <PageHeader
           kicker="Financeiro"
           title="Contas a Receber"
@@ -799,29 +800,35 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
       <PageHeader
         kicker="Financeiro"
         title="Contas a Receber"
         description="Acompanhe títulos em aberto, baixas e vencimentos sem sair do fluxo operacional."
         actions={
-          onRetryLoad ? (
-            <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
-              Atualizar
-            </button>
-          ) : undefined
-        }
-        meta={
-          <div className="fg2">
-            <StatusBadge tone={activeTab === 'recebidos' ? 'success' : activeTab === 'vencidos' ? 'danger' : 'warning'}>
-              {activeTabConfig.label}
-            </StatusBadge>
-            <StatusBadge tone="info">{filteredContas.length} visíveis</StatusBadge>
+          <div className="flex items-center gap-3">
+            {onRetryLoad ? (
+              <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+                Atualizar
+              </button>
+            ) : null}
           </div>
         }
       />
 
       <ContasReceberMetrics contas={contas} baixas={baixas} />
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <SegmentedControl
+          options={TABS.map(t => ({ id: t.key, label: t.label }))}
+          activeId={activeTab}
+          onChange={(id) => setActiveTab(id as CrTab)}
+        />
+        
+        <div className="flex items-center gap-2">
+          <StatusBadge tone="info">{filteredContas.length} títulos visíveis</StatusBadge>
+        </div>
+      </div>
 
       <FilterBar
         search={{
@@ -830,24 +837,8 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           placeholder: 'Buscar por cliente, pedido ou status...',
           ariaLabel: 'Buscar contas a receber'
         }}
-        filters={[
-          {
-            key: 'status',
-            value: activeTab,
-            onChange: (value) => setActiveTab(value as CrTab),
-            ariaLabel: 'Filtrar por status financeiro',
-            options: TABS.map((tab) => ({ value: tab.key, label: tab.label }))
-          }
-        ]}
-        activeFilterCount={activeFilterCount}
-        onClearFilters={
-          activeFilterCount
-            ? () => {
-                setSearchQuery('');
-                setActiveTab('pendentes');
-              }
-            : undefined
-        }
+        activeFilterCount={searchQuery ? 1 : 0}
+        onClearFilters={searchQuery ? () => setSearchQuery('') : undefined}
       />
 
       <ContasList

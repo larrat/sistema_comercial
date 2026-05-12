@@ -287,7 +287,7 @@ export function PedidoProfilePage({
 
   if (loadingPedido) {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <LoadingState
           title="Carregando pedido..."
           description="Estamos reunindo itens, financeiro, histórico e cadastro do pedido."
@@ -298,7 +298,7 @@ export function PedidoProfilePage({
 
   return (
     <main
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6"
+      className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8"
       data-testid="pedido-profile-page"
     >
       <div className="flex items-center gap-2 text-sm text-slate-500">

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge } from '../../../shared/ui';
+import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge, SegmentedControl } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 import { RcaDrawer } from './RcaDrawer';
@@ -56,17 +56,31 @@ export function RcasPage() {
   ];
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
       <PageHeader
         kicker="Cadastros"
         title="Vendedores"
         description="Cadastro e gestão de vendedores (RCAs) da filial."
         actions={
-          <button className="btn btn-p btn-sm" type="button" onClick={() => openDrawer()}>
-            + Novo vendedor
-          </button>
+          <div className="flex items-center gap-3">
+            <button className="btn btn-p btn-sm" type="button" onClick={() => openDrawer()}>
+              + Novo vendedor
+            </button>
+          </div>
         }
       />
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <SegmentedControl
+          options={[
+            { id: 'todos', label: 'Todos' },
+            { id: 'ativos', label: 'Ativos' },
+            { id: 'inativos', label: 'Inativos' }
+          ]}
+          activeId={statusFilter}
+          onChange={(id) => setStatusFilter(id as 'todos' | 'ativos' | 'inativos')}
+        />
+      </div>
 
       <FilterBar
         search={{
@@ -74,23 +88,8 @@ export function RcasPage() {
           onChange: setQuery,
           placeholder: 'Buscar por nome…'
         }}
-        filters={[
-          {
-            key: 'status',
-            value: statusFilter,
-            onChange: (v) => setStatusFilter(v as 'todos' | 'ativos' | 'inativos'),
-            options: [
-              { value: 'todos', label: 'Todos' },
-              { value: 'ativos', label: 'Ativos' },
-              { value: 'inativos', label: 'Inativos' }
-            ]
-          }
-        ]}
-        activeFilterCount={activeFilterCount}
-        onClearFilters={() => {
-          setQuery('');
-          setStatusFilter('todos');
-        }}
+        activeFilterCount={query ? 1 : 0}
+        onClearFilters={query ? () => setQuery('') : undefined}
       />
 
       <DataTable

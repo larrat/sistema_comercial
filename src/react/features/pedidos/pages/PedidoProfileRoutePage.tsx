@@ -16,7 +16,7 @@ export function PedidoProfileRoutePage() {
 
   if (!pedidoId) {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <div className="card-shell">
           <p>Pedido não informado.</p>
           <button className="btn btn-sm" type="button" onClick={handleBack}>
@@ -29,7 +29,7 @@ export function PedidoProfileRoutePage() {
 
   if (!pedido && error) {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <div className="card-shell rf-ui-stack">
           <p>{error}</p>
           <div className="fg2">
@@ -47,7 +47,7 @@ export function PedidoProfileRoutePage() {
 
   if (!pedido) {
     return (
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col gap-6">
+      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <div className="card-shell">
           <p>Carregando pedido...</p>
         </div>
