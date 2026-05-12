@@ -8,7 +8,7 @@ import { getSupabaseConfig } from '../supabaseConfig';
 import { listUserFiliais } from '../../features/auth/services/authApi';
 import type { Filial } from '../../../types/domain';
 
-export function FilialSwitcher() {
+export function FilialSwitcher({ variant = 'light', collapsed = false }: { variant?: 'dark' | 'light'; collapsed?: boolean }) {
   const [open, setOpen] = useState(false);
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [loading, setLoading] = useState(false);
@@ -76,22 +76,36 @@ export function FilialSwitcher() {
     handleClose();
   }
 
+  const isDark = variant === 'dark';
+
   return (
     <>
-      <div className="flex flex-col gap-1 items-end">
-        <div className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mr-1">Filial ativa</div>
+      <div className={`flex flex-col gap-1 ${collapsed ? 'items-center' : 'items-start'} w-full`}>
+        {!collapsed && <div className={`text-[10px] uppercase font-bold tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-500'} ml-1`}>Filial ativa</div>}
         <button
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-blue-200 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[160px]"
+          className={`flex items-center justify-center gap-2 rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed group ${
+            collapsed 
+              ? `w-10 h-10 ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`
+              : `w-full px-3 py-2 border shadow-sm ${
+                  isDark 
+                    ? 'bg-slate-800/50 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500' 
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-blue-200 focus-visible:ring-blue-500'
+                }`
+          }`}
           type="button"
           onClick={handleOpen}
           disabled={!session}
           aria-haspopup="dialog"
           aria-expanded={open}
-          title="Trocar filial ativa"
+          title={collapsed ? displayName : "Trocar filial ativa"}
         >
-          <Building size={14} className="text-blue-600 flex-shrink-0" />
-          <span className="flex-1 text-sm font-semibold truncate text-left">{displayName}</span>
-          <ChevronDown size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+          <Building size={collapsed ? 20 : 16} className={`${isDark ? 'text-[#C5A059]' : 'text-blue-600'} flex-shrink-0`} />
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-sm font-semibold truncate text-left">{displayName}</span>
+              <ChevronDown size={14} className={`${isDark ? 'text-slate-500 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-blue-500'} transition-colors`} />
+            </>
+          )}
         </button>
       </div>
 

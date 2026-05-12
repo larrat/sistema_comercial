@@ -919,8 +919,8 @@ export function DashboardPilotPage({
   const sourceSummary = `Fonte: pedidos (${pedidos.length}), produtos (${produtos.length}) e clientes (${clientes.length}) da filial ativa.`;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-64px)] w-full px-12 py-24 md:px-20 md:py-32 max-w-7xl mx-auto gap-20" data-testid="dashboard-pilot-page">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 border-b border-slate-200 pb-12 pt-4">
+    <div className="flex flex-col min-h-screen w-full px-6 py-8 lg:px-10 max-w-[1600px] mx-auto gap-8" data-testid="dashboard-pilot-page">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-slate-200 pb-6 pt-0">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -931,13 +931,6 @@ export function DashboardPilotPage({
           </div>
           
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-5 px-8 py-4 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <Building2 size={18} className="text-[#C5A059]" />
-              <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1.5">Filial Ativa</span>
-                <span className="text-sm font-bold text-slate-800 tracking-tight">{currentFilialName}</span>
-              </div>
-            </div>
             <PeriodSelector periodo={periodo} onChange={setPeriodo} />
           </div>
         </div>
