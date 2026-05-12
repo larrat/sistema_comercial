@@ -361,14 +361,20 @@ export function DashboardPilotPage() {
       <section className="rf-dashboard-row rf-dashboard-row--2">
         {visao !== 'operacional' && (
           <article className="rf-dash-card">
-            <div className="rf-dash-card__header">
-              <div>
-                <h2 className="rf-dash-card__title">Faturamento e Lucro</h2>
-                <p className="rf-dash-card__subtitle">Visão por período selecionado</p>
+            <div className="rf-dash-card__header flex-row items-center !mb-6">
+              <div className="flex-1">
+                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-0.5">Faturamento e Lucro</h2>
+                <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest opacity-80">Projeção por período</p>
               </div>
-              <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#C5A059]" /> Faturamento</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#10B981]" /> Lucro</span>
+              <div className="flex gap-5 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#C5A059] shadow-[0_0_8px_rgba(197,160,89,0.4)]" /> 
+                  <span className="text-slate-600">Faturamento</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.4)]" /> 
+                  <span className="text-slate-600">Lucro</span>
+                </span>
               </div>
             </div>
             <div className="flex-1 mt-4">
@@ -383,15 +389,23 @@ export function DashboardPilotPage() {
                   />
                   <YAxis hide />
                   <Tooltip 
-                    cursor={{ fill: '#f8fafc' }}
+                    cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white p-3 border border-slate-200 rounded-lg shadow-xl text-xs">
-                            <p className="font-bold mb-2 text-slate-900 border-b pb-1">{payload[0].payload.name}</p>
-                            <div className="flex flex-col gap-1">
-                              <span className="text-blue-600 font-semibold">Fat: {fmt(payload[0].value as number)}</span>
-                              <span className="text-emerald-600 font-semibold">Luc: {fmt(payload[1].value as number)}</span>
+                          <div className="bg-white/90 backdrop-blur-md p-4 border border-white/40 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)] ring-1 ring-black/5 min-w-[160px]">
+                            <p className="font-black mb-3 text-slate-900 border-b border-slate-100 pb-2 text-[10px] uppercase tracking-widest">
+                              {payload[0].payload.name}
+                            </p>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Fat</span>
+                                <span className="text-xs font-black text-[#C5A059]">{fmt(payload[0].value as number)}</span>
+                              </div>
+                              <div className="flex items-center justify-between gap-4">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Luc</span>
+                                <span className="text-xs font-black text-[#10B981]">{fmt(payload[1].value as number)}</span>
+                              </div>
                             </div>
                           </div>
                         );
