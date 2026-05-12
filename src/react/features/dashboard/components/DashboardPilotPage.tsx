@@ -43,7 +43,7 @@ export function DashboardPilotPage() {
   const { 
     periodo, setPeriodo, 
     visao, setVisao,
-    pedidos, produtos, clientes, contasReceber,
+    pedidos, produtos, clientes, contasReceber, filial,
     status, error 
   } = useDashboardStore();
 
@@ -325,14 +325,14 @@ export function DashboardPilotPage() {
         </article>
 
         {visao !== 'operacional' && (
-          <article className={`rf-dash-card ${!data?.filial?.meta_mensal ? 'is-warning' : ''}`}>
+          <article className={`rf-dash-card ${!filial?.meta_mensal ? 'is-warning' : ''}`}>
             <span className="rf-stat-label">Pacing mensal</span>
-            {data?.filial?.meta_mensal ? (
+            {filial?.meta_mensal ? (
               <>
-                <span className={`rf-stat-value ${stats.faturamento >= data.filial.meta_mensal ? '!text-emerald-600' : '!text-amber-600'}`}>
-                  {((stats.faturamento / data.filial.meta_mensal) * 100).toFixed(1)}%
+                <span className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? '!text-emerald-600' : '!text-amber-600'}`}>
+                  {((stats.faturamento / filial.meta_mensal) * 100).toFixed(1)}%
                 </span>
-                <span className="rf-stat-sub muted">Meta: {fmt(data.filial.meta_mensal)}</span>
+                <span className="rf-stat-sub muted">Meta: {fmt(filial.meta_mensal)}</span>
               </>
             ) : (
               <>

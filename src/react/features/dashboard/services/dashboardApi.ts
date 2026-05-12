@@ -73,7 +73,7 @@ export async function fetchDashboardData(
   const dateFilter = startDate ? `&data=gte.${startDate}&data=lte.${endDate}` : '';
   const crDateFilter = startDate ? `&vencimento=gte.${startDate}` : ''; // Simplified for dashboard
 
-  const [pedidosRaw, produtos, clientes, contasReceber] = await Promise.all([
+  const [pedidosRaw, produtos, clientes, contasReceber, filial] = await Promise.all([
     fetch(`${ctx.url}/rest/v1/pedidos?${commonParams}${dateFilter}&order=data.desc`, {
       headers
     }).then(async (r) => {

@@ -12,6 +12,7 @@ type DashboardStoreState = {
   produtos: Produto[];
   clientes: Cliente[];
   contasReceber: ContaReceber[];
+  filial: Filial | null;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
 };
@@ -24,6 +25,7 @@ type DashboardStoreActions = {
     produtos: Produto[];
     clientes: Cliente[];
     contasReceber: ContaReceber[];
+    filial?: Filial | null;
   }) => void;
   setStatus: (s: DashboardStoreState['status'], error?: string) => void;
 };
@@ -50,6 +52,7 @@ export const useDashboardStore = create<DashboardStoreState & DashboardStoreActi
   produtos: [],
   clientes: [],
   contasReceber: [],
+  filial: null,
   status: 'idle',
   error: null,
 
@@ -61,7 +64,15 @@ export const useDashboardStore = create<DashboardStoreState & DashboardStoreActi
     writeStorageString(STORAGE_KEYS.visao, visao);
     set({ visao });
   },
-  setData: ({ pedidos, produtos, clientes, contasReceber }) =>
-    set({ pedidos, produtos, clientes, contasReceber, status: 'ready', error: null }),
+  setData: ({ pedidos, produtos, clientes, contasReceber, filial }) =>
+    set({
+      pedidos,
+      produtos,
+      clientes,
+      contasReceber,
+      filial: filial ?? null,
+      status: 'ready',
+      error: null
+    }),
   setStatus: (status, error) => set({ status, error: error ?? null })
 }));
