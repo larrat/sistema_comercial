@@ -139,7 +139,7 @@ export function AppSidebar() {
                       ${
                         isActive
                           ? 'bg-slate-800 text-white font-bold shadow-sm'
-                          : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/40'
+                          : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
                     title={collapsed ? item.label : undefined}
@@ -155,7 +155,7 @@ export function AppSidebar() {
                               : 'group-hover:scale-110'
                           }`} 
                         />
-                        {!collapsed && <span className="truncate text-sm tracking-tight">{item.label}</span>}
+                        {!collapsed && <span className="truncate text-[15px] tracking-tight">{item.label}</span>}
                       </>
                     )}
                   </NavLink>
