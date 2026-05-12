@@ -18,6 +18,11 @@ import {
   PageHeader,
   StatusBadge
 } from '../../../shared/ui';
+import { Wrench, Loader2, CheckCircle } from 'lucide-react';
+import { listProdutos, saveProduto } from '../services/produtosApi';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { useToastStore } from '../../../app/lib/useToastStore';
 
 type Modal = { tipo: 'none' } | { tipo: 'form'; produto: Produto | null };
 
@@ -90,6 +95,10 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [sanitizing, setSanitizing] = useState(false);
+  const [sanitizingProgress, setSanitizingProgress] = useState(0);
+
+  const session = useAuthStore((s) => s.session);
 
   const isMobile = useIsMobile();
   const deleteTarget = deleteTargetId
@@ -145,6 +154,65 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     useInterModuleStore.getState().navegarParaMovProduto(id);
   }
 
+  async function handleSanitize() {
+    if (!session?.access_token || !filialId) return;
+    if (!window.confirm('Deseja rodar o saneamento em todos os produtos? Isso removerá resquícios de texto e corrigirá campos vazios para padrão do banco.')) return;
+
+    setSanitizing(true);
+    setSanitizingProgress(0);
+    const { url, key } = getSupabaseConfig();
+    const ctx = { url, key, token: session.access_token, filialId };
+
+    try {
+      // 1. Buscar TODOS os produtos (sem paginação)
+      const all = await listProdutos(ctx);
+      const toUpdate: any[] = [];
+
+      all.forEach(p => {
+        const fixed: any = {
+          ...p,
+          nome: p.nome.trim(),
+          sku: p.sku?.trim() || null,
+          cat: p.cat?.trim() || null,
+          un: p.un?.trim() || 'un',
+          ecm: (p.ecm || 0) <= 0 ? (p.custo || 0) : p.ecm
+        };
+
+        // Verifica se houve mudança real para evitar updates desnecessários
+        const hasChange = 
+          fixed.nome !== p.nome || 
+          fixed.sku !== p.sku || 
+          fixed.cat !== p.cat || 
+          fixed.un !== p.un || 
+          fixed.ecm !== p.ecm;
+
+        if (hasChange) toUpdate.push(fixed);
+      });
+
+      if (toUpdate.length === 0) {
+        useToastStore.getState().addToast('Nenhum erro encontrado. Cadastro está limpo.', 'info');
+        return;
+      }
+
+      // 2. Salvar em lotes de 50 para segurança
+      const chunkSize = 50;
+      for (let i = 0; i < toUpdate.length; i += chunkSize) {
+        const chunk = toUpdate.slice(i, i + chunkSize);
+        await saveProduto(ctx, chunk);
+        setSanitizingProgress(Math.round(((i + chunk.length) / toUpdate.length) * 100));
+      }
+
+      useToastStore.getState().addToast(`${toUpdate.length} produtos corrigidos com sucesso.`, 'success');
+      onRetryLoad?.();
+    } catch (err) {
+      console.error(err);
+      useToastStore.getState().addToast('Erro ao rodar saneamento.', 'error');
+    } finally {
+      setSanitizing(false);
+      setSanitizingProgress(0);
+    }
+  }
+
   const pageHeader = (
     <PageHeader
       kicker="Catálogo"
@@ -156,13 +224,31 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
         </StatusBadge>
       }
       actions={
-        <button
-          className="btn btn-p btn-sm"
-          type="button"
-          onClick={() => setModal({ tipo: 'form', produto: null })}
-        >
-          Novo produto
-        </button>
+        <div className="flex items-center gap-3">
+          {sanitizing ? (
+            <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 animate-pulse">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+              <span className="text-[10px] font-black text-slate-600 uppercase tracking-tight">Corrigindo {sanitizingProgress}%</span>
+            </div>
+          ) : (
+            <button
+              className="btn btn-sm flex items-center gap-2 hover:bg-slate-100 transition-colors"
+              type="button"
+              onClick={handleSanitize}
+              title="Corrigir resquícios e erros de cadastro"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sanear Dados</span>
+            </button>
+          )}
+          <button
+            className="btn btn-p btn-sm"
+            type="button"
+            onClick={() => setModal({ tipo: 'form', produto: null })}
+          >
+            Novo produto
+          </button>
+        </div>
       }
     />
   );

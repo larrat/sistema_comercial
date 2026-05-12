@@ -186,12 +186,12 @@ export async function listProdutoById(
 
 export async function saveProduto(
   context: ProdutoApiContext,
-  input: ProdutoWriteInput
-): Promise<Produto | null> {
-  const payload: ProdutoWriteInput = {
-    ...input,
-    filial_id: context.filialId
-  };
+  input: ProdutoWriteInput | ProdutoWriteInput[]
+): Promise<Produto | Produto[] | null> {
+  const isArray = Array.isArray(input);
+  const payload = isArray
+    ? input.map((item) => ({ ...item, filial_id: context.filialId }))
+    : { ...input, filial_id: context.filialId };
 
   const res = await fetch(`${context.url}/rest/v1/produtos?on_conflict=id`, {
     method: 'POST',
@@ -201,17 +201,16 @@ export async function saveProduto(
       'return=representation,resolution=merge-duplicates'
     ),
     body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(12000)
+    signal: AbortSignal.timeout(30000)
   });
   const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao salvar produto`);
-  if (Array.isArray(body) && body[0]) {
-    return body[0] as Produto;
+  ensureOk(res, body, `Erro ${res.status} ao salvar produto(s)`);
+
+  if (Array.isArray(body)) {
+    return isArray ? (body as Produto[]) : (body[0] as Produto);
   }
-  if (input.id) {
-    return { ...payload, id: input.id } as Produto;
-  }
-  return null;
+
+  return isArray ? [] : null;
 }
 
 export async function deleteProduto(context: ProdutoApiContext, produtoId: string): Promise<void> {
