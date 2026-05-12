@@ -122,14 +122,30 @@ export function DashboardPilotPage() {
   }, [pedidos, periodo]);
 
   const periodoDatas = useMemo(() => {
-    if (!pedidos.length) return '';
-    const dates = pedidos.map(p => new Date(p.data || p.criado_em || ''));
-    const min = new Date(Math.min(...dates.map(d => d.getTime())));
-    const max = new Date(Math.max(...dates.map(d => d.getTime())));
+    const now = new Date();
+    let start = new Date(now);
+    let end = new Date(now);
+
+    if (periodo === 'semana') {
+      const day = now.getDay();
+      start.setDate(now.getDate() - day);
+      end.setDate(now.getDate() + (6 - day));
+    } else if (periodo === 'mes') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    } else if (periodo === 'ano') {
+      start = new Date(now.getFullYear(), 0, 1);
+      end = new Date(now.getFullYear(), 11, 31);
+    } else {
+      if (!pedidos.length) return 'Todo o período';
+      const dates = pedidos.map(p => new Date(p.data || p.criado_em || ''));
+      start = new Date(Math.min(...dates.map(d => d.getTime())));
+      end = new Date(Math.max(...dates.map(d => d.getTime())));
+    }
     
     const fmtDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-    return `${fmtDate(min)} — ${fmtDate(max)}`;
-  }, [pedidos]);
+    return `${fmtDate(start)} — ${fmtDate(end)}`;
+  }, [pedidos, periodo]);
 
   const topProducts = useMemo(() => {
     const productSales: Record<string, { nome: string; receita: number }> = {};
@@ -391,9 +407,19 @@ export function DashboardPilotPage() {
                 </span>
               </div>
             </div>
-            <div className="flex-1 mt-6">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <div className="flex-1 mt-6 min-h-[300px]">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#C5A059" stopOpacity={1}/>
+                      <stop offset="95%" stopColor="#C5A059" stopOpacity={0.8}/>
+                    </linearGradient>
+                    <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={1}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.8}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
                     dataKey="name" 
@@ -407,19 +433,26 @@ export function DashboardPilotPage() {
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-white/95 backdrop-blur-xl p-4 border border-white/40 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] ring-1 ring-black/5 min-w-[180px]">
-                            <p className="font-black mb-3 text-slate-900 border-b border-slate-100 pb-2 text-[11px] uppercase tracking-[0.1em]">
-                              {payload[0].payload.name}
-                            </p>
-                            <div className="flex flex-col gap-2.5">
-                              <div className="flex items-center justify-between gap-6">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Faturamento</span>
-                                <span className="text-sm font-black text-[#C5A059]">{fmt(payload[0].value as number)}</span>
+                          <div className="bg-white/95 backdrop-blur-2xl p-5 border border-white/60 rounded-3xl shadow-[0_30px_60px_-12px_rgba(15,23,42,0.18)] ring-1 ring-black/5 min-w-[210px] animate-in fade-in zoom-in duration-200">
+                            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                              <p className="font-black text-slate-900 text-[12px] uppercase tracking-widest">
+                                {payload[0].payload.name}
+                              </p>
+                              <span className="text-[8px] font-black bg-slate-900 text-white px-2 py-0.5 rounded-full tracking-tighter">DATA POINT</span>
+                            </div>
+                            <div className="flex flex-col gap-4">
+                              <div className="flex flex-col">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Faturamento Bruto</span>
+                                <span className="text-lg font-black text-[#C5A059] leading-none">{fmt(payload[0].value as number)}</span>
                               </div>
-                              <div className="flex items-center justify-between gap-6">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lucro Bruto</span>
-                                <span className="text-sm font-black text-[#10B981]">{fmt(payload[1].value as number)}</span>
+                              <div className="flex flex-col">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Lucro Operacional</span>
+                                <span className="text-lg font-black text-[#10B981] leading-none">{fmt(payload[1].value as number)}</span>
                               </div>
+                            </div>
+                            <div className="mt-4 pt-3 border-t border-slate-50 flex items-center gap-1.5 opacity-40">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#C5A059]" />
+                              <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Analítico Nexus v3</span>
                             </div>
                           </div>
                         );
@@ -427,8 +460,8 @@ export function DashboardPilotPage() {
                       return null;
                     }}
                   />
-                  <Bar dataKey="faturamento" fill="#C5A059" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Bar dataKey="lucro" fill="#10B981" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="faturamento" fill="url(#colorFat)" radius={[6, 6, 0, 0]} barSize={32} />
+                  <Bar dataKey="lucro" fill="url(#colorLuc)" radius={[6, 6, 0, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
