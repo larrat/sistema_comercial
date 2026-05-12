@@ -12,7 +12,7 @@ import {
   StatusBadge
 } from '../../../shared/ui';
 import { SystemBarChart } from '../../../app/components/charts';
-import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield, ShoppingBag, Package, Users } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Gift, UserMinus, Clock, LayoutDashboard, Building2, Shield, ShoppingBag, Package, Users, RefreshCw } from 'lucide-react';
 import { listUserFiliais } from '../../auth/services/authApi';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
