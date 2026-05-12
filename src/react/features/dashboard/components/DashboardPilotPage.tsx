@@ -29,9 +29,10 @@ const fmt = (v: number) => BRL.format(v || 0);
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   orcamento: { label: 'Orçamento', color: '#94A3B8' },
+  em_andamento: { label: 'Em andamento', color: '#6366F1' },
   em_separacao: { label: 'Em separação', color: '#C5A059' },
   entregue_aguardando_pagamento: { label: 'Entregue · aguardando pgto', color: '#F59E0B' },
-  pago_aguardando_entrega: { label: 'Pago · aguardando entrega', color: '#6366F1' },
+  pago_aguardando_entrega: { label: 'Pago · aguardando entrega', color: '#8B5CF6' },
   concluido: { label: 'Concluído', color: '#10B981' },
   cancelado: { label: 'Cancelado', color: '#EF4444' }
 };
@@ -152,19 +153,37 @@ export function DashboardPilotPage() {
   }, [pedidos, periodo]);
 
   const topProducts = useMemo(() => {
-    const productSales: Record<string, { nome: string; receita: number }> = {};
+    const productSales: Record<string, { nome: string; variant?: string; receita: number; isChild: boolean }> = {};
+    
     stats.vendasReais.forEach(p => {
       const items = (p.itens || []) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
-        if (!productSales[item.prodId]) productSales[item.prodId] = { nome: item.nome || 'Produto', receita: 0 };
-        productSales[item.prodId].receita += Number(item.preco || 0) * Number(item.qty || 0);
+        
+        // Tenta encontrar info do pai/filho no cadastro de produtos
+        const prodInfo = produtos.find(pr => pr.id === item.prodId);
+        const paiInfo = prodInfo?.produto_pai_id ? produtos.find(pr => pr.id === prodInfo.produto_pai_id) : null;
+        
+        const mainName = paiInfo ? paiInfo.nome : (item.nome || 'Produto');
+        const variantName = paiInfo ? item.nome.replace(paiInfo.nome, '').replace(/^[·\-\s]+/, '') : '';
+        const key = paiInfo ? paiInfo.id : item.prodId;
+
+        if (!productSales[key]) {
+          productSales[key] = { 
+            nome: mainName, 
+            variant: variantName,
+            receita: 0,
+            isChild: !!paiInfo
+          };
+        }
+        productSales[key].receita += Number(item.preco || 0) * Number(item.qty || 0);
       });
     });
+    
     return Object.values(productSales)
       .sort((a, b) => b.receita - a.receita)
       .slice(0, 5);
-  }, [stats.vendasReais]);
+  }, [stats.vendasReais, produtos]);
 
   const statusDistribution = useMemo(() => {
     const dist: Record<string, number> = {};
@@ -501,23 +520,31 @@ export function DashboardPilotPage() {
           </div>
 
           <div className="mt-6 pt-6 border-t border-slate-100">
-            <h3 className="rf-dash-card__title mb-4">Top produtos</h3>
+            <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest mb-4">Top produtos faturados</h3>
             <div className="flex flex-col gap-3">
-              {topProducts.length > 0 ? topProducts.map((p, i) => {
-                const max = topProducts[0].receita;
-                const perc = max > 0 ? (p.receita / max) * 100 : 0;
-                return (
-                  <div key={i} className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center text-[11px]">
-                      <span className="font-medium text-slate-700 truncate max-w-[180px]">{p.nome}</span>
-                      <span className="font-bold text-slate-900">{fmt(p.receita)}</span>
+              {topProducts.length > 0 ? topProducts.map((p, i) => (
+                <div key={i} className="group flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[11px] font-bold text-slate-900 truncate uppercase tracking-tight">{p.nome}</p>
+                      {p.isChild && (
+                        <span className="text-[8px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">Variante</span>
+                      )}
                     </div>
-                    <div className="h-[4px] bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full" style={{ width: `${perc}%` }} />
+                    {p.variant && (
+                      <p className="text-[9px] font-medium text-slate-500 truncate mt-0.5">{p.variant}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] font-black text-slate-900">{fmt(p.receita)}</p>
+                    <div className="w-12 h-1 bg-slate-100 rounded-full mt-1.5 overflow-hidden ml-auto">
+                      <div className="h-full bg-[#C5A059]" style={{ width: `${100 - i * 15}%` }} />
                     </div>
                   </div>
-                );
-              }) : <p className="text-center text-xs text-slate-400 py-4">Nenhum produto vendido no período.</p>}
+                </div>
+              )) : (
+                <p className="text-[10px] text-slate-400 italic text-center py-4">Nenhuma venda no período</p>
+              )}
             </div>
           </div>
         </article>
