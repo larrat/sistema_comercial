@@ -198,7 +198,7 @@ export async function saveProduto(
     headers: createHeaders(
       context.key,
       context.token,
-      'resolution=merge-duplicates,return=representation'
+      'return=representation,resolution=merge-duplicates'
     ),
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(12000)

@@ -159,13 +159,13 @@ function formValuesToProduto(
 
   return {
     ...existing,
-    id: values.id ?? existing.id,
-    filial_id: filialId ?? existing.filial_id,
-    produto_pai_id: values.produto_pai_id ?? null,
+    id: values.id || existing.id,
+    filial_id: filialId || existing.filial_id,
+    produto_pai_id: values.produto_pai_id || null,
     nome: values.nome.trim(),
-    sku: values.sku.trim() || undefined,
+    sku: values.sku.trim() || null,
     un: values.un || 'un',
-    cat: values.cat.trim() || undefined,
+    cat: values.cat.trim() || null,
     custo,
     mkv,
     mka: parseFloat(values.markupAtacado) || 0,
