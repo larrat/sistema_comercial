@@ -533,9 +533,9 @@ export function DashboardPilotPage() {
                       data={topProducts}
                       cx="50%"
                       cy="50%"
-                      innerRadius={55}
-                      outerRadius={75}
-                      paddingAngle={4}
+                      innerRadius={45}
+                      outerRadius={65}
+                      paddingAngle={5}
                       dataKey="receita"
                       nameKey="nome"
                       stroke="none"
@@ -548,19 +548,19 @@ export function DashboardPilotPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-white/95 backdrop-blur-2xl p-5 border border-white/60 rounded-3xl shadow-[0_30px_60px_-12px_rgba(15,23,42,0.12)] ring-1 ring-black/5 min-w-[180px] animate-in fade-in zoom-in duration-200">
-                              <div className="flex flex-col items-center mb-3 pb-2 border-b border-slate-100">
-                                <p className="font-black text-slate-900 text-[10px] uppercase tracking-[0.15em] text-center leading-tight">
+                            <div className="bg-white/95 backdrop-blur-2xl p-4 border border-white/60 rounded-3xl shadow-[0_20px_40px_-10px_rgba(15,23,42,0.1)] ring-1 ring-black/5 min-w-[160px] animate-in fade-in zoom-in duration-200">
+                              <div className="flex flex-col items-center mb-2 pb-2 border-b border-slate-100">
+                                <p className="font-black text-slate-900 text-[9px] uppercase tracking-[0.1em] text-center leading-tight">
                                   {payload[0].name}
                                 </p>
                               </div>
                               <div className="flex flex-col items-center">
-                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Participação</span>
-                                <p className="text-lg font-black text-slate-900 leading-none">{fmt(payload[0].value as number)}</p>
+                                <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mb-1">Participação</span>
+                                <p className="text-base font-black text-slate-900 leading-none">{fmt(payload[0].value as number)}</p>
                               </div>
-                              <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-center gap-1.5 opacity-30">
-                                <div className="w-1 h-1 rounded-full bg-slate-400" />
-                                <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
+                              <div className="mt-3 pt-2 border-t border-slate-50 flex items-center justify-center gap-1.5 opacity-30">
+                                <div className="w-0.5 h-0.5 rounded-full bg-slate-400" />
+                                <span className="text-[6px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
                               </div>
                             </div>
                           );
@@ -570,9 +570,9 @@ export function DashboardPilotPage() {
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Total Top 5</span>
-                  <span className="text-sm font-black text-slate-900">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-1">
+                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Top 5</span>
+                  <span className="text-[12px] font-black text-slate-900 leading-none">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
                 </div>
               </div>
 
