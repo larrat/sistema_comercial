@@ -861,6 +861,7 @@ export function ProdutoProfilePage({
         title="Edição do Produto"
         subtitle={produto.nome}
         size="lg"
+        bodyClassName="!p-8 bg-slate-50/50"
         onClose={() => {
           setEditingCadastro(false);
           setSearchParams((current) => {
@@ -870,7 +871,7 @@ export function ProdutoProfilePage({
           });
         }}
       >
-        <div className="p-2">
+        <div className="flex flex-col gap-0 pb-12">
           <ProdutoForm
             produto={produto}
             pais={pais}

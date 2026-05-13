@@ -201,64 +201,67 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   const preview = calcPreview(values);
 
   return (
-    <form className="rf-ui-stack" onSubmit={handleSubmit} data-testid="produto-form">
+    <form className="flex flex-col gap-10" onSubmit={handleSubmit} data-testid="produto-form">
       <FormSection
         title="Essencial"
         description="Identificação básica para encontrar e vender o produto no dia a dia."
-        aside={<span className="bdg bb">Obrigatório primeiro</span>}
+        aside={<span className="px-2 py-1 bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-blue-100">Obrigatório</span>}
       >
-        <div className="fg2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField label="Nome" required>
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               value={values.nome}
               onChange={(e) => set({ nome: e.target.value })}
               required
               autoFocus={!produto}
               data-testid="produto-form-nome"
+              placeholder="Ex: Camisa Polo Premium"
             />
           </FormField>
-          <FormField label="SKU" hint="Código usado para localizar o produto rapidamente.">
+          <FormField label="SKU" hint="Código interno único">
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               value={values.sku}
               onChange={(e) => set({ sku: e.target.value })}
               data-testid="produto-form-sku"
+              placeholder="Opcional"
             />
           </FormField>
         </div>
-        <div className="fg2" style={{ marginTop: 8 }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <FormField label="Unidade">
-            <select className="sel" value={values.un} onChange={(e) => set({ un: e.target.value })}>
-              <option value="un">un</option>
-              <option value="kg">kg</option>
-              <option value="l">l</option>
-              <option value="m">m</option>
-              <option value="cx">cx</option>
-              <option value="pc">pc</option>
-              <option value="par">par</option>
+            <select className="rf-input-premium w-full" value={values.un} onChange={(e) => set({ un: e.target.value })}>
+              <option value="un">un (Unidade)</option>
+              <option value="kg">kg (Quilograma)</option>
+              <option value="l">l (Litro)</option>
+              <option value="m">m (Metro)</option>
+              <option value="cx">cx (Caixa)</option>
+              <option value="pc">pc (Peça)</option>
+              <option value="par">par (Par)</option>
             </select>
           </FormField>
           <FormField label="Categoria">
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               value={values.cat}
               onChange={(e) => set({ cat: e.target.value })}
+              placeholder="Ex: Vestuário"
             />
           </FormField>
         </div>
         {pais.length > 0 && (
-          <div style={{ marginTop: 8 }}>
+          <div className="mt-6 pt-6 border-t border-slate-100">
             <FormField
               label="Variante de"
-              hint="Use quando este produto herda dados de uma família."
+              hint="Vincule este produto a uma família existente."
             >
               <select
-                className="rf-input-premium"
+                className="rf-input-premium w-full"
                 value={values.produto_pai_id ?? ''}
                 onChange={(e) => handlePaiChange(e.target.value)}
               >
-                <option value="">— produto independente —</option>
+                <option value="">— Produto Independente —</option>
                 {pais
                   .filter((p) => p.id !== values.id)
                   .sort((a, b) => a.nome.localeCompare(b.nome))
@@ -274,59 +277,124 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         )}
       </FormSection>
 
-      <FormSection title="Custo" description="Base para cálculo de varejo, atacado e margem.">
-        <FormField label="Custo" required>
-          <input
-            className="inp"
-            type="number"
-            min="0"
-            step="0.01"
-            value={values.custo}
-            onChange={(e) => handleCusto(e.target.value)}
-            required
-            style={{ maxWidth: 180 }}
-            data-testid="produto-form-custo"
-          />
-        </FormField>
-      </FormSection>
-
-      <FormSection title="Varejo" description="Preço e margem usados na venda direta.">
-        <div className="fg2">
-          <FormField label="Preço varejo (R$)">
+      <FormSection title="Financeiro" description="Custo base e formação estratégica de preços.">
+        <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-100 mb-6">
+          <FormField label="Custo de Compra (R$)" required>
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full md:max-w-[200px] text-lg font-bold text-slate-900"
               type="number"
               min="0"
               step="0.01"
-              value={values.precoVarejo}
-              onChange={(e) => handleVariavelVarejo('preco', e.target.value)}
-            />
-          </FormField>
-          <FormField label="Markup (%)">
-            <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              step="0.1"
-              value={values.markupVarejo}
-              onChange={(e) => handleVariavelVarejo('markup', e.target.value)}
-            />
-          </FormField>
-          <FormField label="Margem (%)">
-            <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              step="0.1"
-              value={values.margemVarejo}
-              onChange={(e) => handleVariavelVarejo('margem', e.target.value)}
+              value={values.custo}
+              onChange={(e) => handleCusto(e.target.value)}
+              required
+              data-testid="produto-form-custo"
             />
           </FormField>
         </div>
-        <div className="fg2" style={{ marginTop: 8 }}>
-          <FormField label="Qtde mínima comercial">
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+          <div className="space-y-6">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-2">Venda Varejo</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormField label="Preço (R$)">
+                <input
+                  className="rf-input-premium w-full font-bold"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={values.precoVarejo}
+                  onChange={(e) => handleVariavelVarejo('preco', e.target.value)}
+                />
+              </FormField>
+              <FormField label="Markup (%)">
+                <input
+                  className="rf-input-premium w-full"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={values.markupVarejo}
+                  onChange={(e) => handleVariavelVarejo('markup', e.target.value)}
+                />
+              </FormField>
+              <FormField label="Margem (%)">
+                <input
+                  className="rf-input-premium w-full"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={values.margemVarejo}
+                  onChange={(e) => handleVariavelVarejo('margem', e.target.value)}
+                />
+              </FormField>
+            </div>
+            <FormField label="Desconto Máximo (%)">
+              <input
+                className="rf-input-premium w-full md:max-w-[150px]"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={values.descontoVarejo}
+                onChange={(e) => set({ descontoVarejo: e.target.value })}
+              />
+            </FormField>
+          </div>
+
+          <div className="space-y-6">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">Venda Atacado</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormField label="Preço (R$)">
+                <input
+                  className="rf-input-premium w-full font-bold"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={values.precoFixoAtacado}
+                  onChange={(e) => handleVariavelAtacado('preco', e.target.value)}
+                />
+              </FormField>
+              <FormField label="Markup (%)">
+                <input
+                  className="rf-input-premium w-full"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={values.markupAtacado}
+                  onChange={(e) => handleVariavelAtacado('markup', e.target.value)}
+                />
+              </FormField>
+              <FormField label="Margem (%)">
+                <input
+                  className="rf-input-premium w-full"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={values.margemAtacado}
+                  onChange={(e) => handleVariavelAtacado('margem', e.target.value)}
+                />
+              </FormField>
+            </div>
+            <FormField label="Desconto Máximo (%)">
+              <input
+                className="rf-input-premium w-full md:max-w-[150px]"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={values.descontoAtacado}
+                onChange={(e) => set({ descontoAtacado: e.target.value })}
+              />
+            </FormField>
+          </div>
+        </div>
+      </FormSection>
+
+      <FormSection title="Logística" description="Parâmetros para controle de estoque e reposição.">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FormField label="Qtd Mínima (Venda)">
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               type="number"
               min="0"
               step="0.001"
@@ -334,74 +402,9 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               onChange={(e) => set({ qtmin: e.target.value })}
             />
           </FormField>
-          <FormField label="Desconto varejo (%)">
+          <FormField label="Estoque Mínimo">
             <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={values.descontoVarejo}
-              onChange={(e) => set({ descontoVarejo: e.target.value })}
-            />
-          </FormField>
-        </div>
-      </FormSection>
-
-      <FormSection title="Atacado" description="Preço e margem usados para venda em volume.">
-        <div className="fg2">
-          <FormField label="Preço fixo (R$)">
-            <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              step="0.01"
-              value={values.precoFixoAtacado}
-              onChange={(e) => handleVariavelAtacado('preco', e.target.value)}
-            />
-          </FormField>
-          <FormField label="Markup (%)">
-            <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              step="0.1"
-              value={values.markupAtacado}
-              onChange={(e) => handleVariavelAtacado('markup', e.target.value)}
-            />
-          </FormField>
-          <FormField label="Margem (%)">
-            <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              step="0.1"
-              value={values.margemAtacado}
-              onChange={(e) => handleVariavelAtacado('margem', e.target.value)}
-            />
-          </FormField>
-        </div>
-        <div style={{ marginTop: 8 }}>
-          <FormField label="Desconto atacado (%)">
-            <input
-              className="rf-input-premium"
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={values.descontoAtacado}
-              onChange={(e) => set({ descontoAtacado: e.target.value })}
-              style={{ maxWidth: 180 }}
-            />
-          </FormField>
-        </div>
-      </FormSection>
-
-      <FormSection title="Estoque" description="Parâmetros básicos para alerta e custo médio.">
-        <div className="fg2">
-          <FormField label="Mínimo de estoque">
-            <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               type="number"
               min="0"
               step="0.001"
@@ -409,9 +412,9 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               onChange={(e) => set({ emin: e.target.value })}
             />
           </FormField>
-          <FormField label="Alerta de estoque">
+          <FormField label="Alerta Reposição">
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               type="number"
               min="0"
               step="0.001"
@@ -419,9 +422,11 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               onChange={(e) => set({ esal: e.target.value })}
             />
           </FormField>
-          <FormField label="Custo médio (R$)">
+        </div>
+        <div className="mt-6 pt-6 border-t border-slate-100 md:max-w-[200px]">
+          <FormField label="Custo Médio (CM)">
             <input
-              className="rf-input-premium"
+              className="rf-input-premium w-full"
               type="number"
               min="0"
               step="0.01"
@@ -433,39 +438,42 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       </FormSection>
 
       {preview && (
-        <FormSection title="Preview de preços">
-          <div className="fg2" style={{ gap: 12 }}>
-            <div>
-              <div className="lbl">Varejo</div>
-              <strong>{preview.pv > 0 ? fmt(preview.pv) : '-'}</strong>
-              {preview.pvMin > 0 && (
-                <span style={{ color: 'var(--tx2)', fontSize: 12 }}>
-                  {' '}
-                  · com desc. {fmt(preview.pvMin)}
-                </span>
-              )}
+        <div className="bg-emerald-900/90 backdrop-blur-xl p-6 rounded-3xl border border-emerald-500/30 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+            <TrendingUp size={120} />
+          </div>
+          <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-4">Simulação de Preços Reais</h5>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-emerald-300/60 uppercase">Varejo Consolidado</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">{preview.pv > 0 ? fmt(preview.pv) : '-'}</span>
+                {preview.pvMin > 0 && (
+                  <span className="text-xs font-bold text-emerald-400/80 italic">min {fmt(preview.pvMin)}</span>
+                )}
+              </div>
             </div>
-            <div>
-              <div className="lbl">Atacado</div>
-              <strong>{preview.pa > 0 ? fmt(preview.pa) : '-'}</strong>
-              {preview.paMin > 0 && (
-                <span style={{ color: 'var(--tx2)', fontSize: 12 }}>
-                  {' '}
-                  · com desc. {fmt(preview.paMin)}
-                </span>
-              )}
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-emerald-300/60 uppercase">Atacado Consolidado</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">{preview.pa > 0 ? fmt(preview.pa) : '-'}</span>
+                {preview.paMin > 0 && (
+                  <span className="text-xs font-bold text-emerald-400/80 italic">min {fmt(preview.paMin)}</span>
+                )}
+              </div>
             </div>
           </div>
-        </FormSection>
+        </div>
       )}
 
-      <FormError message={localError || error} data-testid="produto-form-error" />
-
-      <FormActions
-        onCancel={onCancelar}
-        loading={saving}
-        submitLabel={produto ? 'Salvar alterações' : 'Salvar produto'}
-      />
+      <div className="pt-6 border-t border-slate-100">
+        <FormError message={localError || error} data-testid="produto-form-error" />
+        <FormActions
+          onCancel={onCancelar}
+          loading={saving}
+          submitLabel={produto ? 'Confirmar Alterações' : 'Finalizar Cadastro'}
+        />
+      </div>
     </form>
   );
 }
