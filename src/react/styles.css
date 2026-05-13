@@ -3909,17 +3909,20 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   color: #94a3b8;
 }
 .rf-ui-data-table__row--premium {
-  position: relative;
   transition: all 0.2s ease;
 }
 
 .rf-ui-data-table__row--premium:hover {
   background: rgba(248, 250, 252, 0.8) !important;
-  transform: scale(1.002);
+  transform: scale(1.001);
   z-index: 10;
 }
 
-.rf-ui-data-table__row--premium::before {
+.rf-ui-data-table__row--premium td:first-child {
+  position: relative;
+}
+
+.rf-ui-data-table__row--premium td:first-child::before {
   content: '';
   position: absolute;
   left: 0;
@@ -3930,9 +3933,10 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   border-radius: 0 4px 4px 0;
   opacity: 0;
   transition: opacity 0.2s ease;
+  z-index: 20;
 }
 
-.rf-ui-data-table__row--premium:hover::before {
+.rf-ui-data-table__row--premium:hover td:first-child::before {
   opacity: 1;
 }
 
