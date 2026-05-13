@@ -3960,3 +3960,12 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
+
+/* Utility to hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
