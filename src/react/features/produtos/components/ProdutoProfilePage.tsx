@@ -11,8 +11,11 @@ import {
   ArrowUpRight,
   History,
   ShieldCheck,
-  Zap
+  Zap,
+  DollarSign
 } from 'lucide-react';
+import ReactCountUp from 'react-countup';
+const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
@@ -350,24 +353,64 @@ export function ProdutoProfilePage({
 
       {/* KPI Grid */}
       <section className="rf-kpi-grid">
-        {kpis.map((card, idx) => (
-          <motion.article 
-            key={card.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="rf-card-premium p-6 flex flex-col gap-2 group"
-          >
-            <span className="rf-section-label-premium">{card.label}</span>
-            <div className="flex items-end justify-between">
-              <span className="text-2xl font-bold text-slate-900">{card.value}</span>
-              <TrendingUp className="w-4 h-4 text-[#C5A059] opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <span className={`text-[11px] font-bold ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
-              {card.subtitle}
-            </span>
-          </motion.article>
-        ))}
+        {kpis.map((card, idx) => {
+          const isCurrency = card.value.startsWith('R$');
+          const numericValue = parseFloat(card.value.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+          
+          let Icon = TrendingUp;
+          if (card.label.includes('Custo')) Icon = DollarSign;
+          if (card.label.includes('Venda')) Icon = Zap;
+          if (card.label.includes('Estoque')) Icon = Package;
+
+          const toneClass = 
+            card.tone === 'positive' ? 'is-success' : 
+            card.tone === 'negative' ? 'is-danger' : 
+            '';
+
+          return (
+            <motion.article 
+              key={card.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className={`rf-dash-card ${toneClass}`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="rf-stat-label !mb-0">{card.label}</span>
+                <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+                  <Icon size={14} strokeWidth={2.5} />
+                </div>
+              </div>
+
+              <div className="rf-stat-value">
+                {isCurrency ? (
+                  <CountUp 
+                    end={numericValue} 
+                    decimals={2} 
+                    decimal="," 
+                    prefix="R$ " 
+                    duration={2} 
+                    separator="."
+                  />
+                ) : (
+                  <CountUp 
+                    end={parseFloat(card.value) || 0} 
+                    decimals={card.value.includes(',') ? 3 : 0}
+                    decimal=","
+                    duration={2} 
+                    separator="."
+                  />
+                )}
+                {!isCurrency && <span className="text-sm font-bold text-slate-400 ml-1.5">{card.value.split(' ')[1]}</span>}
+              </div>
+
+              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
+                {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
+                {card.subtitle}
+              </span>
+            </motion.article>
+          );
+        })}
       </section>
 
       {/* Premium Tabs */}
