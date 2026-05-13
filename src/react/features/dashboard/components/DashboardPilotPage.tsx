@@ -1,3 +1,5 @@
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
