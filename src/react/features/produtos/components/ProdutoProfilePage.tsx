@@ -47,7 +47,6 @@ type KpiCard = {
 
 const BASE_TABS: Array<{ id: ProdutoProfileTab; label: string }> = [
   { id: 'resumo', label: 'Resumo' },
-  { id: 'precificacao', label: 'Precificação' },
   { id: 'estoque', label: 'Estoque' },
   { id: 'cadastro', label: 'Cadastro' }
 ];
@@ -534,6 +533,27 @@ export function ProdutoProfilePage({
                       />
                     </div>
                   </article>
+
+                  <article className="rf-dash-card">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-rose-500">Financeiro</span>
+                        <h2 className="rf-dash-card__title text-base">Formação de Preço</h2>
+                      </div>
+                      <TrendingUp className="w-4 h-4 text-slate-300" />
+                    </div>
+                    <div className="mt-2">
+                      <ProdutoInfoTable
+                        rows={[
+                          { label: 'Custo de Compra', value: formatCurrency(precos.custo) },
+                          { label: 'Markup Varejo', value: formatPercent(toNumber(produto.mkv)) },
+                          { label: 'Markup Atacado', value: formatPercent(toNumber(produto.mka)) },
+                          { label: 'Desconto Máx Varejo', value: formatPercent(toNumber(produto.dv)) },
+                          { label: 'Desconto Máx Atacado', value: formatPercent(toNumber(produto.da)) }
+                        ]}
+                      />
+                    </div>
+                  </article>
                 </div>
 
                 <aside className="flex flex-col gap-6">
@@ -614,45 +634,34 @@ export function ProdutoProfilePage({
               </div>
             )}
 
-            {activeTab === 'precificacao' && (
-              <article className="rf-card-premium">
-                <div className="rf-card-premium__head">
-                  <h3 className="rf-card-premium__title">Análise de Formação de Preço</h3>
-                </div>
-                <div className="rf-card-premium__body">
-                  <ProdutoInfoTable
-                    rows={[
-                      { label: 'Custo de Compra', value: formatCurrency(precos.custo) },
-                      { label: 'Markup Varejo', value: formatPercent(toNumber(produto.mkv)) },
-                      { label: 'Markup Atacado', value: formatPercent(toNumber(produto.mka)) },
-                      { label: 'Desconto Máx Varejo', value: formatPercent(toNumber(produto.dv)) },
-                      { label: 'Desconto Máx Atacado', value: formatPercent(toNumber(produto.da)) }
-                    ]}
-                  />
-                </div>
-              </article>
-            )}
 
             {activeTab === 'estoque' && (
-              <article className="rf-card-premium">
-                <div className="rf-card-premium__head">
-                  <h3 className="rf-card-premium__title">Auditoria de Estoque</h3>
+              <article className="rf-dash-card">
+                <div className="rf-dash-card__header flex-row items-center !mb-6">
+                  <div className="flex-1">
+                    <span className="rf-stat-label !mb-1 text-emerald-500">Histórico</span>
+                    <h2 className="rf-dash-card__title text-base">Auditoria de Estoque</h2>
+                  </div>
+                  <History className="w-4 h-4 text-slate-300" />
                 </div>
-                <div className="rf-card-premium__body">
-                  <p className="text-slate-500 text-sm">Registro cronológico de entradas, saídas e ajustes.</p>
+                <div className="p-8 text-center">
+                  <p className="text-slate-500 text-sm italic font-medium">Registro cronológico de entradas, saídas e ajustes em desenvolvimento.</p>
                 </div>
               </article>
             )}
 
             {activeTab === 'cadastro' && (
-              <article className="rf-card-premium">
-                <div className="rf-card-premium__head">
-                  <h3 className="rf-card-premium__title">{editingCadastro ? 'Edição do Produto' : 'Detalhes Cadastrais'}</h3>
+              <article className="rf-dash-card">
+                <div className="rf-dash-card__header flex-row items-center !mb-6">
+                  <div className="flex-1">
+                    <span className="rf-stat-label !mb-1 text-slate-500">Informações</span>
+                    <h2 className="rf-dash-card__title text-base">{editingCadastro ? 'Edição do Produto' : 'Detalhes Cadastrais'}</h2>
+                  </div>
                   {!editingCadastro && (
                     <button className="rf-btn-premium" onClick={startEdit}>Editar</button>
                   )}
                 </div>
-                <div className="rf-card-premium__body">
+                <div className="mt-2">
                   {editingCadastro ? (
                     <ProdutoForm
                       produto={produto}
