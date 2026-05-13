@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useShallow } from 'zustand/shallow';
 
 import type { Pedido } from '../../../../types/domain';
 import {
@@ -21,9 +20,29 @@ import {
   normalizePedStatus,
   type PedidoTab
 } from '../types';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { usePedidosQuery, usePedidosSummaryQuery, usePedidoMutations } from '../hooks/usePedidosQuery';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
+import { motion, type Variants } from 'framer-motion';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 10, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 300, damping: 30 }
+  }
+};
 
 const TABS: { id: PedidoTab; label: string }[] = [
   { id: 'emaberto', label: 'Em Aberto' },
@@ -101,8 +120,7 @@ type Props = {
   onRetry?: () => void;
 };
 
-export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
-  const summary = usePedidoStore((s) => s.summary);
+export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
   const activeTab = usePedidoStore((s) => s.activeTab);
   const setActiveTab = usePedidoStore((s) => s.setActiveTab);
   const filtro = usePedidoStore((s) => s.filtro);
@@ -110,21 +128,34 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
   const clearFiltro = usePedidoStore((s) => s.clearFiltro);
   const page = usePedidoStore((s) => s.page);
   const pageSize = usePedidoStore((s) => s.pageSize);
-  const total = usePedidoStore((s) => s.total);
   const setPage = usePedidoStore((s) => s.setPage);
   const setPageSize = usePedidoStore((s) => s.setPageSize);
-  const storeStatus = usePedidoStore((s) => s.status);
-  const storeError = usePedidoStore((s) => s.error);
-  const pedidos = usePedidoStore(useShallow((s) => s.pedidos));
-  const { avancarStatus, confirmarEntrega, cancelarPedido, reabrirPedido, inFlight } =
-    usePedidoMutations();
+  
+  // Queries
+  const { data: summaryData, isLoading: isLoadingSummary } = usePedidosSummaryQuery();
+  const { data: pedidosPage, isLoading: isLoadingPedidos, isError: isErrorPedidos, error: errorPedidos, refetch: refetchPedidos } = usePedidosQuery(
+    { ...filtro, tab: activeTab },
+    page,
+    pageSize
+  );
+
+  const { updateStatus, confirmarEntrega } = usePedidoMutations();
   const { trackEvent } = useAnalytics({ module: 'pedidos' });
 
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null);
   const [entregaTargetId, setEntregaTargetId] = useState<string | null>(null);
   const lastFilterKeyRef = useRef<string>('');
 
-  const stats = summary;
+  const summary = summaryData || {
+    total: 0,
+    emAbertoCount: 0,
+    valorEmAberto: 0,
+    entreguesCount: 0,
+    canceladosCount: 0
+  };
+
+  const pedidos = pedidosPage?.rows || [];
+  const total = pedidosPage?.total || 0;
 
   const tabCounts = useMemo(
     () => ({
@@ -132,7 +163,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
       entregues: summary.entreguesCount,
       cancelados: summary.canceladosCount
     }),
-    [summary.canceladosCount, summary.emAbertoCount, summary.entreguesCount]
+    [summary]
   );
 
   const cancelTarget = useMemo(
@@ -231,32 +262,37 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
       />
 
       {/* KPI Grid */}
-      <section className="rf-kpi-grid mb-2">
-        <article className="rf-kpi-card">
+      <motion.section 
+        className="rf-kpi-grid mb-2"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.article className="rf-kpi-card" variants={itemVariants}>
           <span className="rf-kpi-label">Total em pedidos</span>
-          <span className="rf-kpi-value">{stats.total}</span>
+          <span className="rf-kpi-value">{summary.total}</span>
           <span className="rf-kpi-sub muted">{total} filtrados no período</span>
-        </article>
-        <article className="rf-kpi-card">
+        </motion.article>
+        <motion.article className="rf-kpi-card" variants={itemVariants}>
           <span className="rf-kpi-label">Aguardando</span>
-          <span className={`rf-kpi-value ${stats.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
-            {stats.emAbertoCount}
+          <span className={`rf-kpi-value ${summary.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
+            {summary.emAbertoCount}
           </span>
-          <span className={`rf-kpi-sub ${stats.emAbertoCount > 0 ? 'warning' : 'success'}`}>
-            {fmtCurrency(stats.valorEmAberto)} em aberto
+          <span className={`rf-kpi-sub ${summary.emAbertoCount > 0 ? 'warning' : 'success'}`}>
+            {fmtCurrency(summary.valorEmAberto)} em aberto
           </span>
-        </article>
-        <article className="rf-kpi-card">
+        </motion.article>
+        <motion.article className="rf-kpi-card" variants={itemVariants}>
           <span className="rf-kpi-label">Concluídos</span>
-          <span className="rf-kpi-value !text-emerald-400">{stats.entreguesCount}</span>
+          <span className="rf-kpi-value !text-emerald-400">{summary.entreguesCount}</span>
           <span className="rf-kpi-sub success">Operação saudável</span>
-        </article>
-        <article className="rf-kpi-card">
+        </motion.article>
+        <motion.article className="rf-kpi-card" variants={itemVariants}>
           <span className="rf-kpi-label">Cancelados</span>
-          <span className="rf-kpi-value !text-rose-400">{stats.canceladosCount}</span>
+          <span className="rf-kpi-value !text-rose-400">{summary.canceladosCount}</span>
           <span className="rf-kpi-sub muted">Taxa de rejeição</span>
-        </article>
-      </section>
+        </motion.article>
+      </motion.section>
 
       {/* Control Center: Filters */}
       <div className="bg-slate-900 border border-white/5 rounded-xl p-4 shadow-sm flex flex-col gap-4">
@@ -318,13 +354,14 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
       />
     </div>
 
-    <DataTable
+    <motion.div variants={itemVariants}>
+      <DataTable
         className="pedidos-data-table"
         data={pedidos}
         rowKey={(pedido) => pedido.id}
-        loading={storeStatus === 'loading' || storeStatus === 'idle'}
-        error={storeStatus === 'error' ? (storeError ?? 'Erro ao carregar pedidos.') : undefined}
-        onRetry={onRetry}
+        loading={isLoadingPedidos || isLoadingSummary}
+        error={isErrorPedidos ? (errorPedidos instanceof Error ? errorPedidos.message : 'Erro ao carregar pedidos.') : undefined}
+        onRetry={refetchPedidos}
         emptyTitle={hasAnyFilter ? 'Nenhum resultado encontrado.' : 'Sem pedidos nesta aba.'}
         emptyDescription={
           hasAnyFilter
@@ -424,7 +461,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
           const isDeliveryAction =
             nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
           const isTerminal = status === 'concluido' || status === 'cancelado';
-          const isBusy = inFlight.has(pedido.id);
+          const isBusy = updateStatus.isPending || confirmarEntrega.isPending;
 
           return (
             <div className="flex items-center justify-end gap-2">
@@ -439,7 +476,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                       setEntregaTargetId(pedido.id);
                       return;
                     }
-                    void avancarStatus(pedido);
+                    updateStatus.mutate({ id: pedido.id, status: nextStatus });
                   }}
                   data-testid={`pedido-acao-avancar-${pedido.id}`}
                 >
@@ -469,7 +506,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                         {
                           key: 'reabrir',
                           label: 'Reabrir',
-                          onClick: () => void reabrirPedido(pedido)
+                          onClick: () => updateStatus.mutate({ id: pedido.id, status: 'orcamento' })
                         }
                       ]
                     : [])
@@ -480,29 +517,34 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
           );
         }}
       />
+    </motion.div>
 
       <PedidoCancelConfirmModal
         open={!!cancelTarget}
         pedido={cancelTarget}
-        submitting={cancelTarget ? inFlight.has(cancelTarget.id) : false}
+        submitting={updateStatus.isPending}
         onClose={() => {
-          if (!cancelTarget || !inFlight.has(cancelTarget.id)) setCancelTargetId(null);
+          if (!updateStatus.isPending) setCancelTargetId(null);
         }}
         onConfirm={() => {
           if (!cancelTarget) return;
-          void cancelarPedido(cancelTarget).then(() => setCancelTargetId(null));
+          updateStatus.mutate({ id: cancelTarget.id, status: 'cancelado' }, {
+            onSuccess: () => setCancelTargetId(null)
+          });
         }}
       />
       <PedidoEntregaConfirmModal
         open={!!entregaTarget}
         pedido={entregaTarget}
-        submitting={entregaTarget ? inFlight.has(entregaTarget.id) : false}
+        submitting={confirmarEntrega.isPending}
         onClose={() => {
-          if (!entregaTarget || !inFlight.has(entregaTarget.id)) setEntregaTargetId(null);
+          if (!confirmarEntrega.isPending) setEntregaTargetId(null);
         }}
         onConfirm={() => {
           if (!entregaTarget) return;
-          void confirmarEntrega(entregaTarget).then(() => setEntregaTargetId(null));
+          confirmarEntrega.mutate(entregaTarget.id, {
+            onSuccess: () => setEntregaTargetId(null)
+          });
         }}
       />
     </div>

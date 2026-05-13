@@ -3,10 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { buildProdutoRoute } from '../../../app/router/wave1Navigation';
 import { ProdutosPilotPage } from '../components/ProdutosPilotPage';
-import { useProdutoData } from '../hooks/useProdutoData';
 
 export function ProdutosRoutePage() {
-  const { reload } = useProdutoData();
   const navigate = useNavigate();
 
   const handleOpenProduto = useCallback(
@@ -16,5 +14,5 @@ export function ProdutosRoutePage() {
     [navigate]
   );
 
-  return <ProdutosPilotPage onRetryLoad={reload} onOpenProduto={handleOpenProduto} />;
+  return <ProdutosPilotPage onOpenProduto={handleOpenProduto} />;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import {
   Bar,
@@ -37,18 +37,15 @@ function PremiumChartTooltip({ active, payload, label, formatter }: any) {
 }
 
 import type { MovimentoEstoque, Produto } from '../../../../types/domain';
-import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { useAuthStore } from '../../../app/useAuthStore';
-import { useFilialStore } from '../../../app/useFilialStore';
 import { ChartCard, EmptyChartState } from '../../../app/components/charts';
-import { EmptyState, ErrorState, StatCard, StatusBadge, Button } from '../../../shared/ui';
+import { EmptyState, ErrorState, StatusBadge, Button, LoadingState } from '../../../shared/ui';
 import { markupToPrice } from '../hooks/useProdutoCalculations';
 import {
-  listMovimentacoesByProdutoIds,
-  listPedidoItensByProdutoIds,
-  listVariantesByPaiId,
-  type VendaVarianteRow
-} from '../services/produtosApi';
+  useVariantesQuery,
+  useMovimentacoesQuery,
+  useVendasVariantesQuery
+} from '../hooks/useProdutosQuery';
+import type { VendaVarianteRow } from '../services/produtosApi';
 import ReactCountUp from 'react-countup';
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
 import { Package, ShoppingCart, DollarSign, TrendingUp, Calendar, Info } from 'lucide-react';
@@ -134,7 +131,6 @@ function calcSaldos(variantes: Produto[], movs: MovimentoEstoque[], from: string
     map[p.id] = Number(p.esal ?? 0);
   });
 
-  // Limitação atual: não há estoque_posicao histórica; usamos posição atual ajustada por movimentos do período.
   [...movs]
     .filter((m) => !m.data || m.data >= from)
     .sort((a, b) => Number(a.ts ?? 0) - Number(b.ts ?? 0))
@@ -205,12 +201,6 @@ function fmtCurrency(v: number): string {
 
 function fmtPercent(value: number | null): string {
   return value === null ? '—' : `${value.toFixed(1)}%`;
-}
-
-function fmtDays(value: number | null): string {
-  if (value === null) return '—';
-  if (value === 0) return '0 dias';
-  return `${value.toFixed(1)} dias`;
 }
 
 function stockTone(saldo: number, emin: number): 'danger' | 'warning' | 'success' {
@@ -418,82 +408,20 @@ type Props = {
 };
 
 export function ProdutoVariantesTab({ produto }: Props) {
-  const session = useAuthStore((s) => s.session);
-  const filialId = useFilialStore((s) => s.filialId);
-
-  const [variantes, setVariantes] = useState<Produto[]>([]);
-  const [movs, setMovs] = useState<MovimentoEstoque[]>([]);
-  const [vendas, setVendas] = useState<VendaVarianteRow[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>(90);
-  const [loading, setLoading] = useState(true);
-  const [loadingVendas, setLoadingVendas] = useState(false);
-  const [vendasDisponiveis, setVendasDisponiveis] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const range = useMemo(() => getDateRange(periodo), [periodo]);
   const periodConfig = PERIOD_CONFIG[periodo];
 
-  useEffect(() => {
-    const config = getSupabaseConfig();
-    if (!config.ready || !session?.access_token || !filialId) return;
-    const ctx = { url: config.url, key: config.key, token: session.access_token, filialId };
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    void listVariantesByPaiId(ctx, produto.id)
-      .then(async (rows) => {
-        if (cancelled) return;
-        setVariantes(rows);
-        if (rows.length) {
-          const ids = rows.map((v) => v.id);
-          const movimentacoes = await listMovimentacoesByProdutoIds(ctx, ids);
-          if (!cancelled) setMovs(movimentacoes);
-        }
-        setLoading(false);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Erro ao carregar variantes.');
-        setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [produto.id, session?.access_token, filialId]);
-
-  useEffect(() => {
-    if (!variantes.length) return;
-    const config = getSupabaseConfig();
-    if (!config.ready || !session?.access_token || !filialId) return;
-    const ctx = { url: config.url, key: config.key, token: session.access_token, filialId };
-    let cancelled = false;
-    setLoadingVendas(true);
-    setVendasDisponiveis(true);
-
-    void listPedidoItensByProdutoIds(
-      ctx,
-      variantes.map((v) => v.id),
-      range.from,
-      range.to
-    )
-      .then((rows) => {
-        if (cancelled) return;
-        setVendas(rows);
-        setLoadingVendas(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setVendas([]);
-        setVendasDisponiveis(false);
-        setLoadingVendas(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [variantes, range.from, range.to, session?.access_token, filialId]);
+  const { data: variantes = [], isLoading: loadingVariantes, error: errorVariantes } = useVariantesQuery(produto.id);
+  
+  const varianteIds = useMemo(() => variantes.map(v => v.id), [variantes]);
+  
+  const { data: movs = [], isLoading: loadingMovs } = useMovimentacoesQuery(varianteIds);
+  const { data: vendas = [], isLoading: loadingVendas, isError: isErrorVendas } = useVendasVariantesQuery(
+    varianteIds, 
+    range.from, 
+    range.to
+  );
 
   const saldos = useMemo(() => calcSaldos(variantes, movs, range.from), [variantes, movs, range.from]);
   const vendaAgg = useMemo(() => aggregateVendas(variantes, vendas), [variantes, vendas]);
@@ -560,31 +488,11 @@ export function ProdutoVariantesTab({ produto }: Props) {
     [metrics]
   );
 
-  const periodSelector = (
-    <div className="produto-variant-periods">
-      {PERIODOS.map((p) => (
-        <button
-          key={p}
-          type="button"
-          className={`btn btn-sm${periodo === p ? ' btn-p' : ''}`}
-          onClick={() => setPeriodo(p)}
-          disabled={loadingVendas}
-        >
-          {PERIOD_CONFIG[p].label}
-        </button>
-      ))}
-    </div>
-  );
-
-  if (loading) {
-    return (
-      <section className="rf-cliente-profile__card">
-        <p className="table-cell-muted">Carregando variantes...</p>
-      </section>
-    );
+  if (loadingVariantes) {
+    return <LoadingState title="Carregando variantes..." />;
   }
 
-  if (error) return <ErrorState title={error} compact />;
+  if (errorVariantes) return <ErrorState title={errorVariantes instanceof Error ? errorVariantes.message : 'Erro ao carregar variantes'} compact />;
 
   if (!variantes.length) {
     return (
@@ -607,10 +515,10 @@ export function ProdutoVariantesTab({ produto }: Props) {
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold text-white tracking-tight">Variantes ({variantes.length})</h3>
-            {!vendasDisponiveis && (
+            {isErrorVendas && (
               <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/10">
                 <Info size={10} />
-                <span className="text-[9px] font-black uppercase">Homologando vendas</span>
+                <span className="text-[9px] font-black uppercase">Vendas indisponíveis</span>
               </div>
             )}
           </div>

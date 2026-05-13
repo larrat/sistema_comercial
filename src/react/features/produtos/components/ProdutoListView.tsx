@@ -7,15 +7,13 @@ import {
   EmptyState,
   StatusBadge,
   Button,
-  Badge,
-  type DataTableColumn
+  Badge
 } from '../../../shared/ui';
 import { Package } from 'lucide-react';
 import type { StatusBadgeTone } from '../../../shared/ui/StatusBadge';
 
 type Props = {
   produtos: Produto[];
-  saldos: Record<string, ProdutoSaldo>;
   totalCount: number;
   hasFilters?: boolean;
   page: number;
@@ -33,10 +31,6 @@ type ItemOrdenado = {
   prod: Produto;
   isPai: boolean;
   isVariante: boolean;
-};
-
-type ProdutoRow = ItemOrdenado & {
-  saldo: ProdutoSaldo;
 };
 
 function buildOrdem(produtos: Produto[]): ItemOrdenado[] {
@@ -106,96 +100,8 @@ function calcPrecos(p: Produto) {
   return { varejo, atacado };
 }
 
-function buildRows(produtos: Produto[], saldos: Record<string, ProdutoSaldo>): ProdutoRow[] {
-  return buildOrdem(produtos).map((item) => ({
-    ...item,
-    saldo: saldos[item.prod.id] ?? { saldo: 0, cm: 0 }
-  }));
-}
-
-function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
-  return [
-    {
-      key: 'nome',
-      label: 'Produto',
-      render: ({ prod, isPai, isVariante }) => (
-        <div className={`flex items-center gap-2 ${isPai ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
-          {isVariante ? (
-            <span className="text-slate-400 select-none" aria-hidden="true">
-              ↳
-            </span>
-          ) : null}
-          <span className="truncate">{prod.nome}</span>
-          {isPai ? (
-            <Badge variant="slate" className="text-[10px]">
-              Família
-            </Badge>
-          ) : null}
-        </div>
-      )
-    },
-    {
-      key: 'sku',
-      label: 'SKU',
-      render: ({ prod }) => <span className="table-cell-muted">{prod.sku || '—'}</span>
-    },
-    {
-      key: 'categoria',
-      label: 'Categoria',
-      render: ({ prod }) => (prod.cat ? <Badge variant="slate">{prod.cat}</Badge> : '—')
-    },
-    {
-      key: 'precos',
-      label: 'Preços',
-      render: ({ prod }) => {
-        const { varejo, atacado } = calcPrecos(prod);
-        return (
-          <div className="flex flex-col gap-0.5">
-            <div className="text-[15px] font-bold text-slate-900">
-              {varejo > 0 ? fmt(varejo) : '—'}
-            </div>
-            <div className="text-[11px] font-medium text-slate-400">
-              Atacado: {atacado > 0 ? fmt(atacado) : '—'}
-            </div>
-          </div>
-        );
-      }
-    },
-    {
-      key: 'estoque',
-      label: 'Estoque',
-      render: ({ prod, saldo }) => {
-        const emin = prod.emin ?? 0;
-        return (
-          <div className="flex flex-col gap-0.5">
-            <div className="text-sm font-bold text-slate-900">
-              {fmtQ(saldo.saldo)} <span className="text-xs font-normal text-slate-400">{prod.un}</span>
-            </div>
-            <div className="text-[11px] text-slate-400">
-              Mín: {emin > 0 ? `${fmtQ(emin)} ${prod.un}` : '—'}
-            </div>
-          </div>
-        );
-      }
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      render: ({ prod, saldo }) => {
-        const emin = prod.emin ?? 0;
-        return (
-          <StatusBadge tone={stockTone(saldo.saldo, emin)}>
-            {stockLabel(saldo.saldo, emin)}
-          </StatusBadge>
-        );
-      }
-    }
-  ];
-}
-
 export function ProdutoListView({
   produtos,
-  saldos,
   totalCount,
   hasFilters,
   page,
@@ -208,14 +114,11 @@ export function ProdutoListView({
   onMovimentar,
   onRemover
 }: Props) {
-  const rows = buildRows(produtos, saldos);
-  const columns = buildColumns();
+  const rows = buildOrdem(produtos);
 
   return (
     <DataTable
-      className="produtos-data-table"
       data={rows}
-      rowKey={(row) => row.prod.id}
       page={page}
       pageSize={pageSize}
       total={totalCount}
@@ -237,10 +140,86 @@ export function ProdutoListView({
         </Button>
       }
       onRowClick={(row) => onDetalhe(row.prod.id)}
-      getRowClassName={(row) => 
-        `rf-ui-data-table__row--premium ${row.isVariante ? 'rf-ui-data-table__row--nested' : ''}`
-      }
-      columns={columns}
+      columns={[
+        {
+          key: 'nome',
+          label: 'Produto',
+          sortable: true,
+          render: (row) => (
+            <div className={`flex items-center gap-2 ${row.isPai ? 'font-bold text-slate-100' : 'font-medium text-slate-300'}`}>
+              {row.isVariante ? (
+                <span className="text-slate-500 select-none" aria-hidden="true">
+                  ↳
+                </span>
+              ) : null}
+              <span className="truncate">{row.prod.nome}</span>
+              {row.isPai ? (
+                <Badge variant="slate" className="text-[10px]">
+                  Família
+                </Badge>
+              ) : null}
+            </div>
+          )
+        },
+        {
+          key: 'sku',
+          label: 'SKU',
+          render: (row) => <span className="text-slate-400">{row.prod.sku || '—'}</span>
+        },
+        {
+          key: 'categoria',
+          label: 'Categoria',
+          render: (row) => (row.prod.cat ? <Badge variant="slate">{row.prod.cat}</Badge> : '—')
+        },
+        {
+          key: 'precos',
+          label: 'Preços',
+          render: (row) => {
+            const { varejo, atacado } = calcPrecos(row.prod);
+            return (
+              <div className="flex flex-col gap-0.5">
+                <div className="text-[15px] font-bold text-slate-100">
+                  {varejo > 0 ? fmt(varejo) : '—'}
+                </div>
+                <div className="text-[11px] font-medium text-slate-500">
+                  Atacado: {atacado > 0 ? fmt(atacado) : '—'}
+                </div>
+              </div>
+            );
+          }
+        },
+        {
+          key: 'estoque',
+          label: 'Estoque',
+          render: (row) => {
+            const emin = row.prod.emin ?? 0;
+            const saldo = row.prod.esal ?? 0;
+            return (
+              <div className="flex flex-col gap-0.5">
+                <div className="text-sm font-bold text-slate-100">
+                  {fmtQ(saldo)} <span className="text-xs font-normal text-slate-500">{row.prod.un}</span>
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Mín: {emin > 0 ? `${fmtQ(emin)} ${row.prod.un}` : '—'}
+                </div>
+              </div>
+            );
+          }
+        },
+        {
+          key: 'status',
+          label: 'Status',
+          render: (row) => {
+            const emin = row.prod.emin ?? 0;
+            const saldo = row.prod.esal ?? 0;
+            return (
+              <StatusBadge tone={stockTone(saldo, emin)}>
+                {stockLabel(saldo, emin)}
+              </StatusBadge>
+            );
+          }
+        }
+      ]}
       renderActions={(row) => (
         <ActionMenu
           label="Ações do produto"
@@ -268,7 +247,6 @@ export function ProdutoListView({
 
 export function ProdutoListMobile({
   produtos,
-  saldos,
   totalCount,
   hasFilters,
   page,
@@ -308,7 +286,7 @@ export function ProdutoListMobile({
     <div className="rf-ui-stack">
       {ordenados.map(({ prod: p, isPai, isVariante }) => {
         const { varejo, atacado } = calcPrecos(p);
-        const s = saldos[p.id] ?? { saldo: 0, cm: 0 };
+        const saldo = p.esal ?? 0;
         const emin = p.emin ?? 0;
 
         return (
@@ -338,7 +316,7 @@ export function ProdutoListMobile({
                   {p.cat ? ` · ${p.cat}` : ''}
                 </div>
               </div>
-              <StatusBadge tone={stockTone(s.saldo, emin)}>{stockLabel(s.saldo, emin)}</StatusBadge>
+              <StatusBadge tone={stockTone(saldo, emin)}>{stockLabel(saldo, emin)}</StatusBadge>
             </div>
 
             <div className="mobile-card-meta">
@@ -356,14 +334,14 @@ export function ProdutoListMobile({
                 <b
                   style={{
                     color:
-                      s.saldo <= 0
+                      saldo <= 0
                         ? 'var(--r)'
-                        : emin > 0 && s.saldo < emin
+                        : emin > 0 && saldo < emin
                           ? 'var(--a)'
                           : 'var(--tx)'
                   }}
                 >
-                  {fmtQ(s.saldo)} {p.un}
+                  {fmtQ(saldo)} {p.un}
                 </b>
                 {emin > 0 ? ` · min. ${fmtQ(emin)}` : ''}
               </div>

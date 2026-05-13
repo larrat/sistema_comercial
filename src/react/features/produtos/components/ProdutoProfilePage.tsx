@@ -5,20 +5,14 @@ import {
   Zap,
   DollarSign,
   Share2,
-  MoreHorizontal,
   Clock,
-  CheckCircle2,
-  AlertCircle,
   Camera,
   ChevronLeft,
   Package,
-  Settings,
   TrendingUp,
   Layers,
   Database,
-  ArrowUpRight,
   History,
-  ShieldCheck,
   Info
 } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
@@ -27,12 +21,13 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
-import { EmptyState, ErrorState, FormError, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
+import { ErrorState, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
-import { useProdutoMutations } from '../hooks/useProdutoMutations';
+import { useProdutoMutations } from '../hooks/useProdutosQuery';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
 import { ProdutoForm } from './ProdutoForm';
 import { ProdutoVariantesTab } from './ProdutoVariantesTab';
+import { toast } from 'sonner';
 
 type ProdutoProfileTab = 'resumo' | 'precificacao' | 'estoque' | 'cadastro' | 'variantes';
 
@@ -82,13 +77,6 @@ function formatQuantity(value: number): string {
 
 function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
-}
-
-function getInitials(nome: string) {
-  const parts = nome.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
 function getStockStatus(produto: Produto, saldo: ProdutoSaldo): { label: string; tone: string } {
@@ -143,64 +131,6 @@ function buildKpis(produto: Produto, saldo: ProdutoSaldo): KpiCard[] {
   ];
 }
 
-function formValuesToProduto(
-  values: ProdutoFormValues,
-  filialId: string | null | undefined,
-  existing: Produto
-): Produto {
-  const custo = parseFloat(values.custo) || 0;
-  const precoVarejo = parseFloat(values.precoVarejo) || 0;
-  const mkv =
-    precoVarejo > 0 && custo > 0
-      ? (precoVarejo / custo - 1) * 100
-      : parseFloat(values.markupVarejo) || 0;
-
-  return {
-    ...existing,
-    id: values.id || existing.id,
-    filial_id: filialId || existing.filial_id,
-    produto_pai_id: values.produto_pai_id || null,
-    nome: values.nome.trim(),
-    sku: values.sku.trim() || null,
-    un: values.un || 'un',
-    cat: values.cat.trim() || null,
-    custo,
-    mkv,
-    mka: parseFloat(values.markupAtacado) || 0,
-    pfa: parseFloat(values.precoFixoAtacado) || 0,
-    dv: parseFloat(values.descontoVarejo) || 0,
-    da: parseFloat(values.descontoAtacado) || 0,
-    qtmin: parseFloat(values.qtmin) || 0,
-    emin: parseFloat(values.emin) || 0,
-    esal: parseFloat(values.esal) || 0,
-    ecm: parseFloat(values.ecm) || custo,
-    hist_cot: existing.hist_cot ?? []
-  };
-}
-
-function Toast({ message, type, onClear }: { message: string, type: 'success' | 'error', onClear: () => void }) {
-  useEffect(() => {
-    const timer = setTimeout(onClear, 4000);
-    return () => clearTimeout(timer);
-  }, [onClear]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-      className={`fixed bottom-8 right-8 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${
-        type === 'success' 
-          ? 'bg-emerald-900/90 border-emerald-500/30 text-emerald-50' 
-          : 'bg-rose-900/90 border-rose-500/30 text-rose-50'
-      }`}
-    >
-      {type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <AlertCircle className="w-5 h-5 text-rose-400" />}
-      <span className="text-sm font-bold tracking-tight">{message}</span>
-    </motion.div>
-  );
-}
-
 function Confetti() {
   const particles = Array.from({ length: 40 });
   return (
@@ -239,20 +169,16 @@ export function ProdutoProfilePage({
   saldo = { saldo: 0, cm: 0, ult: null },
   loadingProduto = false,
   error = null,
-  onProdutoSaved,
   onReload
 }: Props) {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingCadastro, setEditingCadastro] = useState(searchParams.get('edit') === '1');
   const [showConfetti, setShowConfetti] = useState(false);
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-  const {
-    submitProduto,
-    submitCascadeRename,
-    submitCascadeFilhos,
-    saving,
-    error: mutationError
+  
+  const { 
+    save: saveMutation, 
+    cascadeRename: renameMutation, 
+    cascadeUpdate: updateMutation 
   } = useProdutoMutations();
   
   const formRef = useRef<HTMLDivElement>(null);
@@ -276,7 +202,7 @@ export function ProdutoProfilePage({
 
   useEffect(() => {
     if (editingCadastro && formRef.current) {
-      const offset = 100; // Espaço para não colar no topo
+      const offset = 100;
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = formRef.current.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -310,49 +236,48 @@ export function ProdutoProfilePage({
     setEditingCadastro(true);
   }
 
-  async function handleSalvar(values: ProdutoFormValues) {
+  async function handleSalvar(values: any) {
     const novoNome = values.nome.trim();
     const nomeAlterado = novoNome !== produto.nome;
     const catAlterada = (values.cat || '').trim() !== (produto.cat || '');
     const unAlterada = (values.un || '').trim() !== (produto.un || '');
     
-    const saved = await submitProduto(formValuesToProduto(values, produto.filial_id, produto));
-    
-    if (nomeAlterado) {
-      const devePropagar = window.confirm(
-        `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
-      );
-      if (devePropagar) {
-        await submitCascadeRename(produto.id, novoNome);
-      }
-    }
+    saveMutation.mutate({ ...values, id: produto.id, filial_id: produto.filial_id }, {
+      onSuccess: async () => {
+        if (nomeAlterado) {
+          const devePropagar = window.confirm(
+            `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
+          );
+          if (devePropagar) {
+            await renameMutation.mutateAsync({ id: produto.id, novoNome });
+          }
+        }
 
-    if (!produto.produto_pai_id && (catAlterada || unAlterada)) {
-      const devePropagarFilhos = window.confirm(
-        `A classificação do produto foi alterada. Deseja replicar a Categoria e Unidade para todas as variantes (filhos)?`
-      );
-      if (devePropagarFilhos) {
-        await submitCascadeFilhos(produto.id, {
-          cat: values.cat?.trim() || null,
-          un: values.un?.trim() || 'un'
+        if (!produto.produto_pai_id && (catAlterada || unAlterada)) {
+          const devePropagarFilhos = window.confirm(
+            `A classificação do produto foi alterada. Deseja replicar a Categoria e Unidade para todas as variantes (filhos)?`
+          );
+          if (devePropagarFilhos) {
+            await updateMutation.mutateAsync({ 
+              id: produto.id, 
+              data: { cat: values.cat?.trim() || null, un: values.un?.trim() || 'un' } 
+            });
+          }
+        }
+
+        setEditingCadastro(false);
+        setSearchParams((current) => {
+          const next = new URLSearchParams(current);
+          next.set('tab', 'cadastro');
+          next.delete('edit');
+          return next;
         });
+
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2000);
+        onReload?.();
       }
-    }
-
-    setEditingCadastro(false);
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      next.set('tab', 'cadastro');
-      next.delete('edit');
-      return next;
     });
-
-    setToast({ message: 'Produto atualizado com sucesso!', type: 'success' });
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 2000);
-
-    onProdutoSaved?.(saved);
-    onReload?.();
   }
 
   if (loadingProduto) {
@@ -375,7 +300,6 @@ export function ProdutoProfilePage({
       className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8"
       data-testid="produto-profile-page"
     >
-      {/* Top Header / Breadcrumb */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Link to="/app/produtos" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
@@ -414,13 +338,11 @@ export function ProdutoProfilePage({
       </div>
 
       <AnimatePresence>
-        {toast && <Toast message={toast.message} type={toast.type} onClear={() => setToast(null)} />}
         {showConfetti && <Confetti />}
       </AnimatePresence>
 
       {error ? <ErrorState title={error} compact onRetry={onReload} /> : null}
 
-      {/* Hero Section */}
       <section className="flex items-center gap-8">
         <div className="w-28 h-28 rounded-3xl bg-slate-900 shadow-2xl border border-white/5 flex items-center justify-center relative overflow-hidden group cursor-pointer">
           <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-blue-600 opacity-0 group-hover:opacity-90 transition-all duration-500 flex flex-col items-center justify-center text-white gap-2">
@@ -537,7 +459,6 @@ export function ProdutoProfilePage({
         })}
       </section>
 
-      {/* Premium Tabs */}
       <nav className="rf-tabs-premium" ref={formRef}>
         {profileTabs.map(tab => (
           <button
@@ -556,7 +477,6 @@ export function ProdutoProfilePage({
         ))}
       </nav>
 
-      {/* Tab Content with AnimatePresence */}
       <section className="min-h-[500px]">
         <AnimatePresence mode="wait">
           <motion.div
@@ -568,7 +488,6 @@ export function ProdutoProfilePage({
           >
             {activeTab === 'resumo' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Coluna 1: Domínio Financeiro */}
                 <div className="flex flex-col gap-8">
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
@@ -673,7 +592,6 @@ export function ProdutoProfilePage({
                   </article>
                 </div>
 
-                {/* Coluna 2: Domínio Operacional */}
                 <div className="flex flex-col gap-8">
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
@@ -727,7 +645,6 @@ export function ProdutoProfilePage({
                   </article>
                 </div>
 
-                {/* Coluna 3: Domínio de Inteligência */}
                 <aside className="flex flex-col gap-8">
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
@@ -747,8 +664,8 @@ export function ProdutoProfilePage({
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          <span>Eficiência de Giro</span>
-                          <span className="text-blue-400">65%</span>
+                           <span>Eficiência de Giro</span>
+                           <span className="text-blue-400">65%</span>
                         </div>
                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                           <motion.div 
@@ -809,7 +726,6 @@ export function ProdutoProfilePage({
                 </aside>
               </div>
             )}
-
 
             {activeTab === 'estoque' && (
               <article className="rf-dash-card">
@@ -877,8 +793,8 @@ export function ProdutoProfilePage({
           <ProdutoForm
             produto={produto}
             pais={pais}
-            saving={saving}
-            error={mutationError}
+            saving={saveMutation.isPending}
+            error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
             onSalvar={(values) => void handleSalvar(values)}
             onCancelar={() => {
               setEditingCadastro(false);

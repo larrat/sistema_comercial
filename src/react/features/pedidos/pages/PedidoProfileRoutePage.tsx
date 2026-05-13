@@ -2,14 +2,15 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { PedidoProfilePage } from '../components/PedidoProfilePage';
-import { usePedidoProfile } from '../hooks/usePedidoProfile';
+import { usePedidoQuery, usePedidoFinanceiroQuery } from '../hooks/usePedidosQuery';
 import { Button, ErrorState, EmptyState, LoadingState } from '../../../shared/ui';
 
 export function PedidoProfileRoutePage() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
   const navigate = useNavigate();
-  const { pedido, financeiro, loading, error, reload, reloadFinanceiro, setPedido } =
-    usePedidoProfile(pedidoId);
+  
+  const { data: pedido, isLoading: isLoadingPedido, isError: isErrorPedido, error: errorPedido, refetch: refetchPedido } = usePedidoQuery(pedidoId);
+  const { data: financeiro, isLoading: isLoadingFinanceiro, refetch: refetchFinanceiro } = usePedidoFinanceiroQuery(pedidoId);
 
   const handleBack = useCallback(() => {
     navigate('/app/pedidos');
@@ -33,20 +34,20 @@ export function PedidoProfileRoutePage() {
     );
   }
 
-  if (!pedido && error) {
+  if (isErrorPedido) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <ErrorState
-            title={error ?? 'Erro ao carregar pedido.'}
+            title={errorPedido instanceof Error ? errorPedido.message : 'Erro ao carregar pedido.'}
             description="Não foi possível recuperar os dados deste pedido no momento."
-            onRetry={() => void reload()}
+            onRetry={() => void refetchPedido()}
             action={
               <div className="flex items-center gap-3 mt-4">
                 <Button variant="secondary" size="sm" onClick={handleBack}>
                   Voltar para pedidos
                 </Button>
-                <Button size="sm" onClick={() => void reload()}>
+                <Button size="sm" onClick={() => void refetchPedido()}>
                   Tentar novamente
                 </Button>
               </div>
@@ -57,7 +58,7 @@ export function PedidoProfileRoutePage() {
     );
   }
 
-  if (!pedido) {
+  if (isLoadingPedido || !pedido) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
         <LoadingState
@@ -71,12 +72,13 @@ export function PedidoProfileRoutePage() {
   return (
     <PedidoProfilePage
       pedido={pedido}
-      financeiro={financeiro}
-      loadingPedido={loading}
-      _error={error}
-      onPedidoChanged={setPedido}
-      _onReload={reload}
-      onReloadFinanceiro={reloadFinanceiro}
+      financeiro={{
+        conta: financeiro?.conta ?? null,
+        baixas: financeiro?.baixas ?? [],
+        loading: isLoadingFinanceiro,
+        error: null
+      }}
+      onReloadFinanceiro={async () => { await refetchFinanceiro(); }}
     />
   );
 }

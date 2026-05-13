@@ -1,4 +1,11 @@
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  createColumnHelper,
+  type ColumnDef
+} from '@tanstack/react-table';
 import { EmptyState } from './EmptyState';
 import { ErrorState } from './ErrorState';
 import { Button } from './Button';
@@ -71,77 +78,82 @@ export function DataTable<Row>({
   sortDir,
   onSort
 }: DataTableProps<Row>) {
-  const tableRows = data ?? rows;
-  const hasActions = Boolean(renderActions);
-  const tableColumns = hasActions
-    ? [...columns, { key: '__actions__', label: 'Ações', align: 'right' as const }]
-    : columns;
+  const tableData = useMemo(() => data ?? rows, [data, rows]);
 
-  function getHeaderLabel(column: DataTableColumn<Row> | { key: string; label?: ReactNode }) {
-    if ('header' in column) return column.header ?? column.label ?? '';
-    return column.label ?? '';
-  }
+  const tableColumns = useMemo(() => {
+    const cols: ColumnDef<Row, any>[] = columns.map((col) => ({
+      id: col.key,
+      header: () => col.header ?? col.label ?? '',
+      cell: (info) => col.render(info.row.original),
+      meta: {
+        align: col.align,
+        width: col.width,
+        className: col.className,
+        sortable: col.sortable
+      }
+    }));
 
-  function handleSort(key: string) {
-    if (!onSort) return;
-    const nextDir = sortKey === key && sortDir === 'asc' ? 'desc' : 'asc';
-    onSort(key, nextDir);
-  }
+    if (renderActions) {
+      cols.push({
+        id: '__actions__',
+        header: () => 'Ações',
+        cell: (info) => renderActions(info.row.original, info.row.index),
+        meta: {
+          align: 'right',
+          width: '80px'
+        }
+      });
+    }
+
+    return cols;
+  }, [columns, renderActions]);
+
+  const table = useReactTable({
+    data: tableData,
+    columns: tableColumns,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    manualSorting: true,
+  });
 
   const hasPagination =
     typeof page === 'number' &&
     typeof pageSize === 'number' &&
     typeof total === 'number' &&
     typeof onPageChange === 'function';
-  const safePage = Math.max(1, page ?? 1);
-  const safePageSize = Math.max(1, pageSize ?? (tableRows.length || 1));
-  const totalItems = Math.max(0, total ?? tableRows.length);
-  const totalPages = Math.max(1, Math.ceil(totalItems / safePageSize));
-  const fromItem = totalItems === 0 ? 0 : (safePage - 1) * safePageSize + 1;
-  const toItem = totalItems === 0 ? 0 : Math.min(totalItems, safePage * safePageSize);
 
-  function goToPage(nextPage: number) {
-    if (!hasPagination) return;
-    const clampedPage = Math.min(Math.max(1, nextPage), totalPages);
-    if (clampedPage !== safePage) onPageChange?.(clampedPage);
-  }
+  const safePageSize = pageSize ?? (tableData.length || 1);
+  const totalItems = total ?? tableData.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / safePageSize));
+  const fromItem = totalItems === 0 ? 0 : ((page ?? 1) - 1) * safePageSize + 1;
+  const toItem = totalItems === 0 ? 0 : Math.min(totalItems, (page ?? 1) * safePageSize);
 
   const containerClass = [
     'rf-ui-data-table',
     density === 'compact' ? 'rf-ui-data-table--compact' : '',
     className ?? ''
-  ]
-    .filter(Boolean)
-    .join(' ');
+  ].filter(Boolean).join(' ');
 
   if (loading) {
     return (
       <div className={containerClass}>
         <table className="tbl">
           <thead>
-            <tr>
-              {tableColumns.map((column) => (
-                <th
-                  key={column.key}
-                  className={'className' in column ? column.className : undefined}
-                  scope="col"
-                  style={{
-                    width: 'width' in column ? column.width : undefined,
-                    textAlign: column.align ?? 'left'
-                  }}
-                >
-                  {getHeaderLabel(column)}
-                </th>
-              ))}
-            </tr>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <th key={header.id} style={{ textAlign: (header.column.columnDef.meta as any)?.align ?? 'left' }}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
           </thead>
           <tbody>
             {Array.from({ length: skeletonRows }).map((_, i) => (
               <tr key={i}>
-                {tableColumns.map((column) => (
-                  <td key={column.key}>
-                    <div className="sk-line" />
-                  </td>
+                {tableColumns.map((col, j) => (
+                  <td key={j}><div className="sk-line" /></td>
                 ))}
               </tr>
             ))}
@@ -151,142 +163,89 @@ export function DataTable<Row>({
     );
   }
 
-  if (error) {
-    return (
-      <ErrorState title={error} onRetry={onRetry} compact />
-    );
-  }
-
-  if (!tableRows.length) {
-    return (
-      <EmptyState
-        icon={emptyIcon}
-        title={emptyTitle}
-        description={emptyDescription}
-        action={emptyAction}
-      />
-    );
-  }
+  if (error) return <ErrorState title={error} onRetry={onRetry} compact />;
+  if (!tableData.length) return <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} action={emptyAction} />;
 
   return (
     <div className={containerClass}>
       <table className="tbl">
         <thead>
-          <tr>
-            {tableColumns.map((column) => {
-              const isSortable = 'sortable' in column && column.sortable && Boolean(onSort);
-              return (
-                <th
-                  key={column.key}
-                  className={'className' in column ? column.className : undefined}
-                  scope="col"
-                  style={{
-                    width: 'width' in column ? column.width : undefined,
-                    textAlign: column.align ?? 'left',
-                    cursor: isSortable ? 'pointer' : undefined,
-                    userSelect: isSortable ? 'none' : undefined
-                  }}
-                  onClick={isSortable ? () => handleSort(column.key) : undefined}
-                  aria-sort={
-                    isSortable && sortKey === column.key
-                      ? sortDir === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : undefined
-                  }
-                >
-                  {getHeaderLabel(column)}
-                  {isSortable ? (
-                    <span className="rf-ui-data-table__sort-icon" aria-hidden="true">
-                      {sortKey === column.key ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
-                    </span>
-                  ) : null}
-                </th>
-              );
-            })}
-          </tr>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => {
+                const meta = header.column.columnDef.meta as any;
+                const isSortable = meta?.sortable && Boolean(onSort);
+                return (
+                  <th
+                    key={header.id}
+                    style={{
+                      width: meta?.width,
+                      textAlign: meta?.align ?? 'left',
+                      cursor: isSortable ? 'pointer' : undefined,
+                      userSelect: isSortable ? 'none' : undefined
+                    }}
+                    onClick={isSortable ? () => {
+                      const nextDir = sortKey === header.id && sortDir === 'asc' ? 'desc' : 'asc';
+                      onSort?.(header.id, nextDir);
+                    } : undefined}
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {isSortable && (
+                      <span className="rf-ui-data-table__sort-icon">
+                        {sortKey === header.id ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                      </span>
+                    )}
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
         </thead>
         <tbody>
-          {tableRows.map((row, index) => (
+          {table.getRowModel().rows.map(row => (
             <tr
-              key={rowKey ? rowKey(row, index) : String((row as { id?: string }).id ?? index)}
-              onClick={onRowClick ? () => onRowClick(row, index) : undefined}
-              onKeyDown={
-                onRowClick
-                  ? (event) => {
-                      if (event.key === 'Enter' || event.key === ' ') onRowClick(row, index);
-                    }
-                  : undefined
-              }
-              role={onRowClick ? 'button' : undefined}
-              tabIndex={onRowClick ? 0 : undefined}
+              key={row.id}
+              onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
+              className={getRowClassName ? getRowClassName(row.original, row.index) : undefined}
               style={onRowClick ? { cursor: 'pointer' } : undefined}
-              className={getRowClassName ? getRowClassName(row, index) : undefined}
             >
-              {columns.map((column) => (
-                <td
-                  key={column.key}
-                  className={column.className}
-                  style={{ textAlign: column.align ?? 'left' }}
+              {row.getVisibleCells().map(cell => (
+                <td 
+                  key={cell.id} 
+                  style={{ textAlign: (cell.column.columnDef.meta as any)?.align ?? 'left' }}
+                  className={(cell.column.columnDef.meta as any)?.className}
                 >
-                  {column.render(row)}
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
-              {renderActions ? (
-                <td
-                  style={{ textAlign: 'right' }}
-                  onClick={(event) => event.stopPropagation()}
-                  onMouseDown={(event) => event.stopPropagation()}
-                >
-                  {renderActions(row, index)}
-                </td>
-              ) : null}
             </tr>
           ))}
         </tbody>
       </table>
-      {hasPagination ? (
+
+      {hasPagination && (
         <div className="rf-ui-data-table__pagination">
           <div className="rf-ui-data-table__pagination-meta">
             {fromItem}-{toItem} de {totalItems}
           </div>
           <div className="rf-ui-data-table__pagination-controls">
-            {onPageSizeChange ? (
+            {onPageSizeChange && (
               <select
                 className="rf-input-premium !h-8 !py-0 !text-xs !pr-8 !w-auto cursor-pointer"
                 value={safePageSize}
-                onChange={(event) => onPageSizeChange(Number(event.target.value))}
-                aria-label="Itens por página"
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
               >
-                {pageSizeOptions.map((size) => (
-                  <option key={size} value={size}>
-                    {size} / página
-                  </option>
+                {pageSizeOptions.map(size => (
+                  <option key={size} value={size}>{size} / página</option>
                 ))}
               </select>
-            ) : null}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => goToPage(safePage - 1)}
-              disabled={safePage <= 1}
-            >
-              Anterior
-            </Button>
-            <span className="rf-ui-data-table__pagination-page">
-              Página {safePage} de {totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => goToPage(safePage + 1)}
-              disabled={safePage >= totalPages}
-            >
-              Próxima
-            </Button>
+            )}
+            <Button variant="secondary" size="sm" onClick={() => onPageChange?.((page ?? 1) - 1)} disabled={(page ?? 1) <= 1}>Anterior</Button>
+            <span className="rf-ui-data-table__pagination-page">Página {page} de {totalPages}</span>
+            <Button variant="secondary" size="sm" onClick={() => onPageChange?.((page ?? 1) + 1)} disabled={(page ?? 1) >= totalPages}>Próxima</Button>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

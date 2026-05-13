@@ -13,11 +13,10 @@ import {
   Badge
 } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
-import { useToastStore } from '../../../app/lib/useToastStore';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
-import { usePedidoFormData } from '../hooks/usePedidoFormData';
+import { usePedidosQuery, usePedidoMutations, useClientesLightQuery, useRcasQuery } from '../hooks/usePedidosQuery';
+import { useProdutosQuery } from '../../produtos/hooks/useProdutosQuery';
 import { findClienteByInput } from '../services/clientesLightApi';
 import { PedidoItemsSection } from './PedidoItemsSection';
 import { PEDIDO_STATUS_LABEL, normalizePedStatus } from '../types';
@@ -32,6 +31,7 @@ import {
   validatePedidoForm,
   type PedidoFormErrors
 } from '../utils/pedidoRules';
+import { toast } from 'sonner';
 
 type Props = {
   initialPedido: Pedido | null;
@@ -48,10 +48,19 @@ export function PedidoForm({
   onCancel,
   analyticsOrigin = 'unknown'
 }: Props) {
-  const allPedidos = usePedidoStore((s) => s.pedidos);
   const { trackEvent } = useAnalytics({ module: 'pedidos' });
-  const { submitPedido } = usePedidoMutations();
-  const { produtos, clientes, rcas, loading: formLoading, error: formError } = usePedidoFormData();
+  const { save } = usePedidoMutations();
+  
+  // Queries
+  const { data: clientesData, isLoading: isLoadingClientes } = useClientesLightQuery();
+  const { data: rcasData, isLoading: isLoadingRcas } = useRcasQuery();
+  const { data: produtosPage, isLoading: isLoadingProdutos } = useProdutosQuery({}, 1, 1000);
+  
+  const clientes = clientesData || [];
+  const rcas = rcasData || [];
+  const produtos = produtosPage?.rows || [];
+  
+  const formLoading = isLoadingClientes || isLoadingRcas || isLoadingProdutos;
 
   const existingItens = initialPedido ? parsePedidoItens(initialPedido.itens) : [];
 
@@ -64,13 +73,12 @@ export function PedidoForm({
   const [tipo, setTipo] = useState(initialPedido?.tipo ?? 'varejo');
   const [obs, setObs] = useState(initialPedido?.obs ?? '');
   const [itens, setItens] = useState<PedidoItem[]>(existingItens);
-  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<PedidoFormErrors>({});
   const [showAdvanced, setShowAdvanced] = useState(Boolean(initialPedido?.obs));
 
   const selectedCliente = useMemo(() => findClienteByInput(clientes, cli.trim()), [clientes, cli]);
   const totalPedido = useMemo(() => calculatePedidoTotal(itens), [itens]);
-  const pedidoNumero = initialPedido?.num ?? getNextPedidoNumber(allPedidos);
+  const pedidoNumero = initialPedido?.num ?? 'NOVO';
 
   function addItem(item: PedidoItem) {
     setItens((prev) => [...prev, item]);
@@ -137,11 +145,10 @@ export function PedidoForm({
     const clienteFound = validation.cliente;
     const rcaNome = resolveRcaNome(rcas, rcaId, clienteFound);
     const id = initialPedido?.id ?? globalThis.crypto.randomUUID();
-    const num = pedidoNumero;
 
     const pedidoInput = {
       id,
-      num,
+      num: initialPedido?.num,
       cli: clienteFound.nome,
       cliente_id: clienteFound.id,
       rca_id: rcaId || null,
@@ -156,32 +163,14 @@ export function PedidoForm({
       total: totalPedido
     };
 
-    setSaving(true);
-    try {
-      const result = await submitPedido(pedidoInput, {
-        metadata: {
-          origin: analyticsOrigin
-        }
-      });
-      if (result.aviso) {
-        setErrors({ geral: result.aviso });
-        useToastStore.getState().addToast(result.aviso, 'warning');
-      } else {
-        useToastStore.getState().addToast(
-          isEdit
-            ? `Pedido #${result.pedido.num} atualizado com sucesso.`
-            : `Pedido #${result.pedido.num} criado com sucesso.`,
-          'success'
-        );
-        onSaved(result.pedido as unknown as Pedido);
+    save.mutate(pedidoInput, {
+      onSuccess: (saved) => {
+        onSaved(saved as unknown as Pedido);
+      },
+      onError: (err) => {
+        setErrors({ geral: err.message });
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao salvar pedido.';
-      setErrors({ geral: message });
-      useToastStore.getState().addToast(message, 'error');
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
   const isEdit = !!initialPedido;
@@ -195,9 +184,8 @@ export function PedidoForm({
           compact
         />
       )}
-      {formError && <ErrorState title={formError} compact />}
 
-      {!formLoading && !formError && (
+      {!formLoading && (
         <form onSubmit={(e) => void handleSubmit(e)}>
           <div className="rf-ui-stack">
             <FormError message={errors.geral} data-testid="pedido-form-error" />
@@ -392,7 +380,7 @@ export function PedidoForm({
             <FormActions
               onCancel={onCancel}
               cancelLabel="Voltar"
-              loading={saving}
+              loading={save.isPending}
               submitLabel={isEdit ? 'Salvar alterações' : 'Salvar pedido'}
             />
           </div>

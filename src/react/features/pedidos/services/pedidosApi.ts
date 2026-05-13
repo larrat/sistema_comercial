@@ -478,7 +478,10 @@ export async function getNextPedidoNumber(context: PedidoApiContext): Promise<nu
   return Number.isFinite(ultimo) ? Number(ultimo) + 1 : 1;
 }
 
-export async function savePedido(context: PedidoApiContext, input: PedidoSaveInput): Promise<void> {
+export async function savePedido(
+  context: PedidoApiContext,
+  input: PedidoSaveInput
+): Promise<Pedido> {
   // Agregado legado mantido ate o dual-write do PDV na Fase 5.
   // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
   const payload = { ...input, itens: JSON.stringify(input.itens) };
@@ -486,7 +489,7 @@ export async function savePedido(context: PedidoApiContext, input: PedidoSaveInp
     method: 'POST',
     headers: {
       ...createHeaders(context.key, context.token),
-      Prefer: 'resolution=merge-duplicates'
+      Prefer: 'resolution=merge-duplicates,return=representation'
     },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(12000)
@@ -494,13 +497,17 @@ export async function savePedido(context: PedidoApiContext, input: PedidoSaveInp
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao salvar pedido`);
 
+  const saved = (Array.isArray(body) ? body[0] : body) as Pedido;
+
   if (input.origem_venda === 'pdv' && isPedidoItensDualWriteEnabled()) {
     try {
       await upsertPedidoItensNormalizados(context, input);
     } catch (error) {
-      console.warn('[pedidos] dual-write pedido_itens falhou; agregado legado preservado.', error);
+      console.warn('[pedidos] dual-write do PDV falhou; a venda segue gravada no agregado.', error);
     }
   }
+
+  return saved;
 }
 
 export async function updatePedidoStatus(

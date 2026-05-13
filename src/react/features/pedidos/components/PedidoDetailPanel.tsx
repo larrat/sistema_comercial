@@ -9,12 +9,12 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { usePedidoMutations, usePedidoFinanceiroQuery } from '../hooks/usePedidosQuery';
 import { PedidoItemsSection } from './PedidoItemsSection';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoBaixaModal } from './PedidoBaixaModal';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
-import { FormError, StatusBadge, Button, Badge } from '../../../shared/ui';
+import { FormError, StatusBadge, Button, Badge, LoadingState } from '../../../shared/ui';
 import type { StatusBadgeTone } from '../../../shared/ui';
 import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 
@@ -89,58 +89,41 @@ function getContaStatusTone(conta: ContaReceber | null): StatusBadgeTone {
 
 export function PedidoDetailPanel({ pedido }: Props) {
   const {
-    avancarStatus,
+    updateStatus,
     confirmarEntrega,
     cancelarPedido,
     reabrirPedido,
-    gerarContaManual,
-    inFlight
+    gerarContaManual
   } = usePedidoMutations();
-  const filialId = useFilialStore((state) => state.filialId);
-  const session = useAuthStore((state) => state.session);
-  const [contaMsg, setContaMsg] = useState<string | null>(null);
+  const { data: financeiro, isLoading: isLoadingFinanceiro, refetch: refreshFinanceiro } = usePedidoFinanceiroQuery(pedido.id);
+
   const [showBaixaForm, setShowBaixaForm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showEntregaConfirm, setShowEntregaConfirm] = useState(false);
   const [baixaLoading, setBaixaLoading] = useState(false);
   const [baixaError, setBaixaError] = useState<string | null>(null);
-  const [contaState, setContaState] = useState<{
-    conta: ContaReceber | null;
-    baixas: ContaReceberBaixa[];
-  }>({ conta: null, baixas: [] });
+
   const status = normalizePedStatus(pedido.status);
   const nextStatus = NEXT_STATUS[status];
   const acaoLabel = ACAO_LABEL[status];
   const isDeliveryAction =
     nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
-  const isInFlight = inFlight.has(pedido.id);
+
+  const isInFlight = 
+    updateStatus.isPending || 
+    confirmarEntrega.isPending || 
+    cancelarPedido.isPending || 
+    reabrirPedido.isPending || 
+    gerarContaManual.isPending;
+
   const itens = parseItens(pedido);
-  const conta = contaState.conta;
-  const baixas = contaState.baixas;
+  const conta = financeiro?.conta || null;
+  const baixas = financeiro?.baixas || [];
   const valorRecebido = getValorRecebido(conta);
   const valorEmAberto = getValorEmAberto(conta);
 
-  async function refreshContaFinanceira() {
-    if (!filialId || !session?.access_token) return;
-
-    try {
-      const ctx = buildCrCtx();
-      const [contas, baixas] = await Promise.all([listContas(ctx), listBaixas(ctx)]);
-      const conta = contas.find((item) => item.pedido_id === pedido.id) ?? null;
-      const contaBaixas = conta
-        ? baixas
-            .filter((item) => item.conta_receber_id === conta.id)
-            .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')))
-        : [];
-      setContaState({ conta, baixas: contaBaixas });
-    } catch {
-      // mantém estado atual
-    }
-  }
-
-  useEffect(() => {
-    void refreshContaFinanceira();
-  }, [filialId, pedido.id, session?.access_token]);
+  const session = useAuthStore((s) => s.session);
+  const filialId = useFilialStore((s) => s.filialId);
 
   function buildCrCtx() {
     const cfg = getSupabaseConfig();
@@ -163,7 +146,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
         recebidoEm: new Date().toISOString(),
         observacao: null
       });
-      await refreshContaFinanceira();
+      await refreshFinanceiro();
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar recebimento');
     } finally {
@@ -183,12 +166,16 @@ export function PedidoDetailPanel({ pedido }: Props) {
         observacao: null
       });
       setShowBaixaForm(false);
-      await refreshContaFinanceira();
+      await refreshFinanceiro();
     } catch (e) {
       setBaixaError(e instanceof Error ? e.message : 'Erro ao registrar baixa');
     } finally {
       setBaixaLoading(false);
     }
+  }
+
+  if (isLoadingFinanceiro) {
+    return <LoadingState />;
   }
 
   return (
@@ -315,9 +302,21 @@ export function PedidoDetailPanel({ pedido }: Props) {
             </div>
           </>
         ) : (
-          <p className="table-cell-muted" style={{ marginTop: '0.5rem' }}>
-            Nenhuma conta a receber vinculada a este pedido no momento.
-          </p>
+          <div className="rf-ui-stack" style={{ marginTop: '0.5rem' }}>
+             <p className="table-cell-muted">Nenhuma conta a receber vinculada a este pedido no momento.</p>
+             {status === 'entregue_aguardando_pagamento' && (
+                <Button
+                    variant="primary"
+                    disabled={gerarContaManual.isPending}
+                    onClick={() => {
+                        gerarContaManual.mutate(pedido);
+                    }}
+                    data-testid="pedido-detail-gerar-conta"
+                >
+                    {gerarContaManual.isPending ? 'Gerando…' : 'Gerar conta a receber'}
+                </Button>
+             )}
+          </div>
         )}
       </div>
 
@@ -331,7 +330,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
                 setShowEntregaConfirm(true);
                 return;
               }
-              void avancarStatus(pedido);
+              updateStatus.mutate({ id: pedido.id, status: nextStatus });
             }}
             data-testid="pedido-detail-avancar"
           >
@@ -352,56 +351,40 @@ export function PedidoDetailPanel({ pedido }: Props) {
           <Button
             variant="secondary"
             disabled={isInFlight}
-            onClick={() => void reabrirPedido(pedido)}
+            onClick={() => reabrirPedido.mutate(pedido)}
             data-testid="pedido-detail-reabrir"
           >
             Reabrir
           </Button>
         )}
-        {status === 'entregue_aguardando_pagamento' && !conta && (
-          <Button
-            variant="primary"
-            disabled={isInFlight}
-            onClick={() => {
-              setContaMsg(null);
-              void gerarContaManual(pedido).then((msg) => setContaMsg(msg));
-            }}
-            data-testid="pedido-detail-gerar-conta"
-          >
-            {isInFlight ? 'Gerando…' : 'Gerar conta a receber'}
-          </Button>
-        )}
       </div>
-      {contaMsg &&
-        (contaMsg.startsWith('Conta') ? (
-          <div style={{ marginTop: '0.5rem' }}>
-            <StatusBadge tone="success">{contaMsg}</StatusBadge>
-          </div>
-        ) : (
-          <FormError message={contaMsg} />
-        ))}
+
       <PedidoCancelConfirmModal
         open={showCancelConfirm}
         pedido={pedido}
-        submitting={isInFlight}
+        submitting={cancelarPedido.isPending}
         onClose={() => {
-          if (!isInFlight) setShowCancelConfirm(false);
+          if (!cancelarPedido.isPending) setShowCancelConfirm(false);
         }}
         onConfirm={() => {
-          void cancelarPedido(pedido).then(() => setShowCancelConfirm(false));
+          cancelarPedido.mutate(pedido, {
+            onSuccess: () => setShowCancelConfirm(false)
+          });
         }}
       />
       <PedidoEntregaConfirmModal
         open={showEntregaConfirm}
         pedido={pedido}
-        submitting={isInFlight}
+        submitting={confirmarEntrega.isPending}
         onClose={() => {
-          if (!isInFlight) setShowEntregaConfirm(false);
+          if (!confirmarEntrega.isPending) setShowEntregaConfirm(false);
         }}
         onConfirm={() => {
-          void confirmarEntrega(pedido).then(() => {
-            setShowEntregaConfirm(false);
-            void refreshContaFinanceira();
+          confirmarEntrega.mutate(pedido.id, {
+            onSuccess: () => {
+                setShowEntregaConfirm(false);
+                void refreshFinanceiro();
+            }
           });
         }}
       />

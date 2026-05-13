@@ -3,8 +3,8 @@ import { useShallow } from 'zustand/shallow';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
-import { useProdutoStore, selectCategorias } from '../store/useProdutoStore';
-import { useProdutoMutations } from '../hooks/useProdutoMutations';
+import { useProdutoStore } from '../store/useProdutoStore';
+import { useProdutosQuery, useCategoriasQuery, useProdutoMutations } from '../hooks/useProdutosQuery';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
@@ -14,17 +14,16 @@ import {
   Drawer,
   ErrorState,
   FilterBar,
-  LoadingState,
   PageHeader,
   StatusBadge,
   Button,
   PillGroup
 } from '../../../shared/ui';
-import { Wrench, Loader2, CheckCircle, Zap, RefreshCw } from 'lucide-react';
+import { Wrench, Loader2, Zap, RefreshCw } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
-import { useToastStore } from '../../../app/lib/useToastStore';
+import { toast } from 'sonner';
 import { motion, type Variants } from 'framer-motion';
 
 const pageContainer: Variants = {
@@ -50,7 +49,6 @@ const pageItem: Variants = {
 type Modal = { tipo: 'none' } | { tipo: 'form'; produto: Produto | null };
 
 type ProdutosPilotPageProps = {
-  onRetryLoad?: () => void;
   onOpenProduto?: (_produtoId: string, _options?: { edit?: boolean }) => void;
 };
 
@@ -92,47 +90,46 @@ function useIsMobile() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 1280px)').matches;
 }
 
-export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotPageProps) {
-  const produtos = useProdutoStore((s) => s.produtos);
-  const categorias = useProdutoStore(useShallow(selectCategorias));
-  const parentProdutos = useProdutoStore((s) => s.parentProdutos);
-  const status = useProdutoStore((s) => s.status);
-  const storeError = useProdutoStore((s) => s.error);
-  const page = useProdutoStore((s) => s.page);
-  const pageSize = useProdutoStore((s) => s.pageSize);
-  const total = useProdutoStore((s) => s.total);
-  const saldos = useProdutoStore((s) => s.saldos);
-  const setPage = useProdutoStore((s) => s.setPage);
-  const setPageSize = useProdutoStore((s) => s.setPageSize);
-  const setFiltro = useProdutoStore((s) => s.setFiltro);
+export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const filtro = useProdutoStore((s) => s.filtro);
+  const setFiltro = useProdutoStore((s) => s.setFiltro);
+  const page = useProdutoStore((s) => s.page);
+  const setPage = useProdutoStore((s) => s.setPage);
+  const pageSize = useProdutoStore((s) => s.pageSize);
+  const setPageSize = useProdutoStore((s) => s.setPageSize);
+  // TanStack Queries
+  const { 
+    data: produtosData, 
+    isLoading: isLoadingProdutos, 
+    isError: isErrorProdutos, 
+    error: errorProdutos,
+    refetch: refetchProdutos 
+  } = useProdutosQuery(filtro, page, pageSize);
+
+  const { data: categorias = [] } = useCategoriasQuery();
+  const { data: parentProdutos = [] } = usePaisQuery();
+  const { save: saveMutation, remove: deleteMutation } = useProdutoMutations();
 
   const [visao, setVisao] = useState<'lista' | 'galeria'>('lista');
   const [filtroEstoque, setFiltroEstoque] = useState<'todos' | 'estoque' | 'zerados'>('todos');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const {
-    submitProduto,
-    submitCascadeRename,
-    submitCascadeFilhos,
-    deleteProdutoById,
-    saving,
-    deletingId,
-    error: mutError
-  } = useProdutoMutations();
   const filialId = useFilialStore((s) => s.filialId) ?? '';
-
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [sanitizing, setSanitizing] = useState(false);
   const [sanitizingProgress, setSanitizingProgress] = useState(0);
 
   const session = useAuthStore((s) => s.session);
-
   const isMobile = useIsMobile();
+  
+  const produtos = useMemo(() => produtosData?.rows ?? [], [produtosData]);
+  const total = produtosData?.total ?? 0;
+
   const deleteTarget = deleteTargetId
     ? (produtos.find((produto) => produto.id === deleteTargetId) ?? null)
     : null;
+
   const activeFilterCount = [filtro.q, filtro.cat].filter(Boolean).length;
   const abrirNovoProduto = useInterModuleStore((s) => s.abrirNovoProduto);
 
@@ -145,77 +142,41 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   const filteredProdutos = useMemo(() => {
     let list = produtos;
     if (filtroEstoque === 'estoque') {
-      list = list.filter(p => (saldos[p.id]?.saldo ?? 0) > 0);
+      list = list.filter(p => (p.esal ?? 0) > 0);
     } else if (filtroEstoque === 'zerados') {
-      list = list.filter(p => (saldos[p.id]?.saldo ?? 0) <= 0);
+      list = list.filter(p => (p.esal ?? 0) <= 0);
     }
     return list;
-  }, [produtos, saldos, filtroEstoque]);
+  }, [produtos, filtroEstoque]);
 
-  const paisSemSelf = useMemo(
-    () => {
-      const produtoAtual = modal.tipo === 'form' ? modal.produto : null;
-      return produtoAtual ? parentProdutos.filter((p) => p.id !== produtoAtual.id) : parentProdutos;
-    },
-    [modal, parentProdutos]
-  );
+  const paisSemSelf = useMemo(() => {
+    const produtoAtual = modal.tipo === 'form' ? modal.produto : null;
+    return produtoAtual ? parentProdutos.filter((p) => p.id !== produtoAtual.id) : parentProdutos;
+  }, [modal, parentProdutos]);
 
   async function handleSalvar(values: ProdutoFormValues) {
     const existing = modal.tipo === 'form' ? modal.produto : null;
-    const novoNome = values.nome.trim();
-    const nomeAlterado = existing && novoNome !== existing.nome;
-    const catAlterada = existing && (values.cat || '').trim() !== (existing.cat || '');
-    const unAlterada = existing && (values.un || '').trim() !== (existing.un || '');
-
     const produto = formValuesToProduto(values, filialId, existing);
-    try {
-      await submitProduto(produto);
-
-      if (existing) {
-        if (nomeAlterado) {
-          const devePropagar = window.confirm(
-            `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
-          );
-          if (devePropagar) {
-            await submitCascadeRename(existing.id, novoNome);
-          }
-        }
-
-        if (!existing.produto_pai_id && (catAlterada || unAlterada)) {
-          const devePropagarFilhos = window.confirm(
-            `A classificação do produto foi alterada. Deseja replicar a Categoria e Unidade para todas as variantes (filhos)?`
-          );
-          if (devePropagarFilhos) {
-            await submitCascadeFilhos(existing.id, {
-              cat: values.cat?.trim() || null,
-              un: values.un?.trim() || 'un'
-            });
-          }
-        }
+    
+    saveMutation.mutate(produto, {
+      onSuccess: () => {
+        setModal({ tipo: 'none' });
       }
-
-      setModal({ tipo: 'none' });
-      onRetryLoad?.();
-    } catch {
-      // erro já tratado no hook
-    }
+    });
   }
 
   async function handleRemover(id: string) {
-    try {
-      await deleteProdutoById(id);
-      if (modal.tipo === 'form' && modal.produto?.id === id) {
-        setModal({ tipo: 'none' });
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        if (modal.tipo === 'form' && modal.produto?.id === id) {
+          setModal({ tipo: 'none' });
+        }
+        setDeleteTargetId(null);
+        if (page > 1 && produtos.length === 1) {
+          setPage(page - 1);
+        }
       }
-      setDeleteTargetId(null);
-      if (page > 1 && produtos.length === 1) {
-        setPage(page - 1);
-        return;
-      }
-      onRetryLoad?.();
-    } catch {
-      // erro já tratado no hook
-    }
+    });
   }
 
   function handleMovimentar(id: string) {
@@ -232,7 +193,6 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     const ctx = { url, key, token: session.access_token, filialId };
 
     try {
-      // 1. Buscar TODOS os produtos (sem paginação)
       const all = await listProdutos(ctx);
       const toUpdate: any[] = [];
 
@@ -246,7 +206,6 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
           ecm: (p.ecm || 0) <= 0 ? (p.custo || 0) : p.ecm
         };
 
-        // Verifica se houve mudança real para evitar updates desnecessários
         const hasChange = 
           fixed.nome !== p.nome || 
           fixed.sku !== p.sku || 
@@ -258,11 +217,10 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
       });
 
       if (toUpdate.length === 0) {
-        useToastStore.getState().addToast('Nenhum erro encontrado. Cadastro está limpo.', 'info');
+        toast.info('Nenhum erro encontrado. Cadastro está limpo.');
         return;
       }
 
-      // 2. Salvar em lotes de 50 para segurança
       const chunkSize = 50;
       for (let i = 0; i < toUpdate.length; i += chunkSize) {
         const chunk = toUpdate.slice(i, i + chunkSize);
@@ -270,11 +228,10 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
         setSanitizingProgress(Math.round(((i + chunk.length) / toUpdate.length) * 100));
       }
 
-      useToastStore.getState().addToast(`${toUpdate.length} produtos corrigidos com sucesso.`, 'success');
-      onRetryLoad?.();
+      toast.success(`${toUpdate.length} produtos corrigidos com sucesso.`);
+      refetchProdutos();
     } catch (err) {
-      console.error(err);
-      useToastStore.getState().addToast('Erro ao rodar saneamento.', 'error');
+      toast.error('Erro ao rodar saneamento.');
     } finally {
       setSanitizing(false);
       setSanitizingProgress(0);
@@ -283,7 +240,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await onRetryLoad?.();
+    await refetchProdutos();
     setIsRefreshing(false);
   };
 
@@ -360,28 +317,24 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     />
   );
 
-  if (status === 'loading') {
+  if (isLoadingProdutos) {
     return (
-    <main className="flex-1 w-full flex flex-col gap-8">
+      <main className="flex-1 w-full flex flex-col gap-8">
         {pageHeader}
         <ProdutoMetrics produtos={filteredProdutos} />
-        <LoadingState
-          title="Carregando produtos..."
-          description="Estamos preparando a lista e o saldo atual da filial."
-        />
+        <ErrorState title="Carregando..." compact />
       </main>
     );
   }
 
-  if (status === 'error') {
+  if (isErrorProdutos) {
     return (
-    <main className="flex-1 w-full flex flex-col gap-8">
+      <main className="flex-1 w-full flex flex-col gap-8">
         {pageHeader}
         <ProdutoMetrics produtos={filteredProdutos} />
         <ErrorState
-          title={storeError ?? 'Erro ao carregar produtos.'}
-          description="Revise a sessão, a filial ativa ou tente recarregar os dados."
-          onRetry={onRetryLoad}
+          title={errorProdutos instanceof Error ? errorProdutos.message : 'Erro ao carregar produtos.'}
+          onRetry={refetchProdutos}
         />
       </main>
     );
@@ -429,12 +382,9 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
       </motion.div>
 
       <motion.div variants={pageItem}>
-        {mutError ? <ErrorState title={mutError} compact /> : null}
-
         {isMobile ? (
           <ProdutoListMobile
             produtos={filteredProdutos}
-            saldos={saldos}
             totalCount={total}
             hasFilters={activeFilterCount > 0}
             page={page}
@@ -450,7 +400,6 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
         ) : (
           <ProdutoListView
             produtos={filteredProdutos}
-            saldos={saldos}
             totalCount={total}
             hasFilters={activeFilterCount > 0}
             page={page}
@@ -469,32 +418,30 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
       <Drawer
         open={modal.tipo === 'form'}
         title={modal.tipo === 'form' && modal.produto ? 'Editar produto' : 'Novo produto'}
-        onClose={() => !saving && setModal({ tipo: 'none' })}
-        closeOnOverlayClick={!saving}
+        onClose={() => !saveMutation.isPending && setModal({ tipo: 'none' })}
+        closeOnOverlayClick={!saveMutation.isPending}
       >
         {modal.tipo === 'form' ? (
           <ProdutoForm
             produto={modal.produto}
             pais={paisSemSelf}
-            saving={saving}
-            error={mutError}
+            saving={saveMutation.isPending}
+            error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
             onSalvar={handleSalvar}
             onCancelar={() => setModal({ tipo: 'none' })}
           />
         ) : null}
       </Drawer>
 
-      {deletingId ? <LoadingState title="Removendo produto..." compact /> : null}
-
       <ProdutoDeleteConfirmModal
         open={!!deleteTarget}
         target={deleteTarget}
-        submitting={Boolean(deletingId)}
+        submitting={deleteMutation.isPending}
         onClose={() => {
-          if (!deletingId) setDeleteTargetId(null);
+          if (!deleteMutation.isPending) setDeleteTargetId(null);
         }}
         onConfirm={() => {
-          if (deleteTarget) void handleRemover(deleteTarget.id);
+          if (deleteTarget) handleRemover(deleteTarget.id);
         }}
       />
     </motion.main>

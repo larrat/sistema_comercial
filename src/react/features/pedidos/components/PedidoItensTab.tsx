@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react';
 
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { Modal, Button } from '../../../shared/ui';
-import { usePedidoFormData } from '../hooks/usePedidoFormData';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { usePedidoMutations, useProdutosQuery } from '../hooks/usePedidosQuery';
 import {
   calculatePedidoItemLucro,
   calculatePedidoItemMargem,
@@ -13,6 +12,7 @@ import {
   formatPedidoCurrency
 } from '../utils/pedidoRules';
 import { PedidoItemAdd } from './PedidoItemAdd';
+import { toast } from 'sonner';
 
 type EditableField = 'qty' | 'preco';
 
@@ -39,22 +39,21 @@ function normalizeNumber(value: string): number {
 }
 
 export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Props) {
-  const { produtos, loading: loadingProdutos, error: produtosError } = usePedidoFormData();
-  const { atualizarItemPedido, removerItemPedido, adicionarItemPedido } = usePedidoMutations();
+  // Usamos a query de produtos que já criamos no usePedidosQuery ou importamos de produtos
+  const { data: produtosPage, isLoading: isLoadingProdutos } = useProdutosQuery({}, 1, 1000);
+  const { updateItem, removeItem, addItem } = usePedidoMutations();
   const [editing, setEditing] = useState<EditingCell>(null);
-  const [savingKey, setSavingKey] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<{ item: PedidoItem; index: number } | null>(
     null
   );
   const [showAddModal, setShowAddModal] = useState(false);
 
+  const produtos = produtosPage?.rows || [];
   const total = useMemo(() => calculatePedidoTotal(itens), [itens]);
   const lucroTotal = useMemo(() => calculatePedidoLucroTotal(itens), [itens]);
 
   function startEdit(item: PedidoItem, index: number, field: EditableField) {
     if (!canEdit) return;
-    setError(null);
     setEditing({
       itemId: getItemId(pedido, item, index),
       field,
@@ -73,70 +72,62 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
 
     if (next === previous) return;
     if (editing.field === 'qty' && next <= 0) {
-      setError('Quantidade deve ser maior que zero.');
+      toast.error('Quantidade deve ser maior que zero.');
       return;
     }
     if (editing.field === 'preco' && next < 0) {
-      setError('Preço deve ser maior ou igual a zero.');
+      toast.error('Preço deve ser maior ou igual a zero.');
       return;
     }
 
-    const key = `${itemId}:${editing.field}`;
-    setSavingKey(key);
-    setError(null);
-    try {
-      const updated = await atualizarItemPedido(pedido.id, itemId, {
+    updateItem.mutate({
+      pedidoId: pedido.id,
+      itemId,
+      patch: {
         quantidade: editing.field === 'qty' ? next : undefined,
         precoUnitario: editing.field === 'preco' ? next : undefined
-      });
-      onPedidoChanged?.(updated);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar item do pedido.');
-    } finally {
-      setSavingKey(null);
-    }
+      }
+    }, {
+      onSuccess: (updated) => {
+        onPedidoChanged?.(updated as unknown as Pedido);
+      }
+    });
   }
 
   async function handleRemove() {
     if (!removeTarget) return;
     const itemId = getItemId(pedido, removeTarget.item, removeTarget.index);
-    setSavingKey(`${itemId}:remove`);
-    setError(null);
-    try {
-      const updated = await removerItemPedido(pedido.id, itemId);
-      onPedidoChanged?.(updated);
-      setRemoveTarget(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao remover item do pedido.');
-    } finally {
-      setSavingKey(null);
-    }
+    removeItem.mutate({
+      pedidoId: pedido.id,
+      itemId
+    }, {
+      onSuccess: (updated) => {
+        onPedidoChanged?.(updated as unknown as Pedido);
+        setRemoveTarget(null);
+      }
+    });
   }
 
   async function handleAdd(item: PedidoItem) {
-    setSavingKey('add');
-    setError(null);
-    try {
-      const updated = await adicionarItemPedido(pedido.id, {
+    addItem.mutate({
+      pedidoId: pedido.id,
+      item: {
         prodId: item.prodId,
         qty: item.qty,
         preco: item.preco
-      });
-      onPedidoChanged?.(updated);
-      setShowAddModal(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao adicionar item ao pedido.');
-    } finally {
-      setSavingKey(null);
-    }
+      }
+    }, {
+      onSuccess: (updated) => {
+        onPedidoChanged?.(updated as unknown as Pedido);
+        setShowAddModal(false);
+      }
+    });
   }
 
   function renderEditableCell(item: PedidoItem, index: number, field: EditableField) {
     const itemId = getItemId(pedido, item, index);
-    const key = `${itemId}:${field}`;
-    const currentValue = field === 'qty' ? item.qty : item.preco;
     const isEditing = editing?.itemId === itemId && editing.field === field;
-    const isSaving = savingKey === key;
+    const isSaving = updateItem.isPending && updateItem.variables?.itemId === itemId;
 
     if (!canEdit) {
       return field === 'qty' ? `${item.qty} ${item.un}` : formatPedidoCurrency(item.preco);
@@ -191,8 +182,6 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
         )}
       </div>
 
-      {error ? <div className="mx-6 mb-4 p-3 bg-rose-50 text-rose-700 text-xs rounded-lg border border-rose-100">{error}</div> : null}
-
       {itens.length === 0 ? (
         <div className="p-8 text-center text-slate-400 text-sm">Nenhum item adicionado a este pedido.</div>
       ) : (
@@ -244,7 +233,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
                               type="button"
                               title="Remover item"
                               onClick={() => setRemoveTarget({ item, index })}
-                              disabled={savingKey === `${itemId}:remove`}
+                              disabled={removeItem.isPending && removeItem.variables?.itemId === itemId}
                             >
                               ✕
                             </button>
@@ -282,12 +271,11 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
             variant="primary"
             size="sm"
             onClick={() => setShowAddModal(true)}
-            disabled={loadingProdutos || savingKey === 'add'}
-            loading={savingKey === 'add'}
+            disabled={isLoadingProdutos || addItem.isPending}
+            loading={addItem.isPending}
           >
             Adicionar item
           </Button>
-          {produtosError ? <span className="text-xs text-rose-500 font-medium">{produtosError}</span> : null}
         </div>
       ) : null}
 
@@ -295,7 +283,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
         open={!!removeTarget}
         title="Remover item"
         onClose={() => setRemoveTarget(null)}
-        closeOnOverlay={savingKey === null}
+        closeOnOverlay={!removeItem.isPending}
         footer={
           <div className="flex items-center justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setRemoveTarget(null)}>
@@ -304,8 +292,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
             <Button
               variant="danger"
               onClick={() => void handleRemove()}
-              loading={savingKey?.endsWith(':remove')}
-              disabled={!!savingKey}
+              loading={removeItem.isPending}
             >
               Remover
             </Button>
@@ -330,7 +317,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
         open={showAddModal}
         title="Adicionar item"
         onClose={() => setShowAddModal(false)}
-        closeOnOverlay={savingKey !== 'add'}
+        closeOnOverlay={!addItem.isPending}
       >
         <div className="rf-ui-stack">
           <p className="table-cell-muted">

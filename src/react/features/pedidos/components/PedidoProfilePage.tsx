@@ -4,8 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import type { ContaReceber, Pedido, PedidoItem } from '../../../../types/domain';
 import { useRoleStore } from '../../../app/useRoleStore';
 import { EmptyState, LoadingState, StatusBadge, Button } from '../../../shared/ui';
-import type { PedidoFinanceiroState } from '../hooks/usePedidoProfile';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { usePedidoMutations, type PedidoFinanceiroState } from '../hooks/usePedidosQuery';
 import { useContasReceberMutations } from '../../contas-receber/hooks/useContasReceberMutations';
 import { ContaReceberConfirmModal } from '../../contas-receber/components/ContaReceberConfirmModal';
 import {
@@ -21,18 +20,15 @@ import {
   calculatePedidoTotal,
   formatPedidoCurrency
 } from '../utils/pedidoRules';
+import { toast } from 'sonner';
 
 type PedidoProfileTab = 'itens' | 'financeiro' | 'historico' | 'cadastro';
 
 type Props = {
   pedido: Pedido;
   financeiro: PedidoFinanceiroState;
-  loadingPedido?: boolean;
   onPedidoChanged?: (pedido: Pedido) => void;
-  onReload?: () => Promise<Pedido | null>;
   onReloadFinanceiro?: () => Promise<void>;
-  _error?: string | null;
-  _onReload?: () => Promise<Pedido | null>;
 };
 
 const PROFILE_TABS: Array<{ id: PedidoProfileTab; label: string }> = [
@@ -70,13 +66,6 @@ function formatDate(value?: string | null): string {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-function formatDateTime(value?: string | null): string {
-  if (!value) return '—';
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return String(value);
-  return parsed.toLocaleString('pt-BR');
-}
-
 function getInitials(value: string) {
   const source = value.trim() || 'Pedido';
   const parts = source.split(/\s+/).filter(Boolean);
@@ -86,13 +75,13 @@ function getInitials(value: string) {
 
 function getAvatarColor(name: string) {
   const colors = [
-    'bg-blue-50 text-blue-600',
-    'bg-emerald-50 text-emerald-600',
-    'bg-indigo-50 text-indigo-600',
-    'bg-purple-50 text-purple-600',
-    'bg-amber-50 text-amber-600',
-    'bg-rose-50 text-rose-600',
-    'bg-slate-50 text-slate-600'
+    'bg-blue-500/10 text-blue-400',
+    'bg-emerald-500/10 text-emerald-400',
+    'bg-indigo-500/10 text-indigo-400',
+    'bg-purple-500/10 text-purple-400',
+    'bg-amber-500/10 text-amber-400',
+    'bg-rose-500/10 text-rose-400',
+    'bg-slate-500/10 text-slate-400'
   ];
   const charCode = (name || '').charCodeAt(0) || 0;
   return colors[charCode % colors.length];
@@ -118,10 +107,7 @@ function getValorEmAberto(conta: ContaReceber | null): number {
 export function PedidoProfilePage({
   pedido,
   financeiro,
-  loadingPedido = false,
-  _error,
   onPedidoChanged,
-  _onReload,
   onReloadFinanceiro
 }: Props) {
   const navigate = useNavigate();
@@ -129,14 +115,12 @@ export function PedidoProfilePage({
   const userRole = useRoleStore((state) => state.role);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showBaixaConfirm, setShowBaixaConfirm] = useState(false);
-  const { cancelarPedido, gerarContaManual, inFlight } = usePedidoMutations();
+  const { updateStatus } = usePedidoMutations();
   const { registrarBaixa } = useContasReceberMutations();
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const activeTab = normalizeTab(searchParams.get('tab'));
   const status = normalizePedStatus(pedido.status);
   const statusTone = PEDIDO_STATUS_TONE[status] ?? 'neutral';
-  const isInFlight = inFlight.has(pedido.id) || financeiro.loading;
   
   const itens = useMemo(() => parseItens(pedido), [pedido]);
   const total = calculatePedidoTotal(itens);
@@ -154,9 +138,11 @@ export function PedidoProfilePage({
   }
 
   async function handleCancelar() {
-    await cancelarPedido(pedido);
-    onPedidoChanged?.({ ...pedido, status: 'cancelado' });
-    setShowCancelConfirm(false);
+    updateStatus.mutate({ id: pedido.id, status: 'cancelado' }, {
+      onSuccess: () => {
+        setShowCancelConfirm(false);
+      }
+    });
   }
 
   async function handleConfirmarBaixa() {
@@ -169,16 +155,10 @@ export function PedidoProfilePage({
       'Baixa via detalhe do pedido'
     );
     if (result.ok) {
+      toast.success('Baixa registrada com sucesso!');
       void onReloadFinanceiro?.();
       setShowBaixaConfirm(false);
     }
-  }
-
-  async function handleGerarConta() {
-    setActionMessage(null);
-    const msg = await gerarContaManual(pedido);
-    setActionMessage(msg);
-    void onReloadFinanceiro?.();
   }
 
   const timelineEvents = useMemo(() => {
@@ -251,10 +231,6 @@ export function PedidoProfilePage({
     });
   }, [pedido, financeiro, status]);
 
-  if (loadingPedido) {
-    return <main className="max-w-[1600px] mx-auto px-8 py-8 w-full"><LoadingState title="Carregando pedido..." /></main>;
-  }
-
   return (
     <main className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8" data-testid="pedido-profile-page">
       {/* Topbar / Breadcrumb */}
@@ -286,7 +262,7 @@ export function PedidoProfilePage({
 
       {/* Header */}
       <section className="flex items-center gap-4">
-        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm ${getAvatarColor(pedido.cli).replace('bg-blue-50', 'bg-blue-500/10').replace('text-blue-600', 'text-blue-400').replace('bg-emerald-50', 'bg-emerald-500/10').replace('text-emerald-600', 'text-emerald-400').replace('bg-indigo-50', 'bg-indigo-500/10').replace('text-indigo-600', 'text-indigo-400').replace('bg-purple-50', 'bg-purple-500/10').replace('text-purple-600', 'text-purple-400').replace('bg-amber-50', 'bg-amber-500/10').replace('text-amber-600', 'text-amber-400').replace('bg-rose-50', 'bg-rose-500/10').replace('text-rose-600', 'text-rose-400').replace('bg-slate-50', 'bg-slate-500/10').replace('text-slate-600', 'text-slate-400')}`}>
+        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm ${getAvatarColor(pedido.cli)}`}>
           {getInitials(pedido.cli)}
         </div>
         <div className="flex flex-col">
@@ -369,14 +345,10 @@ export function PedidoProfilePage({
               onPedidoChanged={onPedidoChanged}
             />
             
-            {/* Unified Sections: Financeiro e Histórico */}
             <div className="bg-slate-900 border border-white/5 rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-base font-bold text-white m-0">Financeiro do pedido</h3>
                 <div className="flex items-center gap-3">
-                  {status === 'entregue_aguardando_pagamento' && !financeiro.conta && (
-                    <Button variant="primary" size="sm" onClick={handleGerarConta}>Gerar conta</Button>
-                  )}
                   {financeiro.conta ? (
                     <StatusBadge tone={valorEmAberto > 0 ? 'warning' : 'success'}>
                       {valorEmAberto > 0 ? '1 pendência' : 'Quitado'}
@@ -434,19 +406,11 @@ export function PedidoProfilePage({
                         {valorEmAberto > 0 ? 'Em aberto' : 'Liquidado'}
                       </StatusBadge>
                     </div>
-                    {valorEmAberto > 0 ? (
+                    {valorEmAberto > 0 && (
                       <Button variant="primary" size="sm" onClick={() => setShowBaixaConfirm(true)}>Baixar</Button>
-                    ) : status === 'entregue_aguardando_pagamento' && !financeiro.conta ? (
-                      <Button variant="primary" size="sm" onClick={handleGerarConta}>Gerar conta</Button>
-                    ) : null}
+                    )}
                   </div>
                 </div>
-                
-                {actionMessage && (
-                  <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg border border-blue-100">
-                    {actionMessage}
-                  </div>
-                )}
                 
                 <div className="flex flex-col gap-2 pt-4 bg-white/5 p-4 rounded-lg">
                   <div className="flex justify-between text-sm">
@@ -521,8 +485,8 @@ export function PedidoProfilePage({
       <PedidoCancelConfirmModal
         open={showCancelConfirm}
         pedido={pedido}
-        submitting={isInFlight}
-        onClose={() => !isInFlight && setShowCancelConfirm(false)}
+        submitting={updateStatus.isPending}
+        onClose={() => !updateStatus.isPending && setShowCancelConfirm(false)}
         onConfirm={handleCancelar}
       />
 
@@ -534,8 +498,8 @@ export function PedidoProfilePage({
           contaLabel={`${pedido.cli} — Pedido #${pedido.num}`}
           valorLabel={formatPedidoCurrency(valorEmAberto)}
           confirmLabel="Confirmar recebimento"
-          submitting={isInFlight}
-          onClose={() => !isInFlight && setShowBaixaConfirm(false)}
+          submitting={registrarBaixa.isPending}
+          onClose={() => !registrarBaixa.isPending && setShowBaixaConfirm(false)}
           onConfirm={handleConfirmarBaixa}
         />
       )}

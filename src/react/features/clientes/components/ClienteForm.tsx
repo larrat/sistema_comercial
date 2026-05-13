@@ -1,44 +1,59 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import type { Cliente } from '../../../../types/domain';
 import {
   FormSection,
   Input,
-  Button,
   Select,
   FormField,
   Badge,
   FormError,
   FormActions
 } from '../../../shared/ui';
-import type { AnalyticsMetadata } from '../../../shared/lib/analytics';
-import { useClienteMutations } from '../hooks/useClienteMutations';
+import { useClienteMutations } from '../hooks/useClientesQuery';
 import { useRcas } from '../hooks/useRcas';
 
-type ClienteFormValues = {
-  nome: string;
-  apelido: string;
-  doc: string;
-  tipo: string;
-  status: string;
-  tel: string;
-  whatsapp: string;
-  email: string;
-  resp: string;
-  rca_id: string;
-  rca_nome: string;
-  time: string;
-  seg: string;
-  tab: string;
-  prazo: string;
-  cidade: string;
-  estado: string;
-  data_aniversario: string;
-  optin_marketing: boolean;
-  optin_email: boolean;
-  optin_sms: boolean;
-  obs: string;
-};
+const clienteSchema = z.object({
+  nome: z.string().min(1, 'Nome do cliente é obrigatório.'),
+  apelido: z.string().optional(),
+  doc: z.string().optional(),
+  tipo: z.string().default('PJ'),
+  status: z.string().default('ativo'),
+  tel: z.string().optional(),
+  whatsapp: z.string().optional(),
+  email: z.string().email('Informe um e-mail válido.').or(z.literal('')).optional(),
+  resp: z.string().optional(),
+  rca_id: z.string().nullable().optional(),
+  rca_nome: z.string().nullable().optional(),
+  time: z.string().optional(),
+  seg: z.string().optional(),
+  tab: z.string().default('padrao'),
+  prazo: z.string().default('a_vista'),
+  cidade: z.string().optional(),
+  estado: z.string().max(2, 'UF deve ter 2 caracteres.').optional(),
+  data_aniversario: z.string().optional(),
+  optin_marketing: z.boolean().default(false),
+  optin_email: z.boolean().default(false),
+  optin_sms: z.boolean().default(false),
+  obs: z.string().optional(),
+}).refine((data) => {
+  if (data.optin_email && !data.email) return false;
+  return true;
+}, {
+  message: 'Para liberar opt-in de e-mail, informe o e-mail do cliente.',
+  path: ['email']
+}).refine((data) => {
+  if (data.optin_sms && !data.tel && !data.whatsapp) return false;
+  return true;
+}, {
+  message: 'Para liberar opt-in de SMS, informe telefone ou WhatsApp.',
+  path: ['tel']
+});
+
+type ClienteFormValues = z.infer<typeof clienteSchema>;
 
 type Props = {
   initialCliente?: Cliente | null;
@@ -47,7 +62,7 @@ type Props = {
   analyticsOrigin?: string;
 };
 
-function toFormValues(cliente?: Cliente | null): ClienteFormValues {
+function toFormValues(cliente?: Cliente | null): Partial<ClienteFormValues> {
   return {
     nome: cliente?.nome ?? '',
     apelido: cliente?.apelido ?? '',
@@ -101,133 +116,51 @@ function formatPhone(value: string): string {
   return digits.replace(/^(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2');
 }
 
-function normalizeUf(value: string): string {
-  return value
-    .replace(/[^a-z]/gi, '')
-    .slice(0, 2)
-    .toUpperCase();
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
 export function ClienteForm({
   initialCliente = null,
   onSaved,
-  onCancel,
-  analyticsOrigin = 'unknown'
+  onCancel
 }: Props) {
-  const [values, setValues] = useState<ClienteFormValues>(() => toFormValues(initialCliente));
-  const [localError, setLocalError] = useState<string | null>(null);
-  const { submitCliente, saving, error } = useClienteMutations();
+  const { save: saveMutation } = useClienteMutations();
   const rcas = useRcas();
 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors }
+  } = useForm<ClienteFormValues>({
+    resolver: zodResolver(clienteSchema),
+    defaultValues: useMemo(() => toFormValues(initialCliente), [initialCliente])
+  });
+
   useEffect(() => {
-    setValues(toFormValues(initialCliente));
-    setLocalError(null);
-  }, [initialCliente]);
+    reset(toFormValues(initialCliente));
+  }, [initialCliente, reset]);
 
-  function update<K extends keyof ClienteFormValues>(key: K, value: ClienteFormValues[K]) {
-    setValues((current) => ({ ...current, [key]: value }));
-  }
-
-  function getChangedFieldNames(): string[] {
-    if (!initialCliente) return [];
-    const initialValues = toFormValues(initialCliente);
-    return (Object.keys(values) as Array<keyof ClienteFormValues>).filter((key) => {
-      const currentValue = values[key];
-      const previousValue = initialValues[key];
-      if (typeof currentValue === 'boolean' || typeof previousValue === 'boolean') {
-        return Boolean(currentValue) !== Boolean(previousValue);
+  const onSubmit = (values: ClienteFormValues) => {
+    saveMutation.mutate({
+      ...values,
+      id: initialCliente?.id,
+      rca_id: values.rca_id || null,
+      rca_nome: values.rca_nome || null,
+    }, {
+      onSuccess: (saved) => {
+        if (saved) onSaved?.(saved);
       }
-      return String(currentValue ?? '').trim() !== String(previousValue ?? '').trim();
     });
-  }
+  };
 
-  function handleRcaChange(rcaId: string) {
+  const handleRcaChange = (rcaId: string) => {
     const rca = rcas.find((r) => r.id === rcaId);
-    setValues((current) => ({
-      ...current,
-      rca_id: rcaId,
-      rca_nome: rca?.nome ?? ''
-    }));
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!values.nome.trim()) {
-      setLocalError('Nome do cliente é obrigatório.');
-      return;
-    }
-    if (values.email.trim() && !isValidEmail(values.email.trim())) {
-      setLocalError('Informe um e-mail válido ou deixe o campo vazio.');
-      return;
-    }
-    if (values.optin_email && !values.email.trim()) {
-      setLocalError('Para liberar opt-in de e-mail, informe o e-mail do cliente.');
-      return;
-    }
-    if (values.optin_sms && !values.tel.trim() && !values.whatsapp.trim()) {
-      setLocalError('Para liberar opt-in de SMS, informe telefone ou WhatsApp.');
-      return;
-    }
-
-    setLocalError(null);
-
-    const trackingMetadata: Record<string, AnalyticsMetadata> = initialCliente
-      ? {
-          origin: analyticsOrigin,
-          changed_fields: getChangedFieldNames(),
-          mode: 'edit'
-        }
-      : {
-          origin: analyticsOrigin,
-          mode: 'create'
-        };
-
-    const saved = await submitCliente(
-      {
-        id: initialCliente?.id,
-        nome: values.nome,
-        apelido: values.apelido,
-        doc: values.doc,
-        tipo: values.tipo,
-        status: values.status,
-        tel: values.tel,
-        whatsapp: values.whatsapp,
-        email: values.email,
-        resp: values.resp,
-        rca_id: values.rca_id || null,
-        rca_nome: values.rca_nome || null,
-        time: values.time,
-        seg: values.seg,
-        tab: values.tab,
-        prazo: values.prazo,
-        cidade: values.cidade,
-        estado: values.estado,
-        data_aniversario: values.data_aniversario,
-        optin_marketing: values.optin_marketing,
-        optin_email: values.optin_email,
-        optin_sms: values.optin_sms,
-        obs: values.obs
-      },
-      {
-        eventName: initialCliente ? 'cliente_editado' : 'cliente_criado',
-        metadata: trackingMetadata
-      }
-    );
-
-    onSaved?.(saved);
-
-    if (!initialCliente) {
-      setValues(toFormValues(null));
-    }
-  }
+    setValue('rca_id', rcaId);
+    setValue('rca_nome', rca?.nome ?? '');
+  };
 
   return (
-    <form className="flex flex-col gap-8" onSubmit={handleSubmit} data-testid="cliente-form">
+    <form className="flex flex-col gap-8" onSubmit={handleSubmit(onSubmit)} data-testid="cliente-form">
       <FormSection
         title="Essencial"
         description="Identificação e contato para o time conseguir atender e vender."
@@ -236,18 +169,15 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Nome / Razão social"
-            id="cliente-nome"
             required
-            value={values.nome}
-            onChange={(e) => update('nome', e.target.value)}
+            {...register('nome')}
+            error={errors.nome?.message}
             data-testid="form-nome"
           />
           <Input
             label="Apelido / Fantasia"
-            id="cliente-apelido"
             helperText="Como a equipe identifica esse cliente no dia a dia."
-            value={values.apelido}
-            onChange={(e) => update('apelido', e.target.value)}
+            {...register('apelido')}
             placeholder="Como a equipe identifica esse cliente no dia a dia"
             data-testid="form-apelido"
           />
@@ -256,20 +186,16 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             label="CPF / CNPJ"
-            id="cliente-doc"
             helperText="Aceita CPF ou CNPJ; a formatação entra ao sair do campo."
             inputMode="numeric"
-            value={values.doc}
-            onChange={(e) => update('doc', e.target.value)}
-            onBlur={(e) => update('doc', formatCpfCnpj(e.target.value))}
+            {...register('doc')}
+            onBlur={(e) => setValue('doc', formatCpfCnpj(e.target.value))}
             placeholder="Somente numeros ou documento completo"
             data-testid="form-doc"
           />
           <Select
             label="Tipo"
-            id="cliente-tipo"
-            value={values.tipo}
-            onChange={(e) => update('tipo', e.target.value)}
+            {...register('tipo')}
             options={[
               { value: 'PJ', label: 'PJ' },
               { value: 'PF', label: 'PF' }
@@ -277,9 +203,7 @@ export function ClienteForm({
           />
           <Select
             label="Status"
-            id="cliente-status"
-            value={values.status}
-            onChange={(e) => update('status', e.target.value)}
+            {...register('status')}
             options={[
               { value: 'ativo', label: 'Ativo' },
               { value: 'prospecto', label: 'Prospecto' },
@@ -291,36 +215,32 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             label="Telefone"
-            id="cliente-tel"
             type="tel"
             inputMode="tel"
-            value={values.tel}
-            onChange={(e) => update('tel', e.target.value)}
-            onBlur={(e) => update('tel', formatPhone(e.target.value))}
+            {...register('tel')}
+            onBlur={(e) => setValue('tel', formatPhone(e.target.value))}
             placeholder="(11) 3333-4444"
             autoComplete="tel"
+            error={errors.tel?.message}
             data-testid="form-tel"
           />
           <Input
             label="WhatsApp"
-            id="cliente-whatsapp"
             type="tel"
             inputMode="tel"
-            value={values.whatsapp}
-            onChange={(e) => update('whatsapp', e.target.value)}
-            onBlur={(e) => update('whatsapp', formatPhone(e.target.value))}
+            {...register('whatsapp')}
+            onBlur={(e) => setValue('whatsapp', formatPhone(e.target.value))}
             placeholder="(11) 99999-0000"
             autoComplete="tel"
             data-testid="form-whatsapp"
           />
           <Input
             label="E-mail"
-            id="cliente-email"
             type="email"
-            value={values.email}
-            onChange={(e) => update('email', e.target.value)}
+            {...register('email')}
             placeholder="exemplo@cliente.com.br"
             autoComplete="email"
+            error={errors.email?.message}
             data-testid="form-email"
           />
         </div>
@@ -333,15 +253,12 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Responsável / Comprador"
-            id="cliente-resp"
-            value={values.resp}
-            onChange={(e) => update('resp', e.target.value)}
+            {...register('resp')}
             data-testid="form-resp"
           />
           <Select
             label="Vendedor"
-            id="cliente-rca"
-            value={values.rca_id}
+            value={watch('rca_id') || ''}
             onChange={(e) => handleRcaChange(e.target.value)}
             options={[
               { value: '', label: 'Sem vendedor' },
@@ -353,17 +270,13 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Input
             label="Segmento"
-            id="cliente-seg"
-            value={values.seg}
-            onChange={(e) => update('seg', e.target.value)}
+            {...register('seg')}
             placeholder="Ex: Atacado, Farmacia, Revenda"
             data-testid="form-seg"
           />
           <Select
             label="Tabela de preço"
-            id="cliente-tab"
-            value={values.tab}
-            onChange={(e) => update('tab', e.target.value)}
+            {...register('tab')}
             options={[
               { value: 'padrao', label: 'Padrao' },
               { value: 'especial', label: 'Especial' },
@@ -372,9 +285,7 @@ export function ClienteForm({
           />
           <Select
             label="Prazo de pagamento"
-            id="cliente-prazo"
-            value={values.prazo}
-            onChange={(e) => update('prazo', e.target.value)}
+            {...register('prazo')}
             options={[
               { value: 'a_vista', label: 'A vista' },
               { value: '7d', label: '7 dias' },
@@ -385,10 +296,8 @@ export function ClienteForm({
           />
           <Input
             label="Time(s)"
-            id="cliente-time"
-            value={values.time}
+            {...register('time')}
             placeholder="Ex: Flamengo, Paysandu"
-            onChange={(e) => update('time', e.target.value)}
             data-testid="form-time"
           />
         </div>
@@ -398,17 +307,12 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Cidade"
-            id="cliente-cidade"
-            value={values.cidade}
-            onChange={(e) => update('cidade', e.target.value)}
+            {...register('cidade')}
             data-testid="form-cidade"
           />
           <Input
             label="Estado"
-            id="cliente-estado"
-            value={values.estado}
-            onChange={(e) => update('estado', e.target.value)}
-            onBlur={(e) => update('estado', normalizeUf(e.target.value))}
+            {...register('estado')}
             maxLength={2}
             placeholder="UF"
             data-testid="form-estado"
@@ -418,39 +322,22 @@ export function ClienteForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Data de aniversário"
-            id="cliente-aniv"
             type="date"
-            value={values.data_aniversario}
-            onChange={(e) => update('data_aniversario', e.target.value)}
+            {...register('data_aniversario')}
             data-testid="form-aniv"
           />
           <FormField label="Opt-ins de marketing">
             <div className="fg2">
               <label className="optin-choice">
-                <input
-                  type="checkbox"
-                  checked={values.optin_marketing}
-                  onChange={(e) => update('optin_marketing', e.target.checked)}
-                  data-testid="form-optin-marketing"
-                />
+                <input type="checkbox" {...register('optin_marketing')} data-testid="form-optin-marketing" />
                 Marketing
               </label>
               <label className="optin-choice">
-                <input
-                  type="checkbox"
-                  checked={values.optin_email}
-                  onChange={(e) => update('optin_email', e.target.checked)}
-                  data-testid="form-optin-email"
-                />
+                <input type="checkbox" {...register('optin_email')} data-testid="form-optin-email" />
                 E-mail
               </label>
               <label className="optin-choice">
-                <input
-                  type="checkbox"
-                  checked={values.optin_sms}
-                  onChange={(e) => update('optin_sms', e.target.checked)}
-                  data-testid="form-optin-sms"
-                />
+                <input type="checkbox" {...register('optin_sms')} data-testid="form-optin-sms" />
                 SMS
               </label>
             </div>
@@ -462,18 +349,17 @@ export function ClienteForm({
             id="cliente-obs"
             className="rf-input-premium min-h-[100px] resize-none"
             rows={3}
-            value={values.obs}
-            onChange={(e) => update('obs', e.target.value)}
+            {...register('obs')}
           />
         </FormField>
       </FormSection>
 
-      <FormError message={localError || error} data-testid="form-error" />
+      <FormError message={saveMutation.error instanceof Error ? saveMutation.error.message : null} data-testid="form-error" />
 
       <div className="form-sticky-actions">
         <FormActions
           onCancel={onCancel}
-          loading={saving}
+          loading={saveMutation.isPending}
           submitLabel={initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
         />
       </div>

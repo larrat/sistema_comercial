@@ -2,10 +2,8 @@ import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { PedidosPilotPage } from '../components/PedidosPilotPage';
-import { usePedidoData } from '../hooks/usePedidoData';
 
 export function PedidosRoutePage() {
-  const { reload } = usePedidoData();
   const [searchParams] = useSearchParams();
 
   const routeIntent = useMemo(() => {
@@ -21,5 +19,5 @@ export function PedidosRoutePage() {
     };
   }, [searchParams]);
 
-  return <PedidosPilotPage routeIntent={routeIntent} onRetryLoad={reload} />;
+  return <PedidosPilotPage routeIntent={routeIntent} />;
 }

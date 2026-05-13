@@ -238,23 +238,25 @@ describe('pedidosApi server-side listagem', () => {
   it('salva PDV apenas no agregado quando dual-write esta desligado', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse(null));
 
-    await savePedido(
-      context,
-      makeSaveInput({
-        itens: [
-          {
-            prodId: 'prod-1',
-            nome: 'Camisa',
-            un: 'un',
-            qty: 1,
-            preco: 50,
-            custo: 30,
-            orig: 'pdv'
-          }
-        ],
-        origem_venda: 'pdv'
-      })
-    );
+    await expect(
+      savePedido(
+        context,
+        makeSaveInput({
+          itens: [
+            {
+              prodId: 'prod-1',
+              nome: 'Camisa',
+              un: 'un',
+              qty: 1,
+              preco: 50,
+              custo: 30,
+              orig: 'pdv'
+            }
+          ],
+          origem_venda: 'pdv'
+        })
+      )
+    ).resolves.toBeNull();
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(String(vi.mocked(fetch).mock.calls[0]?.[0])).toContain('/rest/v1/pedidos');
@@ -264,23 +266,25 @@ describe('pedidosApi server-side listagem', () => {
     (window as any).__SC_PEDIDO_ITENS_DUAL_WRITE__ = true;
     vi.mocked(fetch).mockResolvedValue(makeResponse(null));
 
-    await savePedido(
-      context,
-      makeSaveInput({
-        itens: [
-          {
-            prodId: 'prod-1',
-            nome: 'Camisa',
-            un: 'un',
-            qty: 2,
-            preco: 50,
-            custo: 30,
-            orig: 'pdv'
-          }
-        ],
-        origem_venda: 'pdv'
-      })
-    );
+    await expect(
+      savePedido(
+        context,
+        makeSaveInput({
+          itens: [
+            {
+              prodId: 'prod-1',
+              nome: 'Camisa',
+              un: 'un',
+              qty: 2,
+              preco: 50,
+              custo: 30,
+              orig: 'pdv'
+            }
+          ],
+          origem_venda: 'pdv'
+        })
+      )
+    ).resolves.toBeNull();
 
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(String(vi.mocked(fetch).mock.calls[0]?.[0])).toContain('/rest/v1/pedidos');
@@ -342,7 +346,7 @@ describe('pedidosApi server-side listagem', () => {
           origem_venda: 'pdv'
         })
       )
-    ).resolves.toBeUndefined();
+    ).resolves.toBeNull();
 
     expect(warn).toHaveBeenCalledOnce();
     warn.mockRestore();

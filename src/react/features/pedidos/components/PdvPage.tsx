@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useToastStore } from '../../../app/lib/useToastStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input } from '../../../shared/ui';
-import { usePedidoMutations } from '../hooks/usePedidoMutations';
+import { usePedidoMutations } from '../hooks/usePedidosQuery';
 import { getNextPedidoNumber } from '../services/pedidosApi';
 import {
   searchClientesLight,
@@ -39,6 +38,7 @@ import { usePdvStore } from '../store/usePdvStore';
 import { PdvClienteModal } from './PdvClienteModal';
 import { PdvComprovanteModal } from './PdvComprovanteModal';
 import { PdvPagamentoMistoModal } from './PdvPagamentoMistoModal';
+import { toast } from 'sonner';
 
 const PAYMENT_OPTIONS: Array<{
   value: PdvPaymentMethod;
@@ -179,14 +179,13 @@ export function PdvPage() {
 
   const session = useAuthStore((state) => state.session);
   const filialId = useFilialStore((state) => state.filialId);
-  const { submitPedido } = usePedidoMutations();
+  const { save } = usePedidoMutations();
 
   const [saleToken, setSaleToken] = useState(() => createSaleToken());
   const [now, setNow] = useState(() => new Date());
   const [nextPedidoNum, setNextPedidoNum] = useState(1);
   const [pageError, setPageError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [productQuery, setProductQuery] = useState('');
   const [productResults, setProductResults] = useState<PdvProdutoSearchResult[]>([]);
   const [productSearchError, setProductSearchError] = useState<string | null>(null);
@@ -224,6 +223,7 @@ export function PdvPage() {
     () => validateMixedPayments(mixedPayments, totals.total),
     [mixedPayments, totals.total]
   );
+  const saving = save.isPending;
   const canFinalize =
     items.length > 0 &&
     !!paymentMethod &&
@@ -388,7 +388,7 @@ export function PdvPage() {
       removePdvSaleFromQueue(context.filialId, current.queueId);
       const remaining = countPdvQueue(context.filialId);
       setPendingQueueCount(remaining);
-      useToastStore.getState().addToast('Venda pendente enviada com sucesso.', 'success');
+      toast.success('Venda pendente enviada com sucesso.');
       if (remaining > 0) window.setTimeout(() => void processQueue(), 250);
     } catch {
       setPendingQueueCount(countPdvQueue(context.filialId));
@@ -437,8 +437,8 @@ export function PdvPage() {
     options: { silent?: boolean } = {}
   ) {
     try {
-      const result = await submitPedido(payload);
-      return result.aviso;
+      // Usamos mutateAsync para poder capturar o erro aqui e tratar o fallback
+      await save.mutateAsync(payload);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao salvar venda.';
       if (!isPdvMetadataMissingError(message)) throw error;
@@ -446,36 +446,32 @@ export function PdvPage() {
       const { origem_venda, pgto_meta, ...fallback } = payload;
       const fallbackObs = [
         payload.obs,
-        pgto_meta ? `[PDV_META] ${JSON.stringify(pgto_meta)}` : '',
-        origem_venda ? `[PDV_ORIGEM] ${origem_venda}` : ''
+        pgto_meta ? \`[PDV_META] \${JSON.stringify(pgto_meta)}\` : '',
+        origem_venda ? \`[PDV_ORIGEM] \${origem_venda}\` : ''
       ]
         .filter(Boolean)
         .join('\n');
 
       if (!options.silent) {
-        useToastStore.getState().addToast(
-          'Metadados do PDV ainda não existem no banco. Salvando a venda no modo compatível.',
-          'warning'
-        );
+        toast.warning('Metadados do PDV ainda não existem no banco. Salvando a venda no modo compatível.');
       }
 
-      const result = await submitPedido({
+      await save.mutateAsync({
         ...fallback,
         obs: fallbackObs
       });
-      return result.aviso;
     }
   }
 
   async function handleFinalizeSale() {
     if (!canFinalize) return;
     if (paymentMethod === 'misto' && !mixedValidation.isValid) {
-      useToastStore.getState().addToast('A soma do pagamento misto precisa bater com o total da venda.', 'warning');
+      toast.warning('A soma do pagamento misto precisa bater com o total da venda.');
       setMixedModalOpen(true);
       return;
     }
     if (paymentMethod === 'fiado' && !selectedCliente) {
-      useToastStore.getState().addToast('Fiado precisa de cliente vinculado.', 'warning');
+      toast.warning('Fiado precisa de cliente vinculado.');
       return;
     }
 
@@ -510,11 +506,9 @@ export function PdvPage() {
       venda_fechada_por: getUserIdentifier(session)
     };
 
-    setSaving(true);
     try {
-      const warning = await submitPdvPayload(payload);
-      if (warning) useToastStore.getState().addToast(warning, 'warning');
-      useToastStore.getState().addToast('Venda finalizada. O PDV já está pronto para a próxima.', 'success');
+      await submitPdvPayload(payload);
+      toast.success('Venda finalizada. O PDV já está pronto para a próxima.');
       setLastCompletedSale({
         numero: payload.num,
         total: payload.total,
@@ -534,7 +528,7 @@ export function PdvPage() {
           createdAt: new Date().toISOString()
         });
         setPendingQueueCount(countPdvQueue(filialId));
-        useToastStore.getState().addToast('Venda guardada na fila local. Vamos reenviar quando a rede voltar.', 'warning');
+        toast.warning('Venda guardada na fila local. Vamos reenviar quando a rede voltar.');
         setLastCompletedSale({
           numero: payload.num,
           total: payload.total,
@@ -546,10 +540,8 @@ export function PdvPage() {
         setReceiptOpen(true);
         resetCurrentSale();
       } else {
-        useToastStore.getState().addToast(message, 'error');
+        toast.error(message);
       }
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -586,7 +578,7 @@ export function PdvPage() {
         paymentMethod: lastCompletedSale.paymentMethod
       })
     );
-    window.open(`${link}?text=${message}`, '_blank', 'noopener,noreferrer');
+    window.open(\`\${link}?text=\${message}\`, '_blank', 'noopener,noreferrer');
     setReceiptOpen(false);
   }
 
@@ -718,14 +710,14 @@ export function PdvPage() {
                         <button
                           key={produto.id}
                           type="button"
-                          className={`rf-pdv__suggestion${isActive ? ' is-active' : ''}`}
+                          className={`rf-pdv__suggestion\${isActive ? ' is-active' : ''}`}
                           onMouseEnter={() => setActiveSuggestionIndex(index)}
                           onClick={() => handleSelectProduto(produto)}
                         >
                           <div className="rf-pdv__suggestion-copy">
                             <strong>{produto.nome}</strong>
                             <span>
-                              {stock !== null ? `Estoque ${stock}` : 'Sem saldo'} ·{' '}
+                              {stock !== null ? \`Estoque \${stock}\` : 'Sem saldo'} ·{' '}
                               {produto.codigo_barras || produto.sku || produto.codigo_fornecedor || 'Sem código'}
                             </span>
                           </div>
@@ -738,7 +730,7 @@ export function PdvPage() {
                       );
                     })}
                     <div className="rf-pdv__suggestions-foot">
-                      {productSearchMs !== null ? `Última busca em ${productSearchMs}ms` : 'Busca rápida ativa'}
+                      {productSearchMs !== null ? \`Última busca em \${productSearchMs}ms\` : 'Busca rápida ativa'}
                     </div>
                   </>
                 ) : null}
@@ -769,7 +761,7 @@ export function PdvPage() {
                     return (
                       <div
                         key={item.key}
-                        className={`rf-pdv__cart-row${isFocused ? ' is-focused' : ''}`}
+                        className={`rf-pdv__cart-row\${isFocused ? ' is-focused' : ''}`}
                         tabIndex={0}
                         onFocus={() => setFocusedItemKey(item.key)}
                         onKeyDown={(event) => {
@@ -798,21 +790,27 @@ export function PdvPage() {
                             type="text"
                             inputMode="decimal"
                             value={formatQty(item.qty, item.isWeight)}
-                            onChange={(event) => setItemQty(item.key, parseDecimalInput(event.target.value) || step)}
-                            onFocus={() => setFocusedItemKey(item.key)}
+                            onChange={(event) => {
+                              const next = parseDecimalInput(event.target.value);
+                              if (next > 0) setItemQty(item.key, next);
+                            }}
                           />
                           <button className="rf-pdv__qty-btn" type="button" onClick={() => incrementItem(item.key)}>
                             +
                           </button>
                         </div>
-                        <div className="rf-pdv__cart-unit">
-                          {formatCurrencyBRL(item.preco)}
-                          <span>{item.isWeight ? `/${item.un}` : ''}</span>
+                        <div className="rf-pdv__unit">{formatCurrencyBRL(item.preco)}</div>
+                        <div className="rf-pdv__total">{formatCurrencyBRL(subtotal)}</div>
+                        <div className="rf-pdv__actions">
+                          <button
+                            className="rf-pdv__remove-btn"
+                            type="button"
+                            title="Remover (Delete)"
+                            onClick={() => removeItem(item.key)}
+                          >
+                            ✕
+                          </button>
                         </div>
-                        <div className="rf-pdv__cart-total">{formatCurrencyBRL(subtotal)}</div>
-                        <button className="rf-pdv__remove" type="button" onClick={() => removeItem(item.key)}>
-                          ×
-                        </button>
                       </div>
                     );
                   })}
@@ -820,123 +818,101 @@ export function PdvPage() {
               )}
             </div>
 
-            <footer className="rf-pdv__shortcuts">
-              <span>
-                <kbd>/</kbd> buscar
-              </span>
-              <span>
-                <kbd>↑↓</kbd> qtd
-              </span>
-              <span>
-                <kbd>Del</kbd> remover
-              </span>
-              <span>
-                <kbd>F2</kbd> finalizar
-              </span>
-              <span>
-                <kbd>Esc</kbd> cancelar
-              </span>
+            <footer className="rf-pdv__cart-foot">
+              <div className="rf-pdv__cart-summary">
+                <div className="rf-pdv__summary-row">
+                  <span>Subtotal</span>
+                  <strong>{formatCurrencyBRL(totals.subtotal)}</strong>
+                </div>
+                {totals.discountValue > 0 ? (
+                  <div className="rf-pdv__summary-row is-discount">
+                    <span>Desconto</span>
+                    <strong>− {formatCurrencyBRL(totals.discountValue)}</strong>
+                  </div>
+                ) : null}
+                <div className="rf-pdv__summary-row is-total">
+                  <span>Total</span>
+                  <strong>{formatCurrencyBRL(totals.total)}</strong>
+                </div>
+              </div>
+              <div className="rf-pdv__cart-actions">
+                <Button variant="secondary" onClick={() => setDiscountModalOpen(true)}>
+                  Desconto (F7)
+                </Button>
+                <Button variant="secondary" onClick={() => setCancelConfirmOpen(true)}>
+                  Cancelar (Esc)
+                </Button>
+              </div>
             </footer>
           </section>
 
           <aside className="rf-pdv__right">
-            <section className="rf-pdv__side-card">
-              <div className="rf-pdv__side-card-title">Cliente</div>
-              {!selectedCliente ? (
-                <div className="rf-pdv__cliente-empty">
-                  <div className="rf-pdv__cliente-copy">
-                    <strong>Sem cliente</strong>
-                    <span>Cliente é opcional e nunca trava a venda.</span>
+            <section className="rf-pdv__panel">
+              <header className="rf-pdv__panel-head">
+                <div className="rf-pdv__title">Cliente</div>
+                <Button variant="secondary" size="sm" onClick={() => setClienteModalOpen(true)}>
+                  {selectedCliente ? 'Alterar' : 'Selecionar'}
+                </Button>
+              </header>
+              {selectedCliente ? (
+                <div className="rf-pdv__cliente">
+                  <div className="rf-pdv__cliente-info">
+                    <strong>{selectedCliente.nome}</strong>
+                    <span>{selectedCliente.documento || 'Sem documento'}</span>
                   </div>
-                  <Button size="sm" onClick={() => setClienteModalOpen(true)}>
-                    Adicionar
-                  </Button>
+                  <button className="rf-pdv__cliente-remove" type="button" onClick={() => setSelectedCliente(null)}>
+                    Remover
+                  </button>
                 </div>
               ) : (
-                <div className="rf-pdv__cliente-filled">
-                  <div className="rf-pdv__cliente-copy">
-                    <strong>{selectedCliente.nome}</strong>
-                    <span>{selectedCliente.whatsapp || selectedCliente.tel || 'Sem WhatsApp'}</span>
-                  </div>
-                  <div className="rf-pdv__cliente-actions">
-                    <Button size="sm" onClick={() => setClienteModalOpen(true)}>
-                      Trocar
-                    </Button>
-                    <Button size="sm" variant="danger" onClick={() => setSelectedCliente(null)}>
-                      Remover
-                    </Button>
-                  </div>
-                </div>
+                <div className="rf-pdv__panel-empty">Consumidor final</div>
               )}
             </section>
 
-            <section className="rf-pdv__side-card">
-              <div className="rf-pdv__summary-row">
-                <span>{items.length} item(ns)</span>
-                <strong>{formatCurrencyBRL(totals.subtotal)}</strong>
-              </div>
-              <div className="rf-pdv__summary-row">
-                <span>Desconto</span>
-                <button className="rf-pdv__link-btn" type="button" onClick={() => setDiscountModalOpen(true)}>
-                  {discountValue > 0 ? formatCurrencyBRL(discountValue) : '+ Aplicar'}
-                </button>
-              </div>
-              <div className="rf-pdv__divider" />
-              <div className="rf-pdv__summary-total">
-                <span>Total</span>
-                <strong>{formatCurrencyBRL(totals.total)}</strong>
-              </div>
-            </section>
-
-            <section className="rf-pdv__side-card rf-pdv__payments">
-              <div className="rf-pdv__side-card-title">Forma de pagamento</div>
-              <div className="rf-pdv__payments-grid">
+            <section className="rf-pdv__panel is-expanded">
+              <header className="rf-pdv__panel-head">
+                <div className="rf-pdv__title">Pagamento</div>
+              </header>
+              <div className="rf-pdv__payments">
                 {PAYMENT_OPTIONS.map((option) => {
-                  const disabled = option.disabledWithoutCliente && !selectedCliente;
-                  const isSelected = paymentMethod === option.value;
+                  const isActive = paymentMethod === option.value;
+                  const isDisabled = option.disabledWithoutCliente && !selectedCliente;
                   return (
                     <button
                       key={option.value}
-                      className={`rf-pdv__payment-btn${isSelected ? ' is-selected' : ''}`}
+                      className={`rf-pdv__payment-btn\${isActive ? ' is-active' : ''}`}
                       type="button"
-                      disabled={disabled}
-                      onClick={() => {
-                        if (option.value === 'misto') {
-                          setMixedModalOpen(true);
-                          return;
-                        }
-                        setPaymentMethod(option.value);
-                      }}
+                      disabled={isDisabled}
+                      onClick={() => setPaymentMethod(option.value)}
                     >
-                      <span className="rf-pdv__payment-emoji" aria-hidden="true">
-                        {option.emoji}
-                      </span>
-                      <span>{option.label}</span>
+                      <span className="rf-pdv__payment-emoji">{option.emoji}</span>
+                      <span className="rf-pdv__payment-label">{option.label}</span>
+                      {isActive ? <span className="rf-pdv__payment-check">✓</span> : null}
                     </button>
                   );
                 })}
               </div>
-              {!selectedCliente ? (
-                <div className="rf-pdv__payment-hint">Fiado precisa de cliente vinculado.</div>
-              ) : null}
-              {paymentMethod === 'misto' && mixedPayments.length > 0 ? (
-                <div className={`rf-pdv__payment-hint${mixedValidation.isValid ? ' is-valid' : ''}`}>
-                  {mixedValidation.isValid
-                    ? `Dividido em ${mixedPayments.length} forma(s).`
-                    : 'A soma do misto ainda não fecha o total.'}
+              {paymentMethod === 'misto' && (
+                <div className="rf-pdv__payment-meta">
+                  <Button variant="secondary" size="sm" fullWidth onClick={() => setMixedModalOpen(true)}>
+                    Configurar Misto ({mixedValidation.parts.length} part{mixedValidation.parts.length === 1 ? 'e' : 'es'})
+                  </Button>
                 </div>
-              ) : null}
+              )}
             </section>
 
-            <button
-              className="rf-pdv__finalize-btn"
-              type="button"
-              onClick={() => void handleFinalizeSale()}
-              disabled={!canFinalize}
-            >
-              <span>Finalizar venda</span>
-              <kbd>F2</kbd>
-            </button>
+            <div className="rf-pdv__finalize">
+              <Button
+                variant="primary"
+                fullWidth
+                size="lg"
+                disabled={!canFinalize}
+                loading={saving}
+                onClick={() => void handleFinalizeSale()}
+              >
+                Finalizar venda (F2)
+              </Button>
+            </div>
           </aside>
         </div>
       </section>
@@ -945,90 +921,82 @@ export function PdvPage() {
         open={clienteModalOpen}
         query={clienteQuery}
         results={clienteResults}
-        loading={clienteSearching}
+        searching={clienteSearching}
         error={clienteSearchError}
+        onClose={() => setClienteModalOpen(false)}
         onQueryChange={setClienteQuery}
         onSelect={(cliente) => {
           setSelectedCliente(cliente);
           setClienteModalOpen(false);
         }}
-        onClose={() => setClienteModalOpen(false)}
       />
 
       <PdvPagamentoMistoModal
         open={mixedModalOpen}
         total={totals.total}
-        initialParts={mixedPayments}
+        payments={mixedPayments}
         onClose={() => setMixedModalOpen(false)}
         onSave={(parts) => {
           setMixedPayments(parts);
-          setPaymentMethod('misto');
           setMixedModalOpen(false);
         }}
       />
 
-      <PdvComprovanteModal
-        open={receiptOpen}
-        countdown={receiptCountdown}
-        canWhatsapp={!!getClienteWhatsappLink(lastCompletedSale?.cliente ?? null)}
-        onPrint={handlePrintReceipt}
-        onWhatsapp={handleWhatsappReceipt}
-        onClose={() => setReceiptOpen(false)}
-      />
-
-      <Modal
-        open={discountModalOpen}
-        title="Aplicar desconto"
-        onClose={() => setDiscountModalOpen(false)}
-        footer={
-          <>
-            <Button onClick={() => setDiscountModalOpen(false)}>
+      <Modal open={discountModalOpen} title="Aplicar desconto" onClose={() => setDiscountModalOpen(false)}>
+        <div className="rf-ui-stack">
+          <p className="table-cell-muted">Informe o valor em reais que deseja descontar do total bruto ({formatCurrencyBRL(totals.subtotal)}).</p>
+          <div className="grid grid-cols-1 gap-4">
+            <Input
+              label="Valor do desconto"
+              type="text"
+              inputMode="decimal"
+              autoFocus
+              value={discountDraft}
+              onChange={(event) => setDiscountDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') handleApplyDiscount();
+              }}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-3 mt-4">
+            <Button variant="secondary" onClick={() => setDiscountModalOpen(false)}>
               Cancelar
             </Button>
             <Button variant="primary" onClick={handleApplyDiscount}>
               Aplicar desconto
             </Button>
-          </>
-        }
-      >
-        <div className="rf-pdv-modal-search">
-          <Input
-            inputMode="decimal"
-            value={discountDraft}
-            onChange={(event) => setDiscountDraft(event.target.value)}
-            placeholder="0,00"
-            autoFocus
-          />
-          <div className="rf-pdv__payment-hint">
-            O desconto é distribuído entre os itens para manter o total coerente no pedido salvo.
           </div>
         </div>
       </Modal>
 
-      <Modal
-        open={cancelConfirmOpen}
-        title="Cancelar venda"
-        onClose={() => setCancelConfirmOpen(false)}
-        footer={
-          <>
-            <Button onClick={() => setCancelConfirmOpen(false)}>
-              Voltar
+      <Modal open={cancelConfirmOpen} title="Cancelar venda?" onClose={() => setCancelConfirmOpen(false)}>
+        <div className="rf-ui-stack">
+          <p>Tem certeza que deseja cancelar esta venda? Todos os itens do carrinho serão removidos.</p>
+          <div className="flex items-center justify-end gap-3 mt-4">
+            <Button variant="secondary" onClick={() => setCancelConfirmOpen(false)}>
+              Não, continuar
             </Button>
             <Button
+              variant="danger"
               onClick={() => {
-                setCancelConfirmOpen(false);
                 resetCurrentSale();
+                setCancelConfirmOpen(false);
               }}
             >
-              Limpar venda
+              Sim, cancelar
             </Button>
-          </>
-        }
-      >
-        <div className="rf-pdv-receipt-copy">
-          A venda atual será descartada da tela. Isso não mexe em nada já salvo no sistema.
+          </div>
         </div>
       </Modal>
+
+      <PdvComprovanteModal
+        open={receiptOpen}
+        countdown={receiptCountdown}
+        onClose={() => setReceiptOpen(false)}
+        onPrint={handlePrintReceipt}
+        onWhatsapp={handleWhatsappReceipt}
+        whatsappEnabled={!!getClienteWhatsappLink(lastCompletedSale?.cliente ?? null)}
+      />
     </main>
   );
 }

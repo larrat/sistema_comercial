@@ -60,7 +60,10 @@
   "dependencies": {
     "@headlessui/react": "^2.2.10",
     "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-query": "^5.100.10",
+    "@tanstack/react-table": "^8.21.3",
     "@tremor/react": "^3.18.7",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
@@ -68,8 +71,10 @@
     "react": "^19.2.5",
     "react-countup": "^6.5.3",
     "react-dom": "^19.2.5",
+    "react-hook-form": "^7.75.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.8.1",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
