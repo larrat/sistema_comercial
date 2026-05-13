@@ -130,7 +130,7 @@ export function AppSidebar() {
               placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pl-9 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
             />
           </div>
         </div>
@@ -255,11 +255,11 @@ export function AppSidebar() {
           
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 rounded-lg text-xs font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2'}`}
+            className={`flex items-center gap-2 rounded-lg text-xs font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2 justify-center'}`}
             title={collapsed ? "Encerrar Sessão" : undefined}
           >
             <LogOut size={collapsed ? 20 : 16} strokeWidth={2.5} className="shrink-0" />
-            {!collapsed && <span className="w-full text-center pr-4">Encerrar Sessão</span>}
+            {!collapsed && <span>Encerrar Sessão</span>}
           </button>
         </div>
       </div>
