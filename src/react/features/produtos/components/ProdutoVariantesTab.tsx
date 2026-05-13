@@ -25,6 +25,9 @@ import {
   listVariantesByPaiId,
   type VendaVarianteRow
 } from '../services/produtosApi';
+import ReactCountUp from 'react-countup';
+const CountUp = (ReactCountUp as any).default || ReactCountUp;
+import { Package, ShoppingCart, DollarSign, TrendingUp, Calendar, Info } from 'lucide-react';
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -232,8 +235,14 @@ function getAverageGiro(rows: VariantMetric[]): number | null {
 function ProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   return (
-    <div className="produto-variant-progress" aria-hidden="true">
-      <span style={{ width: `${pct}%`, background: color }} />
+    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner" aria-hidden="true">
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="h-full rounded-full shadow-[0_0_8px_rgba(0,0,0,0.05)]"
+        style={{ backgroundColor: color }} 
+      />
     </div>
   );
 }
@@ -531,96 +540,190 @@ export function ProdutoVariantesTab({ produto }: Props) {
       initial="hidden"
       animate="visible"
     >
-      <motion.section variants={item} className="rf-cliente-profile__card produto-variant-head">
-        <div>
-          <h3 className="rf-cliente-profile__card-title">Variantes ({variantes.length})</h3>
-          <p className="rf-cliente-profile__card-subtitle">
+      <motion.section variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Variantes ({variantes.length})</h3>
+            {!vendasDisponiveis && (
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full border border-amber-100">
+                <Info size={10} />
+                <span className="text-[9px] font-black uppercase">Homologando vendas</span>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-slate-500 font-medium">
             Dados consolidados do produto pai no período selecionado.
-            {!vendasDisponiveis ? ' Vendas aguardam pedido_itens em homologação.' : ''}
           </p>
         </div>
-        {periodSelector}
-      </motion.section>
-
-      <motion.section variants={item} className="rf-ui-stats-grid">
-        <StatCard label="Saldo total (pai)" value={`${fmtQ(totalSaldo)} ${produto.un || 'un'}`} foot="Soma das variantes" />
-        <StatCard label="Qtde vendida" value={fmtQ(totalVendido)} foot={PERIOD_CONFIG[periodo].label} />
-        <StatCard label="Receita" value={fmtCurrency(totalReceita)} foot={PERIOD_CONFIG[periodo].label} />
-        <StatCard label="Giro médio" value={fmtDays(giroMedio)} foot="Dias de estoque" tone={giroMedio === null ? 'warning' : 'default'} />
-      </motion.section>
-
-      <motion.section variants={item} className="rf-cliente-profile__card">
-        <div className="rf-cliente-profile__card-head">
-          <h3 className="rf-cliente-profile__card-title">Tabela de variantes</h3>
+        
+        <div className="rf-pill-group">
+          {PERIODOS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`rf-pill ${periodo === p ? 'is-active' : ''}`}
+              onClick={() => setPeriodo(p)}
+              disabled={loadingVendas}
+            >
+              {PERIOD_CONFIG[p].label}
+            </button>
+          ))}
         </div>
-        <div className="rf-cliente-profile__table-wrap">
-          <table className="rf-cliente-profile__table produto-variant-table">
+      </motion.section>
+
+      <motion.section variants={item} className="rf-kpi-grid">
+        <article className="rf-dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <span className="rf-stat-label !mb-0">Saldo Total (Pai)</span>
+            <div className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
+              <Package size={14} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div className="rf-stat-value">
+            <CountUp end={totalSaldo} duration={2} separator="." />
+            <span className="text-sm font-bold text-slate-400 ml-1.5">{produto.un || 'un'}</span>
+          </div>
+          <span className="rf-stat-sub muted font-bold">Soma de todas as variantes</span>
+        </article>
+
+        <article className="rf-dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <span className="rf-stat-label !mb-0">Qtde Vendida</span>
+            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+              <ShoppingCart size={14} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div className="rf-stat-value">
+            <CountUp end={totalVendido} duration={2} separator="." />
+          </div>
+          <span className="rf-stat-sub muted font-bold">{PERIOD_CONFIG[periodo].label}</span>
+        </article>
+
+        <article className="rf-dash-card">
+          <div className="flex items-center justify-between mb-4">
+            <span className="rf-stat-label !mb-0">Receita Total</span>
+            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm">
+              <DollarSign size={14} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div className="rf-stat-value">
+            <CountUp 
+              end={totalReceita} 
+              decimals={2} 
+              decimal="," 
+              prefix="R$ " 
+              duration={2} 
+              separator="."
+            />
+          </div>
+          <span className="rf-stat-sub success font-bold">
+            <TrendingUp size={12} strokeWidth={3} /> {PERIOD_CONFIG[periodo].label}
+          </span>
+        </article>
+
+        <article className={`rf-dash-card ${giroMedio === null ? 'is-warning' : ''}`}>
+          <div className="flex items-center justify-between mb-4">
+            <span className="rf-stat-label !mb-0">Giro Médio</span>
+            <div className={`p-2 rounded-lg ${giroMedio === null ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-slate-50 text-slate-600 border-slate-100'} shadow-sm`}>
+              <Calendar size={14} strokeWidth={2.5} />
+            </div>
+          </div>
+          <div className="rf-stat-value">
+            <CountUp 
+              end={giroMedio || 0} 
+              decimals={giroMedio === null ? 0 : 1}
+              decimal=","
+              duration={2} 
+            />
+            <span className="text-sm font-bold text-slate-400 ml-1.5">dias</span>
+          </div>
+          <span className={`rf-stat-sub ${giroMedio === null ? 'warning' : 'muted'} font-bold`}>
+            Cobertura de estoque
+          </span>
+        </article>
+      </motion.section>
+
+      <motion.section variants={item} className="rf-dash-card !p-0 overflow-hidden">
+        <div className="rf-dash-card__header !p-6 border-b border-slate-50">
+          <div className="flex-1">
+            <span className="rf-stat-label !mb-1 text-slate-500">Relatório Detalhado</span>
+            <h2 className="rf-dash-card__title text-base">Tabela de Variantes</h2>
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr>
-                <th>Variante</th>
-                <th>SKU</th>
-                <th>Saldo</th>
-                <th>Varejo</th>
-                <th>Atacado</th>
-                <th>Status</th>
-                <th>Vendido</th>
-                <th>Receita</th>
-                <th>Margem</th>
+              <tr className="bg-slate-50/50">
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Variante</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Varejo</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vendido</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Margem</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-50">
               {metrics.map((row) => {
                 const emin = Number(row.produto.emin ?? 0);
                 return (
-                  <tr key={row.produto.id}>
-                    <td className="table-cell-strong">
-                      {row.produto.nome}
-                      <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
+                  <tr key={row.produto.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-sm font-bold text-slate-900">{row.produto.nome}</span>
+                        <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
+                      </div>
                     </td>
-                    <td className="table-cell-muted">{row.produto.sku || '—'}</td>
-                    <td>{fmtQ(row.saldo)} {row.produto.un}</td>
-                    <td>{row.varejo > 0 ? fmtCurrency(row.varejo) : '—'}</td>
-                    <td>{row.atacado > 0 ? fmtCurrency(row.atacado) : '—'}</td>
-                    <td><StatusBadge tone={stockTone(row.saldo, emin)}>{stockLabel(row.saldo, emin)}</StatusBadge></td>
-                    <td>{fmtQ(row.vendido)}</td>
-                    <td>{fmtCurrency(row.receita)}</td>
-                    <td>{fmtPercent(row.margem)}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.produto.sku || '—'}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{fmtQ(row.saldo)} <span className="text-[10px] text-slate-400">{row.produto.un}</span></td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{row.varejo > 0 ? fmtCurrency(row.varejo) : '—'}</td>
+                    <td className="px-6 py-4">
+                      <StatusBadge tone={stockTone(row.saldo, emin)}>{stockLabel(row.saldo, emin)}</StatusBadge>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{fmtQ(row.vendido)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{fmtCurrency(row.receita)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`text-xs font-black ${row.margem && row.margem > 30 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                        {fmtPercent(row.margem)}
+                      </span>
+                    </td>
                   </tr>
                 );
               })}
-              <tr className="produto-variant-total-row">
-                <td className="table-cell-strong">Total (produto pai)</td>
-                <td className="table-cell-muted">—</td>
-                <td>{fmtQ(totalSaldo)} {produto.un || 'un'}</td>
-                <td>—</td>
-                <td>—</td>
-                <td><StatusBadge tone="neutral">Consolidado</StatusBadge></td>
-                <td>{fmtQ(totalVendido)}</td>
-                <td>{fmtCurrency(totalReceita)}</td>
-                <td>{fmtPercent(margemPai)}</td>
+              <tr className="bg-slate-50/80 font-black">
+                <td className="px-6 py-5 text-sm text-slate-900 uppercase tracking-tight">Total Consolidado</td>
+                <td className="px-6 py-5 text-slate-400">—</td>
+                <td className="px-6 py-5 text-sm text-slate-900">{fmtQ(totalSaldo)} <span className="text-[10px] text-slate-400">{produto.un || 'un'}</span></td>
+                <td className="px-6 py-5">—</td>
+                <td className="px-6 py-5"><StatusBadge tone="neutral">Pai</StatusBadge></td>
+                <td className="px-6 py-5 text-sm text-slate-900">{fmtQ(totalVendido)}</td>
+                <td className="px-6 py-5 text-sm text-slate-900">{fmtCurrency(totalReceita)}</td>
+                <td className="px-6 py-5 text-sm text-slate-900">{fmtPercent(margemPai)}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </motion.section>
 
-      <motion.div variants={item} className="produto-variant-charts-grid">
+      <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
         <StackedVariantChart
-          title="Qtde vendida por mês"
+          title="Distribuição de Vendas (Qty)"
           data={qtySeriesData}
           variantes={metrics}
           valueFormatter={(value) => fmtQ(value)}
           emptyTitle="Sem vendas no período."
         />
         <StackedVariantChart
-          title="Receita por mês (R$)"
+          title="Composição de Receita (R$)"
           data={receitaSeriesData}
           variantes={metrics}
           valueFormatter={(value) => fmtCurrency(value)}
           emptyTitle="Sem receita no período."
         />
         <SimpleVariantChart
-          title="Margem por variante (%)"
+          title="Margem por Variante (%)"
           data={margemChartData}
           dataKey="value"
           colorKey="color"
@@ -628,7 +731,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
           suffix="%"
         />
         <SimpleVariantChart
-          title="Giro de estoque (dias)"
+          title="Cobertura de Estoque (Giro)"
           data={giroChartData}
           dataKey="value"
           colorKey="color"
@@ -638,17 +741,17 @@ export function ProdutoVariantesTab({ produto }: Props) {
         />
       </motion.div>
 
-      <div className="produto-variant-legend" aria-label="Legenda das variantes">
+      <div className="flex flex-wrap items-center justify-center gap-6 py-8 border-t border-slate-50 mt-8">
         {metrics.map((row) => (
-          <span key={row.produto.id}>
-            <i style={{ background: row.color }} />
-            {row.produto.nome}
-          </span>
+          <div key={row.produto.id} className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: row.color }} />
+            <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">{row.produto.nome}</span>
+          </div>
         ))}
-        <span>
-          <i style={{ background: PAI_COLOR }} />
-          Produto pai
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ background: PAI_COLOR }} />
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider italic">Produto Pai</span>
+        </div>
       </div>
     </motion.div>
   );
