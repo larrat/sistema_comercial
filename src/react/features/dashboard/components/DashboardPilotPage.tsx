@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Sector } from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -24,7 +25,9 @@ import {
   CheckCircle2,
   ChevronRight,
   RefreshCw,
-  TrendingUp
+  TrendingUp,
+  HelpCircle,
+  Zap
 } from 'lucide-react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
