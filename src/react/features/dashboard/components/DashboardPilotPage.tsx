@@ -619,8 +619,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 </div>
               </div>
             </div>
-            <div className="flex-1 min-h-[300px]">
-              <ResponsiveContainer width="100%" height={300}>
+            <div className="flex-1">
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart 
                   data={chartData} 
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
