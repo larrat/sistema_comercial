@@ -3,14 +3,40 @@ import { motion, type Variants } from 'framer-motion';
 import {
   Bar,
   BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   Cell,
   LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
+  Defs,
+  LinearGradient
 } from 'recharts';
+
+function PremiumChartTooltip({ active, payload, label, formatter }: any) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 p-4 rounded-xl shadow-2xl z-[1000]">
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 border-b border-slate-700/50 pb-2">{label}</p>
+      <div className="flex flex-col gap-2.5">
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center justify-between gap-8">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="text-[11px] font-bold text-slate-300">{entry.name}</span>
+            </div>
+            <span className="text-[11px] font-black text-white whitespace-nowrap">
+              {formatter ? formatter(entry.value) : entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
@@ -270,28 +296,45 @@ function StackedVariantChart({
       ) : (
         <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="2 4" />
-              <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-text-3)' }} />
+            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <Defs>
+                {variantes.map((v, i) => (
+                  <linearGradient key={`grad-${v.produto.id}`} id={`color-${v.produto.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={v.color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={v.color} stopOpacity={0} />
+                  </linearGradient>
+                ))}
+              </Defs>
+              <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="label" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
+                dy={10}
+              />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: 'var(--color-text-3)' }}
+                tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
                 tickFormatter={(value) => `${valueFormatter(Number(value))}${ySuffix ?? ''}`}
               />
-              <Tooltip formatter={(value) => valueFormatter(Number(value))} />
+              <Tooltip content={<PremiumChartTooltip formatter={valueFormatter} />} />
               {variantes.map((variant) => (
-                <Bar
+                <Area
                   key={variant.produto.id}
+                  type="monotone"
                   dataKey={variant.produto.id}
                   name={variant.produto.nome}
                   stackId="variantes"
-                  fill={variant.color}
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive={false}
+                  stroke={variant.color}
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill={`url(#color-${variant.produto.id})`}
+                  animationDuration={1500}
                 />
               ))}
-            </BarChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
@@ -321,25 +364,39 @@ function SimpleVariantChart({
       <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 24, right: 10, left: 0, bottom: 0 }}>
-            <CartesianGrid vertical={false} stroke="var(--color-border)" strokeDasharray="2 4" />
-            <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-text-3)' }} />
+            <Defs>
+              {data.map((row, i) => (
+                <linearGradient key={`bar-grad-${i}`} id={`bar-color-${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={row.color} stopOpacity={1} />
+                  <stop offset="100%" stopColor={row.color} stopOpacity={0.6} />
+                </linearGradient>
+              ))}
+            </Defs>
+            <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="label" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
+              dy={10}
+            />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: 'var(--color-text-3)' }}
+              tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
               tickFormatter={(value) => `${formatter(Number(value))}${suffix ?? ''}`}
             />
-            <Tooltip formatter={(value) => `${formatter(Number(value))}${suffix ?? ''}`} />
-            <Bar dataKey={dataKey} fill="#378ADD" isAnimationActive={false} radius={[4, 4, 0, 0]}>
-              {data.map((row) => (
-                <Cell key={row.label} fill={row[colorKey]} />
+            <Tooltip content={<PremiumChartTooltip formatter={(v: any) => `${formatter(v)}${suffix ?? ''}`} />} />
+            <Bar dataKey={dataKey} radius={[6, 6, 0, 0]} animationDuration={1200}>
+              {data.map((row, i) => (
+                <Cell key={`cell-${i}`} fill={`url(#bar-color-${i})`} />
               ))}
               {showSemVenda ? (
                 <LabelList
                   dataKey="semVenda"
                   position="top"
-                  formatter={(value) => (value ? 'sem venda' : '')}
-                  style={{ fill: 'var(--color-text-3)', fontSize: 10 }}
+                  formatter={(value: any) => (value ? '⚠ sem venda' : '')}
+                  style={{ fill: '#f43f5e', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}
                 />
               ) : null}
             </Bar>
