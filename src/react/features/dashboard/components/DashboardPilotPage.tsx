@@ -783,24 +783,28 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       ))}
                     </Pie>
                     <Tooltip 
+                      offset={15}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <TooltipShell className="min-w-[160px] p-4">
-                            <div className="flex flex-col items-center mb-2 pb-2 border-b border-white/5">
-                              <p className="font-black text-white text-[9px] uppercase tracking-[0.1em] text-center leading-tight">
-                                {payload[0].name}
-                              </p>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mb-1">Participação</span>
-                              <p className="text-base font-black text-white leading-none">{fmt(payload[0].value as number)}</p>
-                            </div>
-                              <div className="mt-3 pt-2 border-t border-slate-50 flex items-center justify-center gap-1.5 opacity-30">
-                                <div className="w-0.5 h-0.5 rounded-full bg-slate-400" />
-                                <span className="text-[6px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
+                            <Card padding="sm" className="min-w-[180px] bg-surface-sidebar border-border-bold shadow-2xl">
+                              <div className="flex flex-col items-center gap-4">
+                                <Typography variant="label" align="center" className="pb-2 border-b border-border-subtle w-full">
+                                  {payload[0].name}
+                                </Typography>
+                                
+                                <div className="flex flex-col items-center gap-1">
+                                  <Typography variant="caption" color="muted" weight="bold">PARTICIPAÇÃO NO MIX</Typography>
+                                  <Typography variant="h3" weight="black" color="primary">
+                                    {fmt(payload[0].value as number)}
+                                  </Typography>
+                                </div>
+
+                                <div className="pt-2 border-t border-border-subtle w-full flex justify-center">
+                                  <Badge variant="blue" className="text-[8px] opacity-70">NEXUS ANALYTICS V3</Badge>
+                                </div>
                               </div>
-                            </TooltipShell>
+                            </Card>
                           );
                         }
                         return null;
