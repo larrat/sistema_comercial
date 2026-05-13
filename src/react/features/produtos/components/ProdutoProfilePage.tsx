@@ -418,15 +418,14 @@ export function ProdutoProfilePage({
                 }`}>
                   {stockStatus.label}
                 </span>
+                {produto.produto_pai_id && (
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600 border border-slate-200 shadow-sm">Variante</span>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <Clock className="w-3.5 h-3.5 text-slate-400" />
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Atualizado em {new Date().toLocaleDateString()}</span>
               </div>
-            </div>
-              {produto.produto_pai_id && (
-                <span className="rf-badge-premium bg-slate-100 text-slate-600">Variante</span>
-              )}
             </div>
             
             <div className="flex items-center gap-3">
