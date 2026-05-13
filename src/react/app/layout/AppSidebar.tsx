@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3,
   Building2,
@@ -75,23 +76,35 @@ export function AppSidebar() {
   }
 
   return (
-    <aside
-      className={`flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 transition-all duration-300 z-40 relative shadow-2xl ${
-        collapsed ? 'w-[72px]' : 'w-[280px]'
-      }`}
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? 72 : 280 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 z-40 relative shadow-2xl h-full"
       aria-label="Navegação principal"
     >
       <div className={`flex-shrink-0 flex items-center h-[88px] ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>
         <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center' : ''}`}>
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-xl border border-white/5 shrink-0">
+          <motion.div 
+            layout
+            className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-xl border border-white/5 shrink-0"
+          >
             <Store size={24} strokeWidth={2.5} />
-          </div>
-          {!collapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-lg text-white tracking-tight leading-none">Nexus</span>
-              <span className="text-[10px] font-bold text-[var(--color-brand-gold)] uppercase tracking-[0.25em] mt-1.5 opacity-80">Industrial</span>
-            </div>
-          )}
+          </motion.div>
+          <AnimatePresence mode="wait">
+            {!collapsed && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col min-w-0"
+              >
+                <span className="font-extrabold text-lg text-white tracking-tight leading-none">Nexus</span>
+                <span className="text-[10px] font-bold text-[var(--color-brand-gold)] uppercase tracking-[0.25em] mt-1.5 opacity-80">Industrial</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         {!collapsed && (
           <button
@@ -123,11 +136,18 @@ export function AppSidebar() {
       <nav className={`flex-1 overflow-y-auto flex flex-col gap-6 scrollbar-hide ${collapsed ? 'items-center px-0' : 'px-4'} py-2`}>
         {groups.map((group) => (
           <div key={group.label} className={`flex flex-col gap-1.5 ${collapsed ? 'items-center w-full' : ''}`}>
-            {!collapsed && (
-              <div className="px-3 mb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-600">
-                {group.label}
-              </div>
-            )}
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="px-3 mb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-600"
+                >
+                  {group.label}
+                </motion.div>
+              )}
+            </AnimatePresence>
             {collapsed && <div className="h-px bg-slate-800/50 w-8 mb-1" />}
 
             <div className={`flex flex-col gap-1 ${collapsed ? 'items-center w-full' : ''}`}>
@@ -138,11 +158,11 @@ export function AppSidebar() {
                     key={item.id}
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center rounded-xl transition-all duration-300 relative group
+                      `flex items-center rounded-xl transition-colors duration-200 relative group
                       ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-4 py-3 w-full'}
                       ${
                         isActive
-                           ? 'bg-slate-800/80 text-[var(--color-brand-gold)] font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
+                           ? 'bg-slate-800/80 text-[var(--color-brand-gold)] font-bold'
                            : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
@@ -151,7 +171,11 @@ export function AppSidebar() {
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <div className={`absolute left-0 w-1 bg-[var(--color-brand-gold)] rounded-r-full transition-all duration-500 ${collapsed ? 'h-6' : 'h-5'}`} />
+                          <motion.div 
+                            layoutId="active-pill"
+                            className={`absolute left-0 w-1 bg-[var(--color-brand-gold)] rounded-r-full shadow-[0_0_12px_var(--color-brand-gold)] ${collapsed ? 'h-6' : 'h-5'}`} 
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                          />
                         )}
                         <Icon 
                           size={collapsed ? 24 : 18} 
@@ -162,7 +186,18 @@ export function AppSidebar() {
                               : 'group-hover:scale-110 group-hover:text-slate-300'
                           }`} 
                         />
-                        {!collapsed && <span className="truncate text-[14px] tracking-tight">{item.label}</span>}
+                        <AnimatePresence>
+                          {!collapsed && (
+                            <motion.span 
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -10 }}
+                              className="truncate text-[14px] tracking-tight"
+                            >
+                              {item.label}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
                       </>
                     )}
                   </NavLink>
@@ -174,16 +209,18 @@ export function AppSidebar() {
       </nav>
 
       <div className={`flex-shrink-0 mt-auto border-t border-slate-800/50 ${collapsed ? 'p-3' : 'p-4'}`}>
-        <button
+        <motion.button
+          whileHover={{ x: collapsed ? 0 : 4, color: '#fb7185' }}
+          whileTap={{ scale: 0.95 }}
           type="button"
-          className={`flex items-center justify-center gap-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-white/5 hover:text-rose-400 transition-all group active:scale-95 ${collapsed ? 'w-12 h-12 mx-auto' : 'w-full px-4 py-3.5'}`}
+          className={`flex items-center justify-center gap-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-white/5 transition-all active:scale-95 ${collapsed ? 'w-12 h-12 mx-auto' : 'w-full px-4 py-3.5'}`}
           onClick={handleLogout}
           title={collapsed ? "Sair da Conta" : undefined}
         >
-          <LogOut size={collapsed ? 24 : 18} strokeWidth={2.5} className={`flex-shrink-0 ${!collapsed && 'group-hover:translate-x-1 transition-transform'}`} />
+          <LogOut size={collapsed ? 24 : 18} strokeWidth={2.5} className="flex-shrink-0" />
           {!collapsed && <span>Sair da Conta</span>}
-        </button>
+        </motion.button>
       </div>
-    </aside>
+    </motion.aside>
   );
 }
