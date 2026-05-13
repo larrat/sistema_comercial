@@ -303,14 +303,14 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
               </Button>
             )}
             
-            <Button
-              variant="primary"
-              leftIcon={<Zap className="w-4 h-4" />}
+            <button
+              className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan"
               onClick={() => setModal({ tipo: 'form', produto: null })}
             >
+              <Zap size={16} />
               <span className="hidden sm:inline">Novo produto</span>
               <span className="sm:hidden">Novo</span>
-            </Button>
+            </button>
           </div>
         </div>
       }

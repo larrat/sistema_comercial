@@ -268,12 +268,12 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
         initial="hidden"
         animate="visible"
       >
-        <motion.article className="rf-kpi-card" variants={itemVariants}>
+        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
           <span className="rf-kpi-label">Total em pedidos</span>
           <span className="rf-kpi-value">{summary.total}</span>
           <span className="rf-kpi-sub muted">{total} filtrados no período</span>
         </motion.article>
-        <motion.article className="rf-kpi-card" variants={itemVariants}>
+        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
           <span className="rf-kpi-label">Aguardando</span>
           <span className={`rf-kpi-value ${summary.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
             {summary.emAbertoCount}
@@ -282,12 +282,12 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
             {fmtCurrency(summary.valorEmAberto)} em aberto
           </span>
         </motion.article>
-        <motion.article className="rf-kpi-card" variants={itemVariants}>
+        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
           <span className="rf-kpi-label">Concluídos</span>
           <span className="rf-kpi-value !text-emerald-400">{summary.entreguesCount}</span>
           <span className="rf-kpi-sub success">Operação saudável</span>
         </motion.article>
-        <motion.article className="rf-kpi-card" variants={itemVariants}>
+        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
           <span className="rf-kpi-label">Cancelados</span>
           <span className="rf-kpi-value !text-rose-400">{summary.canceladosCount}</span>
           <span className="rf-kpi-sub muted">Taxa de rejeição</span>

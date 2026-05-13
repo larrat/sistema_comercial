@@ -39,26 +39,23 @@ export function ProdutoMetrics({ produtos }: Props) {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={item}>
-        <StatCard 
-          label="Produtos" 
-          tone="blue"
-          value={<CountUp end={produtos.length} duration={1.5} />} 
-        />
+      <motion.div variants={item} className="rf-bento-item !p-4">
+        <span className="rf-kpi-label">Produtos</span>
+        <span className="rf-kpi-value">
+          <CountUp end={produtos.length} duration={1.5} />
+        </span>
       </motion.div>
-      <motion.div variants={item}>
-        <StatCard 
-          label="Categorias" 
-          tone="blue"
-          value={<CountUp end={categorias} duration={1.5} />} 
-        />
+      <motion.div variants={item} className="rf-bento-item !p-4">
+        <span className="rf-kpi-label">Categorias</span>
+        <span className="rf-kpi-value">
+          <CountUp end={categorias} duration={1.5} />
+        </span>
       </motion.div>
-      <motion.div variants={item}>
-        <StatCard 
-          label="Com precificação" 
-          tone="blue_to_pink"
-          value={<CountUp end={comPrecificacao} duration={1.5} />} 
-        />
+      <motion.div variants={item} className="rf-bento-item !p-4">
+        <span className="rf-kpi-label">Com precificação</span>
+        <span className="rf-kpi-value text-emerald-400">
+          <CountUp end={comPrecificacao} duration={1.5} />
+        </span>
       </motion.div>
     </motion.section>
   );

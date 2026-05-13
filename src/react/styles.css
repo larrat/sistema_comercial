@@ -133,6 +133,21 @@
   border: 1px solid var(--border-bold);
 }
 
+.rf-glass-glow {
+  background: rgba(var(--rgb-white), 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(var(--rgb-white), 0.1);
+  box-shadow: 0 0 40px rgba(34, 211, 238, 0.05);
+}
+
+.rf-glow-cyan {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+}
+
+.rf-glow-emerald {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
 /* Bento Grid System */
 .rf-bento-grid {
   display: grid;

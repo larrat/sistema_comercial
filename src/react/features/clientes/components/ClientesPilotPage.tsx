@@ -231,13 +231,13 @@ export function ClientesPilotPage({
 
             <div className="h-8 w-px bg-white/10 mx-1" />
 
-            <Button
-              variant="primary"
+            <button
+              className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan"
               data-testid="novo-btn"
               onClick={() => openNewCliente('header_button')}
             >
               Novo cliente
-            </Button>
+            </button>
           </div>
         }
       />
