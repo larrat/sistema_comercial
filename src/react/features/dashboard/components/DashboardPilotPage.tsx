@@ -783,28 +783,21 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       ))}
                     </Pie>
                     <Tooltip 
-                      offset={15}
+                      position={{ x: 200, y: 0 }}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <Card padding="sm" className="min-w-[200px] bg-[#0f172a] border-border-bold shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-                              <div className="flex flex-col items-center gap-4">
-                                <Typography variant="label" align="center" className="pb-2 border-b border-border-subtle w-full">
-                                  {payload[0].name}
+                            <div className="bg-[#0f172a]/95 backdrop-blur-md border border-border-bold p-3 rounded-lg shadow-2xl min-w-[150px]">
+                              <Typography variant="caption" color="muted" weight="bold" className="mb-1 block border-b border-border-subtle pb-1">
+                                {payload[0].name}
+                              </Typography>
+                              <div className="flex flex-col">
+                                <Typography variant="h4" weight="black" color="accent">
+                                  {fmt(payload[0].value as number)}
                                 </Typography>
-                                
-                                <div className="flex flex-col items-center gap-1">
-                                  <Typography variant="caption" color="muted" weight="bold">PARTICIPAÇÃO NO MIX</Typography>
-                                  <Typography variant="h3" weight="black" color="primary">
-                                    {fmt(payload[0].value as number)}
-                                  </Typography>
-                                </div>
-
-                                <div className="pt-2 border-t border-border-subtle w-full flex justify-center">
-                                  <Badge variant="blue" className="text-[8px] opacity-70">NEXUS ANALYTICS V3</Badge>
-                                </div>
+                                <Typography variant="label" className="text-[8px] opacity-50">PARTICIPAÇÃO NO MIX</Typography>
                               </div>
-                            </Card>
+                            </div>
                           );
                         }
                         return null;
@@ -812,9 +805,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className={`absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-opacity duration-300 ${activePieIndex !== -1 ? 'opacity-0' : 'opacity-100'}`}>
-                  <Typography variant="label" color="muted" className="!tracking-tighter">Top 5</Typography>
-                  <Typography variant="h3" weight="black" color="primary" className="leading-none">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <Typography variant="h2" weight="black" color="primary" className="leading-none !text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
                     {fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}
                   </Typography>
                 </div>
