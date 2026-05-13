@@ -1,5 +1,24 @@
 import { useMemo } from 'react';
-import { DataTable, EmptyState, FilterBar, StatCard, Button, Badge, Card, Typography } from '../../../shared/ui';
+import { 
+  Card as TremorCard, 
+  Metric, 
+  Text, 
+  Grid, 
+  Title, 
+  Flex, 
+  Badge as TremorBadge,
+  Bold,
+  Callout,
+  BarList
+} from '@tremor/react';
+import { 
+  AlertCircle, 
+  CheckCircle2, 
+  Clock, 
+  TrendingUp,
+  Zap
+} from 'lucide-react';
+import { DataTable, FilterBar, Button, Typography } from '../../../shared/ui';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { computeOportunidades, syncHistorico } from '../utils/oportunidadesJogos';
@@ -90,19 +109,6 @@ export function OportunidadesTab() {
     return d >= amanha && d <= seteDias;
   });
 
-  // Resumo por mês
-  const grupos: Record<string, { total: number; validadas: number }> = {};
-  histFiltrado.forEach((item) => {
-    const key = String(item.mes_ref || 'sem-mes');
-    if (!grupos[key]) grupos[key] = { total: 0, validadas: 0 };
-    grupos[key].total += 1;
-    if (item.validada) grupos[key].validadas += 1;
-  });
-
-  const gruposData: GrupoRow[] = Object.entries(grupos)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([mesRef, dados]) => ({ mesRef, ...dados }));
-
   const pendentesLista = oportunidadesAtuais
     .map((item) => histCompleto.find((h) => h.id === item.id) || item)
     .filter((item) => !item.validada);
@@ -110,199 +116,156 @@ export function OportunidadesTab() {
   const validadasLista = histFiltrado
     .filter((item) => item.validada)
     .sort((a, b) => String(b.validada_em || '').localeCompare(String(a.validada_em || '')))
-    .slice(0, 12);
+    .slice(0, 8);
 
   return (
-    <div className="rf-ui-stack">
-      <div className="rf-ui-stat-grid">
-        <StatCard label="Oportunidades" value={total} />
-        <StatCard label="Validadas" value={validadasCount} tone="success" />
-        <StatCard label="Pendentes" value={pendentes} tone="warning" />
-        <StatCard label="Conversão" value={pct(taxa)} />
-      </div>
+    <div className="space-y-6">
+      {/* KPIs de Oportunidades */}
+      <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
+        <TremorCard decoration="left" decorationColor="indigo" className="!bg-surface-card !border-border-subtle shadow-premium">
+          <Text className="!text-text-muted font-bold uppercase tracking-tighter">Oportunidades</Text>
+          <Metric className="!text-text-primary !font-black">{total}</Metric>
+        </TremorCard>
+        <TremorCard decoration="left" decorationColor="emerald" className="!bg-surface-card !border-border-subtle shadow-premium">
+          <Text className="!text-text-muted font-bold uppercase tracking-tighter">Validadas</Text>
+          <Metric className="!text-text-primary !font-black">{validadasCount}</Metric>
+        </TremorCard>
+        <TremorCard decoration="left" decorationColor="amber" className="!bg-surface-card !border-border-subtle shadow-premium">
+          <Text className="!text-text-muted font-bold uppercase tracking-tighter">Pendentes</Text>
+          <Metric className="!text-text-primary !font-black">{pendentes}</Metric>
+        </TremorCard>
+        <TremorCard decoration="left" decorationColor="cyan" className="!bg-surface-card !border-border-subtle shadow-premium">
+          <Text className="!text-text-muted font-bold uppercase tracking-tighter">Conversão</Text>
+          <Flex justifyContent="start" className="gap-2">
+            <Metric className="!text-text-primary !font-black">{pct(taxa)}</Metric>
+            <TrendingUp size={20} className="text-emerald-500" />
+          </Flex>
+        </TremorCard>
+      </Grid>
 
-      {/* Context card */}
+      {/* Callouts Contextuais */}
       {jogosHoje.length > 0 && (
-        <Card className="bg-rose-500/10 border-rose-500/20 flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <Badge variant="red">Hoje</Badge>
-            <Typography variant="label" color="inherit" className="text-rose-500">Oportunidades</Typography>
-          </div>
-          <Typography variant="h3" weight="bold">
-            {jogosHoje.length} jogo{jogosHoje.length > 1 ? 's' : ''} hoje — valide antes do apito
-          </Typography>
-          <Typography variant="body-sm" className="text-rose-400 font-medium">
-            {pendentes} pendente{pendentes !== 1 ? 's' : ''} no total — conversão atual {pct(taxa)}
-          </Typography>
-        </Card>
-      )}
-      {!jogosHoje.length && jogosSemana.length > 0 && (
-        <Card className="bg-amber-500/10 border-amber-500/20 flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <Badge variant="yellow">Esta semana</Badge>
-            <Typography variant="label" color="inherit" className="text-amber-500">Oportunidades</Typography>
-          </div>
-          <Typography variant="h3" weight="bold">
-            {jogosSemana.length} jogo{jogosSemana.length > 1 ? 's' : ''} nos próximos 7 dias
-          </Typography>
-          <Typography variant="body-sm" className="text-amber-400 font-medium">
-            {pendentes} pendente{pendentes !== 1 ? 's' : ''} — conversão atual {pct(taxa)}
-          </Typography>
-        </Card>
-      )}
-      {!jogosHoje.length && !jogosSemana.length && total === 0 && (
-        <Card className="flex flex-col gap-3 border-blue-500/10">
-          <div className="flex items-center gap-3">
-            <Badge variant="blue">Info</Badge>
-            <Typography variant="label">Oportunidades</Typography>
-          </div>
-          <Typography variant="h3" weight="bold">Nenhuma oportunidade registrada</Typography>
-          <Typography variant="body-sm">Sincronize os jogos para começar a rastrear oportunidades comerciais.</Typography>
-        </Card>
+        <Callout
+          className="!bg-rose-500/10 !border-rose-500/20"
+          title={`${jogosHoje.length} jogo(s) hoje — valide antes do apito`}
+          icon={Zap}
+          color="rose"
+        >
+          Existem {pendentes} pendências no total — conversão atual {pct(taxa)}. Priorize as ações de hoje para não perder o timing comercial.
+        </Callout>
       )}
 
-      {/* Resumo por mês */}
-      <Card>
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-          <Typography variant="label" color="primary">Resumo por mês</Typography>
-        </div>
-        <FilterBar
-          filters={[
-            {
-              key: 'ano',
-              value: filtroAno,
-              onChange: setFiltroAno,
-              options: [
-                { value: '', label: 'Todos os anos' },
-                ...anos.map((ano) => ({ value: ano, label: ano }))
-              ]
-            },
-            {
-              key: 'mes',
-              value: filtroMes,
-              onChange: setFiltroMes,
-              options: [
-                { value: '', label: 'Todos os meses' },
-                ...MESES.map((mes, idx) => ({
-                  value: String(idx + 1).padStart(2, '0'),
-                  label: mes
-                }))
-              ]
-            }
-          ]}
-          activeFilterCount={(filtroAno ? 1 : 0) + (filtroMes ? 1 : 0)}
-          onClearFilters={() => {
-            setFiltroAno('');
-            setFiltroMes('');
-          }}
-        />
+      {/* Tabela de Resumo Mensal */}
+      <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
+        <Flex justifyContent="between" className="mb-6">
+          <Title className="!text-text-primary !font-bold">Resumo por Mês</Title>
+          <div className="flex gap-4">
+            <FilterBar
+              filters={[
+                {
+                  key: 'ano',
+                  value: filtroAno,
+                  onChange: setFiltroAno,
+                  options: [{ value: '', label: 'Ano' }, ...anos.map((ano) => ({ value: ano, label: ano }))]
+                },
+                {
+                  key: 'mes',
+                  value: filtroMes,
+                  onChange: setFiltroMes,
+                  options: [{ value: '', label: 'Mês' }, ...MESES.map((mes, idx) => ({ value: String(idx + 1).padStart(2, '0'), label: mes }))]
+                }
+              ]}
+              compact
+              onClearFilters={() => { setFiltroAno(''); setFiltroMes(''); }}
+            />
+          </div>
+        </Flex>
+
         <DataTable
           columns={[
             {
               key: 'periodo',
               header: 'Período',
-              render: (row: GrupoRow) => (
-                <strong>{fmtPeriodo(row.mesRef)}</strong>
-              )
+              render: (row: GrupoRow) => <Bold className="!text-text-primary">{fmtPeriodo(row.mesRef)}</Bold>
             },
-            {
-              key: 'total',
-              header: 'Oportunidades',
-              align: 'center',
-              render: (row: GrupoRow) => row.total
-            },
-            {
-              key: 'validadas',
-              header: 'Validadas',
-              align: 'center',
-              className: 'table-cell-success table-cell-strong',
-              render: (row: GrupoRow) => row.validadas
-            },
-            {
-              key: 'pendentes',
-              header: 'Pendentes',
-              align: 'center',
-              render: (row: GrupoRow) => row.total - row.validadas
-            },
+            { key: 'total', header: 'Oportunidades', align: 'center', render: (row: GrupoRow) => row.total },
+            { key: 'validadas', header: 'Validadas', align: 'center', render: (row: GrupoRow) => <Text color="emerald">{row.validadas}</Text> },
+            { key: 'pendentes', header: 'Pendentes', align: 'center', render: (row: GrupoRow) => row.total - row.validadas },
             {
               key: 'conversao',
               header: 'Conversão',
               align: 'right',
-              className: 'table-cell-strong',
-              render: (row: GrupoRow) =>
-                pct(row.total > 0 ? (row.validadas / row.total) * 100 : 0)
+              render: (row: GrupoRow) => (
+                <TremorBadge color={ (row.validadas / row.total) > 0.5 ? 'emerald' : 'amber' }>
+                  {pct(row.total > 0 ? (row.validadas / row.total) * 100 : 0)}
+                </TremorBadge>
+              )
             }
           ]}
-          rows={gruposData}
+          rows={Object.entries(
+            histFiltrado.reduce<Record<string, { total: number; validadas: number }>>((acc, item) => {
+              const key = String(item.mes_ref || 'sem-mes');
+              if (!acc[key]) acc[key] = { total: 0, validadas: 0 };
+              acc[key].total += 1;
+              if (item.validada) acc[key].validadas += 1;
+              return acc;
+            }, {})
+          ).map(([mesRef, dados]) => ({ mesRef, ...dados })).sort((a, b) => a.mesRef.localeCompare(b.mesRef))}
           rowKey={(row) => row.mesRef}
-          emptyTitle="Sem oportunidades registradas no filtro."
         />
-      </Card>
+      </TremorCard>
 
-      {/* Grid: pendentes + validadas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1 h-4 bg-amber-500 rounded-full" />
-            <Typography variant="label" color="primary">Oportunidades abertas</Typography>
-          </div>
-          {pendentesLista.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {pendentesLista.map((item) => (
-                <div key={item.id} className="p-4 rounded-xl border border-white/5 hover:border-white/10 bg-white/5 transition-all flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                  <div className="flex-grow min-w-0">
-                    <Typography variant="body-sm" weight="bold" color="primary" className="truncate">
-                      {item.cliente} • {item.time}
-                    </Typography>
-                    <Typography variant="label" color="tertiary">
-                      {item.jogo_titulo || item.jogo?.titulo || '-'} • {fmtDataHora(item.jogo_data_hora || item.jogo?.data_hora)}
-                    </Typography>
-                  </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    onClick={() => openValidacao(item)}
-                  >
-                    Validar
-                  </Button>
+      {/* Grid: Abertas vs Realizadas */}
+      <Grid numItemsLg={2} className="gap-6">
+        <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
+          <Flex justifyContent="between" className="mb-6">
+            <Title className="!text-text-primary !font-bold flex items-center gap-2">
+              <Clock size={18} className="text-amber-500" />
+              Oportunidades Abertas
+            </Title>
+            <TremorBadge color="amber" size="xs">{pendentesLista.length}</TremorBadge>
+          </Flex>
+          
+          <div className="space-y-4">
+            {pendentesLista.slice(0, 6).map((item) => (
+              <div key={item.id} className="p-4 rounded-xl bg-surface-hover border border-border-subtle flex items-center gap-4 group hover:border-border-bold transition-all">
+                <div className="flex-1 min-w-0">
+                  <Text className="!text-text-primary !font-bold truncate">{item.cliente} • {item.time}</Text>
+                  <Text className="!text-[10px] !text-text-muted">{item.jogo_titulo || item.jogo?.titulo || '-'} • {fmtDataHora(item.jogo_data_hora || item.jogo?.data_hora)}</Text>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="Sem oportunidades abertas para validar." compact />
-          )}
-        </Card>
+                <Button size="sm" onClick={() => openValidacao(item)}>Validar</Button>
+              </div>
+            ))}
+            {pendentesLista.length === 0 && <Text className="!text-center !py-8 !text-text-muted italic">Tudo em dia!</Text>}
+          </div>
+        </TremorCard>
 
-        <Card>
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-            <Typography variant="label" color="primary">Validações realizadas</Typography>
-          </div>
-          {validadasLista.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {validadasLista.map((item) => (
-                <div key={item.id} className="p-4 rounded-xl border border-white/5 bg-white/5 shadow-sm flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                  <div className="flex-grow min-w-0">
-                    <Typography variant="body-sm" weight="bold" color="primary" className="truncate">
-                      {item.cliente} • {item.time}
-                    </Typography>
-                    <Typography variant="label" color="tertiary">
-                      {fmtPeriodo(item.mes_ref)} • {item.pedido_num ? `Pedido #${item.pedido_num}` : 'Venda validada'}
-                      {item.pedido_total ? ` • ${fmt(item.pedido_total)}` : ''}
-                    </Typography>
-                  </div>
-                  <Badge variant="green">Validada</Badge>
+        <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
+          <Flex justifyContent="between" className="mb-6">
+            <Title className="!text-text-primary !font-bold flex items-center gap-2">
+              <CheckCircle2 size={18} className="text-emerald-500" />
+              Validações Recentes
+            </Title>
+            <TremorBadge color="emerald" size="xs">{validadasLista.length}</TremorBadge>
+          </Flex>
+
+          <div className="space-y-4">
+            {validadasLista.map((item) => (
+              <div key={item.id} className="p-4 rounded-xl bg-surface-hover border border-border-subtle flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <Text className="!text-text-primary !font-bold truncate">{item.cliente} • {item.time}</Text>
+                  <Text className="!text-[10px] !text-text-muted">
+                    {fmtPeriodo(item.mes_ref)} • {item.pedido_num ? `Pedido #${item.pedido_num}` : 'Venda validada'}
+                    {item.pedido_total ? ` • ${fmt(item.pedido_total)}` : ''}
+                  </Text>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="Nenhuma oportunidade validada no filtro." compact />
-          )}
-        </Card>
-      </div>
+                <TremorBadge color="emerald" size="xs" icon={CheckCircle2}>OK</TremorBadge>
+              </div>
+            ))}
+            {validadasLista.length === 0 && <Text className="!text-center !py-8 !text-text-muted italic">Nenhuma validação.</Text>}
+          </div>
+        </TremorCard>
+      </Grid>
     </div>
   );
 }

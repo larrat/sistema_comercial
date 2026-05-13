@@ -1,5 +1,13 @@
-import type { CSSProperties } from 'react';
-import { EmptyState, StatCard } from '../../../shared/ui';
+import { 
+  Card as TremorCard, 
+  Metric, 
+  Text, 
+  Flex, 
+  Grid, 
+  BarList,
+  Title,
+  Bold
+} from '@tremor/react';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 function fmt(v: number): string {
@@ -13,88 +21,69 @@ export function PerformanceTab() {
   const faturamento = entregues.reduce((acc, p) => acc + Number(p.total || 0), 0);
   const ticketMedio = entregues.length ? faturamento / entregues.length : 0;
 
-  const statusMap: Record<string, number> = {};
-  pedidos.forEach((p) => {
-    const key = String(p.status || 'sem_status');
-    statusMap[key] = (statusMap[key] || 0) + 1;
-  });
-  const totalPedidos = pedidos.length || 1;
-  const statusEntries = Object.entries(statusMap).sort(([, a], [, b]) => b - a);
+  const statusData = Object.entries(
+    pedidos.reduce<Record<string, number>>((acc, p) => {
+      const key = String(p.status || 'sem_status').replace(/_/g, ' ').toUpperCase();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {})
+  ).map(([name, value]) => ({ name, value }));
 
-  const clientesMap: Record<string, { total: number; pedidos: number }> = {};
-  pedidos.forEach((p) => {
-    const key = String(p.cli || 'Sem cliente');
-    if (!clientesMap[key]) clientesMap[key] = { total: 0, pedidos: 0 };
-    clientesMap[key].total += Number(p.total || 0);
-    clientesMap[key].pedidos += 1;
-  });
-  const topClientes = Object.entries(clientesMap)
+  const clientesData = Object.entries(
+    pedidos.reduce<Record<string, { total: number }>>((acc, p) => {
+      const key = String(p.cli || 'Sem cliente');
+      if (!acc[key]) acc[key] = { total: 0 };
+      acc[key].total += Number(p.total || 0);
+      return acc;
+    }, {})
+  )
     .sort(([, a], [, b]) => b.total - a.total)
-    .slice(0, 8);
+    .slice(0, 8)
+    .map(([name, data]) => ({ name, value: data.total }));
 
   return (
-    <div className="rf-ui-stack">
-      <div className="rf-ui-stat-grid">
-        <StatCard label="Pedidos" value={pedidos.length} />
-        <StatCard label="Entregues" value={entregues.length} tone="success" />
-        <StatCard label="Faturamento" value={fmt(faturamento)} />
-        <StatCard label="Ticket médio" value={fmt(ticketMedio)} />
-      </div>
+    <div className="space-y-6">
+      {/* KPIs de Topo */}
+      <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
+        <TremorCard decoration="left" decorationColor="indigo" className="!bg-surface-card !border-border-subtle">
+          <Text className="!text-text-muted">Total de Pedidos</Text>
+          <Metric className="!text-text-primary !font-black">{pedidos.length}</Metric>
+        </TremorCard>
+        <TremorCard decoration="left" decorationColor="emerald" className="!bg-surface-card !border-border-subtle">
+          <Text className="!text-text-muted">Pedidos Entregues</Text>
+          <Metric className="!text-text-primary !font-black">{entregues.length}</Metric>
+        </TremorCard>
+        <TremorCard decoration="left" decorationColor="cyan" className="!bg-surface-card !border-border-subtle">
+          <Text className="!text-text-muted">Faturamento</Text>
+          <Metric className="!text-text-primary !font-black">{fmt(faturamento)}</Metric>
+        </TremorCard>
+        <TremorCard decoration="left" decorationColor="amber" className="!bg-surface-card !border-border-subtle">
+          <Text className="!text-text-muted">Ticket Médio</Text>
+          <Metric className="!text-text-primary !font-black">{fmt(ticketMedio)}</Metric>
+        </TremorCard>
+      </Grid>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
-            <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-            Status dos pedidos
-          </h3>
-          {statusEntries.length > 0 ? (
-            <div className="flex flex-col gap-4">
-              {statusEntries.map(([status, qtd]) => (
-                <div key={status} className="flex flex-col gap-2">
-                  <div className="flex justify-between items-end">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
-                    <span className="text-sm font-extrabold text-white">{qtd}</span>
-                  </div>
-                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
-                      style={{ width: `${Math.max(2, (qtd / totalPedidos) * 100)}%` }} 
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="Sem pedidos." compact />
-          )}
-        </div>
+      <Grid numItemsLg={2} className="gap-6">
+        {/* Distribuição por Status */}
+        <TremorCard className="!bg-surface-card !border-border-subtle">
+          <Title className="!text-text-primary !font-bold">Distribuição por Status</Title>
+          <Flex className="mt-4">
+            <Text className="!text-text-muted"><Bold>Status</Bold></Text>
+            <Text className="!text-text-muted"><Bold>Qtd</Bold></Text>
+          </Flex>
+          <BarList data={statusData} color="emerald" className="mt-2" />
+        </TremorCard>
 
-        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
-            <div className="w-1 h-4 bg-blue-500 rounded-full" />
-            Top clientes por faturamento
-          </h3>
-          {topClientes.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {topClientes.map(([nome, dados]) => (
-                <div key={nome} className="p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all flex items-center gap-4">
-                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold text-xs shrink-0">
-                     {nome.substring(0, 2).toUpperCase()}
-                   </div>
-                  <div className="flex-grow min-w-0">
-                    <div className="text-sm font-bold text-white truncate">{nome}</div>
-                    <div className="text-[11px] text-slate-400 font-medium">
-                      {dados.pedidos} pedido(s) • <span className="text-emerald-400 font-bold">{fmt(dados.total)}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="Nenhum cliente com pedido." compact />
-          )}
-        </div>
-      </div>
+        {/* Top Clientes */}
+        <TremorCard className="!bg-surface-card !border-border-subtle">
+          <Title className="!text-text-primary !font-bold">Top 8 Clientes (Faturamento)</Title>
+          <Flex className="mt-4">
+            <Text className="!text-text-muted"><Bold>Cliente</Bold></Text>
+            <Text className="!text-text-muted"><Bold>Total</Bold></Text>
+          </Flex>
+          <BarList data={clientesData} valueFormatter={fmt} color="cyan" className="mt-2" />
+        </TremorCard>
+      </Grid>
     </div>
   );
 }
