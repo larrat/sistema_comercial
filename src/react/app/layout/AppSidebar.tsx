@@ -124,13 +124,13 @@ export function AppSidebar() {
       {!collapsed && (
         <div className="px-4 mb-6 mt-2">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
             <input 
               type="text"
               placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pl-10 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pl-12 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
             />
           </div>
         </div>

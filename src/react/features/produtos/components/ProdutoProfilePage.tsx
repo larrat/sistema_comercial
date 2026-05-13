@@ -445,15 +445,15 @@ export function ProdutoProfilePage({
             {activeTab === 'resumo' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 flex flex-col gap-8">
-                  <article className="rf-card-premium">
-                    <div className="rf-card-premium__head">
-                      <div>
-                        <span className="rf-section-label-premium">Análise Financeira</span>
-                        <h3 className="rf-card-premium__title">Resumo Comercial</h3>
+                  <article className="rf-dash-card">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-indigo-500">Análise Financeira</span>
+                        <h2 className="rf-dash-card__title text-base">Resumo Comercial</h2>
                       </div>
                       <Settings className="w-4 h-4 text-slate-300" />
                     </div>
-                    <div className="rf-card-premium__body">
+                    <div className="mt-2">
                       <ProdutoInfoTable
                         rows={[
                           { label: 'Custo Base', value: formatCurrency(precos.custo) },
@@ -462,8 +462,8 @@ export function ProdutoProfilePage({
                             value: precos.varejo > 0 ? (
                               <div className="flex items-center gap-2">
                                 <span className="font-bold">{formatCurrency(precos.varejo)}</span>
-                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-bold">
-                                  {formatPercent(precos.margemVarejo)}
+                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-black tracking-tighter">
+                                  +{formatPercent(precos.margemVarejo)}
                                 </span>
                               </div>
                             ) : null
@@ -473,8 +473,8 @@ export function ProdutoProfilePage({
                             value: precos.atacado > 0 ? (
                               <div className="flex items-center gap-2">
                                 <span className="font-bold">{formatCurrency(precos.atacado)}</span>
-                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">
-                                  {formatPercent(precos.margemAtacado)}
+                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-black tracking-tighter">
+                                  +{formatPercent(precos.margemAtacado)}
                                 </span>
                               </div>
                             ) : null
@@ -488,15 +488,15 @@ export function ProdutoProfilePage({
                     </div>
                   </article>
 
-                  <article className="rf-card-premium">
-                    <div className="rf-card-premium__head">
-                      <div>
-                        <span className="rf-section-label-premium">Operacional</span>
-                        <h3 className="rf-card-premium__title">Gestão de Estoque</h3>
+                  <article className="rf-dash-card">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-emerald-500">Operacional</span>
+                        <h2 className="rf-dash-card__title text-base">Gestão de Estoque</h2>
                       </div>
                       <Layers className="w-4 h-4 text-slate-300" />
                     </div>
-                    <div className="rf-card-premium__body">
+                    <div className="mt-2">
                       <ProdutoInfoTable
                         rows={[
                           {
@@ -515,15 +515,15 @@ export function ProdutoProfilePage({
                     </div>
                   </article>
 
-                  <article className="rf-card-premium">
-                    <div className="rf-card-premium__head">
-                      <div>
-                        <span className="rf-section-label-premium">Identificação</span>
-                        <h3 className="rf-card-premium__title">Cadastro Base</h3>
+                  <article className="rf-dash-card">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-slate-500">Identificação</span>
+                        <h2 className="rf-dash-card__title text-base">Cadastro Base</h2>
                       </div>
                       <Database className="w-4 h-4 text-slate-300" />
                     </div>
-                    <div className="rf-card-premium__body">
+                    <div className="mt-2">
                       <ProdutoInfoTable
                         rows={[
                           { label: 'SKU', value: produto.sku },
@@ -537,45 +537,51 @@ export function ProdutoProfilePage({
                 </div>
 
                 <aside className="flex flex-col gap-6">
-                  <article className="rf-card-premium bg-[#0F172A] text-white overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                      <TrendingUp className="w-24 h-24" />
+                  <article className="rf-dash-card bg-[#0F172A] text-white overflow-hidden relative shadow-[0_20px_40px_-12px_rgba(15,23,42,0.3)]">
+                    <div className="absolute top-0 right-0 p-6 opacity-5">
+                      <TrendingUp className="w-32 h-32" />
                     </div>
-                    <div className="p-6 flex flex-col gap-6 relative z-10">
+                    <div className="p-2 flex flex-col gap-6 relative z-10">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Performance</span>
-                        <h3 className="text-lg font-bold text-white">Giro e Saúde</h3>
+                        <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-[0.2em]">Nexus AI · Performance</span>
+                        <h3 className="text-lg font-bold text-white tracking-tight">Giro e Saúde</h3>
                       </div>
                       
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-5">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-slate-400">Última Venda</span>
-                          <span className="text-xs font-semibold">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : '—'}</span>
+                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Última Venda</span>
+                          <span className="text-xs font-bold text-[#C5A059]">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
                         </div>
-                        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-[#C5A059] w-[65%]" />
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                            <span>Eficiência</span>
+                            <span>65%</span>
+                          </div>
+                          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: '65%' }}
+                              transition={{ duration: 1.5, ease: "easeOut" }}
+                              className="h-full bg-gradient-to-r from-[#C5A059] to-amber-400 shadow-[0_0_10px_rgba(197,160,89,0.3)]" 
+                            />
+                          </div>
                         </div>
-                        <p className="text-[10px] text-slate-500 leading-relaxed">
-                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de {produto.emin} {produto.un}.
+                        <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
+                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-white">{produto.emin} {produto.un}</span> para evitar ruptura.
                         </p>
                       </div>
-
-                      <button className="w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2">
-                        Ver histórico completo
-                        <ArrowUpRight className="w-3 h-3" />
-                      </button>
                     </div>
                   </article>
 
-                  <article className="rf-card-premium">
-                    <div className="rf-card-premium__head">
-                      <div>
-                        <span className="rf-section-label-premium">Mercado</span>
-                        <h3 className="rf-card-premium__title">Histórico de Custo</h3>
+                  <article className="rf-dash-card">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-amber-500">Mercado</span>
+                        <h2 className="rf-dash-card__title text-base">Histórico de Custo</h2>
                       </div>
                       <History className="w-4 h-4 text-slate-300" />
                     </div>
-                    <div className="rf-card-premium__body p-0">
+                    <div className="p-0">
                       {sortedHist.length ? (
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-[11px] border-collapse">
@@ -693,11 +699,11 @@ export function ProdutoProfilePage({
 
 function ProdutoInfoTable({ rows }: { rows: Array<{ label: string; value: React.ReactNode }> }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1.5">
       {rows.map((row, idx) => (
-        <div key={idx} className="flex items-center justify-between py-1 border-b border-slate-50/50 last:border-0">
-          <span className="text-sm text-slate-500 font-medium">{row.label}</span>
-          <div className="text-sm font-semibold text-slate-900">{row.value || '—'}</div>
+        <div key={idx} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-slate-50/80 transition-colors border-b border-slate-50/50 last:border-0">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{row.label}</span>
+          <div className="text-[13px] font-bold text-slate-900">{row.value || '—'}</div>
         </div>
       ))}
     </div>
