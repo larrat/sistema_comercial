@@ -9,7 +9,17 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  Camera
+  Camera,
+  ChevronLeft,
+  Package,
+  Settings,
+  TrendingUp,
+  Layers,
+  Database,
+  ArrowUpRight,
+  History,
+  ShieldCheck,
+  Info
 } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import ReactCountUp from 'react-countup';
