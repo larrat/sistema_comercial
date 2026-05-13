@@ -37,7 +37,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { LoadingState, ErrorState, StatusBadge, Button, Badge } from '../../../shared/ui';
+import { LoadingState, ErrorState, StatusBadge, Button, Badge, Card, Typography } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
