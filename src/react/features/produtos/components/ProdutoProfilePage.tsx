@@ -27,7 +27,7 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
-import { EmptyState, ErrorState, FormError, LoadingState } from '../../../shared/ui';
+import { EmptyState, ErrorState, FormError, LoadingState, Drawer } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
 import { useProdutoMutations } from '../hooks/useProdutoMutations';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
@@ -474,74 +474,66 @@ export function ProdutoProfilePage({
         </div>
       </section>
 
-      <AnimatePresence>
-        {!editingCadastro && (
-          <motion.section 
-            initial={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
-            className="rf-kpi-grid"
-          >
-            {kpis.map((card, idx) => {
-              const isCurrency = card.value.startsWith('R$');
-              const numericValue = parseFloat(card.value.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
-              
-              let Icon = TrendingUp;
-              if (card.label.includes('Custo')) Icon = DollarSign;
-              if (card.label.includes('Venda')) Icon = Zap;
-              if (card.label.includes('Estoque')) Icon = Package;
+      <section className="rf-kpi-grid">
+        {kpis.map((card, idx) => {
+          const isCurrency = card.value.startsWith('R$');
+          const numericValue = parseFloat(card.value.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+          
+          let Icon = TrendingUp;
+          if (card.label.includes('Custo')) Icon = DollarSign;
+          if (card.label.includes('Venda')) Icon = Zap;
+          if (card.label.includes('Estoque')) Icon = Package;
 
-              const toneClass = 
-                card.tone === 'positive' ? 'is-success' : 
-                card.tone === 'negative' ? 'is-danger' : 
-                '';
+          const toneClass = 
+            card.tone === 'positive' ? 'is-success' : 
+            card.tone === 'negative' ? 'is-danger' : 
+            '';
 
-              return (
-                <motion.article 
-                  key={card.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className={`rf-dash-card ${toneClass}`}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="rf-stat-label !mb-0">{card.label}</span>
-                    <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
-                      <Icon size={14} strokeWidth={2.5} />
-                    </div>
-                  </div>
+          return (
+            <motion.article 
+              key={card.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className={`rf-dash-card ${toneClass}`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="rf-stat-label !mb-0">{card.label}</span>
+                <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+                  <Icon size={14} strokeWidth={2.5} />
+                </div>
+              </div>
 
-                  <div className="rf-stat-value">
-                    {isCurrency ? (
-                      <CountUp 
-                        end={numericValue} 
-                        decimals={2} 
-                        decimal="," 
-                        prefix="R$ " 
-                        duration={2} 
-                        separator="."
-                      />
-                    ) : (
-                      <CountUp 
-                        end={parseFloat(card.value) || 0} 
-                        decimals={card.value.includes(',') ? 3 : 0}
-                        decimal=","
-                        duration={2} 
-                        separator="."
-                      />
-                    )}
-                    {!isCurrency && <span className="text-sm font-bold text-slate-400 ml-1.5">{card.value.split(' ')[1]}</span>}
-                  </div>
+              <div className="rf-stat-value">
+                {isCurrency ? (
+                  <CountUp 
+                    end={numericValue} 
+                    decimals={2} 
+                    decimal="," 
+                    prefix="R$ " 
+                    duration={2} 
+                    separator="."
+                  />
+                ) : (
+                  <CountUp 
+                    end={parseFloat(card.value) || 0} 
+                    decimals={card.value.includes(',') ? 3 : 0}
+                    decimal=","
+                    duration={2} 
+                    separator="."
+                  />
+                )}
+                {!isCurrency && <span className="text-sm font-bold text-slate-400 ml-1.5">{card.value.split(' ')[1]}</span>}
+              </div>
 
-                  <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
-                    {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
-                    {card.subtitle}
-                  </span>
-                </motion.article>
-              );
-            })}
-          </motion.section>
-        )}
-      </AnimatePresence>
+              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
+                {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
+                {card.subtitle}
+              </span>
+            </motion.article>
+          );
+        })}
+      </section>
 
       {/* Premium Tabs */}
       <nav className="rf-tabs-premium" ref={formRef}>
@@ -837,41 +829,20 @@ export function ProdutoProfilePage({
                 <div className="rf-dash-card__header flex-row items-center !mb-6">
                   <div className="flex-1">
                     <span className="rf-stat-label !mb-1 text-slate-500">Informações</span>
-                    <h2 className="rf-dash-card__title text-base">{editingCadastro ? 'Edição do Produto' : 'Detalhes Cadastrais'}</h2>
+                    <h2 className="rf-dash-card__title text-base">Detalhes Cadastrais</h2>
                   </div>
-                  {!editingCadastro && (
-                    <button className="rf-btn-premium" onClick={startEdit}>Editar</button>
-                  )}
+                  <button className="rf-btn-premium" onClick={startEdit}>Editar</button>
                 </div>
                 <div className="mt-2">
-                  {editingCadastro ? (
-                    <ProdutoForm
-                      produto={produto}
-                      pais={pais}
-                      saving={saving}
-                      error={mutationError}
-                      onSalvar={(values) => void handleSalvar(values)}
-                      onCancelar={() => {
-                        setEditingCadastro(false);
-                        setSearchParams((current) => {
-                          const next = new URLSearchParams(current);
-                          next.set('tab', 'cadastro');
-                          next.delete('edit');
-                          return next;
-                        });
-                      }}
-                    />
-                  ) : (
-                    <ProdutoInfoTable
-                      rows={[
-                        { label: 'Nome Completo', value: produto.nome },
-                        { label: 'SKU / Código', value: produto.sku },
-                        { label: 'Unidade Padrão', value: produto.un },
-                        { label: 'Categoria Master', value: produto.cat },
-                        { label: 'Descrição Pública', value: produto.descricao_padrao || '—' }
-                      ]}
-                    />
-                  )}
+                  <ProdutoInfoTable
+                    rows={[
+                      { label: 'Nome Completo', value: produto.nome },
+                      { label: 'SKU / Código', value: produto.sku },
+                      { label: 'Unidade Padrão', value: produto.un },
+                      { label: 'Categoria Master', value: produto.cat },
+                      { label: 'Descrição Pública', value: produto.descricao_padrao || '—' }
+                    ]}
+                  />
                 </div>
               </article>
             )}
@@ -884,6 +855,39 @@ export function ProdutoProfilePage({
           </motion.div>
         </AnimatePresence>
       </section>
+
+      <Drawer
+        open={editingCadastro}
+        title="Edição do Produto"
+        subtitle={produto.nome}
+        size="lg"
+        onClose={() => {
+          setEditingCadastro(false);
+          setSearchParams((current) => {
+            const next = new URLSearchParams(current);
+            next.delete('edit');
+            return next;
+          });
+        }}
+      >
+        <div className="p-2">
+          <ProdutoForm
+            produto={produto}
+            pais={pais}
+            saving={saving}
+            error={mutationError}
+            onSalvar={(values) => void handleSalvar(values)}
+            onCancelar={() => {
+              setEditingCadastro(false);
+              setSearchParams((current) => {
+                const next = new URLSearchParams(current);
+                next.delete('edit');
+                return next;
+              });
+            }}
+          />
+        </div>
+      </Drawer>
     </motion.main>
   );
 }
