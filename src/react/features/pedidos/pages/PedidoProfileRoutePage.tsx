@@ -36,7 +36,7 @@ export function PedidoProfileRoutePage() {
   if (!pedido && error) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100">
+        <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <ErrorState
             title={error ?? 'Erro ao carregar pedido.'}
             description="Não foi possível recuperar os dados deste pedido no momento."

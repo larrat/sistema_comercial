@@ -3473,10 +3473,11 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .table-cell-caption {
   font-size: 12px;
   line-height: 1.4;
+  color: var(--color-text-secondary);
 }
 
 .table-cell-muted {
-  color: #94a3b8;
+  color: var(--color-text-tertiary);
 }
 
 /* ── Novo Cadastro de Cliente (Industrial Premium) ─────────────────────── */
@@ -3541,10 +3542,8 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-section-card.is-focused {
-  border-color: #0f172a;
-  box-shadow:
-    0 10px 25px -5px rgb(0 0 0 / 0.05),
-    0 8px 10px -6px rgb(0 0 0 / 0.05);
+  border-color: var(--color-action-blue);
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.1);
 }
 
 .rf-section-header {
@@ -3677,7 +3676,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .btn-ghost {
   padding: 8px 12px;
   border-radius: 8px;
-  color: #64748b;
+  color: var(--color-text-tertiary);
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s;
@@ -3689,17 +3688,19 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .btn-primary {
-  background: #0f172a;
-  color: white;
+  background: var(--color-action-blue);
+  color: var(--color-background-primary);
   padding: 10px 20px;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   transition: all 0.2s;
+  border: none;
 }
 
 .btn-primary:hover {
-  background: #1e293b;
+  filter: brightness(1.1);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
 }
 
 .btn-primary:disabled {
@@ -3858,7 +3859,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-kpi-label {
   font-size: 13px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--color-text-tertiary);
 }
 
 .rf-kpi-value {
@@ -3926,14 +3927,14 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-card-premium__subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-tertiary);
   margin: 4px 0 0;
 }
 
 .rf-section-label-premium {
   font-size: 10px;
   font-weight: 900;
-  color: #c5a059;
+  color: var(--color-action-blue);
   text-transform: uppercase;
   letter-spacing: 0.15em;
   margin-bottom: 8px;

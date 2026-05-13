@@ -63,7 +63,7 @@ export function ActionMenu({
       <button
         className={
           buttonClassName ??
-          'h-8 w-8 rounded-md text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700'
+          'h-8 w-8 rounded-md text-slate-400 transition-colors hover:bg-white/5 hover:text-white'
         }
         type="button"
         aria-label={label}
@@ -77,7 +77,7 @@ export function ActionMenu({
         <div
           className={
             menuClassName ??
-            `absolute top-9 z-10 min-w-[140px] rounded-md border border-gray-200 bg-white py-1 shadow-sm ${
+            `absolute top-9 z-10 min-w-[140px] rounded-md border border-white/5 bg-slate-900 py-1 shadow-2xl ${
               align === 'right' ? 'right-0' : 'left-0'
             }`
           }
@@ -86,8 +86,8 @@ export function ActionMenu({
           {items.map((item) => (
             <button
               key={item.key}
-              className={`block w-full px-3 py-1.5 text-left text-sm ${
-                item.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-50'
+              className={`block w-full px-3 py-1.5 text-left text-sm transition-colors ${
+                item.danger ? 'text-rose-400 hover:bg-rose-500/10' : 'text-slate-300 hover:bg-white/5 hover:text-white'
               }`}
               type="button"
               onClick={() => {

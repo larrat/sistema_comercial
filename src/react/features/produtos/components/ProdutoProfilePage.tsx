@@ -378,20 +378,20 @@ export function ProdutoProfilePage({
       {/* Top Header / Breadcrumb */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
-          <Link to="/app/produtos" className="flex items-center gap-1.5 text-slate-400 hover:text-slate-900 transition-colors">
+          <Link to="/app/produtos" className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
             <ChevronLeft className="w-4 h-4" />
             Produtos
           </Link>
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-900 font-semibold">{produto.sku || `#${produto.id.slice(0,6)}`}</span>
+          <span className="text-slate-700">/</span>
+          <span className="text-white font-semibold">{produto.sku || `#${produto.id.slice(0,6)}`}</span>
         </div>
         
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col items-end mr-2">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Status do Sistema</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Status do Sistema</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-bold text-slate-600">Sincronizado</span>
+              <span className="text-[11px] font-bold text-slate-400">Sincronizado</span>
             </div>
           </div>
 
@@ -422,14 +422,14 @@ export function ProdutoProfilePage({
 
       {/* Hero Section */}
       <section className="flex items-center gap-8">
-        <div className="w-28 h-28 rounded-3xl bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center justify-center relative overflow-hidden group cursor-pointer">
+        <div className="w-28 h-28 rounded-3xl bg-slate-900 shadow-2xl border border-white/5 flex items-center justify-center relative overflow-hidden group cursor-pointer">
           <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-blue-600 opacity-0 group-hover:opacity-90 transition-all duration-500 flex flex-col items-center justify-center text-white gap-2">
             <Camera className="w-6 h-6 translate-y-4 group-hover:translate-y-0 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Trocar Foto</span>
           </div>
-          <Package className="w-12 h-12 text-slate-300 group-hover:scale-110 transition-transform duration-500" />
+          <Package className="w-12 h-12 text-slate-700 group-hover:scale-110 transition-transform duration-500" />
           
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100/50">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: '100%' }}
@@ -442,7 +442,7 @@ export function ProdutoProfilePage({
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight m-0">{produto.nome}</h1>
+                <h1 className="text-3xl font-black text-white tracking-tight m-0">{produto.nome}</h1>
                 <Badge variant={stockStatus.tone === 'success' ? 'green' : 'red'}>
                   {stockStatus.label}
                 </Badge>
@@ -451,8 +451,8 @@ export function ProdutoProfilePage({
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Atualizado em {new Date().toLocaleDateString()}</span>
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Atualizado em {new Date().toLocaleDateString()}</span>
               </div>
             </div>
             
@@ -470,7 +470,7 @@ export function ProdutoProfilePage({
               </Button>
             </div>
           </div>
-          <p className="text-sm text-slate-500 font-medium">
+          <p className="text-sm text-slate-400 font-medium">
             {produto.cat || 'Sem categoria'} · {produto.un} · SKU: {produto.sku || '—'}
           </p>
         </div>
@@ -501,7 +501,7 @@ export function ProdutoProfilePage({
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm ${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-400'}`}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
               </div>
@@ -525,7 +525,7 @@ export function ProdutoProfilePage({
                     separator="."
                   />
                 )}
-                {!isCurrency && <span className="text-sm font-bold text-slate-400 ml-1.5">{card.value.split(' ')[1]}</span>}
+                {!isCurrency && <span className="text-sm font-bold text-slate-500 ml-1.5">{card.value.split(' ')[1]}</span>}
               </div>
 
               <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
@@ -576,7 +576,7 @@ export function ProdutoProfilePage({
                         <span className="rf-stat-label !mb-1 text-indigo-500 font-black">Performance</span>
                         <h2 className="rf-dash-card__title text-base">Resumo Comercial</h2>
                       </div>
-                      <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
                         <TrendingUp size={14} />
                       </div>
                     </div>
@@ -589,7 +589,7 @@ export function ProdutoProfilePage({
                             value: precos.varejo > 0 ? (
                               <div className="flex items-center gap-2">
                                 <span className="font-bold">{formatCurrency(precos.varejo)}</span>
-                                <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-black tracking-tighter">
+                                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-black tracking-tighter border border-emerald-500/10">
                                   +{formatPercent(precos.margemVarejo)}
                                 </span>
                               </div>
@@ -600,7 +600,7 @@ export function ProdutoProfilePage({
                             value: precos.atacado > 0 ? (
                               <div className="flex items-center gap-2">
                                 <span className="font-bold">{formatCurrency(precos.atacado)}</span>
-                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-black tracking-tighter">
+                                <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-black tracking-tighter border border-indigo-500/10">
                                   +{formatPercent(precos.margemAtacado)}
                                 </span>
                               </div>
@@ -621,7 +621,7 @@ export function ProdutoProfilePage({
                         <span className="rf-stat-label !mb-1 text-rose-500 font-black">Análise</span>
                         <h2 className="rf-dash-card__title text-base">Formação de Preço</h2>
                       </div>
-                      <div className="p-2 bg-rose-50 rounded-lg text-rose-400">
+                      <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400 border border-rose-500/10">
                         <DollarSign size={14} />
                       </div>
                     </div>
@@ -633,7 +633,7 @@ export function ProdutoProfilePage({
                               <Tooltip.Provider>
                                 <Tooltip.Root>
                                   <Tooltip.Trigger className="flex items-center gap-1 cursor-help">
-                                    Custo de Compra <Info size={10} className="text-slate-300" />
+                                    Custo de Compra <Info size={10} className="text-slate-600" />
                                   </Tooltip.Trigger>
                                   <Tooltip.Portal>
                                     <Tooltip.Content className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl z-[200] max-w-[200px]" sideOffset={5}>
@@ -651,7 +651,7 @@ export function ProdutoProfilePage({
                               <Tooltip.Provider>
                                 <Tooltip.Root>
                                   <Tooltip.Trigger className="flex items-center gap-1 cursor-help">
-                                    Markup Varejo <Info size={10} className="text-slate-300" />
+                                    Markup Varejo <Info size={10} className="text-slate-600" />
                                   </Tooltip.Trigger>
                                   <Tooltip.Portal>
                                     <Tooltip.Content className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl z-[200]" sideOffset={5}>
@@ -681,7 +681,7 @@ export function ProdutoProfilePage({
                         <span className="rf-stat-label !mb-1 text-emerald-500 font-black">Logística</span>
                         <h2 className="rf-dash-card__title text-base">Gestão de Estoque</h2>
                       </div>
-                      <div className="p-2 bg-emerald-50 rounded-lg text-emerald-400">
+                      <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/10">
                         <Layers size={14} />
                       </div>
                     </div>
@@ -691,7 +691,7 @@ export function ProdutoProfilePage({
                           {
                             label: 'Saldo em Mão',
                             value: (
-                              <span className={`font-bold ${saldo.saldo <= 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                              <span className={`font-bold ${saldo.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
                                 {formatQuantity(saldo.saldo)} {produto.un}
                               </span>
                             )
@@ -710,7 +710,7 @@ export function ProdutoProfilePage({
                         <span className="rf-stat-label !mb-1 text-slate-500 font-black">Dados Mestre</span>
                         <h2 className="rf-dash-card__title text-base">Cadastro Base</h2>
                       </div>
-                      <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
                         <Database size={14} />
                       </div>
                     </div>
@@ -735,7 +735,7 @@ export function ProdutoProfilePage({
                         <span className="rf-stat-label !mb-1 text-blue-500 font-black">Nexus AI</span>
                         <h2 className="rf-dash-card__title text-base">Giro e Saúde</h2>
                       </div>
-                      <div className="p-2 bg-blue-50 rounded-lg text-blue-400">
+                      <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 border border-blue-500/10">
                         <Zap size={14} />
                       </div>
                     </div>
@@ -743,14 +743,14 @@ export function ProdutoProfilePage({
                     <div className="flex flex-col gap-5 mt-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Última Venda</span>
-                        <span className="text-xs font-bold text-slate-600">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
+                        <span className="text-xs font-bold text-slate-400">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
                       </div>
                       <div className="space-y-2">
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                           <span>Eficiência de Giro</span>
-                          <span className="text-blue-600">65%</span>
+                          <span className="text-blue-400">65%</span>
                         </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                           <motion.div 
                             initial={{ width: 0 }}
                             animate={{ width: '65%' }}
@@ -759,9 +759,9 @@ export function ProdutoProfilePage({
                           />
                         </div>
                       </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100/50">
-                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
-                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-slate-900 font-bold">{produto.emin} {produto.un}</span> para evitar ruptura.
+                      <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                        <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
+                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-white font-bold">{produto.emin} {produto.un}</span> para evitar ruptura.
                         </p>
                       </div>
                     </div>
@@ -773,7 +773,7 @@ export function ProdutoProfilePage({
                         <span className="rf-stat-label !mb-1 text-amber-500 font-black">Mercado</span>
                         <h2 className="rf-dash-card__title text-base">Histórico de Custo</h2>
                       </div>
-                      <div className="p-2 bg-amber-50 rounded-lg text-amber-500">
+                      <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500 border border-amber-500/10">
                         <History size={14} />
                       </div>
                     </div>
@@ -782,18 +782,18 @@ export function ProdutoProfilePage({
                         <div className="overflow-x-auto">
                           <table className="w-full text-left text-[11px] border-collapse">
                             <thead>
-                              <tr className="border-b border-slate-50">
+                              <tr className="border-b border-white/5">
                                 <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider">Mês</th>
                                 <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider">Preço</th>
                               </tr>
                             </thead>
                             <tbody>
                               {sortedHist.slice(0, 5).map((item, index) => (
-                                <tr key={`${item.mes}-${index}`} className="border-b border-slate-50/50 last:border-0 hover:bg-slate-50 transition-colors">
-                                  <td className="px-4 py-3 text-slate-600 font-medium">
+                                <tr key={`${item.mes}-${index}`} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                                  <td className="px-4 py-3 text-slate-400 font-medium">
                                     {String(item.mes ?? '').split('-').reverse().join('/')}
                                   </td>
-                                  <td className="px-4 py-3 text-slate-900 font-bold">
+                                  <td className="px-4 py-3 text-white font-bold">
                                     {formatCurrency(toNumber(item.preco))}
                                   </td>
                                 </tr>
@@ -818,10 +818,10 @@ export function ProdutoProfilePage({
                     <span className="rf-stat-label !mb-1 text-emerald-500">Histórico</span>
                     <h2 className="rf-dash-card__title text-base">Auditoria de Estoque</h2>
                   </div>
-                  <History className="w-4 h-4 text-slate-300" />
+                  <History className="w-4 h-4 text-slate-600" />
                 </div>
                 <div className="p-8 text-center">
-                  <p className="text-slate-500 text-sm italic font-medium">Registro cronológico de entradas, saídas e ajustes em desenvolvimento.</p>
+                  <p className="text-slate-400 text-sm italic font-medium">Registro cronológico de entradas, saídas e ajustes em desenvolvimento.</p>
                 </div>
               </article>
             )}
@@ -863,7 +863,7 @@ export function ProdutoProfilePage({
         title="Edição do Produto"
         subtitle={produto.nome}
         size="lg"
-        bodyClassName="!p-8 bg-slate-50/50"
+        bodyClassName="!p-8 bg-slate-900"
         onClose={() => {
           setEditingCadastro(false);
           setSearchParams((current) => {
@@ -899,9 +899,9 @@ function ProdutoInfoTable({ rows }: { rows: Array<{ label: React.ReactNode; valu
   return (
     <div className="flex flex-col gap-1.5">
       {rows.map((row, idx) => (
-        <div key={idx} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-slate-50/80 transition-colors border-b border-slate-50/50 last:border-0">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{row.label}</span>
-          <div className="text-[13px] font-bold text-slate-900">{row.value || '—'}</div>
+        <div key={idx} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{row.label}</span>
+          <div className="text-[13px] font-bold text-white">{row.value || '—'}</div>
         </div>
       ))}
     </div>

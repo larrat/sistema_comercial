@@ -60,8 +60,8 @@ export function CotacaoImport({ fornecedores, logs, onNovoFornecedor }: Props) {
         <ImportacaoResumo />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+      <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
           <div className="w-1 h-4 bg-blue-500 rounded-full" />
           Histórico de importações
         </h3>

@@ -24,10 +24,10 @@ function buildInitials(nome: string): string {
 
 function avatarColor(nome: string) {
   const palette = [
-    { bg: '#E6EEF9', c: '#0F2F5E' },
-    { bg: '#E6F4EC', c: '#0D3D22' },
-    { bg: '#FAF0D6', c: '#5C3900' },
-    { bg: '#FAEBE9', c: '#731F18' }
+    { bg: 'rgba(34, 211, 238, 0.1)', c: '#22d3ee' },
+    { bg: 'rgba(16, 185, 129, 0.1)', c: '#10b981' },
+    { bg: 'rgba(245, 158, 11, 0.1)', c: '#f59e0b' },
+    { bg: 'rgba(99, 102, 241, 0.1)', c: '#6366f1' }
   ];
   return palette[nome.charCodeAt(0) % palette.length];
 }
@@ -74,7 +74,7 @@ export function ClienteSegmentView({ clientes, loading, error, onRetry, onDetalh
       {grupos.map((grupo) => (
         <div key={grupo.segmento} className="card-shell form-gap-md">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-bold text-slate-900 tracking-tight">{grupo.segmento}</div>
+            <div className="text-sm font-bold text-white tracking-tight">{grupo.segmento}</div>
             <Badge variant="blue">{grupo.clientes.length}</Badge>
           </div>
 
@@ -86,11 +86,11 @@ export function ClienteSegmentView({ clientes, loading, error, onRetry, onDetalh
                   key={cliente.id}
                   variant="secondary"
                   size="sm"
-                  className="!px-3 !py-2 rounded-xl border-slate-100 bg-slate-50/30 hover:bg-white hover:shadow-sm"
+                  className="!px-3 !py-2 rounded-xl border-white/5 bg-white/5 hover:bg-white/10 hover:shadow-xl transition-all"
                   onClick={() => onDetalhe?.(String(cliente.id))}
                   leftIcon={
                     <div
-                      className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black"
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border border-white/5"
                       style={{ background: cor.bg, color: cor.c }}
                       aria-hidden="true"
                     >
@@ -98,7 +98,7 @@ export function ClienteSegmentView({ clientes, loading, error, onRetry, onDetalh
                     </div>
                   }
                 >
-                  <span className="text-xs font-bold text-slate-700">{cliente.apelido || cliente.nome}</span>
+                  <span className="text-xs font-bold text-slate-300">{cliente.apelido || cliente.nome}</span>
                 </Button>
               );
             })}

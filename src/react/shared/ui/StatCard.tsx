@@ -11,25 +11,25 @@ type StatCardProps = {
 
 export function StatCard({ label, value, description, foot, tone = 'default', onClick }: StatCardProps) {
   const toneClasses = {
-    default: 'bg-white border-slate-200 text-slate-800',
-    success: 'bg-[#F2F4EF] border-[#4B5320]/20 text-[#4B5320]', // Military Green soft background
-    warning: 'bg-amber-50 border-amber-200 text-amber-900',
-    danger: 'bg-rose-50 border-rose-200 text-rose-900',
-    blue: 'bg-slate-50 border-slate-200 text-slate-800',
-    emerald: 'bg-[#F2F4EF] border-[#4B5320]/20 text-[#4B5320]',
-    amber: 'bg-[#FAF6EF] border-[#C5A059]/20 text-[#C5A059]', // Matte Gold soft background
-    blue_to_pink: 'bg-white border-transparent relative before:absolute before:inset-0 before:p-[1px] before:bg-gradient-to-br before:from-[#3B82F6] before:to-[#EC4899] before:rounded-xl before:-z-10 text-slate-900',
+    default: 'bg-slate-900/50 border-white/5 text-white',
+    success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    danger: 'bg-rose-500/10 border-rose-500/20 text-rose-400',
+    blue: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
+    emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    blue_to_pink: 'bg-slate-900 border-transparent relative before:absolute before:inset-0 before:p-[1px] before:bg-gradient-to-br before:from-[#3B82F6] before:to-[#EC4899] before:rounded-xl before:-z-10 text-white',
   };
 
   const labelToneClasses = {
     default: 'text-slate-500',
-    success: 'text-[#4B5320]/70',
-    warning: 'text-amber-600',
-    danger: 'text-rose-600',
-    blue: 'text-slate-500',
-    emerald: 'text-[#4B5320]/70',
-    amber: 'text-[#C5A059]',
-    blue_to_pink: 'text-indigo-600 font-bold',
+    success: 'text-emerald-500/70',
+    warning: 'text-amber-500/70',
+    danger: 'text-rose-500/70',
+    blue: 'text-blue-500/70',
+    emerald: 'text-emerald-500/70',
+    amber: 'text-amber-500/70',
+    blue_to_pink: 'text-cyan-400 font-bold',
   };
 
   return (

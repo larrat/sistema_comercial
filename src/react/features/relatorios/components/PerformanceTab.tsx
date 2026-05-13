@@ -52,7 +52,7 @@ export function PerformanceTab() {
               {statusEntries.map(([status, qtd]) => (
                 <div key={status} className="flex flex-col gap-2">
                   <div className="flex justify-between items-end">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
                     <span className="text-sm font-extrabold text-white">{qtd}</span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -83,7 +83,7 @@ export function PerformanceTab() {
                    </div>
                   <div className="flex-grow min-w-0">
                     <div className="text-sm font-bold text-white truncate">{nome}</div>
-                    <div className="text-[11px] text-slate-500 font-medium">
+                    <div className="text-[11px] text-slate-400 font-medium">
                       {dados.pedidos} pedido(s) • <span className="text-emerald-400 font-bold">{fmt(dados.total)}</span>
                     </div>
                   </div>

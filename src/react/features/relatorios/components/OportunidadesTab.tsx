@@ -123,27 +123,27 @@ export function OportunidadesTab() {
 
       {/* Context card */}
       {jogosHoje.length > 0 && (
-        <article className="p-6 rounded-2xl bg-rose-50 border border-rose-100 shadow-sm flex flex-col gap-3">
+        <article className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20 shadow-sm flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <Badge variant="red">Hoje</Badge>
-            <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">Oportunidades</span>
+            <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest">Oportunidades</span>
           </div>
-          <div className="text-lg font-bold text-rose-900 leading-snug">
+          <div className="text-lg font-bold text-white leading-snug">
             {jogosHoje.length} jogo{jogosHoje.length > 1 ? 's' : ''} hoje — valide antes do apito
           </div>
-          <div className="text-sm text-rose-600 font-medium">{pendentes} pendente{pendentes !== 1 ? 's' : ''} no total — conversão atual {pct(taxa)}</div>
+          <div className="text-sm text-rose-400 font-medium">{pendentes} pendente{pendentes !== 1 ? 's' : ''} no total — conversão atual {pct(taxa)}</div>
         </article>
       )}
       {!jogosHoje.length && jogosSemana.length > 0 && (
-        <article className="p-6 rounded-2xl bg-amber-50 border border-amber-100 shadow-sm flex flex-col gap-3">
+        <article className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 shadow-sm flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <Badge variant="yellow">Esta semana</Badge>
-            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Oportunidades</span>
+            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Oportunidades</span>
           </div>
-          <div className="text-lg font-bold text-amber-900 leading-snug">
+          <div className="text-lg font-bold text-white leading-snug">
             {jogosSemana.length} jogo{jogosSemana.length > 1 ? 's' : ''} nos próximos 7 dias
           </div>
-          <div className="text-sm text-amber-600 font-medium">{pendentes} pendente{pendentes !== 1 ? 's' : ''} — conversão atual {pct(taxa)}</div>
+          <div className="text-sm text-amber-400 font-medium">{pendentes} pendente{pendentes !== 1 ? 's' : ''} — conversão atual {pct(taxa)}</div>
         </article>
       )}
       {!jogosHoje.length && !jogosSemana.length && total === 0 && (
@@ -158,8 +158,8 @@ export function OportunidadesTab() {
       )}
 
       {/* Resumo por mês */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+      <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
           <div className="w-1 h-4 bg-emerald-500 rounded-full" />
           Resumo por mês
         </h3>
@@ -238,19 +238,19 @@ export function OportunidadesTab() {
 
       {/* Grid: pendentes + validadas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
             <div className="w-1 h-4 bg-amber-500 rounded-full" />
             Oportunidades abertas
           </h3>
           {pendentesLista.length > 0 ? (
             <div className="flex flex-col gap-3">
               {pendentesLista.map((item) => (
-                <div key={item.id} className="p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/30 transition-all flex items-center gap-4">
+                <div key={item.id} className="p-4 rounded-xl border border-white/5 hover:border-white/10 bg-white/5 transition-all flex items-center gap-4">
                   <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                   <div className="flex-grow min-w-0">
-                    <div className="text-sm font-bold text-slate-900 truncate">{item.cliente} • {item.time}</div>
-                    <div className="text-[11px] text-slate-500 font-medium">
+                    <div className="text-sm font-bold text-white truncate">{item.cliente} • {item.time}</div>
+                    <div className="text-[11px] text-slate-400 font-medium">
                       {item.jogo_titulo || item.jogo?.titulo || '-'} • {fmtDataHora(item.jogo_data_hora || item.jogo?.data_hora)}
                     </div>
                   </div>
@@ -269,19 +269,19 @@ export function OportunidadesTab() {
           )}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
             <div className="w-1 h-4 bg-emerald-500 rounded-full" />
             Validações realizadas
           </h3>
           {validadasLista.length > 0 ? (
             <div className="flex flex-col gap-3">
               {validadasLista.map((item) => (
-                <div key={item.id} className="p-4 rounded-xl border border-slate-100 bg-white shadow-sm flex items-center gap-4">
+                <div key={item.id} className="p-4 rounded-xl border border-white/5 bg-white/5 shadow-sm flex items-center gap-4">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                   <div className="flex-grow min-w-0">
-                    <div className="text-sm font-bold text-slate-900 truncate">{item.cliente} • {item.time}</div>
-                    <div className="text-[11px] text-slate-500 font-medium">
+                    <div className="text-sm font-bold text-white truncate">{item.cliente} • {item.time}</div>
+                    <div className="text-[11px] text-slate-400 font-medium">
                       {fmtPeriodo(item.mes_ref)} • {item.pedido_num ? `Pedido #${item.pedido_num}` : 'Venda validada'}
                       {item.pedido_total ? ` • ${fmt(item.pedido_total)}` : ''}
                     </div>
