@@ -239,7 +239,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       .slice(0, 5);
   }, [stats.vendasReais]);
 
-  const topProductsColors = ['#22d3ee', '#C5A059', '#10B981', '#6366F1', '#F59E0B'];
+  const topProductsColors = [
+    'var(--chart-primary)', 
+    'var(--chart-secondary)', 
+    'var(--chart-tertiary)', 
+    'var(--chart-quaternary)', 
+    'var(--chart-quinary)'
+  ];
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -593,11 +599,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               </div>
               <div className="flex gap-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#C5A059] shadow-[0_0_12px_rgba(197,160,89,0.5)]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--chart-secondary)] shadow-[0_0_12px_rgba(197,160,89,0.5)]" />
                   <Typography variant="label" color="muted">Faturamento</Typography>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--chart-tertiary)] shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
                   <Typography variant="label" color="muted">Lucro</Typography>
                 </div>
               </div>
@@ -610,12 +616,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 >
                   <defs>
                     <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C5A059" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#C5A059" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--chart-secondary)" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="var(--chart-secondary)" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--chart-tertiary)" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="var(--chart-tertiary)" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid 
@@ -644,11 +650,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
                                 <Typography variant="caption" color="muted">Faturamento</Typography>
-                                <Typography variant="body-sm" weight="bold" className="text-[#C5A059]">{fmt(payload[0].value as number)}</Typography>
+                                <Typography variant="body-sm" weight="bold" className="text-[var(--chart-secondary)]">{fmt(payload[0].value as number)}</Typography>
                               </div>
                               <div className="flex justify-between items-center">
                                 <Typography variant="caption" color="muted">Lucro</Typography>
-                                <Typography variant="body-sm" weight="bold" className="text-[#10B981]">{fmt(payload[1].value as number)}</Typography>
+                                <Typography variant="body-sm" weight="bold" className="text-[var(--chart-tertiary)]">{fmt(payload[1].value as number)}</Typography>
                               </div>
                             </div>
                           </Card>
@@ -660,22 +666,22 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   <Area 
                     type="monotone" 
                     dataKey="faturamento" 
-                    stroke="#C5A059" 
+                    stroke="var(--chart-secondary)" 
                     strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorFat)" 
                     animationDuration={1000}
-                    activeDot={{ r: 6, fill: '#C5A059', stroke: '#020617', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: 'var(--chart-secondary)', stroke: '#020617', strokeWidth: 2 }}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="lucro" 
-                    stroke="#10B981" 
+                    stroke="var(--chart-tertiary)" 
                     strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorLuc)" 
                     animationDuration={1200}
-                    activeDot={{ r: 6, fill: '#10B981', stroke: '#020617', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: 'var(--chart-tertiary)', stroke: '#020617', strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>

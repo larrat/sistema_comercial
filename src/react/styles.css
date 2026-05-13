@@ -37,6 +37,15 @@
   /* --- SEMANTIC TOKENS: ACTIONS --- */
   --action-primary: var(--color-cyan-vibrant);
   --action-success: var(--color-emerald-vibrant);
+
+  /* --- COMPONENT TOKENS: CHARTS --- */
+  /* Definimos que, por padrão, as cores dos gráficos seguem os acentos do sistema,
+     mas agora temos variáveis independentes se precisarmos mudar apenas o gráfico. */
+  --chart-primary: var(--text-accent);
+  --chart-secondary: #c5a059;
+  --chart-tertiary: #10b981;
+  --chart-quaternary: #6366f1;
+  --chart-quinary: #f59e0b;
   --action-warning: #f59e0b;
   --action-danger: #ef4444;
 
