@@ -217,20 +217,30 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   }, [pedidos, periodo]);
 
   const topProducts = useMemo(() => {
-    const productSales: Record<string, { nome: string; receita: number }> = {};
-    
+    // Criar mapa de produto_pai para agrupamento inteligente
+    const parentMap = new Map<string, string>();
+    const nameMap = new Map<string, string>();
+    produtos.forEach(p => {
+      if (p.produto_pai_id) parentMap.set(p.id, p.produto_pai_id);
+      nameMap.set(p.id, p.nome);
+    });
+
     stats.vendasReais.forEach(p => {
       const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
         
-        if (!productSales[item.prodId]) {
-          productSales[item.prodId] = { 
-            nome: item.nome || 'Produto', 
+        // Se for filho, agrupar no ID do pai. Caso contrário, usar o próprio ID.
+        const effectiveId = parentMap.get(item.prodId) || item.prodId;
+        const effectiveName = nameMap.get(effectiveId) || item.nome || 'Produto';
+        
+        if (!productSales[effectiveId]) {
+          productSales[effectiveId] = { 
+            nome: effectiveName, 
             receita: 0
           };
         }
-        productSales[item.prodId].receita += Number(item.preco || 0) * Number(item.qty || 0);
+        productSales[effectiveId].receita += Number(item.preco || 0) * Number(item.qty || 0);
       });
     });
     
