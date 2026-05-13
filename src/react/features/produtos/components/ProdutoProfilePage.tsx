@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -254,6 +254,8 @@ export function ProdutoProfilePage({
     saving,
     error: mutationError
   } = useProdutoMutations();
+  
+  const formRef = useRef<HTMLDivElement>(null);
 
   const activeTab = normalizeTab(searchParams.get('tab'));
   const precos = useMemo(() => getPrecos(produto), [produto]);
@@ -271,6 +273,21 @@ export function ProdutoProfilePage({
   useEffect(() => {
     setEditingCadastro(searchParams.get('edit') === '1');
   }, [produto.id, searchParams]);
+
+  useEffect(() => {
+    if (editingCadastro && formRef.current) {
+      const offset = 100; // Espaço para não colar no topo
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = formRef.current.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }, [editingCadastro]);
 
   function setTab(tab: ProdutoProfileTab) {
     setSearchParams((current) => {
@@ -457,70 +474,77 @@ export function ProdutoProfilePage({
         </div>
       </section>
 
-      {/* KPI Grid */}
-      <section className="rf-kpi-grid">
-        {kpis.map((card, idx) => {
-          const isCurrency = card.value.startsWith('R$');
-          const numericValue = parseFloat(card.value.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
-          
-          let Icon = TrendingUp;
-          if (card.label.includes('Custo')) Icon = DollarSign;
-          if (card.label.includes('Venda')) Icon = Zap;
-          if (card.label.includes('Estoque')) Icon = Package;
+      <AnimatePresence>
+        {!editingCadastro && (
+          <motion.section 
+            initial={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
+            className="rf-kpi-grid"
+          >
+            {kpis.map((card, idx) => {
+              const isCurrency = card.value.startsWith('R$');
+              const numericValue = parseFloat(card.value.replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+              
+              let Icon = TrendingUp;
+              if (card.label.includes('Custo')) Icon = DollarSign;
+              if (card.label.includes('Venda')) Icon = Zap;
+              if (card.label.includes('Estoque')) Icon = Package;
 
-          const toneClass = 
-            card.tone === 'positive' ? 'is-success' : 
-            card.tone === 'negative' ? 'is-danger' : 
-            '';
+              const toneClass = 
+                card.tone === 'positive' ? 'is-success' : 
+                card.tone === 'negative' ? 'is-danger' : 
+                '';
 
-          return (
-            <motion.article 
-              key={card.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className={`rf-dash-card ${toneClass}`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
-                  <Icon size={14} strokeWidth={2.5} />
-                </div>
-              </div>
+              return (
+                <motion.article 
+                  key={card.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`rf-dash-card ${toneClass}`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="rf-stat-label !mb-0">{card.label}</span>
+                    <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+                      <Icon size={14} strokeWidth={2.5} />
+                    </div>
+                  </div>
 
-              <div className="rf-stat-value">
-                {isCurrency ? (
-                  <CountUp 
-                    end={numericValue} 
-                    decimals={2} 
-                    decimal="," 
-                    prefix="R$ " 
-                    duration={2} 
-                    separator="."
-                  />
-                ) : (
-                  <CountUp 
-                    end={parseFloat(card.value) || 0} 
-                    decimals={card.value.includes(',') ? 3 : 0}
-                    decimal=","
-                    duration={2} 
-                    separator="."
-                  />
-                )}
-                {!isCurrency && <span className="text-sm font-bold text-slate-400 ml-1.5">{card.value.split(' ')[1]}</span>}
-              </div>
+                  <div className="rf-stat-value">
+                    {isCurrency ? (
+                      <CountUp 
+                        end={numericValue} 
+                        decimals={2} 
+                        decimal="," 
+                        prefix="R$ " 
+                        duration={2} 
+                        separator="."
+                      />
+                    ) : (
+                      <CountUp 
+                        end={parseFloat(card.value) || 0} 
+                        decimals={card.value.includes(',') ? 3 : 0}
+                        decimal=","
+                        duration={2} 
+                        separator="."
+                      />
+                    )}
+                    {!isCurrency && <span className="text-sm font-bold text-slate-400 ml-1.5">{card.value.split(' ')[1]}</span>}
+                  </div>
 
-              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
-                {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
-                {card.subtitle}
-              </span>
-            </motion.article>
-          );
-        })}
-      </section>
+                  <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
+                    {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
+                    {card.subtitle}
+                  </span>
+                </motion.article>
+              );
+            })}
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* Premium Tabs */}
-      <nav className="rf-tabs-premium">
+      <nav className="rf-tabs-premium" ref={formRef}>
         {profileTabs.map(tab => (
           <button
             key={tab.id}
