@@ -89,7 +89,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="font-extrabold text-lg text-white tracking-tight leading-none">Nexus</span>
-              <span className="text-[10px] font-bold text-[#C5A059] uppercase tracking-[0.25em] mt-1.5 opacity-80">Industrial</span>
+              <span className="text-[10px] font-bold text-[var(--color-brand-gold)] uppercase tracking-[0.25em] mt-1.5 opacity-80">Industrial</span>
             </div>
           )}
         </div>
@@ -142,7 +142,7 @@ export function AppSidebar() {
                       ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-4 py-3 w-full'}
                       ${
                         isActive
-                           ? 'bg-slate-800/80 text-[#C5A059] font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
+                           ? 'bg-slate-800/80 text-[var(--color-brand-gold)] font-bold shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]'
                            : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
@@ -151,14 +151,14 @@ export function AppSidebar() {
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <div className={`absolute left-0 w-1 bg-[#C5A059] rounded-r-full transition-all duration-500 ${collapsed ? 'h-6' : 'h-5'}`} />
+                          <div className={`absolute left-0 w-1 bg-[var(--color-brand-gold)] rounded-r-full transition-all duration-500 ${collapsed ? 'h-6' : 'h-5'}`} />
                         )}
                         <Icon 
                           size={collapsed ? 24 : 18} 
                           strokeWidth={isActive ? 2.5 : 2} 
                           className={`flex-shrink-0 transition-all duration-300 ${
                             isActive 
-                              ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]' 
+                              ? 'text-[var(--color-brand-gold)] drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]' 
                               : 'group-hover:scale-110 group-hover:text-slate-300'
                           }`} 
                         />

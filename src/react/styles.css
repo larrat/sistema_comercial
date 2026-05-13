@@ -1,24 +1,100 @@
 @import 'tailwindcss';
 
 :root {
+  /* --- NEXUS PREMIUM DESIGN SYSTEM TOKENS --- */
   --color-background-primary: #ffffff;
   --color-background-tertiary: #f8fafc;
   --color-sidebar-bg: #0f172a;
-  --color-brand-gold: #c5a059;
 
+  /* Brand & Actions */
+  --color-brand-gold: #c5a059;
+  --color-action-blue: #3b82f6;
+  --color-action-pink: #ec4899;
+  --gradient-premium: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+  --gradient-vibrant: linear-gradient(135deg, #3b82f6, #ec4899);
+
+  /* Typography */
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
   --color-text-tertiary: #94a3b8;
 
+  /* Borders & Surfaces */
   --color-border-primary: #e2e8f0;
   --color-border-tertiary: rgba(226, 232, 240, 0.5);
+  --radius-premium: 10px;
+  --shadow-premium: 0 4px 12px rgba(15, 23, 42, 0.05);
 
+  /* Feedback */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
   --font-sans: 'Manrope', 'Inter', sans-serif;
   --radius-xl: 12px;
+}
+
+/* --- GLOBAL BUTTON STANDARDIZATION --- */
+.btn {
+  border-radius: var(--radius-premium) !important;
+  font-weight: 600 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: var(--shadow-premium) !important;
+}
+
+.btn-p,
+.btn-primary {
+  background: var(--color-action-blue) !important;
+  border-color: var(--color-action-blue) !important;
+  color: #ffffff !important;
+}
+
+.btn-p:hover,
+.btn-primary:hover {
+  background: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(59, 130, 246, 0.2) !important;
+}
+
+.btn-secondary {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* --- PREMIUM BUTTON COMPONENTS --- */
+.rf-btn-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: var(--radius-premium);
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--color-border-primary);
+  background: white;
+  color: var(--color-text-primary);
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-premium);
+}
+
+.rf-btn-premium:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  background: #fdfdfd;
+}
+
+.rf-btn-premium--primary {
+  background: var(--gradient-vibrant);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.rf-btn-premium--primary:hover {
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.35);
+  transform: translateY(-2px) scale(1.02);
 }
 
 @import '../styles/style.css';
@@ -3863,24 +3939,12 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 /* --- VIBRANT BLUE TO PINK ENHANCEMENTS --- */
 
 .rf-gradient-premium {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  background: var(--gradient-premium);
   color: white;
-}
-
-.rf-btn-premium--primary.is-vibrant {
-  background: linear-gradient(135deg, #3b82f6 0%, #ec4899 100%);
-  border: none;
-  color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.rf-btn-premium--primary.is-vibrant:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
 }
 
 .rf-card-premium--blue {
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--color-action-blue);
 }
 
 .rf-card-premium--purple {
@@ -3888,11 +3952,11 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-card-premium--pink {
-  border-left: 4px solid #ec4899;
+  border-left: 4px solid var(--color-action-pink);
 }
 
 .rf-badge-premium--vibrant {
-  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  background: var(--gradient-vibrant);
   color: white;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }

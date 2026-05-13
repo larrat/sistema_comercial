@@ -350,7 +350,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
             )}
             
             <button
-              className="rf-btn-premium rf-btn-premium--primary is-vibrant"
+              className="rf-btn-premium rf-btn-premium--primary"
               type="button"
               onClick={() => setModal({ tipo: 'form', produto: null })}
             >

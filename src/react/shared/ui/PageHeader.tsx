@@ -20,7 +20,7 @@ export function PageHeader({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="flex flex-col gap-1.5 min-w-0 flex-1">
           {kicker ? (
-            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[#C5A059] mb-1 opacity-90">
+            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--color-brand-gold)] mb-1 opacity-90">
               {kicker}
             </div>
           ) : null}
