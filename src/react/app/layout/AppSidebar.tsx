@@ -80,7 +80,7 @@ export function AppSidebar() {
       initial={false}
       animate={{ width: collapsed ? 72 : 280 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 z-40 relative shadow-2xl h-full"
+      className="flex flex-col bg-slate-900 border-r border-slate-800 text-slate-300 z-40 relative shadow-2xl h-screen sticky top-0"
       aria-label="Navegação principal"
     >
       <div className={`flex-shrink-0 flex items-center h-[88px] ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>

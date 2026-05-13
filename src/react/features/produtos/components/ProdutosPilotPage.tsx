@@ -366,7 +366,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   if (status === 'loading') {
     return (
-      <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8">
+    <main className="flex-1 w-full flex flex-col gap-8">
         {pageHeader}
         <ProdutoMetrics produtos={filteredProdutos} />
         <LoadingState
@@ -379,7 +379,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   if (status === 'error') {
     return (
-      <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8">
+    <main className="flex-1 w-full flex flex-col gap-8">
         {pageHeader}
         <ProdutoMetrics produtos={filteredProdutos} />
         <ErrorState
@@ -393,7 +393,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
   return (
     <motion.main 
-      className="flex-1 px-10 py-8 w-full flex flex-col gap-8"
+      className="flex-1 w-full flex flex-col gap-8"
       variants={pageContainer}
       initial="hidden"
       animate="visible"

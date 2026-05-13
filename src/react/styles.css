@@ -1988,7 +1988,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 /* Redesigned Dashboard — Industrial Premium */
 .rf-dashboard {
-  padding: 16px 20px;
+  padding: 0;
   background: var(--color-background-tertiary);
   min-height: 100vh;
   display: flex;

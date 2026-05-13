@@ -233,7 +233,7 @@ export function ClientesPilotPage({
 
 
   return (
-    <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8" data-testid="clientes-pilot-page">
+    <main className="flex-1 w-full flex flex-col gap-8" data-testid="clientes-pilot-page">
       <PageHeader
         kicker="Relacionamento"
         title="Clientes"
