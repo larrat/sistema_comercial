@@ -8,11 +8,19 @@
   --color-cyan-vibrant: #22d3ee;
   --color-emerald-vibrant: #10b981;
 
+  /* RGB Channels for dynamic opacity */
+  --rgb-white: 255, 255, 255;
+  --rgb-black: 0, 0, 0;
+  --opacity-subtle: 0.04;
+  --opacity-medium: 0.08;
+  --opacity-heavy: 0.12;
+
   /* --- SEMANTIC TOKENS: SURFACES --- */
   --surface-page: var(--color-absolute-midnight);
   --surface-card: var(--color-deep-slate);
   --surface-sidebar: var(--color-absolute-midnight);
-  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-hover: rgba(var(--rgb-white), var(--opacity-subtle));
+  --surface-active: rgba(var(--rgb-white), var(--opacity-medium));
 
   /* --- SEMANTIC TOKENS: TEXT --- */
   --text-primary: #f8fafc;
@@ -22,8 +30,9 @@
   --text-accent: var(--color-cyan-vibrant);
 
   /* --- SEMANTIC TOKENS: BORDERS --- */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-bold: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(var(--rgb-white), var(--opacity-subtle));
+  --border-bold: rgba(var(--rgb-white), var(--opacity-medium));
+  --border-focus: var(--color-cyan-vibrant);
 
   /* --- SEMANTIC TOKENS: ACTIONS --- */
   --action-primary: var(--color-cyan-vibrant);
