@@ -28,3 +28,5 @@ export type { DrawerProps } from './Drawer';
 export type { DataTableColumn } from './DataTable';
 export type { ActionMenuItem } from './ActionMenu';
 export { PillGroup } from './PillGroup';
+export { Card } from './Card';
+export { Typography } from './Typography';

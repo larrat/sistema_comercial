@@ -1,56 +1,105 @@
 @import 'tailwindcss';
 
 :root {
-  /* --- NEXUS MIDNIGHT INDUSTRIAL THEME (DARK MODE) --- */
-  --color-background-primary: #0f172a; /* Deep Slate */
-  --color-background-secondary: #1e293b; /* Lighter Slate */
-  --color-background-tertiary: #020617; /* Absolute Midnight */
-  --color-sidebar-bg: #020617;
+  /* --- NEXUS INDUSTRIAL: SEMANTIC DESIGN SYSTEM --- */
+  /* --- DESIGN TOKENS: COLORS (PALETTE) --- */
+  --color-absolute-midnight: #020617;
+  --color-deep-slate: #0f172a;
+  --color-cyan-vibrant: #22d3ee;
+  --color-emerald-vibrant: #10b981;
 
-  /* Brand & Dynamic Actions */
-  --color-brand-gold: #10b981; /* Shifted to Emerald for Modernity */
-  --color-action-blue: #22d3ee; /* Vibrant Cyan */
-  --color-action-pink: #6366f1; /* Tech Indigo */
-  --gradient-premium: linear-gradient(135deg, #0891b2, #10b981, #22d3ee);
-  --gradient-vibrant: linear-gradient(135deg, #0ea5e9, #22d3ee);
+  /* --- SEMANTIC TOKENS: SURFACES --- */
+  --surface-page: var(--color-absolute-midnight);
+  --surface-card: var(--color-deep-slate);
+  --surface-sidebar: var(--color-absolute-midnight);
+  --surface-hover: rgba(255, 255, 255, 0.05);
 
-  /* Typography - High Contrast for Dark Mode */
-  --color-text-primary: #f8fafc; /* slate-50 */
-  --color-text-secondary: #cbd5e1; /* slate-300 */
-  --color-text-tertiary: #94a3b8; /* slate-400 */
-  --color-text-muted: #64748b; /* slate-500 */
+  /* --- SEMANTIC TOKENS: TEXT --- */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: var(--color-cyan-vibrant);
 
-  /* Borders & Glassmorphism */
-  --color-border-primary: rgba(255, 255, 255, 0.08);
-  --color-border-tertiary: rgba(255, 255, 255, 0.04);
-  --radius-premium: 12px;
-  --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  /* --- SEMANTIC TOKENS: BORDERS --- */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-bold: rgba(255, 255, 255, 0.12);
 
-  /* Feedback System */
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
+  /* --- SEMANTIC TOKENS: ACTIONS --- */
+  --action-primary: var(--color-cyan-vibrant);
+  --action-success: var(--color-emerald-vibrant);
+  --action-warning: #f59e0b;
+  --action-danger: #ef4444;
 
-  /* Typography Settings */
+  /* --- LEGACY COMPATIBILITY --- */
+  --color-background-primary: var(--surface-card);
+  --color-background-secondary: #1e293b;
+  --color-background-tertiary: var(--surface-page);
+  --color-sidebar-bg: var(--surface-sidebar);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-border-primary: var(--border-subtle);
+  --color-border-tertiary: var(--border-subtle);
+  --color-action-blue: var(--action-primary);
+  --color-success: var(--action-success);
+  --color-warning: var(--action-warning);
+  --color-danger: var(--action-danger);
+
+  /* --- UTILS --- */
   --font-sans: 'Manrope', 'Inter', sans-serif;
+  --radius-premium: 12px;
   --radius-xl: 16px;
+  --shadow-premium: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  --gradient-premium: linear-gradient(135deg, #0891b2, #10b981, #22d3ee);
+}
+
+@theme {
+  /* Surfaces */
+  --color-surface-page: var(--surface-page);
+  --color-surface-card: var(--surface-card);
+  --color-surface-sidebar: var(--surface-sidebar);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+
+  /* Text Hierarchy */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-text-accent: var(--text-accent);
+
+  /* Borders */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-bold: var(--border-bold);
+  --color-border-focus: var(--border-focus);
+
+  /* Actions & Feedback */
+  --color-accent: var(--action-primary);
+  --color-success: var(--action-success);
+  --color-warning: var(--action-warning);
+  --color-danger: var(--action-danger);
+
+  /* Spacing/Radius (Optional but recommended) */
+  --radius-premium: var(--radius-premium);
 }
 
 /* --- GLOBAL UTILITIES (DESIGN SYSTEM) --- */
 
 /* Glassmorphism Variants */
 .rf-glass {
-  background: rgba(30, 41, 59, 0.4);
+  background: var(--surface-hover);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
 }
 
 .rf-glass-heavy {
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.85); /* Keeping deep for contrast */
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-bold);
 }
 
 /* Bento Grid System */
@@ -61,8 +110,8 @@
 }
 
 .rf-bento-item {
-  background: var(--color-background-primary);
-  border: 1px solid var(--color-border-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   padding: 24px;
   box-shadow: var(--shadow-premium);
