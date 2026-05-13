@@ -239,7 +239,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       .slice(0, 5);
   }, [stats.vendasReais]);
 
-  const topProductsColors = ['#0F172A', '#C5A059', '#10B981', '#6366F1', '#F59E0B'];
+  const topProductsColors = ['#22d3ee', '#C5A059', '#10B981', '#6366F1', '#F59E0B'];
 
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
@@ -633,6 +633,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   <YAxis hide />
                   <Tooltip 
                     cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
+                    offset={20}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
@@ -681,26 +682,26 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             </div>
 
             {/* Chart Footer Legend/KPIs */}
-            <div className="mt-8 pt-6 border-t border-border-subtle grid grid-cols-4 gap-4">
-              <div className="flex flex-col gap-1">
+            <div className="mt-8 pt-6 border-t border-border-subtle grid grid-cols-4 gap-0 divide-x divide-border-subtle">
+              <div className="flex flex-col gap-1 px-4 first:pl-0">
                 <Typography variant="label" color="muted">Melhor Dia</Typography>
                 <Typography variant="body" weight="bold" color="primary">
                   {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
                 </Typography>
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 px-4">
                 <Typography variant="label" color="muted">Média Diária</Typography>
                 <Typography variant="body" weight="bold" color="primary">
                   {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
                 </Typography>
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 px-4">
                 <Typography variant="label" color="muted">Total Período</Typography>
                 <Typography variant="body" weight="bold" color="primary">
                   {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
                 </Typography>
               </div>
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 px-4 last:pr-0">
                 <Typography variant="label" color="muted">Margem Média</Typography>
                 <div className="flex items-center gap-2">
                   <Typography variant="body" weight="bold" className="text-emerald-400">
@@ -716,9 +717,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         )}
 
         <Card className="flex flex-col min-h-[480px]">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 border-b border-border-subtle pb-4">
             <Typography variant="h3" weight="bold">Status dos pedidos</Typography>
-            <Badge variant="blue" className="px-2 py-0.5">{pedidos.length} total</Badge>
+            <div className="bg-surface-active px-3 py-1 rounded-full border border-border-bold">
+              <Typography variant="label" color="accent" className="!tracking-tighter">
+                {pedidos.length} TOTAL
+              </Typography>
+            </div>
           </div>
           
           <div className="flex flex-col gap-4 flex-1">
@@ -818,12 +823,18 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-transform ${isActive ? 'scale-150' : ''}`} style={{ background: topProductsColors[i % topProductsColors.length] }} />
                         <PremiumTooltip content={p.nome}>
-                          <span className={`text-[10px] font-bold truncate uppercase tracking-tight transition-colors cursor-help ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>{p.nome}</span>
+                          <Typography variant="body-sm" weight="bold" color={isActive ? 'primary' : 'secondary'} className="truncate cursor-help uppercase tracking-tight transition-colors">
+                            {p.nome}
+                          </Typography>
                         </PremiumTooltip>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
-                        <span className={`text-[10px] font-black transition-colors ${isActive ? 'text-[#C5A059]' : 'text-slate-900'}`}>{perc.toFixed(1)}%</span>
-                        <span className="text-[9px] font-medium text-slate-400 min-w-[50px] text-right">{fmt(p.receita)}</span>
+                        <Typography variant="body-sm" weight="black" className={isActive ? 'text-accent' : 'text-primary'}>
+                          {perc.toFixed(1)}%
+                        </Typography>
+                        <Typography variant="caption" color="muted" className="min-w-[50px] text-right">
+                          {fmt(p.receita)}
+                        </Typography>
                       </div>
                     </div>
                   );
