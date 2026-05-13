@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 import type { EstoqueHistoryRow } from '../types';
 
 type EstoqueDeleteConfirmModalProps = {
@@ -24,17 +24,16 @@ export function EstoqueDeleteConfirmModal({
       title="Excluir movimentação"
       footer={
         <>
-          <button type="button" className="btn btn-sm" onClick={onClose} disabled={submitting}>
+          <Button onClick={onClose} disabled={submitting}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn-r btn-sm"
+          </Button>
+          <Button
+            variant="danger"
             onClick={onConfirm}
-            disabled={submitting}
+            loading={submitting}
           >
-            {submitting ? 'Excluindo...' : 'Excluir'}
-          </button>
+            Excluir
+          </Button>
         </>
       }
     >

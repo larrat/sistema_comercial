@@ -14,7 +14,9 @@ import {
   PageHeader,
   SegmentedControl,
   StatCard,
-  StatusBadge
+  StatusBadge,
+  Button,
+  Input
 } from '../../../shared/ui';
 import {
   useContasReceberMutations,
@@ -113,13 +115,13 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
 
   if (!baixas.length) {
     return (
-      <details className="cr-baixas-details">
-        <summary className="cr-baixas-summary" onClick={() => setOpen(!open)}>
-          <span>Ver histórico de baixas</span>
-          <span className="table-cell-caption table-cell-muted">Expandir</span>
+      <details className="cr-baixas-details bg-slate-50 border border-slate-200 rounded-lg overflow-hidden transition-all">
+        <summary className="px-4 py-3 cursor-pointer select-none flex items-center justify-between hover:bg-slate-100/50" onClick={() => setOpen(!open)}>
+          <span className="text-sm font-bold text-slate-700">Ver histórico de baixas</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expandir</span>
         </summary>
-        <div className="cr-baixas-body">
-          <div className="empty-inline">Sem baixas registradas para esta conta.</div>
+        <div className="px-4 py-4 border-t border-slate-200">
+          <div className="text-xs text-slate-400 italic">Sem baixas registradas para esta conta.</div>
         </div>
       </details>
     );
@@ -152,9 +154,9 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
               </div>
               {baixa.observacao ? <div className="table-cell-caption">{baixa.observacao}</div> : null}
               <div className="fg2">
-                <button className="btn btn-sm" onClick={() => onEstornar(contaId, baixa.id)}>
+                <Button size="sm" onClick={() => onEstornar(contaId, baixa.id)}>
                   Estornar
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -179,20 +181,20 @@ function ContaActions({ cr, inFlight, onReceber, onBaixaParcial, onDesfazer }: C
 
   if (getStatusEfetivo(cr) === 'recebido') {
     return (
-      <button className="btn btn-sm" onClick={onDesfazer}>
+      <Button size="sm" onClick={onDesfazer}>
         Desfazer recebimento
-      </button>
+      </Button>
     );
   }
 
   return (
     <div className="fg2">
-      <button className="btn btn-sm" onClick={onBaixaParcial}>
+      <Button size="sm" onClick={onBaixaParcial}>
         Baixa parcial
-      </button>
-      <button className="btn btn-sm btn-p" onClick={onReceber}>
+      </Button>
+      <Button size="sm" variant="primary" onClick={onReceber}>
         Receber tudo
-      </button>
+      </Button>
     </div>
   );
 }
@@ -283,12 +285,12 @@ function BaixaParcialModal({
       closeOnOverlay={!submitting}
       footer={
         <>
-          <button className="btn btn-sm" onClick={onCancelar} disabled={submitting}>
+          <Button size="sm" onClick={onCancelar} disabled={submitting}>
             Cancelar
-          </button>
-          <button className="btn btn-p btn-sm" onClick={handleConfirmar} disabled={submitting}>
-            {submitting ? 'Confirmando...' : 'Confirmar baixa'}
-          </button>
+          </Button>
+          <Button size="sm" variant="primary" onClick={handleConfirmar} loading={submitting}>
+            Confirmar baixa
+          </Button>
         </>
       }
     >
@@ -319,40 +321,41 @@ function BaixaParcialModal({
 
       {error ? <ErrorState title={error} compact /> : null}
 
-      <div className="form-row">
-        <label className="form-label">Valor recebido</label>
-        <input
-          ref={valorRef}
-          className="inp"
+      <div className="flex flex-col gap-4">
+        <Input
+          ref={valorRef as any}
+          label="Valor recebido"
           type="number"
           step="0.01"
           min="0.01"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
         />
-        <div className="form-quick-actions">
-          <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(0.25)}>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" size="sm" onClick={() => applySuggestedAmount(0.25)}>
             25%
-          </button>
-          <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(0.5)}>
+          </Button>
+          <Button type="button" size="sm" onClick={() => applySuggestedAmount(0.5)}>
             50%
-          </button>
-          <button type="button" className="btn btn-sm" onClick={() => applySuggestedAmount(1)}>
+          </Button>
+          <Button type="button" size="sm" onClick={() => applySuggestedAmount(1)}>
             Quitar saldo
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="form-row">
-        <label className="form-label">Data / hora</label>
-        <input className="inp" type="datetime-local" value={data} onChange={(e) => setData(e.target.value)} />
+      <div className="mt-4">
+        <Input
+          label="Data / hora"
+          type="datetime-local"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+        />
       </div>
 
-      <div className="form-row">
-        <label className="form-label">Observação (opcional)</label>
-        <input
-          className="inp"
-          type="text"
+      <div className="mt-4">
+        <Input
+          label="Observação (opcional)"
           placeholder="Ex: Pix, transferência..."
           value={obs}
           onChange={(e) => setObs(e.target.value)}
@@ -502,9 +505,9 @@ function ContasList({
               </div>
 
               <div className="mobile-card-actions">
-                <button className="btn btn-sm" onClick={() => onOpenDetail(conta.id)}>
+                <Button size="sm" onClick={() => onOpenDetail(conta.id)}>
                   Detalhes
-                </button>
+                </Button>
                 <ContaActions
                   cr={conta}
                   inFlight={inFlight.has(conta.id)}
@@ -759,9 +762,9 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
           actions={
             onRetryLoad ? (
-              <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+              <Button size="sm" type="button" onClick={onRetryLoad}>
                 Atualizar
-              </button>
+              </Button>
             ) : undefined
           }
         />
@@ -783,9 +786,9 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
           actions={
             onRetryLoad ? (
-              <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+              <Button size="sm" type="button" onClick={onRetryLoad}>
                 Atualizar
-              </button>
+              </Button>
             ) : undefined
           }
         />
@@ -808,9 +811,9 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         actions={
           <div className="flex items-center gap-3">
             {onRetryLoad ? (
-              <button className="btn btn-sm" type="button" onClick={onRetryLoad}>
+              <Button size="sm" onClick={onRetryLoad}>
                 Atualizar
-              </button>
+              </Button>
             ) : null}
           </div>
         }

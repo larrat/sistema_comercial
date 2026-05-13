@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ClienteProfilePage } from '../components/ClienteProfilePage';
 import { useClienteProfile } from '../hooks/useClienteProfile';
+import { Button, ErrorState, EmptyState, LoadingState } from '../../../shared/ui';
 
 export function ClienteProfileRoutePage() {
   const { clienteId } = useParams<{ clienteId: string }>();
@@ -16,11 +17,16 @@ export function ClienteProfileRoutePage() {
   if (!clienteId) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="card-shell">
-          <p>Cliente não informado.</p>
-          <button className="btn btn-sm" type="button" onClick={handleBack}>
-            Voltar para clientes
-          </button>
+        <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100">
+          <EmptyState
+            title="Cliente não informado."
+            description="Você precisa fornecer um ID de cliente válido para visualizar os detalhes."
+            action={
+              <Button size="sm" onClick={handleBack}>
+                Voltar para clientes
+              </Button>
+            }
+          />
         </div>
       </main>
     );
@@ -29,16 +35,22 @@ export function ClienteProfileRoutePage() {
   if (!cliente && error) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="card-shell rf-ui-stack">
-          <p>{error}</p>
-          <div className="fg2">
-            <button className="btn btn-sm" type="button" onClick={() => void reload()}>
-              Tentar novamente
-            </button>
-            <button className="btn btn-sm" type="button" onClick={handleBack}>
-              Voltar para clientes
-            </button>
-          </div>
+        <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100">
+          <ErrorState
+            title={error ?? 'Erro ao carregar cliente.'}
+            description="Não foi possível recuperar os dados deste cliente no momento."
+            onRetry={() => void reload()}
+            action={
+              <div className="flex items-center gap-3 mt-4">
+                <Button variant="secondary" size="sm" onClick={handleBack}>
+                  Voltar para clientes
+                </Button>
+                <Button size="sm" onClick={() => void reload()}>
+                  Tentar novamente
+                </Button>
+              </div>
+            }
+          />
         </div>
       </main>
     );
@@ -47,9 +59,10 @@ export function ClienteProfileRoutePage() {
   if (!cliente) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="card-shell">
-          <p>Carregando cliente...</p>
-        </div>
+        <LoadingState
+          title="Carregando cliente..."
+          description="Estamos recuperando as informações detalhadas e o histórico deste cliente."
+        />
       </main>
     );
   }

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { DataTable, EmptyState, FilterBar, StatCard } from '../../../shared/ui';
+import { DataTable, EmptyState, FilterBar, StatCard, Button, Badge } from '../../../shared/ui';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { computeOportunidades, syncHistorico } from '../utils/oportunidadesJogos';
@@ -123,33 +123,33 @@ export function OportunidadesTab() {
 
       {/* Context card */}
       {jogosHoje.length > 0 && (
-        <article className="context-card context-card--danger">
-          <div className="context-card__head">
-            <span className="bdg br">Hoje</span>
-            <span className="context-card__kicker">Oportunidades</span>
+        <article className="p-6 rounded-2xl bg-rose-50 border border-rose-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <Badge variant="red">Hoje</Badge>
+            <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">Oportunidades</span>
           </div>
-          <div className="context-card__title">
+          <div className="text-lg font-bold text-rose-900 leading-snug">
             {jogosHoje.length} jogo{jogosHoje.length > 1 ? 's' : ''} hoje — valide antes do apito
           </div>
-          <div className="context-card__meta">{pendentes} pendente{pendentes !== 1 ? 's' : ''} no total — conversão atual {pct(taxa)}</div>
+          <div className="text-sm text-rose-600 font-medium">{pendentes} pendente{pendentes !== 1 ? 's' : ''} no total — conversão atual {pct(taxa)}</div>
         </article>
       )}
       {!jogosHoje.length && jogosSemana.length > 0 && (
-        <article className="context-card context-card--warning">
-          <div className="context-card__head">
-            <span className="bdg ba">Esta semana</span>
-            <span className="context-card__kicker">Oportunidades</span>
+        <article className="p-6 rounded-2xl bg-amber-50 border border-amber-100 shadow-sm flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <Badge variant="yellow">Esta semana</Badge>
+            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Oportunidades</span>
           </div>
-          <div className="context-card__title">
+          <div className="text-lg font-bold text-amber-900 leading-snug">
             {jogosSemana.length} jogo{jogosSemana.length > 1 ? 's' : ''} nos próximos 7 dias
           </div>
-          <div className="context-card__meta">{pendentes} pendente{pendentes !== 1 ? 's' : ''} — conversão atual {pct(taxa)}</div>
+          <div className="text-sm text-amber-600 font-medium">{pendentes} pendente{pendentes !== 1 ? 's' : ''} — conversão atual {pct(taxa)}</div>
         </article>
       )}
       {!jogosHoje.length && !jogosSemana.length && total === 0 && (
         <article className="context-card context-card--info">
           <div className="context-card__head">
-            <span className="bdg">Info</span>
+            <Badge variant="blue">Info</Badge>
             <span className="context-card__kicker">Oportunidades</span>
           </div>
           <div className="context-card__title">Nenhuma oportunidade registrada</div>
@@ -158,8 +158,11 @@ export function OportunidadesTab() {
       )}
 
       {/* Resumo por mês */}
-      <div className="card card-shell">
-        <div className="ct">Resumo por mês</div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+          <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+          Resumo por mês
+        </h3>
         <FilterBar
           filters={[
             {
@@ -234,45 +237,59 @@ export function OportunidadesTab() {
       </div>
 
       {/* Grid: pendentes + validadas */}
-      <div className="rel-bento-grid">
-        <div className="card card-shell">
-          <div className="ct">Oportunidades abertas</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+            <div className="w-1 h-4 bg-amber-500 rounded-full" />
+            Oportunidades abertas
+          </h3>
           {pendentesLista.length > 0 ? (
-            pendentesLista.map((item) => (
-              <div key={item.id} className="rrow rel-op-row">
-                <span className="rel-op-dot" />
-                <div className="rel-grow">
-                  <div className="rel-op-title">{item.cliente} • {item.time}</div>
-                  <div className="rel-op-sub">
-                    {item.jogo_titulo || item.jogo?.titulo || '-'} • {fmtDataHora(item.jogo_data_hora || item.jogo?.data_hora)}
+            <div className="flex flex-col gap-3">
+              {pendentesLista.map((item) => (
+                <div key={item.id} className="p-4 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/30 transition-all flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <div className="flex-grow min-w-0">
+                    <div className="text-sm font-bold text-slate-900 truncate">{item.cliente} • {item.time}</div>
+                    <div className="text-[11px] text-slate-500 font-medium">
+                      {item.jogo_titulo || item.jogo?.titulo || '-'} • {fmtDataHora(item.jogo_data_hora || item.jogo?.data_hora)}
+                    </div>
                   </div>
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={() => openValidacao(item)}
+                  >
+                    Validar
+                  </Button>
                 </div>
-                <button className="btn btn-sm" type="button" onClick={() => openValidacao(item)}>
-                  Validar venda
-                </button>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
             <EmptyState title="Sem oportunidades abertas para validar." compact />
           )}
         </div>
 
-        <div className="card card-shell">
-          <div className="ct">Validações realizadas</div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+            <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+            Validações realizadas
+          </h3>
           {validadasLista.length > 0 ? (
-            validadasLista.map((item) => (
-              <div key={item.id} className="rrow rel-op-row">
-                <span className="rel-op-dot rel-op-dot--success" />
-                <div className="rel-grow">
-                  <div className="rel-op-title">{item.cliente} • {item.time}</div>
-                  <div className="rel-op-sub">
-                    {fmtPeriodo(item.mes_ref)} • {item.pedido_num ? `Pedido #${item.pedido_num}` : 'Venda validada'}
-                    {item.pedido_total ? ` • ${fmt(item.pedido_total)}` : ''}
+            <div className="flex flex-col gap-3">
+              {validadasLista.map((item) => (
+                <div key={item.id} className="p-4 rounded-xl border border-slate-100 bg-white shadow-sm flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <div className="flex-grow min-w-0">
+                    <div className="text-sm font-bold text-slate-900 truncate">{item.cliente} • {item.time}</div>
+                    <div className="text-[11px] text-slate-500 font-medium">
+                      {fmtPeriodo(item.mes_ref)} • {item.pedido_num ? `Pedido #${item.pedido_num}` : 'Venda validada'}
+                      {item.pedido_total ? ` • ${fmt(item.pedido_total)}` : ''}
+                    </div>
                   </div>
+                  <Badge variant="green">Validada</Badge>
                 </div>
-                <span className="bdg bb">Validada</span>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
             <EmptyState title="Nenhuma oportunidade validada no filtro." compact />
           )}

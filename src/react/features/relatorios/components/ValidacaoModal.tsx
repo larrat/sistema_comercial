@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal } from '../../../shared/ui';
+import { Modal, Button, Input, Select } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { useRelatoriosMutations } from '../hooks/useRelatoriosMutations';
 
@@ -50,52 +50,45 @@ export function ValidacaoModal() {
       onClose={handleClose}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={handleClose}>
+          <Button onClick={handleClose}>
             Cancelar
-          </button>
-          <button className="btn btn-p btn-sm" type="button" onClick={handleSalvar}>
+          </Button>
+          <Button variant="primary" onClick={handleSalvar}>
             Validar venda
-          </button>
+          </Button>
         </>
       }
     >
       {item ? (
         <>
-          <div className="fg">
-            <div>
-              <div className="fl">Contexto da oportunidade</div>
-              <div className="panel rel-val-context">
-                <div className="rel-op-title">{item.cliente} • {item.time}</div>
-                <div className="rel-op-sub">
-                  {item.jogo_titulo || '-'} • {fmtDataHora(item.jogo_data_hora)}
-                </div>
+          <div className="flex flex-col gap-6">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Contexto da oportunidade</span>
+              <div className="text-sm font-bold text-slate-900">{item.cliente} • {item.time}</div>
+              <div className="text-xs text-slate-500 mt-1">
+                {item.jogo_titulo || '-'} • {fmtDataHora(item.jogo_data_hora)}
               </div>
             </div>
-          </div>
 
-          <div className="fg">
-            <div>
-              <div className="fl">Pedido vinculado (opcional)</div>
-              <select
-                className="inp sel"
-                value={pedidoId}
-                onChange={(e) => setPedidoId(e.target.value)}
-              >
-                <option value="">Sem vincular pedido</option>
-                {clientePedidos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    #{p.num} • {p.status || '-'} • {fmt(p.total)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+            <Select
+              label="Pedido vinculado (opcional)"
+              id="valid-pedido"
+              value={pedidoId}
+              onChange={(e) => setPedidoId(e.target.value)}
+              options={[
+                { value: '', label: 'Sem vincular pedido' },
+                ...clientePedidos.map((p) => ({
+                  value: p.id,
+                  label: `#${p.num} • ${p.status || '-'} • ${fmt(p.total)}`
+                }))
+              ]}
+            />
 
-          <div className="fg">
-            <div>
-              <div className="fl">Observação</div>
-              <textarea
-                className="inp"
+            <div className="flex flex-col gap-2">
+               <label htmlFor="valid-obs" className="text-xs font-bold text-slate-700">Observação</label>
+               <textarea
+                id="valid-obs"
+                className="rf-input-premium min-h-[80px] resize-none"
                 rows={3}
                 placeholder="Ex: oportunidade convertida em venda após o jogo"
                 value={obs}

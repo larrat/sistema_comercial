@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 
@@ -59,52 +59,57 @@ export function WhatsAppPreviewModal() {
       onClose={handleClose}
       closeOnOverlay={!isLote}
       footer={
-        <>
-          <button
-            className="btn btn-sm"
-            type="button"
-            style={{ color: 'var(--color-danger, #dc2626)' }}
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <Button
+            variant="danger"
             onClick={() => void handleFalhouEAvancar()}
           >
             Falhou{isLote ? ' e avançar' : ''}
-          </button>
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleEnviadoEAvancar()}
           >
             Enviado{isLote ? ' e avançar' : ''}
-          </button>
-        </>
+          </Button>
+        </div>
       }
     >
-      <div className="fg">
-        <div className="camp-wa-destino">
-          <span className="fl">Para:</span>
-          <strong>{fmtNum(envio.destino)}</strong>
-          <button className="btn btn-sm" type="button" onClick={copiarNumero}>
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Para:</span>
+            <strong className="text-lg text-slate-900">{fmtNum(envio.destino)}</strong>
+          </div>
+          <Button variant="secondary" size="sm" onClick={copiarNumero}>
             Copiar número
-          </button>
+          </Button>
         </div>
 
-        <div className="camp-wa-msg-box">
-          <pre className="camp-wa-msg">{envio.mensagem || '(sem mensagem)'}</pre>
+        <div className="bg-slate-900 p-6 rounded-2xl shadow-inner min-h-[120px] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+             <Button variant="secondary" size="sm" className="!bg-white/10 !border-white/10 !text-white hover:!bg-white/20" onClick={copiarMensagem}>
+               Copiar
+             </Button>
+          </div>
+          <pre className="text-emerald-400 font-mono text-sm whitespace-pre-wrap m-0 leading-relaxed">
+            {envio.mensagem || '(sem mensagem)'}
+          </pre>
         </div>
 
-        <div className="camp-wa-actions-row">
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
+        <div className="flex flex-col gap-3">
+          <Button
+            variant="primary"
             onClick={() => {
               if (isLote) abrirWhatsAppEAvancarLote(envio);
               else abrirWhatsApp(envio);
             }}
           >
             Abrir WhatsApp{isLote ? ' e avançar' : ''}
-          </button>
-          <button className="btn btn-sm" type="button" onClick={copiarMensagem}>
+          </Button>
+          <Button variant="secondary" onClick={copiarMensagem}>
             Copiar mensagem
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

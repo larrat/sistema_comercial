@@ -2,7 +2,7 @@ import { useFiliaisStore } from '../store/useFiliaisStore';
 import { useFiliaisData } from '../hooks/useFiliaisData';
 import { FilialCard } from './FilialCard';
 import { FilialModal } from './FilialModal';
-import { EmptyState, ErrorState, PageHeader, StatCard } from '../../../shared/ui';
+import { EmptyState, ErrorState, PageHeader, StatCard, Button } from '../../../shared/ui';
 
 export function FiliaisPage() {
   useFiliaisData();
@@ -23,12 +23,12 @@ export function FiliaisPage() {
         description="Gerencie as filiais da empresa e suas configurações."
         actions={
           <>
-            <button className="btn btn-sm" onClick={reload} disabled={loading}>
-              {loading ? 'Carregando…' : 'Atualizar'}
-            </button>
-            <button className="btn btn-p btn-sm" onClick={openNew}>
+            <Button size="sm" onClick={reload} loading={loading}>
+              Atualizar
+            </Button>
+            <Button variant="primary" size="sm" onClick={openNew}>
               Nova filial
-            </button>
+            </Button>
           </>
         }
       />
@@ -43,13 +43,13 @@ export function FiliaisPage() {
         <EmptyState
           title="Nenhuma filial cadastrada."
           action={
-            <button className="btn btn-p btn-sm" onClick={openNew}>
+            <Button variant="primary" onClick={openNew}>
               Criar primeira filial
-            </button>
+            </Button>
           }
         />
       ) : (
-        <div className="filiais-grid">
+        <div className="rf-bento-grid">
           {filiais.map((f) => (
             <FilialCard key={f.id} filial={f} />
           ))}

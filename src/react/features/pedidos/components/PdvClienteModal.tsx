@@ -1,4 +1,4 @@
-import { EmptyState, ErrorState, LoadingState, Modal } from '../../../shared/ui';
+import { EmptyState, ErrorState, LoadingState, Modal, Button, Input } from '../../../shared/ui';
 import type { ClienteLight } from '../services/clientesLightApi';
 
 type PdvClienteModalProps = {
@@ -28,19 +28,19 @@ export function PdvClienteModal({
       title="Adicionar cliente"
       onClose={onClose}
       footer={
-        <button className="btn btn-sm" type="button" onClick={onClose}>
+        <Button variant="secondary" size="sm" onClick={onClose}>
           Fechar
-        </button>
+        </Button>
       }
     >
-      <div className="rf-pdv-modal-search">
-        <input
-          className="inp"
+      <div className="mb-4">
+        <Input
           type="search"
           placeholder="Buscar por nome ou WhatsApp..."
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           autoFocus
+          className="rf-pdv-modal-search-input"
         />
       </div>
 

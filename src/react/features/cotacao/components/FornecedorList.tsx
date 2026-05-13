@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, StatusBadge } from '../../../shared/ui';
+import { DataTable, EmptyState, StatusBadge, Button } from '../../../shared/ui';
 import type { Fornecedor, PrecosMap } from '../types';
 import type { Produto } from '../../../../types/domain';
 
@@ -30,9 +30,9 @@ export function FornecedorList({ fornecedores, produtos, precos, onNovo, onRemov
     <div className="card-shell">
       <div className="rf-ui-section-header">
         <span className="table-cell-strong">Fornecedores</span>
-        <button type="button" className="btn btn-p btn-sm" onClick={onNovo}>
+        <Button variant="primary" onClick={onNovo}>
           + Novo fornecedor
-        </button>
+        </Button>
       </div>
 
       {!fornecedores.length ? (
@@ -75,13 +75,13 @@ export function FornecedorList({ fornecedores, produtos, precos, onNovo, onRemov
               header: '',
               align: 'right',
               render: (row) => (
-                <button
-                  type="button"
-                  className="btn btn-sm"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => onRemover(row.id)}
                 >
                   Excluir
-                </button>
+                </Button>
               )
             }
           ]}

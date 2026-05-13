@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 
 type ContaReceberConfirmModalProps = {
   open: boolean;
@@ -31,12 +31,12 @@ export function ContaReceberConfirmModal({
       title={title}
       footer={
         <>
-          <button type="button" className="btn btn-sm" onClick={onClose} disabled={submitting}>
+          <Button size="sm" onClick={onClose} disabled={submitting}>
             Cancelar
-          </button>
-          <button type="button" className="btn btn-p btn-sm" onClick={onConfirm} disabled={submitting}>
-            {submitting ? 'Confirmando...' : confirmLabel}
-          </button>
+          </Button>
+          <Button size="sm" variant="primary" onClick={onConfirm} loading={submitting}>
+            {confirmLabel}
+          </Button>
         </>
       }
     >

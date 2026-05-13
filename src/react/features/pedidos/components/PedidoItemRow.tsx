@@ -1,10 +1,10 @@
 import type { PedidoItem } from '../../../../types/domain';
 import {
   calculatePedidoItemLucro,
-  calculatePedidoItemMargem,
   calculatePedidoItemSubtotal,
   formatPedidoCurrency
 } from '../utils/pedidoRules';
+import { Button, Badge } from '../../../shared/ui';
 
 type Props = {
   item: PedidoItem;
@@ -16,38 +16,40 @@ type Props = {
 export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
   const subtotal = calculatePedidoItemSubtotal(item);
   const lucro = calculatePedidoItemLucro(item);
-  const margem = calculatePedidoItemMargem(item);
 
   return (
     <tr data-testid={`pedido-item-row-${index}`}>
-      <td className="table-cell-strong">{item.nome}</td>
-      <td>
-        <span className={`bdg ${item.orig === 'estoque' ? 'bg' : 'bb'}`}>
-          {item.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}
-        </span>
+      <td className="!py-4">
+        <div className="font-bold text-white">{item.nome}</div>
+        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.sku || 'SEM SKU'}</div>
       </td>
       <td>
+        <Badge variant={item.orig === 'estoque' ? 'green' : 'cyan'}>
+          {item.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}
+        </Badge>
+      </td>
+      <td className="text-slate-300 font-medium">
         {item.qty} {item.un}
       </td>
-      <td className="table-cell-muted">{formatPedidoCurrency(item.custo)}</td>
-      <td>{formatPedidoCurrency(item.preco)}</td>
-      <td className="table-cell-strong">{formatPedidoCurrency(subtotal)}</td>
+      <td className="text-slate-500 text-xs">{formatPedidoCurrency(item.custo)}</td>
+      <td className="text-slate-300 font-medium">{formatPedidoCurrency(item.preco)}</td>
+      <td className="text-right font-black text-white">{formatPedidoCurrency(subtotal)}</td>
       <td
-        className={`table-cell-strong ${lucro >= 0 ? 'table-cell-success' : 'table-cell-danger'}`}
+        className={`text-right font-bold ${lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}
       >
         {formatPedidoCurrency(lucro)}
       </td>
-      <td className="table-cell-strong">{margem.toFixed(1)}%</td>
       {!readOnly && (
-        <td>
-          <button
-            className="btn btn-sm"
-            type="button"
+        <td className="text-right">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="!p-2"
             onClick={() => onRemove?.(index)}
             data-testid={`pedido-item-remove-${index}`}
           >
-            Excluir
-          </button>
+            ×
+          </Button>
         </td>
       )}
     </tr>

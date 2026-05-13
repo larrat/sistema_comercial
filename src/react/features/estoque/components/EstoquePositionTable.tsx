@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, StatusBadge } from '../../../shared/ui';
+import { DataTable, EmptyState, StatusBadge, Button } from '../../../shared/ui';
 import type { EstoquePositionRow } from '../types';
 
 type EstoquePositionTableProps = {
@@ -104,9 +104,9 @@ export function EstoquePositionTable({
           header: '',
           align: 'right',
           render: (row) => (
-            <button className="btn btn-sm" type="button" onClick={() => onMoveProduct(row)}>
+            <Button size="sm" onClick={() => onMoveProduct(row)}>
               Registrar movimento
-            </button>
+            </Button>
           )
         }
       ]}

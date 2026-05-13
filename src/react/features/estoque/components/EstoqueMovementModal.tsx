@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Modal, StatusBadge } from '../../../shared/ui';
+import { Modal, StatusBadge, Button, Input, Select, SegmentedControl } from '../../../shared/ui';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
@@ -163,77 +163,55 @@ export function EstoqueMovementModal() {
         onClose={closeMovementModal}
         footer={
           <>
-            <button type="button" className="btn btn-sm" onClick={closeMovementModal} disabled={submitting}>
+            <Button onClick={closeMovementModal} disabled={submitting}>
               Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn btn-p btn-sm"
+            </Button>
+            <Button
+              variant="primary"
               onClick={handlePrimaryAction}
-              disabled={submitting}
+              loading={submitting}
             >
-              {submitting
-                ? draft.tipo === 'transf'
-                  ? 'Salvando transferência...'
-                  : draft.tipo === 'ajuste'
-                    ? 'Salvando ajuste...'
-                    : 'Salvando movimentação...'
-                : draft.tipo === 'transf'
-                  ? 'Salvar transferência'
-                  : draft.tipo === 'ajuste'
-                    ? 'Revisar ajuste'
-                    : 'Salvar movimentação'}
-            </button>
+              {draft.tipo === 'transf'
+                ? 'Salvar transferência'
+                : draft.tipo === 'ajuste'
+                  ? 'Revisar ajuste'
+                  : 'Salvar movimentação'}
+            </Button>
           </>
         }
       >
         <div className="rf-ui-stack">
-        <div className="rf-ui-form-grid">
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Produto</span>
-            <select
-              className="inp sel"
-              value={draft.produtoId}
-              onChange={(event) => updateMovementDraft({ produtoId: event.target.value })}
-            >
-              <option value="">Selecione...</option>
-              {produtos.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.nome}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Select
+            label="Produto"
+            id="movement-prod"
+            value={draft.produtoId}
+            onChange={(event) => updateMovementDraft({ produtoId: event.target.value })}
+            options={[
+              { value: '', label: 'Selecione...' },
+              ...produtos.map((item) => ({ value: item.id, label: item.nome }))
+            ]}
+          />
 
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Data</span>
-            <input
-              className="inp"
-              type="date"
-              value={draft.data}
-              onChange={(event) => updateMovementDraft({ data: event.target.value })}
-            />
-          </label>
+          <Input
+            label="Data"
+            id="movement-data"
+            type="date"
+            value={draft.data}
+            onChange={(event) => updateMovementDraft({ data: event.target.value })}
+          />
         </div>
 
-        <div className="rf-ui-inline-tabs">
-          {(['entrada', 'saida', 'ajuste', 'transf'] as const).map((tipo) => (
-            <button
-              key={tipo}
-              type="button"
-              className={`tb ${draft.tipo === tipo ? 'on' : ''}`}
-              onClick={() => updateMovementDraft({ tipo })}
-            >
-              {tipo === 'entrada'
-                ? 'Entrada'
-                : tipo === 'saida'
-                  ? 'Saída'
-                  : tipo === 'ajuste'
-                    ? 'Ajuste'
-                    : 'Transferência'}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={[
+            { id: 'entrada', label: 'Entrada' },
+            { id: 'saida', label: 'Saída' },
+            { id: 'ajuste', label: 'Ajuste' },
+            { id: 'transf', label: 'Transferência' }
+          ]}
+          activeId={draft.tipo}
+          onChange={(id) => updateMovementDraft({ tipo: id as any })}
+        />
 
         {produto ? (
           <div className="card-shell rf-ui-stock-summary">
@@ -259,46 +237,34 @@ export function EstoqueMovementModal() {
 
         <div className="rf-ui-form-grid">
           {draft.tipo !== 'ajuste' ? (
-            <label className="rf-ui-field">
-              <span className="rf-ui-field__label">
-                {draft.tipo === 'entrada'
-                  ? 'Quantidade recebida'
-                  : draft.tipo === 'transf'
-                    ? 'Quantidade transferida'
-                    : 'Quantidade saída'}
-              </span>
-              <input
-                className="inp"
-                inputMode="decimal"
-                value={draft.quantidade}
-                onChange={(event) => updateMovementDraft({ quantidade: event.target.value })}
-                placeholder="0"
-              />
-            </label>
+            <Input
+              label={draft.tipo === 'entrada' ? 'Quantidade recebida' : draft.tipo === 'transf' ? 'Quantidade transferida' : 'Quantidade saída'}
+              id="movement-qty"
+              inputMode="decimal"
+              value={draft.quantidade}
+              onChange={(event) => updateMovementDraft({ quantidade: event.target.value })}
+              placeholder="0"
+            />
           ) : (
-            <label className="rf-ui-field">
-              <span className="rf-ui-field__label">Saldo real</span>
-              <input
-                className="inp"
-                inputMode="decimal"
-                value={draft.saldoReal}
-                onChange={(event) => updateMovementDraft({ saldoReal: event.target.value })}
-                placeholder="0"
-              />
-            </label>
+            <Input
+              label="Saldo real"
+              id="movement-saldo-real"
+              inputMode="decimal"
+              value={draft.saldoReal}
+              onChange={(event) => updateMovementDraft({ saldoReal: event.target.value })}
+              placeholder="0"
+            />
           )}
 
           {draft.tipo === 'entrada' ? (
-            <label className="rf-ui-field">
-              <span className="rf-ui-field__label">Custo unitário</span>
-              <input
-                className="inp"
-                inputMode="decimal"
-                value={draft.custo}
-                onChange={(event) => updateMovementDraft({ custo: event.target.value })}
-                placeholder={atual.cm ? String(atual.cm) : '0'}
-              />
-            </label>
+            <Input
+              label="Custo unitário"
+              id="movement-custo"
+              inputMode="decimal"
+              value={draft.custo}
+              onChange={(event) => updateMovementDraft({ custo: event.target.value })}
+              placeholder={atual.cm ? String(atual.cm) : '0'}
+            />
           ) : (
             <div className="rf-ui-field">
               <span className="rf-ui-field__label">
@@ -310,21 +276,18 @@ export function EstoqueMovementModal() {
         </div>
 
         {draft.tipo === 'transf' ? (
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Filial de destino</span>
-            <select
-              className="inp sel"
+          <div className="flex flex-col gap-2">
+            <Select
+              label="Filial de destino"
+              id="movement-dest"
               value={draft.destinoFilialId}
               onChange={(event) => updateMovementDraft({ destinoFilialId: event.target.value })}
-            >
-              <option value="">Selecione...</option>
-              {transferFiliais.map((filial) => (
-                <option key={filial.id} value={filial.id}>
-                  {filial.nome}
-                </option>
-              ))}
-            </select>
-            <div className="table-cell-caption table-cell-muted">
+              options={[
+                { value: '', label: 'Selecione...' },
+                ...transferFiliais.map((filial) => ({ value: filial.id, label: filial.nome }))
+              ]}
+            />
+            <div className="text-[10px] text-slate-400 font-medium px-1">
               {transferStatus === 'loading'
                 ? 'Carregando filiais disponíveis...'
                 : transferStatus === 'error'
@@ -333,25 +296,26 @@ export function EstoqueMovementModal() {
                     ? 'A saída será lançada na filial atual e a entrada será registrada na filial de destino.'
                     : 'Nenhuma outra filial disponível para transferência.'}
             </div>
-          </label>
+          </div>
         ) : null}
 
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Observação</span>
-            <textarea
-              className="inp ta"
-              rows={3}
-              value={draft.observacao}
-              onChange={(event) => updateMovementDraft({ observacao: event.target.value })}
-              placeholder={
-                draft.tipo === 'ajuste'
-                  ? 'Explique o motivo do ajuste manual'
-                  : draft.tipo === 'transf'
-                    ? 'Contexto da transferência'
-                    : 'Contexto da movimentação'
-              }
-            />
-          </label>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="movement-obs" className="text-xs font-bold text-slate-700">Observação</label>
+          <textarea
+            id="movement-obs"
+            className="rf-input-premium min-h-[80px] resize-none"
+            rows={3}
+            value={draft.observacao}
+            onChange={(event) => updateMovementDraft({ observacao: event.target.value })}
+            placeholder={
+              draft.tipo === 'ajuste'
+                ? 'Explique o motivo do ajuste manual'
+                : draft.tipo === 'transf'
+                  ? 'Contexto da transferência'
+                  : 'Contexto da movimentação'
+            }
+          />
+        </div>
 
         {canShowPreview ? (
           <div className="card-shell rf-ui-stock-preview">
@@ -385,19 +349,18 @@ export function EstoqueMovementModal() {
         onClose={() => setSaldoWarningOpen(false)}
         footer={
           <>
-            <button className="btn btn-sm" type="button" onClick={() => setSaldoWarningOpen(false)}>
+            <Button onClick={() => setSaldoWarningOpen(false)}>
               Cancelar
-            </button>
-            <button
-              className="btn btn-r btn-sm"
-              type="button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={() => {
                 setSaldoWarningOpen(false);
                 void submitMovement();
               }}
             >
               Registrar assim mesmo
-            </button>
+            </Button>
           </>
         }
       >

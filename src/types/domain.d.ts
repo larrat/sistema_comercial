@@ -162,6 +162,7 @@ export type PedidoItem = {
   custo_base?: number;
   preco_base?: number;
   orig: string;
+  sku?: string;
 };
 
 export type Pedido = {

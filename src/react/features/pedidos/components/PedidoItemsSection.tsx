@@ -6,6 +6,7 @@ import {
 } from '../utils/pedidoRules';
 import { PedidoItemAdd } from './PedidoItemAdd';
 import { PedidoItemRow } from './PedidoItemRow';
+import { Badge } from '../../../shared/ui';
 
 type Props = {
   itens: PedidoItem[];
@@ -21,9 +22,11 @@ export function PedidoItemsSection({ itens, produtos, tipo, readOnly, onAdd, onR
   const lucroTotal = calculatePedidoLucroTotal(itens);
 
   return (
-    <div data-testid="pedido-items-section">
-      <div className="div" />
-      <div className="ct">Itens do pedido</div>
+    <div data-testid="pedido-items-section" className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 mb-2">
+        <h3 className="text-base font-bold text-slate-900 m-0 text-white">Itens do pedido</h3>
+        <Badge variant="slate">{itens.length} {itens.length === 1 ? 'item' : 'itens'}</Badge>
+      </div>
 
       {!readOnly && onAdd && <PedidoItemAdd produtos={produtos} tipo={tipo} onAdd={onAdd} />}
 
@@ -31,19 +34,18 @@ export function PedidoItemsSection({ itens, produtos, tipo, readOnly, onAdd, onR
         <div className="empty-inline">Nenhum item.</div>
       ) : (
         <>
-          <div className="tw ped-items-wrap">
-            <table className="tbl ped-items-table">
+          <div className="rf-ui-data-table-wrap !bg-transparent border border-white/5 rounded-xl overflow-hidden">
+            <table className="rf-ui-data-table">
               <thead>
                 <tr>
-                  <th>Produto</th>
-                  <th>Origem</th>
-                  <th>Qtd</th>
-                  <th>Custo</th>
-                  <th>Preço</th>
-                  <th>Subtotal</th>
-                  <th>Lucro</th>
-                  <th>Margem</th>
-                  {!readOnly && <th />}
+                  <th className="!bg-slate-900/50">Produto</th>
+                  <th className="!bg-slate-900/50">Origem</th>
+                  <th className="!bg-slate-900/50">Qtd</th>
+                  <th className="!bg-slate-900/50">Custo</th>
+                  <th className="!bg-slate-900/50">Preço</th>
+                  <th className="!bg-slate-900/50 text-right">Subtotal</th>
+                  <th className="!bg-slate-900/50 text-right">Lucro</th>
+                  {!readOnly && <th className="!bg-slate-900/50" />}
                 </tr>
               </thead>
               <tbody>
@@ -59,12 +61,13 @@ export function PedidoItemsSection({ itens, produtos, tipo, readOnly, onAdd, onR
               </tbody>
             </table>
           </div>
-          <div className="panel ped-total-panel">
-            <div className="fb">
-              <span className="ped-total-label">Total do pedido</span>
-              <span className="ped-total-value">
-                {formatPedidoCurrency(total)} | Lucro {formatPedidoCurrency(lucroTotal)}
-              </span>
+          <div className="rf-glass p-6 rounded-2xl border border-white/5 flex items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumo Financeiro</span>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-black text-white">{formatPedidoCurrency(total)}</span>
+                <Badge variant="green">Lucro {formatPedidoCurrency(lucroTotal)}</Badge>
+              </div>
             </div>
           </div>
         </>

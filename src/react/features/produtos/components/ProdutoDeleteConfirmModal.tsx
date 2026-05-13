@@ -1,5 +1,5 @@
 import type { Produto } from '../../../../types/domain';
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 
 type ProdutoDeleteConfirmModalProps = {
   open: boolean;
@@ -24,18 +24,17 @@ export function ProdutoDeleteConfirmModal({
       title="Excluir produto"
       footer={
         <>
-          <button type="button" className="btn btn-sm" onClick={onClose} disabled={submitting}>
+          <Button onClick={onClose} disabled={submitting}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn-r btn-sm"
+          </Button>
+          <Button
+            variant="danger"
             onClick={onConfirm}
-            disabled={submitting}
+            loading={submitting}
             data-testid="confirmar-exclusao-produto-btn"
           >
-            {submitting ? 'Excluindo...' : 'Excluir produto'}
-          </button>
+            Excluir produto
+          </Button>
         </>
       }
     >

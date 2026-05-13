@@ -1,4 +1,4 @@
-import { Drawer } from '../../../shared/ui';
+import { Drawer, Button, Input } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 
@@ -20,35 +20,32 @@ export function RcaDrawer() {
       onClose={closeDrawer}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={closeDrawer} disabled={saving}>
+          <Button onClick={closeDrawer} disabled={saving}>
             Cancelar
-          </button>
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void salvar()}
-            disabled={saving}
+            loading={saving}
           >
-            {saving ? 'Salvando…' : 'Salvar'}
-          </button>
+            Salvar
+          </Button>
         </>
       }
     >
-      <div className="fg">
-        <div>
-          <div className="fl">Nome do vendedor *</div>
-          <input
-            className="inp"
-            autoFocus
-            placeholder="Ex: João Silva"
-            value={drawerNome}
-            onChange={(e) => setDrawerNome(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') void salvar();
-            }}
-            disabled={saving}
-          />
-        </div>
+      <div className="flex flex-col gap-4">
+        <Input
+          label="Nome do vendedor *"
+          id="rca-nome"
+          autoFocus
+          placeholder="Ex: João Silva"
+          value={drawerNome}
+          onChange={(e) => setDrawerNome(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void salvar();
+          }}
+          disabled={saving}
+        />
       </div>
     </Drawer>
   );

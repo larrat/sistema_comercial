@@ -1,5 +1,5 @@
 import type { Pedido } from '../../../../types/domain';
-import { Modal, StatusBadge } from '../../../shared/ui';
+import { Modal, StatusBadge, Button } from '../../../shared/ui';
 import { PEDIDO_STATUS_LABEL, normalizePedStatus } from '../types';
 
 const PGTO_LABEL: Record<string, string> = {
@@ -62,18 +62,17 @@ export function PedidoEntregaConfirmModal({
       onClose={onClose}
       closeOnOverlay={!submitting}
       footer={
-        <div className="modal-actions">
-          <button className="btn btn-sm" type="button" onClick={onClose} disabled={submitting}>
+        <div className="flex items-center justify-end gap-3">
+          <Button onClick={onClose} disabled={submitting}>
             Cancelar
-          </button>
-          <button
-            className="btn btn-sm btn-p"
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={onConfirm}
-            disabled={submitting}
+            loading={submitting}
           >
-            {submitting ? 'Confirmando...' : 'Confirmar entrega'}
-          </button>
+            Confirmar entrega
+          </Button>
         </div>
       }
     >
@@ -82,29 +81,29 @@ export function PedidoEntregaConfirmModal({
           <p className="table-cell-muted">
             Confirme apenas quando a mercadoria tiver sido entregue ao cliente.
           </p>
-          <div className="fg c2">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="fl">Cliente</div>
-              <div className="fv">{pedido.cli || '—'}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</div>
+              <div className="font-bold text-slate-900">{pedido.cli || '—'}</div>
             </div>
             <div>
-              <div className="fl">Pedido</div>
-              <div className="fv">#{pedido.num}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pedido</div>
+              <div className="font-bold text-slate-900">#{pedido.num}</div>
             </div>
             <div>
-              <div className="fl">Valor total</div>
-              <div className="fv">{formatCurrency(pedido.total)}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Valor total</div>
+              <div className="font-bold text-slate-900">{formatCurrency(pedido.total)}</div>
             </div>
             <div>
-              <div className="fl">Pagamento</div>
-              <div className="fv">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pagamento</div>
+              <div className="font-bold text-slate-900">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
             </div>
             <div>
-              <div className="fl">Prazo</div>
-              <div className="fv">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Prazo</div>
+              <div className="font-bold text-slate-900">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
             </div>
             <div>
-              <div className="fl">Status atual</div>
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Status atual</div>
               <StatusBadge tone="neutral">
                 {PEDIDO_STATUS_LABEL[status] ?? status ?? '—'}
               </StatusBadge>

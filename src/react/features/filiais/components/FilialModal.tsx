@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button, Input } from '../../../shared/ui';
 import { useFiliaisStore } from '../store/useFiliaisStore';
 import { useFilialMutations } from '../hooks/useFilialMutations';
 
@@ -19,52 +19,43 @@ export function FilialModal() {
       closeOnOverlay={!saving}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={closeModal} disabled={saving}>
+          <Button onClick={closeModal} disabled={saving}>
             Cancelar
-          </button>
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void salvar()}
-            disabled={saving}
+            loading={saving}
           >
-            {saving ? 'Salvando…' : modalEditId ? 'Atualizar filial' : 'Criar filial'}
-          </button>
+            {modalEditId ? 'Atualizar filial' : 'Criar filial'}
+          </Button>
         </>
       }
     >
-      <div className="fg">
-        <div>
-          <div className="fl">Nome *</div>
-          <input
-            className="inp"
-            autoFocus
-            placeholder="Ex: Filial Centro"
-            value={form.nome}
-            onChange={(e) => setForm({ nome: e.target.value })}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') void salvar();
-            }}
-            disabled={saving}
-          />
-        </div>
-      </div>
+      <div className="flex flex-col gap-6">
+        <Input
+          label="Nome da Filial"
+          required
+          autoFocus
+          placeholder="Ex: Filial Centro"
+          value={form.nome}
+          onChange={(e) => setForm({ nome: e.target.value })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void salvar();
+          }}
+          disabled={saving}
+        />
 
-      <div className="fg c2">
-        <div>
-          <div className="fl">Cidade</div>
-          <input
-            className="inp"
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Cidade"
             placeholder="Ex: São Paulo"
             value={form.cidade}
             onChange={(e) => setForm({ cidade: e.target.value })}
             disabled={saving}
           />
-        </div>
-        <div>
-          <div className="fl">Estado</div>
-          <input
-            className="inp"
+          <Input
+            label="Estado"
             placeholder="Ex: SP"
             maxLength={2}
             value={form.estado}
@@ -72,51 +63,33 @@ export function FilialModal() {
             disabled={saving}
           />
         </div>
-      </div>
 
-      <div className="fg">
-        <div>
-          <div className="fl">Endereço</div>
-          <input
-            className="inp"
-            placeholder="Ex: Rua das Flores, 123"
-            value={form.endereco}
-            onChange={(e) => setForm({ endereco: e.target.value })}
-            disabled={saving}
-          />
-        </div>
-      </div>
+        <Input
+          label="Endereço Completo"
+          placeholder="Ex: Rua das Flores, 123"
+          value={form.endereco}
+          onChange={(e) => setForm({ endereco: e.target.value })}
+          disabled={saving}
+        />
 
-      <div className="fg c2">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div>
-            <div className="fl">Cor</div>
-            <input
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-end gap-4">
+            <Input
+              label="Cor Identificadora"
               type="color"
-              className="inp"
-              style={{ width: 56, height: 40, padding: '2px 4px', cursor: 'pointer' }}
+              className="!w-14 !h-10 !p-1 cursor-pointer"
               value={form.cor}
               onChange={(e) => setForm({ cor: e.target.value })}
               disabled={saving}
             />
+            <div
+              className="w-10 h-10 rounded-xl border border-white/10"
+              style={{ background: form.cor }}
+            />
           </div>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: form.cor,
-              border: '1px solid var(--line)',
-              marginTop: 20,
-              flexShrink: 0
-            }}
-          />
-        </div>
-        <div>
-          <div className="fl">Meta Mensal (R$)</div>
-          <input
+          <Input
+            label="Meta Mensal (R$)"
             type="number"
-            className="inp"
             placeholder="Ex: 50000"
             value={form.meta_mensal}
             onChange={(e) => setForm({ meta_mensal: e.target.value })}

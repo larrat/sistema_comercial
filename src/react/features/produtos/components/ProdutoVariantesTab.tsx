@@ -41,7 +41,7 @@ import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { ChartCard, EmptyChartState } from '../../../app/components/charts';
-import { EmptyState, ErrorState, StatCard, StatusBadge } from '../../../shared/ui';
+import { EmptyState, ErrorState, StatCard, StatusBadge, Button } from '../../../shared/ui';
 import { markupToPrice } from '../hooks/useProdutoCalculations';
 import {
   listMovimentacoesByProdutoIds,
@@ -621,15 +621,16 @@ export function ProdutoVariantesTab({ produto }: Props) {
         
         <div className="rf-pill-group">
           {PERIODOS.map((p) => (
-            <button
+            <Button
               key={p}
-              type="button"
-              className={`rf-pill ${periodo === p ? 'is-active' : ''}`}
+              variant={periodo === p ? 'primary' : 'secondary'}
+              size="sm"
+              className="rounded-full px-4"
               onClick={() => setPeriodo(p)}
               disabled={loadingVendas}
             >
               {PERIOD_CONFIG[p].label}
-            </button>
+            </Button>
           ))}
         </div>
       </motion.section>

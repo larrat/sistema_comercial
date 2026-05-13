@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Drawer, FormField } from '../../../shared/ui';
+import { Drawer, FormField, Button, Input, Select } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import type { Campanha } from '../../../../types/domain';
@@ -82,109 +82,92 @@ export function CampanhaDrawer() {
       onClose={closeCampModal}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={closeCampModal} disabled={saving}>
+          <Button onClick={closeCampModal} disabled={saving}>
             Cancelar
-          </button>
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => void handleSalvar()}
-            disabled={saving || !nome.trim()}
+            loading={saving}
+            disabled={!nome.trim()}
           >
-            {saving ? 'Salvando…' : 'Salvar'}
-          </button>
+            Salvar
+          </Button>
         </>
       }
     >
-      <div className="fg">
-        <FormField label="Nome" required htmlFor="camp-nome">
-          <input
-            id="camp-nome"
-            className="inp"
-            autoFocus
-            placeholder="Ex: Aniversariantes do mês"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
+      <div className="flex flex-col gap-6">
+        <Input
+          label="Nome"
+          id="camp-nome"
+          required
+          autoFocus
+          placeholder="Ex: Aniversariantes do mês"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          disabled={saving}
+        />
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Select
+            label="Tipo"
+            id="camp-tipo"
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value)}
+            disabled={saving}
+            options={TIPOS}
+          />
+
+          <Select
+            label="Canal"
+            id="camp-canal"
+            value={canal}
+            onChange={(e) => setCanal(e.target.value)}
+            disabled={saving}
+            options={CANAIS}
+          />
+
+          <Input
+            label="Antecedência (dias)"
+            id="camp-dias"
+            type="number"
+            min={0}
+            max={60}
+            value={diasAntecedencia}
+            onChange={(e) => setDiasAntecedencia(Number(e.target.value))}
             disabled={saving}
           />
-        </FormField>
-
-        <div className="rf-ui-form-row">
-          <FormField label="Tipo" htmlFor="camp-tipo">
-            <select
-              id="camp-tipo"
-              className="inp sel"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              disabled={saving}
-            >
-              {TIPOS.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField label="Canal" htmlFor="camp-canal">
-            <select
-              id="camp-canal"
-              className="inp sel"
-              value={canal}
-              onChange={(e) => setCanal(e.target.value)}
-              disabled={saving}
-            >
-              {CANAIS.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField label="Antecedência (dias)" htmlFor="camp-dias">
-            <input
-              id="camp-dias"
-              className="inp"
-              type="number"
-              min={0}
-              max={60}
-              value={diasAntecedencia}
-              onChange={(e) => setDiasAntecedencia(Number(e.target.value))}
-              disabled={saving}
-            />
-          </FormField>
         </div>
 
-        <div className="rf-ui-form-row">
-          <FormField label="Cupom (opcional)" htmlFor="camp-cupom">
-            <input
-              id="camp-cupom"
-              className="inp"
-              value={cupom}
-              onChange={(e) => setCupom(e.target.value)}
-              placeholder="PROMO10"
-              disabled={saving}
-            />
-          </FormField>
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Cupom (opcional)"
+            id="camp-cupom"
+            value={cupom}
+            onChange={(e) => setCupom(e.target.value)}
+            placeholder="PROMO10"
+            disabled={saving}
+          />
 
-          <FormField label="Desconto %" htmlFor="camp-desconto">
-            <input
-              id="camp-desconto"
-              className="inp"
-              type="number"
-              min={0}
-              max={100}
-              value={desconto}
-              onChange={(e) => setDesconto(Number(e.target.value))}
-              disabled={saving}
-            />
-          </FormField>
+          <Input
+            label="Desconto %"
+            id="camp-desconto"
+            type="number"
+            min={0}
+            max={100}
+            value={desconto}
+            onChange={(e) => setDesconto(Number(e.target.value))}
+            disabled={saving}
+          />
         </div>
 
         <FormField
-          label={<>Mensagem <span className="rf-ui-form-field__hint">tokens: {'{{nome}}'} {'{{cupom}}'} {'{{desconto}}'} {'{{filial}}'}</span></>}
+          label={<>Mensagem <span className="text-[10px] text-slate-400 font-normal ml-2">tokens: {'{{nome}}'} {'{{cupom}}'} {'{{desconto}}'} {'{{filial}}'}</span></>}
           htmlFor="camp-mensagem"
         >
           <textarea
             id="camp-mensagem"
-            className="inp"
+            className="rf-input-premium min-h-[120px] resize-none"
             rows={5}
             value={mensagem}
             onChange={(e) => setMensagem(e.target.value)}
@@ -194,9 +177,9 @@ export function CampanhaDrawer() {
         </FormField>
 
         {preview && (
-          <div className="camp-preview-box">
-            <div className="camp-preview-label">Preview</div>
-            <div className="camp-preview-body">{preview}</div>
+          <div className="p-6 bg-slate-900 rounded-2xl shadow-xl border border-slate-800">
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Preview da Mensagem</div>
+            <div className="text-emerald-400 font-mono text-sm whitespace-pre-wrap leading-relaxed">{preview}</div>
           </div>
         )}
       </div>

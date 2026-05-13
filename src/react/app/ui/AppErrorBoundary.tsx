@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { ErrorState } from '../../shared/ui';
 
 type AppErrorBoundaryProps = {
   children: ReactNode;
@@ -24,17 +25,14 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   render() {
     if (this.state.hasError) {
       return (
-        <div className="rf-shell-state" role="alert">
-          <div className="empty">
-            <div className="ico">!</div>
-            <p>Algo deu errado. Recarregue a página para continuar.</p>
-            <button
-              className="btn btn-sm"
-              style={{ marginTop: 16 }}
-              onClick={() => window.location.reload()}
-            >
-              Recarregar
-            </button>
+        <div className="flex items-center justify-center min-h-screen bg-slate-50" role="alert">
+          <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100 max-w-lg w-full mx-4">
+            <ErrorState
+              title="Algo inesperado aconteceu."
+              description="Houve um erro na renderização de um componente. Nossa equipe técnica já foi notificada (veja o console para detalhes)."
+              retryLabel="Recarregar aplicação"
+              onRetry={() => window.location.reload()}
+            />
           </div>
         </div>
       );

@@ -6,6 +6,8 @@ import {
   DataTable,
   EmptyState,
   StatusBadge,
+  Button,
+  Badge,
   type DataTableColumn
 } from '../../../shared/ui';
 import { Package } from 'lucide-react';
@@ -117,17 +119,17 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
       key: 'nome',
       label: 'Produto',
       render: ({ prod, isPai, isVariante }) => (
-        <div style={{ fontWeight: isPai ? 700 : 500 }}>
+        <div className={`flex items-center gap-2 ${isPai ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
           {isVariante ? (
-            <span style={{ color: 'var(--tx3)', paddingRight: 4 }} aria-hidden="true">
+            <span className="text-slate-400 select-none" aria-hidden="true">
               ↳
             </span>
           ) : null}
-          <span>{prod.nome}</span>
+          <span className="truncate">{prod.nome}</span>
           {isPai ? (
-            <span className="bdg bk" style={{ fontSize: 10, marginLeft: 6 }}>
+            <Badge variant="slate" className="text-[10px]">
               Família
-            </span>
+            </Badge>
           ) : null}
         </div>
       )
@@ -140,7 +142,7 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
     {
       key: 'categoria',
       label: 'Categoria',
-      render: ({ prod }) => (prod.cat ? <span className="bdg bk">{prod.cat}</span> : '—')
+      render: ({ prod }) => (prod.cat ? <Badge variant="slate">{prod.cat}</Badge> : '—')
     },
     {
       key: 'precos',
@@ -148,11 +150,11 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
       render: ({ prod }) => {
         const { varejo, atacado } = calcPrecos(prod);
         return (
-          <div className="rf-ui-stack" style={{ gap: 2 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-primary)' }}>
+          <div className="flex flex-col gap-0.5">
+            <div className="text-[15px] font-bold text-slate-900">
               {varejo > 0 ? fmt(varejo) : '—'}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', fontWeight: 500 }}>
+            <div className="text-[11px] font-medium text-slate-400">
               Atacado: {atacado > 0 ? fmt(atacado) : '—'}
             </div>
           </div>
@@ -165,11 +167,11 @@ function buildColumns(): Array<DataTableColumn<ProdutoRow>> {
       render: ({ prod, saldo }) => {
         const emin = prod.emin ?? 0;
         return (
-          <div className="rf-ui-stack" style={{ gap: 2 }}>
-            <div style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              {fmtQ(saldo.saldo)} <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>{prod.un}</span>
+          <div className="flex flex-col gap-0.5">
+            <div className="text-sm font-bold text-slate-900">
+              {fmtQ(saldo.saldo)} <span className="text-xs font-normal text-slate-400">{prod.un}</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
+            <div className="text-[11px] text-slate-400">
               Mín: {emin > 0 ? `${fmtQ(emin)} ${prod.un}` : '—'}
             </div>
           </div>
@@ -230,9 +232,9 @@ export function ProdutoListView({
           : 'Cadastre o primeiro produto desta filial para começar.'
       }
       emptyAction={
-        <button className="btn btn-p btn-sm h-9" type="button" onClick={onNovo}>
+        <Button variant="primary" onClick={onNovo}>
           Novo produto
-        </button>
+        </Button>
       }
       onRowClick={(row) => onDetalhe(row.prod.id)}
       getRowClassName={(row) => 
@@ -292,9 +294,9 @@ export function ProdutoListMobile({
             : 'Cadastre o primeiro produto desta filial para começar.'
         }
         action={
-          <button className="btn btn-p btn-sm h-9" type="button" onClick={onNovo}>
+          <Button variant="primary" onClick={onNovo}>
             Novo produto
-          </button>
+          </Button>
         }
       />
     );
@@ -326,9 +328,9 @@ export function ProdutoListMobile({
                   ) : null}
                   {p.nome}
                   {isPai ? (
-                    <span className="bdg bk" style={{ fontSize: 10, marginLeft: 4 }}>
+                    <Badge variant="slate" className="ml-1 text-[10px]">
                       Família
-                    </span>
+                    </Badge>
                   ) : null}
                 </div>
                 <div className="mobile-card-sub">
@@ -368,9 +370,9 @@ export function ProdutoListMobile({
             </div>
 
             <div className="mobile-card-actions" style={{ justifyContent: 'space-between' }}>
-              <button className="btn btn-sm" onClick={() => onDetalhe(p.id)}>
+              <Button size="sm" onClick={() => onDetalhe(p.id)}>
                 Detalhes
-              </button>
+              </Button>
               <ActionMenu
                 label="Ações do produto"
                 align="right"
@@ -394,22 +396,20 @@ export function ProdutoListMobile({
             Página {page} · {produtos.length} de {totalCount} produtos carregados
           </div>
           <div className="mobile-card-actions" style={{ justifyContent: 'space-between' }}>
-            <button
-              className="btn btn-sm"
-              type="button"
+            <Button
+              size="sm"
               disabled={page <= 1}
               onClick={() => onPageChange(page - 1)}
             >
               Anterior
-            </button>
-            <button
-              className="btn btn-sm"
-              type="button"
+            </Button>
+            <Button
+              size="sm"
               disabled={page * pageSize >= totalCount}
               onClick={() => onPageChange(page + 1)}
             >
               Próxima
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

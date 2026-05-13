@@ -3,6 +3,7 @@ import { useCotacaoImport } from '../hooks/useCotacaoImport';
 import { CotacaoLogs } from './CotacaoLogs';
 import { ImportacaoDropzone } from './ImportacaoDropzone';
 import { ImportacaoResumo } from './ImportacaoResumo';
+import { Select, Button } from '../../../shared/ui';
 import type { Fornecedor } from '../types';
 
 type Props = {
@@ -20,29 +21,27 @@ export function CotacaoImport({ fornecedores, logs, onNovoFornecedor }: Props) {
   }
 
   return (
-    <div className="rf-ui-cot-grid">
-      <div className="card-shell">
-        <div className="ct">Importar planilha de fornecedor</div>
-        <div className="rf-ui-form-grid form-gap-bottom">
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Fornecedor</span>
-            <select
-              className="inp sel"
-              value={fornId}
-              onChange={(e) => setFornId(e.target.value)}
-            >
-              <option value="">— selecione —</option>
-              {fornecedores.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.nome}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="rf-ui-field" style={{ alignSelf: 'flex-end' }}>
-            <button type="button" className="btn btn-sm" onClick={onNovoFornecedor}>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+          <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+          Importar planilha de fornecedor
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end mb-6">
+          <Select
+            label="Fornecedor"
+            id="cotacao-import-forn"
+            value={fornId}
+            onChange={(e) => setFornId(e.target.value)}
+            options={[
+              { value: '', label: '— selecione —' },
+              ...fornecedores.map((f) => ({ value: f.id, label: f.nome }))
+            ]}
+          />
+          <div className="flex">
+            <Button variant="secondary" size="sm" onClick={onNovoFornecedor}>
               + Novo fornecedor
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -61,8 +60,11 @@ export function CotacaoImport({ fornecedores, logs, onNovoFornecedor }: Props) {
         <ImportacaoResumo />
       </div>
 
-      <div className="card-shell">
-        <div className="ct">Histórico de importações</div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+          <div className="w-1 h-4 bg-blue-500 rounded-full" />
+          Histórico de importações
+        </h3>
         <CotacaoLogs logs={logs} />
       </div>
     </div>

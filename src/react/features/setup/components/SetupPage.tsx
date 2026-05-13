@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Button } from '../../../shared/ui';
 import { useNavigate } from 'react-router-dom';
 
 import type { Filial } from '../../../../types/domain';
@@ -90,9 +91,13 @@ export function SetupPage() {
           </div>
         )}
 
-        <button type="button" className="btn btn-gh setup-logout-btn" onClick={handleLogout}>
+        <Button
+          variant="secondary"
+          className="w-full mt-4"
+          onClick={handleLogout}
+        >
           Sair
-        </button>
+        </Button>
       </div>
     </div>
   );

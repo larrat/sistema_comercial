@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { PedidoProfilePage } from '../components/PedidoProfilePage';
 import { usePedidoProfile } from '../hooks/usePedidoProfile';
+import { Button, ErrorState, EmptyState, LoadingState } from '../../../shared/ui';
 
 export function PedidoProfileRoutePage() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
@@ -17,11 +18,16 @@ export function PedidoProfileRoutePage() {
   if (!pedidoId) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="card-shell">
-          <p>Pedido não informado.</p>
-          <button className="btn btn-sm" type="button" onClick={handleBack}>
-            Voltar para pedidos
-          </button>
+        <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100">
+          <EmptyState
+            title="Pedido não informado."
+            description="Você precisa fornecer um ID de pedido válido para visualizar os detalhes."
+            action={
+              <Button size="sm" onClick={handleBack}>
+                Voltar para pedidos
+              </Button>
+            }
+          />
         </div>
       </main>
     );
@@ -30,16 +36,22 @@ export function PedidoProfileRoutePage() {
   if (!pedido && error) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="card-shell rf-ui-stack">
-          <p>{error}</p>
-          <div className="fg2">
-            <button className="btn btn-sm" type="button" onClick={() => void reload()}>
-              Tentar novamente
-            </button>
-            <button className="btn btn-sm" type="button" onClick={handleBack}>
-              Voltar para pedidos
-            </button>
-          </div>
+        <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100">
+          <ErrorState
+            title={error ?? 'Erro ao carregar pedido.'}
+            description="Não foi possível recuperar os dados deste pedido no momento."
+            onRetry={() => void reload()}
+            action={
+              <div className="flex items-center gap-3 mt-4">
+                <Button variant="secondary" size="sm" onClick={handleBack}>
+                  Voltar para pedidos
+                </Button>
+                <Button size="sm" onClick={() => void reload()}>
+                  Tentar novamente
+                </Button>
+              </div>
+            }
+          />
         </div>
       </main>
     );
@@ -48,9 +60,10 @@ export function PedidoProfileRoutePage() {
   if (!pedido) {
     return (
       <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
-        <div className="card-shell">
-          <p>Carregando pedido...</p>
-        </div>
+        <LoadingState
+          title="Carregando pedido..."
+          description="Estamos recuperando as informações detalhadas e o financeiro deste pedido."
+        />
       </main>
     );
   }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Input } from '../../../shared/ui';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -50,39 +51,38 @@ export function LoginPage() {
         <p className="auth-card__sub">Entre com sua conta para acessar a operação.</p>
 
         <form onSubmit={handleSubmit} noValidate className="auth-form">
-          <div className="fg">
-            <label className="fl" htmlFor="auth-email">E-mail</label>
-            <input
-              id="auth-email"
-              className="inp"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <Input
+            label="E-mail"
+            id="auth-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
+            required
+          />
 
-          <div className="fg">
-            <label className="fl" htmlFor="auth-password">Senha</label>
-            <input
-              id="auth-password"
-              className="inp"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-          </div>
+          <Input
+            label="Senha"
+            id="auth-password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
+            required
+          />
 
           {error && <div className="auth-form__error" role="alert">{error}</div>}
 
-          <button className="btn btn-p btn-block-center" type="submit" disabled={loading}>
-            {loading ? 'Entrando…' : 'Entrar'}
-          </button>
+          <Button
+            variant="primary"
+            className="w-full mt-2"
+            type="submit"
+            loading={loading}
+          >
+            Entrar
+          </Button>
         </form>
       </div>
     </div>

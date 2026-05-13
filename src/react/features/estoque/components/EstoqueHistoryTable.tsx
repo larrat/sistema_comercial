@@ -1,4 +1,4 @@
-import { DataTable, EmptyState, StatusBadge } from '../../../shared/ui';
+import { DataTable, EmptyState, StatusBadge, Button } from '../../../shared/ui';
 import type { EstoqueHistoryRow } from '../types';
 
 type EstoqueHistoryTableProps = {
@@ -46,14 +46,14 @@ export function EstoqueHistoryTable({
           header: '',
           align: 'right',
           render: (row) => (
-            <button
-              type="button"
-              className="btn btn-sm"
+            <Button
+              size="sm"
               onClick={() => onDelete(row)}
+              loading={deletingId === row.id}
               disabled={deletingId === row.id}
             >
-              {deletingId === row.id ? 'Excluindo...' : 'Excluir registro'}
-            </button>
+              Excluir registro
+            </Button>
           )
         }
       ]}

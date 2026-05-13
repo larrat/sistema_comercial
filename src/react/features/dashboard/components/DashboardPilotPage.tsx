@@ -37,7 +37,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { LoadingState, ErrorState, StatusBadge } from '../../../shared/ui';
+import { LoadingState, ErrorState, StatusBadge, Button, Badge } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -448,10 +448,14 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             ))}
           </div>
 
-          <button className="btn btn-sm btn-ghost" onClick={handleRefresh} disabled={isRefreshing}>
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+          <Button 
+            variant="secondary" 
+            onClick={handleRefresh} 
+            loading={isRefreshing}
+            leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
+          >
             {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-          </button>
+          </Button>
         </motion.div>
       </header>
 
@@ -688,7 +692,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         <article className="rf-dash-card overflow-hidden">
           <div className="rf-dash-card__header">
             <h2 className="rf-dash-card__title">Status dos pedidos</h2>
-            <span className="badge badge-sm bg-blue-50 text-blue-600 border-blue-100">{pedidos.length} total</span>
+            <Badge variant="blue" className="px-2 py-0.5">{pedidos.length} total</Badge>
           </div>
           
           <div className="flex flex-col gap-3 mt-2">

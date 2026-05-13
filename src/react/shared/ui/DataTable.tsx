@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { EmptyState } from './EmptyState';
 import { ErrorState } from './ErrorState';
+import { Button } from './Button';
 
 export type DataTableColumn<Row> = {
   key: string;
@@ -252,7 +253,7 @@ export function DataTable<Row>({
           <div className="rf-ui-data-table__pagination-controls">
             {onPageSizeChange ? (
               <select
-                className="inp sel"
+                className="rf-input-premium !h-8 !py-0 !text-xs !pr-8 !w-auto cursor-pointer"
                 value={safePageSize}
                 onChange={(event) => onPageSizeChange(Number(event.target.value))}
                 aria-label="Itens por página"
@@ -264,25 +265,25 @@ export function DataTable<Row>({
                 ))}
               </select>
             ) : null}
-            <button
-              className="btn btn-sm"
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => goToPage(safePage - 1)}
               disabled={safePage <= 1}
             >
               Anterior
-            </button>
+            </Button>
             <span className="rf-ui-data-table__pagination-page">
               Página {safePage} de {totalPages}
             </span>
-            <button
-              className="btn btn-sm"
-              type="button"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => goToPage(safePage + 1)}
               disabled={safePage >= totalPages}
             >
               Próxima
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

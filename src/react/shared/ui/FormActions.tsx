@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button } from './Button';
 
 export type FormActionsProps = {
   /** Callback de cancelamento. Se omitido, o botão Cancelar não é renderizado. */
@@ -9,7 +10,7 @@ export type FormActionsProps = {
   loading?: boolean;
   disabled?: boolean;
   /** Alinhamento dos botões. Default: 'end' (direita). */
-  align?: 'start' | 'end';
+  align?: 'end' | 'start';
   /** Slot para layouts customizados. Quando fornecido, substitui os botões automáticos. */
   children?: ReactNode;
 };
@@ -35,18 +36,23 @@ export function FormActions({
       {children ?? (
         <>
           {onCancel ? (
-            <button
+            <Button
               type="button"
-              className="rf-btn-premium"
+              variant="secondary"
               onClick={onCancel}
               disabled={loading || disabled}
             >
               {cancelLabel}
-            </button>
+            </Button>
           ) : null}
-          <button type="submit" className="rf-btn-premium rf-btn-premium--primary" disabled={loading || disabled}>
-            {loading ? 'Salvando…' : submitLabel}
-          </button>
+          <Button 
+            type="submit" 
+            variant="primary" 
+            loading={loading}
+            disabled={disabled}
+          >
+            {submitLabel}
+          </Button>
         </>
       )}
     </div>

@@ -6,7 +6,9 @@ import {
   DataTable,
   ActionMenu,
   StatusBadge,
-  Modal
+  Modal,
+  Button,
+  Badge
 } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
@@ -104,14 +106,14 @@ export function CampanhasPage() {
         title="Campanhas"
         description="Gerencie campanhas de marketing e fila de WhatsApp."
         actions={
-          <>
-            <button className="btn btn-sm" type="button" onClick={requestReload} disabled={loading}>
+          <div className="flex items-center gap-3">
+            <Button onClick={requestReload} loading={loading}>
               {loading ? 'Carregando…' : 'Atualizar'}
-            </button>
-            <button className="btn btn-p btn-sm" type="button" onClick={() => openCampModal()}>
+            </Button>
+            <Button variant="primary" onClick={() => openCampModal()}>
               + Nova campanha
-            </button>
-          </>
+            </Button>
+          </div>
         }
       />
 
@@ -170,9 +172,9 @@ export function CampanhasPage() {
         }
         emptyAction={
           activeFilterCount === 0 ? (
-            <button className="btn btn-p" type="button" onClick={() => openCampModal()}>
+            <Button variant="primary" onClick={() => openCampModal()}>
               Criar primeira campanha
-            </button>
+            </Button>
           ) : undefined
         }
         renderActions={(c) => (
@@ -203,19 +205,18 @@ export function CampanhasPage() {
         onClose={() => setConfirmarRemocao(null)}
         footer={
           <>
-            <button className="btn btn-sm" type="button" onClick={() => setConfirmarRemocao(null)}>
+            <Button onClick={() => setConfirmarRemocao(null)}>
               Cancelar
-            </button>
-            <button
-              className="btn btn-r btn-sm"
-              type="button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={() => {
                 if (confirmarRemocao) void remover(confirmarRemocao.id);
                 setConfirmarRemocao(null);
               }}
             >
               Remover
-            </button>
+            </Button>
           </>
         }
       >

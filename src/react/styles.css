@@ -33,24 +33,6 @@
   /* Typography Settings */
   --font-sans: 'Manrope', 'Inter', sans-serif;
   --radius-xl: 16px;
-
-  /* --- LEGACY VARIABLE MAPPING (BRIDGE) --- */
-  --bg: var(--color-background-tertiary);
-  --tx: var(--color-text-primary);
-  --tx2: var(--color-text-secondary);
-  --tx3: var(--color-text-tertiary);
-  --bd: var(--color-border-primary);
-  --line: var(--color-border-primary);
-  --surf: var(--color-background-primary);
-  --surf2: var(--color-background-secondary);
-  --panel: var(--color-background-primary);
-  --ink: var(--color-text-primary);
-  --muted: var(--color-text-tertiary);
-  --err: var(--color-danger);
-  --ok: var(--color-success);
-  --warn: var(--color-warning);
-  --sh: var(--shadow-premium);
-  --sh-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
 /* --- GLOBAL UTILITIES (DESIGN SYSTEM) --- */
@@ -179,8 +161,6 @@
   transform: translateY(-2px) scale(1.02);
 }
 
-@import '../styles/style.css';
-
 body {
   font-family: var(--font-sans);
   background-color: var(--color-background-tertiary);
@@ -212,7 +192,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: var(--color-background-tertiary);
   color: var(--text);
   padding: 24px;
 }
@@ -248,14 +228,14 @@ body {
 .rf-ui-field__label {
   font-size: 12px;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .rf-ui-field__static {
   min-height: 40px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border-primary);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  background: color-mix(in srgb, var(--color-background-primary) 92%, transparent);
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -284,14 +264,14 @@ body {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   font-size: 14px;
 }
 
 .rf-ui-stock-preview__title {
   font-size: 12px;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   margin-bottom: 8px;
 }
 
@@ -332,19 +312,19 @@ body {
 }
 
 .rf-toast--success {
-  border-color: color-mix(in srgb, var(--ok) 55%, var(--line) 45%);
+  border-color: color-mix(in srgb, var(--color-success) 55%, var(--color-border-primary) 45%);
 }
 
 .rf-toast--warning {
-  border-color: color-mix(in srgb, var(--warn) 55%, var(--line) 45%);
+  border-color: color-mix(in srgb, var(--color-warning) 55%, var(--color-border-primary) 45%);
 }
 
 .rf-toast--error {
-  border-color: color-mix(in srgb, var(--err) 55%, var(--line) 45%);
+  border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-border-primary) 45%);
 }
 
 .rf-toast--error {
-  border-color: color-mix(in srgb, var(--err) 55%, var(--line) 45%);
+  border-color: color-mix(in srgb, var(--color-danger) 55%, var(--color-border-primary) 45%);
 }
 
 .tbl {
@@ -462,7 +442,7 @@ body {
 
 .rf-ui-page-header__description {
   margin: 8px 0 0;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .rf-ui-page-header__meta,
@@ -519,9 +499,9 @@ body {
 
 .rf-ui-data-table {
   overflow: auto;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border-primary);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--color-background-primary);
 }
 
 .rf-ui-data-table__pagination {
@@ -530,13 +510,13 @@ body {
   justify-content: space-between;
   gap: 8px;
   padding: 10px 12px;
-  border-top: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel) 92%, #f9fafb 8%);
+  border-top: 1px solid var(--color-border-primary);
+  background: color-mix(in srgb, var(--color-background-primary) 92%, #f9fafb 8%);
 }
 
 .rf-ui-data-table__pagination-meta {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .rf-ui-data-table__pagination-controls {
@@ -547,7 +527,7 @@ body {
 
 .rf-ui-data-table__pagination-page {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .rf-ui-data-table--compact .tbl td,
@@ -584,7 +564,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-ui-empty-state__icon {
   font-size: 24px;
   line-height: 1;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   margin-bottom: 2px;
 }
 
@@ -596,7 +576,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-ui-error-state__title,
 .rf-ui-form-error {
-  color: var(--err);
+  color: var(--color-danger);
 }
 
 .rf-ui-error-state__action {
@@ -606,7 +586,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-ui-error-state__technical {
   margin: 4px 0 0;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   opacity: 0.75;
   font-family: monospace;
 }
@@ -618,9 +598,9 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-ui-stat-card {
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border-primary);
   border-radius: 8px;
-  background: var(--panel);
+  background: var(--color-background-primary);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -629,7 +609,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-ui-stat-card__label {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .rf-ui-stat-card__value {
@@ -640,26 +620,26 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-ui-stat-card__description {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   line-height: 1.4;
 }
 
 .rf-ui-stat-card__foot {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   margin-top: auto;
 }
 
 .rf-ui-stat-card--success {
-  border-color: color-mix(in srgb, var(--ok) 35%, var(--line) 65%);
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border-primary) 65%);
 }
 
 .rf-ui-stat-card--warning {
-  border-color: color-mix(in srgb, var(--warn) 35%, var(--line) 65%);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--color-border-primary) 65%);
 }
 
 .rf-ui-stat-card--danger {
-  border-color: color-mix(in srgb, var(--err) 35%, var(--line) 65%);
+  border-color: color-mix(in srgb, var(--color-danger) 35%, var(--color-border-primary) 65%);
 }
 
 .rf-ui-stat-grid,
@@ -757,11 +737,11 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   gap: 4px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--color-text-primary);
 }
 
 .rf-ui-form-field__required {
-  color: var(--err);
+  color: var(--color-danger);
 }
 
 .rf-ui-form-field__control {
@@ -771,13 +751,13 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-ui-form-field__hint {
   margin: 0;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .rf-ui-form-field__error {
   margin: 0;
   font-size: 12px;
-  color: var(--err);
+  color: var(--color-danger);
 }
 
 .rf-ui-form-field--disabled {

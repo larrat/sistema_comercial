@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 import type { ContaReceber, Pedido, PedidoItem } from '../../../../types/domain';
 import { useRoleStore } from '../../../app/useRoleStore';
-import { EmptyState, LoadingState, StatusBadge } from '../../../shared/ui';
+import { EmptyState, LoadingState, StatusBadge, Button } from '../../../shared/ui';
 import type { PedidoFinanceiroState } from '../hooks/usePedidoProfile';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { useContasReceberMutations } from '../../contas-receber/hooks/useContasReceberMutations';
@@ -268,17 +268,18 @@ export function PedidoProfilePage({
         </div>
         <div className="flex items-center gap-3">
           {status !== 'cancelado' && status !== 'concluido' && (
-            <button className="btn btn-outline btn-sm border-slate-200 text-slate-600 hover:bg-slate-50" type="button" onClick={() => setShowCancelConfirm(true)}>
+            <Button size="sm" onClick={() => setShowCancelConfirm(true)}>
               Cancelar pedido
-            </button>
+            </Button>
           )}
           {['orcamento', 'confirmado', 'em_separacao'].includes(status) && (
-            <button 
-              className="btn btn-outline btn-sm border-slate-200 text-slate-900 font-semibold hover:bg-slate-50" 
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => navigate(`/app/pedidos?pedido=${encodeURIComponent(pedido.id)}&view=edit`)}
             >
               Editar
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -374,7 +375,7 @@ export function PedidoProfilePage({
                 <h3 className="text-base font-bold text-slate-900 m-0">Financeiro do pedido</h3>
                 <div className="flex items-center gap-3">
                   {status === 'entregue_aguardando_pagamento' && !financeiro.conta && (
-                    <button className="btn btn-sm btn-p" onClick={handleGerarConta}>Gerar conta</button>
+                    <Button variant="primary" size="sm" onClick={handleGerarConta}>Gerar conta</Button>
                   )}
                   {financeiro.conta ? (
                     <StatusBadge tone={valorEmAberto > 0 ? 'warning' : 'success'}>
@@ -434,9 +435,9 @@ export function PedidoProfilePage({
                       </StatusBadge>
                     </div>
                     {valorEmAberto > 0 ? (
-                      <button className="btn btn-sm btn-p" onClick={() => setShowBaixaConfirm(true)}>Baixar</button>
+                      <Button variant="primary" size="sm" onClick={() => setShowBaixaConfirm(true)}>Baixar</Button>
                     ) : status === 'entregue_aguardando_pagamento' && !financeiro.conta ? (
-                      <button className="btn btn-sm btn-p" onClick={handleGerarConta}>Gerar conta</button>
+                      <Button variant="primary" size="sm" onClick={handleGerarConta}>Gerar conta</Button>
                     ) : null}
                   </div>
                 </div>

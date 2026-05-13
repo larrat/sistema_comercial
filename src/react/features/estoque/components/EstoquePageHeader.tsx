@@ -1,4 +1,4 @@
-import { PageHeader, StatusBadge } from '../../../shared/ui';
+import { PageHeader, StatusBadge, Button } from '../../../shared/ui';
 
 type EstoquePageHeaderProps = {
   onCreateMovement: () => void;
@@ -14,13 +14,13 @@ export function EstoquePageHeader({ onCreateMovement, onReload }: EstoquePageHea
       actions={
         <div className="flex items-center gap-3">
           {onReload ? (
-            <button type="button" className="btn btn-sm" onClick={onReload}>
+            <Button onClick={onReload}>
               Atualizar
-            </button>
+            </Button>
           ) : null}
-          <button type="button" className="btn btn-p btn-sm" onClick={onCreateMovement}>
+          <Button variant="primary" onClick={onCreateMovement}>
             Nova movimentação
-          </button>
+          </Button>
         </div>
       }
     />

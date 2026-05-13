@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   FormField,
   StatusBadge,
-  Modal
+  Modal,
+  Button,
+  Input,
+  Select
 } from '../../../shared/ui';
 import { useClienteMutations } from '../hooks/useClienteMutations';
 import { useRcas } from '../hooks/useRcas';
@@ -225,18 +228,18 @@ export function ClienteCreateForm() {
       {/* TOPBAR */}
       <header className="rf-cliente-novo-topbar">
         <div className="flex items-center gap-4">
-          <button className="btn-ghost" onClick={handleCancel}>← Clientes</button>
+          <Button variant="ghost" onClick={handleCancel}>← Clientes</Button>
           <h1 className="text-xl font-bold">Novo cliente</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button className="btn-secondary" onClick={handleCancel}>Cancelar</button>
-          <button 
-            className="btn-primary" 
+          <Button variant="secondary" onClick={handleCancel}>Cancelar</Button>
+          <Button 
+            variant="primary" 
             onClick={handleSave}
-            disabled={saving}
+            loading={saving}
           >
-            {saving ? 'Salvando...' : 'Salvar cliente'}
-          </button>
+            Salvar cliente
+          </Button>
         </div>
       </header>
 
@@ -309,74 +312,70 @@ export function ClienteCreateForm() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <FormField label="Nome / Razão social *" required>
-                <input 
-                  className={`inp ${!values.nome && 'border-red-200'}`}
-                  value={values.nome}
-                  onChange={e => update('nome', e.target.value)}
-                  placeholder="Nome completo ou Razão Social"
-                />
-              </FormField>
-              <FormField label="Apelido / Fantasia">
-                <input 
-                  className="inp"
-                  value={values.apelido}
-                  onChange={e => update('apelido', e.target.value)}
-                  placeholder="Como é conhecido"
-                />
-              </FormField>
+              <Input
+                label="Nome / Razão social *"
+                required
+                value={values.nome}
+                onChange={e => update('nome', e.target.value)}
+                placeholder="Nome completo ou Razão Social"
+                error={!values.nome && activeSection === 'essencial' ? 'Obrigatório' : undefined}
+              />
+              <Input
+                label="Apelido / Fantasia"
+                value={values.apelido}
+                onChange={e => update('apelido', e.target.value)}
+                placeholder="Como é conhecido"
+              />
             </div>
 
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <FormField label="CPF / CNPJ">
-                <input 
-                  className="inp"
-                  value={values.doc}
-                  onChange={e => handleDocChange(e.target.value)}
-                  placeholder="000.000.000-00"
-                />
-              </FormField>
-              <FormField label="Tipo">
-                <select className="inp" value={values.tipo} onChange={e => update('tipo', e.target.value)}>
-                  <option value="PF">PF</option>
-                  <option value="PJ">PJ</option>
-                </select>
-              </FormField>
-              <FormField label="Status">
-                <select className="inp" value={values.status} onChange={e => update('status', e.target.value)}>
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
-                  <option value="prospecto">Prospecto</option>
-                </select>
-              </FormField>
+              <Input
+                label="CPF / CNPJ"
+                value={values.doc}
+                onChange={e => handleDocChange(e.target.value)}
+                placeholder="000.000.000-00"
+              />
+              <Select
+                label="Tipo"
+                value={values.tipo}
+                onChange={e => update('tipo', e.target.value)}
+                options={[
+                  { value: 'PF', label: 'PF' },
+                  { value: 'PJ', label: 'PJ' }
+                ]}
+              />
+              <Select
+                label="Status"
+                value={values.status}
+                onChange={e => update('status', e.target.value)}
+                options={[
+                  { value: 'ativo', label: 'Ativo' },
+                  { value: 'inativo', label: 'Inativo' },
+                  { value: 'prospecto', label: 'Prospecto' }
+                ]}
+              />
             </div>
 
             <div className="border-t border-slate-100 pt-6 grid grid-cols-3 gap-4">
-              <FormField label="Telefone">
-                <input 
-                  className="inp"
-                  value={values.tel}
-                  onChange={e => update('tel', e.target.value)}
-                  placeholder="(00) 0000-0000"
-                />
-              </FormField>
-              <FormField label="WhatsApp">
-                <input 
-                  className="inp"
-                  value={values.whatsapp}
-                  onChange={e => update('whatsapp', e.target.value)}
-                  placeholder="(00) 00000-0000"
-                />
-              </FormField>
-              <FormField label="E-mail">
-                <input 
-                  className="inp"
-                  type="email"
-                  value={values.email}
-                  onChange={e => update('email', e.target.value)}
-                  placeholder="contato@empresa.com"
-                />
-              </FormField>
+              <Input
+                label="Telefone"
+                value={values.tel}
+                onChange={e => update('tel', e.target.value)}
+                placeholder="(00) 0000-0000"
+              />
+              <Input
+                label="WhatsApp"
+                value={values.whatsapp}
+                onChange={e => update('whatsapp', e.target.value)}
+                placeholder="(00) 00000-0000"
+              />
+              <Input
+                label="E-mail"
+                type="email"
+                value={values.email}
+                onChange={e => update('email', e.target.value)}
+                placeholder="contato@empresa.com"
+              />
             </div>
           </section>
 
@@ -395,60 +394,64 @@ export function ClienteCreateForm() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <FormField label="Responsável / Comprador">
-                <input 
-                  className="inp"
-                  value={values.resp}
-                  onChange={e => update('resp', e.target.value)}
-                  placeholder="Nome do contato principal"
-                />
-              </FormField>
-              <FormField label="Vendedor / RCA">
-                <select className="inp" value={values.rca_id} onChange={e => {
+              <Input
+                label="Responsável / Comprador"
+                value={values.resp}
+                onChange={e => update('resp', e.target.value)}
+                placeholder="Nome do contato principal"
+              />
+              <Select
+                label="Vendedor / RCA"
+                value={values.rca_id}
+                onChange={e => {
                   const rca = rcas.find(r => r.id === e.target.value);
                   setValues(prev => ({ ...prev, rca_id: e.target.value, rca_nome: rca?.nome || '' }));
-                }}>
-                  <option value="">Selecione um vendedor</option>
-                  {rcas.map(r => <option key={r.id} value={r.id}>{r.nome}</option>)}
-                </select>
-              </FormField>
+                }}
+                options={[
+                  { value: '', label: 'Selecione um vendedor' },
+                  ...rcas.map(r => ({ value: r.id, label: r.nome }))
+                ]}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <FormField label="Tabela de preço">
-                <select className="inp" value={values.tab} onChange={e => update('tab', e.target.value)}>
-                  <option value="varejo">Varejo</option>
-                  <option value="atacado">Atacado</option>
-                </select>
-              </FormField>
-              <FormField label="Limite de crédito">
-                <input 
-                  className="inp bg-slate-50 opacity-60"
-                  disabled
-                  value="R$ 0,00"
-                  placeholder="R$ 0,00"
-                />
-                <p className="text-[10px] text-slate-400 mt-1 italic">* Campo em implantação</p>
-              </FormField>
+              <Select
+                label="Tabela de preço"
+                value={values.tab}
+                onChange={e => update('tab', e.target.value)}
+                options={[
+                  { value: 'varejo', label: 'Varejo' },
+                  { value: 'atacado', label: 'Atacado' }
+                ]}
+              />
+              <Input
+                label="Limite de crédito"
+                disabled
+                value="R$ 0,00"
+                placeholder="R$ 0,00"
+                helperText="* Campo em implantação"
+              />
             </div>
 
             <div className="border-t border-slate-100 pt-6">
               <label className="text-sm font-medium text-slate-700 mb-3 block">Segmento</label>
               <div className="flex flex-wrap gap-2">
                 {['Varejo', 'Atacado', 'Salão', 'Academia', 'Revendedor'].map(tag => (
-                  <button
+                  <Button
                     key={tag}
-                    className={`rf-tag ${values.seg.includes(tag) ? 'is-active' : ''}`}
+                    variant={values.seg.includes(tag) ? 'primary' : 'secondary'}
+                    size="sm"
+                    className="rounded-full"
                     onClick={() => toggleTag(tag)}
                   >
                     {tag}
-                  </button>
+                  </Button>
                 ))}
                 {isAddingTag ? (
                   <div className="flex items-center gap-1">
-                    <input 
+                    <Input 
                       autoFocus
-                      className="inp-sm w-32"
+                      className="w-32"
                       value={newTag}
                       onChange={e => setNewTag(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleAddTag()}
@@ -456,7 +459,7 @@ export function ClienteCreateForm() {
                     />
                   </div>
                 ) : (
-                  <button className="rf-tag-add" onClick={() => setIsAddingTag(true)}>+ Novo</button>
+                  <Button variant="secondary" size="sm" className="rounded-full border-dashed" onClick={() => setIsAddingTag(true)}>+ Novo</Button>
                 )}
               </div>
             </div>
@@ -477,38 +480,28 @@ export function ClienteCreateForm() {
             </div>
 
             <div className="grid grid-cols-3 gap-4 mb-4">
-              <FormField label="CEP">
-                <input 
-                  className="inp"
-                  onBlur={e => handleCepBlur(e.target.value)}
-                  placeholder="00000-000"
-                />
-              </FormField>
-              <FormField label="Estado">
-                <input 
-                  className="inp"
-                  value={values.estado}
-                  onChange={e => update('estado', e.target.value.toUpperCase().slice(0, 2))}
-                  placeholder="UF"
-                />
-              </FormField>
-              <FormField label="Cidade">
-                <input 
-                  className="inp"
-                  value={values.cidade}
-                  onChange={e => update('cidade', e.target.value)}
-                  placeholder="Cidade"
-                />
-              </FormField>
+              <Input
+                label="CEP"
+                onBlur={e => handleCepBlur(e.target.value)}
+                placeholder="00000-000"
+              />
+              <Input
+                label="Estado"
+                value={values.estado}
+                onChange={e => update('estado', e.target.value.toUpperCase().slice(0, 2))}
+                placeholder="UF"
+              />
+              <Input
+                label="Cidade"
+                value={values.cidade}
+                onChange={e => update('cidade', e.target.value)}
+                placeholder="Cidade"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4 opacity-60">
-              <FormField label="Logradouro">
-                <input className="inp bg-slate-50" disabled placeholder="Rua, Av..." />
-              </FormField>
-              <FormField label="Número / Complemento">
-                <input className="inp bg-slate-50" disabled placeholder="123, Bloco A" />
-              </FormField>
+              <Input label="Logradouro" disabled placeholder="Rua, Av..." />
+              <Input label="Número / Complemento" disabled placeholder="123, Bloco A" />
             </div>
             <p className="text-[10px] text-slate-400 mt-2 italic">* Endereço detalhado em implantação</p>
           </section>
@@ -558,22 +551,20 @@ export function ClienteCreateForm() {
             </div>
 
             <div className="border-t border-slate-100 pt-6 grid grid-cols-2 gap-4 mb-4">
-              <FormField label="Data de aniversário">
-                <input 
-                  className="inp"
-                  type="date"
-                  value={values.data_aniversario}
-                  onChange={e => update('data_aniversario', e.target.value)}
-                />
-              </FormField>
-              <FormField label="Observação interna">
-                <textarea 
-                  className="inp h-20 resize-none"
-                  value={values.obs}
-                  onChange={e => update('obs', e.target.value)}
-                  placeholder="Anotações para a equipe"
-                />
-              </FormField>
+              <Input
+                label="Data de aniversário"
+                type="date"
+                value={values.data_aniversario}
+                onChange={e => update('data_aniversario', e.target.value)}
+              />
+              <Input
+                label="Observação interna"
+                type="textarea"
+                className="h-20 resize-none"
+                value={values.obs}
+                onChange={e => update('obs', e.target.value)}
+                placeholder="Anotações para a equipe"
+              />
             </div>
           </section>
 
@@ -587,8 +578,8 @@ export function ClienteCreateForm() {
         onClose={() => setShowDiscardModal(false)}
         footer={
           <div className="flex gap-3 justify-end">
-            <button className="btn-secondary" onClick={() => setShowDiscardModal(false)}>Continuar editando</button>
-            <button className="btn-danger" onClick={() => navigate('/app/clientes')}>Descartar</button>
+            <Button variant="secondary" onClick={() => setShowDiscardModal(false)}>Continuar editando</Button>
+            <Button variant="danger" onClick={() => navigate('/app/clientes')}>Descartar</Button>
           </div>
         }
       >

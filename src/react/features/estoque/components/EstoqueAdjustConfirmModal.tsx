@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 
 type EstoqueAdjustConfirmModalProps = {
   open: boolean;
@@ -29,12 +29,12 @@ export function EstoqueAdjustConfirmModal({
       title="Confirmar ajuste de estoque"
       footer={
         <>
-          <button type="button" className="btn btn-sm" onClick={onClose} disabled={submitting}>
+          <Button onClick={onClose} disabled={submitting}>
             Revisar
-          </button>
-          <button type="button" className="btn btn-p btn-sm" onClick={onConfirm} disabled={submitting}>
-            {submitting ? 'Salvando ajuste...' : 'Confirmar ajuste'}
-          </button>
+          </Button>
+          <Button variant="primary" onClick={onConfirm} loading={submitting}>
+            Confirmar ajuste
+          </Button>
         </>
       }
     >

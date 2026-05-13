@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import type { Pedido, PedidoItem } from '../../../../types/domain';
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 import { usePedidoFormData } from '../hooks/usePedidoFormData';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import {
@@ -145,7 +145,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
     if (isEditing) {
       return (
         <input
-          className="inp pedido-inline-input"
+          className="rf-input-premium !py-1 !px-2 !text-xs !h-7 !min-w-[80px]"
           autoFocus
           type="number"
           min={field === 'qty' ? 0.01 : 0}
@@ -277,16 +277,17 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
       )}
 
       {canEdit ? (
-        <div className="modal-actions modal-actions-inline pedido-items-actions">
-          <button
-            className="btn btn-sm btn-p"
-            type="button"
+        <div className="flex items-center gap-4 p-6 bg-white border-t border-slate-100">
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setShowAddModal(true)}
             disabled={loadingProdutos || savingKey === 'add'}
+            loading={savingKey === 'add'}
           >
-            {savingKey === 'add' ? 'Adicionando...' : 'Adicionar item'}
-          </button>
-          {produtosError ? <span className="table-cell-muted">{produtosError}</span> : null}
+            Adicionar item
+          </Button>
+          {produtosError ? <span className="text-xs text-rose-500 font-medium">{produtosError}</span> : null}
         </div>
       ) : null}
 
@@ -296,18 +297,18 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
         onClose={() => setRemoveTarget(null)}
         closeOnOverlay={savingKey === null}
         footer={
-          <div className="modal-actions">
-            <button className="btn" type="button" onClick={() => setRemoveTarget(null)}>
+          <div className="flex items-center justify-end gap-3 pt-4">
+            <Button variant="secondary" onClick={() => setRemoveTarget(null)}>
               Cancelar
-            </button>
-            <button
-              className="btn btn-r"
-              type="button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={() => void handleRemove()}
+              loading={savingKey?.endsWith(':remove')}
               disabled={!!savingKey}
             >
-              {savingKey?.endsWith(':remove') ? 'Removendo...' : 'Remover'}
-            </button>
+              Remover
+            </Button>
           </div>
         }
       >

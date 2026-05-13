@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EmptyState, FormSection, Modal } from '../../../shared/ui';
+import { EmptyState, FormSection, Modal, Button } from '../../../shared/ui';
 import { useFornecedorMutations } from '../hooks/useCotacaoMutations';
 import { useCotacaoStore } from '../store/useCotacaoStore';
 import { FornecedorForm } from './FornecedorForm';
@@ -20,9 +20,9 @@ export function CotacaoFornecedoresPage() {
       title="Fornecedores"
       description="Gerencie os fornecedores participantes da cotação."
       aside={
-        <button type="button" className="btn btn-p btn-sm" onClick={openFornModal}>
+        <Button variant="primary" size="sm" onClick={openFornModal}>
           Novo fornecedor
-        </button>
+        </Button>
       }
     >
       {!fornecedores.length ? (
@@ -47,21 +47,20 @@ export function CotacaoFornecedoresPage() {
         title="Remover fornecedor"
         onClose={() => setConfirmarRemocaoId(null)}
         footer={
-          <>
-            <button className="btn btn-sm" type="button" onClick={() => setConfirmarRemocaoId(null)}>
+          <div className="flex items-center justify-end gap-3 pt-4">
+            <Button variant="secondary" onClick={() => setConfirmarRemocaoId(null)}>
               Cancelar
-            </button>
-            <button
-              className="btn btn-r btn-sm"
-              type="button"
+            </Button>
+            <Button
+              variant="danger"
               onClick={() => {
                 if (confirmarRemocaoId) void removerFornecedor(confirmarRemocaoId);
                 setConfirmarRemocaoId(null);
               }}
             >
               Remover
-            </button>
-          </>
+            </Button>
+          </div>
         }
       >
         <p>

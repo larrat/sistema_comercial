@@ -4,7 +4,7 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
-import { EmptyState, ErrorState, Modal, StatusBadge } from '../../../shared/ui';
+import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input } from '../../../shared/ui';
 import { usePedidoMutations } from '../hooks/usePedidoMutations';
 import { getNextPedidoNumber } from '../services/pedidosApi';
 import {
@@ -848,9 +848,9 @@ export function PdvPage() {
                     <strong>Sem cliente</strong>
                     <span>Cliente é opcional e nunca trava a venda.</span>
                   </div>
-                  <button className="btn btn-sm" type="button" onClick={() => setClienteModalOpen(true)}>
+                  <Button size="sm" onClick={() => setClienteModalOpen(true)}>
                     Adicionar
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="rf-pdv__cliente-filled">
@@ -859,12 +859,12 @@ export function PdvPage() {
                     <span>{selectedCliente.whatsapp || selectedCliente.tel || 'Sem WhatsApp'}</span>
                   </div>
                   <div className="rf-pdv__cliente-actions">
-                    <button className="btn btn-sm" type="button" onClick={() => setClienteModalOpen(true)}>
+                    <Button size="sm" onClick={() => setClienteModalOpen(true)}>
                       Trocar
-                    </button>
-                    <button className="btn btn-sm" type="button" onClick={() => setSelectedCliente(null)}>
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => setSelectedCliente(null)}>
                       Remover
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -982,19 +982,17 @@ export function PdvPage() {
         onClose={() => setDiscountModalOpen(false)}
         footer={
           <>
-            <button className="btn btn-sm" type="button" onClick={() => setDiscountModalOpen(false)}>
+            <Button onClick={() => setDiscountModalOpen(false)}>
               Cancelar
-            </button>
-            <button className="btn btn-p btn-sm" type="button" onClick={handleApplyDiscount}>
+            </Button>
+            <Button variant="primary" onClick={handleApplyDiscount}>
               Aplicar desconto
-            </button>
+            </Button>
           </>
         }
       >
         <div className="rf-pdv-modal-search">
-          <input
-            className="inp"
-            type="text"
+          <Input
             inputMode="decimal"
             value={discountDraft}
             onChange={(event) => setDiscountDraft(event.target.value)}
@@ -1013,19 +1011,17 @@ export function PdvPage() {
         onClose={() => setCancelConfirmOpen(false)}
         footer={
           <>
-            <button className="btn btn-sm" type="button" onClick={() => setCancelConfirmOpen(false)}>
+            <Button onClick={() => setCancelConfirmOpen(false)}>
               Voltar
-            </button>
-            <button
-              className="btn btn-sm"
-              type="button"
+            </Button>
+            <Button
               onClick={() => {
                 setCancelConfirmOpen(false);
                 resetCurrentSale();
               }}
             >
               Limpar venda
-            </button>
+            </Button>
           </>
         }
       >

@@ -7,7 +7,7 @@ import {
   PEDIDO_STATUS_TONE,
   normalizePedStatus
 } from '../types';
-import { StatusBadge } from '../../../shared/ui';
+import { StatusBadge, Button, Badge } from '../../../shared/ui';
 
 type Props = {
   pedido: Pedido;
@@ -103,9 +103,9 @@ export function PedidoRow({
         {(pedido.tipo === 'atacado' || pedido.rca_nome) && (
           <div className="ped-client-meta">
             {pedido.tipo === 'atacado' && (
-              <span className="bdg bb" style={{ fontSize: '0.6rem', padding: '1px 6px' }}>
+              <Badge variant="blue" className="text-[10px]">
                 Atacado
-              </span>
+              </Badge>
             )}
             {pedido.rca_nome && <span className="ped-meta-text">{pedido.rca_nome}</span>}
           </div>
@@ -135,36 +135,39 @@ export function PedidoRow({
         {!pendingCancel && (
           <>
             {nextStatus && acaoLabel && (
-              <button
-                className="btn btn-sm btn-p"
+              <Button
+                variant="primary"
+                size="sm"
                 disabled={inFlight}
                 onClick={onAvancar}
                 data-testid={`pedido-acao-avancar-${pedido.id}`}
               >
                 {inFlight ? 'Aguarde…' : acaoLabel}
-              </button>
+              </Button>
             )}
 
             {!isTerminal && (
-              <button
-                className="btn btn-sm btn-r"
+              <Button
+                variant="danger"
+                size="sm"
                 disabled={inFlight}
                 onClick={() => setPendingCancel(true)}
                 data-testid={`pedido-acao-cancelar-${pedido.id}`}
               >
                 Cancelar
-              </button>
+              </Button>
             )}
 
             {status === 'cancelado' && (
-              <button
-                className="btn btn-sm"
+              <Button
+                variant="secondary"
+                size="sm"
                 disabled={inFlight}
                 onClick={onReabrir}
                 data-testid={`pedido-acao-reabrir-${pedido.id}`}
               >
                 Reabrir
-              </button>
+              </Button>
             )}
           </>
         )}
@@ -172,8 +175,9 @@ export function PedidoRow({
         {pendingCancel && (
           <div className="ped-confirm-cancel">
             <span className="ped-confirm-cancel-label">Cancelar pedido?</span>
-            <button
-              className="btn btn-sm btn-r"
+            <Button
+              variant="danger"
+              size="sm"
               disabled={inFlight}
               onClick={() => {
                 setPendingCancel(false);
@@ -182,15 +186,16 @@ export function PedidoRow({
               data-testid={`pedido-acao-cancelar-confirm-${pedido.id}`}
             >
               Sim
-            </button>
-            <button
-              className="btn btn-sm"
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               disabled={inFlight}
               onClick={() => setPendingCancel(false)}
               data-testid={`pedido-acao-cancelar-abort-${pedido.id}`}
             >
               Não
-            </button>
+            </Button>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button, Input } from '../../../shared/ui';
 import { useCotacaoStore } from '../store/useCotacaoStore';
 import { useFornecedorMutations } from '../hooks/useCotacaoMutations';
 
@@ -14,49 +14,40 @@ export function FornecedorForm() {
       title="Novo fornecedor"
       onClose={closeFornModal}
       footer={
-        <>
-          <button type="button" className="btn btn-sm" onClick={closeFornModal}>
+        <div className="flex items-center justify-end gap-3 pt-4">
+          <Button variant="secondary" onClick={closeFornModal}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn-p btn-sm"
-            disabled={saving}
+          </Button>
+          <Button
+            variant="primary"
+            loading={saving}
             onClick={() => void salvarFornecedor()}
           >
-            {saving ? 'Salvando...' : 'Salvar'}
-          </button>
-        </>
+            Salvar
+          </Button>
+        </div>
       }
     >
-      <div className="rf-ui-stack">
-        <label className="rf-ui-field">
-          <span className="rf-ui-field__label">Nome *</span>
-          <input
-            className="inp"
-            value={draft.nome}
-            onChange={(e) => updateFornDraft({ nome: e.target.value })}
+      <div className="flex flex-col gap-4">
+        <Input
+          label="Nome"
+          required
+          value={draft.nome}
+          onChange={(e) => updateFornDraft({ nome: e.target.value })}
+        />
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Contato"
+            value={draft.contato}
+            onChange={(e) => updateFornDraft({ contato: e.target.value })}
           />
-        </label>
-        <div className="rf-ui-form-grid">
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Contato</span>
-            <input
-              className="inp"
-              value={draft.contato}
-              onChange={(e) => updateFornDraft({ contato: e.target.value })}
-            />
-          </label>
-          <label className="rf-ui-field">
-            <span className="rf-ui-field__label">Prazo entrega (dias)</span>
-            <input
-              className="inp"
-              type="number"
-              min="0"
-              value={draft.prazo}
-              onChange={(e) => updateFornDraft({ prazo: e.target.value })}
-            />
-          </label>
+          <Input
+            label="Prazo entrega (dias)"
+            type="number"
+            min="0"
+            value={draft.prazo}
+            onChange={(e) => updateFornDraft({ prazo: e.target.value })}
+          />
         </div>
       </div>
     </Modal>

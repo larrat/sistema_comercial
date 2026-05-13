@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { EmptyState, ErrorState, LoadingState } from '../../../shared/ui';
+import { EmptyState, ErrorState, LoadingState, Badge, Button } from '../../../shared/ui';
 
 import type { Cliente } from '../../../../types/domain';
 
@@ -73,31 +73,33 @@ export function ClienteSegmentView({ clientes, loading, error, onRetry, onDetalh
     <div className="flex flex-col gap-3" data-testid="cliente-segment-view">
       {grupos.map((grupo) => (
         <div key={grupo.segmento} className="card-shell form-gap-md">
-          <div className="fb form-gap-bottom-xs">
-            <div className="table-cell-strong">{grupo.segmento}</div>
-            <span className="bdg bb">{grupo.clientes.length}</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm font-bold text-slate-900 tracking-tight">{grupo.segmento}</div>
+            <Badge variant="blue">{grupo.clientes.length}</Badge>
           </div>
 
           <div className="fg2">
             {grupo.clientes.map((cliente) => {
               const cor = avatarColor(cliente.nome);
               return (
-                <button
+                <Button
                   key={cliente.id}
-                  className="btn btn-inline-card"
-                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="!px-3 !py-2 rounded-xl border-slate-100 bg-slate-50/30 hover:bg-white hover:shadow-sm"
                   onClick={() => onDetalhe?.(String(cliente.id))}
-                  data-testid={`segment-cliente-${cliente.id}`}
+                  leftIcon={
+                    <div
+                      className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black"
+                      style={{ background: cor.bg, color: cor.c }}
+                      aria-hidden="true"
+                    >
+                      {buildInitials(cliente.nome)}
+                    </div>
+                  }
                 >
-                  <div
-                    className="av av-sm"
-                    style={{ background: cor.bg, color: cor.c }}
-                    aria-hidden="true"
-                  >
-                    {buildInitials(cliente.nome)}
-                  </div>
-                  <span className="btn-inline-card__label">{cliente.apelido || cliente.nome}</span>
-                </button>
+                  <span className="text-xs font-bold text-slate-700">{cliente.apelido || cliente.nome}</span>
+                </Button>
               );
             })}
           </div>

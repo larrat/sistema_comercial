@@ -8,7 +8,8 @@ import {
   FilterBar,
   PageHeader,
   PillGroup,
-  StatusBadge
+  StatusBadge,
+  Button
 } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
@@ -218,13 +219,13 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
 
             <div className="h-8 w-px bg-slate-200/60 mx-1" />
 
-            <button
-              className="rf-btn-premium rf-btn-premium--primary"
+            <Button
+              variant="primary"
               onClick={onNovoPedido}
               data-testid="pedido-novo-btn"
             >
               Novo pedido
-            </button>
+            </Button>
           </div>
         }
       />
@@ -301,7 +302,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         actions={
           <div className="pedidos-filter-bar__sort">
             <select
-              className="inp sel"
+              className="rf-input-premium !py-1.5 !text-xs"
               value={filtro.sort}
               onChange={(e) => setFiltro({ sort: e.target.value as 'data_desc' | 'data_asc' })}
               aria-label="Ordenar pedidos"
@@ -336,13 +337,13 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         }
         emptyAction={
           hasAnyFilter ? (
-            <button className="rf-btn-premium" onClick={handleClearFilters}>
+            <Button onClick={handleClearFilters}>
               Limpar filtros
-            </button>
+            </Button>
           ) : activeTab === 'emaberto' ? (
-            <button className="rf-btn-premium rf-btn-premium--primary" onClick={onNovoPedido}>
+            <Button variant="primary" onClick={onNovoPedido}>
               Novo pedido
-            </button>
+            </Button>
           ) : undefined
         }
         page={page}
@@ -428,9 +429,10 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
           return (
             <div className="flex items-center justify-end gap-2">
               {nextStatus && acaoLabel ? (
-                <button
-                  className="rf-btn-premium rf-btn-premium--primary"
-                  disabled={isBusy}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  loading={isBusy}
                   onClick={(event) => {
                     event.stopPropagation();
                     if (isDeliveryAction) {
@@ -441,8 +443,8 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
                   }}
                   data-testid={`pedido-acao-avancar-${pedido.id}`}
                 >
-                  {isBusy ? 'Aguarde…' : acaoLabel}
-                </button>
+                  {acaoLabel}
+                </Button>
               ) : null}
               <ActionMenu
                 label="Ações do pedido"

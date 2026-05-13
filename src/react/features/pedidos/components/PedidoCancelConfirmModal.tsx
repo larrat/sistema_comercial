@@ -1,5 +1,5 @@
 import type { Pedido } from '../../../../types/domain';
-import { Modal, StatusBadge } from '../../../shared/ui';
+import { Modal, StatusBadge, Button } from '../../../shared/ui';
 
 type Props = {
   pedido: Pedido | null;
@@ -22,18 +22,17 @@ export function PedidoCancelConfirmModal({ pedido, open, submitting, onClose, on
       title="Cancelar pedido"
       footer={
         <>
-          <button type="button" className="btn btn-sm" onClick={onClose} disabled={submitting}>
+          <Button onClick={onClose} disabled={submitting}>
             Voltar
-          </button>
-          <button
-            type="button"
-            className="btn btn-r btn-sm"
+          </Button>
+          <Button
+            variant="danger"
             onClick={onConfirm}
-            disabled={submitting}
+            loading={submitting}
             data-testid="pedido-cancelar-confirmar"
           >
-            {submitting ? 'Cancelando…' : 'Confirmar cancelamento'}
-          </button>
+            Confirmar cancelamento
+          </Button>
         </>
       }
     >

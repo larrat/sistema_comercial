@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from 'react';
-import { StatusBadge } from '../../../shared/ui';
+import { StatusBadge, Button } from '../../../shared/ui';
 import type { Fornecedor, PrecosMap } from '../types';
 import type { Produto } from '../../../../types/domain';
 
@@ -74,18 +74,20 @@ const CotacaoPriceCell = memo(function CotacaoPriceCell({
 
   return (
     <td
-      style={{ textAlign: 'right', background: bg }}
+      className={`px-4 py-3 text-right transition-colors ${isBest ? 'bg-emerald-500/10' : isWorst ? 'bg-rose-500/10' : ''}`}
       title={error || undefined}
     >
       {locked ? (
         value !== null && value > 0 ? (
-          fmt(value)
+          <span className={`font-medium ${isBest ? 'text-emerald-700' : isWorst ? 'text-rose-700' : 'text-slate-900'}`}>
+            {fmt(value)}
+          </span>
         ) : (
-          '—'
+          <span className="text-slate-400">—</span>
         )
       ) : (
         <input
-          className={`inp cot-table-input${saving ? ' is-saving' : ''}${error ? ' is-error' : ''}`}
+          className={`rf-input-premium !py-1 !px-2 !text-xs !h-7 !text-right ${saving ? 'opacity-50' : ''} ${error ? '!border-rose-500 !ring-rose-500' : ''} ${isBest ? '!bg-white' : ''}`}
           type="number"
           value={draft}
           placeholder="0,00"
@@ -141,30 +143,28 @@ export function CotacaoTable({
 
   return (
     <div className="card-shell">
-      <div className="rf-ui-section-header">
-        <span className="table-cell-strong">Tabela de cotação</span>
-        <div className="rf-ui-inline-actions">
-          <button type="button" className="btn btn-sm" onClick={onExportCsv}>
-            Exportar CSV
-          </button>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-sm font-bold text-slate-900 m-0">Tabela de cotação</h4>
+        <Button variant="secondary" size="sm" onClick={onExportCsv}>
+          Exportar CSV
+        </Button>
       </div>
 
-      <div className="tw" style={{ overflowX: 'auto' }}>
-        <table className="tbl">
+      <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr>
-              <th>Produto</th>
-              <th>Un</th>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-4 py-3 text-left font-bold text-slate-700">Produto</th>
+              <th className="px-4 py-3 text-left font-bold text-slate-700">Un</th>
               {fornecedores.map((f) => (
-                <th key={f.id} style={{ textAlign: 'right' }}>
+                <th key={f.id} className="px-4 py-3 text-right font-bold text-slate-700">
                   {f.nome}
                 </th>
               ))}
-              <th style={{ textAlign: 'center' }}>Melhor</th>
+              <th className="px-4 py-3 text-center font-bold text-slate-700">Melhor</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {produtos.map((p) => {
               const prices = fornecedores.map((f) => {
                 const v = precos[p.id]?.[f.id];
@@ -175,9 +175,9 @@ export function CotacaoTable({
               const maxP = valid.length ? Math.max(...valid) : null;
 
               return (
-                <tr key={p.id}>
-                  <td className="table-cell-strong">{p.nome}</td>
-                  <td className="table-cell-muted">{p.un}</td>
+                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-slate-900">{p.nome}</td>
+                  <td className="px-4 py-3 text-slate-500">{p.un}</td>
                   {fornecedores.map((f, fi) => {
                     const val = prices[fi];
                     const isBest = val !== null && val === minP && valid.length > 1;
@@ -201,19 +201,19 @@ export function CotacaoTable({
                       />
                     );
                   })}
-                  <td style={{ textAlign: 'center' }}>
+                  <td className="px-4 py-3 text-center">
                     {minP !== null ? (
                       <StatusBadge tone="success">{fmt(minP)}</StatusBadge>
                     ) : (
-                      '—'
+                      <span className="text-slate-400">—</span>
                     )}
                   </td>
                 </tr>
               );
             })}
-            <tr>
-              <td colSpan={2} className="table-cell-muted">
-                Total
+            <tr className="bg-slate-50/80 font-bold border-t border-slate-200">
+              <td colSpan={2} className="px-4 py-4 text-slate-500 uppercase tracking-wider text-[10px]">
+                Total Geral
               </td>
               {fornTotals.map((ft) => {
                 const isBest =
@@ -221,13 +221,9 @@ export function CotacaoTable({
                 return (
                   <td
                     key={ft.id}
-                    className="table-cell-strong"
-                    style={{
-                      textAlign: 'right',
-                      background: isBest ? 'var(--gbg)' : undefined
-                    }}
+                    className={`px-4 py-4 text-right ${isBest ? 'text-emerald-600' : 'text-slate-900'}`}
                   >
-                    {ft.total > 0 ? fmt(ft.total) : '—'}
+                    {ft.total > 0 ? fmt(ft.total) : <span className="text-slate-400">—</span>}
                   </td>
                 );
               })}

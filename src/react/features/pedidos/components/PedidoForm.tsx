@@ -6,7 +6,11 @@ import {
   FormField,
   FormSection,
   LoadingState,
-  StatusBadge
+  StatusBadge,
+  Button,
+  Input,
+  Select,
+  Badge
 } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { useToastStore } from '../../../app/lib/useToastStore';
@@ -243,68 +247,50 @@ export function PedidoForm({
             <FormSection
               title="Essencial"
               description="Defina cliente, data, vendedor e os itens que entram no pedido."
-              aside={<span className="bdg bb">Prioridade</span>}
+              aside={<Badge variant="blue">Prioridade</Badge>}
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
+                <Input
                   label="Cliente"
-                  htmlFor="pedido-form-cliente"
                   required
-                  error={errors.cli}
-                  hint="Selecione um cliente já cadastrado para manter o vínculo correto do pedido."
-                >
-                  <input
-                    id="pedido-form-cliente"
-                    className="inp"
-                    list="ped-form-cli-dl"
-                    placeholder="Nome do cliente"
-                    value={cli}
-                    onChange={(e) => handleClienteChange(e.target.value)}
-                    autoComplete="off"
-                    data-testid="pedido-form-cli"
-                  />
-                  <datalist id="ped-form-cli-dl">
-                    {clientes.map((c) => (
-                      <option key={c.id} value={c.nome} />
-                    ))}
-                  </datalist>
-                </FormField>
-                <FormField label="Data" htmlFor="pedido-form-data-input">
-                  <input
-                    id="pedido-form-data-input"
-                    className="inp"
-                    type="date"
-                    value={data}
-                    onChange={(e) => setData(e.target.value)}
-                    data-testid="pedido-form-data"
-                  />
-                </FormField>
-                <FormField
+                  error={errors.cli as string}
+                  helperText="Selecione um cliente já cadastrado para manter o vínculo correto do pedido."
+                  list="ped-form-cli-dl"
+                  placeholder="Nome do cliente"
+                  value={cli}
+                  onChange={(e) => handleClienteChange(e.target.value)}
+                  autoComplete="off"
+                  data-testid="pedido-form-cli"
+                />
+                <datalist id="ped-form-cli-dl">
+                  {clientes.map((c) => (
+                    <option key={c.id} value={c.nome} />
+                  ))}
+                </datalist>
+                <Input
+                  label="Data"
+                  type="date"
+                  value={data}
+                  onChange={(e) => setData(e.target.value)}
+                  data-testid="pedido-form-data"
+                />
+                <Select
                   label="Vendedor"
-                  htmlFor="pedido-form-rca-input"
-                  hint="Se o cliente já tiver vendedor vinculado, o formulário tenta reaproveitar."
-                >
-                  <select
-                    id="pedido-form-rca-input"
-                    className="inp sel"
-                    value={rcaId}
-                    onChange={(e) => setRcaId(e.target.value)}
-                    data-testid="pedido-form-rca"
-                  >
-                    <option value="">Sem vendedor</option>
-                    {rcas.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.nome}
-                      </option>
-                    ))}
-                  </select>
-                </FormField>
+                  id="pedido-form-rca"
+                  helperText="Se o cliente já tiver vendedor vinculado, o formulário tenta reaproveitar."
+                  value={rcaId}
+                  onChange={(e) => setRcaId(e.target.value)}
+                  options={[
+                    { value: '', label: 'Sem vendedor' },
+                    ...rcas.map((r) => ({ value: r.id, label: r.nome }))
+                  ]}
+                />
               </div>
 
               <FormField
                 label="Itens do pedido"
                 error={errors.itens}
-                hint="A composição abaixo continua usando o mesmo cálculo atual de quantidade, preço e total."
+                helperText="A composição abaixo continua usando o mesmo cálculo atual de quantidade, preço e total."
               >
                 <PedidoItemsSection
                   itens={itens}
@@ -321,72 +307,59 @@ export function PedidoForm({
               description="Ajuste status, pagamento, prazo e tipo de venda sem disputar espaço com os itens."
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <FormField label="Status" htmlFor="pedido-form-status-input">
-                  <select
-                    id="pedido-form-status-input"
-                    className="inp sel"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    data-testid="pedido-form-status"
-                  >
-                    <option value="orcamento">Orçamento</option>
-                    <option value="confirmado">Confirmado</option>
-                    <option value="em_separacao">Em separação</option>
-                    <option value="em_andamento">Em andamento</option>
-                    <option value="entregue_aguardando_pagamento">
-                      Entregue · aguardando pagamento
-                    </option>
-                    <option value="pago_aguardando_entrega">Pago · aguardando entrega</option>
-                    <option value="concluido">Concluído</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
-                </FormField>
-                <FormField label="Pagamento" htmlFor="pedido-form-pgto-input">
-                  <select
-                    id="pedido-form-pgto-input"
-                    className="inp sel"
-                    value={pgto}
-                    onChange={(e) => handlePagamentoChange(e.target.value)}
-                    data-testid="pedido-form-pgto"
-                  >
-                    <option value="a_vista">A vista</option>
-                    <option value="pix">PIX</option>
-                    <option value="boleto">Boleto</option>
-                    <option value="cartao">Cartao</option>
-                    <option value="cheque">Cheque</option>
-                  </select>
-                </FormField>
-                <FormField
+                <Select
+                  label="Status"
+                  id="pedido-form-status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  options={[
+                    { value: 'orcamento', label: 'Orçamento' },
+                    { value: 'confirmado', label: 'Confirmado' },
+                    { value: 'em_separacao', label: 'Em separação' },
+                    { value: 'em_andamento', label: 'Em andamento' },
+                    { value: 'entregue_aguardando_pagamento', label: 'Entregue · aguardando pagamento' },
+                    { value: 'pago_aguardando_entrega', label: 'Pago · aguardando entrega' },
+                    { value: 'concluido', label: 'Concluído' },
+                    { value: 'cancelado', label: 'Cancelado' }
+                  ]}
+                />
+                <Select
+                  label="Pagamento"
+                  id="pedido-form-pgto"
+                  value={pgto}
+                  onChange={(e) => handlePagamentoChange(e.target.value)}
+                  options={[
+                    { value: 'a_vista', label: 'A vista' },
+                    { value: 'pix', label: 'PIX' },
+                    { value: 'boleto', label: 'Boleto' },
+                    { value: 'cartao', label: 'Cartao' },
+                    { value: 'cheque', label: 'Cheque' }
+                  ]}
+                />
+                <Select
                   label="Prazo"
-                  htmlFor="pedido-form-prazo-input"
-                  hint="Cliente ou boleto preenchem um prazo seguro quando ainda estiver imediato."
-                >
-                  <select
-                    id="pedido-form-prazo-input"
-                    className="inp sel"
-                    value={prazo}
-                    onChange={(e) => setPrazo(e.target.value)}
-                    data-testid="pedido-form-prazo"
-                  >
-                    <option value="imediato">Imediato</option>
-                    <option value="7d">7 dias</option>
-                    <option value="15d">15 dias</option>
-                    <option value="30d">30 dias</option>
-                    <option value="60d">60 dias</option>
-                  </select>
-                </FormField>
-                <FormField label="Tipo de venda" htmlFor="pedido-form-tipo-input">
-                  <select
-                    id="pedido-form-tipo-input"
-                    className="inp sel"
-                    value={tipo}
-                    onChange={(e) => setTipo(e.target.value)}
-                    data-testid="pedido-form-tipo"
-                  >
-                    <option value="varejo">Varejo</option>
-                    <option value="atacado">Atacado</option>
-                  </select>
-                </FormField>
+                  id="pedido-form-prazo"
+                  helperText="Cliente ou boleto preenchem um prazo seguro quando ainda estiver imediato."
+                  value={prazo}
+                  onChange={(e) => setPrazo(e.target.value)}
+                  options={[
+                    { value: 'imediato', label: 'Imediato' },
+                    { value: '7d', label: '7 dias' },
+                    { value: '15d', label: '15 dias' },
+                    { value: '30d', label: '30 dias' },
+                    { value: '60d', label: '60 dias' }
+                  ]}
+                />
+                <Select
+                  label="Tipo de venda"
+                  id="pedido-form-tipo"
+                  value={tipo}
+                  onChange={(e) => setTipo(e.target.value)}
+                  options={[
+                    { value: 'varejo', label: 'Varejo' },
+                    { value: 'atacado', label: 'Atacado' }
+                  ]}
+                />
               </div>
             </FormSection>
 
@@ -402,14 +375,13 @@ export function PedidoForm({
                 </span>
               </summary>
               <div className="form-advanced-body">
-                <FormField label="Observações" htmlFor="pedido-form-obs-input">
+                <FormField label="Observações" htmlFor="pedido-form-obs">
                   <textarea
-                    id="pedido-form-obs-input"
-                    className="inp"
+                    id="pedido-form-obs"
+                    className="rf-input-premium min-h-[100px] resize-none"
                     rows={3}
                     value={obs}
                     onChange={(e) => setObs(e.target.value)}
-                    data-testid="pedido-form-obs"
                   />
                 </FormField>
               </div>
@@ -422,21 +394,7 @@ export function PedidoForm({
               cancelLabel="Voltar"
               loading={saving}
               submitLabel={isEdit ? 'Salvar alterações' : 'Salvar pedido'}
-            >
-              <>
-                <button className="btn btn-sm" type="button" onClick={onCancel} disabled={saving}>
-                  Voltar
-                </button>
-                <button
-                  className="btn btn-p btn-sm"
-                  type="submit"
-                  disabled={saving}
-                  data-testid="pedido-form-submit"
-                >
-                  {saving ? 'Salvando...' : isEdit ? 'Salvar alterações' : 'Salvar pedido'}
-                </button>
-              </>
-            </FormActions>
+            />
           </div>
         </form>
       )}

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Search } from 'lucide-react';
+import { Button } from './Button';
 
 type FilterBarOption = {
   value: string;
@@ -50,9 +51,9 @@ export function FilterBar({
     Boolean(onClearFilters) && (activeFilterCount === undefined || activeFilterCount > 0);
 
   const clearButton = showClear ? (
-    <button type="button" className="btn btn-sm" onClick={onClearFilters}>
+    <Button variant="secondary" size="sm" onClick={onClearFilters}>
       {activeFilterCount !== undefined ? `Limpar filtros (${activeFilterCount})` : 'Limpar filtros'}
-    </button>
+    </Button>
   ) : null;
 
   return (
@@ -67,7 +68,7 @@ export function FilterBar({
                   aria-hidden="true" 
                 />
                 <input
-                  className={`${search.className ?? 'inp'} !pl-10 !h-10 w-full bg-white/50 backdrop-blur-sm border-slate-200 focus:border-brand-gold focus:ring-brand-gold/20 transition-all`}
+                  className={`${search.className ?? 'rf-input-premium'} !pl-10 !h-10 w-full !bg-white/50 backdrop-blur-sm focus:border-brand-gold focus:ring-brand-gold/20 transition-all`}
                   type="search"
                   value={search.value}
                   onChange={(event) => search.onChange(event.target.value)}
@@ -80,7 +81,7 @@ export function FilterBar({
             {filters.map((filter) => (
               <select
                 key={filter.key}
-                className={`${filter.className ?? 'inp sel'} !h-10 bg-white/50 backdrop-blur-sm border-slate-200 focus:border-brand-gold transition-all`}
+                className={`${filter.className ?? 'rf-input-premium'} !h-10 !py-0 !pr-10 !bg-white/50 backdrop-blur-sm focus:border-brand-gold transition-all cursor-pointer`}
                 value={filter.value}
                 onChange={(event) => filter.onChange(event.target.value)}
                 aria-label={filter.ariaLabel ?? filter.label ?? `Filtro ${filter.key}`}

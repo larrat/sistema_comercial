@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react';
 import { LoadingState } from './LoadingState';
+import { Button } from './Button';
 
 export type DrawerProps = {
   open: boolean;
@@ -83,9 +84,9 @@ export function Drawer({
           </div>
           <div className="rf-ui-drawer__actions">
             {action}
-            <button type="button" className="btn btn-sm" onClick={onClose}>
+            <Button variant="secondary" size="sm" onClick={onClose}>
               Fechar
-            </button>
+            </Button>
           </div>
         </div>
         <div className={`rf-ui-drawer__body${bodyClassName ? ` ${bodyClassName}` : ''}`}>

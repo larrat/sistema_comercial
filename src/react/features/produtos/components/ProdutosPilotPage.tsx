@@ -16,7 +16,9 @@ import {
   FilterBar,
   LoadingState,
   PageHeader,
-  StatusBadge
+  StatusBadge,
+  Button,
+  PillGroup
 } from '../../../shared/ui';
 import { Wrench, Loader2, CheckCircle, Zap, RefreshCw } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
@@ -297,40 +299,36 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
       }
       actions={
         <div className="flex items-center gap-6">
-          <div className="rf-pill-group">
-            {(['todos', 'estoque', 'zerados'] as const).map(f => (
-              <button 
-                key={f} 
-                className={`rf-pill ${filtroEstoque === f ? 'is-active' : ''}`}
-                onClick={() => setFiltroEstoque(f)}
-              >
-                {f === 'todos' ? 'Todos' : f === 'estoque' ? 'Estoque' : 'Zerados'}
-              </button>
-            ))}
-          </div>
+          <PillGroup
+            options={[
+              { id: 'todos', label: 'Todos' },
+              { id: 'estoque', label: 'Estoque' },
+              { id: 'zerados', label: 'Zerados' }
+            ]}
+            activeId={filtroEstoque}
+            onChange={(id) => setFiltroEstoque(id as any)}
+          />
 
-          <div className="rf-pill-group">
-            {(['lista', 'galeria'] as const).map(v => (
-              <button 
-                key={v} 
-                className={`rf-pill ${visao === v ? 'is-active' : ''}`}
-                onClick={() => setVisao(v)}
-              >
-                {v.charAt(0).toUpperCase() + v.slice(1)}
-              </button>
-            ))}
-          </div>
+          <PillGroup
+            options={[
+              { id: 'lista', label: 'Lista' },
+              { id: 'galeria', label: 'Galeria' }
+            ]}
+            activeId={visao}
+            onChange={(id) => setVisao(id as any)}
+          />
 
           <div className="h-8 w-px bg-slate-200/60 mx-1" />
 
           <div className="flex items-center gap-3">
-            <button 
-              className={`rf-btn-premium gap-2 ${isRefreshing ? 'opacity-50 pointer-events-none' : ''}`}
+            <Button
+              variant="secondary"
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />}
               onClick={handleRefresh}
+              loading={isRefreshing}
             >
-              <RefreshCw className={`w-4 h-4 text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span className="hidden md:inline">Atualizar</span>
-            </button>
+            </Button>
 
             {sanitizing ? (
               <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 animate-pulse">
@@ -338,26 +336,24 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
                 <span className="text-[10px] font-black text-slate-600 uppercase tracking-tight">Corrigindo {sanitizingProgress}%</span>
               </div>
             ) : (
-              <button
-                className="rf-btn-premium gap-2"
-                type="button"
+              <Button
+                variant="secondary"
+                leftIcon={<Wrench className="w-4 h-4 text-[#C5A059]" />}
                 onClick={handleSanitize}
                 title="Corrigir resquícios e erros de cadastro"
               >
-                <Wrench className="w-4 h-4 text-[#C5A059]" />
                 <span className="hidden lg:inline">Sanear</span>
-              </button>
+              </Button>
             )}
             
-            <button
-              className="rf-btn-premium rf-btn-premium--primary"
-              type="button"
+            <Button
+              variant="primary"
+              leftIcon={<Zap className="w-4 h-4" />}
               onClick={() => setModal({ tipo: 'form', produto: null })}
             >
-              <Zap className="w-4 h-4" />
               <span className="hidden sm:inline">Novo produto</span>
               <span className="sm:hidden">Novo</span>
-            </button>
+            </Button>
           </div>
         </div>
       }

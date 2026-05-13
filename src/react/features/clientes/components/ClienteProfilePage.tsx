@@ -13,13 +13,39 @@ import {
   EmptyState,
   ErrorState,
   FormError,
-  LoadingState
+  LoadingState,
+  Button,
+  Badge
 } from '../../../shared/ui';
 import { SystemBarChart } from '../../../app/components/charts';
 import { ClienteForm } from './ClienteForm';
-import { useClienteNotes } from '../hooks/useClienteNotes';
 import { useClientePedidos } from '../hooks/useClientePedidos';
 import { useClienteReceber } from '../hooks/useClienteReceber';
+import { useClienteNotes } from '../hooks/useClienteNotes';
+import { 
+  User, 
+  MessageSquare, 
+  PlusCircle, 
+  MoreHorizontal, 
+  Clock, 
+  Calendar, 
+  DollarSign, 
+  TrendingUp, 
+  ArrowLeft,
+  ChevronLeft,
+  Share2,
+  Database,
+  History,
+  Zap,
+  Package,
+  ArrowUpRight,
+  ShieldCheck,
+  Info
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as Tooltip from '@radix-ui/react-tooltip';
+import ReactCountUp from 'react-countup';
+const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 type Props = {
   cliente: Cliente;
@@ -525,12 +551,37 @@ export function ClienteProfilePage({
 
   return (
     <main className="max-w-7xl mx-auto flex flex-col gap-6 w-full px-4 sm:px-6 lg:px-8 py-8" data-testid="cliente-profile-page">
-      <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-2">
-        <button className="hover:text-slate-900 transition-colors" type="button" onClick={() => navigate('/app/clientes')}>
-          Voltar
-        </button>
-        <span>/</span>
-        <span className="text-slate-900">Clientes / {cliente.nome}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <button 
+            className="flex items-center gap-1.5 text-slate-400 hover:text-slate-900 transition-colors" 
+            type="button" 
+            onClick={() => navigate('/app/clientes')}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Clientes
+          </button>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-900 font-semibold">{cliente.nome}</span>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="secondary"
+            className="gap-2"
+            onClick={() => {}}
+            leftIcon={<Share2 className="w-4 h-4" />}
+          >
+            Exportar
+          </Button>
+          <Button 
+            variant="secondary"
+            size="sm"
+            className="!p-2 rounded-xl"
+            onClick={() => {}}
+            leftIcon={<MoreHorizontal className="w-4 h-4" />}
+          />
+        </div>
       </div>
 
       <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 md:items-center justify-between">
@@ -553,23 +604,25 @@ export function ClienteProfilePage({
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            className="btn btn-sm"
-            type="button"
+          <Button
+            variant="secondary"
+            className="gap-2"
             disabled={!whatsappLink}
             onClick={() => {
               if (whatsappLink) window.open(whatsappLink, '_blank', 'noopener,noreferrer');
             }}
+            leftIcon={<MessageSquare className="w-4 h-4 text-emerald-500" />}
           >
             Mensagem
-          </button>
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
+          </Button>
+          <Button 
+            variant="primary" 
+            className="gap-2"
             onClick={() => navigate(buildPedidosRoute({ view: 'new', clienteId: cliente.id }))}
+            leftIcon={<PlusCircle className="w-4 h-4" />}
           >
             Novo pedido
-          </button>
+          </Button>
           <ActionMenu
             label="Mais ações"
             items={[
@@ -591,32 +644,78 @@ export function ClienteProfilePage({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((card) => (
-          <article key={card.label} className="flex flex-col gap-1 p-5 bg-white border border-slate-200 rounded-xl shadow-sm">
-            <div className="text-sm font-semibold text-slate-500">{card.label}</div>
-            <div className="text-2xl font-bold text-slate-900">{card.value}</div>
-            <div className={`text-xs font-medium mt-1 ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-500'}`}>{card.subtitle}</div>
-          </article>
-        ))}
+      <section className="rf-kpi-grid">
+        {kpis.map((card, idx) => {
+          let Icon = TrendingUp;
+          if (card.label.includes('Saldo')) Icon = DollarSign;
+          if (card.label.includes('Pedidos')) Icon = Package;
+          if (card.label.includes('Ticket')) Icon = Zap;
+          if (card.label.includes('LTV')) Icon = Database;
+
+          const toneClass = 
+            card.tone === 'positive' ? 'is-success' : 
+            card.tone === 'negative' ? 'is-danger' : 
+            '';
+
+          return (
+            <motion.article 
+              key={card.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className={`rf-dash-card ${toneClass}`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="rf-stat-label !mb-0">{card.label}</span>
+                <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+                  <Icon size={14} strokeWidth={2.5} />
+                </div>
+              </div>
+
+              <div className="rf-stat-value">
+                {card.value.includes('R$') ? (
+                  <CountUp 
+                    end={parseFloat(card.value.replace(/[R$\s.]/g, '').replace(',', '.')) || 0} 
+                    decimals={2} 
+                    decimal="," 
+                    prefix="R$ " 
+                    duration={2} 
+                    separator="."
+                  />
+                ) : (
+                  <CountUp 
+                    end={parseFloat(card.value) || 0} 
+                    duration={2} 
+                    separator="."
+                  />
+                )}
+              </div>
+
+              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
+                {card.subtitle}
+              </span>
+            </motion.article>
+          );
+        })}
       </section>
 
-      <div className="flex bg-slate-100/80 p-1 rounded-lg w-fit shadow-inner overflow-x-auto">
-        {PROFILE_TABS.map((tab) => (
+      <nav className="rf-tabs-premium">
+        {PROFILE_TABS.map(tab => (
           <button
             key={tab.id}
-            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-            type="button"
             onClick={() => setTab(tab.id)}
+            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
+            {activeTab === tab.id && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+              />
+            )}
           </button>
         ))}
-      </div>
+      </nav>
 
       {activeTab === 'resumo' ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -626,9 +725,15 @@ export function ClienteProfilePage({
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 tracking-tight">Pedidos em aberto</h3>
                 </div>
-                <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors" type="button" onClick={() => setTab('pedidos')}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-blue-600 hover:text-blue-700" 
+                  onClick={() => setTab('pedidos')}
+                  rightIcon={<ArrowUpRight className="w-4 h-4" />}
+                >
                   Ver todos
-                </button>
+                </Button>
               </div>
               {pedidosLoading ? (
                 <LoadingState title="Carregando pedidos..." compact />
@@ -789,9 +894,14 @@ export function ClienteProfilePage({
               />
               <FormError message={notaError || notasError} />
               <div className="flex justify-end mt-1">
-                <button className="btn btn-p btn-sm" type="button" disabled={notaSaving} onClick={() => void handleSubmitNota()}>
-                  {notaSaving ? 'Salvando…' : 'Salvar nota'}
-                </button>
+                <Button 
+                  variant="primary" 
+                  loading={notaSaving} 
+                  onClick={() => void handleSubmitNota()}
+                  leftIcon={<PlusCircle className="w-4 h-4" />}
+                >
+                  Salvar nota
+                </Button>
               </div>
             </div>
             {notasLoading ? (
@@ -836,9 +946,9 @@ export function ClienteProfilePage({
                     Revise os dados principais sem sair da página do cliente.
                   </p>
                 </div>
-                <button className="btn btn-sm" type="button" onClick={() => setEditingCadastro(true)}>
+                <Button variant="secondary" size="sm" onClick={() => setEditingCadastro(true)}>
                   Editar cadastro
-                </button>
+                </Button>
               </div>
               <div className="rf-cliente-profile__cadastro-grid">
                 <ClienteInfoTable

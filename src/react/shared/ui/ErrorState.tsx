@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Button } from './Button';
 
 type ErrorStateProps = {
   title?: string;
@@ -35,9 +36,9 @@ export function ErrorState({
       {action ? <div className="mt-4">{action}</div> : null}
       {!action && onRetry ? (
         <div className="mt-4">
-          <button type="button" className="btn btn-sm" onClick={onRetry}>
+          <Button size="sm" onClick={onRetry}>
             {retryLabel}
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>

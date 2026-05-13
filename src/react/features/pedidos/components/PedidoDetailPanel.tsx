@@ -14,7 +14,7 @@ import { PedidoItemsSection } from './PedidoItemsSection';
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoBaixaModal } from './PedidoBaixaModal';
 import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
-import { FormError, StatusBadge } from '../../../shared/ui';
+import { FormError, StatusBadge, Button, Badge } from '../../../shared/ui';
 import type { StatusBadgeTone } from '../../../shared/ui';
 import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 
@@ -193,75 +193,78 @@ export function PedidoDetailPanel({ pedido }: Props) {
 
   return (
     <div data-testid="pedido-detail-panel">
-      <div className="fg c3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div>
-          <div className="fl">Cliente</div>
-          <div className="fv">{pedido.cli || '—'}</div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cliente</div>
+          <div className="text-sm font-semibold text-slate-900">{pedido.cli || '—'}</div>
         </div>
         {pedido.rca_nome && (
           <div>
-            <div className="fl">Vendedor</div>
-            <div className="fv">{pedido.rca_nome}</div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Vendedor</div>
+            <div className="text-sm font-semibold text-slate-900">{pedido.rca_nome}</div>
           </div>
         )}
         <div>
-          <div className="fl">Tipo</div>
-          <div className="fv">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tipo</div>
+          <div className="text-sm font-semibold text-slate-900">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</div>
         </div>
         <div>
-          <div className="fl">Pagamento</div>
-          <div className="fv">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pagamento</div>
+          <div className="text-sm font-semibold text-slate-900">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
         </div>
         <div>
-          <div className="fl">Prazo</div>
-          <div className="fv">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Prazo</div>
+          <div className="text-sm font-semibold text-slate-900">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
         </div>
         {pedido.obs && (
-          <div>
-            <div className="fl">Obs.</div>
-            <div className="fv">{pedido.obs}</div>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Obs.</div>
+            <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">{pedido.obs}</div>
           </div>
         )}
       </div>
 
       <PedidoItemsSection itens={itens} produtos={[]} tipo={pedido.tipo ?? 'varejo'} readOnly />
 
-      <div className="panel" style={{ marginTop: '1rem' }}>
-        <div className="pt">Financeiro do pedido</div>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-6">
+        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+          <div className="w-1 h-4 bg-blue-500 rounded-full" />
+          Financeiro do pedido
+        </h3>
         {conta ? (
           <>
-            <div className="cli-react-shell__chips" style={{ marginTop: '0.5rem' }}>
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <StatusBadge tone={getContaStatusTone(conta)}>
                 {getContaStatusLabel(conta)}
               </StatusBadge>
-              <span className="bdg bk">Vencimento {conta.vencimento}</span>
-              <span className="bdg bg">Total {fmtCurrency(conta.valor)}</span>
+              <Badge variant="slate">Vencimento {conta.vencimento}</Badge>
+              <Badge variant="blue">Total {fmtCurrency(conta.valor)}</Badge>
             </div>
 
-            <div className="fg c3" style={{ marginTop: '0.75rem' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
               <div>
-                <div className="fl">Recebido</div>
-                <div className="fv tone-success">{fmtCurrency(valorRecebido)}</div>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Recebido</div>
+                <div className="text-sm font-bold text-emerald-600">{fmtCurrency(valorRecebido)}</div>
               </div>
               <div>
-                <div className="fl">Em aberto</div>
-                <div className={`fv ${valorEmAberto > 0 ? 'tone-warning' : 'tone-success'}`}>
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Em aberto</div>
+                <div className={`text-sm font-bold ${valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
                   {fmtCurrency(valorEmAberto)}
                 </div>
               </div>
               <div>
-                <div className="fl">Última baixa</div>
-                <div className="fv">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Última baixa</div>
+                <div className="text-sm font-semibold text-slate-700">
                   {formatDateTimeLabel(conta.ultimo_recebimento_em || conta.recebido_em)}
                 </div>
               </div>
             </div>
 
             {valorEmAberto > 0 && (
-              <div style={{ marginTop: '0.75rem' }}>
-                <div className="modal-actions">
-                  <button
-                    className="btn btn-sm"
+              <>
+                <div className="flex items-center gap-3 mt-4">
+                  <Button
+                    variant="secondary"
                     disabled={baixaLoading}
                     onClick={() => {
                       setBaixaError(null);
@@ -270,34 +273,34 @@ export function PedidoDetailPanel({ pedido }: Props) {
                     data-testid="pedido-detail-baixa-parcial"
                   >
                     Baixa parcial
-                  </button>
-                  <button
-                    className="btn btn-sm btn-p"
+                  </Button>
+                  <Button
+                    variant="primary"
                     disabled={baixaLoading}
                     onClick={() => void handleReceberTudo(conta.id, valorEmAberto)}
                     data-testid="pedido-detail-receber-tudo"
                   >
                     {baixaLoading ? 'Recebendo…' : 'Receber tudo'}
-                  </button>
+                  </Button>
                 </div>
                 <FormError message={baixaError} data-testid="pedido-detail-baixa-error" />
-              </div>
+              </>
             )}
 
-            <div style={{ marginTop: '0.75rem' }}>
-              <div className="fl">Últimas baixas</div>
-              {baixas.length ? (
-                <div style={{ display: 'grid', gap: '0.4rem', marginTop: '0.4rem' }}>
+            <div className="mt-8">
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Últimas baixas</div>
+              {baixas.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                   {baixas.slice(0, 4).map((baixa) => (
-                    <div key={baixa.id} className="panel" style={{ padding: '0.6rem 0.8rem' }}>
-                      <div className="panel-inline-metrics">
-                        <span>
-                          <b>{fmtCurrency(baixa.valor)}</b>
+                    <div key={baixa.id} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4 flex flex-col gap-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-bold text-slate-900">
+                          {fmtCurrency(baixa.valor)}
                         </span>
-                        <span>{formatDateTimeLabel(baixa.recebido_em)}</span>
+                        <span className="text-xs text-slate-500">{formatDateTimeLabel(baixa.recebido_em)}</span>
                       </div>
                       {baixa.observacao && (
-                        <div className="table-cell-caption" style={{ marginTop: '0.35rem' }}>
+                        <div className="text-xs text-slate-400 italic mt-1">
                           {baixa.observacao}
                         </div>
                       )}
@@ -305,7 +308,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
                   ))}
                 </div>
               ) : (
-                <p className="table-cell-muted" style={{ marginTop: '0.4rem' }}>
+                <p className="text-xs text-slate-400 mt-4 italic">
                   Nenhuma baixa registrada ainda.
                 </p>
               )}
@@ -318,10 +321,10 @@ export function PedidoDetailPanel({ pedido }: Props) {
         )}
       </div>
 
-      <div className="modal-actions" style={{ marginTop: '1rem' }}>
+      <div className="flex items-center gap-3 justify-end mt-8 pt-6 border-t border-slate-100">
         {nextStatus && acaoLabel && (
-          <button
-            className="btn btn-sm btn-p"
+          <Button
+            variant="primary"
             disabled={isInFlight}
             onClick={() => {
               if (isDeliveryAction) {
@@ -333,31 +336,31 @@ export function PedidoDetailPanel({ pedido }: Props) {
             data-testid="pedido-detail-avancar"
           >
             {isInFlight ? 'Aguarde…' : acaoLabel}
-          </button>
+          </Button>
         )}
         {status !== 'cancelado' && status !== 'concluido' && (
-          <button
-            className="btn btn-sm btn-r"
+          <Button
+            variant="danger"
             disabled={isInFlight}
             onClick={() => setShowCancelConfirm(true)}
             data-testid="pedido-detail-cancelar"
           >
             Cancelar
-          </button>
+          </Button>
         )}
         {status === 'cancelado' && (
-          <button
-            className="btn btn-sm"
+          <Button
+            variant="secondary"
             disabled={isInFlight}
             onClick={() => void reabrirPedido(pedido)}
             data-testid="pedido-detail-reabrir"
           >
             Reabrir
-          </button>
+          </Button>
         )}
         {status === 'entregue_aguardando_pagamento' && !conta && (
-          <button
-            className="btn btn-sm btn-p"
+          <Button
+            variant="primary"
             disabled={isInFlight}
             onClick={() => {
               setContaMsg(null);
@@ -366,7 +369,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
             data-testid="pedido-detail-gerar-conta"
           >
             {isInFlight ? 'Gerando…' : 'Gerar conta a receber'}
-          </button>
+          </Button>
         )}
       </div>
       {contaMsg &&

@@ -37,36 +37,55 @@ export function ClientesTab() {
         <StatCard label="Prospectos" value={prospects} tone="warning" />
       </div>
 
-      <div className="rel-bento-grid">
-        <div className="card card-shell">
-          <div className="ct">Status da base</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+            <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+            Status da base
+          </h3>
           {statusEntries.length > 0 ? (
-            statusEntries.map(([status, qtd]) => (
-              <div key={status} className="rrow rel-kpi-row">
-                <div className="rel-kpi-label">{status.replace(/_/g, ' ')}</div>
-                <div className="rel-kpi-bar">
-                  <span style={{ '--rel-bar-pct': `${Math.max(8, (qtd / totalClientes) * 100)}%` } as CSSProperties} />
+            <div className="flex flex-col gap-4">
+              {statusEntries.map(([status, qtd]) => (
+                <div key={status} className="flex flex-col gap-2">
+                  <div className="flex justify-between items-end">
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
+                    <span className="text-sm font-extrabold text-slate-900">{qtd}</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                      style={{ width: `${Math.max(2, (qtd / totalClientes) * 100)}%` }} 
+                    />
+                  </div>
                 </div>
-                <div className="rel-kpi-value">{qtd}</div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
             <EmptyState title="Sem clientes cadastrados." compact />
           )}
         </div>
 
-        <div className="card card-shell">
-          <div className="ct">Segmentos e opt-ins</div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+            <div className="w-1 h-4 bg-blue-500 rounded-full" />
+            Segmentos e opt-ins
+          </h3>
           {topSegmentos.length > 0 ? (
-            topSegmentos.map(([seg, dados]) => (
-              <div key={seg} className="rrow rel-op-row">
-                <span className="rel-op-dot" />
-                <div className="rel-grow">
-                  <div className="rel-op-title">{seg}</div>
-                  <div className="rel-op-sub">{dados.total} cliente(s) • {dados.marketing} com opt-in marketing</div>
+            <div className="flex flex-col gap-3">
+              {topSegmentos.map(([seg, dados]) => (
+                <div key={seg} className="p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
+                     {seg.substring(0, 2).toUpperCase()}
+                   </div>
+                  <div className="flex-grow min-w-0">
+                    <div className="text-sm font-bold text-slate-900 truncate">{seg}</div>
+                    <div className="text-[11px] text-slate-500 font-medium">
+                      {dados.total} cliente(s) • <span className="text-emerald-600">{dados.marketing} marketing</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           ) : (
             <EmptyState title="Sem segmentos suficientes." compact />
           )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { EmptyState, StatusBadge, FilterBar } from '../../../shared/ui';
+import { EmptyState, StatusBadge, FilterBar, Button } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import type { CampanhaEnvio } from '../../../../types/domain';
@@ -56,10 +56,13 @@ export function FilaWhatsAppSection() {
   }
 
   return (
-    <div className="card card-shell camp-section">
-      <div className="camp-section-hdr">
-        <div className="ct">Fila WhatsApp</div>
-        <div className="camp-section-actions">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+          <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+          Fila WhatsApp
+        </h3>
+        <div className="flex items-center gap-3 flex-wrap">
           <FilterBar
             filters={[
               {
@@ -76,10 +79,10 @@ export function FilaWhatsAppSection() {
             ]}
           />
           {selecionados.size > 0 && (
-            <>
-              <button
-                className="btn btn-sm"
-                type="button"
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() =>
                   void marcarSelecionadosEnviados([...selecionados]).then(() =>
                     setSelecionados(new Set())
@@ -87,11 +90,10 @@ export function FilaWhatsAppSection() {
                 }
               >
                 Enviados ({selecionados.size})
-              </button>
-              <button
-                className="btn btn-sm"
-                type="button"
-                style={{ color: 'var(--color-danger, #dc2626)' }}
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
                 onClick={() =>
                   void marcarSelecionadosFalhou([...selecionados]).then(() =>
                     setSelecionados(new Set())
@@ -99,13 +101,13 @@ export function FilaWhatsAppSection() {
                 }
               >
                 Falhou ({selecionados.size})
-              </button>
-            </>
+              </Button>
+            </div>
           )}
           {pendentes.length > 0 && (
-            <button className="btn btn-p btn-sm" type="button" onClick={handleLoteWa}>
+            <Button variant="primary" size="sm" onClick={handleLoteWa}>
               Enviar lote ({pendentes.length})
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -116,78 +118,79 @@ export function FilaWhatsAppSection() {
           compact
         />
       ) : (
-        <div className="camp-fila-table-wrap">
-          <table className="tbl">
+        <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+          <table className="w-full text-sm border-collapse">
             <thead>
-              <tr>
-                <th style={{ width: '36px' }}>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                <th className="px-4 py-3 text-left w-10">
                   <input
                     type="checkbox"
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     onChange={toggleTodos}
                     checked={selecionados.size === exibidos.length && exibidos.length > 0}
                   />
                 </th>
-                <th>Destino</th>
-                <th>Campanha</th>
-                <th>Status</th>
-                <th>Data ref.</th>
-                <th style={{ textAlign: 'right' }}>Ações</th>
+                <th className="px-4 py-3 text-left">Destino</th>
+                <th className="px-4 py-3 text-left">Campanha</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">Data ref.</th>
+                <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {exibidos.map((envio) => (
-                <tr key={envio.id} className={selecionados.has(envio.id) ? 'camp-row--sel' : ''}>
-                  <td>
+                <tr key={envio.id} className={`hover:bg-slate-50/50 transition-colors ${selecionados.has(envio.id) ? 'bg-blue-50/50' : ''}`}>
+                  <td className="px-4 py-3">
                     <input
                       type="checkbox"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       checked={selecionados.has(envio.id)}
                       onChange={() => toggleItem(envio.id)}
                     />
                   </td>
-                  <td>{envio.destino ?? '—'}</td>
-                  <td>{campanhaNome(envio)}</td>
-                  <td>
+                  <td className="px-4 py-3 font-medium text-slate-900">{envio.destino ?? '—'}</td>
+                  <td className="px-4 py-3 text-slate-500">{campanhaNome(envio)}</td>
+                  <td className="px-4 py-3">
                     <StatusBadge tone={statusTone(envio.status)}>
                       {envio.status ?? 'pendente'}
                     </StatusBadge>
                   </td>
-                  <td>{envio.data_ref ?? '—'}</td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-                      <button
-                        className="btn btn-sm"
-                        type="button"
+                  <td className="px-4 py-3 text-slate-500">{envio.data_ref ?? '—'}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center gap-1 justify-end">
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handlePreview(envio)}
                       >
                         Preview
-                      </button>
+                      </Button>
                       {(envio.status ?? 'pendente') === 'pendente' && (
                         <>
-                          <button
-                            className="btn btn-sm"
-                            type="button"
+                          <Button
+                            variant="primary"
+                            size="sm"
                             onClick={() => void marcarEnviado(envio)}
                           >
                             Enviado
-                          </button>
-                          <button
-                            className="btn btn-sm"
-                            type="button"
-                            style={{ color: 'var(--color-danger, #dc2626)' }}
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
                             onClick={() => void marcarFalhou(envio)}
                           >
                             Falhou
-                          </button>
+                          </Button>
                         </>
                       )}
                       {envio.status && envio.status !== 'pendente' && (
-                        <button
-                          className="btn btn-sm"
-                          type="button"
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => void desfazer(envio)}
                         >
                           Desfazer
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </td>

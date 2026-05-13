@@ -1,4 +1,4 @@
-import { Modal } from '../../../shared/ui';
+import { Modal, Button } from '../../../shared/ui';
 
 type PdvComprovanteModalProps = {
   open: boolean;
@@ -24,15 +24,15 @@ export function PdvComprovanteModal({
       onClose={onClose}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={onClose}>
+          <Button onClick={onClose}>
             Pular ({countdown}s)
-          </button>
-          <button className="btn btn-sm" type="button" onClick={onPrint}>
+          </Button>
+          <Button onClick={onPrint}>
             Imprimir
-          </button>
-          <button className="btn btn-p btn-sm" type="button" onClick={onWhatsapp} disabled={!canWhatsapp}>
+          </Button>
+          <Button variant="primary" onClick={onWhatsapp} disabled={!canWhatsapp}>
             Enviar por WhatsApp
-          </button>
+          </Button>
         </>
       }
     >

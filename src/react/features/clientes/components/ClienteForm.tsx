@@ -2,10 +2,14 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import type { Cliente } from '../../../../types/domain';
 import {
-  FormActions,
-  FormError,
+  FormSection,
+  Input,
+  Button,
+  Select,
   FormField,
-  FormSection
+  Badge,
+  FormError,
+  FormActions
 } from '../../../shared/ui';
 import type { AnalyticsMetadata } from '../../../shared/lib/analytics';
 import { useClienteMutations } from '../hooks/useClienteMutations';
@@ -227,119 +231,98 @@ export function ClienteForm({
       <FormSection
         title="Essencial"
         description="Identificação e contato para o time conseguir atender e vender."
-        aside={<span className="bdg bb">Obrigatório primeiro</span>}
+        aside={<Badge variant="blue">Obrigatório primeiro</Badge>}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Nome / Razão social" htmlFor="cliente-nome" required>
-            <input
-              id="cliente-nome"
-              className="inp"
-              value={values.nome}
-              onChange={(e) => update('nome', e.target.value)}
-              data-testid="form-nome"
-            />
-          </FormField>
-          <FormField
+          <Input
+            label="Nome / Razão social"
+            id="cliente-nome"
+            required
+            value={values.nome}
+            onChange={(e) => update('nome', e.target.value)}
+            data-testid="form-nome"
+          />
+          <Input
             label="Apelido / Fantasia"
-            htmlFor="cliente-apelido"
-            hint="Como a equipe identifica esse cliente no dia a dia."
-          >
-            <input
-              id="cliente-apelido"
-              className="inp"
-              value={values.apelido}
-              onChange={(e) => update('apelido', e.target.value)}
-              placeholder="Como a equipe identifica esse cliente no dia a dia"
-              data-testid="form-apelido"
-            />
-          </FormField>
+            id="cliente-apelido"
+            helperText="Como a equipe identifica esse cliente no dia a dia."
+            value={values.apelido}
+            onChange={(e) => update('apelido', e.target.value)}
+            placeholder="Como a equipe identifica esse cliente no dia a dia"
+            data-testid="form-apelido"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
+          <Input
             label="CPF / CNPJ"
-            htmlFor="cliente-doc"
-            hint="Aceita CPF ou CNPJ; a formatação entra ao sair do campo."
-          >
-            <input
-              id="cliente-doc"
-              className="inp"
-              inputMode="numeric"
-              value={values.doc}
-              onChange={(e) => update('doc', e.target.value)}
-              onBlur={(e) => update('doc', formatCpfCnpj(e.target.value))}
-              placeholder="Somente numeros ou documento completo"
-              data-testid="form-doc"
-            />
-          </FormField>
-          <FormField label="Tipo" htmlFor="cliente-tipo">
-            <select
-              id="cliente-tipo"
-              className="inp"
-              value={values.tipo}
-              onChange={(e) => update('tipo', e.target.value)}
-              data-testid="form-tipo"
-            >
-              <option value="PJ">PJ</option>
-              <option value="PF">PF</option>
-            </select>
-          </FormField>
-          <FormField label="Status" htmlFor="cliente-status">
-            <select
-              id="cliente-status"
-              className="inp"
-              value={values.status}
-              onChange={(e) => update('status', e.target.value)}
-              data-testid="form-status"
-            >
-              <option value="ativo">Ativo</option>
-              <option value="prospecto">Prospecto</option>
-              <option value="inativo">Inativo</option>
-            </select>
-          </FormField>
+            id="cliente-doc"
+            helperText="Aceita CPF ou CNPJ; a formatação entra ao sair do campo."
+            inputMode="numeric"
+            value={values.doc}
+            onChange={(e) => update('doc', e.target.value)}
+            onBlur={(e) => update('doc', formatCpfCnpj(e.target.value))}
+            placeholder="Somente numeros ou documento completo"
+            data-testid="form-doc"
+          />
+          <Select
+            label="Tipo"
+            id="cliente-tipo"
+            value={values.tipo}
+            onChange={(e) => update('tipo', e.target.value)}
+            options={[
+              { value: 'PJ', label: 'PJ' },
+              { value: 'PF', label: 'PF' }
+            ]}
+          />
+          <Select
+            label="Status"
+            id="cliente-status"
+            value={values.status}
+            onChange={(e) => update('status', e.target.value)}
+            options={[
+              { value: 'ativo', label: 'Ativo' },
+              { value: 'prospecto', label: 'Prospecto' },
+              { value: 'inativo', label: 'Inativo' }
+            ]}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField label="Telefone" htmlFor="cliente-tel">
-            <input
-              id="cliente-tel"
-              className="inp"
-              type="tel"
-              inputMode="tel"
-              value={values.tel}
-              onChange={(e) => update('tel', e.target.value)}
-              onBlur={(e) => update('tel', formatPhone(e.target.value))}
-              placeholder="(11) 3333-4444"
-              autoComplete="tel"
-              data-testid="form-tel"
-            />
-          </FormField>
-          <FormField label="WhatsApp" htmlFor="cliente-whatsapp">
-            <input
-              id="cliente-whatsapp"
-              className="inp"
-              type="tel"
-              inputMode="tel"
-              value={values.whatsapp}
-              onChange={(e) => update('whatsapp', e.target.value)}
-              onBlur={(e) => update('whatsapp', formatPhone(e.target.value))}
-              placeholder="(11) 99999-0000"
-              autoComplete="tel"
-              data-testid="form-whatsapp"
-            />
-          </FormField>
-          <FormField label="E-mail" htmlFor="cliente-email">
-            <input
-              id="cliente-email"
-              className="inp"
-              type="email"
-              value={values.email}
-              onChange={(e) => update('email', e.target.value)}
-              placeholder="exemplo@cliente.com.br"
-              autoComplete="email"
-              data-testid="form-email"
-            />
-          </FormField>
+          <Input
+            label="Telefone"
+            id="cliente-tel"
+            type="tel"
+            inputMode="tel"
+            value={values.tel}
+            onChange={(e) => update('tel', e.target.value)}
+            onBlur={(e) => update('tel', formatPhone(e.target.value))}
+            placeholder="(11) 3333-4444"
+            autoComplete="tel"
+            data-testid="form-tel"
+          />
+          <Input
+            label="WhatsApp"
+            id="cliente-whatsapp"
+            type="tel"
+            inputMode="tel"
+            value={values.whatsapp}
+            onChange={(e) => update('whatsapp', e.target.value)}
+            onBlur={(e) => update('whatsapp', formatPhone(e.target.value))}
+            placeholder="(11) 99999-0000"
+            autoComplete="tel"
+            data-testid="form-whatsapp"
+          />
+          <Input
+            label="E-mail"
+            id="cliente-email"
+            type="email"
+            value={values.email}
+            onChange={(e) => update('email', e.target.value)}
+            placeholder="exemplo@cliente.com.br"
+            autoComplete="email"
+            data-testid="form-email"
+          />
         </div>
       </FormSection>
 
@@ -348,121 +331,99 @@ export function ClienteForm({
         description="Organize quem atende, qual segmento e quais condições básicas valem para esse cliente."
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Responsável / Comprador" htmlFor="cliente-resp">
-            <input
-              id="cliente-resp"
-              className="inp"
-              value={values.resp}
-              onChange={(e) => update('resp', e.target.value)}
-              data-testid="form-resp"
-            />
-          </FormField>
-          <FormField label="Vendedor" htmlFor="cliente-rca">
-            <select
-              id="cliente-rca"
-              className="inp"
-              value={values.rca_id}
-              onChange={(e) => handleRcaChange(e.target.value)}
-              data-testid="form-rca"
-            >
-              <option value="">Sem vendedor</option>
-              {rcas.map((rca) => (
-                <option key={rca.id} value={rca.id}>
-                  {rca.nome}
-                </option>
-              ))}
-            </select>
-          </FormField>
+          <Input
+            label="Responsável / Comprador"
+            id="cliente-resp"
+            value={values.resp}
+            onChange={(e) => update('resp', e.target.value)}
+            data-testid="form-resp"
+          />
+          <Select
+            label="Vendedor"
+            id="cliente-rca"
+            value={values.rca_id}
+            onChange={(e) => handleRcaChange(e.target.value)}
+            options={[
+              { value: '', label: 'Sem vendedor' },
+              ...rcas.map((rca) => ({ value: rca.id, label: rca.nome }))
+            ]}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <FormField label="Segmento" htmlFor="cliente-seg">
-            <input
-              id="cliente-seg"
-              className="inp"
-              value={values.seg}
-              onChange={(e) => update('seg', e.target.value)}
-              placeholder="Ex: Atacado, Farmacia, Revenda"
-              data-testid="form-seg"
-            />
-          </FormField>
-          <FormField label="Tabela de preço" htmlFor="cliente-tab">
-            <select
-              id="cliente-tab"
-              className="inp"
-              value={values.tab}
-              onChange={(e) => update('tab', e.target.value)}
-              data-testid="form-tab"
-            >
-              <option value="padrao">Padrao</option>
-              <option value="especial">Especial</option>
-              <option value="vip">VIP</option>
-            </select>
-          </FormField>
-          <FormField label="Prazo de pagamento" htmlFor="cliente-prazo">
-            <select
-              id="cliente-prazo"
-              className="inp"
-              value={values.prazo}
-              onChange={(e) => update('prazo', e.target.value)}
-              data-testid="form-prazo"
-            >
-              <option value="a_vista">A vista</option>
-              <option value="7d">7 dias</option>
-              <option value="15d">15 dias</option>
-              <option value="30d">30 dias</option>
-              <option value="60d">60 dias</option>
-            </select>
-          </FormField>
-          <FormField label="Time(s)" htmlFor="cliente-time">
-            <input
-              id="cliente-time"
-              className="inp"
-              value={values.time}
-              placeholder="Ex: Flamengo, Paysandu"
-              onChange={(e) => update('time', e.target.value)}
-              data-testid="form-time"
-            />
-          </FormField>
+          <Input
+            label="Segmento"
+            id="cliente-seg"
+            value={values.seg}
+            onChange={(e) => update('seg', e.target.value)}
+            placeholder="Ex: Atacado, Farmacia, Revenda"
+            data-testid="form-seg"
+          />
+          <Select
+            label="Tabela de preço"
+            id="cliente-tab"
+            value={values.tab}
+            onChange={(e) => update('tab', e.target.value)}
+            options={[
+              { value: 'padrao', label: 'Padrao' },
+              { value: 'especial', label: 'Especial' },
+              { value: 'vip', label: 'VIP' }
+            ]}
+          />
+          <Select
+            label="Prazo de pagamento"
+            id="cliente-prazo"
+            value={values.prazo}
+            onChange={(e) => update('prazo', e.target.value)}
+            options={[
+              { value: 'a_vista', label: 'A vista' },
+              { value: '7d', label: '7 dias' },
+              { value: '15d', label: '15 dias' },
+              { value: '30d', label: '30 dias' },
+              { value: '60d', label: '60 dias' }
+            ]}
+          />
+          <Input
+            label="Time(s)"
+            id="cliente-time"
+            value={values.time}
+            placeholder="Ex: Flamengo, Paysandu"
+            onChange={(e) => update('time', e.target.value)}
+            data-testid="form-time"
+          />
         </div>
       </FormSection>
 
       <FormSection title="Localização e observações">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Cidade" htmlFor="cliente-cidade">
-            <input
-              id="cliente-cidade"
-              className="inp"
-              value={values.cidade}
-              onChange={(e) => update('cidade', e.target.value)}
-              data-testid="form-cidade"
-            />
-          </FormField>
-          <FormField label="Estado" htmlFor="cliente-estado">
-            <input
-              id="cliente-estado"
-              className="inp"
-              value={values.estado}
-              onChange={(e) => update('estado', e.target.value)}
-              onBlur={(e) => update('estado', normalizeUf(e.target.value))}
-              maxLength={2}
-              placeholder="UF"
-              data-testid="form-estado"
-            />
-          </FormField>
+          <Input
+            label="Cidade"
+            id="cliente-cidade"
+            value={values.cidade}
+            onChange={(e) => update('cidade', e.target.value)}
+            data-testid="form-cidade"
+          />
+          <Input
+            label="Estado"
+            id="cliente-estado"
+            value={values.estado}
+            onChange={(e) => update('estado', e.target.value)}
+            onBlur={(e) => update('estado', normalizeUf(e.target.value))}
+            maxLength={2}
+            placeholder="UF"
+            data-testid="form-estado"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Data de aniversário" htmlFor="cliente-aniv">
-            <input
-              id="cliente-aniv"
-              className="inp"
-              type="date"
-              value={values.data_aniversario}
-              onChange={(e) => update('data_aniversario', e.target.value)}
-              data-testid="form-aniv"
-            />
-          </FormField>
+          <Input
+            label="Data de aniversário"
+            id="cliente-aniv"
+            type="date"
+            value={values.data_aniversario}
+            onChange={(e) => update('data_aniversario', e.target.value)}
+            data-testid="form-aniv"
+          />
           <FormField label="Opt-ins de marketing">
             <div className="fg2">
               <label className="optin-choice">
@@ -499,11 +460,10 @@ export function ClienteForm({
         <FormField label="Observações" htmlFor="cliente-obs">
           <textarea
             id="cliente-obs"
-            className="inp"
+            className="rf-input-premium min-h-[100px] resize-none"
             rows={3}
             value={values.obs}
             onChange={(e) => update('obs', e.target.value)}
-            data-testid="form-obs"
           />
         </FormField>
       </FormSection>
@@ -515,29 +475,7 @@ export function ClienteForm({
           onCancel={onCancel}
           loading={saving}
           submitLabel={initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
-        >
-          <>
-            {onCancel ? (
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={onCancel}
-                data-testid="cancelar-btn"
-                disabled={saving}
-              >
-                Cancelar
-              </button>
-            ) : null}
-            <button
-              type="submit"
-              className="btn btn-p btn-sm"
-              disabled={saving}
-              data-testid="salvar-btn"
-            >
-              {saving ? 'Salvando…' : initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
-            </button>
-          </>
-        </FormActions>
+        />
       </div>
     </form>
   );

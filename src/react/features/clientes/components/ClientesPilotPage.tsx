@@ -10,7 +10,8 @@ import {
   LoadingState,
   PageHeader,
   PillGroup,
-  StatusBadge
+  StatusBadge,
+  Button
 } from '../../../shared/ui';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -256,14 +257,13 @@ export function ClientesPilotPage({
 
             <div className="h-8 w-px bg-slate-200/60 mx-1" />
 
-            <button
-              className="rf-btn-premium rf-btn-premium--primary"
-              type="button"
+            <Button
+              variant="primary"
               data-testid="novo-btn"
               onClick={() => openNewCliente('header_button')}
             >
               Novo cliente
-            </button>
+            </Button>
           </div>
         }
       />
@@ -306,20 +306,18 @@ export function ClientesPilotPage({
                 actions={
                   <>
                     {temFiltro ? (
-                      <button className="btn btn-sm h-9" type="button" onClick={clearFiltro} data-testid="limpar-filtro">
+                      <Button onClick={clearFiltro} data-testid="limpar-filtro">
                         Limpar
-                      </button>
+                      </Button>
                     ) : null}
-                    <button
-                      className="btn btn-sm h-9"
-                      type="button"
+                    <Button
                       onClick={() => {
                         void exportarCsvAtual();
                       }}
                       data-testid="export-btn"
                     >
                       Exportar CSV
-                    </button>
+                    </Button>
                   </>
                 }
               />
@@ -343,9 +341,9 @@ export function ClientesPilotPage({
                     : 'Cadastre o primeiro cliente para começar a operar por aqui.'
                 }
                 emptyAction={
-                  <button className="btn btn-p btn-sm h-9" type="button" onClick={() => openNewCliente('empty_state')}>
+                  <Button variant="primary" onClick={() => openNewCliente('empty_state')}>
                     Novo cliente
-                  </button>
+                  </Button>
                 }
                 onRowClick={(cliente) => openDetail(cliente.id, 'resumo', 'list_row')}
                 columns={[

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge, SegmentedControl } from '../../../shared/ui';
+import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge, SegmentedControl, Button } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 import { RcaDrawer } from './RcaDrawer';
@@ -63,9 +63,9 @@ export function RcasPage() {
         description="Cadastro e gestão de vendedores (RCAs) da filial."
         actions={
           <div className="flex items-center gap-3">
-            <button className="btn btn-p btn-sm" type="button" onClick={() => openDrawer()}>
+            <Button variant="primary" onClick={() => openDrawer()}>
               + Novo vendedor
-            </button>
+            </Button>
           </div>
         }
       />
@@ -106,9 +106,9 @@ export function RcasPage() {
         }
         emptyAction={
           activeFilterCount === 0 ? (
-            <button className="btn btn-p" type="button" onClick={() => openDrawer()}>
+            <Button variant="primary" onClick={() => openDrawer()}>
               Cadastrar vendedor
-            </button>
+            </Button>
           ) : undefined
         }
         renderActions={(r) => (

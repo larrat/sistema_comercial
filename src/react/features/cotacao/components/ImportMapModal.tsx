@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal } from '../../../shared/ui';
+import { Modal, Button, Input, Select, Badge } from '../../../shared/ui';
 import { useCotacaoImport } from '../hooks/useCotacaoImport';
 import {
   buildCotacaoImportMatchReview,
@@ -86,27 +86,25 @@ export function ImportMapModal() {
       }}
       footer={
         progress ? null : resumo ? (
-          <button type="button" className="btn btn-p btn-sm" onClick={closeImportMap}>
+          <Button variant="primary" onClick={closeImportMap}>
             Fechar
-          </button>
+          </Button>
         ) : (
           <>
-            <button
-              type="button"
-              className="btn btn-sm"
+            <Button
               onClick={closeImportMap}
               disabled={confirming}
             >
               Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn btn-p btn-sm"
+            </Button>
+            <Button
+              variant="primary"
               onClick={() => void handleConfirmar()}
-              disabled={confirming || !ctx || matchReview.blocking > 0}
+              loading={confirming}
+              disabled={!ctx || matchReview.blocking > 0}
             >
-              {confirming ? 'Importando...' : 'Confirmar importação'}
-            </button>
+              Confirmar importação
+            </Button>
           </>
         )
       }
@@ -139,22 +137,22 @@ export function ImportMapModal() {
           <div className="rf-ui-stack">
             <div className="table-cell-strong">Importação concluída</div>
             {resumo.status ? (
-              <div>
-                <span
-                  className={`bdg ${
+              <div className="flex gap-2">
+                <Badge
+                  variant={
                     resumo.status === 'success'
-                      ? 'ok'
+                      ? 'green'
                       : resumo.status === 'partial'
-                        ? 'warn'
-                        : 'danger'
-                  }`}
+                        ? 'yellow'
+                        : 'red'
+                  }
                 >
                   {resumo.status === 'success'
                     ? 'Sucesso'
                     : resumo.status === 'partial'
                       ? 'Falha parcial'
                       : 'Falhou'}
-                </span>
+                </Badge>
               </div>
             ) : null}
             <div className="rf-ui-inline-stats">
@@ -166,31 +164,29 @@ export function ImportMapModal() {
               ) : null}
             </div>
             {resumo.etapas?.length ? (
-              <div className="tw">
-                <table className="tbl">
-                  <thead>
+              <div className="overflow-hidden border border-slate-200 rounded-xl bg-white">
+                <table className="w-full text-[12px] border-collapse">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
                     <tr>
-                      <th>Etapa</th>
-                      <th>Status</th>
-                      <th>Processados</th>
-                      <th>Sucesso</th>
-                      <th>Falhas</th>
+                      <th className="px-4 py-3 text-left">Etapa</th>
+                      <th className="px-4 py-3 text-left">Status</th>
+                      <th className="px-4 py-3 text-right">Proc.</th>
+                      <th className="px-4 py-3 text-right">Sucesso</th>
+                      <th className="px-4 py-3 text-right">Falhas</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {resumo.etapas.map((etapa) => (
-                      <tr key={etapa.id}>
-                        <td>{etapa.label}</td>
-                        <td>
-                          {etapa.status === 'success'
-                            ? 'Sucesso'
-                            : etapa.status === 'partial'
-                              ? 'Parcial'
-                              : 'Falhou'}
+                      <tr key={etapa.id} className="hover:bg-slate-50/50">
+                        <td className="px-4 py-2.5 font-medium">{etapa.label}</td>
+                        <td className="px-4 py-2.5">
+                           <Badge variant={etapa.status === 'success' ? 'green' : etapa.status === 'partial' ? 'yellow' : 'red'}>
+                            {etapa.status === 'success' ? 'Sucesso' : etapa.status === 'partial' ? 'Parcial' : 'Falhou'}
+                           </Badge>
                         </td>
-                        <td>{etapa.processados}</td>
-                        <td>{etapa.sucesso}</td>
-                        <td>{etapa.falhas}</td>
+                        <td className="px-4 py-2.5 text-right">{etapa.processados}</td>
+                        <td className="px-4 py-2.5 text-right text-emerald-600">{etapa.sucesso}</td>
+                        <td className="px-4 py-2.5 text-right text-rose-600 font-bold">{etapa.falhas}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -202,21 +198,21 @@ export function ImportMapModal() {
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
                   Ver exemplos ignorados ({resumo.ignoradosExemplos.length})
                 </summary>
-                <div className="tw" style={{ marginTop: 8 }}>
-                  <table className="tbl">
-                    <thead>
+                <div className="mt-2 overflow-hidden border border-slate-200 rounded-lg bg-slate-50/50">
+                  <table className="w-full text-[11px] border-collapse">
+                    <thead className="bg-slate-100/50 border-b border-slate-200 text-slate-500 font-bold uppercase">
                       <tr>
-                        <th>Linha</th>
-                        <th>Nome</th>
-                        <th>Motivo</th>
+                        <th className="px-3 py-2 text-left">Linha</th>
+                        <th className="px-3 py-2 text-left">Nome</th>
+                        <th className="px-3 py-2 text-left">Motivo</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {resumo.ignoradosExemplos.map((ex, index) => (
                         <tr key={`${ex.linha}-${index}`}>
-                          <td>{ex.linha}</td>
-                          <td>{ex.nome || '—'}</td>
-                          <td className="table-cell-muted">{ex.motivo}</td>
+                          <td className="px-3 py-1.5">{ex.linha}</td>
+                          <td className="px-3 py-1.5 font-medium">{ex.nome || '—'}</td>
+                          <td className="px-3 py-1.5 text-slate-500 italic">{ex.motivo}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -229,21 +225,21 @@ export function ImportMapModal() {
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
                   Ver itens problemáticos ({resumo.itensProblematicos.length})
                 </summary>
-                <div className="tw" style={{ marginTop: 8 }}>
-                  <table className="tbl">
-                    <thead>
+                <div className="mt-2 overflow-hidden border border-slate-200 rounded-lg bg-slate-50/50">
+                  <table className="w-full text-[11px] border-collapse">
+                    <thead className="bg-slate-100/50 border-b border-slate-200 text-slate-500 font-bold uppercase">
                       <tr>
-                        <th>Etapa</th>
-                        <th>Item</th>
-                        <th>Motivo</th>
+                        <th className="px-3 py-2 text-left">Etapa</th>
+                        <th className="px-3 py-2 text-left">Item</th>
+                        <th className="px-3 py-2 text-left">Motivo</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {resumo.itensProblematicos.map((item, index) => (
                         <tr key={`${item.etapa}-${item.nome}-${index}`}>
-                          <td>{item.etapa}</td>
-                          <td>{item.nome || '—'}</td>
-                          <td className="table-cell-muted">{item.motivo}</td>
+                          <td className="px-3 py-1.5 font-medium">{item.etapa}</td>
+                          <td className="px-3 py-1.5">{item.nome || '—'}</td>
+                          <td className="px-3 py-1.5 text-rose-600">{item.motivo}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -300,37 +296,31 @@ export function ImportMapModal() {
             </div>
 
             {sheets.length > 1 ? (
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Aba da planilha</span>
-                <select
-                  className="inp sel"
-                  value={sheetIdx}
-                  onChange={(e) => setSheetIdx(Number(e.target.value))}
-                >
-                  {sheets.map((s, i) => (
-                    <option key={i} value={i}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <Select
+              label="Aba da planilha"
+              value={sheetIdx}
+              onChange={(e) => setSheetIdx(Number(e.target.value))}
+              options={sheets.map((s, i) => ({ value: i, label: s.name }))}
+            />
             ) : null}
 
             {preview.length > 0 ? (
-              <div className="tw" style={{ overflowX: 'auto', maxHeight: 140, fontSize: 12 }}>
-                <table className="tbl">
-                  <thead>
+              <div className="overflow-hidden border border-slate-200 rounded-xl bg-white shadow-sm max-h-[160px] overflow-y-auto">
+                <table className="w-full text-[11px] border-collapse">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase sticky top-0 z-10">
                     <tr>
                       {headers.map((h) => (
-                        <th key={h.idx}>{h.label}</th>
+                        <th key={h.idx} className="px-3 py-2 text-left whitespace-nowrap">{h.label}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100">
                     {preview.map((row, ri) => (
-                      <tr key={ri}>
+                      <tr key={ri} className="hover:bg-slate-50/50">
                         {headers.map((h) => (
-                          <td key={h.idx}>{String(row[h.idx] ?? '').substring(0, 30)}</td>
+                          <td key={h.idx} className="px-3 py-1.5 text-slate-600 truncate max-w-[120px]">
+                            {String(row[h.idx] ?? '').substring(0, 30)}
+                          </td>
                         ))}
                       </tr>
                     ))}
@@ -344,29 +334,27 @@ export function ImportMapModal() {
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
                   Revisar matching dos itens ({matchReview.rows.length})
                 </summary>
-                <div className="tw" style={{ marginTop: 8 }}>
-                  <table className="tbl">
-                    <thead>
+                <div className="mt-3 overflow-hidden border border-slate-200 rounded-xl bg-white shadow-sm max-h-[200px] overflow-y-auto">
+                  <table className="w-full text-[11px] border-collapse">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase sticky top-0 z-10">
                       <tr>
-                        <th>Item importado</th>
-                        <th>Status</th>
-                        <th>Produto relacionado</th>
-                        <th>Detalhe</th>
+                        <th className="px-4 py-2.5 text-left">Item importado</th>
+                        <th className="px-4 py-2.5 text-left">Status</th>
+                        <th className="px-4 py-2.5 text-left">Produto relacionado</th>
+                        <th className="px-4 py-2.5 text-left">Detalhe</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {matchReview.rows.slice(0, 20).map((row, index) => (
-                        <tr key={`${row.nomeOriginal}-${index}`}>
-                          <td>{row.nomeOriginal}</td>
-                          <td>
-                            {row.status === 'matched'
-                              ? 'Confiável'
-                              : row.status === 'ambiguous'
-                                ? 'Ambíguo'
-                                : 'Sem match'}
+                        <tr key={`${row.nomeOriginal}-${index}`} className="hover:bg-slate-50/50">
+                          <td className="px-4 py-2.5 font-medium text-slate-900">{row.nomeOriginal}</td>
+                          <td className="px-4 py-2.5">
+                             <Badge variant={row.status === 'matched' ? 'green' : row.status === 'ambiguous' ? 'yellow' : 'red'}>
+                                {row.status === 'matched' ? 'Confiável' : row.status === 'ambiguous' ? 'Ambíguo' : 'Sem match'}
+                             </Badge>
                           </td>
-                          <td>{row.produtoNome || '—'}</td>
-                          <td className="table-cell-muted">
+                          <td className="px-4 py-2.5 text-slate-700">{row.produtoNome || '—'}</td>
+                          <td className="px-4 py-2.5 text-slate-500 italic">
                             {row.status === 'ambiguous'
                               ? row.candidatos?.join(', ') || 'Mais de um candidato'
                               : row.status === 'unmatched'
@@ -382,78 +370,52 @@ export function ImportMapModal() {
             ) : null}
 
             <div className="rf-ui-form-grid">
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Mês da cotação</span>
-                <input
-                  className="inp"
-                  type="month"
-                  value={draft.mes}
-                  onChange={(e) => setDraft((d) => ({ ...d, mes: e.target.value }))}
-                />
-              </label>
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Linha inicial dos dados</span>
-                <input
-                  className="inp"
-                  type="number"
-                  min="1"
-                  value={draft.startLine}
-                  onChange={(e) => setDraft((d) => ({ ...d, startLine: Number(e.target.value) }))}
-                />
-              </label>
+              <Input
+                label="Mês da cotação"
+                type="month"
+                value={draft.mes}
+                onChange={(e) => setDraft((d) => ({ ...d, mes: e.target.value }))}
+              />
+              <Input
+                label="Linha inicial dos dados"
+                type="number"
+                min="1"
+                value={draft.startLine}
+                onChange={(e) => setDraft((d) => ({ ...d, startLine: Number(e.target.value) }))}
+              />
             </div>
 
             <div className="rf-ui-form-grid">
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Coluna: Descrição/Nome *</span>
-                <select
-                  className="inp sel"
-                  value={draft.nomeCol}
-                  onChange={(e) => setDraft((d) => ({ ...d, nomeCol: Number(e.target.value) }))}
-                >
-                  {opts}
-                </select>
-              </label>
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Coluna: Preço Líquido *</span>
-                <select
-                  className="inp sel"
-                  value={draft.precoCol}
-                  onChange={(e) => setDraft((d) => ({ ...d, precoCol: Number(e.target.value) }))}
-                >
-                  {opts}
-                </select>
-              </label>
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Coluna: Categoria</span>
-                <select
-                  className="inp sel"
-                  value={draft.catCol}
-                  onChange={(e) => setDraft((d) => ({ ...d, catCol: Number(e.target.value) }))}
-                >
-                  {optsNone}
-                </select>
-              </label>
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Coluna: Preço Tabela</span>
-                <select
-                  className="inp sel"
-                  value={draft.tabelaCol}
-                  onChange={(e) => setDraft((d) => ({ ...d, tabelaCol: Number(e.target.value) }))}
-                >
-                  {optsNone}
-                </select>
-              </label>
-              <label className="rf-ui-field">
-                <span className="rf-ui-field__label">Coluna: % Desconto</span>
-                <select
-                  className="inp sel"
-                  value={draft.descontoCol}
-                  onChange={(e) => setDraft((d) => ({ ...d, descontoCol: Number(e.target.value) }))}
-                >
-                  {optsNone}
-                </select>
-              </label>
+              <Select
+                label="Coluna: Descrição/Nome *"
+                value={draft.nomeCol}
+                onChange={(e) => setDraft((d) => ({ ...d, nomeCol: Number(e.target.value) }))}
+                options={headers.map(h => ({ value: h.idx, label: h.label }))}
+              />
+              <Select
+                label="Coluna: Preço Líquido *"
+                value={draft.precoCol}
+                onChange={(e) => setDraft((d) => ({ ...d, precoCol: Number(e.target.value) }))}
+                options={headers.map(h => ({ value: h.idx, label: h.label }))}
+              />
+              <Select
+                label="Coluna: Categoria"
+                value={draft.catCol}
+                onChange={(e) => setDraft((d) => ({ ...d, catCol: Number(e.target.value) }))}
+                options={[{ value: -1, label: '— não importar —' }, ...headers.map(h => ({ value: h.idx, label: h.label }))]}
+              />
+              <Select
+                label="Coluna: Preço Tabela"
+                value={draft.tabelaCol}
+                onChange={(e) => setDraft((d) => ({ ...d, tabelaCol: Number(e.target.value) }))}
+                options={[{ value: -1, label: '— não importar —' }, ...headers.map(h => ({ value: h.idx, label: h.label }))]}
+              />
+              <Select
+                label="Coluna: % Desconto"
+                value={draft.descontoCol}
+                onChange={(e) => setDraft((d) => ({ ...d, descontoCol: Number(e.target.value) }))}
+                options={[{ value: -1, label: '— não importar —' }, ...headers.map(h => ({ value: h.idx, label: h.label }))]}
+              />
             </div>
           </>
         )}

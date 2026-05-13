@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Produto, PedidoItem } from '../../../../types/domain';
 import { calcPrecoSugerido } from '../utils/pedidoRules';
+import { Button, Input } from '../../../shared/ui';
 
 type Props = {
   produtos: Produto[];
@@ -52,7 +53,8 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
       custo: custoNum,
       custo_base: prod.custo,
       preco_base: calcPrecoSugerido(prod, tipo),
-      orig
+      orig,
+      sku: prod.sku
     });
 
     // reset
@@ -65,17 +67,18 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
   }
 
   return (
-    <div data-testid="pedido-item-add">
+    <div data-testid="pedido-item-add" className="rf-glass p-6 rounded-2xl border border-white/5 flex flex-col gap-4">
       {error && (
-        <div className="empty-inline" style={{ color: 'var(--color-danger)' }}>
+        <div className="text-xs font-bold text-rose-500 uppercase tracking-widest bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
           {error}
         </div>
       )}
-      <div className="fg c5 form-gap-bottom-xxs">
-        <div>
-          <div className="fl">Produto</div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+        <div className="md:col-span-4 flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Produto</label>
           <select
-            className="inp sel"
+            className="rf-input-premium w-full"
             value={prodId}
             onChange={(e) => handleProdChange(e.target.value)}
             data-testid="pedido-item-prod"
@@ -88,10 +91,10 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
             ))}
           </select>
         </div>
-        <div>
-          <div className="fl">Quantidade</div>
-          <input
-            className="inp"
+
+        <div className="md:col-span-2">
+          <Input
+            label="Qtd"
             type="number"
             min="1"
             value={qty}
@@ -99,10 +102,10 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
             data-testid="pedido-item-qty"
           />
         </div>
-        <div>
-          <div className="fl">Preço unit. (R$)</div>
-          <input
-            className="inp"
+
+        <div className="md:col-span-2">
+          <Input
+            label="Preço Unit."
             type="number"
             step="0.01"
             placeholder="auto"
@@ -111,22 +114,23 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
             data-testid="pedido-item-preco"
           />
         </div>
-        <div>
-          <div className="fl">Custo aplicado (R$)</div>
-          <input
-            className="inp"
+
+        <div className="md:col-span-2">
+          <Input
+            label="Custo Aplicado"
             type="number"
             step="0.01"
-            placeholder="custo do produto"
+            placeholder="custo"
             value={custo}
             onChange={(e) => setCusto(e.target.value)}
             data-testid="pedido-item-custo"
           />
         </div>
-        <div>
-          <div className="fl">Origem</div>
+
+        <div className="md:col-span-2 flex flex-col gap-1.5">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Origem</label>
           <select
-            className="inp sel"
+            className="rf-input-premium w-full"
             value={orig}
             onChange={(e) => setOrig(e.target.value)}
             data-testid="pedido-item-orig"
@@ -136,15 +140,16 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
           </select>
         </div>
       </div>
-      <div className="modal-actions modal-actions-inline">
-        <button
-          className="btn btn-sm"
-          type="button"
+
+      <div className="flex justify-end mt-2">
+        <Button
+          variant="primary"
           onClick={handleAdd}
           data-testid="pedido-item-add-btn"
+          className="w-full md:w-auto"
         >
-          + Adicionar item
-        </button>
+          Adicionar item ao pedido
+        </Button>
       </div>
     </div>
   );

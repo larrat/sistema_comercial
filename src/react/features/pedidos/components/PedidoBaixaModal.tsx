@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { FormError, Modal } from '../../../shared/ui';
+import { FormError, Modal, Button, Input } from '../../../shared/ui';
 
 type Props = {
   open: boolean;
@@ -52,18 +52,17 @@ export function PedidoBaixaModal({
       closeOnOverlay={!submitting}
       footer={
         <>
-          <button type="button" className="btn btn-sm" disabled={submitting} onClick={onClose}>
+          <Button disabled={submitting} onClick={onClose}>
             Cancelar
-          </button>
-          <button
-            type="button"
-            className="btn btn-p btn-sm"
+          </Button>
+          <Button
+            variant="primary"
             disabled={submitting}
             onClick={handleConfirm}
             data-testid="pedido-detail-confirmar-baixa"
           >
             {submitting ? 'Confirmando…' : 'Confirmar baixa'}
-          </button>
+          </Button>
         </>
       }
     >
@@ -71,22 +70,19 @@ export function PedidoBaixaModal({
         <p className="table-cell-muted">
           Valor em aberto atual: <strong>{formatCurrency(valorEmAberto)}</strong>
         </p>
-        <label>
-          <span className="fl">Valor da baixa</span>
-          <input
-            ref={inputRef}
-            className="inp"
-            type="number"
-            min="0.01"
-            step="0.01"
-            placeholder="0,00"
-            value={valor}
-            onChange={(event) => {
-              setValor(event.target.value);
-              setLocalError(null);
-            }}
-          />
-        </label>
+        <Input
+          label="Valor da baixa"
+          ref={inputRef}
+          type="number"
+          min="0.01"
+          step="0.01"
+          placeholder="0,00"
+          value={valor}
+          onChange={(event) => {
+            setValor(event.target.value);
+            setLocalError(null);
+          }}
+        />
         <FormError message={localError || error || null} />
       </div>
     </Modal>

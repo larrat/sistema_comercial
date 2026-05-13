@@ -27,7 +27,7 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
-import { EmptyState, ErrorState, FormError, LoadingState, Drawer } from '../../../shared/ui';
+import { EmptyState, ErrorState, FormError, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
 import { useProdutoMutations } from '../hooks/useProdutoMutations';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
@@ -395,16 +395,21 @@ export function ProdutoProfilePage({
             </div>
           </div>
 
-          <button 
-            className="rf-btn-premium gap-2"
+          <Button 
+            variant="secondary"
+            className="gap-2"
             onClick={() => window.print()}
+            leftIcon={<Database className="w-4 h-4 text-emerald-500" />}
           >
-            <Database className="w-4 h-4 text-[#C5A059]" />
             Relatório
-          </button>
-          <button className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-slate-400">
-            <Share2 className="w-4 h-4" />
-          </button>
+          </Button>
+          <Button 
+            variant="secondary"
+            size="sm"
+            className="!p-2 rounded-xl"
+            onClick={() => {}}
+            leftIcon={<Share2 className="w-4 h-4" />}
+          />
         </div>
       </div>
 
@@ -438,15 +443,11 @@ export function ProdutoProfilePage({
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight m-0">{produto.nome}</h1>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
-                  stockStatus.tone === 'success' 
-                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                    : 'bg-rose-50 text-rose-600 border-rose-100'
-                }`}>
+                <Badge variant={stockStatus.tone === 'success' ? 'green' : 'red'}>
                   {stockStatus.label}
-                </span>
+                </Badge>
                 {produto.produto_pai_id && (
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-600 border border-slate-200 shadow-sm">Variante</span>
+                  <Badge variant="slate">Variante</Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
@@ -456,16 +457,17 @@ export function ProdutoProfilePage({
             </div>
             
             <div className="flex items-center gap-3">
-              <button
-                className="rf-btn-premium gap-2"
+              <Button
+                variant="secondary"
+                className="gap-2"
                 onClick={() => useInterModuleStore.getState().navegarParaMovProduto(produto.id)}
+                leftIcon={<Layers className="w-4 h-4 text-emerald-500" />}
               >
-                <Layers className="w-4 h-4 text-[#C5A059]" />
                 Movimentar estoque
-              </button>
-              <button className="rf-btn-premium rf-btn-premium--primary" onClick={startEdit}>
+              </Button>
+              <Button variant="primary" onClick={startEdit}>
                 Editar cadastro
-              </button>
+              </Button>
             </div>
           </div>
           <p className="text-sm text-slate-500 font-medium">
@@ -547,7 +549,7 @@ export function ProdutoProfilePage({
             {activeTab === tab.id && (
               <motion.div 
                 layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0F172A]"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"
               />
             )}
           </button>
@@ -831,7 +833,7 @@ export function ProdutoProfilePage({
                     <span className="rf-stat-label !mb-1 text-slate-500">Informações</span>
                     <h2 className="rf-dash-card__title text-base">Detalhes Cadastrais</h2>
                   </div>
-                  <button className="rf-btn-premium" onClick={startEdit}>Editar</button>
+                  <Button variant="secondary" size="sm" onClick={startEdit}>Editar</Button>
                 </div>
                 <div className="mt-2">
                   <ProdutoInfoTable
@@ -893,7 +895,7 @@ export function ProdutoProfilePage({
   );
 }
 
-function ProdutoInfoTable({ rows }: { rows: Array<{ label: string; value: React.ReactNode }> }) {
+function ProdutoInfoTable({ rows }: { rows: Array<{ label: React.ReactNode; value: React.ReactNode }> }) {
   return (
     <div className="flex flex-col gap-1.5">
       {rows.map((row, idx) => (

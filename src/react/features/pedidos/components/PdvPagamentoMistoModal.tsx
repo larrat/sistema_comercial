@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FormError, Modal } from '../../../shared/ui';
+import { FormError, Modal, Button, Input, Select } from '../../../shared/ui';
 import {
   formatCurrencyBRL,
   parseDecimalInput,
@@ -79,12 +79,12 @@ export function PdvPagamentoMistoModal({
       onClose={onClose}
       footer={
         <>
-          <button className="btn btn-sm" type="button" onClick={onClose}>
+          <Button onClick={onClose}>
             Cancelar
-          </button>
-          <button className="btn btn-p btn-sm" type="button" onClick={handleSave}>
+          </Button>
+          <Button variant="primary" onClick={handleSave}>
             Confirmar divisão
-          </button>
+          </Button>
         </>
       }
     >
@@ -98,22 +98,17 @@ export function PdvPagamentoMistoModal({
       <div className="rf-pdv-mixed-parts">
         {parts.map((part, index) => (
           <div key={`${part.method}-${index}`} className="rf-pdv-mixed-part">
-            <select
-              className="inp sel"
+            <Select
+              className="flex-1"
               value={part.method}
               onChange={(event) =>
                 updatePart(index, { method: event.target.value as PdvMixedPaymentMethod })
               }
-            >
-              {MIXED_METHOD_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              options={MIXED_METHOD_OPTIONS}
+            />
 
-            <input
-              className="inp"
+            <Input
+              className="flex-1"
               type="text"
               inputMode="decimal"
               value={part.amount ? part.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
@@ -121,22 +116,21 @@ export function PdvPagamentoMistoModal({
               onChange={(event) => updatePart(index, { amount: parseDecimalInput(event.target.value) })}
             />
 
-            <button
-              className="btn btn-sm"
-              type="button"
+            <Button
+              variant="secondary"
               onClick={() => removePart(index)}
               disabled={parts.length <= 1}
             >
               Remover
-            </button>
+            </Button>
           </div>
         ))}
       </div>
 
       <div className="rf-pdv-mixed-actions">
-        <button className="btn btn-sm" type="button" onClick={addPart} disabled={parts.length >= 3}>
+        <Button variant="secondary" onClick={addPart} disabled={parts.length >= 3}>
           + Adicionar forma
-        </button>
+        </Button>
       </div>
 
       <div className="rf-pdv-mixed-summary is-foot">
