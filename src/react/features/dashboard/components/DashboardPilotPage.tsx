@@ -787,7 +787,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <Card padding="sm" className="min-w-[180px] bg-surface-sidebar border-border-bold shadow-2xl">
+                            <Card padding="sm" className="min-w-[200px] bg-[#0f172a] border-border-bold shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                               <div className="flex flex-col items-center gap-4">
                                 <Typography variant="label" align="center" className="pb-2 border-b border-border-subtle w-full">
                                   {payload[0].name}
@@ -812,9 +812,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-1">
-                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Top 5</span>
-                  <span className="text-[12px] font-black text-white leading-none">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+                <div className={`absolute inset-0 flex flex-col items-center justify-center pointer-events-none transition-opacity duration-300 ${activePieIndex !== -1 ? 'opacity-0' : 'opacity-100'}`}>
+                  <Typography variant="label" color="muted" className="!tracking-tighter">Top 5</Typography>
+                  <Typography variant="h3" weight="black" color="primary" className="leading-none">
+                    {fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}
+                  </Typography>
                 </div>
               </div>
 
