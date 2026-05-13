@@ -21,7 +21,7 @@ export async function listJogosAgenda(ctx: ApiCtx): Promise<JogoAgenda[]> {
 
 export async function listClientesParaRelatorio(ctx: ApiCtx): Promise<Cliente[]> {
   const res = await fetch(
-    `${ctx.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(ctx.filialId)}&select=id,nome,time,status,seg,data_aniversario,optin_marketing,rca_nome&order=nome`,
+    `${ctx.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(ctx.filialId)}&order=nome`,
     { headers: hdr(ctx), signal: AbortSignal.timeout(10000) }
   );
   if (!res.ok) throw new Error(`listClientesParaRelatorio: ${res.status}`);
@@ -31,7 +31,7 @@ export async function listClientesParaRelatorio(ctx: ApiCtx): Promise<Cliente[]>
 
 export async function listPedidosParaRelatorio(ctx: ApiCtx): Promise<Pedido[]> {
   const res = await fetch(
-    `${ctx.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(ctx.filialId)}&select=id,num,cli,total,status,rca_nome&order=num.desc`,
+    `${ctx.url}/rest/v1/pedidos?filial_id=eq.${encodeURIComponent(ctx.filialId)}&order=num.desc`,
     { headers: hdr(ctx), signal: AbortSignal.timeout(10000) }
   );
   if (!res.ok) throw new Error(`listPedidosParaRelatorio: ${res.status}`);

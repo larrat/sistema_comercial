@@ -35,7 +35,7 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
 
 export async function listClientesLight(context: PedidoApiContext): Promise<ClienteLight[]> {
   const res = await fetch(
-    `${context.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(context.filialId)}&select=id,nome,rca_id,rca_nome,prazo,whatsapp,tel&order=nome`,
+    `${context.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(context.filialId)}&order=nome`,
     {
       headers: createHeaders(context),
       signal: AbortSignal.timeout(12000)
@@ -61,11 +61,7 @@ export async function searchClientesLight(
   params.set('limit', String(limit));
   params.set(
     'or',
-    `(${[
-      `nome.ilike.${pattern}`,
-      `whatsapp.ilike.${pattern}`,
-      `tel.ilike.${pattern}`
-    ].join(',')})`
+    `(${[`nome.ilike.${pattern}`, `whatsapp.ilike.${pattern}`, `tel.ilike.${pattern}`].join(',')})`
   );
   const res = await fetch(`${context.url}/rest/v1/clientes?${params.toString()}`, {
     headers: createHeaders(context),

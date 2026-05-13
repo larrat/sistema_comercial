@@ -88,14 +88,14 @@ export async function fetchDashboardData(
         return body as Produto[];
       }
     ),
-    fetch(`${ctx.url}/rest/v1/clientes?${commonParams}&status=eq.ativo&order=nome.asc`, {
+    fetch(`${ctx.url}/rest/v1/clientes?${commonParams}&order=nome.asc`, {
       headers
     }).then(async (r) => {
       const body = await readJson(r);
       ensureOk(r, body, 'Erro ao carregar clientes');
       return body as Cliente[];
     }),
-    fetch(`${ctx.url}/rest/v1/contas_receber?${commonParams}${crDateFilter}&status=eq.em_aberto`, {
+    fetch(`${ctx.url}/rest/v1/contas_receber?${commonParams}${crDateFilter}`, {
       headers
     }).then(async (r) => {
       const body = await readJson(r);

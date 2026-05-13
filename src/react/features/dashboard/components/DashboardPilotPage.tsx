@@ -235,8 +235,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     });
     
     return Object.values(productSales)
-      .sort((a, b) => b.receita - a.receita)
-      .slice(0, 5);
+      .sort((a, b) => b.receita - a.receita);
   }, [stats.vendasReais]);
 
   const topProductsColors = [
