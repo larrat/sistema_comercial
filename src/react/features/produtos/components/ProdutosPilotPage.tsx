@@ -18,7 +18,7 @@ import {
   PageHeader,
   StatusBadge
 } from '../../../shared/ui';
-import { Wrench, Loader2, CheckCircle } from 'lucide-react';
+import { Wrench, Loader2, CheckCircle, Zap } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -294,10 +294,11 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
             </button>
           )}
           <button
-            className="rf-btn-premium rf-btn-premium--primary"
+            className="rf-btn-premium rf-btn-premium--primary is-vibrant"
             type="button"
             onClick={() => setModal({ tipo: 'form', produto: null })}
           >
+            <Zap className="w-4 h-4" />
             Novo produto
           </button>
         </div>

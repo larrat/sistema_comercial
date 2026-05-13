@@ -3859,3 +3859,40 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-ui-data-table__row--premium:hover::before {
   opacity: 1;
 }
+
+/* --- VIBRANT BLUE TO PINK ENHANCEMENTS --- */
+
+.rf-gradient-premium {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  color: white;
+}
+
+.rf-btn-premium--primary.is-vibrant {
+  background: linear-gradient(135deg, #3b82f6 0%, #ec4899 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.rf-btn-premium--primary.is-vibrant:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+}
+
+.rf-card-premium--blue {
+  border-left: 4px solid #3b82f6;
+}
+
+.rf-card-premium--purple {
+  border-left: 4px solid #8b5cf6;
+}
+
+.rf-card-premium--pink {
+  border-left: 4px solid #ec4899;
+}
+
+.rf-badge-premium--vibrant {
+  background: linear-gradient(135deg, #3b82f6, #ec4899);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
