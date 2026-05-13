@@ -6,6 +6,8 @@ import {
   ActionMenu,
   DataTable,
   FilterBar,
+  PageHeader,
+  PillGroup,
   StatusBadge
 } from '../../../shared/ui';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -194,18 +196,38 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
 
   return (
     <div className="flex flex-col gap-6" data-testid="pedido-list-view">
-      {/* Topbar / Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-        <div className="flex flex-col">
-          <h1 className="text-xl font-bold text-slate-900 m-0">Pedidos</h1>
-          <p className="text-sm text-slate-500 font-medium">Acompanhe e gerencie a carteira de vendas</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="btn btn-p" onClick={onNovoPedido} data-testid="pedido-novo-btn">
-            Novo pedido
-          </button>
-        </div>
-      </header>
+      <PageHeader
+        kicker="Vendas"
+        title="Pedidos"
+        description="Acompanhe e gerencie a carteira de vendas da filial com visão completa de status e fluxo."
+        meta={
+          <StatusBadge tone="info">
+            {total} no total · página {page}
+          </StatusBadge>
+        }
+        actions={
+          <div className="flex items-center gap-6">
+            <PillGroup
+              options={TABS.map(t => ({
+                id: t.id,
+                label: `${t.label} (${tabCounts[t.id]})`
+              }))}
+              activeId={activeTab}
+              onChange={setActiveTab}
+            />
+
+            <div className="h-8 w-px bg-slate-200/60 mx-1" />
+
+            <button
+              className="rf-btn-premium rf-btn-premium--primary"
+              onClick={onNovoPedido}
+              data-testid="pedido-novo-btn"
+            >
+              Novo pedido
+            </button>
+          </div>
+        }
+      />
 
       {/* KPI Grid */}
       <section className="rf-kpi-grid mb-2">
@@ -235,28 +257,8 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         </article>
       </section>
 
-      {/* Control Center: Tabs & Filters */}
+      {/* Control Center: Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-2">
-          <nav className="rf-pill-group">
-            {TABS.map(t => (
-              <button 
-                key={t.id}
-                className={`rf-pill ${activeTab === t.id ? 'is-active' : ''}`}
-                onClick={() => setActiveTab(t.id)}
-              >
-                {t.label} <span className="ml-1 opacity-50">({tabCounts[t.id]})</span>
-              </button>
-            ))}
-          </nav>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Página {page} · {total} resultados
-            </span>
-          </div>
-        </div>
-
         <FilterBar
           className="pedidos-filter-bar !border-none !p-0 !bg-transparent"
           search={{
@@ -334,11 +336,11 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         }
         emptyAction={
           hasAnyFilter ? (
-            <button className="btn btn-sm" onClick={handleClearFilters}>
+            <button className="rf-btn-premium" onClick={handleClearFilters}>
               Limpar filtros
             </button>
           ) : activeTab === 'emaberto' ? (
-            <button className="btn btn-sm btn-p" onClick={onNovoPedido}>
+            <button className="rf-btn-premium rf-btn-premium--primary" onClick={onNovoPedido}>
               Novo pedido
             </button>
           ) : undefined
@@ -427,7 +429,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
             <div className="flex items-center justify-end gap-2">
               {nextStatus && acaoLabel ? (
                 <button
-                  className="btn btn-p btn-sm"
+                  className="rf-btn-premium rf-btn-premium--primary"
                   disabled={isBusy}
                   onClick={(event) => {
                     event.stopPropagation();

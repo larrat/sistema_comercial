@@ -84,7 +84,7 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
 
 
   return (
-    <div className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8" data-testid="pedidos-pilot-page">
+    <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8" data-testid="pedidos-pilot-page">
       <PedidoListView
         onRetry={onRetryLoad}
         onNovoPedido={() => openNewPedido('list_button')}
@@ -128,6 +128,6 @@ export function PedidosPilotPage({ routeIntent, onRetryLoad }: PedidosPilotPageP
           />
         ) : null}
       </Drawer>
-    </div>
+    </main>
   );
 }

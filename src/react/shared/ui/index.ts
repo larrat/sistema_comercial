@@ -19,3 +19,4 @@ export { SegmentedControl } from './SegmentedControl';
 export type { DrawerProps } from './Drawer';
 export type { DataTableColumn } from './DataTable';
 export type { ActionMenuItem } from './ActionMenu';
+export { PillGroup } from './PillGroup';

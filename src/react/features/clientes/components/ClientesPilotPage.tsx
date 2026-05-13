@@ -9,6 +9,7 @@ import {
   FilterBar,
   LoadingState,
   PageHeader,
+  PillGroup,
   StatusBadge
 } from '../../../shared/ui';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
@@ -232,7 +233,7 @@ export function ClientesPilotPage({
 
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8" data-testid="clientes-pilot-page">
+    <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8" data-testid="clientes-pilot-page">
       <PageHeader
         kicker="Relacionamento"
         title="Clientes"
@@ -243,43 +244,29 @@ export function ClientesPilotPage({
           </StatusBadge>
         }
         actions={
-          <button
-            className="btn btn-p btn-sm"
-            type="button"
-            data-testid="novo-btn"
-            onClick={() => openNewCliente('header_button')}
-          >
-            Novo cliente
-          </button>
+          <div className="flex items-center gap-6">
+            <PillGroup
+              options={[
+                { id: 'lista', label: 'Lista' },
+                { id: 'segmentos', label: 'Segmentos' }
+              ]}
+              activeId={surfaceTab}
+              onChange={(id) => setSurfaceTab(id as SurfaceTab)}
+            />
+
+            <div className="h-8 w-px bg-slate-200/60 mx-1" />
+
+            <button
+              className="rf-btn-premium rf-btn-premium--primary"
+              type="button"
+              data-testid="novo-btn"
+              onClick={() => openNewCliente('header_button')}
+            >
+              Novo cliente
+            </button>
+          </div>
         }
       />
-
-      {error ? <ErrorState title={error} compact data-testid="cliente-pilot-error" /> : null}
-
-      <div className="flex bg-slate-100/80 p-1 rounded-lg w-fit self-start shadow-inner" data-testid="cliente-surface-tabs">
-        <button
-          className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-            surfaceTab === 'lista'
-              ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-          }`}
-          type="button"
-          onClick={() => setSurfaceTab('lista')}
-        >
-          Lista
-        </button>
-        <button
-          className={`px-4 py-1.5 text-sm font-semibold rounded-md transition-all duration-200 ${
-            surfaceTab === 'segmentos'
-              ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-900/5'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-          }`}
-          type="button"
-          onClick={() => setSurfaceTab('segmentos')}
-        >
-          Segmentos
-        </button>
-      </div>
 
       <div hidden={surfaceTab !== 'lista'}>
         {storeStatus !== 'error' ? (
