@@ -79,15 +79,15 @@ const CotacaoPriceCell = memo(function CotacaoPriceCell({
     >
       {locked ? (
         value !== null && value > 0 ? (
-          <span className={`font-medium ${isBest ? 'text-emerald-700' : isWorst ? 'text-rose-700' : 'text-slate-900'}`}>
+          <span className={`font-medium ${isBest ? 'text-emerald-400' : isWorst ? 'text-rose-400' : 'text-white'}`}>
             {fmt(value)}
           </span>
         ) : (
-          <span className="text-slate-400">—</span>
+          <span className="text-slate-500">—</span>
         )
       ) : (
         <input
-          className={`rf-input-premium !py-1 !px-2 !text-xs !h-7 !text-right ${saving ? 'opacity-50' : ''} ${error ? '!border-rose-500 !ring-rose-500' : ''} ${isBest ? '!bg-white' : ''}`}
+          className={`rf-input-premium !py-1 !px-2 !text-xs !h-7 !text-right ${saving ? 'opacity-50' : ''} ${error ? '!border-rose-500 !ring-rose-500' : ''} ${isBest ? '!bg-emerald-500/10' : ''}`}
           type="number"
           value={draft}
           placeholder="0,00"
@@ -144,27 +144,27 @@ export function CotacaoTable({
   return (
     <div className="card-shell">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-sm font-bold text-slate-900 m-0">Tabela de cotação</h4>
+        <h4 className="text-sm font-bold text-white m-0">Tabela de cotação</h4>
         <Button variant="secondary" size="sm" onClick={onExportCsv}>
           Exportar CSV
         </Button>
       </div>
 
-      <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+      <div className="overflow-x-auto border border-white/5 rounded-xl bg-slate-900 shadow-sm">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-4 py-3 text-left font-bold text-slate-700">Produto</th>
-              <th className="px-4 py-3 text-left font-bold text-slate-700">Un</th>
+            <tr className="bg-white/5 border-b border-white/5">
+              <th className="px-4 py-3 text-left font-bold text-slate-400">Produto</th>
+              <th className="px-4 py-3 text-left font-bold text-slate-400">Un</th>
               {fornecedores.map((f) => (
-                <th key={f.id} className="px-4 py-3 text-right font-bold text-slate-700">
+                <th key={f.id} className="px-4 py-3 text-right font-bold text-slate-400">
                   {f.nome}
                 </th>
               ))}
-              <th className="px-4 py-3 text-center font-bold text-slate-700">Melhor</th>
+              <th className="px-4 py-3 text-center font-bold text-slate-400">Melhor</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/5">
             {produtos.map((p) => {
               const prices = fornecedores.map((f) => {
                 const v = precos[p.id]?.[f.id];
@@ -175,8 +175,8 @@ export function CotacaoTable({
               const maxP = valid.length ? Math.max(...valid) : null;
 
               return (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">{p.nome}</td>
+                <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                  <td className="px-4 py-3 font-medium text-white">{p.nome}</td>
                   <td className="px-4 py-3 text-slate-500">{p.un}</td>
                   {fornecedores.map((f, fi) => {
                     const val = prices[fi];
@@ -205,13 +205,13 @@ export function CotacaoTable({
                     {minP !== null ? (
                       <StatusBadge tone="success">{fmt(minP)}</StatusBadge>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-slate-500">—</span>
                     )}
                   </td>
                 </tr>
               );
             })}
-            <tr className="bg-slate-50/80 font-bold border-t border-slate-200">
+            <tr className="bg-white/5 font-bold border-t border-white/5">
               <td colSpan={2} className="px-4 py-4 text-slate-500 uppercase tracking-wider text-[10px]">
                 Total Geral
               </td>
@@ -221,9 +221,9 @@ export function CotacaoTable({
                 return (
                   <td
                     key={ft.id}
-                    className={`px-4 py-4 text-right ${isBest ? 'text-emerald-600' : 'text-slate-900'}`}
+                    className={`px-4 py-4 text-right ${isBest ? 'text-emerald-400' : 'text-white'}`}
                   >
-                    {ft.total > 0 ? fmt(ft.total) : <span className="text-slate-400">—</span>}
+                    {ft.total > 0 ? fmt(ft.total) : <span className="text-slate-500">—</span>}
                   </td>
                 );
               })}

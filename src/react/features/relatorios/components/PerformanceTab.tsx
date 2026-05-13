@@ -42,8 +42,8 @@ export function PerformanceTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
             <div className="w-1 h-4 bg-emerald-500 rounded-full" />
             Status dos pedidos
           </h3>
@@ -52,10 +52,10 @@ export function PerformanceTab() {
               {statusEntries.map(([status, qtd]) => (
                 <div key={status} className="flex flex-col gap-2">
                   <div className="flex justify-between items-end">
-                    <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
-                    <span className="text-sm font-extrabold text-slate-900">{qtd}</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
+                    <span className="text-sm font-extrabold text-white">{qtd}</span>
                   </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
                       style={{ width: `${Math.max(2, (qtd / totalPedidos) * 100)}%` }} 
@@ -69,22 +69,22 @@ export function PerformanceTab() {
           )}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
             <div className="w-1 h-4 bg-blue-500 rounded-full" />
             Top clientes por faturamento
           </h3>
           {topClientes.length > 0 ? (
             <div className="flex flex-col gap-3">
               {topClientes.map(([nome, dados]) => (
-                <div key={nome} className="p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50/50 transition-all flex items-center gap-4">
-                   <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold text-xs shrink-0">
+                <div key={nome} className="p-3 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all flex items-center gap-4">
+                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-bold text-xs shrink-0">
                      {nome.substring(0, 2).toUpperCase()}
                    </div>
                   <div className="flex-grow min-w-0">
-                    <div className="text-sm font-bold text-slate-900 truncate">{nome}</div>
+                    <div className="text-sm font-bold text-white truncate">{nome}</div>
                     <div className="text-[11px] text-slate-500 font-medium">
-                      {dados.pedidos} pedido(s) • <span className="text-emerald-600 font-bold">{fmt(dados.total)}</span>
+                      {dados.pedidos} pedido(s) • <span className="text-emerald-400 font-bold">{fmt(dados.total)}</span>
                     </div>
                   </div>
                 </div>

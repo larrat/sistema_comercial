@@ -61,7 +61,7 @@ function cn(...inputs: ClassValue[]) {
 function TooltipShell({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={cn(
-      "bg-white/95 backdrop-blur-2xl p-5 border border-white/60 rounded-[24px] shadow-[0_25px_50px_-12px_rgba(15,23,42,0.15)] ring-1 ring-black/5 animate-in fade-in zoom-in duration-200",
+      "bg-slate-900/95 backdrop-blur-2xl p-5 border border-white/10 rounded-[24px] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] ring-1 ring-white/5 animate-in fade-in zoom-in duration-200",
       className
     )}>
       {children}
@@ -84,8 +84,8 @@ function PremiumTooltip({ children, content }: { children: React.ReactNode; cont
             className="z-[9999]"
           >
             <TooltipShell className="p-3 rounded-xl min-w-[120px]">
-              <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight text-center">{content}</p>
-              <TooltipPrimitive.Arrow className="fill-white/90" />
+              <p className="text-[10px] font-black text-white uppercase tracking-tight text-center">{content}</p>
+              <TooltipPrimitive.Arrow className="fill-slate-900/90" />
             </TooltipShell>
           </TooltipPrimitive.Content>
         </TooltipPrimitive.Portal>
@@ -496,7 +496,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             className="rf-dash-card is-success"
           >
             <span className="rf-stat-label">Lucro bruto</span>
-            <div className="rf-stat-value text-emerald-600">
+            <div className="rf-stat-value text-emerald-400">
               <CountUp 
                 end={stats.lucroTotal} 
                 decimals={2} 
@@ -535,7 +535,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : 'is-warning'}`}
         >
           <span className="rf-stat-label">Em aberto</span>
-          <div className={`rf-stat-value ${stats.valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+          <div className={`rf-stat-value ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
             <CountUp 
               end={stats.valorEmAberto} 
               decimals={2} 
@@ -558,7 +558,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             <span className="rf-stat-label">Pacing mensal</span>
             {filial?.meta_mensal ? (
               <>
-                <div className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? 'text-emerald-600' : 'text-amber-600'}`}>
+                <div className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? 'text-emerald-400' : 'text-amber-400'}`}>
                   <CountUp 
                     end={(stats.faturamento / filial.meta_mensal) * 100} 
                     decimals={1} 
@@ -590,10 +590,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           >
             <div className="rf-dash-card__header flex-row items-center !mb-6">
               <div className="flex-1">
-                <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-0.5">Faturamento e Lucro</h2>
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-0.5">Faturamento e Lucro</h2>
                 <div className="flex items-center gap-2">
                   <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest opacity-80">Projeção por período</p>
-                  <span className="w-1 h-1 rounded-full bg-slate-300" />
+                  <span className="w-1 h-1 rounded-full bg-white/10" />
                   <span className="text-[9px] font-bold text-[#C5A059] uppercase tracking-tighter bg-[#C5A059]/10 px-1.5 py-0.5 rounded">{periodoDatas}</span>
                 </div>
               </div>
@@ -630,7 +630,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
@@ -644,8 +644,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       if (active && payload && payload.length) {
                         return (
                           <TooltipShell className="min-w-[200px]">
-                            <div className="flex flex-col items-center mb-4 pb-3 border-b border-slate-100">
-                              <p className="font-black text-slate-900 text-[12px] uppercase tracking-[0.2em] text-center">
+                            <div className="flex flex-col items-center mb-4 pb-3 border-b border-white/5">
+                              <p className="font-black text-white text-[12px] uppercase tracking-[0.2em] text-center">
                                 {payload[0].payload.name}
                               </p>
                             </div>
@@ -703,19 +703,19 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <div key={key} className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: config.color }} />
                   <PremiumTooltip content={config.label}>
-                    <span className="text-[11px] font-medium text-slate-600 w-[100px] truncate cursor-help">{config.label}</span>
+                    <span className="text-[11px] font-medium text-slate-400 w-[100px] truncate cursor-help">{config.label}</span>
                   </PremiumTooltip>
-                  <div className="flex-1 h-[5px] bg-slate-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-[5px] bg-white/5 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${perc}%`, background: config.color }} />
                   </div>
-                  <span className="text-[11px] font-bold text-slate-900 w-4 text-right">{count}</span>
+                  <span className="text-[11px] font-bold text-white w-4 text-right">{count}</span>
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 text-center">Mix de Vendas (Revenue Share)</h3>
+          <div className="mt-8 pt-6 border-t border-white/5">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 text-center">Mix de Vendas (Revenue Share)</h3>
             
             <div className="flex flex-col gap-6">
               <div className="h-[180px] w-full relative">
@@ -746,15 +746,15 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                         if (active && payload && payload.length) {
                           return (
                             <TooltipShell className="min-w-[160px] p-4">
-                              <div className="flex flex-col items-center mb-2 pb-2 border-b border-slate-100">
-                                <p className="font-black text-slate-900 text-[9px] uppercase tracking-[0.1em] text-center leading-tight">
-                                  {payload[0].name}
-                                </p>
-                              </div>
-                              <div className="flex flex-col items-center">
-                                <span className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mb-1">Participação</span>
-                                <p className="text-base font-black text-slate-900 leading-none">{fmt(payload[0].value as number)}</p>
-                              </div>
+                            <div className="flex flex-col items-center mb-2 pb-2 border-b border-white/5">
+                              <p className="font-black text-white text-[9px] uppercase tracking-[0.1em] text-center leading-tight">
+                                {payload[0].name}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mb-1">Participação</span>
+                              <p className="text-base font-black text-white leading-none">{fmt(payload[0].value as number)}</p>
+                            </div>
                               <div className="mt-3 pt-2 border-t border-slate-50 flex items-center justify-center gap-1.5 opacity-30">
                                 <div className="w-0.5 h-0.5 rounded-full bg-slate-400" />
                                 <span className="text-[6px] font-bold text-slate-500 uppercase tracking-widest">Analítico Nexus v3</span>
@@ -768,8 +768,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-1">
-                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Top 5</span>
-                  <span className="text-[12px] font-black text-slate-900 leading-none">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter">Top 5</span>
+                  <span className="text-[12px] font-black text-white leading-none">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
                 </div>
               </div>
 
@@ -823,11 +823,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               ].map(m => (
                 <div key={m.label} className="flex justify-between items-center">
                   <div>
-                    <p className="text-xs font-semibold text-slate-800">{m.label}</p>
+                    <p className="text-xs font-semibold text-white">{m.label}</p>
                     <p className="text-[10px] text-slate-500">{m.sub}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs font-bold text-slate-900">{m.val.toFixed(1)}%</span>
+                    <span className="text-xs font-bold text-white">{m.val.toFixed(1)}%</span>
                     <StatusBadge tone={getHealthTone(m.val, m.th as [number, number])}>
                       {m.val >= m.th[0] ? 'Saudável' : m.val >= m.th[1] ? 'Atenção' : 'Crítico'}
                     </StatusBadge>
@@ -882,7 +882,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               <h2 className="rf-dash-card__title">Alertas e pendências</h2>
               <p className="rf-dash-card__subtitle">Ações que precisam de atenção</p>
             </div>
-            <span className={`badge badge-sm ${alerts.length > 0 ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+            <span className={`badge badge-sm ${alerts.length > 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
               {alerts.length}
             </span>
           </div>
@@ -890,7 +890,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           <div className="rf-dash-list mt-2">
             {alerts.length > 0 ? alerts.map(a => (
               <div key={a.id} className="rf-dash-list-item group">
-                <div className={`rf-dash-list-item__icon ${a.tone === 'danger' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'} ${a.isPredictive ? 'ring-2 ring-[#C5A059]/20' : ''}`}>
+                <div className={`rf-dash-list-item__icon ${a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'} ${a.isPredictive ? 'ring-2 ring-[#C5A059]/20' : ''}`}>
                   {a.isPredictive ? <ArrowUpRight size={18} className="text-[#C5A059]" /> : a.tone === 'danger' ? <AlertCircle size={18} /> : <ArrowUpRight size={18} />}
                 </div>
                 <div className="rf-dash-list-item__content">
@@ -902,12 +902,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   </div>
                   <p className="rf-dash-list-item__desc">{a.desc}</p>
                 </div>
-                <a href={a.link} className="rf-dash-list-item__action hover:bg-slate-100 px-3 py-1 rounded-md transition-colors">Ver</a>
+                <a href={a.link} className="rf-dash-list-item__action hover:bg-white/5 px-3 py-1 rounded-md transition-colors text-slate-400 hover:text-white">Ver</a>
               </div>
             )) : (
               <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
                 <CheckCircle2 size={32} className="text-emerald-500" />
-                <p className="text-xs font-semibold text-slate-900">Nenhuma pendência no momento</p>
+                <p className="text-xs font-semibold text-white">Nenhuma pendência no momento</p>
                 <p className="text-[10px] text-slate-500">Operação estável e saudável.</p>
               </div>
             )}

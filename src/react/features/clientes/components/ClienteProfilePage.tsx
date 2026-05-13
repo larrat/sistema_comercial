@@ -296,9 +296,9 @@ function ClienteInfoTable({
   return (
     <div className="flex flex-col">
       {rows.map((row, i) => (
-        <div key={row.label} className={`flex items-center justify-between py-3 ${i !== rows.length - 1 ? 'border-b border-slate-100' : ''}`}>
-          <span className="text-sm font-medium text-slate-500">{row.label}</span>
-          <span className={`text-sm font-semibold text-right ${row.value ? 'text-slate-900' : 'text-slate-400 italic'}`}>
+        <div key={row.label} className={`flex items-center justify-between py-3 ${i !== rows.length - 1 ? 'border-b border-white/5' : ''}`}>
+          <span className="text-sm font-medium text-slate-400">{row.label}</span>
+          <span className={`text-sm font-semibold text-right ${row.value ? 'text-slate-100' : 'text-slate-500 italic'}`}>
             {row.value || 'Não informado'}
           </span>
         </div>
@@ -313,15 +313,15 @@ function SimpleBarsChart({ pedidos }: { pedidos: Pedido[] }) {
   const count = series.reduce((sum, month) => sum + month.count, 0);
 
   return (
-    <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+    <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight">Histórico de compras</h3>
-          <p className="text-sm font-medium text-slate-500 mt-1">
+          <h3 className="text-lg font-bold text-white tracking-tight">Histórico de compras</h3>
+          <p className="text-sm font-medium text-slate-400 mt-1">
             {formatCurrency(total)} · {count} pedido(s)
           </p>
         </div>
-        <span className="px-2 py-1 text-[10px] font-bold tracking-widest text-slate-500 bg-slate-100 rounded-md">12 MESES</span>
+        <span className="px-2 py-1 text-[10px] font-bold tracking-widest text-slate-400 bg-slate-800 rounded-md">12 MESES</span>
       </div>
 
       {count === 0 ? (
@@ -361,12 +361,12 @@ function PedidosTable({
   }
 
   const PILL_COLORS: Record<string, string> = {
-    warning: 'bg-amber-100 text-amber-800',
-    info: 'bg-blue-100 text-blue-800',
-    purple: 'bg-purple-100 text-purple-800',
-    danger: 'bg-rose-100 text-rose-800',
-    success: 'bg-emerald-100 text-emerald-800',
-    neutral: 'bg-slate-100 text-slate-800'
+    warning: 'bg-amber-500/10 text-amber-400',
+    info: 'bg-blue-500/10 text-blue-400',
+    purple: 'bg-purple-500/10 text-purple-400',
+    danger: 'bg-rose-500/10 text-rose-400',
+    success: 'bg-emerald-500/10 text-emerald-400',
+    neutral: 'bg-slate-500/10 text-slate-400'
   };
 
   return (
@@ -374,22 +374,22 @@ function PedidosTable({
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
           <tr>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Pedido</th>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Descrição</th>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Valor</th>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Status</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Pedido</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Descrição</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Valor</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-white/5">
           {pedidos.map((pedido) => (
-            <tr key={pedido.id} className="hover:bg-slate-50/50 transition-colors">
+            <tr key={pedido.id} className="hover:bg-white/5 transition-colors">
               <td className="px-4 py-3">
-                <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors" type="button" onClick={() => onOpenPedido(pedido.id)}>
+                <button className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors" type="button" onClick={() => onOpenPedido(pedido.id)}>
                   #{pedido.num}
                 </button>
               </td>
-              <td className="px-4 py-3 text-sm text-slate-600">{pedido.tipo === 'atacado' ? 'Atacado' : 'Pedido comercial'}</td>
-              <td className="px-4 py-3 text-sm font-semibold text-slate-900">{formatCurrency(Number(pedido.total || 0))}</td>
+              <td className="px-4 py-3 text-sm text-slate-400">{pedido.tipo === 'atacado' ? 'Atacado' : 'Pedido comercial'}</td>
+              <td className="px-4 py-3 text-sm font-semibold text-white">{formatCurrency(Number(pedido.total || 0))}</td>
               <td className="px-4 py-3">
                 <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${PILL_COLORS[getPedidoStatusPill(pedido.status)] || PILL_COLORS.neutral}`}>
                   {pedido.status || 'Em andamento'}
@@ -417,9 +417,9 @@ function FinanceiroTable({
   }
 
   const STATUS_COLORS: Record<string, string> = {
-    vencida: 'bg-rose-100 text-rose-800',
-    a_vencer: 'bg-amber-100 text-amber-800',
-    recebida: 'bg-emerald-100 text-emerald-800'
+    vencida: 'bg-rose-500/10 text-rose-400',
+    a_vencer: 'bg-amber-500/10 text-amber-400',
+    recebida: 'bg-emerald-500/10 text-emerald-400'
   };
 
   return (
@@ -427,26 +427,26 @@ function FinanceiroTable({
       <table className="w-full text-left border-collapse whitespace-nowrap">
         <thead>
           <tr>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Data</th>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Descrição</th>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Valor</th>
-            <th className="px-4 py-3 text-xs font-semibold text-slate-500 border-b border-slate-200">Status</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Data</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Descrição</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Valor</th>
+            <th className="px-4 py-3 text-xs font-semibold text-slate-400 border-b border-white/5">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-white/5">
           {contas.map((conta) => {
             const status = getContaStatus(conta);
             return (
-              <tr key={conta.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className={`px-4 py-3 text-sm font-medium ${status === 'vencida' ? 'text-rose-600' : 'text-slate-600'}`}>
+              <tr key={conta.id} className="hover:bg-white/5 transition-colors">
+                <td className={`px-4 py-3 text-sm font-medium ${status === 'vencida' ? 'text-rose-400' : 'text-slate-400'}`}>
                   {formatCompactDate(conta.vencimento)}
                 </td>
                 <td className="px-4 py-3">
-                  <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors" type="button" onClick={() => onOpenConta(conta.id)}>
+                  <button className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors" type="button" onClick={() => onOpenConta(conta.id)}>
                     {conta.pedido_num ? `Pedido #${conta.pedido_num}` : 'Conta avulsa'}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-sm font-semibold text-slate-900">{formatCurrency(getContaValorEmAberto(conta))}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-white">{formatCurrency(getContaValorEmAberto(conta))}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${STATUS_COLORS[status]}`}>
                     {status === 'vencida' ? 'Vencida' : status === 'a_vencer' ? 'A vencer' : 'Recebida'}
@@ -554,15 +554,15 @@ export function ClienteProfilePage({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <button 
-            className="flex items-center gap-1.5 text-slate-400 hover:text-slate-900 transition-colors" 
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors" 
             type="button" 
             onClick={() => navigate('/app/clientes')}
           >
             <ChevronLeft className="w-4 h-4" />
             Clientes
           </button>
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-900 font-semibold">{cliente.nome}</span>
+          <span className="text-slate-600">/</span>
+          <span className="text-white font-semibold">{cliente.nome}</span>
         </div>
         
         <div className="flex items-center gap-3">
@@ -584,22 +584,22 @@ export function ClienteProfilePage({
         </div>
       </div>
 
-      <section className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 md:items-center justify-between">
+      <section className="bg-slate-900 border border-white/5 rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col md:flex-row gap-6 md:items-center justify-between">
         <div className="flex items-center gap-6">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-2xl font-bold text-white shadow-inner">
             {getInitials(cliente.nome)}
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">{cliente.nome}</h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cliente.status === 'ativo' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'}`}>
+              <h1 className="text-2xl font-black text-white tracking-tight">{cliente.nome}</h1>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cliente.status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}`}>
                 {cliente.status === 'inativo' ? 'Inativo' : 'Ativo'}
               </span>
               {cliente.optin_marketing ? (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">MKT</span>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/10 text-purple-400">MKT</span>
               ) : null}
             </div>
-            <p className="text-sm font-medium text-slate-500">{renderMetadataLine(cliente, allPedidos)}</p>
+            <p className="text-sm font-medium text-slate-400">{renderMetadataLine(cliente, allPedidos)}</p>
           </div>
         </div>
 
@@ -667,7 +667,7 @@ export function ClienteProfilePage({
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/50 border border-white/20 shadow-sm ${card.tone === 'positive' ? 'text-emerald-600' : card.tone === 'negative' ? 'text-rose-600' : 'text-slate-400'}`}>
+                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm ${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-500'}`}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
               </div>
@@ -710,7 +710,7 @@ export function ClienteProfilePage({
             {activeTab === tab.id && (
               <motion.div 
                 layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400"
               />
             )}
           </button>
@@ -720,15 +720,15 @@ export function ClienteProfilePage({
       {activeTab === 'resumo' ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="flex flex-col gap-6 lg:col-span-2">
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Pedidos em aberto</h3>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Pedidos em aberto</h3>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="text-blue-600 hover:text-blue-700" 
+                  className="text-blue-400 hover:text-blue-300" 
                   onClick={() => setTab('pedidos')}
                   rightIcon={<ArrowUpRight className="w-4 h-4" />}
                 >
@@ -748,10 +748,10 @@ export function ClienteProfilePage({
               )}
             </section>
 
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Contas a receber</h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <h3 className="text-lg font-bold text-white tracking-tight">Contas a receber</h3>
+                <p className="text-sm text-slate-400 mt-1">
                   {contasPendentes.length} pendente(s) ·{' '}
                   {contasPendentes.filter((conta) => getContaStatus(conta) === 'vencida').length} vencida(s)
                 </p>
@@ -773,9 +773,9 @@ export function ClienteProfilePage({
           </div>
 
           <aside className="flex flex-col gap-6">
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Contato</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight">Contato</h3>
               </div>
               <ClienteInfoTable
                 rows={[
@@ -787,9 +787,9 @@ export function ClienteProfilePage({
               />
             </section>
 
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Comercial</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight">Comercial</h3>
               </div>
               <ClienteInfoTable
                 rows={[
@@ -801,20 +801,20 @@ export function ClienteProfilePage({
               />
             </section>
 
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Última nota</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight">Última nota</h3>
               </div>
               {notasLoading ? (
                 <LoadingState title="Carregando nota..." compact />
               ) : notasError ? (
                 <ErrorState title={notasError} compact />
               ) : ultimaNota ? (
-                <div className="bg-amber-50/50 border border-amber-100/50 rounded-xl p-4">
-                  <div className="text-xs font-semibold text-amber-800/60 uppercase tracking-widest mb-2">
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                  <div className="text-xs font-semibold text-amber-500/60 uppercase tracking-widest mb-2">
                     {formatDateLong(ultimaNota.data)}
                   </div>
-                  <p className="text-sm font-medium text-amber-900/80 leading-relaxed">{ultimaNota.texto}</p>
+                  <p className="text-sm font-medium text-amber-200/80 leading-relaxed">{ultimaNota.texto}</p>
                 </div>
               ) : (
                 <EmptyState title="Nenhuma nota registrada." compact />
@@ -832,9 +832,9 @@ export function ClienteProfilePage({
             <ErrorState title={pedidosError} />
           ) : (
             <div className="flex flex-col lg:flex-row gap-6">
-              <section className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <section className="flex-1 bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
                 <div className="mb-4">
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Pedidos em aberto</h3>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Pedidos em aberto</h3>
                 </div>
                 <PedidosTable
                   pedidos={pedidosAbertos}
@@ -842,9 +842,9 @@ export function ClienteProfilePage({
                   onOpenPedido={(pedidoId) => navigate(buildPedidosRoute({ pedidoId, view: 'detail' }))}
                 />
               </section>
-              <section className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+              <section className="flex-1 bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
                 <div className="mb-4">
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">Histórico de pedidos</h3>
+                  <h3 className="text-lg font-bold text-white tracking-tight">Histórico de pedidos</h3>
                 </div>
                 <PedidosTable
                   pedidos={pedidosFechados}
@@ -864,9 +864,9 @@ export function ClienteProfilePage({
           ) : contasError ? (
             <ErrorState title={contasError} />
           ) : (
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 tracking-tight">Contas a receber</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight">Contas a receber</h3>
               </div>
               <FinanceiroTable
                 contas={contas}
@@ -880,13 +880,13 @@ export function ClienteProfilePage({
 
       {activeTab === 'notas' ? (
         <section className="flex flex-col gap-6">
-          <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-slate-900 tracking-tight">Notas comerciais</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">Notas comerciais</h3>
             </div>
             <div className="flex flex-col gap-3 mb-8">
               <textarea
-                className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-4 outline-none resize-y transition-all"
+                className="w-full bg-slate-950 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-4 outline-none resize-y transition-all"
                 rows={4}
                 placeholder="Registrar observação comercial..."
                 value={notaDraft}
@@ -909,9 +909,9 @@ export function ClienteProfilePage({
             ) : notasOrdenadas.length ? (
               <div className="flex flex-col gap-4">
                 {notasOrdenadas.map((nota, index) => (
-                  <article key={`${nota.data}-${index}`} className="bg-amber-50/50 border border-amber-100/50 rounded-xl p-4">
-                    <div className="text-xs font-semibold text-amber-800/60 uppercase tracking-widest mb-2">{formatDateLong(nota.data)}</div>
-                    <p className="text-sm font-medium text-amber-900/80 leading-relaxed">{nota.texto}</p>
+                  <article key={`${nota.data}-${index}`} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                    <div className="text-xs font-semibold text-amber-500/60 uppercase tracking-widest mb-2">{formatDateLong(nota.data)}</div>
+                    <p className="text-sm font-medium text-amber-200/80 leading-relaxed">{nota.texto}</p>
                   </article>
                 ))}
               </div>
@@ -925,7 +925,7 @@ export function ClienteProfilePage({
       {activeTab === 'cadastro' ? (
         <section className="flex flex-col gap-6">
           {editingCadastro ? (
-            <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <ClienteForm
                 initialCliente={cliente}
                 analyticsOrigin="cliente_profile_page"

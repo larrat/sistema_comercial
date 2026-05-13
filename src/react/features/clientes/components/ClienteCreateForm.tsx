@@ -245,7 +245,7 @@ export function ClienteCreateForm() {
 
       <div className="rf-cliente-novo-layout">
         {/* SIDEBAR */}
-        <aside className="rf-cliente-novo-sidebar">
+        <aside className="rf-cliente-novo-sidebar bg-slate-900/50 border-r border-white/5">
           <nav className="flex flex-col gap-1">
             {SECTIONS.map((section) => {
               const isFilled = (section.id === 'essencial' && values.nome.trim() !== '') ||
@@ -263,20 +263,20 @@ export function ClienteCreateForm() {
                     {isFilled ? '✓' : section.number}
                   </span>
                   <span className="rf-nav-label">{section.label}</span>
-                  {isFilled && <span className="ml-auto text-green-500">✓</span>}
+                  {isFilled && <span className="ml-auto text-emerald-400">✓</span>}
                 </button>
               );
             })}
           </nav>
 
-          <div className="mt-auto pt-8 border-t border-slate-200">
-            <div className="flex justify-between text-xs font-medium text-slate-500 mb-2">
+          <div className="mt-auto pt-8 border-t border-white/5">
+            <div className="flex justify-between text-xs font-medium text-slate-400 mb-2">
               <span>Progresso</span>
               <span>{Math.round(progress / 25)} de 4</span>
             </div>
-            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-green-500 transition-all duration-500" 
+                className="h-full bg-emerald-500 transition-all duration-500" 
                 style={{ width: `${progress}%` }} 
               />
             </div>
@@ -293,8 +293,8 @@ export function ClienteCreateForm() {
           >
             <div className="rf-section-header">
               <div>
-                <h2 className="text-lg font-bold">Essencial</h2>
-                <p className="text-sm text-slate-500">Identificação básica e contatos principais.</p>
+                <h2 className="text-lg font-bold text-white">Essencial</h2>
+                <p className="text-sm text-slate-400">Identificação básica e contatos principais.</p>
               </div>
               <StatusBadge tone={values.nome.trim() ? 'success' : 'warning'}>
                 {values.nome.trim() ? 'Preenchido' : 'Obrigatório'}
@@ -306,8 +306,8 @@ export function ClienteCreateForm() {
                 {initials}
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500">Identificação do avatar</p>
-                <p className="text-xs text-slate-400">Gerado automaticamente pelo nome</p>
+                <p className="text-sm font-medium text-slate-300">Identificação do avatar</p>
+                <p className="text-xs text-slate-500">Gerado automaticamente pelo nome</p>
               </div>
             </div>
 
@@ -356,7 +356,7 @@ export function ClienteCreateForm() {
               />
             </div>
 
-            <div className="border-t border-slate-100 pt-6 grid grid-cols-3 gap-4">
+            <div className="border-t border-white/5 pt-6 grid grid-cols-3 gap-4">
               <Input
                 label="Telefone"
                 value={values.tel}
@@ -387,8 +387,8 @@ export function ClienteCreateForm() {
           >
             <div className="rf-section-header">
               <div>
-                <h2 className="text-lg font-bold">Comercial</h2>
-                <p className="text-sm text-slate-500">Definições de venda e atendimento.</p>
+                <h2 className="text-lg font-bold text-white">Comercial</h2>
+                <p className="text-sm text-slate-400">Definições de venda e atendimento.</p>
               </div>
               <StatusBadge tone="info">Opcional</StatusBadge>
             </div>
@@ -433,8 +433,8 @@ export function ClienteCreateForm() {
               />
             </div>
 
-            <div className="border-t border-slate-100 pt-6">
-              <label className="text-sm font-medium text-slate-700 mb-3 block">Segmento</label>
+            <div className="border-t border-white/5 pt-6">
+              <label className="text-sm font-medium text-slate-300 mb-3 block">Segmento</label>
               <div className="flex flex-wrap gap-2">
                 {['Varejo', 'Atacado', 'Salão', 'Academia', 'Revendedor'].map(tag => (
                   <Button
@@ -473,8 +473,8 @@ export function ClienteCreateForm() {
           >
             <div className="rf-section-header">
               <div>
-                <h2 className="text-lg font-bold">Endereço</h2>
-                <p className="text-sm text-slate-500">Localização física do cliente.</p>
+                <h2 className="text-lg font-bold text-white">Endereço</h2>
+                <p className="text-sm text-slate-400">Localização física do cliente.</p>
               </div>
               <StatusBadge tone="info">Opcional</StatusBadge>
             </div>
@@ -503,7 +503,7 @@ export function ClienteCreateForm() {
               <Input label="Logradouro" disabled placeholder="Rua, Av..." />
               <Input label="Número / Complemento" disabled placeholder="123, Bloco A" />
             </div>
-            <p className="text-[10px] text-slate-400 mt-2 italic">* Endereço detalhado em implantação</p>
+            <p className="text-[10px] text-slate-500 mt-2 italic">* Endereço detalhado em implantação</p>
           </section>
 
           {/* PREFERENCIAS */}
@@ -514,15 +514,15 @@ export function ClienteCreateForm() {
           >
             <div className="rf-section-header">
               <div>
-                <h2 className="text-lg font-bold">Preferências e opt-ins</h2>
-                <p className="text-sm text-slate-500">Permissões de comunicação e notas.</p>
+                <h2 className="text-lg font-bold text-white">Preferências e opt-ins</h2>
+                <p className="text-sm text-slate-400">Permissões de comunicação e notas.</p>
               </div>
               <StatusBadge tone="info">Opcional</StatusBadge>
             </div>
 
             <div className="flex flex-col gap-4 mb-8">
-              <label className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                <span className="text-sm font-medium">Aceita WhatsApp</span>
+              <label className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
+                <span className="text-sm font-medium text-slate-200">Aceita WhatsApp</span>
                 <input 
                   type="checkbox" 
                   className="toggle"
@@ -530,8 +530,8 @@ export function ClienteCreateForm() {
                   onChange={e => update('optin_sms', e.target.checked)}
                 />
               </label>
-              <label className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                <span className="text-sm font-medium">Aceita e-mail marketing</span>
+              <label className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
+                <span className="text-sm font-medium text-slate-200">Aceita e-mail marketing</span>
                 <input 
                   type="checkbox" 
                   className="toggle"
@@ -539,8 +539,8 @@ export function ClienteCreateForm() {
                   onChange={e => update('optin_email', e.target.checked)}
                 />
               </label>
-              <label className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer">
-                <span className="text-sm font-medium">Participa de campanhas</span>
+              <label className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
+                <span className="text-sm font-medium text-slate-200">Participa de campanhas</span>
                 <input 
                   type="checkbox" 
                   className="toggle"
@@ -550,7 +550,7 @@ export function ClienteCreateForm() {
               </label>
             </div>
 
-            <div className="border-t border-slate-100 pt-6 grid grid-cols-2 gap-4 mb-4">
+            <div className="border-t border-white/5 pt-6 grid grid-cols-2 gap-4 mb-4">
               <Input
                 label="Data de aniversário"
                 type="date"
@@ -583,7 +583,7 @@ export function ClienteCreateForm() {
           </div>
         }
       >
-        <p className="text-slate-600">As informações preenchidas serão perdidas.</p>
+        <p className="text-slate-400">As informações preenchidas serão perdidas.</p>
       </Modal>
 
       {error && <div className="fixed bottom-8 right-8 bg-red-600 text-white p-4 rounded-lg shadow-xl animate-bounce">{error}</div>}

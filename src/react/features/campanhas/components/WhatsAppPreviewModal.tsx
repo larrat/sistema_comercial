@@ -59,7 +59,7 @@ export function WhatsAppPreviewModal() {
       onClose={handleClose}
       closeOnOverlay={!isLote}
       footer={
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
           <Button
             variant="danger"
             onClick={() => void handleFalhouEAvancar()}
@@ -76,10 +76,10 @@ export function WhatsAppPreviewModal() {
       }
     >
       <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+        <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Para:</span>
-            <strong className="text-lg text-slate-900">{fmtNum(envio.destino)}</strong>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Para:</span>
+            <strong className="text-lg text-white">{fmtNum(envio.destino)}</strong>
           </div>
           <Button variant="secondary" size="sm" onClick={copiarNumero}>
             Copiar número

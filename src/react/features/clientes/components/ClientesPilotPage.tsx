@@ -255,7 +255,7 @@ export function ClientesPilotPage({
               onChange={(id) => setSurfaceTab(id as SurfaceTab)}
             />
 
-            <div className="h-8 w-px bg-slate-200/60 mx-1" />
+            <div className="h-8 w-px bg-white/10 mx-1" />
 
             <Button
               variant="primary"
@@ -352,13 +352,13 @@ export function ClientesPilotPage({
                     label: 'Nome',
                     render: (cliente) => (
                       <div className="flex items-center gap-2" data-testid="cliente-card">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-medium text-slate-300">
                           {getInitials(cliente.nome || '')}
                         </div>
                         <div className="min-w-0">
-                          <span className="block truncate text-sm font-medium text-gray-800">{cliente.nome}</span>
+                          <span className="block truncate text-sm font-medium text-slate-100">{cliente.nome}</span>
                           {cliente.apelido ? (
-                            <span className="block truncate text-xs text-gray-500">{cliente.apelido}</span>
+                            <span className="block truncate text-xs text-slate-400">{cliente.apelido}</span>
                           ) : null}
                         </div>
                       </div>
@@ -377,13 +377,13 @@ export function ClientesPilotPage({
                     key: 'whatsapp',
                     label: 'WhatsApp',
                     render: (cliente) => (
-                      <span className="text-sm text-gray-600">{cliente.whatsapp || cliente.tel || '—'}</span>
+                      <span className="text-sm text-slate-400">{cliente.whatsapp || cliente.tel || '—'}</span>
                     )
                   },
                   {
                     key: 'segmento',
                     label: 'Segmento',
-                    render: (cliente) => <span className="text-sm text-gray-700">{cliente.seg || '—'}</span>
+                    render: (cliente) => <span className="text-sm text-slate-300">{cliente.seg || '—'}</span>
                   },
                   {
                     key: 'tags',

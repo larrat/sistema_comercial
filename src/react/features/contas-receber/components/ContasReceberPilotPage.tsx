@@ -115,13 +115,13 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
 
   if (!baixas.length) {
     return (
-      <details className="cr-baixas-details bg-slate-50 border border-slate-200 rounded-lg overflow-hidden transition-all">
-        <summary className="px-4 py-3 cursor-pointer select-none flex items-center justify-between hover:bg-slate-100/50" onClick={() => setOpen(!open)}>
-          <span className="text-sm font-bold text-slate-700">Ver histórico de baixas</span>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Expandir</span>
+      <details className="cr-baixas-details bg-white/5 border border-white/5 rounded-lg overflow-hidden transition-all">
+        <summary className="px-4 py-3 cursor-pointer select-none flex items-center justify-between hover:bg-white/5" onClick={() => setOpen(!open)}>
+          <span className="text-sm font-bold text-slate-300">Ver histórico de baixas</span>
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Expandir</span>
         </summary>
-        <div className="px-4 py-4 border-t border-slate-200">
-          <div className="text-xs text-slate-400 italic">Sem baixas registradas para esta conta.</div>
+        <div className="px-4 py-4 border-t border-white/5">
+          <div className="text-xs text-slate-500 italic">Sem baixas registradas para esta conta.</div>
         </div>
       </details>
     );
@@ -294,11 +294,11 @@ function BaixaParcialModal({
         </>
       }
     >
-      <div className="form-section-card form-gap-bottom-xs">
-        <div className="form-section-head">
+      <div className="rf-section-card mb-4">
+        <div className="rf-ui-form-section__head">
           <div>
-            <div className="form-section-title">Resumo da conta</div>
-            <p className="form-section-copy">
+            <div className="rf-ui-form-section__title">Resumo da conta</div>
+            <p className="rf-ui-form-section__description">
               Use o valor real recebido. O saldo restante continua aberto automaticamente.
             </p>
           </div>

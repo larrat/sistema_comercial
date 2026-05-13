@@ -217,7 +217,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
               onChange={setActiveTab}
             />
 
-            <div className="h-8 w-px bg-slate-200/60 mx-1" />
+            <div className="h-8 w-px bg-white/10 mx-1" />
 
             <Button
               variant="primary"
@@ -239,7 +239,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         </article>
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Aguardando</span>
-          <span className={`rf-kpi-value ${stats.emAbertoCount > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
+          <span className={`rf-kpi-value ${stats.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
             {stats.emAbertoCount}
           </span>
           <span className={`rf-kpi-sub ${stats.emAbertoCount > 0 ? 'warning' : 'success'}`}>
@@ -248,18 +248,18 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onRetry }: Props) {
         </article>
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Concluídos</span>
-          <span className="rf-kpi-value !text-emerald-600">{stats.entreguesCount}</span>
+          <span className="rf-kpi-value !text-emerald-400">{stats.entreguesCount}</span>
           <span className="rf-kpi-sub success">Operação saudável</span>
         </article>
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Cancelados</span>
-          <span className="rf-kpi-value !text-rose-600">{stats.canceladosCount}</span>
+          <span className="rf-kpi-value !text-rose-400">{stats.canceladosCount}</span>
           <span className="rf-kpi-sub muted">Taxa de rejeição</span>
         </article>
       </section>
 
       {/* Control Center: Filters */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-4">
+      <div className="bg-slate-900 border border-white/5 rounded-xl p-4 shadow-sm flex flex-col gap-4">
         <FilterBar
           className="pedidos-filter-bar !border-none !p-0 !bg-transparent"
           search={{

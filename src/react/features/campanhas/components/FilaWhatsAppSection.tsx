@@ -56,9 +56,9 @@ export function FilaWhatsAppSection() {
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
+    <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <div className="w-1 h-4 bg-emerald-500 rounded-full" />
           Fila WhatsApp
         </h3>
@@ -118,14 +118,14 @@ export function FilaWhatsAppSection() {
           compact
         />
       ) : (
-        <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+        <div className="overflow-x-auto border border-white/5 rounded-xl bg-slate-900 shadow-sm">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+              <tr className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
                 <th className="px-4 py-3 text-left w-10">
                   <input
                     type="checkbox"
-                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-white/10 bg-white/5 text-blue-500 focus:ring-blue-500/20"
                     onChange={toggleTodos}
                     checked={selecionados.size === exibidos.length && exibidos.length > 0}
                   />
@@ -137,18 +137,18 @@ export function FilaWhatsAppSection() {
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/5">
               {exibidos.map((envio) => (
-                <tr key={envio.id} className={`hover:bg-slate-50/50 transition-colors ${selecionados.has(envio.id) ? 'bg-blue-50/50' : ''}`}>
+                <tr key={envio.id} className={`hover:bg-white/5 transition-colors ${selecionados.has(envio.id) ? 'bg-blue-500/10' : ''}`}>
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-white/10 bg-white/5 text-blue-500 focus:ring-blue-500/20"
                       checked={selecionados.has(envio.id)}
                       onChange={() => toggleItem(envio.id)}
                     />
                   </td>
-                  <td className="px-4 py-3 font-medium text-slate-900">{envio.destino ?? '—'}</td>
+                  <td className="px-4 py-3 font-medium text-white">{envio.destino ?? '—'}</td>
                   <td className="px-4 py-3 text-slate-500">{campanhaNome(envio)}</td>
                   <td className="px-4 py-3">
                     <StatusBadge tone={statusTone(envio.status)}>

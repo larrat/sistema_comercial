@@ -8,7 +8,7 @@ import { getSupabaseConfig } from '../supabaseConfig';
 import { listUserFiliais } from '../../features/auth/services/authApi';
 import type { Filial } from '../../../types/domain';
 
-export function FilialSwitcher({ variant = 'light', collapsed = false }: { variant?: 'dark' | 'light'; collapsed?: boolean }) {
+export function FilialSwitcher({ variant = 'dark', collapsed = false }: { variant?: 'dark' | 'light'; collapsed?: boolean }) {
   const [open, setOpen] = useState(false);
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [loading, setLoading] = useState(false);
@@ -81,16 +81,12 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
   return (
     <>
       <div className={`flex flex-col gap-1 ${collapsed ? 'items-center' : 'items-start'} w-full`}>
-        {!collapsed && <div className={`text-[10px] uppercase font-black tracking-[0.15em] ${isDark ? 'text-slate-600' : 'text-slate-500'} ml-1 mb-1`}>Filial ativa</div>}
+        {!collapsed && <div className="text-[10px] uppercase font-black tracking-[0.15em] text-slate-600 ml-1 mb-1">Filial ativa</div>}
         <button
           className={`flex items-center justify-center gap-2 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed group ${
             collapsed 
-              ? `w-12 h-12 ${isDark ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`
-              : `w-full px-4 py-3 border shadow-sm ${
-                  isDark 
-                    ? 'bg-slate-800/40 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500' 
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-blue-200 focus-visible:ring-blue-500'
-                }`
+              ? "w-12 h-12 hover:bg-slate-800 text-slate-400 hover:text-white"
+              : "w-full px-4 py-3 border shadow-sm bg-slate-800/40 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500"
           }`}
           type="button"
           onClick={handleOpen}
@@ -99,11 +95,11 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
           aria-expanded={open}
           title={collapsed ? displayName : "Trocar filial ativa"}
         >
-          <Building size={collapsed ? 24 : 16} className={`${isDark ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.3)]' : 'text-blue-600'} flex-shrink-0`} />
+          <Building size={collapsed ? 24 : 16} className="text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.3)] flex-shrink-0" />
           {!collapsed && (
             <>
               <span className="flex-1 text-[14px] font-bold tracking-tight truncate text-left">{displayName}</span>
-              <ChevronDown size={14} className={`${isDark ? 'text-slate-600 group-hover:text-slate-400' : 'text-slate-400 group-hover:text-blue-500'} transition-colors`} />
+              <ChevronDown size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
             </>
           )}
         </button>
@@ -113,15 +109,15 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={handleClose} />
           <div
-            className="relative w-full max-w-sm bg-white rounded-xl shadow-2xl border border-slate-200/60 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
+            className="relative w-full max-w-sm bg-slate-900 rounded-xl shadow-2xl border border-white/10 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
             role="dialog"
             aria-modal="true"
             aria-label="Trocar filial"
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-              <span className="text-base font-bold text-slate-800">Trocar filial</span>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/5">
+              <span className="text-base font-bold text-white">Trocar filial</span>
               <button
-                className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="p-1.5 rounded-md text-slate-500 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 type="button"
                 aria-label="Fechar"
                 onClick={handleClose}
@@ -132,7 +128,7 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
             <div className="overflow-y-auto max-h-[60vh] p-2 flex flex-col gap-1 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
               {loading && <div className="p-4 text-center text-sm text-slate-500">Carregando…</div>}
               {error && (
-                <div className="p-4 text-center text-sm font-medium text-red-600 bg-red-50 rounded-lg m-2">{error}</div>
+                <div className="p-4 text-center text-sm font-medium text-rose-400 bg-rose-400/10 rounded-lg m-2 border border-rose-400/20">{error}</div>
               )}
               {!loading && !error && filiais.length === 0 && (
                 <div className="p-4 text-center text-sm text-slate-500">Nenhuma filial disponível.</div>
@@ -145,8 +141,8 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
                       key={f.id}
                       className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                         isActive
-                          ? 'bg-blue-50 text-blue-900 shadow-sm shadow-blue-100/50'
-                          : 'hover:bg-slate-50 text-slate-700'
+                          ? 'bg-blue-500/10 text-white shadow-sm ring-1 ring-blue-500/20'
+                          : 'hover:bg-white/5 text-slate-400 hover:text-slate-200'
                       }`}
                       type="button"
                       onClick={() => handleSelect(f.id)}
@@ -157,7 +153,7 @@ export function FilialSwitcher({ variant = 'light', collapsed = false }: { varia
                       />
                       <span className={`flex-1 text-sm ${isActive ? 'font-bold' : 'font-medium'}`}>{f.nome}</span>
                       {isActive && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100/80 px-2 py-0.5 rounded-md">
+                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
                           <Check size={10} strokeWidth={3} /> Ativa
                         </span>
                       )}

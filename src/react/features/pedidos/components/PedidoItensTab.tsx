@@ -181,11 +181,11 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
   }
 
   return (
-    <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm" data-testid="pedido-itens-tab">
+    <section className="bg-slate-900 border border-white/5 rounded-xl overflow-hidden shadow-sm" data-testid="pedido-itens-tab">
       <div className="flex items-center justify-between p-6">
-        <h3 className="text-base font-bold text-slate-900 m-0">Itens do pedido</h3>
+        <h3 className="text-base font-bold text-white m-0">Itens do pedido</h3>
         {!canEdit && (
-          <span className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-slate-100">
+          <span className="bg-white/5 text-slate-400 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-white/10">
             Somente leitura
           </span>
         )}
@@ -200,15 +200,15 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="border-y border-slate-100 bg-slate-50/50">
-                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Produto</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Origem</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Qtd</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Custo</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subtotal</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lucro</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Margem</th>
+                <tr className="border-y border-white/5 bg-white/5">
+                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Produto</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Origem</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Qtd</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Custo</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Preço</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Subtotal</th>
+                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lucro</th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Margem</th>
                   {canEdit ? <th className="px-3 py-3" /> : null}
                 </tr>
               </thead>
@@ -221,21 +221,21 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
                   const canRemove = canEdit && itens.length > 1;
 
                   return (
-                    <tr key={itemId} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors" data-testid={`pedido-profile-item-${index}`}>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">{item.nome}</td>
+                    <tr key={itemId} className="border-b border-white/5 hover:bg-white/5 transition-colors" data-testid={`pedido-profile-item-${index}`}>
+                      <td className="px-6 py-4 text-sm font-semibold text-white">{item.nome}</td>
                       <td className="px-3 py-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.orig === 'estoque' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.orig === 'estoque' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
                           {item.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}
                         </span>
                       </td>
-                      <td className="px-3 py-4 text-sm text-slate-600">{renderEditableCell(item, index, 'qty')}</td>
-                      <td className="px-3 py-4 text-sm text-slate-400">{formatPedidoCurrency(item.custo)}</td>
-                      <td className="px-3 py-4 text-sm text-slate-600 font-medium">{renderEditableCell(item, index, 'preco')}</td>
-                      <td className="px-3 py-4 text-sm font-semibold text-slate-900">{formatPedidoCurrency(subtotal)}</td>
-                      <td className={`px-3 py-4 text-sm font-semibold ${lucro >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <td className="px-3 py-4 text-sm text-slate-300">{renderEditableCell(item, index, 'qty')}</td>
+                      <td className="px-3 py-4 text-sm text-slate-500">{formatPedidoCurrency(item.custo)}</td>
+                      <td className="px-3 py-4 text-sm text-slate-300 font-medium">{renderEditableCell(item, index, 'preco')}</td>
+                      <td className="px-3 py-4 text-sm font-semibold text-white">{formatPedidoCurrency(subtotal)}</td>
+                      <td className={`px-3 py-4 text-sm font-semibold ${lucro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {formatPedidoCurrency(lucro)}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{margem.toFixed(1)}%</td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-400">{margem.toFixed(1)}%</td>
                       {canEdit ? (
                         <td className="px-3 py-4">
                           {canRemove ? (
@@ -258,18 +258,18 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
             </table>
           </div>
 
-          <div className="flex items-center justify-between p-6 bg-slate-50/30 border-t border-slate-100">
+          <div className="flex items-center justify-between p-6 bg-white/5 border-t border-white/5">
             <span className="text-xs text-slate-500 font-medium">
               {itens.length} produto{itens.length !== 1 ? 's' : ''} · {itens.reduce((acc, i) => acc + Number(i.qty), 0)} unidades
             </span>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500">Lucro total</span>
-                <span className="text-sm font-bold text-emerald-600">{formatPedidoCurrency(lucroTotal)}</span>
+                <span className="text-sm font-bold text-emerald-400">{formatPedidoCurrency(lucroTotal)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500">Total</span>
-                <span className="text-sm font-bold text-slate-900">{formatPedidoCurrency(total)}</span>
+                <span className="text-sm font-bold text-white">{formatPedidoCurrency(total)}</span>
               </div>
             </div>
           </div>
@@ -277,7 +277,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
       )}
 
       {canEdit ? (
-        <div className="flex items-center gap-4 p-6 bg-white border-t border-slate-100">
+        <div className="flex items-center gap-4 p-6 bg-slate-900 border-t border-white/5">
           <Button
             variant="primary"
             size="sm"

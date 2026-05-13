@@ -31,19 +31,19 @@ export function PedidoTimeline({ events }: PedidoTimelineProps) {
             
             <div className="rf-timeline-content pb-10">
               <div className="flex flex-col gap-1.5">
-                <h4 className={`text-sm font-bold m-0 leading-none ${hasTime ? 'text-slate-900' : 'text-slate-400'}`}>
+                <h4 className={`text-sm font-bold m-0 leading-none ${hasTime ? 'text-white' : 'text-slate-500'}`}>
                   {event.title}
                 </h4>
                 {hasTime ? (
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="text-xs text-slate-400 font-medium">
                     {new Date(event.timestamp!).toLocaleString('pt-BR')}
                     {event.user ? ` · ${event.user}` : ''}
                   </span>
                 ) : (
-                  <span className="text-xs text-slate-400 italic">Aguardando próximo evento...</span>
+                  <span className="text-xs text-slate-500 italic">Aguardando próximo evento...</span>
                 )}
                 {event.description && (
-                  <p className="text-xs text-slate-500 mt-2 m-0 bg-slate-50 p-2.5 rounded-lg border border-slate-100 w-fit max-w-md">
+                  <p className="text-xs text-slate-400 mt-2 m-0 bg-white/5 p-2.5 rounded-lg border border-white/10 w-fit max-w-md">
                     {event.description}
                   </p>
                 )}

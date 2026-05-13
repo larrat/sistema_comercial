@@ -31,8 +31,8 @@ export function HistoricoEnviosSection() {
 
   if (concluidos.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-hidden">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+      <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm overflow-hidden">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
           <div className="w-1 h-4 bg-blue-500 rounded-full" />
           Histórico de envios
         </h3>
@@ -53,8 +53,8 @@ export function HistoricoEnviosSection() {
         const qtdFalhos = items.filter((e) => e.status === 'falhou').length;
         return (
           <div key={campId} className="mb-8 last:mb-0">
-            <div className="flex items-center justify-between gap-4 mb-4 bg-slate-50/80 p-3 rounded-xl border border-slate-200/50">
-              <span className="font-bold text-slate-900">{campNome}</span>
+            <div className="flex items-center justify-between gap-4 mb-4 bg-white/5 p-3 rounded-xl border border-white/5">
+              <span className="font-bold text-white">{campNome}</span>
               <div className="flex gap-2">
                 <StatusBadge tone="success">{qtdEnviados} enviados</StatusBadge>
                 {qtdFalhos > 0 && <StatusBadge tone="danger">{qtdFalhos} falhos</StatusBadge>}
@@ -62,9 +62,9 @@ export function HistoricoEnviosSection() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {items.map((envio) => (
-                <div key={envio.id} className="bg-white border border-slate-100 rounded-lg p-3 flex flex-col gap-2 shadow-sm hover:border-slate-200 transition-colors">
+                <div key={envio.id} className="bg-slate-950 border border-white/5 rounded-lg p-3 flex flex-col gap-2 shadow-sm hover:border-white/10 transition-colors">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-700 truncate">{envio.destino ?? '—'}</span>
+                    <span className="text-xs font-bold text-slate-300 truncate">{envio.destino ?? '—'}</span>
                     <StatusBadge tone={envio.status === 'enviado' ? 'success' : 'danger'}>
                       {envio.status}
                     </StatusBadge>

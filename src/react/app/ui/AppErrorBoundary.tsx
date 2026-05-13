@@ -25,8 +25,8 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-50" role="alert">
-          <div className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100 max-w-lg w-full mx-4">
+        <div className="flex items-center justify-center min-h-screen bg-slate-950" role="alert">
+          <div className="bg-slate-900 p-12 rounded-3xl shadow-2xl border border-white/5 max-w-lg w-full mx-4">
             <ErrorState
               title="Algo inesperado aconteceu."
               description="Houve um erro na renderização de um componente. Nossa equipe técnica já foi notificada (veja o console para detalhes)."

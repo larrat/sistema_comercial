@@ -259,12 +259,12 @@ export function PedidoProfilePage({
     <main className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8" data-testid="pedido-profile-page">
       {/* Topbar / Breadcrumb */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
-          <Link to="/app/pedidos" className="flex items-center gap-1.5 hover:text-slate-900 transition-colors">
+        <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+          <Link to="/app/pedidos" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <span className="text-base">←</span> Pedidos
           </Link>
-          <span className="text-slate-300">/</span>
-          <span className="text-slate-900 font-semibold">#{pedido.num}</span>
+          <span className="text-slate-700">/</span>
+          <span className="text-white font-semibold">#{pedido.num}</span>
         </div>
         <div className="flex items-center gap-3">
           {status !== 'cancelado' && status !== 'concluido' && (
@@ -286,12 +286,12 @@ export function PedidoProfilePage({
 
       {/* Header */}
       <section className="flex items-center gap-4">
-        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm ${getAvatarColor(pedido.cli)}`}>
+        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm ${getAvatarColor(pedido.cli).replace('bg-blue-50', 'bg-blue-500/10').replace('text-blue-600', 'text-blue-400').replace('bg-emerald-50', 'bg-emerald-500/10').replace('text-emerald-600', 'text-emerald-400').replace('bg-indigo-50', 'bg-indigo-500/10').replace('text-indigo-600', 'text-indigo-400').replace('bg-purple-50', 'bg-purple-500/10').replace('text-purple-600', 'text-purple-400').replace('bg-amber-50', 'bg-amber-500/10').replace('text-amber-600', 'text-amber-400').replace('bg-rose-50', 'bg-rose-500/10').replace('text-rose-600', 'text-rose-400').replace('bg-slate-50', 'bg-slate-500/10').replace('text-slate-600', 'text-slate-400')}`}>
           {getInitials(pedido.cli)}
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-slate-900 m-0">Pedido #{pedido.num}</h1>
+            <h1 className="text-xl font-bold text-white m-0">Pedido #{pedido.num}</h1>
             <StatusBadge tone={statusTone}>
               {PEDIDO_STATUS_LABEL[status] || status}
             </StatusBadge>
@@ -301,7 +301,7 @@ export function PedidoProfilePage({
               </StatusBadge>
             )}
           </div>
-          <div className="text-sm text-slate-500 font-medium">
+          <div className="text-sm text-slate-400 font-medium">
             {pedido.cli} · {formatDate(pedido.data)} · {pedido.rca_nome || 'Sem vendedor'}
           </div>
         </div>
@@ -316,7 +316,7 @@ export function PedidoProfilePage({
         </article>
         <article className="rf-kpi-card">
           <span className="rf-kpi-label">Lucro</span>
-          <span className="rf-kpi-value !text-emerald-600">{formatPedidoCurrency(lucroTotal)}</span>
+          <span className="rf-kpi-value !text-emerald-400">{formatPedidoCurrency(lucroTotal)}</span>
           <span className="rf-kpi-sub success">Margem {margemTotal.toFixed(1)}%</span>
         </article>
         <article className="rf-kpi-card">
@@ -334,7 +334,7 @@ export function PedidoProfilePage({
             <span className="rf-kpi-value animate-pulse text-slate-300">...</span>
           ) : (
             <>
-              <span className={`rf-kpi-value ${valorEmAberto > 0 ? '!text-amber-600' : '!text-emerald-600'}`}>
+              <span className={`rf-kpi-value ${valorEmAberto > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
                 {formatPedidoCurrency(valorEmAberto)}
               </span>
               <span className={`rf-kpi-sub ${valorEmAberto > 0 ? 'warning' : 'success'}`}>
@@ -370,9 +370,9 @@ export function PedidoProfilePage({
             />
             
             {/* Unified Sections: Financeiro e Histórico */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <div className="bg-slate-900 border border-white/5 rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-bold text-slate-900 m-0">Financeiro do pedido</h3>
+                <h3 className="text-base font-bold text-white m-0">Financeiro do pedido</h3>
                 <div className="flex items-center gap-3">
                   {status === 'entregue_aguardando_pagamento' && !financeiro.conta && (
                     <Button variant="primary" size="sm" onClick={handleGerarConta}>Gerar conta</Button>
@@ -388,14 +388,14 @@ export function PedidoProfilePage({
               {financeiro.conta ? (
                 <div className="flex justify-between items-center py-1">
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-bold text-slate-900">
+                    <span className="text-sm font-bold text-white">
                       {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
                     </span>
                     <span className="text-xs text-slate-500 font-medium">Vence {formatDate(financeiro.conta.vencimento)}</span>
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="flex flex-col items-end gap-1">
-                      <span className="text-base font-bold text-slate-900">{formatPedidoCurrency(financeiro.conta.valor)}</span>
+                      <span className="text-base font-bold text-white">{formatPedidoCurrency(financeiro.conta.valor)}</span>
                       <StatusBadge tone={financeiro.conta.status === 'recebido' ? 'success' : 'warning'}>
                         {financeiro.conta.status === 'recebido' ? 'Baixado' : 'Em aberto'}
                       </StatusBadge>
@@ -407,29 +407,29 @@ export function PedidoProfilePage({
               )}
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-              <h3 className="text-base font-bold text-slate-900 m-0 mb-6">Histórico</h3>
+            <div className="bg-slate-900 border border-white/5 rounded-xl p-6 shadow-sm">
+              <h3 className="text-base font-bold text-white m-0 mb-6">Histórico</h3>
               <PedidoTimeline events={timelineEvents} />
             </div>
           </div>
         )}
 
         {activeTab === 'financeiro' && (
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div className="bg-slate-900 border border-white/5 rounded-xl p-6 shadow-sm">
             {!financeiro.conta ? (
               <EmptyState title="Nenhuma conta vinculada." compact />
             ) : (
               <div className="flex flex-col gap-6">
-                <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+                <div className="flex justify-between items-center pb-4 border-b border-white/5">
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-900">
+                    <span className="text-sm font-semibold text-white">
                       {PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto} · {PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}
                     </span>
                     <span className="text-xs text-slate-500">Vencimento: {formatDate(financeiro.conta.vencimento)}</span>
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="flex flex-col items-end">
-                      <span className="text-sm font-bold text-slate-900">{formatPedidoCurrency(financeiro.conta.valor)}</span>
+                      <span className="text-sm font-bold text-white">{formatPedidoCurrency(financeiro.conta.valor)}</span>
                       <StatusBadge tone={valorEmAberto > 0 ? 'warning' : 'success'}>
                         {valorEmAberto > 0 ? 'Em aberto' : 'Liquidado'}
                       </StatusBadge>
@@ -448,18 +448,18 @@ export function PedidoProfilePage({
                   </div>
                 )}
                 
-                <div className="flex flex-col gap-2 pt-4 bg-slate-50 p-4 rounded-lg">
+                <div className="flex flex-col gap-2 pt-4 bg-white/5 p-4 rounded-lg">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Total do pedido</span>
-                    <span className="font-semibold">{formatPedidoCurrency(total)}</span>
+                    <span className="font-semibold text-white">{formatPedidoCurrency(total)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-500">Total recebido</span>
                     <span className="font-semibold text-emerald-600">{formatPedidoCurrency(total - valorEmAberto)}</span>
                   </div>
-                  <div className="flex justify-between text-sm border-t border-slate-200 pt-2 mt-2">
-                    <span className="font-bold text-slate-900">Total em aberto</span>
-                    <span className={`font-bold ${valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  <div className="flex justify-between text-sm border-t border-white/5 pt-2 mt-2">
+                    <span className="font-bold text-white">Total em aberto</span>
+                    <span className={`font-bold ${valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
                       {formatPedidoCurrency(valorEmAberto)}
                     </span>
                   </div>
@@ -470,13 +470,13 @@ export function PedidoProfilePage({
         )}
 
         {activeTab === 'historico' && (
-          <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+          <div className="bg-slate-900 border border-white/5 rounded-xl p-8 shadow-sm">
             <PedidoTimeline events={timelineEvents} />
           </div>
         )}
 
         {activeTab === 'cadastro' && (
-          <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+          <div className="bg-slate-900 border border-white/5 rounded-xl p-8 shadow-sm">
             <div className="grid grid-cols-2 gap-x-12 gap-y-6">
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Cliente</span>
@@ -486,31 +486,31 @@ export function PedidoProfilePage({
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Vendedor</span>
-                <span className="text-sm font-semibold text-slate-900">{pedido.rca_nome || '—'}</span>
+                <span className="text-sm font-semibold text-white">{pedido.rca_nome || '—'}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Tipo</span>
-                <span className="text-sm font-semibold text-slate-900">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</span>
+                <span className="text-sm font-semibold text-white">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Forma de pagamento</span>
-                <span className="text-sm font-semibold text-slate-900">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto}</span>
+                <span className="text-sm font-semibold text-white">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Prazo</span>
-                <span className="text-sm font-semibold text-slate-900">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}</span>
+                <span className="text-sm font-semibold text-white">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Data do pedido</span>
-                <span className="text-sm font-semibold text-slate-900">{formatDate(pedido.data)}</span>
+                <span className="text-sm font-semibold text-white">{formatDate(pedido.data)}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Criado por</span>
-                <span className="text-sm font-semibold text-slate-900">{pedido.venda_fechada_por || '—'}</span>
+                <span className="text-sm font-semibold text-white">{pedido.venda_fechada_por || '—'}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-slate-500 uppercase">Observação</span>
-                <span className="text-sm text-slate-700">{pedido.obs || '—'}</span>
+                <span className="text-sm text-slate-300">{pedido.obs || '—'}</span>
               </div>
             </div>
           </div>

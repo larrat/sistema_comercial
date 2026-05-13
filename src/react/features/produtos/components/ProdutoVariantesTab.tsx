@@ -259,7 +259,7 @@ function getAverageGiro(rows: VariantMetric[]): number | null {
 function ProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   return (
-    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner" aria-hidden="true">
+    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden shadow-inner" aria-hidden="true">
       <motion.div 
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}
@@ -303,7 +303,7 @@ function StackedVariantChart({
                   </linearGradient>
                 ))}
               </defs>
-              <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" strokeDasharray="3 3" />
+              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
               <XAxis 
                 dataKey="label" 
                 axisLine={false} 
@@ -319,7 +319,7 @@ function StackedVariantChart({
               />
               <Tooltip 
                 content={<PremiumChartTooltip formatter={valueFormatter} />} 
-                cursor={{ stroke: 'rgba(0,0,0,0.05)', strokeWidth: 1 }}
+                cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                 wrapperStyle={{ outline: 'none' }}
               />
               {variantes.map((variant) => (
@@ -374,7 +374,7 @@ function SimpleVariantChart({
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
             <XAxis 
               dataKey="label" 
               axisLine={false} 
@@ -390,7 +390,7 @@ function SimpleVariantChart({
             />
             <Tooltip 
               content={<PremiumChartTooltip formatter={(v: any) => `${formatter(v)}${suffix ?? ''}`} />} 
-              cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
               wrapperStyle={{ outline: 'none' }}
             />
             <Bar dataKey={dataKey} radius={[6, 6, 0, 0]} animationDuration={1200}>
@@ -606,15 +606,15 @@ export function ProdutoVariantesTab({ produto }: Props) {
       <motion.section variants={item} className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Variantes ({variantes.length})</h3>
+            <h3 className="text-lg font-bold text-white tracking-tight">Variantes ({variantes.length})</h3>
             {!vendasDisponiveis && (
-              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full border border-amber-100">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full border border-amber-500/10">
                 <Info size={10} />
                 <span className="text-[9px] font-black uppercase">Homologando vendas</span>
               </div>
             )}
           </div>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-400 font-medium">
             Dados consolidados do produto pai no período selecionado.
           </p>
         </div>
@@ -639,7 +639,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
         <article className="rf-dash-card">
           <div className="flex items-center justify-between mb-4">
             <span className="rf-stat-label !mb-0">Saldo Total (Pai)</span>
-            <div className="p-2 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-sm">
               <Package size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -653,7 +653,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
         <article className="rf-dash-card">
           <div className="flex items-center justify-between mb-4">
             <span className="rf-stat-label !mb-0">Qtde Vendida</span>
-            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
               <ShoppingCart size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -666,7 +666,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
         <article className="rf-dash-card">
           <div className="flex items-center justify-between mb-4">
             <span className="rf-stat-label !mb-0">Receita Total</span>
-            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm">
+            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-sm">
               <DollarSign size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -688,7 +688,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
         <article className={`rf-dash-card ${giroMedio === null ? 'is-warning' : ''}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="rf-stat-label !mb-0">Giro Médio</span>
-            <div className={`p-2 rounded-lg ${giroMedio === null ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-slate-50 text-slate-600 border-slate-100'} shadow-sm`}>
+            <div className={`p-2 rounded-lg ${giroMedio === null ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-800 text-slate-300 border-white/5'} shadow-sm`}>
               <Calendar size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -707,18 +707,18 @@ export function ProdutoVariantesTab({ produto }: Props) {
         </article>
       </motion.section>
 
-      <motion.section variants={item} className="rf-dash-card !p-0 overflow-hidden">
-        <div className="rf-dash-card__header !p-6 border-b border-slate-50">
+      <motion.section variants={item} className="rf-dash-card !p-0 overflow-hidden bg-slate-900 border-white/5">
+        <div className="rf-dash-card__header !p-6 border-b border-white/5">
           <div className="flex-1">
-            <span className="rf-stat-label !mb-1 text-slate-500">Relatório Detalhado</span>
-            <h2 className="rf-dash-card__title text-base">Tabela de Variantes</h2>
+            <span className="rf-stat-label !mb-1 text-slate-400">Relatório Detalhado</span>
+            <h2 className="rf-dash-card__title text-base text-white">Tabela de Variantes</h2>
           </div>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50">
+              <tr className="bg-white/5">
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Variante</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo</th>
@@ -729,42 +729,42 @@ export function ProdutoVariantesTab({ produto }: Props) {
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Margem</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-white/5">
               {metrics.map((row) => {
                 const emin = Number(row.produto.emin ?? 0);
                 return (
-                  <tr key={row.produto.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={row.produto.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-bold text-slate-900">{row.produto.nome}</span>
+                        <span className="text-sm font-bold text-white">{row.produto.nome}</span>
                         <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-500">{row.produto.sku || '—'}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{fmtQ(row.saldo)} <span className="text-[10px] text-slate-400">{row.produto.un}</span></td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{row.varejo > 0 ? fmtCurrency(row.varejo) : '—'}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-slate-400">{row.produto.sku || '—'}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-white">{fmtQ(row.saldo)} <span className="text-[10px] text-slate-500">{row.produto.un}</span></td>
+                    <td className="px-6 py-4 text-sm font-bold text-white">{row.varejo > 0 ? fmtCurrency(row.varejo) : '—'}</td>
                     <td className="px-6 py-4">
                       <StatusBadge tone={stockTone(row.saldo, emin)}>{stockLabel(row.saldo, emin)}</StatusBadge>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{fmtQ(row.vendido)}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900">{fmtCurrency(row.receita)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-white">{fmtQ(row.vendido)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-white">{fmtCurrency(row.receita)}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs font-black ${row.margem && row.margem > 30 ? 'text-emerald-600' : 'text-slate-600'}`}>
+                      <span className={`text-xs font-black ${row.margem && row.margem > 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
                         {fmtPercent(row.margem)}
                       </span>
                     </td>
                   </tr>
                 );
               })}
-              <tr className="bg-slate-50/80 font-black">
-                <td className="px-6 py-5 text-sm text-slate-900 uppercase tracking-tight">Total Consolidado</td>
-                <td className="px-6 py-5 text-slate-400">—</td>
-                <td className="px-6 py-5 text-sm text-slate-900">{fmtQ(totalSaldo)} <span className="text-[10px] text-slate-400">{produto.un || 'un'}</span></td>
+              <tr className="bg-white/5 font-black border-t border-white/10">
+                <td className="px-6 py-5 text-sm text-white uppercase tracking-tight">Total Consolidado</td>
+                <td className="px-6 py-5 text-slate-500">—</td>
+                <td className="px-6 py-5 text-sm text-white">{fmtQ(totalSaldo)} <span className="text-[10px] text-slate-500">{produto.un || 'un'}</span></td>
                 <td className="px-6 py-5">—</td>
                 <td className="px-6 py-5"><StatusBadge tone="neutral">Pai</StatusBadge></td>
-                <td className="px-6 py-5 text-sm text-slate-900">{fmtQ(totalVendido)}</td>
-                <td className="px-6 py-5 text-sm text-slate-900">{fmtCurrency(totalReceita)}</td>
-                <td className="px-6 py-5 text-sm text-slate-900">{fmtPercent(margemPai)}</td>
+                <td className="px-6 py-5 text-sm text-white">{fmtQ(totalVendido)}</td>
+                <td className="px-6 py-5 text-sm text-white">{fmtCurrency(totalReceita)}</td>
+                <td className="px-6 py-5 text-sm text-white">{fmtPercent(margemPai)}</td>
               </tr>
             </tbody>
           </table>
@@ -805,11 +805,11 @@ export function ProdutoVariantesTab({ produto }: Props) {
         />
       </motion.div>
 
-      <div className="flex flex-wrap items-center justify-center gap-6 py-8 border-t border-slate-50 mt-8">
+      <div className="flex flex-wrap items-center justify-center gap-6 py-8 border-t border-white/5 mt-8">
         {metrics.map((row) => (
           <div key={row.produto.id} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: row.color }} />
-            <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">{row.produto.nome}</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{row.produto.nome}</span>
           </div>
         ))}
         <div className="flex items-center gap-2">

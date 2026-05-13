@@ -224,22 +224,22 @@ export function PedidoForm({
                 </div>
               }
             >
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-slate-500 font-medium">Número</span>
-                  <strong className="text-slate-900">{pedidoNumero}</strong>
+                  <strong className="text-white">{pedidoNumero}</strong>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-slate-500 font-medium">Itens</span>
-                  <strong className="text-slate-900">{itens.length}</strong>
+                  <strong className="text-white">{itens.length}</strong>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-slate-500 font-medium">Total estimado</span>
-                  <strong className="text-slate-900">{formatPedidoCurrency(totalPedido)}</strong>
+                  <strong className="text-white">{formatPedidoCurrency(totalPedido)}</strong>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-slate-500 font-medium">Cliente</span>
-                  <strong className="text-slate-900 truncate">{selectedCliente?.nome || 'Não selecionado'}</strong>
+                  <strong className="text-white truncate">{selectedCliente?.nome || 'Não selecionado'}</strong>
                 </div>
               </div>
             </FormSection>
@@ -388,7 +388,7 @@ export function PedidoForm({
             </details>
           </div>
 
-          <div className="sticky bottom-0 z-10 pt-4 pb-2 mt-6 bg-white border-t border-slate-200">
+          <div className="sticky bottom-0 z-10 pt-4 pb-2 mt-6 bg-slate-950 border-t border-white/10">
             <FormActions
               onCancel={onCancel}
               cancelLabel="Voltar"

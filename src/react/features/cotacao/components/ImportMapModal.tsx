@@ -164,9 +164,9 @@ export function ImportMapModal() {
               ) : null}
             </div>
             {resumo.etapas?.length ? (
-              <div className="overflow-hidden border border-slate-200 rounded-xl bg-white">
+              <div className="overflow-hidden border border-white/5 rounded-xl bg-slate-900">
                 <table className="w-full text-[12px] border-collapse">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                  <thead className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase tracking-wider">
                     <tr>
                       <th className="px-4 py-3 text-left">Etapa</th>
                       <th className="px-4 py-3 text-left">Status</th>
@@ -175,18 +175,18 @@ export function ImportMapModal() {
                       <th className="px-4 py-3 text-right">Falhas</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-white/5">
                     {resumo.etapas.map((etapa) => (
-                      <tr key={etapa.id} className="hover:bg-slate-50/50">
-                        <td className="px-4 py-2.5 font-medium">{etapa.label}</td>
+                      <tr key={etapa.id} className="hover:bg-white/5">
+                        <td className="px-4 py-2.5 font-medium text-white">{etapa.label}</td>
                         <td className="px-4 py-2.5">
                            <Badge variant={etapa.status === 'success' ? 'green' : etapa.status === 'partial' ? 'yellow' : 'red'}>
                             {etapa.status === 'success' ? 'Sucesso' : etapa.status === 'partial' ? 'Parcial' : 'Falhou'}
                            </Badge>
                         </td>
-                        <td className="px-4 py-2.5 text-right">{etapa.processados}</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-600">{etapa.sucesso}</td>
-                        <td className="px-4 py-2.5 text-right text-rose-600 font-bold">{etapa.falhas}</td>
+                        <td className="px-4 py-2.5 text-right text-white">{etapa.processados}</td>
+                        <td className="px-4 py-2.5 text-right text-emerald-400">{etapa.sucesso}</td>
+                        <td className="px-4 py-2.5 text-right text-rose-400 font-bold">{etapa.falhas}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -198,21 +198,21 @@ export function ImportMapModal() {
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
                   Ver exemplos ignorados ({resumo.ignoradosExemplos.length})
                 </summary>
-                <div className="mt-2 overflow-hidden border border-slate-200 rounded-lg bg-slate-50/50">
+                <div className="mt-2 overflow-hidden border border-white/5 rounded-lg bg-white/5">
                   <table className="w-full text-[11px] border-collapse">
-                    <thead className="bg-slate-100/50 border-b border-slate-200 text-slate-500 font-bold uppercase">
+                    <thead className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase">
                       <tr>
                         <th className="px-3 py-2 text-left">Linha</th>
                         <th className="px-3 py-2 text-left">Nome</th>
                         <th className="px-3 py-2 text-left">Motivo</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-white/5">
                       {resumo.ignoradosExemplos.map((ex, index) => (
                         <tr key={`${ex.linha}-${index}`}>
-                          <td className="px-3 py-1.5">{ex.linha}</td>
-                          <td className="px-3 py-1.5 font-medium">{ex.nome || '—'}</td>
-                          <td className="px-3 py-1.5 text-slate-500 italic">{ex.motivo}</td>
+                          <td className="px-3 py-1.5 text-white">{ex.linha}</td>
+                          <td className="px-3 py-1.5 font-medium text-white">{ex.nome || '—'}</td>
+                          <td className="px-3 py-1.5 text-slate-400 italic">{ex.motivo}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -225,21 +225,21 @@ export function ImportMapModal() {
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
                   Ver itens problemáticos ({resumo.itensProblematicos.length})
                 </summary>
-                <div className="mt-2 overflow-hidden border border-slate-200 rounded-lg bg-slate-50/50">
+                <div className="mt-2 overflow-hidden border border-white/5 rounded-lg bg-white/5">
                   <table className="w-full text-[11px] border-collapse">
-                    <thead className="bg-slate-100/50 border-b border-slate-200 text-slate-500 font-bold uppercase">
+                    <thead className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase">
                       <tr>
                         <th className="px-3 py-2 text-left">Etapa</th>
                         <th className="px-3 py-2 text-left">Item</th>
                         <th className="px-3 py-2 text-left">Motivo</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-white/5">
                       {resumo.itensProblematicos.map((item, index) => (
                         <tr key={`${item.etapa}-${item.nome}-${index}`}>
-                          <td className="px-3 py-1.5 font-medium">{item.etapa}</td>
-                          <td className="px-3 py-1.5">{item.nome || '—'}</td>
-                          <td className="px-3 py-1.5 text-rose-600">{item.motivo}</td>
+                          <td className="px-3 py-1.5 font-medium text-white">{item.etapa}</td>
+                          <td className="px-3 py-1.5 text-white">{item.nome || '—'}</td>
+                          <td className="px-3 py-1.5 text-rose-400">{item.motivo}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -305,20 +305,20 @@ export function ImportMapModal() {
             ) : null}
 
             {preview.length > 0 ? (
-              <div className="overflow-hidden border border-slate-200 rounded-xl bg-white shadow-sm max-h-[160px] overflow-y-auto">
+              <div className="overflow-hidden border border-white/5 rounded-xl bg-slate-900 shadow-sm max-h-[160px] overflow-y-auto">
                 <table className="w-full text-[11px] border-collapse">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase sticky top-0 z-10">
+                  <thead className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase sticky top-0 z-10">
                     <tr>
                       {headers.map((h) => (
                         <th key={h.idx} className="px-3 py-2 text-left whitespace-nowrap">{h.label}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-white/5">
                     {preview.map((row, ri) => (
-                      <tr key={ri} className="hover:bg-slate-50/50">
+                      <tr key={ri} className="hover:bg-white/5">
                         {headers.map((h) => (
-                          <td key={h.idx} className="px-3 py-1.5 text-slate-600 truncate max-w-[120px]">
+                          <td key={h.idx} className="px-3 py-1.5 text-slate-300 truncate max-w-[120px]">
                             {String(row[h.idx] ?? '').substring(0, 30)}
                           </td>
                         ))}
@@ -334,9 +334,9 @@ export function ImportMapModal() {
                 <summary className="table-cell-caption table-cell-muted" style={{ cursor: 'pointer' }}>
                   Revisar matching dos itens ({matchReview.rows.length})
                 </summary>
-                <div className="mt-3 overflow-hidden border border-slate-200 rounded-xl bg-white shadow-sm max-h-[200px] overflow-y-auto">
+                <div className="mt-3 overflow-hidden border border-white/5 rounded-xl bg-slate-900 shadow-sm max-h-[200px] overflow-y-auto">
                   <table className="w-full text-[11px] border-collapse">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase sticky top-0 z-10">
+                    <thead className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase sticky top-0 z-10">
                       <tr>
                         <th className="px-4 py-2.5 text-left">Item importado</th>
                         <th className="px-4 py-2.5 text-left">Status</th>
@@ -344,17 +344,17 @@ export function ImportMapModal() {
                         <th className="px-4 py-2.5 text-left">Detalhe</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {matchReview.rows.slice(0, 20).map((row, index) => (
-                        <tr key={`${row.nomeOriginal}-${index}`} className="hover:bg-slate-50/50">
-                          <td className="px-4 py-2.5 font-medium text-slate-900">{row.nomeOriginal}</td>
+                    <tbody className="divide-y divide-white/5">
+                    {matchReview.rows.slice(0, 20).map((row, index) => (
+                      <tr key={`${row.nomeOriginal}-${index}`} className="hover:bg-white/5">
+                        <td className="px-4 py-2.5 font-medium text-white">{row.nomeOriginal}</td>
                           <td className="px-4 py-2.5">
                              <Badge variant={row.status === 'matched' ? 'green' : row.status === 'ambiguous' ? 'yellow' : 'red'}>
                                 {row.status === 'matched' ? 'Confiável' : row.status === 'ambiguous' ? 'Ambíguo' : 'Sem match'}
                              </Badge>
                           </td>
-                          <td className="px-4 py-2.5 text-slate-700">{row.produtoNome || '—'}</td>
-                          <td className="px-4 py-2.5 text-slate-500 italic">
+                          <td className="px-4 py-2.5 text-slate-300">{row.produtoNome || '—'}</td>
+                          <td className="px-4 py-2.5 text-slate-400 italic">
                             {row.status === 'ambiguous'
                               ? row.candidatos?.join(', ') || 'Mais de um candidato'
                               : row.status === 'unmatched'

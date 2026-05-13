@@ -195,39 +195,39 @@ export function PedidoDetailPanel({ pedido }: Props) {
     <div data-testid="pedido-detail-panel">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cliente</div>
-          <div className="text-sm font-semibold text-slate-900">{pedido.cli || '—'}</div>
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cliente</div>
+          <div className="text-sm font-semibold text-white">{pedido.cli || '—'}</div>
         </div>
         {pedido.rca_nome && (
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Vendedor</div>
-            <div className="text-sm font-semibold text-slate-900">{pedido.rca_nome}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Vendedor</div>
+            <div className="text-sm font-semibold text-white">{pedido.rca_nome}</div>
           </div>
         )}
         <div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Tipo</div>
-          <div className="text-sm font-semibold text-slate-900">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</div>
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tipo</div>
+          <div className="text-sm font-semibold text-white">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</div>
         </div>
         <div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pagamento</div>
-          <div className="text-sm font-semibold text-slate-900">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pagamento</div>
+          <div className="text-sm font-semibold text-white">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
         </div>
         <div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Prazo</div>
-          <div className="text-sm font-semibold text-slate-900">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prazo</div>
+          <div className="text-sm font-semibold text-white">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
         </div>
         {pedido.obs && (
           <div className="sm:col-span-2 lg:col-span-3">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Obs.</div>
-            <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">{pedido.obs}</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Obs.</div>
+            <div className="text-sm text-slate-300 bg-white/5 p-3 rounded-lg border border-white/5">{pedido.obs}</div>
           </div>
         )}
       </div>
 
       <PedidoItemsSection itens={itens} produtos={[]} tipo={pedido.tipo ?? 'varejo'} readOnly />
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-6">
-        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6 flex items-center gap-2">
+      <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm mt-6">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
           <div className="w-1 h-4 bg-blue-500 rounded-full" />
           Financeiro do pedido
         </h3>
@@ -241,20 +241,20 @@ export function PedidoDetailPanel({ pedido }: Props) {
               <Badge variant="blue">Total {fmtCurrency(conta.valor)}</Badge>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 bg-white/5 p-4 rounded-xl border border-white/5">
               <div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Recebido</div>
-                <div className="text-sm font-bold text-emerald-600">{fmtCurrency(valorRecebido)}</div>
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5">Recebido</div>
+                <div className="text-sm font-bold text-emerald-400">{fmtCurrency(valorRecebido)}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Em aberto</div>
-                <div className={`text-sm font-bold ${valorEmAberto > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5">Em aberto</div>
+                <div className={`text-sm font-bold ${valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
                   {fmtCurrency(valorEmAberto)}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Última baixa</div>
-                <div className="text-sm font-semibold text-slate-700">
+                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5">Última baixa</div>
+                <div className="text-sm font-semibold text-slate-300">
                   {formatDateTimeLabel(conta.ultimo_recebimento_em || conta.recebido_em)}
                 </div>
               </div>
@@ -288,16 +288,16 @@ export function PedidoDetailPanel({ pedido }: Props) {
             )}
 
             <div className="mt-8">
-              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-4">Últimas baixas</div>
+              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-4">Últimas baixas</div>
               {baixas.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                   {baixas.slice(0, 4).map((baixa) => (
-                    <div key={baixa.id} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4 flex flex-col gap-2">
+                    <div key={baixa.id} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-bold text-slate-900">
+                        <span className="font-bold text-white">
                           {fmtCurrency(baixa.valor)}
                         </span>
-                        <span className="text-xs text-slate-500">{formatDateTimeLabel(baixa.recebido_em)}</span>
+                        <span className="text-xs text-slate-400">{formatDateTimeLabel(baixa.recebido_em)}</span>
                       </div>
                       {baixa.observacao && (
                         <div className="text-xs text-slate-400 italic mt-1">
@@ -321,7 +321,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
         )}
       </div>
 
-      <div className="flex items-center gap-3 justify-end mt-8 pt-6 border-t border-slate-100">
+      <div className="flex items-center gap-3 justify-end mt-8 pt-6 border-t border-white/5">
         {nextStatus && acaoLabel && (
           <Button
             variant="primary"
