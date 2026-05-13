@@ -711,37 +711,39 @@ export function ProdutoProfilePage({
 
                 {/* Coluna 3: Domínio de Inteligência */}
                 <aside className="flex flex-col gap-8">
-                  <article className="rf-dash-card bg-[#0F172A] text-white overflow-hidden relative shadow-[0_20px_40px_-12px_rgba(15,23,42,0.3)] !p-0">
-                    <div className="absolute top-0 right-0 p-6 opacity-5">
-                      <TrendingUp className="w-32 h-32" />
-                    </div>
-                    <div className="p-6 flex flex-col gap-6 relative z-10">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-[0.2em]">Nexus AI · Performance</span>
-                        <h3 className="text-lg font-bold text-white tracking-tight">Giro e Saúde</h3>
+                  <article className="rf-dash-card h-fit">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-blue-500 font-black">Nexus AI</span>
+                        <h2 className="rf-dash-card__title text-base">Giro e Saúde</h2>
                       </div>
-                      
-                      <div className="flex flex-col gap-5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Última Venda</span>
-                          <span className="text-xs font-bold text-[#C5A059]">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
+                      <div className="p-2 bg-blue-50 rounded-lg text-blue-400">
+                        <Zap size={14} />
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-5 mt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Última Venda</span>
+                        <span className="text-xs font-bold text-slate-600">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <span>Eficiência de Giro</span>
+                          <span className="text-blue-600">65%</span>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
-                            <span>Eficiência</span>
-                            <span>65%</span>
-                          </div>
-                          <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: '65%' }}
-                              transition={{ duration: 1.5, ease: "easeOut" }}
-                              className="h-full bg-gradient-to-r from-[#C5A059] to-amber-400 shadow-[0_0_10px_rgba(197,160,89,0.3)]" 
-                            />
-                          </div>
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: '65%' }}
+                            transition={{ duration: 1.5, ease: "easeOut" }}
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-400" 
+                          />
                         </div>
-                        <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-white font-bold">{produto.emin} {produto.un}</span> para evitar ruptura.
+                      </div>
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-100/50">
+                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
+                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-slate-900 font-bold">{produto.emin} {produto.un}</span> para evitar ruptura.
                         </p>
                       </div>
                     </div>
