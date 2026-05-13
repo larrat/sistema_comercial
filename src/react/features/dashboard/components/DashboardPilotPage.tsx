@@ -722,7 +722,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </Card>
         )}
 
-        <Card className="flex flex-col min-h-[480px]">
+        <Card className="flex flex-col min-h-[480px] !overflow-visible">
           <div className="flex items-center justify-between mb-8 border-b border-border-subtle pb-4">
             <Typography variant="h3" weight="bold">Status dos pedidos</Typography>
             <div className="bg-surface-active px-3 py-1 rounded-full border border-border-bold">
@@ -783,25 +783,26 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     <Tooltip 
                       content={({ active, payload, coordinate }) => {
                         if (active && payload && payload.length && coordinate) {
-                          // Lógica de Quadrante Oposto para nunca tampar o centro
                           const isRight = coordinate.x > 150;
                           const isBottom = coordinate.y > 120;
                           
-                          const posX = isRight ? 20 : 180;
-                          const posY = isBottom ? 20 : 160;
+                          // Posições bem mais externas para "fugir" do gráfico
+                          const posX = isRight ? -130 : 220;
+                          const posY = isBottom ? -20 : 180;
 
                           return (
                             <div 
-                              className="bg-[#0f172a]/90 backdrop-blur-md border border-border-bold p-3 rounded-xl shadow-2xl transition-all duration-500 ease-out"
+                              className="bg-[#0f172a]/95 backdrop-blur-xl border border-border-bold p-3 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 ease-out z-[100]"
                               style={{ 
                                 position: 'absolute', 
                                 left: posX,
                                 top: posY,
                                 transform: 'translate(0, 0)',
-                                pointerEvents: 'none'
+                                pointerEvents: 'none',
+                                whiteSpace: 'nowrap'
                               }}
                             >
-                              <Typography variant="caption" color="accent" weight="bold" className="mb-0.5 block truncate max-w-[110px] uppercase tracking-tighter">
+                              <Typography variant="caption" color="accent" weight="bold" className="mb-0.5 block uppercase tracking-tighter">
                                 {payload[0].name}
                               </Typography>
                               <Typography variant="h4" weight="black" color="primary" className="leading-none">
