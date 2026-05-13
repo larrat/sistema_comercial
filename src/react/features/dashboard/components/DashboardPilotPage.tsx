@@ -781,11 +781,26 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       ))}
                     </Pie>
                     <Tooltip 
-                      position={{ x: 10, y: 10 }}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
+                      content={({ active, payload, coordinate }) => {
+                        if (active && payload && payload.length && coordinate) {
+                          // Lógica de Quadrante Oposto para nunca tampar o centro
+                          const isRight = coordinate.x > 150;
+                          const isBottom = coordinate.y > 120;
+                          
+                          const posX = isRight ? 20 : 180;
+                          const posY = isBottom ? 20 : 160;
+
                           return (
-                            <div className="bg-[#0f172a]/80 backdrop-blur-md border border-border-bold p-3 rounded-xl shadow-2xl transition-all duration-300">
+                            <div 
+                              className="bg-[#0f172a]/90 backdrop-blur-md border border-border-bold p-3 rounded-xl shadow-2xl transition-all duration-500 ease-out"
+                              style={{ 
+                                position: 'absolute', 
+                                left: posX,
+                                top: posY,
+                                transform: 'translate(0, 0)',
+                                pointerEvents: 'none'
+                              }}
+                            >
                               <Typography variant="caption" color="accent" weight="bold" className="mb-0.5 block truncate max-w-[110px] uppercase tracking-tighter">
                                 {payload[0].name}
                               </Typography>
