@@ -82,32 +82,25 @@ export function AppSidebar() {
       initial={false}
       animate={{ width: collapsed ? 72 : 280 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="flex flex-col bg-[#080B14] border-r border-white/5 text-slate-300 z-40 relative shadow-2xl h-screen sticky top-0 overflow-hidden"
+      className="flex flex-col bg-[#0B0F1A] border-r border-slate-800 text-slate-300 z-40 relative shadow-2xl h-screen sticky top-0 overflow-hidden"
       aria-label="Navegação principal"
     >
-      {/* Background Texture Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-
       {/* Header / Logo */}
-      <div className={`flex-shrink-0 flex items-center h-[96px] relative z-10 ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>
+      <div className={`flex-shrink-0 flex items-center h-[88px] ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>
         <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center' : ''}`}>
-          <motion.div 
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] border border-white/10 shrink-0"
-          >
-            <Store size={26} strokeWidth={2.5} />
-          </motion.div>
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600 text-white shadow-lg border border-white/10 shrink-0">
+            <Store size={22} strokeWidth={2.5} />
+          </div>
           <AnimatePresence mode="wait">
             {!collapsed && (
               <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="flex flex-col min-w-0"
               >
-                <span className="font-black text-xl text-white tracking-tighter leading-none italic uppercase">Nexus</span>
-                <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mt-1 opacity-90">Industrial</span>
+                <span className="font-extrabold text-lg text-white tracking-tight leading-none uppercase">Nexus</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Industrial</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -115,55 +108,48 @@ export function AppSidebar() {
         {!collapsed && (
           <button
             type="button"
-            className="flex items-center justify-center w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-500 hover:text-white transition-all border border-white/5 shrink-0"
+            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-100 transition-all shrink-0"
             onClick={toggleSidebar}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={18} />
           </button>
         )}
       </div>
 
-      {/* Search Section */}
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="px-4 mb-6 relative z-10"
-          >
-            <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-blue-500 transition-colors" size={14} />
-              <input 
-                type="text"
-                placeholder="Buscar menu..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:bg-white/[0.05] transition-all"
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className={`px-4 pb-6 relative z-10 ${collapsed ? 'px-2 flex justify-center' : ''}`}>
+      <div className={`px-4 pb-2 ${collapsed ? 'px-2 flex justify-center' : ''}`}>
         <FilialSwitcher variant="dark" collapsed={collapsed} />
       </div>
 
+      {/* Search Bar */}
+      {!collapsed && (
+        <div className="px-4 mb-6 mt-2">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+            <input 
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pl-9 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
+            />
+          </div>
+        </div>
+      )}
+
       {collapsed && (
-        <div className="flex justify-center pb-6">
+        <div className="flex justify-center pb-4 pt-2">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-white/5 shadow-xl"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-all"
             onClick={toggleSidebar}
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
         </div>
       )}
 
       {/* Navigation Groups */}
-      <nav className={`flex-1 overflow-y-auto flex flex-col gap-6 scrollbar-hide relative z-10 ${collapsed ? 'items-center px-0' : 'px-4'} py-2`}>
+      <nav className={`flex-1 overflow-y-auto flex flex-col gap-6 scrollbar-hide ${collapsed ? 'items-center px-0' : 'px-4'} py-2`}>
         {groups.map((group) => {
           const filteredItems = group.items.filter(item => 
             item.label.toLowerCase().includes(search.toLowerCase())
@@ -172,17 +158,18 @@ export function AppSidebar() {
           if (filteredItems.length === 0) return null;
 
           return (
-            <div key={group.label} className={`flex flex-col gap-3 ${collapsed ? 'items-center w-full' : ''}`}>
+            <div key={group.label} className={`flex flex-col gap-2 ${collapsed ? 'items-center w-full' : ''}`}>
               {!collapsed && (
-                <div className="px-3 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-600">
+                <div className="px-3 flex items-center gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600 whitespace-nowrap">
                     {group.label}
                   </span>
+                  <div className="h-px bg-slate-800/50 w-full" />
                 </div>
               )}
-              {collapsed && <div className="h-px bg-white/5 w-8 mb-1" />}
+              {collapsed && <div className="h-px bg-slate-800/30 w-8 mb-1" />}
 
-              <div className={`flex flex-col gap-1 p-1 rounded-2xl ${collapsed ? 'items-center w-full' : 'bg-white/[0.02] border border-white/5'}`}>
+              <div className={`flex flex-col gap-0.5 ${collapsed ? 'items-center w-full' : ''}`}>
                 {filteredItems.map((item) => {
                   const Icon = iconByPath[item.path] ?? Circle;
                   const [isHovered, setIsHovered] = useState(false);
@@ -195,12 +182,12 @@ export function AppSidebar() {
                       onMouseEnter={() => setIsHovered(true)}
                       onMouseLeave={() => setIsHovered(false)}
                       className={({ isActive }) =>
-                        `flex items-center rounded-xl transition-all duration-300 relative group
-                        ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-4 py-3 w-full'}
+                        `flex items-center rounded-lg transition-all duration-200 relative group
+                        ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-3 py-2.5 w-full'}
                         ${
                           isActive
-                             ? 'text-white'
-                             : 'text-slate-500 hover:text-slate-200 hover:bg-white/[0.03]'
+                             ? 'bg-blue-600/10 text-white font-bold'
+                             : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/40'
                         }`
                       }
                     >
@@ -208,59 +195,35 @@ export function AppSidebar() {
                         <>
                           {isActive && (
                             <motion.div 
-                              layoutId="active-pill"
-                              className="absolute inset-0 rounded-xl border border-white/10 shadow-lg"
-                              style={{ 
-                                background: `linear-gradient(135deg, ${gColor}15 0%, ${gColor}05 100%)`,
-                              }}
-                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            />
-                          )}
-                          
-                          {isActive && (
-                            <motion.div 
-                              layoutId="active-glow"
-                              className="absolute inset-0 blur-md opacity-20 rounded-xl"
+                              layoutId="active-marker"
+                              className="absolute left-0 w-1 h-5 bg-blue-500 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
                               style={{ backgroundColor: gColor }}
                             />
                           )}
 
                           <Icon 
-                            size={collapsed ? 24 : 20} 
+                            size={collapsed ? 24 : 18} 
                             strokeWidth={isActive ? 2.5 : 2} 
-                            className={`flex-shrink-0 transition-all duration-500 relative z-10 ${
-                              isActive ? 'scale-110' : 'group-hover:scale-110'
-                            }`}
-                            style={{ 
-                              color: isActive ? gColor : undefined,
-                              filter: isActive ? `drop-shadow(0 0 10px ${gColor}88)` : undefined 
-                            }}
+                            className="flex-shrink-0 relative z-10 transition-transform group-active:scale-95"
+                            style={{ color: isActive ? gColor : undefined }}
                           />
                           
-                          <AnimatePresence>
-                            {!collapsed && (
-                              <motion.span 
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                className={`truncate text-[13px] tracking-wide relative z-10 ${isActive ? 'font-bold' : 'font-semibold'}`}
-                              >
-                                {item.label}
-                              </motion.span>
-                            )}
-                          </AnimatePresence>
+                          {!collapsed && (
+                            <span className="truncate text-[13px] tracking-tight relative z-10">
+                              {item.label}
+                            </span>
+                          )}
 
                           {/* Tooltip Collapsed */}
                           <AnimatePresence>
                             {collapsed && isHovered && (
                               <motion.div
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{ opacity: 1, x: 24 }}
-                                exit={{ opacity: 0, x: 10 }}
-                                className="absolute left-full ml-2 px-3 py-2 bg-slate-900 text-white text-xs font-black rounded-lg shadow-2xl border border-white/10 whitespace-nowrap z-[100] pointer-events-none uppercase tracking-widest"
+                                initial={{ opacity: 0, x: 5 }}
+                                animate={{ opacity: 1, x: 15 }}
+                                exit={{ opacity: 0, x: 5 }}
+                                className="absolute left-full ml-2 px-3 py-1.5 bg-slate-800 text-white text-[11px] font-bold rounded-md shadow-2xl border border-slate-700 whitespace-nowrap z-[100] pointer-events-none"
                               >
                                 {item.label}
-                                <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-white/10 rotate-45" />
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -276,55 +239,28 @@ export function AppSidebar() {
       </nav>
 
       {/* Footer / User Profile */}
-      <div className={`flex-shrink-0 mt-auto relative z-10 ${collapsed ? 'p-3' : 'p-4'}`}>
-        {!collapsed && (
-          <div className="mb-4 p-3 rounded-2xl bg-gradient-to-br from-blue-600/10 to-indigo-600/10 border border-blue-500/20">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
-                <Shield size={16} />
+      <div className={`flex-shrink-0 mt-auto border-t border-slate-800/50 bg-slate-900/50 ${collapsed ? 'p-3' : 'p-4'}`}>
+        <div className={`flex flex-col gap-4 ${collapsed ? 'items-center' : ''}`}>
+          {!collapsed && (
+            <div className="flex items-center gap-3 px-1">
+              <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700 shrink-0">
+                <span className="text-sm font-bold text-white">{userInitial}</span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-white leading-none">Suporte Nexus</span>
-                <span className="text-[9px] font-medium text-slate-500 mt-1">Central de Ajuda</span>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-bold text-white truncate capitalize leading-none">{userName}</span>
+                <span className="text-[10px] font-medium text-slate-500 truncate mt-1.5">{(user?.email as string) || ''}</span>
               </div>
-            </div>
-          </div>
-        )}
-
-        <div className={`rounded-2xl bg-white/[0.03] border border-white/5 transition-all hover:bg-white/[0.05] ${collapsed ? 'p-1' : 'p-3'}`}>
-          {collapsed ? (
-            <button
-              onClick={handleLogout}
-              className="flex items-center justify-center w-12 h-12 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-lg"
-              title="Sair da Conta"
-            >
-              <LogOut size={22} strokeWidth={2.5} />
-            </button>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3 px-1">
-                <motion.div 
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.5 }}
-                  className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-900 flex items-center justify-center border border-white/10 shadow-xl shrink-0"
-                >
-                  <span className="text-sm font-black text-white">{userInitial}</span>
-                </motion.div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-bold text-white truncate capitalize leading-tight">{userName}</span>
-                  <span className="text-[10px] font-medium text-slate-500 truncate mt-0.5">{(user?.email as string) || ''}</span>
-                </div>
-              </div>
-              
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 border border-transparent hover:border-rose-400/20 transition-all group"
-              >
-                <LogOut size={14} strokeWidth={3} className="group-hover:-translate-x-1 transition-transform" />
-                <span>Encerrar Sessão</span>
-              </button>
             </div>
           )}
+          
+          <button
+            onClick={handleLogout}
+            className={`flex items-center gap-3 rounded-lg text-xs font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2'}`}
+            title={collapsed ? "Encerrar Sessão" : undefined}
+          >
+            <LogOut size={collapsed ? 20 : 16} strokeWidth={2.5} className="shrink-0" />
+            {!collapsed && <span className="w-full text-center pr-4">Encerrar Sessão</span>}
+          </button>
         </div>
       </div>
     </motion.aside>
