@@ -101,6 +101,19 @@
 
   /* Spacing/Radius (Optional but recommended) */
   --radius-premium: var(--radius-premium);
+
+  /* --- TREMOR COMPATIBILITY (Tailwind v4) --- */
+  --color-tremor-brand: var(--action-primary);
+  --color-tremor-brand-inverted: var(--surface-page);
+  --color-tremor-background: var(--surface-card);
+  --color-tremor-background-subtle: var(--surface-hover);
+  --color-tremor-background-muted: var(--surface-active);
+  --color-tremor-background-emphasis: var(--text-tertiary);
+  --color-tremor-border: var(--border-subtle);
+  --color-tremor-content: var(--text-secondary);
+  --color-tremor-content-subtle: var(--text-muted);
+  --color-tremor-content-strong: var(--text-primary);
+  --color-tremor-content-inverted: var(--surface-page);
 }
 
 /* --- GLOBAL UTILITIES (DESIGN SYSTEM) --- */

@@ -1,24 +1,18 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Pie,
-  PieChart,
-  Cell,
-  Sector,
-  Rectangle,
-  Area,
-  AreaChart
-} from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  AreaChart, 
+  DonutChart, 
+  Card as TremorCard, 
+  Title, 
+  Text, 
+  Metric, 
+  Flex, 
+  Grid, 
+  Col,
+  Badge as TremorBadge,
+  ProgressBar
+} from '@tremor/react';
 
 // Fallback para garantir que CountUp seja um componente válido em produção (Vercel)
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
@@ -596,394 +590,226 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         )}
       </motion.section>
 
-      <section className="rf-dashboard-row rf-dashboard-row--2">
+      {/* Linha Principal de Gráficos e Status */}
+      <Grid numItemsLg={3} className="gap-6 mt-8">
+        {/* Gráfico de Faturamento e Lucro (Ocupa 2 colunas no LG) */}
         {visao !== 'operacional' && (
-          <Card className="flex-1 flex flex-col min-h-[480px]">
-            <div className="flex flex-row items-center justify-between mb-8">
-              <div>
-                <Typography variant="h3" weight="bold">Faturamento e Lucro</Typography>
-                <div className="flex items-center gap-2 mt-1">
-                  <Typography variant="caption" color="muted">Projeção por período</Typography>
-                  <span className="w-1 h-1 rounded-full bg-border-bold" />
-                  <Badge variant="blue" className="text-[9px] uppercase">{periodoDatas}</Badge>
+          <Col numColSpanLg={2}>
+            <TremorCard className="h-full !bg-surface-card !border-border-subtle shadow-premium">
+              <Flex alignItems="start">
+                <div>
+                  <Title className="!text-text-primary !font-bold">Faturamento e Lucro</Title>
+                  <Text className="!text-text-muted">Projeção e performance histórica</Text>
                 </div>
+                <TremorBadge color="cyan" size="xs" className="!bg-surface-active !text-text-accent !border-border-bold">
+                  {periodoDatas}
+                </TremorBadge>
+              </Flex>
+              
+              <div className="h-80 mt-8">
+                <AreaChart
+                  className="h-full"
+                  data={chartData}
+                  index="name"
+                  categories={["faturamento", "lucro"]}
+                  colors={["amber", "emerald"]}
+                  valueFormatter={fmt}
+                  showLegend={true}
+                  showGridLines={true}
+                  showAnimation={true}
+                  curveType="monotone"
+                />
               </div>
-              <div className="flex gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--chart-secondary)] shadow-[0_0_12px_rgba(197,160,89,0.5)]" />
-                  <Typography variant="label" color="muted">Faturamento</Typography>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--chart-tertiary)] shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
-                  <Typography variant="label" color="muted">Lucro</Typography>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart 
-                  data={chartData} 
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--chart-secondary)" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="var(--chart-secondary)" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--chart-tertiary)" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="var(--chart-tertiary)" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid 
-                    strokeDasharray="4 4" 
-                    vertical={false} 
-                    stroke="rgba(255,255,255,0.03)" 
-                  />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 600 }}
-                    dy={10}
-                  />
-                  <YAxis hide />
-                  <Tooltip 
-                    cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
-                    offset={20}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <Card padding="sm" className="min-w-[180px] bg-surface-sidebar/90 backdrop-blur-md border-border-bold">
-                            <Typography variant="label" align="center" className="mb-3 pb-2 border-b border-border-subtle">
-                              {payload[0].payload.name}
-                            </Typography>
-                            <div className="space-y-3">
-                              <div className="flex justify-between items-center">
-                                <Typography variant="caption" color="muted">Faturamento</Typography>
-                                <Typography variant="body-sm" weight="bold" className="text-[var(--chart-secondary)]">{fmt(payload[0].value as number)}</Typography>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <Typography variant="caption" color="muted">Lucro</Typography>
-                                <Typography variant="body-sm" weight="bold" className="text-[var(--chart-tertiary)]">{fmt(payload[1].value as number)}</Typography>
-                              </div>
-                            </div>
-                          </Card>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="faturamento" 
-                    stroke="var(--chart-secondary)" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorFat)" 
-                    animationDuration={1000}
-                    activeDot={{ r: 6, fill: 'var(--chart-secondary)', stroke: '#020617', strokeWidth: 2 }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="lucro" 
-                    stroke="var(--chart-tertiary)" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorLuc)" 
-                    animationDuration={1200}
-                    activeDot={{ r: 6, fill: 'var(--chart-tertiary)', stroke: '#020617', strokeWidth: 2 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
 
-            {/* Chart Footer Legend/KPIs */}
-            <div className="mt-8 pt-6 border-t border-border-subtle grid grid-cols-4 gap-0 divide-x divide-border-subtle">
-              <div className="flex flex-col gap-1 px-4 first:pl-0">
-                <Typography variant="label" color="muted">Melhor Dia</Typography>
-                <Typography variant="body" weight="bold" color="primary">
-                  {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
-                </Typography>
-              </div>
-              <div className="flex flex-col gap-1 px-4">
-                <Typography variant="label" color="muted">Média Diária</Typography>
-                <Typography variant="body" weight="bold" color="primary">
-                  {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
-                </Typography>
-              </div>
-              <div className="flex flex-col gap-1 px-4">
-                <Typography variant="label" color="muted">Total Período</Typography>
-                <Typography variant="body" weight="bold" color="primary">
-                  {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
-                </Typography>
-              </div>
-              <div className="flex flex-col gap-1 px-4 last:pr-0">
-                <Typography variant="label" color="muted">Margem Média</Typography>
-                <div className="flex items-center gap-2">
-                  <Typography variant="body" weight="bold" className="text-emerald-400">
-                    {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
-                      ? ((chartData.reduce((acc, d) => acc + d.lucro, 0) / chartData.reduce((acc, d) => acc + d.faturamento, 0)) * 100).toFixed(1)
-                      : 0}%
-                  </Typography>
-                  <TrendingUp size={14} className="text-emerald-500" />
+              {/* KPIs no rodapé do Card */}
+              <Grid numItemsLg={4} className="mt-8 pt-6 border-t border-border-subtle divide-x divide-border-subtle">
+                <div className="px-4 first:pl-0">
+                  <Text color="slate" className="!text-[10px] !uppercase !tracking-widest">Melhor Dia</Text>
+                  <Metric className="!text-lg !font-black !text-text-primary">
+                    {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
+                  </Metric>
                 </div>
-              </div>
-            </div>
-          </Card>
+                <div className="px-4">
+                  <Text color="slate" className="!text-[10px] !uppercase !tracking-widest">Média Diária</Text>
+                  <Metric className="!text-lg !font-black !text-text-primary">
+                    {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
+                  </Metric>
+                </div>
+                <div className="px-4">
+                  <Text color="slate" className="!text-[10px] !uppercase !tracking-widest">Total Período</Text>
+                  <Metric className="!text-lg !font-black !text-text-primary">
+                    {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
+                  </Metric>
+                </div>
+                <div className="px-4 last:pr-0">
+                  <Text color="slate" className="!text-[10px] !uppercase !tracking-widest">Margem Média</Text>
+                  <Flex justifyContent="start" className="gap-2">
+                    <Metric className="!text-lg !font-black !text-emerald-400">
+                      {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
+                        ? ((chartData.reduce((acc, d) => acc + d.lucro, 0) / chartData.reduce((acc, d) => acc + d.faturamento, 0)) * 100).toFixed(1)
+                        : 0}%
+                    </Metric>
+                    <TrendingUp size={16} className="text-emerald-500" />
+                  </Flex>
+                </div>
+              </Grid>
+            </TremorCard>
+          </Col>
         )}
 
-        <Card className="flex flex-col min-h-[480px] !overflow-visible">
-          <div className="flex items-center justify-between mb-8 border-b border-border-subtle pb-4">
-            <Typography variant="h3" weight="bold">Status dos pedidos</Typography>
-            <div className="bg-surface-active px-3 py-1 rounded-full border border-border-bold">
-              <Typography variant="label" color="accent" className="!tracking-tighter">
+        {/* Coluna Lateral: Status e Mix */}
+        <Col>
+          <TremorCard className="h-full !bg-surface-card !border-border-subtle shadow-premium flex flex-col">
+            <Flex justifyContent="between" className="mb-6">
+              <Title className="!text-text-primary !font-bold">Status dos Pedidos</Title>
+              <TremorBadge className="!bg-surface-active !text-text-accent !border-border-bold">
                 {pedidos.length} TOTAL
-              </Typography>
-            </div>
-          </div>
-          
-          <div className="flex flex-col gap-4 flex-1">
-            {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
-              const count = statusDistribution[key] || 0;
-              const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
-              return (
-                <div key={key} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: config.color }} />
-                  <PremiumTooltip content={config.label}>
-                    <Typography variant="body-sm" color="tertiary" className="w-[100px] truncate cursor-help">
-                      {config.label}
-                    </Typography>
-                  </PremiumTooltip>
-                  <div className="flex-1 h-[6px] bg-surface-hover rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(255,255,255,0.1)]" style={{ width: `${perc}%`, background: config.color }} />
+              </TremorBadge>
+            </Flex>
+
+            <div className="space-y-4 flex-1">
+              {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
+                const count = statusDistribution[key] || 0;
+                const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
+                return (
+                  <div key={key}>
+                    <Flex className="mb-1">
+                      <Text className="!text-xs !text-text-tertiary">{config.label}</Text>
+                      <Text className="!text-xs !font-bold !text-text-primary">{count}</Text>
+                    </Flex>
+                    <ProgressBar value={perc} color={key === 'cancelado' ? 'red' : 'cyan'} className="!h-1.5" />
                   </div>
-                  <Typography variant="body-sm" weight="bold" color="primary" className="w-6 text-right">
-                    {count}
-                  </Typography>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-white/5">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6 text-center">Mix de Vendas (Revenue Share)</h3>
-            
-            <div className="flex flex-col gap-6">
-              <div className="h-[240px] w-full relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <Pie
-                      activeIndex={activePieIndex}
-                      activeShape={renderActiveShape}
-                      data={topProducts}
-                      cx="55%"
-                      cy="50%"
-                      innerRadius={70}
-                      outerRadius={90}
-                      paddingAngle={5}
-                      dataKey="receita"
-                      nameKey="nome"
-                      onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
-                      onMouseLeave={() => setActivePieIndex(-1)}
-                    >
-                      {topProducts.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={topProductsColors[index % topProductsColors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      content={({ active, payload, coordinate }) => {
-                        if (active && payload && payload.length && coordinate) {
-                          const isRight = coordinate.x > 150;
-                          const isBottom = coordinate.y > 120;
-                          
-                          // Posições bem mais externas para "fugir" do gráfico
-                          const posX = isRight ? -130 : 220;
-                          const posY = isBottom ? -20 : 180;
-
-                          return (
-                            <div 
-                              className="bg-[#0f172a]/95 backdrop-blur-xl border border-border-bold p-3 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 ease-out z-[100]"
-                              style={{ 
-                                position: 'absolute', 
-                                left: posX,
-                                top: posY,
-                                transform: 'translate(0, 0)',
-                                pointerEvents: 'none',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              <Typography variant="caption" color="accent" weight="bold" className="mb-0.5 block uppercase tracking-tighter">
-                                {payload[0].name}
-                              </Typography>
-                              <Typography variant="h4" weight="black" color="primary" className="leading-none">
-                                {fmt(payload[0].value as number)}
-                              </Typography>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-1 translate-x-[5%]">
-                  <Typography variant="h3" weight="black" color="primary" className="leading-none !text-xl">
-                    {fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}
-                  </Typography>
-                  <Typography variant="label" color="muted" className="opacity-40">TOTAL</Typography>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2.5">
-                {topProducts.map((p, i) => {
-                  const total = topProducts.reduce((acc, x) => acc + x.receita, 0);
-                  const perc = total > 0 ? (p.receita / total) * 100 : 0;
-                  const isActive = activePieIndex === i;
-                  return (
-                    <div 
-                      key={i} 
-                      className={`flex items-center justify-between group transition-all duration-300 ${isActive ? 'translate-x-1' : ''}`}
-                      onMouseEnter={() => setActivePieIndex(i)}
-                      onMouseLeave={() => setActivePieIndex(-1)}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-transform ${isActive ? 'scale-150' : ''}`} style={{ background: topProductsColors[i % topProductsColors.length] }} />
-                        <PremiumTooltip content={p.nome}>
-                          <Typography variant="body-sm" weight="bold" color={isActive ? 'primary' : 'secondary'} className="truncate cursor-help uppercase tracking-tight transition-colors">
-                            {p.nome}
-                          </Typography>
-                        </PremiumTooltip>
-                      </div>
-                      <div className="flex items-center gap-2 ml-4">
-                        <Typography variant="body-sm" weight="black" className={isActive ? 'text-accent' : 'text-primary'}>
-                          {perc.toFixed(1)}%
-                        </Typography>
-                        <Typography variant="caption" color="muted" className="min-w-[50px] text-right">
-                          {fmt(p.receita)}
-                        </Typography>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
-          </div>
-        </Card>
-      </section>
 
-      {/* Linha 3: Saúde + Clientes + Alertas */}
-      <section className="rf-dashboard-row rf-dashboard-row--3">
+            {/* Mix de Vendas Integrado */}
+            <div className="mt-10 pt-8 border-t border-border-subtle">
+              <Text className="!text-center !text-[10px] !font-black !uppercase !tracking-[0.2em] !mb-6">Mix de Vendas (Revenue)</Text>
+              <div className="h-48">
+                <DonutChart
+                  className="h-full"
+                  data={topProducts}
+                  category="receita"
+                  index="nome"
+                  valueFormatter={fmt}
+                  colors={["amber", "indigo", "emerald", "cyan", "violet", "rose", "fuchsia", "sky", "lime", "orange"]}
+                  showAnimation={true}
+                  variant="donut"
+                />
+              </div>
+            </di      {/* Linha 3: Saúde + Clientes + Alertas */}
+      <Grid numItemsLg={3} className="gap-6 mt-6">
         {visao !== 'operacional' && (
-          <Card>
-            <div className="mb-6">
-              <Typography variant="h3" weight="bold">Saúde da operação</Typography>
-              <Typography variant="body-sm" color="muted">Sinais de maturidade da base</Typography>
-            </div>
-            <div className="flex flex-col gap-4">
+          <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
+            <Title className="!text-text-primary !font-bold mb-1">Saúde da operação</Title>
+            <Text className="!text-text-muted mb-8">Sinais de maturidade da base</Text>
+            
+            <div className="space-y-6">
               {[
                 { label: 'Contato da base', sub: 'WhatsApp ou e-mail', val: healthMetrics.contato, th: [80, 50] },
                 { label: 'Estoque saudável', sub: 'Produtos com saldo > 0', val: healthMetrics.estoque, th: [90, 70] },
                 { label: 'Mix ativo', sub: 'Saída no período', val: healthMetrics.mix, th: [30, 10] },
                 { label: 'Taxa de entrega', sub: 'Pedidos concluídos', val: healthMetrics.entrega, th: [70, 40] }
               ].map(m => (
-                <div key={m.label} className="flex justify-between items-center">
-                  <div>
-                    <p className="text-xs font-semibold text-white">{m.label}</p>
-                    <p className="text-[10px] text-slate-500">{m.sub}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Typography variant="body-sm" weight="bold" color="primary">{m.val.toFixed(1)}%</Typography>
-                    <StatusBadge tone={getHealthTone(m.val, m.th as [number, number])}>
-                      {m.val >= m.th[0] ? 'Saudável' : m.val >= m.th[1] ? 'Atenção' : 'Crítico'}
-                    </StatusBadge>
-                  </div>
+                <div key={m.label}>
+                  <Flex className="mb-2">
+                    <div>
+                      <Text className="!text-text-primary !font-bold !text-xs">{m.label}</Text>
+                      <Text className="!text-[10px] !text-text-muted">{m.sub}</Text>
+                    </div>
+                    <Text className="!text-xs !font-black !text-text-primary">{m.val.toFixed(1)}%</Text>
+                  </Flex>
+                  <ProgressBar 
+                    value={m.val} 
+                    color={m.val >= m.th[0] ? 'emerald' : m.val >= m.th[1] ? 'amber' : 'rose'} 
+                    className="!h-1.5" 
+                  />
                 </div>
               ))}
             </div>
-          </Card>
+          </TremorCard>
         )}
 
-        {visao === 'analitico' && (
-          <article className="rf-dash-card">
-            <div className="rf-dash-card__header">
-              <div>
-                <h2 className="rf-dash-card__title">Base de clientes</h2>
-                <p className="rf-dash-card__subtitle">{customerMetrics.total} clientes ativos</p>
-              </div>
-              <StatusBadge tone="success">{customerMetrics.coberturaWhats.toFixed(0)}% alcançável</StatusBadge>
-            </div>
+        {visao === 'analitico' ? (
+          <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
+            <Flex justifyContent="between" className="mb-1">
+              <Title className="!text-text-primary !font-bold">Base de clientes</Title>
+              <TremorBadge color="emerald" size="xs">
+                {customerMetrics.coberturaWhats.toFixed(0)}% COBERTURA
+              </TremorBadge>
+            </Flex>
+            <Text className="!text-text-muted mb-8">{customerMetrics.total} clientes ativos</Text>
             
-            <div className="flex flex-col gap-5 mt-2">
+            <div className="space-y-6">
               {[
-                { label: 'Com WhatsApp', val: customerMetrics.comWhats, color: '#1D9E75' },
-                { label: 'Com e-mail', val: customerMetrics.comEmail, color: '#378ADD' },
-                { label: 'Opt-in campanhas', val: customerMetrics.optIn, color: '#7F77DD' },
-                { label: 'Compraram no período', val: customerMetrics.compraram, color: '#C47B0A' }
+                { label: 'Com WhatsApp', val: customerMetrics.comWhats, color: 'emerald' },
+                { label: 'Com e-mail', val: customerMetrics.comEmail, color: 'blue' },
+                { label: 'Opt-in campanhas', val: customerMetrics.optIn, color: 'indigo' },
+                { label: 'Compraram no período', val: customerMetrics.compraram, color: 'amber' }
               ].map(m => (
-                <div key={m.label} className="rf-dash-progress-row">
-                  <div className="rf-dash-progress-info">
-                    <span className="rf-dash-progress-label">{m.label}</span>
-                    <span className="rf-dash-progress-value">{m.val} / {customerMetrics.total}</span>
-                  </div>
-                  <div className="rf-dash-progress-bar">
-                    <div 
-                      className="rf-dash-progress-fill" 
-                      style={{ width: `${(m.val / customerMetrics.total) * 100}%`, background: m.color }} 
-                    />
-                  </div>
+                <div key={m.label}>
+                  <Flex className="mb-1">
+                    <Text className="!text-xs !text-text-tertiary">{m.label}</Text>
+                    <Text className="!text-xs !font-bold !text-text-primary">{m.val} / {customerMetrics.total}</Text>
+                  </Flex>
+                  <ProgressBar 
+                    value={(m.val / customerMetrics.total) * 100} 
+                    color={m.color as any} 
+                    className="!h-1.5" 
+                  />
                 </div>
               ))}
             </div>
-
-            <div className="rf-dash-footer">
-              <a href="/app/clientes" className="rf-dash-link">Ver clientes <ChevronRight size={14} /></a>
-            </div>
-          </article>
+          </TremorCard>
+        ) : (
+          <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium flex flex-col items-center justify-center text-center p-8 opacity-50">
+            <HelpCircle size={40} className="text-text-muted mb-4" />
+            <Title className="!text-text-muted !text-sm">Métricas de Base</Title>
+            <Text className="!text-text-muted !text-xs">Disponível apenas na visão Analítica</Text>
+          </TremorCard>
         )}
 
-        <Card className="flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <Typography variant="h3" weight="bold">Alertas e pendências</Typography>
-              <Typography variant="body-sm" color="muted">Ações que precisam de atenção</Typography>
-            </div>
-            <Badge variant="yellow" className="px-2 py-0.5">
-              {alerts.length}
-            </Badge>
-          </div>
+        <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium flex flex-col">
+          <Flex justifyContent="between" className="mb-1">
+            <Title className="!text-text-primary !font-bold">Alertas e pendências</Title>
+            <TremorBadge color="rose" size="xs">{alerts.length}</TremorBadge>
+          </Flex>
+          <Text className="!text-text-muted mb-6">Ações que precisam de atenção</Text>
 
-          <div className="rf-dash-list mt-2">
+          <div className="space-y-4 flex-1">
             {alerts.length > 0 ? alerts.map(a => (
-              <div key={a.id} className="rf-dash-list-item group">
-                <div className={`rf-dash-list-item__icon ${a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'} ${a.isPredictive ? 'ring-2 ring-[#C5A059]/20' : ''}`}>
-                  {a.isPredictive ? <ArrowUpRight size={18} className="text-[#C5A059]" /> : a.tone === 'danger' ? <AlertCircle size={18} /> : <ArrowUpRight size={18} />}
+              <div key={a.id} className="flex items-start gap-4 p-3 rounded-xl bg-surface-hover border border-border-subtle group hover:border-border-bold transition-all">
+                <div className={`p-2 rounded-lg ${a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                  {a.isPredictive ? <Zap size={16} /> : <AlertCircle size={16} />}
                 </div>
-                <div className="rf-dash-list-item__content">
-                  <div className="flex items-center gap-2">
-                    <p className="rf-dash-list-item__title">{a.title}</p>
+                <div className="flex-1 min-w-0">
+                  <Flex justifyContent="start" className="gap-2">
+                    <Text className="!text-text-primary !font-bold !text-xs truncate">{a.title}</Text>
                     {a.isPredictive && (
-                      <span className="rf-badge-ai">NEXUS AI</span>
+                      <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">AI</span>
                     )}
-                  </div>
-                  <p className="rf-dash-list-item__desc">{a.desc}</p>
+                  </Flex>
+                  <Text className="!text-[10px] !text-text-muted truncate">{a.desc}</Text>
                 </div>
-                <a href={a.link} className="rf-dash-list-item__action hover:bg-surface-hover px-3 py-1 rounded-md transition-colors text-tertiary hover:text-primary">Ver</a>
+                <Button variant="ghost" size="sm" className="!h-8 !px-3 !text-[10px] !font-bold hover:!bg-surface-active" onClick={() => window.location.href = a.link}>
+                  VER
+                </Button>
               </div>
             )) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
-                <CheckCircle2 size={32} className="text-emerald-500" />
-                <Typography variant="body-sm" weight="bold">Nenhuma pendência no momento</Typography>
-                <Typography variant="caption" color="muted">Operação estável e saudável.</Typography>
+              <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
+                <CheckCircle2 size={32} className="text-emerald-500/50" />
+                <Text className="!text-text-muted !text-xs">Nenhuma pendência crítica</Text>
               </div>
             )}
           </div>
 
-          <div className="mt-auto pt-6 border-t border-border-subtle">
-            <Typography variant="label" color="muted">Última atualização: {new Date().toLocaleTimeString()}</Typography>
+          <div className="mt-6 pt-6 border-t border-border-subtle flex justify-between items-center">
+            <Text className="!text-[9px] !text-text-muted uppercase tracking-widest">Sincronizado</Text>
+            <Text className="!text-[9px] !text-text-muted">{new Date().toLocaleTimeString()}</Text>
           </div>
-        </Card>
-      </section>
+        </TremorCard>
+      </Grid>
     </div>
   );
 }
