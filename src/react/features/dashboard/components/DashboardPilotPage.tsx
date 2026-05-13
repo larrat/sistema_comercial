@@ -579,87 +579,78 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         )}
       </motion.section>
 
-      {/* Linha 2: Gráfico + Status */}
       <section className="rf-dashboard-row rf-dashboard-row--2">
         {visao !== 'operacional' && (
-          <motion.article 
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="rf-dash-card"
-          >
-            <div className="rf-dash-card__header flex-row items-center !mb-6">
-              <div className="flex-1">
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-0.5">Faturamento e Lucro</h2>
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest opacity-80">Projeção por período</p>
-                  <span className="w-1 h-1 rounded-full bg-white/10" />
-                  <span className="text-[9px] font-bold text-[#C5A059] uppercase tracking-tighter bg-[#C5A059]/10 px-1.5 py-0.5 rounded">{periodoDatas}</span>
+          <Card className="flex-1 flex flex-col min-h-[480px]">
+            <div className="flex flex-row items-center justify-between mb-8">
+              <div>
+                <Typography variant="h3" weight="bold">Faturamento e Lucro</Typography>
+                <div className="flex items-center gap-2 mt-1">
+                  <Typography variant="caption" color="muted">Projeção por período</Typography>
+                  <span className="w-1 h-1 rounded-full bg-border-bold" />
+                  <Badge variant="blue" className="text-[9px] uppercase">{periodoDatas}</Badge>
                 </div>
               </div>
-              <div className="flex gap-5 text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#C5A059] shadow-[0_0_8px_rgba(197,160,89,0.4)]" /> 
-                  <span className="text-slate-600">Faturamento</span>
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.4)]" /> 
-                  <span className="text-slate-600">Lucro</span>
-                </span>
+              <div className="flex gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#C5A059] shadow-[0_0_12px_rgba(197,160,89,0.5)]" />
+                  <Typography variant="label" color="muted">Faturamento</Typography>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
+                  <Typography variant="label" color="muted">Lucro</Typography>
+                </div>
               </div>
             </div>
-            <div className="flex-1 mt-6 min-h-[340px]">
-              <ResponsiveContainer width="100%" height={340}>
+            <div className="flex-1 min-h-[300px]">
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart 
                   data={chartData} 
-                  margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
-                  onMouseMove={(state) => {
-                    if (state && state.activeTooltipIndex !== undefined) {
-                      setActiveBarIndex(Number(state.activeTooltipIndex));
-                    }
-                  }}
-                  onMouseLeave={() => setActiveBarIndex(null)}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#C5A059" stopOpacity={0.4}/>
+                      <stop offset="5%" stopColor="#C5A059" stopOpacity={0.2}/>
                       <stop offset="95%" stopColor="#C5A059" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.4}/>
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
                       <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid 
+                    strokeDasharray="4 4" 
+                    vertical={false} 
+                    stroke="rgba(255,255,255,0.03)" 
+                  />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 600 }}
+                    tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 600 }}
                     dy={10}
                   />
                   <YAxis hide />
                   <Tooltip 
+                    cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <TooltipShell className="min-w-[200px]">
-                            <div className="flex flex-col items-center mb-4 pb-3 border-b border-white/5">
-                              <p className="font-black text-white text-[12px] uppercase tracking-[0.2em] text-center">
-                                {payload[0].payload.name}
-                              </p>
-                            </div>
-                            <div className="space-y-4">
-                              <div className="flex flex-col items-center">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Faturamento Bruto</span>
-                                <p className="text-xl font-black text-[#C5A059] leading-none">{fmt(payload[0].value as number)}</p>
+                          <Card padding="sm" className="min-w-[180px] bg-surface-sidebar/90 backdrop-blur-md border-border-bold">
+                            <Typography variant="label" align="center" className="mb-3 pb-2 border-b border-border-subtle">
+                              {payload[0].payload.name}
+                            </Typography>
+                            <div className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <Typography variant="caption" color="muted">Faturamento</Typography>
+                                <Typography variant="body-sm" weight="bold" className="text-[#C5A059]">{fmt(payload[0].value as number)}</Typography>
                               </div>
-                              <div className="flex flex-col items-center">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lucro Operacional</span>
-                                <p className="text-xl font-black text-[#10B981] leading-none">{fmt(payload[1].value as number)}</p>
+                              <div className="flex justify-between items-center">
+                                <Typography variant="caption" color="muted">Lucro</Typography>
+                                <Typography variant="body-sm" weight="bold" className="text-[#10B981]">{fmt(payload[1].value as number)}</Typography>
                               </div>
                             </div>
-                          </TooltipShell>
+                          </Card>
                         );
                       }
                       return null;
@@ -669,33 +660,68 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     type="monotone" 
                     dataKey="faturamento" 
                     stroke="#C5A059" 
-                    strokeWidth={4}
+                    strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorFat)" 
-                    animationDuration={1500}
+                    animationDuration={1000}
+                    activeDot={{ r: 6, fill: '#C5A059', stroke: '#020617', strokeWidth: 2 }}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="lucro" 
                     stroke="#10B981" 
-                    strokeWidth={4}
+                    strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorLuc)" 
-                    animationDuration={2000}
+                    animationDuration={1200}
+                    activeDot={{ r: 6, fill: '#10B981', stroke: '#020617', strokeWidth: 2 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </motion.article>
+
+            {/* Chart Footer Legend/KPIs */}
+            <div className="mt-8 pt-6 border-t border-border-subtle grid grid-cols-4 gap-4">
+              <div className="flex flex-col gap-1">
+                <Typography variant="label" color="muted">Melhor Dia</Typography>
+                <Typography variant="body" weight="bold" color="primary">
+                  {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
+                </Typography>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Typography variant="label" color="muted">Média Diária</Typography>
+                <Typography variant="body" weight="bold" color="primary">
+                  {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
+                </Typography>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Typography variant="label" color="muted">Total Período</Typography>
+                <Typography variant="body" weight="bold" color="primary">
+                  {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
+                </Typography>
+              </div>
+              <div className="flex flex-col gap-1">
+                <Typography variant="label" color="muted">Margem Média</Typography>
+                <div className="flex items-center gap-2">
+                  <Typography variant="body" weight="bold" className="text-emerald-400">
+                    {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
+                      ? ((chartData.reduce((acc, d) => acc + d.lucro, 0) / chartData.reduce((acc, d) => acc + d.faturamento, 0)) * 100).toFixed(1)
+                      : 0}%
+                  </Typography>
+                  <TrendingUp size={14} className="text-emerald-500" />
+                </div>
+              </div>
+            </div>
+          </Card>
         )}
 
-        <article className="rf-dash-card overflow-hidden">
-          <div className="rf-dash-card__header">
-            <h2 className="rf-dash-card__title">Status dos pedidos</h2>
+        <Card className="flex flex-col min-h-[480px]">
+          <div className="flex items-center justify-between mb-8">
+            <Typography variant="h3" weight="bold">Status dos pedidos</Typography>
             <Badge variant="blue" className="px-2 py-0.5">{pedidos.length} total</Badge>
           </div>
           
-          <div className="flex flex-col gap-3 mt-2">
+          <div className="flex flex-col gap-4 flex-1">
             {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
               const count = statusDistribution[key] || 0;
               const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
@@ -703,12 +729,16 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <div key={key} className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: config.color }} />
                   <PremiumTooltip content={config.label}>
-                    <span className="text-[11px] font-medium text-slate-400 w-[100px] truncate cursor-help">{config.label}</span>
+                    <Typography variant="body-sm" color="tertiary" className="w-[100px] truncate cursor-help">
+                      {config.label}
+                    </Typography>
                   </PremiumTooltip>
-                  <div className="flex-1 h-[5px] bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${perc}%`, background: config.color }} />
+                  <div className="flex-1 h-[6px] bg-surface-hover rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(255,255,255,0.1)]" style={{ width: `${perc}%`, background: config.color }} />
                   </div>
-                  <span className="text-[11px] font-bold text-white w-4 text-right">{count}</span>
+                  <Typography variant="body-sm" weight="bold" color="primary" className="w-6 text-right">
+                    {count}
+                  </Typography>
                 </div>
               );
             })}
@@ -801,20 +831,18 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               </div>
             </div>
           </div>
-        </article>
+        </Card>
       </section>
 
       {/* Linha 3: Saúde + Clientes + Alertas */}
       <section className="rf-dashboard-row rf-dashboard-row--3">
         {visao !== 'operacional' && (
-          <article className="rf-dash-card">
-            <div className="rf-dash-card__header">
-              <div>
-                <h2 className="rf-dash-card__title">Saúde da operação</h2>
-                <p className="rf-dash-card__subtitle">Sinais de maturidade da base</p>
-              </div>
+          <Card>
+            <div className="mb-6">
+              <Typography variant="h3" weight="bold">Saúde da operação</Typography>
+              <Typography variant="body-sm" color="muted">Sinais de maturidade da base</Typography>
             </div>
-            <div className="flex flex-col gap-4 mt-2">
+            <div className="flex flex-col gap-4">
               {[
                 { label: 'Contato da base', sub: 'WhatsApp ou e-mail', val: healthMetrics.contato, th: [80, 50] },
                 { label: 'Estoque saudável', sub: 'Produtos com saldo > 0', val: healthMetrics.estoque, th: [90, 70] },
@@ -827,7 +855,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     <p className="text-[10px] text-slate-500">{m.sub}</p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs font-bold text-white">{m.val.toFixed(1)}%</span>
+                    <Typography variant="body-sm" weight="bold" color="primary">{m.val.toFixed(1)}%</Typography>
                     <StatusBadge tone={getHealthTone(m.val, m.th as [number, number])}>
                       {m.val >= m.th[0] ? 'Saudável' : m.val >= m.th[1] ? 'Atenção' : 'Crítico'}
                     </StatusBadge>
@@ -835,7 +863,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 </div>
               ))}
             </div>
-          </article>
+          </Card>
         )}
 
         {visao === 'analitico' && (
@@ -876,15 +904,15 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </article>
         )}
 
-        <article className="rf-dash-card">
-          <div className="rf-dash-card__header">
+        <Card className="flex flex-col">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="rf-dash-card__title">Alertas e pendências</h2>
-              <p className="rf-dash-card__subtitle">Ações que precisam de atenção</p>
+              <Typography variant="h3" weight="bold">Alertas e pendências</Typography>
+              <Typography variant="body-sm" color="muted">Ações que precisam de atenção</Typography>
             </div>
-            <span className={`badge badge-sm ${alerts.length > 0 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+            <Badge variant="yellow" className="px-2 py-0.5">
               {alerts.length}
-            </span>
+            </Badge>
           </div>
 
           <div className="rf-dash-list mt-2">
@@ -902,21 +930,21 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   </div>
                   <p className="rf-dash-list-item__desc">{a.desc}</p>
                 </div>
-                <a href={a.link} className="rf-dash-list-item__action hover:bg-white/5 px-3 py-1 rounded-md transition-colors text-slate-400 hover:text-white">Ver</a>
+                <a href={a.link} className="rf-dash-list-item__action hover:bg-surface-hover px-3 py-1 rounded-md transition-colors text-tertiary hover:text-primary">Ver</a>
               </div>
             )) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
+              <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
                 <CheckCircle2 size={32} className="text-emerald-500" />
-                <p className="text-xs font-semibold text-white">Nenhuma pendência no momento</p>
-                <p className="text-[10px] text-slate-500">Operação estável e saudável.</p>
+                <Typography variant="body-sm" weight="bold">Nenhuma pendência no momento</Typography>
+                <Typography variant="caption" color="muted">Operação estável e saudável.</Typography>
               </div>
             )}
           </div>
 
-          <div className="rf-dash-footer">
-            <span className="text-[10px] text-slate-400">Última atualização: {new Date().toLocaleTimeString()}</span>
+          <div className="mt-auto pt-6 border-t border-border-subtle">
+            <Typography variant="label" color="muted">Última atualização: {new Date().toLocaleTimeString()}</Typography>
           </div>
-        </article>
+        </Card>
       </section>
     </div>
   );
