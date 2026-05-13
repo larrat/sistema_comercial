@@ -11,9 +11,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis,
-  Defs,
-  LinearGradient
+  YAxis
 } from 'recharts';
 
 function PremiumChartTooltip({ active, payload, label, formatter }: any) {
@@ -297,14 +295,14 @@ function StackedVariantChart({
         <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <Defs>
+              <defs>
                 {variantes.map((v, i) => (
                   <linearGradient key={`grad-${v.produto.id}`} id={`color-${v.produto.id}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={v.color} stopOpacity={0.3} />
                     <stop offset="95%" stopColor={v.color} stopOpacity={0} />
                   </linearGradient>
                 ))}
-              </Defs>
+              </defs>
               <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" strokeDasharray="3 3" />
               <XAxis 
                 dataKey="label" 
@@ -364,14 +362,14 @@ function SimpleVariantChart({
       <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 24, right: 10, left: 0, bottom: 0 }}>
-            <Defs>
+            <defs>
               {data.map((row, i) => (
                 <linearGradient key={`bar-grad-${i}`} id={`bar-color-${i}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={row.color} stopOpacity={1} />
                   <stop offset="100%" stopColor={row.color} stopOpacity={0.6} />
                 </linearGradient>
               ))}
-            </Defs>
+            </defs>
             <CartesianGrid vertical={false} stroke="rgba(0,0,0,0.03)" strokeDasharray="3 3" />
             <XAxis 
               dataKey="label" 
