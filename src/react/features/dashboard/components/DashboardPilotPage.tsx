@@ -761,20 +761,18 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             <div className="flex flex-col gap-6">
               <div className="h-[240px] w-full relative">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                  <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <Pie
-                      // @ts-ignore
                       activeIndex={activePieIndex}
                       activeShape={renderActiveShape}
                       data={topProducts}
-                      cx="50%"
+                      cx="55%"
                       cy="50%"
                       innerRadius={70}
                       outerRadius={90}
                       paddingAngle={5}
                       dataKey="receita"
                       nameKey="nome"
-                      stroke="none"
                       onMouseEnter={(_: any, index: number) => setActivePieIndex(index)}
                       onMouseLeave={() => setActivePieIndex(-1)}
                     >
@@ -783,15 +781,15 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       ))}
                     </Pie>
                     <Tooltip 
-                      position={{ x: 0, y: 0 }}
+                      position={{ x: 10, y: 10 }}
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-[#0f172a]/80 backdrop-blur-md border border-border-bold p-2.5 rounded-lg shadow-xl transition-all duration-300">
-                              <Typography variant="caption" color="accent" weight="bold" className="mb-0.5 block truncate max-w-[120px]">
+                            <div className="bg-[#0f172a]/80 backdrop-blur-md border border-border-bold p-3 rounded-xl shadow-2xl transition-all duration-300">
+                              <Typography variant="caption" color="accent" weight="bold" className="mb-0.5 block truncate max-w-[110px] uppercase tracking-tighter">
                                 {payload[0].name}
                               </Typography>
-                              <Typography variant="body-sm" weight="black" color="primary">
+                              <Typography variant="h4" weight="black" color="primary" className="leading-none">
                                 {fmt(payload[0].value as number)}
                               </Typography>
                             </div>
@@ -802,7 +800,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-1">
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none translate-y-1 translate-x-[5%]">
                   <Typography variant="h3" weight="black" color="primary" className="leading-none !text-xl">
                     {fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}
                   </Typography>
