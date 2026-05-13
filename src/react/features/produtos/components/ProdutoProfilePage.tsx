@@ -549,15 +549,18 @@ export function ProdutoProfilePage({
             transition={{ duration: 0.2 }}
           >
             {activeTab === 'resumo' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 flex flex-col gap-8">
-                  <article className="rf-dash-card">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Coluna 1: Domínio Financeiro */}
+                <div className="flex flex-col gap-8">
+                  <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-indigo-500">Análise Financeira</span>
+                        <span className="rf-stat-label !mb-1 text-indigo-500 font-black">Performance</span>
                         <h2 className="rf-dash-card__title text-base">Resumo Comercial</h2>
                       </div>
-                      <Settings className="w-4 h-4 text-slate-300" />
+                      <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                        <TrendingUp size={14} />
+                      </div>
                     </div>
                     <div className="mt-2">
                       <ProdutoInfoTable
@@ -594,60 +597,15 @@ export function ProdutoProfilePage({
                     </div>
                   </article>
 
-                  <article className="rf-dash-card">
+                  <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-emerald-500">Operacional</span>
-                        <h2 className="rf-dash-card__title text-base">Gestão de Estoque</h2>
-                      </div>
-                      <Layers className="w-4 h-4 text-slate-300" />
-                    </div>
-                    <div className="mt-2">
-                      <ProdutoInfoTable
-                        rows={[
-                          {
-                            label: 'Saldo em Mão',
-                            value: (
-                              <span className={`font-bold ${saldo.saldo <= 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                                {formatQuantity(saldo.saldo)} {produto.un}
-                              </span>
-                            )
-                          },
-                          { label: 'Ponto de Pedido (Mín)', value: `${formatQuantity(toNumber(produto.emin))} ${produto.un}` },
-                          { label: 'Alerta Reposição', value: toNumber(produto.esal) > 0 ? `${formatQuantity(toNumber(produto.esal))} ${produto.un}` : null },
-                          { label: 'Custo Médio (CM)', value: formatCurrency(saldo.cm || toNumber(produto.ecm) || precos.custo) }
-                        ]}
-                      />
-                    </div>
-                  </article>
-
-                  <article className="rf-dash-card">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-slate-500">Identificação</span>
-                        <h2 className="rf-dash-card__title text-base">Cadastro Base</h2>
-                      </div>
-                      <Database className="w-4 h-4 text-slate-300" />
-                    </div>
-                    <div className="mt-2">
-                      <ProdutoInfoTable
-                        rows={[
-                          { label: 'SKU', value: produto.sku },
-                          { label: 'Categoria', value: produto.cat },
-                          { label: 'Código Barras', value: produto.codigo_barras },
-                          { label: 'Ref. Fornecedor', value: produto.codigo_fornecedor }
-                        ]}
-                      />
-                    </div>
-                  </article>
-
-                  <article className="rf-dash-card">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-rose-500">Financeiro</span>
+                        <span className="rf-stat-label !mb-1 text-rose-500 font-black">Análise</span>
                         <h2 className="rf-dash-card__title text-base">Formação de Preço</h2>
                       </div>
-                      <TrendingUp className="w-4 h-4 text-slate-300" />
+                      <div className="p-2 bg-rose-50 rounded-lg text-rose-400">
+                        <DollarSign size={14} />
+                      </div>
                     </div>
                     <div className="mt-2">
                       <ProdutoInfoTable
@@ -697,12 +655,67 @@ export function ProdutoProfilePage({
                   </article>
                 </div>
 
-                <aside className="flex flex-col gap-6">
-                  <article className="rf-dash-card bg-[#0F172A] text-white overflow-hidden relative shadow-[0_20px_40px_-12px_rgba(15,23,42,0.3)]">
+                {/* Coluna 2: Domínio Operacional */}
+                <div className="flex flex-col gap-8">
+                  <article className="rf-dash-card h-fit">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-emerald-500 font-black">Logística</span>
+                        <h2 className="rf-dash-card__title text-base">Gestão de Estoque</h2>
+                      </div>
+                      <div className="p-2 bg-emerald-50 rounded-lg text-emerald-400">
+                        <Layers size={14} />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <ProdutoInfoTable
+                        rows={[
+                          {
+                            label: 'Saldo em Mão',
+                            value: (
+                              <span className={`font-bold ${saldo.saldo <= 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                                {formatQuantity(saldo.saldo)} {produto.un}
+                              </span>
+                            )
+                          },
+                          { label: 'Ponto de Pedido (Mín)', value: `${formatQuantity(toNumber(produto.emin))} ${produto.un}` },
+                          { label: 'Alerta Reposição', value: toNumber(produto.esal) > 0 ? `${formatQuantity(toNumber(produto.esal))} ${produto.un}` : null },
+                          { label: 'Custo Médio (CM)', value: formatCurrency(saldo.cm || toNumber(produto.ecm) || precos.custo) }
+                        ]}
+                      />
+                    </div>
+                  </article>
+
+                  <article className="rf-dash-card h-fit">
+                    <div className="rf-dash-card__header flex-row items-center !mb-6">
+                      <div className="flex-1">
+                        <span className="rf-stat-label !mb-1 text-slate-500 font-black">Dados Mestre</span>
+                        <h2 className="rf-dash-card__title text-base">Cadastro Base</h2>
+                      </div>
+                      <div className="p-2 bg-slate-50 rounded-lg text-slate-400">
+                        <Database size={14} />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <ProdutoInfoTable
+                        rows={[
+                          { label: 'SKU', value: produto.sku },
+                          { label: 'Categoria', value: produto.cat },
+                          { label: 'Código Barras', value: produto.codigo_barras },
+                          { label: 'Ref. Fornecedor', value: produto.codigo_fornecedor }
+                        ]}
+                      />
+                    </div>
+                  </article>
+                </div>
+
+                {/* Coluna 3: Domínio de Inteligência */}
+                <aside className="flex flex-col gap-8">
+                  <article className="rf-dash-card bg-[#0F172A] text-white overflow-hidden relative shadow-[0_20px_40px_-12px_rgba(15,23,42,0.3)] !p-0">
                     <div className="absolute top-0 right-0 p-6 opacity-5">
                       <TrendingUp className="w-32 h-32" />
                     </div>
-                    <div className="p-2 flex flex-col gap-6 relative z-10">
+                    <div className="p-6 flex flex-col gap-6 relative z-10">
                       <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-black text-blue-400/80 uppercase tracking-[0.2em]">Nexus AI · Performance</span>
                         <h3 className="text-lg font-bold text-white tracking-tight">Giro e Saúde</h3>
@@ -728,19 +741,21 @@ export function ProdutoProfilePage({
                           </div>
                         </div>
                         <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-white">{produto.emin} {produto.un}</span> para evitar ruptura.
+                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-white font-bold">{produto.emin} {produto.un}</span> para evitar ruptura.
                         </p>
                       </div>
                     </div>
                   </article>
 
-                  <article className="rf-dash-card">
+                  <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-amber-500">Mercado</span>
+                        <span className="rf-stat-label !mb-1 text-amber-500 font-black">Mercado</span>
                         <h2 className="rf-dash-card__title text-base">Histórico de Custo</h2>
                       </div>
-                      <History className="w-4 h-4 text-slate-300" />
+                      <div className="p-2 bg-amber-50 rounded-lg text-amber-500">
+                        <History size={14} />
+                      </div>
                     </div>
                     <div className="p-0">
                       {sortedHist.length ? (
@@ -767,7 +782,7 @@ export function ProdutoProfilePage({
                           </table>
                         </div>
                       ) : (
-                        <div className="p-8 text-center text-slate-400 italic text-xs">Sem histórico registrado.</div>
+                        <div className="p-8 text-center text-slate-400 italic text-xs font-medium">Sem histórico registrado</div>
                       )}
                     </div>
                   </article>
