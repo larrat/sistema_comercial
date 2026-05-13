@@ -317,7 +317,11 @@ function StackedVariantChart({
                 tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
                 tickFormatter={(value) => `${valueFormatter(Number(value))}${ySuffix ?? ''}`}
               />
-              <Tooltip content={<PremiumChartTooltip formatter={valueFormatter} />} />
+              <Tooltip 
+                content={<PremiumChartTooltip formatter={valueFormatter} />} 
+                cursor={{ stroke: 'rgba(0,0,0,0.05)', strokeWidth: 1 }}
+                wrapperStyle={{ outline: 'none' }}
+              />
               {variantes.map((variant) => (
                 <Area
                   key={variant.produto.id}
@@ -384,7 +388,11 @@ function SimpleVariantChart({
               tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
               tickFormatter={(value) => `${formatter(Number(value))}${suffix ?? ''}`}
             />
-            <Tooltip content={<PremiumChartTooltip formatter={(v: any) => `${formatter(v)}${suffix ?? ''}`} />} />
+            <Tooltip 
+              content={<PremiumChartTooltip formatter={(v: any) => `${formatter(v)}${suffix ?? ''}`} />} 
+              cursor={{ fill: 'rgba(0,0,0,0.02)' }}
+              wrapperStyle={{ outline: 'none' }}
+            />
             <Bar dataKey={dataKey} radius={[6, 6, 0, 0]} animationDuration={1200}>
               {data.map((row, i) => (
                 <Cell key={`cell-${i}`} fill={`url(#bar-color-${i})`} />
