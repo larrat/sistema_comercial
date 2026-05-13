@@ -18,7 +18,7 @@ import {
   PageHeader,
   StatusBadge
 } from '../../../shared/ui';
-import { Wrench, Loader2, CheckCircle, Zap } from 'lucide-react';
+import { Wrench, Loader2, CheckCircle, Zap, RefreshCw } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -99,11 +99,15 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
   const page = useProdutoStore((s) => s.page);
   const pageSize = useProdutoStore((s) => s.pageSize);
   const total = useProdutoStore((s) => s.total);
-  const filtro = useProdutoStore((s) => s.filtro);
   const saldos = useProdutoStore((s) => s.saldos);
-  const setFiltro = useProdutoStore((s) => s.setFiltro);
   const setPage = useProdutoStore((s) => s.setPage);
   const setPageSize = useProdutoStore((s) => s.setPageSize);
+  const setFiltro = useProdutoStore((s) => s.setFiltro);
+  const filtro = useProdutoStore((s) => s.filtro);
+
+  const [visao, setVisao] = useState<'lista' | 'galeria'>('lista');
+  const [filtroEstoque, setFiltroEstoque] = useState<'todos' | 'estoque' | 'zerados'>('todos');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
     submitProduto,
@@ -135,6 +139,16 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     useInterModuleStore.getState().clearNovoProduto();
     setModal({ tipo: 'form', produto: null });
   }, [abrirNovoProduto]);
+
+  const filteredProdutos = useMemo(() => {
+    let list = produtos;
+    if (filtroEstoque === 'estoque') {
+      list = list.filter(p => (saldos[p.id]?.saldo ?? 0) > 0);
+    } else if (filtroEstoque === 'zerados') {
+      list = list.filter(p => (saldos[p.id]?.saldo ?? 0) <= 0);
+    }
+    return list;
+  }, [produtos, saldos, filtroEstoque]);
 
   const paisSemSelf = useMemo(
     () => {
@@ -265,6 +279,12 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     }
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await onRetryLoad?.();
+    setIsRefreshing(false);
+  };
+
   const pageHeader = (
     <PageHeader
       kicker="Catálogo"
@@ -276,31 +296,69 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
         </StatusBadge>
       }
       actions={
-        <div className="flex items-center gap-3">
-          {sanitizing ? (
-            <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 animate-pulse">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
-              <span className="text-[10px] font-black text-slate-600 uppercase tracking-tight">Corrigindo {sanitizingProgress}%</span>
-            </div>
-          ) : (
-            <button
-              className="rf-btn-premium gap-2"
-              type="button"
-              onClick={handleSanitize}
-              title="Corrigir resquícios e erros de cadastro"
+        <div className="flex items-center gap-6">
+          <div className="rf-pill-group">
+            {(['todos', 'estoque', 'zerados'] as const).map(f => (
+              <button 
+                key={f} 
+                className={`rf-pill ${filtroEstoque === f ? 'is-active' : ''}`}
+                onClick={() => setFiltroEstoque(f)}
+              >
+                {f === 'todos' ? 'Todos' : f === 'estoque' ? 'Estoque' : 'Zerados'}
+              </button>
+            ))}
+          </div>
+
+          <div className="rf-pill-group">
+            {(['lista', 'galeria'] as const).map(v => (
+              <button 
+                key={v} 
+                className={`rf-pill ${visao === v ? 'is-active' : ''}`}
+                onClick={() => setVisao(v)}
+              >
+                {v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-8 w-px bg-slate-200/60 mx-1" />
+
+          <div className="flex items-center gap-3">
+            <button 
+              className={`rf-btn-premium gap-2 ${isRefreshing ? 'opacity-50 pointer-events-none' : ''}`}
+              onClick={handleRefresh}
             >
-              <Wrench className="w-4 h-4 text-[#C5A059]" />
-              <span>Sanear Dados</span>
+              <RefreshCw className={`w-4 h-4 text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden md:inline">Atualizar</span>
             </button>
-          )}
-          <button
-            className="rf-btn-premium rf-btn-premium--primary is-vibrant"
-            type="button"
-            onClick={() => setModal({ tipo: 'form', produto: null })}
-          >
-            <Zap className="w-4 h-4" />
-            Novo produto
-          </button>
+
+            {sanitizing ? (
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-tight">Corrigindo {sanitizingProgress}%</span>
+              </div>
+            ) : (
+              <button
+                className="rf-btn-premium gap-2"
+                type="button"
+                onClick={handleSanitize}
+                title="Corrigir resquícios e erros de cadastro"
+              >
+                <Wrench className="w-4 h-4 text-[#C5A059]" />
+                <span className="hidden lg:inline">Sanear</span>
+              </button>
+            )}
+            
+            <button
+              className="rf-btn-premium rf-btn-premium--primary is-vibrant"
+              type="button"
+              onClick={() => setModal({ tipo: 'form', produto: null })}
+            >
+              <Zap className="w-4 h-4" />
+              <span className="hidden sm:inline">Novo produto</span>
+              <span className="sm:hidden">Novo</span>
+            </button>
+          </div>
         </div>
       }
     />
@@ -310,7 +368,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     return (
       <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8">
         {pageHeader}
-        <ProdutoMetrics produtos={produtos} />
+        <ProdutoMetrics produtos={filteredProdutos} />
         <LoadingState
           title="Carregando produtos..."
           description="Estamos preparando a lista e o saldo atual da filial."
@@ -323,7 +381,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
     return (
       <main className="flex-1 px-10 py-8 w-full flex flex-col gap-8">
         {pageHeader}
-        <ProdutoMetrics produtos={produtos} />
+        <ProdutoMetrics produtos={filteredProdutos} />
         <ErrorState
           title={storeError ?? 'Erro ao carregar produtos.'}
           description="Revise a sessão, a filial ativa ou tente recarregar os dados."
@@ -345,7 +403,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
       </motion.div>
 
       <motion.div variants={pageItem}>
-        <ProdutoMetrics produtos={produtos} />
+        <ProdutoMetrics produtos={filteredProdutos} />
       </motion.div>
 
       <motion.div variants={pageItem}>
@@ -379,7 +437,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
 
         {isMobile ? (
           <ProdutoListMobile
-            produtos={produtos}
+            produtos={filteredProdutos}
             saldos={saldos}
             totalCount={total}
             hasFilters={activeFilterCount > 0}
@@ -395,7 +453,7 @@ export function ProdutosPilotPage({ onRetryLoad, onOpenProduto }: ProdutosPilotP
           />
         ) : (
           <ProdutoListView
-            produtos={produtos}
+            produtos={filteredProdutos}
             saldos={saldos}
             totalCount={total}
             hasFilters={activeFilterCount > 0}
