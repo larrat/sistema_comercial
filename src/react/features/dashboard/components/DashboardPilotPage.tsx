@@ -217,6 +217,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   }, [pedidos, periodo]);
 
   const topProducts = useMemo(() => {
+    const productSales: Record<string, { nome: string; receita: number }> = {};
+    
     // Criar mapa de produto_pai para agrupamento inteligente
     const parentMap = new Map<string, string>();
     const nameMap = new Map<string, string>();
