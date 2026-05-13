@@ -783,10 +783,19 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       ))}
                     </Pie>
                     <Tooltip 
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
+                      position={{ y: 0 }}
+                      content={({ active, payload, coordinate }) => {
+                        if (active && payload && payload.length && coordinate) {
+                          const isRightSide = coordinate.x > 120;
                           return (
-                            <div className="bg-[#0f172a]/95 backdrop-blur-md border border-border-bold p-2.5 rounded-lg shadow-2xl">
+                            <div 
+                              className="bg-[#0f172a]/95 backdrop-blur-md border border-border-bold p-2.5 rounded-lg shadow-2xl transition-all duration-300"
+                              style={{ 
+                                position: 'absolute', 
+                                left: isRightSide ? -100 : 160,
+                                top: 0
+                              }}
+                            >
                               <Typography variant="caption" color="muted" weight="bold" className="mb-1 block border-b border-border-subtle pb-1 truncate max-w-[120px]">
                                 {payload[0].name}
                               </Typography>
