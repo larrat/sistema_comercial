@@ -189,9 +189,46 @@ export async function saveProduto(
   input: ProdutoWriteInput | ProdutoWriteInput[]
 ): Promise<Produto | Produto[] | null> {
   const isArray = Array.isArray(input);
-  const payload = isArray
-    ? input.map((item) => ({ ...item, filial_id: context.filialId }))
-    : { ...input, filial_id: context.filialId };
+  const inputs = isArray ? input : [input];
+
+  // Inteligência de Auto-Vínculo: Tenta encontrar o pai pelo nome se não houver um ID definido
+  const processedInputs = await Promise.all(
+    inputs.map(async (item) => {
+      const newItem = { ...item, filial_id: context.filialId };
+
+      if (!newItem.produto_pai_id) {
+        try {
+          // Busca um potencial pai: nome curto que é prefixo do nome atual
+          // Ex: "CAMISA" é pai de "CAMISA BRASIL"
+          const q = encodeURIComponent(String(newItem.nome || '').trim());
+          if (q.length > 3) {
+            const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&produto_pai_id=is.null&order=nome.desc`;
+            const res = await fetch(url, {
+              headers: createHeaders(context.key, context.token),
+              signal: AbortSignal.timeout(5000)
+            });
+            const potentialParents = (await readJson(res)) as Produto[];
+
+            if (Array.isArray(potentialParents)) {
+              // Encontrar o pai com o nome mais longo que ainda seja um prefixo (o mais específico)
+              const bestParent = potentialParents
+                .filter((p) => p.id !== newItem.id && newItem.nome?.startsWith(p.nome))
+                .sort((a, b) => b.nome.length - a.nome.length)[0];
+
+              if (bestParent) {
+                newItem.produto_pai_id = bestParent.id;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('[produtos] Falha no auto-vínculo inteligente:', e);
+        }
+      }
+      return newItem;
+    })
+  );
+
+  const payload = isArray ? processedInputs : processedInputs[0];
 
   const res = await fetch(`${context.url}/rest/v1/produtos?on_conflict=id`, {
     method: 'POST',
