@@ -698,7 +698,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   variant="donut"
                 />
               </div>
-            </di      {/* Linha 3: Saúde + Clientes + Alertas */}
+            </div>
+          </TremorCard>
+        </Col>
+      </Grid>
+      {/* Linha 3: Saúde + Clientes + Alertas */}
       <Grid numItemsLg={3} className="gap-6 mt-6">
         {visao !== 'operacional' && (
           <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">

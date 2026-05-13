@@ -446,8 +446,8 @@ export function PdvPage() {
       const { origem_venda, pgto_meta, ...fallback } = payload;
       const fallbackObs = [
         payload.obs,
-        pgto_meta ? \`[PDV_META] \${JSON.stringify(pgto_meta)}\` : '',
-        origem_venda ? \`[PDV_ORIGEM] \${origem_venda}\` : ''
+        pgto_meta ? `[PDV_META] ${JSON.stringify(pgto_meta)}` : '',
+        origem_venda ? `[PDV_ORIGEM] ${origem_venda}` : ''
       ]
         .filter(Boolean)
         .join('\n');
@@ -578,7 +578,7 @@ export function PdvPage() {
         paymentMethod: lastCompletedSale.paymentMethod
       })
     );
-    window.open(\`\${link}?text=\${message}\`, '_blank', 'noopener,noreferrer');
+    window.open(`${link}?text=${message}`, '_blank', 'noopener,noreferrer');
     setReceiptOpen(false);
   }
 
@@ -717,7 +717,7 @@ export function PdvPage() {
                           <div className="rf-pdv__suggestion-copy">
                             <strong>{produto.nome}</strong>
                             <span>
-                              {stock !== null ? \`Estoque \${stock}\` : 'Sem saldo'} ·{' '}
+                              {stock !== null ? `Estoque ${stock}` : 'Sem saldo'} ·{' '}
                               {produto.codigo_barras || produto.sku || produto.codigo_fornecedor || 'Sem código'}
                             </span>
                           </div>
@@ -730,7 +730,7 @@ export function PdvPage() {
                       );
                     })}
                     <div className="rf-pdv__suggestions-foot">
-                      {productSearchMs !== null ? \`Última busca em \${productSearchMs}ms\` : 'Busca rápida ativa'}
+                      {productSearchMs !== null ? `Última busca em ${productSearchMs}ms` : 'Busca rápida ativa'}
                     </div>
                   </>
                 ) : null}

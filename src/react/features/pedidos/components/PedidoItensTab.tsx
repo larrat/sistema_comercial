@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { Modal, Button } from '../../../shared/ui';
-import { usePedidoMutations, useProdutosQuery } from '../hooks/usePedidosQuery';
+import { usePedidoMutations } from '../hooks/usePedidosQuery';
+import { useProdutosQuery } from '../../produtos/hooks/useProdutosQuery';
 import {
   calculatePedidoItemLucro,
   calculatePedidoItemMargem,
