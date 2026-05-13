@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -29,8 +29,7 @@ import { useAuthStore } from '../useAuthStore';
 import { useFilialStore } from '../useFilialStore';
 import { useRoleStore } from '../useRoleStore';
 import { useNavigationItems } from '../hooks/useNavigationItems';
-
-const SIDEBAR_COLLAPSED_KEY = 'app-sidebar-collapsed';
+import { useUIStore } from '../useUIStore';
 
 const iconByPath: Record<string, LucideIcon> = {
   '/app/pdv': ShoppingCart,
@@ -54,25 +53,14 @@ export function AppSidebar() {
   const clearSession = useAuthStore((s) => s.clearSession);
   const clearFilial = useFilialStore((s) => s.clearFilial);
   const clearRole = useRoleStore((s) => s.clearRole);
+  const { sidebarCollapsed: collapsed, toggleSidebar } = useUIStore();
   const navigate = useNavigate();
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-  });
-
-  useEffect(() => {
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
-  }, [collapsed]);
 
   function handleLogout() {
     clearFilial();
     clearRole();
     clearSession();
     navigate('/login', { replace: true });
-  }
-
-  function toggleCollapsed() {
-    setCollapsed((current) => !current);
   }
 
   return (
@@ -110,7 +98,7 @@ export function AppSidebar() {
           <button
             type="button"
             className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-100 transition-all group shrink-0"
-            onClick={toggleCollapsed}
+            onClick={toggleSidebar}
           >
             <ChevronLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -126,7 +114,7 @@ export function AppSidebar() {
           <button
             type="button"
             className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-all shadow-inner"
-            onClick={toggleCollapsed}
+            onClick={toggleSidebar}
           >
             <ChevronRight size={18} />
           </button>
@@ -153,10 +141,14 @@ export function AppSidebar() {
             <div className={`flex flex-col gap-1 ${collapsed ? 'items-center w-full' : ''}`}>
               {group.items.map((item) => {
                 const Icon = iconByPath[item.path] ?? Circle;
+                const [isHovered, setIsHovered] = useState(false);
+
                 return (
                   <NavLink
                     key={item.id}
                     to={item.path}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
                     className={({ isActive }) =>
                       `flex items-center rounded-xl transition-colors duration-200 relative group
                       ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-4 py-3 w-full'}
@@ -166,7 +158,6 @@ export function AppSidebar() {
                            : 'text-slate-500 font-medium hover:text-slate-200 hover:bg-slate-800/40'
                       }`
                     }
-                    title={collapsed ? item.label : undefined}
                   >
                     {({ isActive }) => (
                       <>
@@ -177,25 +168,51 @@ export function AppSidebar() {
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                           />
                         )}
+
+                        {/* Collapsed Glow Effect */}
+                        {collapsed && isActive && (
+                          <motion.div 
+                            layoutId="active-glow"
+                            className="absolute inset-0 bg-[var(--color-brand-gold)]/5 rounded-xl blur-md"
+                          />
+                        )}
+
                         <Icon 
                           size={collapsed ? 24 : 18} 
                           strokeWidth={isActive ? 2.5 : 2} 
-                          className={`flex-shrink-0 transition-all duration-300 ${
+                          className={`flex-shrink-0 transition-all duration-300 relative z-10 ${
                             isActive 
                               ? 'text-[var(--color-brand-gold)] drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]' 
                               : 'group-hover:scale-110 group-hover:text-slate-300'
                           }`} 
                         />
+                        
                         <AnimatePresence>
                           {!collapsed && (
                             <motion.span 
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: -10 }}
-                              className="truncate text-[14px] tracking-tight"
+                              className="truncate text-[14px] tracking-tight relative z-10"
                             >
                               {item.label}
                             </motion.span>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Custom Tooltip for Collapsed State */}
+                        <AnimatePresence>
+                          {collapsed && isHovered && (
+                            <motion.div
+                              initial={{ opacity: 0, x: 10 }}
+                              animate={{ opacity: 1, x: 20 }}
+                              exit={{ opacity: 0, x: 10 }}
+                              className="absolute left-full ml-2 px-3 py-2 bg-slate-800 text-white text-xs font-bold rounded-lg shadow-xl border border-slate-700 whitespace-nowrap z-[100] pointer-events-none"
+                            >
+                              {item.label}
+                              {/* Arrow */}
+                              <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-800 border-l border-b border-slate-700 rotate-45" />
+                            </motion.div>
                           )}
                         </AnimatePresence>
                       </>
