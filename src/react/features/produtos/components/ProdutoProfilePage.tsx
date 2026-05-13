@@ -2,18 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, 
-  Package, 
-  Settings, 
-  TrendingUp, 
-  Layers, 
-  Database,
-  ArrowUpRight,
-  History,
-  ShieldCheck,
   Zap,
-  DollarSign
+  DollarSign,
+  Share2,
+  MoreHorizontal,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Camera
 } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import ReactCountUp from 'react-countup';
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
@@ -170,6 +168,61 @@ function formValuesToProduto(
   };
 }
 
+function Toast({ message, type, onClear }: { message: string, type: 'success' | 'error', onClear: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClear, 4000);
+    return () => clearTimeout(timer);
+  }, [onClear]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+      className={`fixed bottom-8 right-8 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl backdrop-blur-xl border ${
+        type === 'success' 
+          ? 'bg-emerald-900/90 border-emerald-500/30 text-emerald-50' 
+          : 'bg-rose-900/90 border-rose-500/30 text-rose-50'
+      }`}
+    >
+      {type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <AlertCircle className="w-5 h-5 text-rose-400" />}
+      <span className="text-sm font-bold tracking-tight">{message}</span>
+    </motion.div>
+  );
+}
+
+function Confetti() {
+  const particles = Array.from({ length: 40 });
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[99]">
+      {particles.map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            top: '50%', 
+            left: '50%', 
+            scale: 0,
+            rotate: 0,
+            opacity: 1 
+          }}
+          animate={{ 
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            scale: Math.random() * 1.5,
+            rotate: Math.random() * 360,
+            opacity: 0
+          }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute w-2 h-2 rounded-sm"
+          style={{ 
+            backgroundColor: ['#C5A059', '#FCD34D', '#10B981', '#6366F1'][i % 4] 
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function ProdutoProfilePage({
   produto,
   pais,
@@ -182,6 +235,8 @@ export function ProdutoProfilePage({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingCadastro, setEditingCadastro] = useState(searchParams.get('edit') === '1');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const {
     submitProduto,
     submitCascadeRename,
@@ -264,6 +319,11 @@ export function ProdutoProfilePage({
       next.delete('edit');
       return next;
     });
+
+    setToast({ message: 'Produto atualizado com sucesso!', type: 'success' });
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 2000);
+
     onProdutoSaved?.(saved);
     onReload?.();
   }
@@ -300,6 +360,14 @@ export function ProdutoProfilePage({
         </div>
         
         <div className="flex items-center gap-3">
+          <div className="hidden md:flex flex-col items-end mr-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Status do Sistema</span>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[11px] font-bold text-slate-600">Sincronizado</span>
+            </div>
+          </div>
+
           <button 
             className="rf-btn-premium gap-2"
             onClick={() => window.print()}
@@ -307,25 +375,55 @@ export function ProdutoProfilePage({
             <Database className="w-4 h-4 text-[#C5A059]" />
             Relatório
           </button>
+          <button className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-slate-400">
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {toast && <Toast message={toast.message} type={toast.type} onClear={() => setToast(null)} />}
+        {showConfetti && <Confetti />}
+      </AnimatePresence>
 
       {error ? <ErrorState title={error} compact onRetry={onReload} /> : null}
 
       {/* Hero Section */}
-      <section className="flex items-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-[#1E293B] opacity-0 group-hover:opacity-5 transition-opacity" />
-          <Package className="w-10 h-10 text-slate-400" />
+      <section className="flex items-center gap-8">
+        <div className="w-28 h-28 rounded-3xl bg-white shadow-[0_10px_30px_-10px_rgba(0,0,0,0.1)] border border-slate-100 flex items-center justify-center relative overflow-hidden group cursor-pointer">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-blue-600 opacity-0 group-hover:opacity-90 transition-all duration-500 flex flex-col items-center justify-center text-white gap-2">
+            <Camera className="w-6 h-6 translate-y-4 group-hover:translate-y-0 transition-transform" />
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Trocar Foto</span>
+          </div>
+          <Package className="w-12 h-12 text-slate-300 group-hover:scale-110 transition-transform duration-500" />
+          
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100/50">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: '100%' }}
+              className="h-full bg-emerald-500" 
+            />
+          </div>
         </div>
         
-        <div className="flex flex-col gap-1.5 flex-1">
+        <div className="flex flex-col gap-2 flex-1">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight m-0">{produto.nome}</h1>
-              <span className={`rf-badge-premium ${stockStatus.tone === 'success' ? 'rf-badge-premium--gold' : 'rf-badge-premium--slate'}`}>
-                {stockStatus.label}
-              </span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight m-0">{produto.nome}</h1>
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
+                  stockStatus.tone === 'success' 
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                    : 'bg-rose-50 text-rose-600 border-rose-100'
+                }`}>
+                  {stockStatus.label}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Atualizado em {new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
               {produto.produto_pai_id && (
                 <span className="rf-badge-premium bg-slate-100 text-slate-600">Variante</span>
               )}
@@ -545,8 +643,42 @@ export function ProdutoProfilePage({
                     <div className="mt-2">
                       <ProdutoInfoTable
                         rows={[
-                          { label: 'Custo de Compra', value: formatCurrency(precos.custo) },
-                          { label: 'Markup Varejo', value: formatPercent(toNumber(produto.mkv)) },
+                          { 
+                            label: (
+                              <Tooltip.Provider>
+                                <Tooltip.Root>
+                                  <Tooltip.Trigger className="flex items-center gap-1 cursor-help">
+                                    Custo de Compra <Info size={10} className="text-slate-300" />
+                                  </Tooltip.Trigger>
+                                  <Tooltip.Portal>
+                                    <Tooltip.Content className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl z-[200] max-w-[200px]" sideOffset={5}>
+                                      Preço líquido pago ao fornecedor, base para cálculos de impostos e margem.
+                                      <Tooltip.Arrow className="fill-slate-900" />
+                                    </Tooltip.Content>
+                                  </Tooltip.Portal>
+                                </Tooltip.Root>
+                              </Tooltip.Provider>
+                            ), 
+                            value: formatCurrency(precos.custo) 
+                          },
+                          { 
+                            label: (
+                              <Tooltip.Provider>
+                                <Tooltip.Root>
+                                  <Tooltip.Trigger className="flex items-center gap-1 cursor-help">
+                                    Markup Varejo <Info size={10} className="text-slate-300" />
+                                  </Tooltip.Trigger>
+                                  <Tooltip.Portal>
+                                    <Tooltip.Content className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl z-[200]" sideOffset={5}>
+                                      Percentual adicionado sobre o custo para atingir o preço de venda.
+                                      <Tooltip.Arrow className="fill-slate-900" />
+                                    </Tooltip.Content>
+                                  </Tooltip.Portal>
+                                </Tooltip.Root>
+                              </Tooltip.Provider>
+                            ), 
+                            value: formatPercent(toNumber(produto.mkv)) 
+                          },
                           { label: 'Markup Atacado', value: formatPercent(toNumber(produto.mka)) },
                           { label: 'Desconto Máx Varejo', value: formatPercent(toNumber(produto.dv)) },
                           { label: 'Desconto Máx Atacado', value: formatPercent(toNumber(produto.da)) }
