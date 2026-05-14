@@ -18,9 +18,9 @@ import {
   StatusBadge,
   Button,
   PillGroup,
-  Shimmer
+  Shimmer,
+  SkeletonList
 } from '../../../shared/ui';
-import { SkeletonList } from '../../../shared/ui/Shimmer';
 import { Wrench, Loader2, Zap, RefreshCw } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
