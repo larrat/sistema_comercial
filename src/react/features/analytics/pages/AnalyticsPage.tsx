@@ -76,7 +76,7 @@ export function AnalyticsPage() {
   );
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+    <div className="w-full flex flex-col gap-8">
       {/* KPIs de Performance */}
       <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
         <TremorCard decoration="top" decorationColor="indigo" className="!bg-surface-card !border-border-subtle shadow-premium">
@@ -140,6 +140,6 @@ export function AnalyticsPage() {
           </TremorCard>
         </Col>
       </Grid>
-    </main>
+    </div>
   );
 }

@@ -232,7 +232,7 @@ export function PedidoProfilePage({
   }, [pedido, financeiro, status]);
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8" data-testid="pedido-profile-page">
+    <div className="w-full flex flex-col gap-8" data-testid="pedido-profile-page">
       {/* Topbar / Breadcrumb */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
@@ -503,6 +503,6 @@ export function PedidoProfilePage({
           onConfirm={handleConfirmarBaixa}
         />
       )}
-    </main>
+    </div>
   );
 }

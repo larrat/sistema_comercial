@@ -19,7 +19,7 @@ export function RelatoriosPage() {
   const error = useRelatoriosStore((s) => s.error);
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+    <div className="w-full flex flex-col gap-8">
       <PageHeader
         kicker="Análise"
         title="Relatórios"
@@ -43,6 +43,6 @@ export function RelatoriosPage() {
       {!loading && activeTab === 'clientes' && <ClientesTab />}
 
       <ValidacaoModal />
-    </main>
+    </div>
   );
 }

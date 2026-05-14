@@ -282,9 +282,9 @@ export function ProdutoProfilePage({
 
   if (loadingProduto) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 w-full">
+      <div className="w-full">
         <LoadingState title="Carregando detalhes do produto..." />
-      </main>
+      </div>
     );
   }
 
@@ -294,10 +294,10 @@ export function ProdutoProfilePage({
   }
 
   return (
-    <motion.main 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-[1600px] mx-auto px-8 py-8 w-full flex flex-col gap-8"
+      className="w-full flex flex-col gap-8"
       data-testid="produto-profile-page"
     >
       <div className="flex items-center justify-between">
@@ -807,7 +807,7 @@ export function ProdutoProfilePage({
           />
         </div>
       </Drawer>
-    </motion.main>
+    </motion.div>
   );
 }
 

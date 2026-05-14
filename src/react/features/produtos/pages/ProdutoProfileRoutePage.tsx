@@ -25,7 +25,7 @@ export function ProdutoProfileRoutePage() {
 
   if (!produtoId) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <EmptyState
             title="Produto não informado."
@@ -37,13 +37,13 @@ export function ProdutoProfileRoutePage() {
             }
           />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (isErrorProduto) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <ErrorState
             title={errorProduto instanceof Error ? errorProduto.message : 'Erro ao carregar produto.'}
@@ -61,24 +61,24 @@ export function ProdutoProfileRoutePage() {
             }
           />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (loadingProduto) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <LoadingState
           title="Carregando produto..."
           description="Estamos recuperando as informações detalhadas e o estoque deste produto."
         />
-      </main>
+      </div>
     );
   }
 
   if (!produto) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <EmptyState
             title="Produto não encontrado."
@@ -90,7 +90,7 @@ export function ProdutoProfileRoutePage() {
             }
           />
         </div>
-      </main>
+      </div>
     );
   }
 

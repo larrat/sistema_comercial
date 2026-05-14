@@ -16,7 +16,7 @@ export function FiliaisPage() {
   const loading = status === 'loading';
 
   return (
-    <div className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+    <div className="w-full flex flex-col gap-8">
       <PageHeader
         kicker="Administração"
         title="Filiais"

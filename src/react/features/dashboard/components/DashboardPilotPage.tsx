@@ -37,7 +37,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
-import { LoadingState, ErrorState, StatusBadge, Button, Badge, Card, Typography } from '../../../shared/ui';
+import { LoadingState, ErrorState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 
@@ -425,57 +425,50 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   };
 
   return (
-    <div className="rf-dashboard">
-      {/* Topbar */}
-      <header className="rf-dashboard-topbar">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <h1 className="rf-dashboard-title">Dashboard</h1>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="rf-dashboard-filters"
-        >
-          <div className="rf-pill-group">
-            {(['semana', 'mes', 'ano', 'tudo'] as Periodo[]).map(p => (
-              <button 
-                key={p} 
-                className={`rf-pill ${periodo === p ? 'is-active' : ''}`}
-                onClick={() => setPeriodo(p)}
-              >
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-              </button>
-            ))}
-          </div>
+    <div className="flex-1 w-full flex flex-col gap-8 animate-in fade-in duration-500">
+      <PageHeader
+        kicker="Inteligência"
+        title="Dashboard"
+        description="Visão consolidada de performance, saúde operacional e projeções financeiras."
+        actions={
+          <div className="flex items-center gap-6">
+            <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
+              <PillGroup
+                options={[
+                  { id: 'semana', label: 'Semana' },
+                  { id: 'mes', label: 'Mês' },
+                  { id: 'ano', label: 'Ano' },
+                  { id: 'tudo', label: 'Tudo' }
+                ]}
+                activeId={periodo}
+                onChange={(id) => setPeriodo(id as Periodo)}
+              />
+            </div>
 
-          <div className="rf-pill-group">
-            {(['operacional', 'gerencial', 'analitico'] as Visao[]).map(v => (
-              <button 
-                key={v} 
-                className={`rf-pill ${visao === v ? 'is-active' : ''}`}
-                onClick={() => setVisao(v)}
-              >
-                {v.charAt(0).toUpperCase() + v.slice(1)}
-              </button>
-            ))}
-          </div>
+            <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
+              <PillGroup
+                options={[
+                  { id: 'operacional', label: 'Operacional' },
+                  { id: 'gerencial', label: 'Gerencial' },
+                  { id: 'analitico', label: 'Analítico' }
+                ]}
+                activeId={visao}
+                onChange={(id) => setVisao(id as Visao)}
+              />
+            </div>
 
-          <Button 
-            variant="secondary" 
-            onClick={handleRefresh} 
-            loading={isRefreshing}
-            leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
-          >
-            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
-        </motion.div>
-      </header>
+            <Button 
+              variant="secondary" 
+              onClick={handleRefresh} 
+              loading={isRefreshing}
+              leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
+              className="!rounded-xl"
+            >
+              {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+            </Button>
+          </div>
+        }
+      />
 
       {/* Linha 1: Stat Cards */}
       <motion.section 
@@ -492,10 +485,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       >
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-dash-card"
+          className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6"
         >
-          <span className="rf-stat-label">Faturamento</span>
-          <div className="rf-stat-value">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Faturamento</span>
+          <div className="text-3xl font-black text-white">
             <CountUp 
               end={stats.faturamento} 
               decimals={2} 
@@ -505,16 +498,16 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               separator="."
             />
           </div>
-          <span className="rf-stat-sub muted">{stats.pedidosEntregues} entregue(s) no período</span>
+          <span className="text-[10px] text-slate-500 font-medium">{stats.pedidosEntregues} entregue(s) no período</span>
         </motion.article>
 
         {visao !== 'operacional' && (
           <motion.article 
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            className="rf-dash-card is-success"
+            className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 ring-1 ring-emerald-500/20"
           >
-            <span className="rf-stat-label">Lucro bruto</span>
-            <div className="rf-stat-value text-emerald-400">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lucro bruto</span>
+            <div className="text-3xl font-black text-emerald-400">
               <CountUp 
                 end={stats.lucroTotal} 
                 decimals={2} 
@@ -524,7 +517,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 separator="."
               />
             </div>
-            <span className="rf-stat-sub success font-bold">
+            <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
               <TrendingUp size={12} strokeWidth={3} /> Margem {stats.margem.toFixed(1)}%
             </span>
           </motion.article>
@@ -532,10 +525,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-dash-card"
+          className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6"
         >
-          <span className="rf-stat-label">Ticket médio</span>
-          <div className="rf-stat-value">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ticket médio</span>
+          <div className="text-3xl font-black text-white">
             <CountUp 
               end={stats.ticketMedio} 
               decimals={2} 
@@ -545,15 +538,15 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               separator="."
             />
           </div>
-          <span className="rf-stat-sub muted">{stats.totalPedidos} pedido(s) no período</span>
+          <span className="text-[10px] text-slate-500 font-medium">{stats.totalPedidos} pedido(s) no período</span>
         </motion.article>
 
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className={`rf-dash-card ${stats.valorEmAberto === 0 ? 'is-success' : 'is-warning'}`}
+          className={`rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 ${stats.valorEmAberto === 0 ? 'ring-1 ring-emerald-500/20' : 'ring-1 ring-amber-500/20'}`}
         >
-          <span className="rf-stat-label">Em aberto</span>
-          <div className={`rf-stat-value ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Em aberto</span>
+          <div className={`text-3xl font-black ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
             <CountUp 
               end={stats.valorEmAberto} 
               decimals={2} 
@@ -563,7 +556,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               separator="."
             />
           </div>
-          <span className={`rf-stat-sub ${stats.valorEmAberto > 0 ? 'warning' : 'success'} font-bold`}>
+          <span className={`text-[10px] ${stats.valorEmAberto > 0 ? 'text-amber-500' : 'text-emerald-500'} font-bold`}>
             {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
           </span>
         </motion.article>

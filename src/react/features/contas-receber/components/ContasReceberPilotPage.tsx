@@ -755,7 +755,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
 
   if (status === 'loading') {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <PageHeader
           kicker="Financeiro"
           title="Contas a Receber"
@@ -773,13 +773,13 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           title="Carregando contas a receber..."
           description="Estamos reunindo títulos, baixas e indicadores financeiros da filial."
         />
-      </main>
+      </div>
     );
   }
 
   if (status === 'error') {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <PageHeader
           kicker="Financeiro"
           title="Contas a Receber"
@@ -798,12 +798,12 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           description="Atualize a tela ou confirme a filial ativa antes de tentar novamente."
           onRetry={onRetryLoad}
         />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+    <div className="w-full flex flex-col gap-8">
       <PageHeader
         kicker="Financeiro"
         title="Contas a Receber"
@@ -914,6 +914,6 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           void handleConfirmAction();
         }}
       />
-    </main>
+    </div>
   );
 }

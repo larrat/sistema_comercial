@@ -18,7 +18,8 @@ import {
   DataTable, 
   LoadingState, 
   ErrorState,
-  Shimmer
+  Shimmer,
+  PillGroup
 } from '../../../shared/ui';
 import { CaixaTransacaoForm } from './CaixaTransacaoForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -77,7 +78,7 @@ export function CaixaPilotPage() {
   if (isError) return <ErrorState title="Erro ao carregar caixa" />;
 
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+    <main className="flex-1 w-full flex flex-col gap-8 animate-in fade-in duration-500">
       <PageHeader
         kicker="Financeiro"
         title="Fluxo de Caixa"
@@ -164,16 +165,16 @@ export function CaixaPilotPage() {
       <div className="rf-card-premium p-0 border-white/5 bg-surface-card/40 backdrop-blur-xl overflow-hidden">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider">Últimas Movimentações</h3>
-          <div className="flex bg-black/20 p-1 rounded-xl border border-white/5">
-            {(['todos', 'entrada', 'saida'] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => setFilterType(t)}
-                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${filterType === t ? 'bg-cyan-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                {t}
-              </button>
-            ))}
+          <div className="flex items-center bg-black/20 p-1 rounded-xl border border-white/5">
+            <PillGroup
+              options={[
+                { id: 'todos', label: 'Todos' },
+                { id: 'entrada', label: 'Entradas' },
+                { id: 'saida', label: 'Saídas' }
+              ]}
+              activeId={filterType}
+              onChange={(id) => setFilterType(id as any)}
+            />
           </div>
         </div>
 

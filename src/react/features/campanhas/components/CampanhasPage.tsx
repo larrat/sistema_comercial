@@ -100,7 +100,7 @@ export function CampanhasPage() {
   ];
 
   return (
-    <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+    <div className="w-full flex flex-col gap-8">
       <PageHeader
         kicker="Marketing"
         title="Campanhas"
@@ -225,6 +225,6 @@ export function CampanhasPage() {
           <strong>"{confirmarRemocao?.nome}"</strong>? Esta ação não pode ser desfeita.
         </p>
       </Modal>
-    </main>
+    </div>
   );
 }

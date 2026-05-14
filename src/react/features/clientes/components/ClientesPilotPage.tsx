@@ -208,7 +208,7 @@ export function ClientesPilotPage({
   ]);
 
   return (
-    <main className="flex-1 w-full flex flex-col gap-8" data-testid="clientes-pilot-page">
+    <div className="flex-1 w-full flex flex-col gap-8" data-testid="clientes-pilot-page">
       <PageHeader
         kicker="Relacionamento"
         title="Clientes"
@@ -440,7 +440,7 @@ export function ClientesPilotPage({
           if (deleteTarget) handleExcluir(deleteTarget.id);
         }}
       />
-    </main>
+    </div>
   );
 }
 

@@ -18,7 +18,7 @@ export function PedidoProfileRoutePage() {
 
   if (!pedidoId) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <EmptyState
             title="Pedido não informado."
@@ -30,13 +30,13 @@ export function PedidoProfileRoutePage() {
             }
           />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (isErrorPedido) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <div className="bg-slate-900 p-12 rounded-3xl shadow-xl border border-white/5">
           <ErrorState
             title={errorPedido instanceof Error ? errorPedido.message : 'Erro ao carregar pedido.'}
@@ -54,18 +54,18 @@ export function PedidoProfileRoutePage() {
             }
           />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (isLoadingPedido || !pedido) {
     return (
-      <main className="max-w-[1600px] mx-auto px-8 py-8 lg:px-12 w-full flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         <LoadingState
           title="Carregando pedido..."
           description="Estamos recuperando as informações detalhadas e o financeiro deste pedido."
         />
-      </main>
+      </div>
     );
   }
 

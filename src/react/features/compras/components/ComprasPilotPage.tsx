@@ -11,14 +11,15 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { 
-  PageHeader, 
-  Button, 
-  DataTable, 
-  StatusBadge, 
-  LoadingState, 
-  ErrorState,
   Badge,
-  Shimmer
+  Shimmer,
+  FilterBar,
+  PageHeader,
+  Button,
+  DataTable,
+  StatusBadge,
+  LoadingState,
+  ErrorState
 } from '../../../shared/ui';
 import { PedidoCompraForm } from './PedidoCompraForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,7 +70,7 @@ export function ComprasPilotPage() {
   if (isError) return <ErrorState title="Erro ao carregar compras" />;
 
   return (
-    <div className="flex flex-col gap-8 animate-in fade-in duration-500">
+    <main className="flex-1 w-full flex flex-col gap-8 animate-in fade-in duration-500">
       <PageHeader
         kicker="Suprimentos"
         title="Pedidos de Compra"
@@ -116,20 +117,13 @@ export function ComprasPilotPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="produtos-filter-bar flex items-center gap-4">
-        <div className="flex-1 relative group">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-cyan-400">
-            <Search size={16} />
-          </div>
-          <input
-            type="text"
-            placeholder="Buscar por fornecedor ou ID do pedido..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-11 pr-4 py-2.5 bg-black/20 border border-white/5 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 transition-all"
-          />
-        </div>
-      </div>
+      <FilterBar 
+        search={{
+          value: searchTerm,
+          onChange: (v) => setSearchTerm(v),
+          placeholder: "Buscar por fornecedor ou ID do pedido..."
+        }}
+      />
 
       {/* Table */}
       <div className="rf-card-premium p-0 border-white/5 bg-surface-card/40 backdrop-blur-xl overflow-hidden">
@@ -198,6 +192,6 @@ export function ComprasPilotPage() {
           ]}
         />
       </div>
-    </div>
+    </main>
   );
 }

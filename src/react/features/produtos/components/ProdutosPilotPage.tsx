@@ -320,7 +320,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
 
   if (isLoadingProdutos) {
     return (
-      <main className="flex-1 w-full flex flex-col gap-8">
+      <div className="flex-1 w-full flex flex-col gap-8">
         {pageHeader}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Shimmer height={120} rounded="2xl" />
@@ -328,25 +328,25 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
           <Shimmer height={120} rounded="2xl" />
         </div>
         <SkeletonList rows={6} />
-      </main>
+      </div>
     );
   }
 
   if (isErrorProdutos) {
     return (
-      <main className="flex-1 w-full flex flex-col gap-8">
+      <div className="flex-1 w-full flex flex-col gap-8">
         {pageHeader}
         <ProdutoMetrics produtos={filteredProdutos} />
         <ErrorState
           title={errorProdutos instanceof Error ? errorProdutos.message : 'Erro ao carregar produtos.'}
           onRetry={refetchProdutos}
         />
-      </main>
+      </div>
     );
   }
 
   return (
-    <motion.main 
+    <motion.div 
       className="flex-1 w-full flex flex-col gap-8"
       variants={pageContainer}
       initial="hidden"
@@ -449,6 +449,6 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
           if (deleteTarget) handleRemover(deleteTarget.id);
         }}
       />
-    </motion.main>
+    </motion.div>
   );
 }
