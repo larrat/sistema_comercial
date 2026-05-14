@@ -15,7 +15,9 @@ export type AppRouteId =
   | 'campanhas'
   | 'analytics'
   | 'filiais'
-  | 'acessos';
+  | 'acessos'
+  | 'compras'
+  | 'caixa';
 
 export type AppRoute = {
   id: AppRouteId;
@@ -40,7 +42,9 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'campanhas', path: '/app/campanhas', label: 'Campanhas' },
   { id: 'analytics', path: '/app/analytics', label: 'Analytics' },
   { id: 'filiais', path: '/app/filiais', label: 'Filiais' },
-  { id: 'acessos', path: '/app/acessos', label: 'Acessos' }
+  { id: 'acessos', path: '/app/acessos', label: 'Acessos' },
+  { id: 'compras', path: '/app/compras', label: 'Compras' },
+  { id: 'caixa', path: '/app/caixa', label: 'Caixa' }
 ];
 
 export const APP_ROUTE_BY_ID: Record<AppRouteId, AppRoute> = APP_ROUTES.reduce(
