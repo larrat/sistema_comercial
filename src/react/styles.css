@@ -4145,3 +4145,19 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Fix for Tremor/Recharts Legend spacing (Requested by user) */
+.tremor-Legend-itemText,
+.recharts-legend-item-text,
+.tr-legend-item-text {
+  margin-left: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  letter-spacing: 0.05em !important;
+}
+
+.tremor-Legend-bullet,
+.recharts-surface {
+  margin-right: 2px !important;
+}

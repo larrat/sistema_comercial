@@ -115,11 +115,6 @@ export function AppSidebar() {
           </button>
         )}
       </div>
-
-      <div className={`px-4 pb-2 ${collapsed ? 'px-2 flex justify-center' : ''}`}>
-        <FilialSwitcher variant="dark" collapsed={collapsed} />
-      </div>
-
       {/* Search Bar */}
       {!collapsed && (
         <div className="px-4 mb-6 mt-2">
