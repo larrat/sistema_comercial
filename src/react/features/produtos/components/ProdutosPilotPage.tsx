@@ -248,66 +248,74 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     <PageHeader
       kicker="Catálogo"
       title="Produtos"
-      description="Gerencie catálogo, estoque visível e ações rápidas da filial sem sair da listagem principal."
+      description="Gerencie catálogo, estoque visível e ações rápidas da filial."
       meta={
-        <StatusBadge tone="info">
-          {total} no total · página {page}
-        </StatusBadge>
+        <div className="flex items-center gap-3">
+          <StatusBadge tone="info">
+            {total} produtos no total
+          </StatusBadge>
+          <div className="h-4 w-px bg-white/10" />
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">página {page}</span>
+        </div>
       }
       actions={
-        <div className="flex items-center gap-6">
-          <PillGroup
-            options={[
-              { id: 'todos', label: 'Todos' },
-              { id: 'estoque', label: 'Estoque' },
-              { id: 'zerados', label: 'Zerados' }
-            ]}
-            activeId={filtroEstoque}
-            onChange={(id) => setFiltroEstoque(id as any)}
-          />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
+            <PillGroup
+              options={[
+                { id: 'todos', label: 'Todos' },
+                { id: 'estoque', label: 'Estoque' },
+                { id: 'zerados', label: 'Zerados' }
+              ]}
+              activeId={filtroEstoque}
+              onChange={(id) => setFiltroEstoque(id as any)}
+            />
+          </div>
 
-          <PillGroup
-            options={[
-              { id: 'lista', label: 'Lista' },
-              { id: 'galeria', label: 'Galeria' }
-            ]}
-            activeId={visao}
-            onChange={(id) => setVisao(id as any)}
-          />
+          <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
+            <PillGroup
+              options={[
+                { id: 'lista', label: 'Lista' },
+                { id: 'galeria', label: 'Galeria' }
+              ]}
+              activeId={visao}
+              onChange={(id) => setVisao(id as any)}
+            />
+          </div>
 
-          <div className="h-8 w-px bg-slate-200/60 mx-1" />
-
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button
               variant="secondary"
               leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />}
               onClick={handleRefresh}
               loading={isRefreshing}
+              className="!rounded-xl"
             >
-              <span className="hidden md:inline">Atualizar</span>
+              <span className="hidden xl:inline">Atualizar</span>
             </Button>
 
             {sanitizing ? (
-              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 animate-pulse">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400" />
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-tight">Corrigindo {sanitizingProgress}%</span>
+              <div className="flex items-center gap-2 bg-slate-50/5 px-3 py-1.5 rounded-xl border border-white/5 animate-pulse">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+                <span className="text-[10px] font-black text-slate-300 uppercase tracking-tight">{sanitizingProgress}%</span>
               </div>
             ) : (
               <Button
                 variant="secondary"
-                leftIcon={<Wrench className="w-4 h-4 text-[#C5A059]" />}
+                leftIcon={<Wrench className="w-4 h-4 text-amber-400" />}
                 onClick={handleSanitize}
                 title="Corrigir resquícios e erros de cadastro"
+                className="!rounded-xl"
               >
-                <span className="hidden lg:inline">Sanear</span>
+                <span className="hidden xl:inline">Sanear</span>
               </Button>
             )}
             
             <button
-              className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan"
+              className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan !py-2 !px-4 !text-xs !rounded-xl"
               onClick={() => setModal({ tipo: 'form', produto: null })}
             >
-              <Zap size={16} />
+              <Zap size={14} />
               <span className="hidden sm:inline">Novo produto</span>
               <span className="sm:hidden">Novo</span>
             </button>
@@ -355,9 +363,9 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
         <ProdutoMetrics produtos={filteredProdutos} />
       </motion.div>
 
-      <motion.div variants={pageItem}>
+      <motion.div variants={pageItem} className="px-1">
         <FilterBar
-          className="produtos-filter-bar"
+          className="produtos-filter-bar !bg-white/[0.02] !border-white/5 !backdrop-blur-md !py-3 !rounded-2xl shadow-inner"
           search={{
             value: filtro.q,
             onChange: (value) => setFiltro({ q: value }),
