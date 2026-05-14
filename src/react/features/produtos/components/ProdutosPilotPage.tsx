@@ -4,7 +4,7 @@ import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
 import { useProdutoStore } from '../store/useProdutoStore';
-import { useProdutosQuery, useCategoriasQuery, useProdutoMutations } from '../hooks/useProdutosQuery';
+import { useProdutosQuery, useCategoriasQuery, usePaisQuery, useProdutoMutations } from '../hooks/useProdutosQuery';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
