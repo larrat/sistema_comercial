@@ -1,4 +1,4 @@
-import { getSupabaseConfig } from '../../app/supabaseConfig';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { logAudit } from '../../../shared/services/auditService';
 
 export type PedidoCompraItem = {

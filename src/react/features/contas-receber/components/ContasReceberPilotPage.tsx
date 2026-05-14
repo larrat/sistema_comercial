@@ -27,10 +27,10 @@ import {
   TrendingUp,
   HelpCircle,
   Zap,
-  Bell,
   Settings
 } from 'lucide-react';
-import { crmService } from '../services/crmService';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { crmService } from '../../clientes/services/crmService';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
 
@@ -250,11 +250,12 @@ function CrmAutomationCard() {
   const [isProcessing, setIsProcessing] = useState(false);
   const filialId = useContasReceberStore(s => s.filial_id);
 
+  const { token } = useAuthStore();
   const handleProcess = async () => {
-    if (!filialId) return;
+    if (!filialId || !token) return;
     setIsProcessing(true);
     try {
-      const total = await crmService.processarRegrasCobrança(filialId);
+      const total = await crmService.processarRegrasCobrança(token, filialId);
       useToastStore.getState().addToast(`${total} notificações de cobrança processadas.`, 'success');
     } catch (err) {
       useToastStore.getState().addToast('Erro ao processar cobranças.', 'error');

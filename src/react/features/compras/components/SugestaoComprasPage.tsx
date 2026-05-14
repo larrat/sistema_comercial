@@ -11,7 +11,9 @@ import {
 } from '../../../shared/ui';
 import { Package, ShoppingCart, TrendingDown, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../../infra/supabase';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 type SugestaoCompra = {
   produto_id: string;
@@ -26,19 +28,22 @@ type SugestaoCompra = {
 };
 
 export function SugestaoComprasPage() {
+  const { token } = useAuthStore();
+  const { activeFilialId } = useFilialStore();
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'urgente' | 'atencao'>('todos');
 
   const { data: sugestoes = [], isLoading } = useQuery({
-    queryKey: ['sugestao-compras'],
+    queryKey: ['sugestao-compras', activeFilialId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('v_sugestao_compras')
-        .select('*')
-        .order('dias_cobertura', { ascending: true });
-      
-      if (error) throw error;
-      return data as SugestaoCompra[];
-    }
+      if (!token) return [];
+      const { url, key } = getSupabaseConfig();
+      const res = await fetch(`${url}/rest/v1/v_sugestao_compras?order=dias_cobertura.asc`, {
+        headers: { apikey: key, Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Falha ao carregar sugestões de compra');
+      return (await res.json()) as SugestaoCompra[];
+    },
+    enabled: !!token
   });
 
   const filteredData = useMemo(() => {

@@ -1,38 +1,46 @@
-import { supabase } from '../../../infra/supabase';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import type { ReguaCobrancaConfig } from '../../../../types/domain';
 
 export const crmService = {
-  async getRegras(filialId: string): Promise<ReguaCobrancaConfig[]> {
-    const { data, error } = await supabase
-      .from('regua_cobranca_config')
-      .select('*')
-      .eq('filial_id', filialId)
-      .eq('ativo', true);
-
-    if (error) throw error;
-    return data || [];
+  async getRegras(token: string, filialId: string): Promise<ReguaCobrancaConfig[]> {
+    const { url, key } = getSupabaseConfig();
+    const res = await fetch(
+      `${url}/rest/v1/regua_cobranca_config?filial_id=eq.${filialId}&ativo=eq.true`,
+      {
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+    if (!res.ok) throw new Error('Falha ao buscar regras de cobrança');
+    return await res.json();
   },
 
-  async salvarRegra(regra: Partial<ReguaCobrancaConfig>): Promise<void> {
-    const { error } = await supabase.from('regua_cobranca_config').upsert(regra);
-
-    if (error) throw error;
+  async salvarRegra(token: string, regra: Partial<ReguaCobrancaConfig>): Promise<void> {
+    const { url, key } = getSupabaseConfig();
+    const res = await fetch(`${url}/rest/v1/regua_cobranca_config`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(regra)
+    });
+    if (!res.ok) throw new Error('Falha ao salvar regra de cobrança');
   },
 
   /**
    * Simulated CRM Engine Trigger.
-   * In production, this would be a Cron Job / Edge Function.
    */
-  async processarRegrasCobrança(filialId: string): Promise<number> {
-    // 1. Get active rules
-    const regras = await this.getRegras(filialId);
-
-    // 2. For each rule, find matching accounts (Simplified logic)
+  async processarRegrasCobrança(token: string, filialId: string): Promise<number> {
+    const regras = await this.getRegras(token, filialId);
     let totalProcessado = 0;
 
-    for (const regra of regras) {
-      // Find accounts based on dias_offset
-      // This is a simulation: in reality we would query 'contas_receber'
+    for (const _regra of regras) {
+      // Simulation
       totalProcessado += Math.floor(Math.random() * 5);
     }
 

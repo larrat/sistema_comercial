@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
+import { useAuthStore } from '../../../app/useAuthStore';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -970,13 +971,14 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 }
 
 function FiscalHubCard() {
+  const { token } = useAuthStore();
   const [isEmitting, setIsEmitting] = useState(false);
 
   const handleEmit = async () => {
     setIsEmitting(true);
     try {
       // Emitting for a random pending order just to demonstrate
-      const result = await fiscalService.emitirNFe('ANY-ORDER-ID');
+      const result = await fiscalService.emitirNFe(token!, 'ANY-ORDER-ID');
       if (result.ok) {
         useToastStore.getState().addToast(`NFe ${result.nfe_id} emitida com sucesso!`, 'success');
       } else {

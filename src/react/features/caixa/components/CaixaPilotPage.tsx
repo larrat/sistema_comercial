@@ -233,6 +233,6 @@ export function CaixaPilotPage() {
           ]}
         />
       </div>
-    </div>
+    </main>
   );
 }

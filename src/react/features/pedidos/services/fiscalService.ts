@@ -1,4 +1,4 @@
-import { supabase } from '../../../infra/supabase';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 export type FiscalResult = {
   ok: boolean;
@@ -10,18 +10,22 @@ export type FiscalResult = {
 export const fiscalService = {
   /**
    * Simulates NFe emission.
-   * In a real app, this would call a fiscal API (FocusNFe, PlugNFe, etc.)
    */
-  async emitirNFe(pedidoId: string): Promise<FiscalResult> {
-    try {
-      // 1. Fetch order data
-      const { data: pedido, error: fetchError } = await supabase
-        .from('pedidos')
-        .select('*')
-        .eq('id', pedidoId)
-        .single();
+  async emitirNFe(token: string, pedidoId: string): Promise<FiscalResult> {
+    const { url, key } = getSupabaseConfig();
+    const headers = {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
 
-      if (fetchError || !pedido) throw new Error('Pedido não encontrado');
+    try {
+      // 1. Fetch order data (check if exists)
+      const resCheck = await fetch(`${url}/rest/v1/pedidos?id=eq.${pedidoId}`, {
+        headers
+      });
+      const pedidos = await resCheck.json();
+      if (!resCheck.ok || !pedidos.length) throw new Error('Pedido não encontrado');
 
       // 2. Simulate API Call delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -30,16 +34,17 @@ export const fiscalService = {
       const mockNfeId = `NFE-${Math.floor(Math.random() * 1000000)}`;
       const mockNfeUrl = `https://fsist.com.br/nfe/${mockNfeId}`;
 
-      const { error: updateError } = await supabase
-        .from('pedidos')
-        .update({
+      const resUpdate = await fetch(`${url}/rest/v1/pedidos?id=eq.${pedidoId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
           fiscal_status: 'emitido',
           nfe_id: mockNfeId,
           nfe_url: mockNfeUrl
         })
-        .eq('id', pedidoId);
+      });
 
-      if (updateError) throw updateError;
+      if (!resUpdate.ok) throw new Error('Falha ao atualizar status fiscal do pedido');
 
       return {
         ok: true,
@@ -49,7 +54,11 @@ export const fiscalService = {
     } catch (err) {
       console.error('Fiscal Error:', err);
 
-      await supabase.from('pedidos').update({ fiscal_status: 'erro' }).eq('id', pedidoId);
+      await fetch(`${url}/rest/v1/pedidos?id=eq.${pedidoId}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ fiscal_status: 'erro' })
+      }).catch(() => {});
 
       return {
         ok: false,
