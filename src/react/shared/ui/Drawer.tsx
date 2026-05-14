@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingState } from './LoadingState';
 import { Button } from './Button';
+import { X } from 'lucide-react';
 
 export type DrawerProps = {
   open: boolean;
@@ -47,53 +49,81 @@ export function Drawer({
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, closeOnEsc]);
 
-  if (!open) return null;
-
   function stopPropagation(event: MouseEvent<HTMLElement>) {
     event.stopPropagation();
   }
 
   const drawerClass = [
-    'rf-ui-drawer',
+    'rf-ui-drawer rf-glass',
     size === 'sm' ? 'rf-ui-drawer--sm' : size === 'lg' ? 'rf-ui-drawer--lg' : ''
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <div
-      className={`rf-ui-drawer-overlay ${withOverlay ? '' : 'rf-ui-drawer-overlay--no-bg'}`}
-      onClick={closeOnOverlayClick ? onClose : undefined}
-    >
-      <aside
-        className={drawerClass}
-        onClick={stopPropagation}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? titleId : undefined}
-        aria-label={title ? undefined : 'Painel lateral'}
-      >
-        <div className="rf-ui-drawer__head">
-          <div>
-            {title ? (
-              <div id={titleId} className="rf-ui-drawer__title">
-                {title}
+    <AnimatePresence>
+      {open && (
+        <>
+          {withOverlay && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeOnOverlayClick ? onClose : undefined}
+              className="rf-ui-drawer-overlay fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
+            />
+          )}
+          <motion.aside
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className={drawerClass}
+            onClick={stopPropagation}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? titleId : undefined}
+            aria-label={title ? undefined : 'Painel lateral'}
+          >
+            <div className="rf-ui-drawer__head">
+              <div className="min-w-0">
+                {title ? (
+                  <div id={titleId} className="rf-ui-drawer__title text-white font-black uppercase tracking-tight">
+                    {title}
+                  </div>
+                ) : null}
+                {subtitle ? <div className="rf-ui-drawer__subtitle text-slate-400 text-[10px] uppercase font-bold mt-1 tracking-wider">{subtitle}</div> : null}
               </div>
-            ) : null}
-            {subtitle ? <div className="rf-ui-drawer__subtitle">{subtitle}</div> : null}
-          </div>
-          <div className="rf-ui-drawer__actions">
-            {action}
-            <Button variant="secondary" size="sm" onClick={onClose}>
-              Fechar
-            </Button>
-          </div>
-        </div>
-        <div className={`rf-ui-drawer__body${bodyClassName ? ` ${bodyClassName}` : ''}`}>
-          {loading ? <LoadingState compact /> : children}
-        </div>
-        {footer ? <div className="rf-ui-drawer__footer">{footer}</div> : null}
-      </aside>
-    </div>
+              <div className="rf-ui-drawer__actions flex items-center gap-3">
+                {action}
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                  title="Fechar"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+            
+            <div className={`rf-ui-drawer__body ${bodyClassName || ''} py-4`}>
+              {loading ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="h-8 w-8 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                children
+              )}
+            </div>
+
+            {footer && (
+              <div className="rf-ui-drawer__footer pt-6 border-t border-white/5 bg-black/10 -mx-8 -mb-8 px-8 pb-8">
+                {footer}
+              </div>
+            )}
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
