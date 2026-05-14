@@ -1,5 +1,6 @@
 import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import type { ProdutoWriteInput } from '../types';
+import { logAudit } from '../../../shared/services/auditService';
 
 export type ProdutoApiContext = {
   url: string;
@@ -245,6 +246,11 @@ export async function saveProduto(
   ensureOk(res, body, `Erro ${res.status} ao salvar produto(s)`);
 
   if (Array.isArray(body)) {
+    // Registrar Auditoria
+    processedInputs.forEach((input) => {
+      const isNew = !input.id || !inputs.find((i) => i.id === input.id);
+      logAudit(context.token, 'produto', input.id || 'new', isNew ? 'INSERT' : 'UPDATE', input);
+    });
     return isArray ? (body as Produto[]) : (body[0] as Produto);
   }
 
@@ -307,10 +313,11 @@ export async function deleteProduto(context: ProdutoApiContext, produtoId: strin
       is_active: false,
       deleted_at: new Date().toISOString()
     }),
-    signal: AbortSignal.timeout(12000)
+    signal: AbortSignal.timeout(20000)
   });
   const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao remover (soft-delete) produto`);
+  ensureOk(res, body, `Erro ${res.status} ao remover produto`);
+  logAudit(context.token, 'produto', produtoId, 'SOFT_DELETE');
 }
 
 export async function listVariantesByPaiId(

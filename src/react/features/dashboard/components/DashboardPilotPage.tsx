@@ -38,6 +38,7 @@ import { twMerge } from 'tailwind-merge';
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { LoadingState, ErrorState, StatusBadge, Button, Badge, Card, Typography } from '../../../shared/ui';
+import { HealthCheckCard } from './HealthCheckCard';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -742,6 +743,26 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             </div>
           </Col>
         )}
+
+        {/* Health Check & Alerts (Integrated into Grid) */}
+        <Col numColSpanLg={1}>
+          <HealthCheckCard />
+          
+          <div className="mt-6 flex flex-col gap-4">
+            {alerts.slice(0, 2).map(alert => (
+              <div key={alert.id} className={`p-4 rounded-2xl border ${alert.tone === 'danger' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-amber-500/5 border-amber-500/20'} rf-animate-fade`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <AlertCircle size={14} className={alert.tone === 'danger' ? 'text-rose-400' : 'text-amber-400'} />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white">{alert.title}</span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-medium mb-3">{alert.desc}</p>
+                <Button size="sm" variant="secondary" className="w-full !text-[10px] !py-1" onClick={() => navigate(alert.link)}>
+                  Tratar agora
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Col>
 
         {/* Coluna Lateral: Status e Mix */}
         <Col>
