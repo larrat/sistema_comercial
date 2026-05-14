@@ -36,7 +36,8 @@ export function useClientesLightQuery() {
       if (!context) throw new Error('API context not ready');
       return listClientesLight(context);
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 
@@ -50,7 +51,8 @@ export function useRcasQuery() {
       if (!context) throw new Error('API context not ready');
       return listRcas(context);
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 
@@ -64,7 +66,8 @@ export function usePedidosQuery(filters: PedidoListFilters = {}, page = 1, pageS
       if (!context) throw new Error('API context not ready');
       return listPedidosPage(context, { ...filters, page, pageSize });
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 
@@ -78,6 +81,7 @@ export function usePedidoQuery(id: string | null | undefined) {
       if (!context || !id) return null;
       return getPedidoById(context, id);
     },
+    staleTime: 15000, // 15 seconds
     enabled: !!context && !!id
   });
 }
@@ -92,7 +96,8 @@ export function usePedidosSummaryQuery() {
       if (!context) throw new Error('API context not ready');
       return listPedidosSummary(context);
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 

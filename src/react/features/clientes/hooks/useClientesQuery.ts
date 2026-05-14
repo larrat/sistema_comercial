@@ -20,7 +20,8 @@ export function useClientesQuery(filters: ClienteListFilters = {}, page = 1, pag
       if (!context) throw new Error('API context not ready');
       return listClientesPage(context, { ...filters, page, pageSize });
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 
@@ -34,7 +35,8 @@ export function useSegmentosQuery() {
       if (!context) throw new Error('API context not ready');
       return listClienteSegmentos(context);
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 10 * 60 * 1000 // 10 minutes
   });
 }
 

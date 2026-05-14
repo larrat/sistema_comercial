@@ -29,7 +29,8 @@ export function useProdutosQuery(filters: ProdutoListFilters = {}, page = 1, pag
       if (!context) throw new Error('API context not ready');
       return listProdutosPage(context, { ...filters, page, pageSize });
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 
@@ -43,7 +44,8 @@ export function useProdutoQuery(id: string | null | undefined) {
       if (!context || !id) return null;
       return listProdutoById(context, id);
     },
-    enabled: !!context && !!id
+    enabled: !!context && !!id,
+    staleTime: 15000 // 15 seconds
   });
 }
 
@@ -57,7 +59,8 @@ export function usePaisQuery() {
       if (!context) throw new Error('API context not ready');
       return listProdutoPais(context);
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 
@@ -71,7 +74,8 @@ export function useCategoriasQuery() {
       if (!context) throw new Error('API context not ready');
       return listProdutoCategorias(context);
     },
-    enabled: !!context
+    enabled: !!context,
+    staleTime: 30000 // 30 seconds
   });
 }
 

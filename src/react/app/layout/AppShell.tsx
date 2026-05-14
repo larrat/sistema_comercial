@@ -11,10 +11,11 @@ export function AppShell() {
   const { sidebarCollapsed: collapsed } = useUIStore();
   
   return (
-    <div className={`flex min-h-screen w-full bg-slate-950 text-slate-100 font-sans selection:bg-blue-500/30 selection:text-blue-200 ${collapsed ? 'gap-6' : 'gap-10'}`}>
+    <div className={`flex min-h-screen w-full bg-surface-page text-primary font-sans selection:bg-cyan-500/30 selection:text-cyan-200`}>
       <AppSidebar />
       <div className="flex flex-1 flex-col min-w-0 transition-all duration-300">
-        <main className="flex-1 overflow-auto pr-10 py-6">
+        <AppTopbar />
+        <main className="flex-1 overflow-auto px-8 py-6">
           <Outlet />
         </main>
       </div>

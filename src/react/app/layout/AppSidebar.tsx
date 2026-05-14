@@ -82,7 +82,7 @@ export function AppSidebar() {
       initial={false}
       animate={{ width: collapsed ? 72 : 280 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="flex flex-col bg-[#0B0F1A] border-r border-slate-800 text-slate-300 z-40 relative shadow-2xl h-screen sticky top-0 overflow-hidden"
+      className="flex flex-col bg-surface-sidebar border-r border-white/5 text-slate-300 z-40 relative shadow-2xl h-screen sticky top-0 overflow-hidden"
       aria-label="Navegação principal"
     >
       {/* Header / Logo */}
@@ -130,7 +130,7 @@ export function AppSidebar() {
               placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg py-2 pl-12 pr-4 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
+              className="w-full bg-white/5 border border-white/5 rounded-lg py-2 pl-12 pr-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 transition-all"
             />
           </div>
         </div>
@@ -161,7 +161,7 @@ export function AppSidebar() {
             <div key={group.label} className={`flex flex-col gap-2 ${collapsed ? 'items-center w-full' : ''}`}>
               {!collapsed && (
                 <div className="px-3 flex items-center gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600 whitespace-nowrap">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 whitespace-nowrap">
                     {group.label}
                   </span>
                   <div className="h-px bg-slate-800/50 w-full" />
@@ -184,11 +184,11 @@ export function AppSidebar() {
                       className={({ isActive }) =>
                         `flex items-center rounded-lg transition-all duration-200 relative group
                         ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-3 py-2.5 w-full'}
-                        ${
+                         ${
                           isActive
-                             ? 'bg-blue-600/10 text-white font-bold'
-                             : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800/40'
-                        }`
+                             ? 'bg-cyan-500/10 text-white font-bold'
+                             : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                         }`
                       }
                     >
                       {({ isActive }) => (
