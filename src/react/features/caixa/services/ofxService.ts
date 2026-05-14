@@ -1,3 +1,5 @@
+import { parse as parseOfx } from 'ofx-js';
+
 export type OfxTransaction = {
   id: string;
   data: string;
@@ -7,42 +9,45 @@ export type OfxTransaction = {
 
 export const ofxService = {
   /**
-   * Parses an OFX string into an array of transactions.
-   * Note: This is a simplified parser for demonstration/MVP.
-   * A real production app would use a more robust library like 'ofx-js'.
+   * Parses an OFX string into an array of transactions using ofx-js.
    */
-  parse(content: string): OfxTransaction[] {
-    const transactions: OfxTransaction[] = [];
-    const stmtTrnMatches = content.match(/<STMTTRN>([\s\S]*?)<\/STMTTRN>/g);
+  async parse(content: string): Promise<OfxTransaction[]> {
+    try {
+      const data = await parseOfx(content);
 
-    if (!stmtTrnMatches) return [];
+      // Navigate to the transactions list
+      // Note: OFX structures can vary slightly between banks
+      const bankMsgs = data?.OFX?.BANKMSGSRSV1;
+      const stmtTrnRs = Array.isArray(bankMsgs?.STMTTRNRS)
+        ? bankMsgs.STMTTRNRS[0]
+        : bankMsgs?.STMTTRNRS;
+      const stmtRs = stmtTrnRs?.STMTRS;
+      const tranList = stmtRs?.BANKTRANLIST?.STMTTRN;
 
-    for (const stmt of stmtTrnMatches) {
-      const id = this.extractTag(stmt, 'FITID');
-      const dataRaw = this.extractTag(stmt, 'DTPOSTED');
-      const valorRaw = this.extractTag(stmt, 'TRNAMT');
-      const descricao = this.extractTag(stmt, 'MEMO') || this.extractTag(stmt, 'NAME') || '';
+      if (!tranList) return [];
 
-      if (id && dataRaw && valorRaw) {
-        transactions.push({
-          id,
-          data: this.formatOfxDate(dataRaw),
-          valor: parseFloat(valorRaw.replace(',', '.')),
-          descricao: descricao.trim()
-        });
-      }
+      const transactions = (Array.isArray(tranList) ? tranList : [tranList]) as Array<{
+        FITID: string;
+        DTPOSTED: string;
+        TRNAMT: string;
+        MEMO?: string;
+        NAME?: string;
+      }>;
+
+      return transactions.map((t) => ({
+        id: t.FITID,
+        data: this.formatOfxDate(t.DTPOSTED),
+        valor: parseFloat(t.TRNAMT),
+        descricao: (t.MEMO || t.NAME || '').trim()
+      }));
+    } catch (err) {
+      console.error('Error parsing OFX with ofx-js:', err);
+      throw new Error('Falha ao processar arquivo OFX.', { cause: err });
     }
-
-    return transactions;
-  },
-
-  extractTag(content: string, tag: string): string | null {
-    const regex = new RegExp(`<${tag}>([^<\\n]*)`, 'i');
-    const match = content.match(regex);
-    return match ? match[1].trim() : null;
   },
 
   formatOfxDate(raw: string): string {
+    if (!raw) return '';
     // YYYYMMDDHHMMSS -> YYYY-MM-DD
     const year = raw.substring(0, 4);
     const month = raw.substring(4, 6);

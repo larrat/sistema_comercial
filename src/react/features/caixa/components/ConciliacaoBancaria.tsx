@@ -12,18 +12,14 @@ import { Upload, CheckCircle, XCircle, RefreshCw, FileText, Banknote, AlertCircl
 import { ofxService, type OfxTransaction } from '../services/ofxService';
 import { useToastStore } from '../../../app/lib/useToastStore';
 
-type OfxTransaction = {
-  id: string;
-  data: string;
-  valor: number;
-  descricao: string;
+type ExtendedOfxTransaction = OfxTransaction & {
   status: 'match' | 'no_match' | 'duplicate';
   vinculo_id?: string;
 };
 
 export function ConciliacaoBancaria() {
   const [isUploading, setIsUploading] = useState(false);
-  const [transacoes, setTransacoes] = useState<(OfxTransaction & { status: string; vinculo_id?: string })[]>([]);
+  const [transacoes, setTransacoes] = useState<ExtendedOfxTransaction[]>([]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -31,10 +27,10 @@ export function ConciliacaoBancaria() {
 
     setIsUploading(true);
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
-        const parsed = ofxService.parse(content);
+        const parsed = await ofxService.parse(content);
         
         // Match simulation
         const withStatus = parsed.map(t => ({
@@ -93,7 +89,17 @@ export function ConciliacaoBancaria() {
           <EmptyState
             title="Nenhum arquivo importado"
             description="Suba seu extrato bancário (OFX ou CNAB) para começar a conciliação automática."
-            action={<Button variant="primary" onClick={handleUpload}>Selecionar Arquivo</Button>}
+            action={
+              <div className="relative">
+                <Button variant="primary">Selecionar Arquivo</Button>
+                <input 
+                  type="file" 
+                  accept=".ofx" 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                  onChange={handleFileUpload}
+                />
+              </div>
+            }
           />
         ) : (
           <DataTable
