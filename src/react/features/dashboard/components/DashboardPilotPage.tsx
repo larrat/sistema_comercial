@@ -623,25 +623,25 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 {/* KPIs no rodapé do Card */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
                   <div className="px-4 first:pl-0 border-r border-white/5">
-                    <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Melhor Dia</span>
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Melhor Dia</span>
                     <span className="block text-lg font-black text-white">
                       {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
                     </span>
                   </div>
                   <div className="px-4 border-r border-white/5">
-                    <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Média Diária</span>
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Média Diária</span>
                     <span className="block text-lg font-black text-white">
                       {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
                     </span>
                   </div>
                   <div className="px-4 border-r border-white/5">
-                    <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Período</span>
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Período</span>
                     <span className="block text-lg font-black text-white">
                       {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
                     </span>
                   </div>
                   <div className="px-4 last:pr-0">
-                    <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Margem Média</span>
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Margem Média</span>
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-black text-emerald-400">
                         {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
@@ -694,7 +694,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             {/* Mix de Vendas Integrado */}
             <div className="p-6 pt-0">
               <div className="pt-6 border-t border-white/5">
-                <span className="block text-center text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Mix de Vendas</span>
+                <span className="block text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Mix de Vendas</span>
                 <div className="h-44">
                   <DonutChart
                     className="h-full"
@@ -734,7 +734,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   <div className="flex justify-between items-end">
                     <div>
                       <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{m.label}</span>
-                      <span className="block text-[9px] text-slate-500">{m.sub}</span>
+                      <span className="block text-[9px] text-slate-400">{m.sub}</span>
                     </div>
                     <span className="text-xs font-black text-white">{m.val.toFixed(1)}%</span>
                   </div>
@@ -795,9 +795,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             </div>
           ) : (
             <div className="rf-card-premium h-full rf-glass shadow-premium flex flex-col items-center justify-center text-center p-8 opacity-50 border-dashed">
-              <HelpCircle size={40} className="text-slate-600 mb-4" />
-              <h3 className="text-slate-500 text-sm font-bold uppercase tracking-widest">Métricas de Base</h3>
-              <p className="text-slate-600 text-xs mt-2">Disponível na visão Analítica</p>
+              <HelpCircle size={40} className="text-slate-500 mb-4" />
+              <h3 className="text-slate-400 text-sm font-bold uppercase tracking-widest">Métricas de Base</h3>
+              <p className="text-slate-400 text-xs mt-2">Disponível na visão Analítica</p>
             </div>
           )}
         </Col>
@@ -827,7 +827,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                         <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">NEXUS AI</span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-500 truncate mt-0.5">{a.desc}</p>
+                    <p className="text-[10px] text-slate-400 truncate mt-0.5">{a.desc}</p>
                   </div>
                   <button 
                     className="px-3 py-1 rounded text-[10px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-colors uppercase"
@@ -839,14 +839,14 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               )) : (
                 <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
                   <CheckCircle2 size={32} className="text-emerald-500/30" />
-                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">Tudo limpo</p>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Tudo limpo</p>
                 </div>
               )}
             </div>
 
             <div className="px-6 py-4 border-t border-white/5 flex justify-between items-center bg-black/10">
-              <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Sincronizado</span>
-              <span className="text-[9px] font-bold text-slate-500">{new Date().toLocaleTimeString()}</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Sincronizado</span>
+              <span className="text-[9px] font-bold text-slate-400">{new Date().toLocaleTimeString()}</span>
             </div>
           </div>
         </Col>

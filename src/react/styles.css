@@ -23,10 +23,10 @@
   --surface-active: rgba(var(--rgb-white), var(--opacity-medium));
 
   /* --- SEMANTIC TOKENS: TEXT --- */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f8fafc; /* Slate-50 */
+  --text-secondary: #e2e8f0; /* Slate-200 */
+  --text-tertiary: #cbd5e1; /* Slate-300 */
+  --text-muted: #94a3b8; /* Slate-400 */
   --text-accent: var(--color-cyan-vibrant);
 
   /* --- SEMANTIC TOKENS: BORDERS --- */
@@ -3954,7 +3954,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-kpi-label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 
 .rf-kpi-value {
@@ -3981,7 +3981,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-kpi-sub.muted {
-  color: #94a3b8;
+  color: #cbd5e1;
 }
 
 /* --- PREMIUM V3 ENHANCEMENTS --- */
