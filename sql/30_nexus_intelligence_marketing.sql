@@ -19,7 +19,7 @@ ADD COLUMN IF NOT EXISTS taxa_conversao DECIMAL(5,2) DEFAULT 0,
 ADD COLUMN IF NOT EXISTS categoria_marketing TEXT;
 
 -- 3. Automation Metadata for Orders (Fiscal and Campaigns)
-ALTER TABLE public.pedidos_venda
+ALTER TABLE public.pedidos
 ADD COLUMN IF NOT EXISTS fiscal_status TEXT DEFAULT 'pendente', -- pendente, emitido, erro
 ADD COLUMN IF NOT EXISTS nfe_id TEXT,
 ADD COLUMN IF NOT EXISTS nfe_url TEXT,
@@ -31,8 +31,8 @@ ADD COLUMN IF NOT EXISTS nfe_id TEXT;
 
 -- 5. CRM: Automation Config for Collection Reminders (Régua de Cobrança)
 CREATE TABLE IF NOT EXISTS public.regua_cobranca_config (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    filial_id UUID REFERENCES public.filiais(id),
+    id TEXT PRIMARY KEY,
+    filial_id TEXT REFERENCES public.filiais(id),
     tipo_evento TEXT NOT NULL, -- 'vencimento_proximo', 'vencimento_hoje', 'atraso'
     dias_offset INTEGER NOT NULL, -- -2 para 2 dias antes, 3 para 3 dias depois
     canal TEXT DEFAULT 'whatsapp', -- whatsapp, email
@@ -52,8 +52,8 @@ WITH vendas_recentes AS (
         item.produto_id,
         SUM(item.qty) as total_vendido,
         COUNT(DISTINCT p.id) as num_pedidos
-    FROM public.pedido_venda_itens item
-    JOIN public.pedidos_venda p ON p.id = item.pedido_id
+    FROM public.pedido_itens item
+    JOIN public.pedidos p ON p.id = item.pedido_id
     WHERE p.criado_em >= (NOW() - INTERVAL '90 days')
       AND p.status = 'finalizado'
     GROUP BY item.produto_id
@@ -104,7 +104,7 @@ BEGIN
         SUM(total), 
         COUNT(*)
     INTO v_total_gasto, v_freq
-    FROM public.pedidos_venda
+    FROM public.pedidos
     WHERE cliente_id = NEW.cliente_id 
       AND status = 'finalizado';
 
@@ -112,7 +112,7 @@ BEGIN
     SELECT 
         EXTRACT(DAY FROM (NOW() - MAX(criado_em)))
     INTO v_recencia
-    FROM public.pedidos_venda
+    FROM public.pedidos
     WHERE cliente_id = NEW.cliente_id 
       AND status = 'finalizado';
 
@@ -154,9 +154,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 8. Trigger to fire metrics update when an order is finalized
-DROP TRIGGER IF EXISTS trg_cliente_metricas_pos_venda ON public.pedidos_venda;
+DROP TRIGGER IF EXISTS trg_cliente_metricas_pos_venda ON public.pedidos;
 CREATE TRIGGER trg_cliente_metricas_pos_venda
-AFTER UPDATE OF status ON public.pedidos_venda
+AFTER UPDATE OF status ON public.pedidos
 FOR EACH ROW
 WHEN (NEW.status = 'finalizado' AND OLD.status != 'finalizado')
 EXECUTE FUNCTION public.fn_atualizar_metricas_cliente();

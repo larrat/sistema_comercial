@@ -16,7 +16,7 @@ export const fiscalService = {
     try {
       // 1. Fetch order data
       const { data: pedido, error: fetchError } = await supabase
-        .from('pedidos_venda')
+        .from('pedidos')
         .select('*')
         .eq('id', pedidoId)
         .single();
@@ -31,7 +31,7 @@ export const fiscalService = {
       const mockNfeUrl = `https://fsist.com.br/nfe/${mockNfeId}`;
 
       const { error: updateError } = await supabase
-        .from('pedidos_venda')
+        .from('pedidos')
         .update({
           fiscal_status: 'emitido',
           nfe_id: mockNfeId,
@@ -49,7 +49,7 @@ export const fiscalService = {
     } catch (err) {
       console.error('Fiscal Error:', err);
 
-      await supabase.from('pedidos_venda').update({ fiscal_status: 'erro' }).eq('id', pedidoId);
+      await supabase.from('pedidos').update({ fiscal_status: 'erro' }).eq('id', pedidoId);
 
       return {
         ok: false,
