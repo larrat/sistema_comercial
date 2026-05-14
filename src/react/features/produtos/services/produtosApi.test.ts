@@ -57,6 +57,7 @@ describe('listProdutos', () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse([]));
     await listProdutos(context);
     expect(vi.mocked(fetch).mock.calls[0][0]).toContain('filial_id=eq.filial-1');
+    expect(vi.mocked(fetch).mock.calls[0][0]).toContain('is_active=eq.true');
     expect(vi.mocked(fetch).mock.calls[0][0]).toContain('order=nome');
   });
 
@@ -90,7 +91,7 @@ describe('listProdutos', () => {
       q: 'arroz',
       cat: 'Alimentos'
     });
-    expect(url).toContain('/rest/v1/produtos?filial_id=eq.filial-1&order=nome');
+    expect(url).toContain('/rest/v1/produtos?filial_id=eq.filial-1&is_active=eq.true&order=nome');
     expect(url).toContain('&and=');
     expect(url).toContain('&limit=20&offset=20');
   });
@@ -103,7 +104,7 @@ describe('listProdutos', () => {
 
   it('monta a URL de produtos-pai por filial', () => {
     expect(buildListProdutoPaisUrl(context.url, 'filial-1')).toBe(
-      'https://example.supabase.co/rest/v1/produtos?filial_id=eq.filial-1&produto_pai_id=is.null&order=nome'
+      'https://example.supabase.co/rest/v1/produtos?filial_id=eq.filial-1&produto_pai_id=is.null&is_active=eq.true&order=nome'
     );
   });
 
@@ -165,7 +166,9 @@ describe('saveProduto', () => {
   it('faz POST com on_conflict=id e Prefer header', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse([PRODUTO]));
     await saveProduto(context, PRODUTO);
-    const [url, opts] = vi.mocked(fetch).mock.calls[0];
+    // saveProduto agora faz um fetch prévio para auto-vínculo inteligente
+    const lastCall = vi.mocked(fetch).mock.calls[vi.mocked(fetch).mock.calls.length - 1];
+    const [url, opts] = lastCall;
     expect(url).toContain('on_conflict=id');
     expect((opts as RequestInit).method).toBe('POST');
     const headers = (opts as RequestInit).headers as Record<string, string>;
@@ -202,9 +205,10 @@ describe('deleteProduto', () => {
   it('faz DELETE com id codificado na URL', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse(null, 204));
     await deleteProduto(context, 'p/1');
-    const [url] = vi.mocked(fetch).mock.calls[0];
+    const [url, opts] = vi.mocked(fetch).mock.calls[0];
     expect(url).toContain('id=eq.p%2F1');
-    expect((vi.mocked(fetch).mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+    expect((opts as RequestInit).method).toBe('PATCH');
+    expect(String((opts as RequestInit).body)).toContain('"is_active":false');
   });
 
   it('resolve sem erro quando remoção é bem sucedida', async () => {

@@ -46,7 +46,7 @@ describe('clientesApi', () => {
 
   it('monta a URL de listagem com filial e ordenacao', () => {
     expect(buildListClientesUrl(context.url, 'Filial Especial')).toBe(
-      'https://example.supabase.co/rest/v1/clientes?filial_id=eq.Filial%20Especial&order=nome'
+      'https://example.supabase.co/rest/v1/clientes?filial_id=eq.Filial%20Especial&is_active=eq.true&order=nome'
     );
   });
 
@@ -58,14 +58,16 @@ describe('clientesApi', () => {
       seg: 'Varejo',
       status: 'ativo'
     });
-    expect(url).toContain('/rest/v1/clientes?filial_id=eq.filial-1&order=nome&status=eq.ativo');
+    expect(url).toContain(
+      '/rest/v1/clientes?filial_id=eq.filial-1&is_active=eq.true&order=nome&status=eq.ativo'
+    );
     expect(url).toContain('&and=');
     expect(url).toContain('&limit=20&offset=20');
   });
 
   it('monta a URL de listagem filtrada sem paginação para exportação/superfícies auxiliares', () => {
     const url = buildListClientesFilteredUrl(context.url, 'filial-1', { q: 'maria' });
-    expect(url).toContain('/rest/v1/clientes?filial_id=eq.filial-1&order=nome');
+    expect(url).toContain('/rest/v1/clientes?filial_id=eq.filial-1&is_active=eq.true&order=nome');
     expect(url).toContain('&and=');
   });
 
@@ -101,6 +103,9 @@ describe('clientesApi', () => {
       doc: null,
       tipo: 'PJ',
       status: 'ativo',
+      is_defaulter: false,
+      is_active: true,
+      deleted_at: null,
       tel: null,
       whatsapp: null,
       email: 'maria@a.com',
@@ -129,7 +134,7 @@ describe('clientesApi', () => {
 
     expect(result).toEqual([CLIENTE]);
     expect(fetch).toHaveBeenCalledWith(
-      'https://example.supabase.co/rest/v1/clientes?filial_id=eq.filial-1&order=nome',
+      'https://example.supabase.co/rest/v1/clientes?filial_id=eq.filial-1&is_active=eq.true&order=nome',
       expect.objectContaining({
         headers: expect.objectContaining({
           apikey: 'public-key',
@@ -231,7 +236,8 @@ describe('clientesApi', () => {
     expect(fetch).toHaveBeenCalledWith(
       'https://example.supabase.co/rest/v1/clientes?id=eq.cliente-1',
       expect.objectContaining({
-        method: 'DELETE'
+        method: 'PATCH',
+        body: expect.stringContaining('"is_active":false')
       })
     );
   });
