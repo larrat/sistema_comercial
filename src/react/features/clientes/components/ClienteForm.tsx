@@ -22,6 +22,7 @@ const clienteSchema = z.object({
   doc: z.string().optional(),
   tipo: z.string().default('PJ'),
   status: z.string().default('ativo'),
+  is_defaulter: z.boolean().default(false),
   tel: z.string().optional(),
   whatsapp: z.string().optional(),
   email: z.string().email('Informe um e-mail válido.').or(z.literal('')).optional(),
@@ -69,6 +70,7 @@ function toFormValues(cliente?: Cliente | null): Partial<ClienteFormValues> {
     doc: cliente?.doc ?? '',
     tipo: cliente?.tipo ?? 'PJ',
     status: cliente?.status ?? 'ativo',
+    is_defaulter: !!cliente?.is_defaulter,
     tel: cliente?.tel ?? '',
     whatsapp: cliente?.whatsapp ?? '',
     email: cliente?.email ?? '',
@@ -210,6 +212,12 @@ export function ClienteForm({
               { value: 'inativo', label: 'Inativo' }
             ]}
           />
+          <FormField label="Financeiro" helperText="Bloqueia vendas a prazo se ativo.">
+            <label className="optin-choice text-danger-400 font-bold">
+              <input type="checkbox" {...register('is_defaulter')} data-testid="form-is-defaulter" />
+              INADIMPLENTE
+            </label>
+          </FormField>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

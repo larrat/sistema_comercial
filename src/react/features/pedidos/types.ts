@@ -19,6 +19,7 @@ export type PedidoSummary = {
 export const TAB_STATUSES: Record<PedidoTab, string[]> = {
   emaberto: [
     'orcamento',
+    'supplier_check',
     'confirmado',
     'em_separacao',
     'em_andamento',
@@ -34,7 +35,8 @@ export const TAB_STATUSES: Record<PedidoTab, string[]> = {
 
 /** Próximo status na progressão operacional */
 export const NEXT_STATUS: Record<string, string> = {
-  orcamento: 'confirmado',
+  orcamento: 'supplier_check',
+  supplier_check: 'confirmado',
   confirmado: 'em_separacao',
   em_separacao: 'entregue_aguardando_pagamento',
   em_andamento: 'entregue_aguardando_pagamento',
@@ -43,7 +45,8 @@ export const NEXT_STATUS: Record<string, string> = {
 
 /** Label do botão de avanço por status atual */
 export const ACAO_LABEL: Record<string, string> = {
-  orcamento: 'Confirmar',
+  orcamento: 'Validar Fornecedor',
+  supplier_check: 'Confirmar',
   confirmado: 'Separar',
   em_separacao: 'Entregar',
   em_andamento: 'Entregar',
@@ -52,6 +55,7 @@ export const ACAO_LABEL: Record<string, string> = {
 
 export const PEDIDO_STATUS_LABEL: Record<string, string> = {
   orcamento: 'Orçamento',
+  supplier_check: 'Validação de Fornecedor',
   confirmado: 'Confirmado',
   em_separacao: 'Em separação',
   em_andamento: 'Em andamento',
@@ -66,6 +70,7 @@ export const PEDIDO_STATUS_TONE: Record<
   'neutral' | 'info' | 'warning' | 'success' | 'danger'
 > = {
   orcamento: 'neutral',
+  supplier_check: 'warning',
   confirmado: 'info',
   em_separacao: 'warning',
   em_andamento: 'neutral',

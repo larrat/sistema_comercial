@@ -1,12 +1,19 @@
 import { create } from 'zustand';
 
 import type { AppUserRole } from './hooks/useCurrentUserRole';
-import { STORAGE_KEYS, readStorageString, removeStorageKey, writeStorageString } from './lib/storage';
+import {
+  STORAGE_KEYS,
+  readStorageString,
+  removeStorageKey,
+  writeStorageString
+} from './lib/storage';
 
-const APP_ROLES: AppUserRole[] = ['operador', 'gerente', 'admin'];
+const APP_ROLES: AppUserRole[] = ['vendedor', 'estoque', 'admin'];
 
 function normalizeRole(raw: string | null): AppUserRole {
-  const v = String(raw || '').trim().toLowerCase();
+  const v = String(raw || '')
+    .trim()
+    .toLowerCase();
   return APP_ROLES.includes(v as AppUserRole) ? (v as AppUserRole) : 'operador';
 }
 

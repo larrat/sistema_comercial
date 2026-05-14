@@ -72,7 +72,7 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
 }
 
 export function buildListClientesUrl(url: string, filialId: string): string {
-  return `${url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(filialId)}&order=nome`;
+  return `${url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(filialId)}&is_active=eq.true&order=nome`;
 }
 
 export function buildGetClienteByIdUrl(url: string, filialId: string, clienteId: string): string {
@@ -86,6 +86,7 @@ function createClienteQueryParams(
 ): URLSearchParams {
   const params = new URLSearchParams();
   params.set('filial_id', `eq.${filialId}`);
+  params.set('is_active', 'eq.true');
   params.set('order', 'nome');
   const conditions: string[] = [];
 
@@ -292,10 +293,14 @@ export async function saveCliente(
 
 export async function deleteCliente(context: ClienteApiContext, clienteId: string): Promise<void> {
   const res = await fetch(buildDeleteClienteUrl(context.url, clienteId), {
-    method: 'DELETE',
+    method: 'PATCH',
     headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({
+      is_active: false,
+      deleted_at: new Date().toISOString()
+    }),
     signal: AbortSignal.timeout(12000)
   });
   const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao remover cliente`);
+  ensureOk(res, body, `Erro ${res.status} ao remover (soft-delete) cliente`);
 }

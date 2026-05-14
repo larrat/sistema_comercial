@@ -33,6 +33,7 @@ const produtoSchema = z.object({
   emin: z.string().optional(),
   esal: z.string().optional(),
   ecm: z.string().optional(),
+  is_sample: z.boolean().default(false),
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
@@ -50,7 +51,7 @@ function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
   if (!p) return {
     nome: '', sku: '', un: 'un', cat: '', custo: '', precoVarejo: '', markupVarejo: '', margemVarejo: '',
     descontoVarejo: '', markupAtacado: '', margemAtacado: '', precoFixoAtacado: '', descontoAtacado: '',
-    qtmin: '', emin: '', esal: '', ecm: ''
+    qtmin: '', emin: '', esal: '', ecm: '', is_sample: false
   };
 
   const custo = p.custo ?? 0;
@@ -76,7 +77,8 @@ function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
     qtmin: p.qtmin ? String(p.qtmin) : '',
     emin: p.emin ? String(p.emin) : '',
     esal: p.esal ? String(p.esal) : '',
-    ecm: p.ecm ? String(p.ecm) : ''
+    ecm: p.ecm ? String(p.ecm) : '',
+    is_sample: !!p.is_sample
   };
 }
 
@@ -220,8 +222,17 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       </FormSection>
 
       <FormSection title="Financeiro" description="Custo base e formação estratégica de preços.">
-        <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-100 mb-6">
+        <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-100 mb-6 flex flex-wrap items-end gap-6">
           <Input label="Custo de Compra (R$)" required className="md:max-w-[200px] text-lg font-bold" type="number" min="0" step="0.01" value={watchedValues.custo} onChange={(e) => handleCusto(e.target.value)} error={errors.custo?.message} data-testid="produto-form-custo" />
+          <div className="pb-2">
+            <label className="flex items-center gap-2 cursor-pointer select-none group">
+              <input type="checkbox" {...register('is_sample')} className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">PEÇA DE MOSTRUÁRIO</span>
+                <span className="text-[10px] text-slate-500 leading-tight">Flag de auditoria para itens de exposição/ensaio</span>
+              </div>
+            </label>
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
           <div className="space-y-6">

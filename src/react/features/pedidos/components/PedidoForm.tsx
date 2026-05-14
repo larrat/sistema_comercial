@@ -127,7 +127,7 @@ export function PedidoForm({
     e.preventDefault();
     setErrors({});
 
-    const validation = validatePedidoForm(cli, clientes, itens, findClienteByInput);
+    const validation = validatePedidoForm(cli, clientes, itens, pgto, findClienteByInput);
     if (validation.ok === false) {
       setErrors(validation.errors);
       trackEvent('erro_formulario', {

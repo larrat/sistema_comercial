@@ -51,7 +51,7 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
 }
 
 export async function listProdutos(context: ProdutoApiContext): Promise<Produto[]> {
-  const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&order=nome`;
+  const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&is_active=eq.true&order=nome`;
   const res = await fetch(url, {
     headers: createHeaders(context.key, context.token),
     signal: AbortSignal.timeout(12000)
@@ -68,6 +68,7 @@ function createProdutoQueryParams(
 ): URLSearchParams {
   const params = new URLSearchParams();
   params.set('filial_id', `eq.${filialId}`);
+  params.set('is_active', 'eq.true');
   params.set('order', 'nome');
   const conditions: string[] = ['produto_pai_id.is.null'];
 
@@ -117,7 +118,7 @@ export function buildListProdutoCategoriasUrl(url: string, filialId: string): st
 }
 
 export function buildListProdutoPaisUrl(url: string, filialId: string): string {
-  return `${url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(filialId)}&produto_pai_id=is.null&order=nome`;
+  return `${url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(filialId)}&produto_pai_id=is.null&is_active=eq.true&order=nome`;
 }
 
 export function buildProdutoByIdUrl(url: string, filialId: string, produtoId: string): string {
@@ -300,19 +301,23 @@ export async function cascadeUpdateFilhos(
 export async function deleteProduto(context: ProdutoApiContext, produtoId: string): Promise<void> {
   const url = `${context.url}/rest/v1/produtos?id=eq.${encodeURIComponent(produtoId)}`;
   const res = await fetch(url, {
-    method: 'DELETE',
+    method: 'PATCH',
     headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({
+      is_active: false,
+      deleted_at: new Date().toISOString()
+    }),
     signal: AbortSignal.timeout(12000)
   });
   const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao remover produto`);
+  ensureOk(res, body, `Erro ${res.status} ao remover (soft-delete) produto`);
 }
 
 export async function listVariantesByPaiId(
   context: ProdutoApiContext,
   paiId: string
 ): Promise<Produto[]> {
-  const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&produto_pai_id=eq.${encodeURIComponent(paiId)}&order=nome`;
+  const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&produto_pai_id=eq.${encodeURIComponent(paiId)}&is_active=eq.true&order=nome`;
   const res = await fetch(url, {
     headers: createHeaders(context.key, context.token),
     signal: AbortSignal.timeout(12000)

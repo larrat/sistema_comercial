@@ -83,6 +83,7 @@ export function validatePedidoForm(
   rawCliente: string,
   clientes: ClienteLight[],
   itens: PedidoItem[],
+  pgto: string,
   findCliente: (clientes: ClienteLight[], raw: string) => ClienteLight | null
 ): PedidoFormValidationResult {
   const cliTrimmed = rawCliente.trim();
@@ -111,6 +112,17 @@ export function validatePedidoForm(
       errors: { itens: 'Adicione pelo menos 1 item antes de salvar o pedido.' },
       reason: 'itens_obrigatorios',
       fields: ['itens']
+    };
+  }
+
+  // Trava de Segurança: Inadimplência
+  const isVendaPrazo = !['a_vista', 'pix'].includes(pgto || 'a_vista');
+  if (cliente.is_defaulter && isVendaPrazo) {
+    return {
+      ok: false,
+      errors: { cli: 'Venda bloqueada: Cliente inadimplente. Use PIX ou À Vista.' },
+      reason: 'cliente_invalido',
+      fields: ['cli']
     };
   }
 

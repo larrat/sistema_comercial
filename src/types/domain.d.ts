@@ -58,6 +58,9 @@ export type Produto = {
   unidade?: string;
   cat?: string;
   categoria?: string;
+  is_sample?: boolean;
+  is_active?: boolean;
+  deleted_at?: string | null;
   codigo_fornecedor?: string | null;
   codigo_barras?: string | null;
   custo: number;
@@ -138,6 +141,9 @@ export type Cliente = {
   email?: string;
   data_aniversario?: string;
   time?: string | string[];
+  is_defaulter?: boolean;
+  is_active?: boolean;
+  deleted_at?: string | null;
   resp?: string;
   seg?: string;
   tab?: string;
@@ -175,6 +181,8 @@ export type Pedido = {
   cli: string;
   data?: string;
   status: string;
+  is_active?: boolean;
+  deleted_at?: string | null;
   pgto?: string;
   prazo?: string;
   tipo?: string;
