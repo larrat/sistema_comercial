@@ -1,10 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sector } from 'recharts';
+import { 
+  AreaChart as RechartsAreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Sector
+} from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  AreaChart, 
   DonutChart, 
   Grid, 
   Col
@@ -605,19 +613,97 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               </div>
               
               <div className="rf-card-premium__body">
-                <div className="h-80">
-                  <AreaChart
-                    className="h-full"
-                    data={chartData}
-                    index="name"
-                    categories={["faturamento", "lucro"]}
-                    colors={["amber", "emerald"]}
-                    valueFormatter={fmt}
-                    showLegend={true}
-                    showGridLines={true}
-                    showAnimation={true}
-                    curveType="monotone"
-                  />
+                <div className="h-80 w-full mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsAreaChart
+                      data={chartData}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid 
+                        strokeDasharray="3 3" 
+                        vertical={false} 
+                        stroke="rgba(255,255,255,0.05)" 
+                      />
+                      <XAxis 
+                        dataKey="name" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
+                        dy={10}
+                      />
+                      <YAxis 
+                        hide={true} 
+                        domain={['auto', 'auto']}
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl ring-1 ring-white/5">
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
+                                <div className="space-y-2">
+                                  {payload.map((entry: any, index: number) => (
+                                    <div key={index} className="flex items-center justify-between gap-8">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                        <span className="text-[11px] font-bold text-slate-300 capitalize">{entry.name}</span>
+                                      </div>
+                                      <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="faturamento"
+                        stroke="var(--color-amber-vibrant)"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorFaturamento)"
+                        animationDuration={1500}
+                        dot={{ fill: 'var(--color-amber-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="lucro"
+                        stroke="var(--color-emerald-vibrant)"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorLucro)"
+                        animationDuration={2000}
+                        dot={{ fill: 'var(--color-emerald-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
+                        activeDot={{ r: 6, strokeWidth: 0 }}
+                      />
+                    </RechartsAreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Custom Legend (Requested by user) */}
+                <div className="flex justify-center gap-8 mt-4 mb-2">
+                   <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[var(--color-amber-vibrant)] shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento</span>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[var(--color-emerald-vibrant)] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lucro</span>
+                   </div>
                 </div>
 
                 {/* KPIs no rodapé do Card */}

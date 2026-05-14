@@ -5,8 +5,11 @@
   /* --- DESIGN TOKENS: COLORS (PALETTE) --- */
   --color-absolute-midnight: #020617;
   --color-deep-slate: #0f172a;
-  --color-cyan-vibrant: #22d3ee;
-  --color-emerald-vibrant: #10b981;
+  --color-cyan-vibrant: #06b6d4; /* Vibrant Cyan-500 */
+  --color-emerald-vibrant: #10b981; /* Emerald-500 */
+  --color-amber-vibrant: #f59e0b; /* Amber-500 */
+  --color-indigo-vibrant: #6366f1; /* Indigo-500 */
+  --color-rose-vibrant: #f43f5e; /* Rose-500 */
 
   /* RGB Channels for dynamic opacity */
   --rgb-white: 255, 255, 255;
@@ -39,15 +42,17 @@
   --action-success: var(--color-emerald-vibrant);
 
   /* --- COMPONENT TOKENS: CHARTS --- */
-  /* Definimos que, por padrão, as cores dos gráficos seguem os acentos do sistema,
-     mas agora temos variáveis independentes se precisarmos mudar apenas o gráfico. */
-  --chart-primary: var(--text-accent);
-  --chart-secondary: #c5a059;
-  --chart-tertiary: #10b981;
-  --chart-quaternary: #6366f1;
-  --chart-quinary: #f59e0b;
-  --action-warning: #f59e0b;
-  --action-danger: #ef4444;
+  --chart-primary: var(--color-cyan-vibrant);
+  --chart-secondary: var(--color-amber-vibrant);
+  --chart-tertiary: var(--color-emerald-vibrant);
+  --chart-quaternary: var(--color-indigo-vibrant);
+  --chart-quinary: var(--color-rose-vibrant);
+
+  --chart-faturamento: #f59e0b;
+  --chart-lucro: #10b981;
+
+  --action-warning: var(--color-amber-vibrant);
+  --action-danger: var(--color-rose-vibrant);
 
   /* --- LEGACY COMPATIBILITY --- */
   --color-background-primary: var(--surface-card);
