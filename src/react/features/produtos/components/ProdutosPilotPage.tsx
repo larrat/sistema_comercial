@@ -247,17 +247,8 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const pageHeader = (
     <PageHeader
       kicker="Catálogo"
-      title="Produtos"
+      title={<span className="text-white font-black tracking-tight">Produtos</span>}
       description="Gerencie catálogo, estoque visível e ações rápidas da filial."
-      meta={
-        <div className="flex items-center gap-3">
-          <StatusBadge tone="info">
-            {total} produtos no total
-          </StatusBadge>
-          <div className="h-4 w-px bg-white/10" />
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">página {page}</span>
-        </div>
-      }
       actions={
         <div className="flex items-center gap-4">
           <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">

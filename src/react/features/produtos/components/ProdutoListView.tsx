@@ -79,9 +79,9 @@ function fmtQ(v: number): string {
 }
 
 function stockTone(saldo: number, emin: number): StatusBadgeTone {
-  if (saldo <= 0) return 'vibrant-pink';
+  if (saldo <= 0) return 'danger';
   if (emin > 0 && saldo < emin) return 'warning';
-  return 'vibrant-blue';
+  return 'info';
 }
 
 function stockLabel(saldo: number, emin: number): string {

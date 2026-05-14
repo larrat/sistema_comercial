@@ -2,15 +2,15 @@ import { FilialSwitcher } from '../filial/FilialSwitcher';
 
 export function AppTopbar() {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between px-8 bg-surface-page/80 backdrop-blur-xl border-b border-white/5 shadow-sm">
-      <div className="flex-1 max-w-md relative group">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 group-focus-within:text-cyan-500 transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <header className="sticky top-4 z-30 mx-8 mt-4 mb-4 flex h-14 items-center justify-between px-6 bg-surface-card/60 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-xl">
+      <div className="flex-1 max-w-lg relative group">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-cyan-400 transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </div>
         <input 
           type="text" 
-          placeholder="Busca global de pedidos, clientes ou produtos... (Alt + K)" 
-          className="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-xl leading-5 bg-white/5 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 sm:text-sm text-white transition-all"
+          placeholder="Busca global... (Alt + K)" 
+          className="block w-full pl-11 pr-4 py-2 border border-white/5 rounded-xl leading-5 bg-black/20 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/50 sm:text-sm text-white transition-all shadow-inner"
         />
       </div>
       
