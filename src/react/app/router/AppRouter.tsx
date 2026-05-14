@@ -24,6 +24,8 @@ const FiliaisRoutePage = lazy(() => import('../../features/filiais/pages/Filiais
 const AcessosRoutePage = lazy(() => import('../../features/acessos/pages/AcessosRoutePage').then(m => ({ default: m.AcessosRoutePage })));
 const ComprasRoutePage = lazy(() => import('../../features/compras/pages/ComprasRoutePage').then(m => ({ default: m.ComprasRoutePage })));
 const CaixaRoutePage = lazy(() => import('../../features/caixa/pages/CaixaRoutePage').then(m => ({ default: m.CaixaRoutePage })));
+const ConciliacaoBancariaRoutePage = lazy(() => import('../../features/caixa/pages/ConciliacaoBancariaRoutePage').then(m => ({ default: m.ConciliacaoBancariaRoutePage })));
+const SugestaoComprasRoutePage = lazy(() => import('../../features/compras/pages/SugestaoComprasRoutePage').then(m => ({ default: m.SugestaoComprasRoutePage })));
 const LoginPage = lazy(() => import('../../features/auth/components/LoginPage').then(m => ({ default: m.LoginPage })));
 const SetupPage = lazy(() => import('../../features/setup/components/SetupPage').then(m => ({ default: m.SetupPage })));
 
@@ -85,7 +87,9 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="campanhas" element={<CampanhasRoutePage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="compras" element={<ComprasRoutePage />} />
+              <Route path="compras/sugestoes" element={<SugestaoComprasRoutePage />} />
               <Route path="caixa" element={<CaixaRoutePage />} />
+              <Route path="caixa/conciliacao" element={<ConciliacaoBancariaRoutePage />} />
               <Route element={<AdminOnlyRoute />}>
                 <Route path="filiais" element={<FiliaisRoutePage />} />
                 <Route path="acessos" element={<AcessosRoutePage />} />

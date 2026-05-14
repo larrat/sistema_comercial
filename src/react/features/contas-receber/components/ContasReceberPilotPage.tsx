@@ -19,12 +19,18 @@ import {
   Input
 } from '../../../shared/ui';
 import {
-  useContasReceberMutations,
-  getValorEmAberto,
-  getValorRecebido,
-  getStatusEfetivo,
-  getStatusLabel
-} from '../hooks/useContasReceberMutations';
+  AlertCircle,
+  ArrowUpRight,
+  CheckCircle2,
+  ChevronRight,
+  RefreshCw,
+  TrendingUp,
+  HelpCircle,
+  Zap,
+  Bell,
+  Settings
+} from 'lucide-react';
+import { crmService } from '../services/crmService';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
 
@@ -236,6 +242,77 @@ function ContasReceberMetrics({
       <StatCard label="Vencido" value={fmt(totalVencido)} tone="danger" />
       <StatCard label="Recebido no mês" value={fmt(recebidoMes)} tone="success" />
     </section>
+  );
+}
+
+function CrmAutomationCard() {
+  const [active, setActive] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const filialId = useContasReceberStore(s => s.filial_id);
+
+  const handleProcess = async () => {
+    if (!filialId) return;
+    setIsProcessing(true);
+    try {
+      const total = await crmService.processarRegrasCobrança(filialId);
+      useToastStore.getState().addToast(`${total} notificações de cobrança processadas.`, 'success');
+    } catch (err) {
+      useToastStore.getState().addToast('Erro ao processar cobranças.', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="rf-card-premium p-6 border-white/5 bg-gradient-to-br from-indigo-950/20 to-slate-900/50">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+            <Zap size={20} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white tracking-tight">Régua de Cobrança Automática</h3>
+            <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-0.5">Nexus CRM</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-slate-500 uppercase">Status</span>
+            <div className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} />
+          </div>
+          <Button size="sm" variant="secondary" className="!p-2 rounded-xl">
+            <Settings size={14} />
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="p-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Bell size={14} className="text-amber-400" />
+            <span className="text-xs font-medium text-slate-300">Vencimento em 2 dias</span>
+          </div>
+          <Badge variant="neutral">WHATSAPP</Badge>
+        </div>
+        <div className="p-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle size={14} className="text-rose-400" />
+            <span className="text-xs font-medium text-slate-300">Atraso após 3 dias</span>
+          </div>
+          <Badge variant="neutral">WHATSAPP + EMAIL</Badge>
+        </div>
+      </div>
+
+      <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/5">
+        <Button size="sm" variant="ghost" className="text-indigo-400 hover:text-indigo-300 gap-1 !text-[10px]" onClick={handleProcess} loading={isProcessing}>
+          <RefreshCw size={12} className={isProcessing ? 'animate-spin' : ''} />
+          Processar Agora
+        </Button>
+        <Button size="sm" variant="ghost" className="text-indigo-400 hover:text-indigo-300 gap-1 !text-[10px]">
+          Ver Relatório <ChevronRight size={12} />
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -768,7 +845,14 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
             ) : undefined
           }
         />
-        <ContasReceberMetrics contas={contas} baixas={baixas} />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <ContasReceberMetrics contas={contas} baixas={baixas} />
+          </div>
+          <div>
+            <CrmAutomationCard />
+          </div>
+        </div>
         <LoadingState
           title="Carregando contas a receber..."
           description="Estamos reunindo títulos, baixas e indicadores financeiros da filial."
@@ -792,7 +876,14 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
             ) : undefined
           }
         />
-        <ContasReceberMetrics contas={contas} baixas={baixas} />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-3">
+            <ContasReceberMetrics contas={contas} baixas={baixas} />
+          </div>
+          <div>
+            <CrmAutomationCard />
+          </div>
+        </div>
         <ErrorState
           title={error ?? 'Erro ao carregar dados.'}
           description="Atualize a tela ou confirme a filial ativa antes de tentar novamente."
@@ -819,7 +910,14 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         }
       />
 
-      <ContasReceberMetrics contas={contas} baixas={baixas} />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <ContasReceberMetrics contas={contas} baixas={baixas} />
+        </div>
+        <div>
+          <CrmAutomationCard />
+        </div>
+      </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <SegmentedControl

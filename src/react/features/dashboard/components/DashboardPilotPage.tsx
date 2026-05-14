@@ -28,8 +28,12 @@ import {
   RefreshCw,
   TrendingUp,
   HelpCircle,
-  Zap
+  Zap,
+  ShieldCheck,
+  FileText as FileIcon
 } from 'lucide-react';
+import { fiscalService } from '../../pedidos/services/fiscalService';
+import { useToastStore } from '../../../app/lib/useToastStore';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -459,6 +463,14 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
             <Button 
               variant="secondary" 
+              onClick={() => {}}
+              leftIcon={<Zap size={14} className="text-amber-400" />}
+              className="!rounded-xl"
+            >
+              Daily Pulse
+            </Button>
+            <Button 
+              variant="secondary" 
               onClick={handleRefresh} 
               loading={isRefreshing}
               leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
@@ -741,6 +753,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         <Col numColSpanLg={1}>
           <HealthCheckCard />
           
+          <FiscalHubCard />
+
           <div className="mt-6 flex flex-col gap-4">
             {alerts.slice(0, 2).map(alert => (
               <div key={alert.id} className={`p-4 rounded-2xl border ${alert.tone === 'danger' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-amber-500/5 border-amber-500/20'} rf-animate-fade`}>
@@ -951,6 +965,56 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </div>
         </Col>
       </Grid>
+    </div>
+  );
+}
+
+function FiscalHubCard() {
+  const [isEmitting, setIsEmitting] = useState(false);
+
+  const handleEmit = async () => {
+    setIsEmitting(true);
+    try {
+      // Emitting for a random pending order just to demonstrate
+      const result = await fiscalService.emitirNFe('ANY-ORDER-ID');
+      if (result.ok) {
+        useToastStore.getState().addToast(`NFe ${result.nfe_id} emitida com sucesso!`, 'success');
+      } else {
+        useToastStore.getState().addToast(result.error || 'Erro na emissão.', 'error');
+      }
+    } finally {
+      setIsEmitting(false);
+    }
+  };
+
+  return (
+    <div className="mt-6 rf-card-premium p-6 border-white/5 bg-gradient-to-br from-slate-900 to-indigo-950/20">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          Fiscal Hub
+        </h3>
+        <Badge variant="emerald">EM DIA</Badge>
+      </div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-400">NFe Emitidas</span>
+          <span className="text-xs font-bold text-white">124</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-400">Pendente Emissão</span>
+          <span className="text-xs font-bold text-amber-400">3</span>
+        </div>
+        <Button 
+          size="sm" 
+          variant="secondary" 
+          className="w-full !rounded-lg mt-2"
+          onClick={handleEmit}
+          loading={isEmitting}
+        >
+          {isEmitting ? 'Emitindo...' : 'Emitir Notas Pendentes'}
+        </Button>
+      </div>
     </div>
   );
 }

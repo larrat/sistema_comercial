@@ -66,6 +66,7 @@ const PROFILE_TABS: Array<{ id: ClienteProfileTab; label: string }> = [
   { id: 'pedidos', label: 'Pedidos' },
   { id: 'financeiro', label: 'Financeiro' },
   { id: 'notas', label: 'Notas' },
+  { id: 'marketing', label: 'Marketing' },
   { id: 'cadastro', label: 'Cadastro' }
 ];
 
@@ -272,6 +273,15 @@ function buildKpis(pedidosAbertos: Pedido[], pedidosFechados: Pedido[], contas: 
           : 'Sem histórico de pedidos'
     }
   ];
+}
+
+function getRfmLabel(rfm?: { r: number; f: number; m: number }) {
+  if (!rfm) return 'Sem análise';
+  const score = (rfm.r + rfm.f + rfm.m) / 3;
+  if (score >= 4) return { label: 'Campeão', tone: 'positive' };
+  if (score >= 3) return { label: 'Fiel', tone: 'positive' };
+  if (score >= 2) return { label: 'Potencial', tone: 'neutral' };
+  return { label: 'Risco de Churn', tone: 'negative' };
 }
 
 function renderMetadataLine(cliente: Cliente, pedidos: Pedido[]) {
@@ -801,6 +811,41 @@ export function ClienteProfilePage({
               />
             </section>
 
+            <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6 overflow-hidden relative group">
+              <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Zap size={60} strokeWidth={3} className="text-blue-500" />
+              </div>
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  Nexus Intelligence
+                  <Badge variant="purple" className="!text-[8px]">IA</Badge>
+                </h3>
+              </div>
+              <div className="flex flex-col gap-4">
+                <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Score RFM</span>
+                  <div className="flex items-center justify-between mt-1">
+                    <span className="text-sm font-bold text-white">{getRfmLabel(cliente.score_rfm).label}</span>
+                    <Badge variant={getRfmLabel(cliente.score_rfm).tone as any}>
+                      {((cliente.score_rfm?.r || 0) + (cliente.score_rfm?.f || 0) + (cliente.score_rfm?.m || 0)).toFixed(1)}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Probabilidade de Compra</span>
+                  <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: '75%' }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full bg-blue-500" 
+                    />
+                  </div>
+                  <span className="text-[10px] font-bold text-blue-400 mt-1 block text-right">Alta (75%)</span>
+                </div>
+              </div>
+            </section>
+
             <section className="bg-slate-900 border border-white/5 rounded-xl shadow-sm p-6">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-white tracking-tight">Última nota</h3>
@@ -823,6 +868,56 @@ export function ClienteProfilePage({
           </aside>
         </div>
       ) : null}
+
+      {activeTab === 'marketing' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <section className="rf-card-premium p-6">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <Database className="w-5 h-5 text-indigo-400" />
+              Atribuição e Origem
+            </h3>
+            <ClienteInfoTable
+              rows={[
+                { label: 'Origem (Source)', value: cliente.utm_source },
+                { label: 'Mídia (Medium)', value: cliente.utm_medium },
+                { label: 'Campanha', value: cliente.utm_campaign },
+                { label: 'Termo/Keyword', value: cliente.utm_term },
+                { label: 'Conteúdo Ads', value: cliente.utm_content },
+                { label: 'Primeira Compra', value: formatDateLong(cliente.data_primeira_compra) }
+              ]}
+            />
+          </section>
+
+          <section className="rf-card-premium p-6">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              Comportamento (RFM)
+            </h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-col items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recência</span>
+                <span className="text-2xl font-black text-white mt-2">{cliente.score_rfm?.r || 0}</span>
+                <span className="text-[10px] text-slate-500 mt-1">/ 5</span>
+              </div>
+              <div className="flex flex-col items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Frequência</span>
+                <span className="text-2xl font-black text-white mt-2">{cliente.score_rfm?.f || 0}</span>
+                <span className="text-[10px] text-slate-500 mt-1">/ 5</span>
+              </div>
+              <div className="flex flex-col items-center p-4 bg-white/5 rounded-xl border border-white/5">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Monetário</span>
+                <span className="text-2xl font-black text-white mt-2">{cliente.score_rfm?.m || 0}</span>
+                <span className="text-[10px] text-slate-500 mt-1">/ 5</span>
+              </div>
+            </div>
+            <div className="mt-6 p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/10">
+              <p className="text-xs text-indigo-400 font-medium leading-relaxed">
+                Este cliente tem um alto valor monetário e recência média. Recomendamos uma campanha de reativação focada em itens de alto ticket para maximizar o LTV.
+              </p>
+            </div>
+          </section>
+        </div>
+      )}
 
       {activeTab === 'pedidos' ? (
         <section className="flex flex-col gap-6">

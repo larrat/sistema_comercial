@@ -81,6 +81,9 @@ export type Produto = {
     tabela?: number | null;
     desconto?: number | null;
   }>;
+  custo_marketing_estimado?: number;
+  taxa_conversao?: number;
+  categoria_marketing?: string;
 };
 
 export type CotacaoLog = {
@@ -154,6 +157,15 @@ export type Cliente = {
   optin_marketing?: boolean;
   optin_email?: boolean;
   optin_sms?: boolean;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  data_primeira_compra?: string;
+  valor_total_gasto?: number;
+  score_rfm?: { r: number; f: number; m: number };
+  tags?: string[];
 };
 
 export type PedidoItem = {
@@ -196,6 +208,10 @@ export type Pedido = {
   venda_fechada_por?: string | null;
   entregue_em?: string | null;
   entregue_por?: string | null;
+  fiscal_status?: 'pendente' | 'emitido' | 'erro';
+  nfe_id?: string | null;
+  nfe_url?: string | null;
+  campanha_id?: string | null;
 };
 
 export type ContaReceber = {
@@ -307,6 +323,17 @@ export type JogoAgenda = {
   visitante?: string | null;
   local?: string | null;
   status?: string | null;
+};
+
+export type ReguaCobrancaConfig = {
+  id: Id;
+  filial_id: Id;
+  tipo_evento: 'vencimento_proximo' | 'vencimento_hoje' | 'atraso';
+  dias_offset: number;
+  canal: 'whatsapp' | 'email';
+  template: string;
+  ativo: boolean;
+  created_at?: string;
 };
 
 export type UserPerfil = {

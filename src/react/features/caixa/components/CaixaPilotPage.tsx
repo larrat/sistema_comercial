@@ -8,8 +8,10 @@ import {
   ArrowDownRight,
   Filter,
   Calendar,
-  Wallet
+  Wallet,
+  RefreshCw
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { 
   PageHeader, 
   Button, 
@@ -85,6 +87,11 @@ export function CaixaPilotPage() {
         description="Monitore entradas, saídas e saldo operacional em tempo real."
         actions={
           <div className="flex items-center gap-3">
+             <Link to="/app/caixa/conciliacao">
+               <Button variant="secondary" leftIcon={<RefreshCw size={16} />}>
+                 Conciliação
+               </Button>
+             </Link>
              <PDFDownloadLink 
                document={<SalesReceipt pedido={{ total: saldo, itens: transacoes.map(t => ({ nome: t.descricao, qty: 1, preco: t.valor })), num: 'CX-RESUMO', data: new Date().toISOString() }} filialNome="Nexus Industrial" />} 
                fileName={`caixa_${new Date().toISOString().split('T')[0]}.pdf`}

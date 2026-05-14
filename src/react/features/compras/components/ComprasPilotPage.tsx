@@ -8,8 +8,10 @@ import {
   Clock, 
   XCircle,
   Truck,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { 
   Badge,
   Shimmer,
@@ -76,13 +78,16 @@ export function ComprasPilotPage() {
         title="Pedidos de Compra"
         description="Gerencie ordens de compra e entrada de mercadorias no estoque."
         actions={
-          <button 
-            onClick={() => setIsFormOpen(true)}
-            className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan !py-2.5 !px-5 !rounded-xl"
-          >
-            <Plus size={18} />
-            <span>Novo Pedido</span>
-          </button>
+          <div className="flex gap-3">
+            <Link to="/app/compras/sugestoes">
+              <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-cyan-400" />}>
+                Stock AI
+              </Button>
+            </Link>
+            <Button variant="primary" className="!rounded-xl" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setIsFormOpen(true)}>
+              Novo pedido
+            </Button>
+          </div>
         }
       />
 
