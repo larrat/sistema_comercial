@@ -143,7 +143,8 @@ export type Cliente = {
   whatsapp?: string;
   email?: string;
   data_aniversario?: string;
-  time?: string | string[];
+  time?: string | null;
+  times?: string[];
   is_defaulter?: boolean;
   is_active?: boolean;
   deleted_at?: string | null;
