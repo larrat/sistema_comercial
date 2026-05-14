@@ -1,4 +1,4 @@
-import { getSupabaseConfig } from '../../app/supabaseConfig';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 export type CaixaTransacao = {
   id?: number;
