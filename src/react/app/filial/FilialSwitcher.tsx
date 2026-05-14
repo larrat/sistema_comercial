@@ -8,7 +8,7 @@ import { getSupabaseConfig } from '../supabaseConfig';
 import { listUserFiliais } from '../../features/auth/services/authApi';
 import type { Filial } from '../../../types/domain';
 
-export function FilialSwitcher({ variant = 'dark', collapsed = false }: { variant?: 'dark' | 'light'; collapsed?: boolean }) {
+export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar = false }: { variant?: 'dark' | 'light'; collapsed?: boolean; isTopbar?: boolean }) {
   const [open, setOpen] = useState(false);
   const [filiais, setFiliais] = useState<Filial[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,13 +80,15 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false }: { varian
 
   return (
     <>
-      <div className={`flex flex-col gap-1 ${collapsed ? 'items-center' : 'items-start'} w-full`}>
-        {!collapsed && <div className="text-[10px] uppercase font-black tracking-[0.15em] text-slate-600 ml-1 mb-1">Filial ativa</div>}
+      <div className={`flex flex-col gap-1 ${collapsed ? 'items-center' : 'items-start'} ${isTopbar ? 'w-auto' : 'w-full'}`}>
+        {!collapsed && !isTopbar && <div className="text-[10px] uppercase font-black tracking-[0.15em] text-slate-600 ml-1 mb-1">Filial ativa</div>}
         <button
           className={`flex items-center justify-center gap-2 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 disabled:opacity-50 disabled:cursor-not-allowed group ${
             collapsed 
               ? "w-12 h-12 hover:bg-slate-800 text-slate-400 hover:text-white"
-              : "w-full px-4 py-3 border shadow-sm bg-slate-800/40 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500"
+              : isTopbar
+                ? "px-4 py-2 bg-black/20 border border-white/5 text-slate-300 hover:bg-black/40 hover:border-white/10"
+                : "w-full px-4 py-3 border shadow-sm bg-slate-800/40 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500"
           }`}
           type="button"
           onClick={handleOpen}

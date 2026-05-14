@@ -22,6 +22,8 @@ import {
 } from '../../../shared/ui';
 import { CaixaTransacaoForm } from './CaixaTransacaoForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { SalesReceipt } from '../../../shared/services/DocumentService';
 import { listTransacoes, listCategorias, addTransacao, getSaldo } from '../services/caixaApi';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
@@ -82,7 +84,16 @@ export function CaixaPilotPage() {
         description="Monitore entradas, saídas e saldo operacional em tempo real."
         actions={
           <div className="flex items-center gap-3">
-             <Button variant="secondary" leftIcon={<Filter size={16} />}>Relatórios</Button>
+             <PDFDownloadLink 
+               document={<SalesReceipt pedido={{ total: saldo, itens: transacoes.map(t => ({ nome: t.descricao, qty: 1, preco: t.valor })), num: 'CX-RESUMO', data: new Date().toISOString() }} filialNome="Nexus Industrial" />} 
+               fileName={`caixa_${new Date().toISOString().split('T')[0]}.pdf`}
+             >
+               {({ loading }) => (
+                 <Button variant="secondary" leftIcon={<Filter size={16} />} loading={loading}>
+                   Exportar PDF
+                 </Button>
+               )}
+             </PDFDownloadLink>
              <Button 
                variant="primary" 
                leftIcon={<Plus size={16} />}

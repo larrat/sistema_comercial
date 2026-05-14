@@ -3,7 +3,7 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
-import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input } from '../../../shared/ui';
+import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input, ScannerModal } from '../../../shared/ui';
 import { usePedidoMutations } from '../hooks/usePedidosQuery';
 import { getNextPedidoNumber } from '../services/pedidosApi';
 import {
@@ -28,6 +28,7 @@ import {
   type PdvQueuedSale,
   validateMixedPayments
 } from '../pdv/pdvCart';
+import { useQuery } from '@tanstack/react-query';
 import {
   countPdvQueue,
   enqueuePdvSale,
@@ -212,6 +213,7 @@ export function PdvPage() {
     cliente: ClienteLight | null;
     createdAt: string;
   } | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const productInputRef = useRef<HTMLInputElement>(null);
   const productSearchRequestRef = useRef(0);
@@ -418,6 +420,27 @@ export function PdvPage() {
     setProductSearchError(null);
     setActiveSuggestionIndex(0);
     window.requestAnimationFrame(() => productInputRef.current?.focus());
+  }
+
+  async function handleScanResult(code: string) {
+    const context = resolveContext();
+    if (!context) return;
+    
+    setProductSearching(true);
+    try {
+      // Buscar especificamente por SKU ou Código de Barras
+      const results = await searchProdutosPdv(context, code, 1);
+      if (results.length > 0) {
+        handleSelectProduto(results[0]);
+        toast.success(`Produto adicionado: ${results[0].nome}`);
+      } else {
+        toast.error(`Produto não encontrado com o código: ${code}`);
+      }
+    } catch (err) {
+      toast.error('Erro ao processar leitura.');
+    } finally {
+      setProductSearching(false);
+    }
   }
 
   function handleApplyDiscount() {
@@ -655,8 +678,8 @@ export function PdvPage() {
             </header>
 
             <div className="rf-pdv__search">
-              <span className="rf-pdv__search-icon" aria-hidden="true">
-                🔎
+              <span className="rf-pdv__search-icon" aria-hidden="true" onClick={() => setIsScannerOpen(true)}>
+                📷
               </span>
               <input
                 ref={productInputRef}
@@ -997,6 +1020,13 @@ export function PdvPage() {
         onWhatsapp={handleWhatsappReceipt}
         whatsappEnabled={!!getClienteWhatsappLink(lastCompletedSale?.cliente ?? null)}
       />
+      {isScannerOpen && (
+        <ScannerModal 
+          onScan={handleScanResult}
+          onClose={() => setIsScannerOpen(false)}
+          title="Leitor de Código Nexus"
+        />
+      )}
     </main>
   );
 }
