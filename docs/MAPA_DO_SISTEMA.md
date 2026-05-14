@@ -1,4 +1,4 @@
-# Mapa do Sistema Comercial — Antigravity Industrial
+# Mapa do Sistema Comercial — Nexus Industrial
 
 Este documento fornece uma visão completa da arquitetura, fluxo e interface do sistema, permitindo análise sem necessidade de acesso direto.
 
@@ -6,7 +6,7 @@ Este documento fornece uma visão completa da arquitetura, fluxo e interface do 
 
 ## 1. Visão Geral (PRD)
 
-O sistema é uma plataforma de gestão comercial robusta projetada para operações industriais e de atacado. Ele foca em três pilares: **Controle de Vendas**, **Gestão de Estoque** e **Saúde Financeira**.
+O sistema é uma plataforma de gestão comercial robusta projetada para operações industriais e de atacado sob a marca **Nexus Industrial**. Ele foca em três pilares: **Controle de Vendas**, **Gestão de Estoque** e **Saúde Financeira**.
 
 ### Módulos Principais
 *   **Vendas (Pedidos)**: Gestão do ciclo de vida das vendas, desde o orçamento até a entrega e baixa financeira.
@@ -46,12 +46,16 @@ graph TD
 
 ---
 
-## 3. Hierarquia Visual e Layout (Screenshots)
+## 3. Hierarquia Visual e Layout (Nexus Premium)
 
-Abaixo estão as capturas das telas principais, demonstrando a estética **Industrial Premium** (fundo escuro na sidebar, cards brancos com sombras suaves e tipografia de alta legibilidade).
+O sistema utiliza a estética **Nexus Premium Industrial**, caracterizada por:
+- **Dark Mode Profundo**: Base em `Midnight Blue` (`#020617`).
+- **Glassmorphism**: Uso intensivo de transparências e desfoque (`backdrop-blur`) em painéis e modais.
+- **Destaque Ciano**: Acentuação em `Cyan Vibrante` para ações principais e indicadores de progresso.
+- **Performance**: Carregamento sob demanda (Lazy Loading) para navegação instantânea.
 
 ### 3.1 Dashboard Central
-O ponto de comando do gestor. Surfa dados reais com indicadores semânticos (verde para sucesso, âmbar para atenção).
+O ponto de comando do gestor. Utiliza gráficos de alta fidelidade com gradientes vibrantes para faturamento e lucro.
 ![Dashboard Central](file:///Users/larrat/.gemini/antigravity/brain/65abc6c2-e3b1-4e54-9f60-db3bb6f3d6ac/dashboard_1778593087158.png)
 
 ### 3.2 Listagem de Pedidos
@@ -68,28 +72,18 @@ Exibição técnica com foco em SKU, Categorias e Status de Estoque.
 
 ---
 
-## 4. Estrutura Técnica (HTML/CSS)
+## 4. Estrutura Técnica (Nexus Design System)
 
-O sistema utiliza um sistema de design baseado em variáveis CSS para garantir consistência industrial. Exemplo de estrutura de um Card de Dashboard:
-
-```html
-<article class="rf-dash-card is-success">
-  <span class="rf-stat-label">LUCRO BRUTO</span>
-  <span class="rf-stat-value">R$ 485,10</span>
-  <span class="rf-stat-sub success">
-    <svg>...</svg> Margem 54.0%
-  </span>
-</article>
-```
+O sistema utiliza tokens semânticos baseados em variáveis CSS modernos.
 
 **Principais Tokens de Design:**
 ```css
 :root {
-  --color-background-primary: #FFFFFF;
-  --color-background-tertiary: #F8FAFC; /* Fundo do App */
-  --color-sidebar-bg: #0F172A;        /* Sidebar Dark */
-  --color-brand-gold: #C5A059;       /* Detalhes de Marca */
-  --radius-xl: 0.75rem;              /* Arredondamento padrão */
+  --surface-page: #020617;    /* Fundo principal */
+  --surface-card: #0f172a;    /* Fundo de cards */
+  --text-accent: #06b6d4;     /* Ciano Nexus */
+  --action-success: #10b981;  /* Esmeralda */
+  --radius-premium: 12px;     /* Bordas refinadas */
 }
 ```
 
@@ -98,5 +92,5 @@ O sistema utiliza um sistema de design baseado em variáveis CSS para garantir c
 ## 5. Sequência de Uso Comum
 
 1.  **Venda**: O vendedor acessa **Pedidos** -> **Novo Pedido**, seleciona o **Cliente** e os **Produtos**.
-2.  **Conferência**: O gestor visualiza no **Dashboard** o impacto no faturamento.
+2.  **Conferência**: O gestor visualiza no **Dashboard** o impacto no faturamento em tempo real.
 3.  **Financeiro**: Após a entrega, o pedido gera uma conta em **Contas a Receber**, onde é processada a baixa após o pagamento.
