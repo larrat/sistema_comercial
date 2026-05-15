@@ -34,6 +34,7 @@ const produtoSchema = z.object({
   esal: z.string().optional(),
   ecm: z.string().optional(),
   is_sample: z.boolean().default(false),
+  genero: z.enum(['masculino', 'feminino']).nullable().optional(),
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
@@ -51,7 +52,7 @@ function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
   if (!p) return {
     nome: '', sku: '', un: 'un', cat: '', custo: '', precoVarejo: '', markupVarejo: '', margemVarejo: '',
     descontoVarejo: '', markupAtacado: '', margemAtacado: '', precoFixoAtacado: '', descontoAtacado: '',
-    qtmin: '', emin: '', esal: '', ecm: '', is_sample: false
+    qtmin: '', emin: '', esal: '', ecm: '', is_sample: false, genero: null
   };
 
   const custo = p.custo ?? 0;
@@ -78,7 +79,8 @@ function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
     emin: p.emin ? String(p.emin) : '',
     esal: p.esal ? String(p.esal) : '',
     ecm: p.ecm ? String(p.ecm) : '',
-    is_sample: !!p.is_sample
+    is_sample: !!p.is_sample,
+    genero: p.genero ?? null
   };
 }
 
@@ -217,6 +219,43 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
         {pais.length > 0 && (
           <div className="mt-6 pt-6 border-t border-slate-100">
             <Select label="Variante de" helperText="Vincule este produto a uma família existente." value={watchedValues.produto_pai_id ?? ''} onChange={(e) => handlePaiChange(e.target.value)} options={[{ value: '', label: '— Produto Independente —' }, ...pais.filter((p) => p.id !== produto?.id).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => ({ value: p.id, label: `${p.nome}${p.sku ? ` [${p.sku}]` : ''}` }))]} />
+          </div>
+        )}
+
+        {watchedValues.produto_pai_id && (
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Gênero do Modelo (Variação)</label>
+            <div className="flex gap-8">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  value="masculino" 
+                  {...register('genero')} 
+                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                />
+                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">Masculino</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  value="feminino" 
+                  {...register('genero')} 
+                  className="w-4 h-4 text-pink-600 focus:ring-pink-500 border-slate-300"
+                />
+                <span className="text-sm font-bold text-slate-700 group-hover:text-pink-600 transition-colors uppercase tracking-tight">Feminino</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="radio" 
+                  value=""
+                  {...register('genero', { 
+                    setValueAs: v => v === "" ? null : v 
+                  })}
+                  className="w-4 h-4 text-slate-400 focus:ring-slate-500 border-slate-300"
+                />
+                <span className="text-sm font-bold text-slate-500 group-hover:text-slate-700 transition-colors uppercase tracking-tight">Unissex / N/A</span>
+              </label>
+            </div>
           </div>
         )}
       </FormSection>

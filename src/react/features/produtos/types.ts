@@ -31,6 +31,8 @@ export type ProdutoFormValues = {
   emin: string;
   esal: string;
   ecm: string;
+  is_sample?: boolean;
+  genero?: 'masculino' | 'feminino' | null;
 };
 
 export type ProdutoWriteInput = Omit<Produto, 'id'> & { id?: string };
@@ -56,5 +58,7 @@ export const FORM_VAZIO: ProdutoFormValues = {
   qtmin: '',
   emin: '',
   esal: '',
-  ecm: ''
+  ecm: '',
+  is_sample: false,
+  genero: null
 };

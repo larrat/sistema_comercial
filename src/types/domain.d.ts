@@ -84,6 +84,7 @@ export type Produto = {
   custo_marketing_estimado?: number;
   taxa_conversao?: number;
   categoria_marketing?: string;
+  genero?: 'masculino' | 'feminino' | null;
 };
 
 export type CotacaoLog = {

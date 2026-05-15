@@ -84,7 +84,8 @@ function formValuesToProduto(
     emin: parseFloat(values.emin) || 0,
     esal: parseFloat(values.esal) || 0,
     ecm: parseFloat(values.ecm) || custo,
-    hist_cot: existing?.hist_cot || []
+    hist_cot: existing?.hist_cot || [],
+    genero: values.genero
   };
 }
 
