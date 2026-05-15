@@ -1,0 +1,99 @@
+
+> build:react
+> vite build --config vite.config.ts
+
+vite v8.0.8 building client environment for production...
+[2Ktransforming...✓ 4757 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-react/index.html                                           4.19 kB │ gzip:   1.29 kB
+dist-react/assets/main-78RpAdh9.css                           149.08 kB │ gzip:  24.08 kB
+dist-react/assets/chevron-right-B2odk5JJ.js                     0.11 kB │ gzip:   0.12 kB
+dist-react/assets/arrow-up-right-DrS3-Sga.js                    0.15 kB │ gzip:   0.14 kB
+dist-react/assets/clock-B9aeUj3R.js                             0.15 kB │ gzip:   0.15 kB
+dist-react/assets/trending-up-Cb1vQV5R.js                       0.16 kB │ gzip:   0.15 kB
+dist-react/assets/circle-check-1ZG7veaS.js                      0.16 kB │ gzip:   0.15 kB
+dist-react/assets/trending-down-B1GVPJnt.js                     0.16 kB │ gzip:   0.15 kB
+dist-react/assets/circle-alert-BU9DcN7e.js                      0.23 kB │ gzip:   0.17 kB
+dist-react/assets/zap-Ka2NlAZf.js                               0.24 kB │ gzip:   0.19 kB
+dist-react/assets/triangle-alert-mO57PFyk.js                    0.25 kB │ gzip:   0.19 kB
+dist-react/assets/shopping-cart-BrouBoIm.js                     0.27 kB │ gzip:   0.22 kB
+dist-react/assets/dollar-sign-CSayHw2I.js                       0.28 kB │ gzip:   0.22 kB
+dist-react/assets/useInterModuleStore-C_UIAGLo.js               0.30 kB │ gzip:   0.17 kB
+dist-react/assets/refresh-cw-DELa1xAB.js                        0.30 kB │ gzip:   0.21 kB
+dist-react/assets/useFilialStore-CzSbhjqy.js                    0.31 kB │ gzip:   0.22 kB
+dist-react/assets/shopping-bag-DvareQvX.js                      0.32 kB │ gzip:   0.23 kB
+dist-react/assets/useApiContext-DmbhdPXa.js                     0.34 kB │ gzip:   0.23 kB
+dist-react/assets/package-Bq1Xbn2d.js                           0.35 kB │ gzip:   0.24 kB
+dist-react/assets/file-text-BV6GidJf.js                         0.37 kB │ gzip:   0.23 kB
+dist-react/assets/save-CQEnJ_bc.js                              0.41 kB │ gzip:   0.25 kB
+dist-react/assets/useRoleStore-BLkMQq_U.js                      0.42 kB │ gzip:   0.29 kB
+dist-react/assets/useToastStore-CHoiYpsU.js                     0.50 kB │ gzip:   0.33 kB
+dist-react/assets/useKeyboardShortcuts-BjUtc1Wn.js              0.55 kB │ gzip:   0.37 kB
+dist-react/assets/useAnalytics-BTRQYPL_.js                      0.60 kB │ gzip:   0.40 kB
+dist-react/assets/react-CeIKUxV-.js                             0.64 kB │ gzip:   0.39 kB
+dist-react/assets/tslib.es6-7ZZwxvgO.js                         0.67 kB │ gzip:   0.37 kB
+dist-react/assets/FilialProvider-DeHmEzR6.js                    0.83 kB │ gzip:   0.47 kB
+dist-react/assets/AcessosRoutePage-Cit07bgB.js                  0.85 kB │ gzip:   0.51 kB
+dist-react/assets/shallow-DgYxtCJO.js                           0.86 kB │ gzip:   0.43 kB
+dist-react/assets/routes-DMKPhZOj.js                            1.04 kB │ gzip:   0.38 kB
+dist-react/assets/wave1Navigation-Dsp6coTe.js                   1.18 kB │ gzip:   0.44 kB
+dist-react/assets/preload-helper-DzyYoeor.js                    1.19 kB │ gzip:   0.68 kB
+dist-react/assets/authApi-Bk6rDzxO.js                           1.54 kB │ gzip:   0.68 kB
+dist-react/assets/ContaReceberConfirmModal-C9CgLF6Y.js          1.76 kB │ gzip:   0.71 kB
+dist-react/assets/LoginPage-BX7yCUud.js                         1.81 kB │ gzip:   0.91 kB
+dist-react/assets/contasReceberApi-Beqv9T1w.js                  1.95 kB │ gzip:   0.73 kB
+dist-react/assets/SetupPage-D2LAJ58m.js                         2.05 kB │ gzip:   0.94 kB
+dist-react/assets/useMutation-DDthhxi7.js                       2.28 kB │ gzip:   0.94 kB
+dist-react/assets/useAuthStore-yQP28E3O.js                      2.28 kB │ gzip:   0.98 kB
+dist-react/assets/analytics-BRkmfP74.js                         2.34 kB │ gzip:   1.07 kB
+dist-react/assets/useGlobalAlerts-BRTbHB_N.js                   2.47 kB │ gzip:   1.15 kB
+dist-react/assets/useProdutosQuery-BoJm5oo_.js                  2.93 kB │ gzip:   0.84 kB
+dist-react/assets/mutation-CswgshhH.js                          3.37 kB │ gzip:   1.13 kB
+dist-react/assets/SugestaoComprasRoutePage-BLQ3edkF.js          3.98 kB │ gzip:   1.68 kB
+dist-react/assets/AnalyticsPage-DfS0Dzw-.js                     4.77 kB │ gzip:   1.48 kB
+dist-react/assets/PedidoItemAdd-DlbCQA56.js                     5.97 kB │ gzip:   2.15 kB
+dist-react/assets/useRcas-DbdA_0-Y.js                           6.34 kB │ gzip:   2.30 kB
+dist-react/assets/ConciliacaoBancariaRoutePage-CHXRn7R9.js      6.38 kB │ gzip:   2.77 kB
+dist-react/assets/RcasRoutePage-C8AQxroQ.js                     6.53 kB │ gzip:   2.63 kB
+dist-react/assets/produtosApi-CfJWcn00.js                       7.35 kB │ gzip:   2.42 kB
+dist-react/assets/usePedidosQuery-C0HFEq6w.js                   7.63 kB │ gzip:   2.37 kB
+dist-react/assets/FiliaisRoutePage-Bgfo1fyL.js                  7.80 kB │ gzip:   2.91 kB
+dist-react/assets/ClienteForm-CZvZ4pzM.js                       8.97 kB │ gzip:   3.08 kB
+dist-react/assets/pedidosApi-Dda1RvYX.js                       10.11 kB │ gzip:   3.24 kB
+dist-react/assets/ClientesRoutePage-i95zmsgD.js                12.79 kB │ gzip:   4.93 kB
+dist-react/assets/build-Bc8yar6i.js                            13.17 kB │ gzip:   4.50 kB
+dist-react/assets/ProdutoForm-DgwyBUvK.js                      14.82 kB │ gzip:   4.18 kB
+dist-react/assets/ClienteCreateRoutePage-DpV3fNKB.js           14.83 kB │ gzip:   4.60 kB
+dist-react/assets/ComprasRoutePage-B_Nsz0NQ.js                 16.41 kB │ gzip:   4.83 kB
+dist-react/assets/ProdutosRoutePage-DpqPDa41.js                18.59 kB │ gzip:   6.16 kB
+dist-react/assets/RelatoriosRoutePage-yTFOnEJ3.js              22.64 kB │ gzip:   6.54 kB
+dist-react/assets/CampanhasRoutePage-DouJmvLy.js               23.02 kB │ gzip:   6.72 kB
+dist-react/assets/ContasReceberRoutePage-BzCDczg0.js           23.02 kB │ gzip:   6.78 kB
+dist-react/assets/AreaChart-Dj5Krdxn.js                        23.08 kB │ gzip:   6.59 kB
+dist-react/assets/useQuery-C2DFiI_0.js                         23.61 kB │ gzip:   7.82 kB
+dist-react/assets/PedidosRoutePage-DE8Lk7AA.js                 25.58 kB │ gzip:   8.00 kB
+dist-react/assets/PedidoProfileRoutePage-EN52BSSv.js           25.99 kB │ gzip:   6.93 kB
+dist-react/assets/EstoqueRoutePage-DS2KStHA.js                 26.49 kB │ gzip:   7.74 kB
+dist-react/assets/PdvRoutePage-CuFamjnJ.js                     28.22 kB │ gzip:   9.07 kB
+dist-react/assets/DashboardRoutePage-Ds45JX5T.js               32.42 kB │ gzip:   8.91 kB
+dist-react/assets/dist-Ymz0pn9x.js                             32.53 kB │ gzip:   9.10 kB
+dist-react/assets/ClienteProfileRoutePage-C4LoX6X4.js          36.49 kB │ gzip:   9.55 kB
+dist-react/assets/charts-CJX11bvO.js                           36.89 kB │ gzip:  10.86 kB
+dist-react/assets/chunk-EVOBXE3Y-4TO7nwjB.js                   41.13 kB │ gzip:  14.51 kB
+dist-react/assets/ProdutoProfileRoutePage-B6KuuF0C.js          41.75 kB │ gzip:  10.72 kB
+dist-react/assets/CotacaoRoutePage-DxDY-RCe.js                 52.29 kB │ gzip:  14.28 kB
+dist-react/assets/schemas--wFeMLi-.js                          85.42 kB │ gzip:  25.38 kB
+dist-react/assets/floating-ui.dom-CXzc5wLl.js                  94.91 kB │ gzip:  33.15 kB
+dist-react/assets/main-5YaDYw8e.js                            227.42 kB │ gzip:  71.01 kB
+dist-react/assets/dist-CqHlh3jU.js                            267.05 kB │ gzip:  77.56 kB
+dist-react/assets/ui-x5Otxl11.js                              577.67 kB │ gzip: 173.24 kB
+dist-react/assets/dist-CkD45Pcz.js                            727.43 kB │ gzip: 184.71 kB
+dist-react/assets/CaixaRoutePage-B21cNcQa.js                1,441.70 kB │ gzip: 484.85 kB
+
+✓ built in 1.11s
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

@@ -87,7 +87,7 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar =
             collapsed 
               ? "w-12 h-12 hover:bg-slate-800 text-slate-400 hover:text-white"
               : isTopbar
-                ? "px-4 py-2 bg-black/20 border border-white/5 text-slate-300 hover:bg-black/40 hover:border-white/10"
+                ? "px-4 h-10 bg-black/20 border border-white/5 text-slate-300 hover:bg-black/40 hover:border-white/10"
                 : "w-full px-4 py-3 border shadow-sm bg-slate-800/40 border-slate-700/50 text-slate-300 hover:bg-slate-800 hover:border-slate-600 focus-visible:ring-slate-500"
           }`}
           type="button"

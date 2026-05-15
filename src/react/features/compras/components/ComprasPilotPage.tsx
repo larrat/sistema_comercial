@@ -34,15 +34,15 @@ const fmt = (v: number) => BRL.format(v || 0);
 
 export function ComprasPilotPage() {
   const { token } = useAuthStore();
-  const { activeFilialId } = useFilialStore();
+  const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
-    queryKey: ['pedidos-compra', activeFilialId],
-    queryFn: () => listPedidosCompra(token!, activeFilialId!),
-    enabled: !!token && !!activeFilialId
+    queryKey: ['pedidos-compra', filialId],
+    queryFn: () => listPedidosCompra(token!, filialId!),
+    enabled: !!token && !!filialId
   });
 
   const finalizarMutation = useMutation({
@@ -93,7 +93,7 @@ export function ComprasPilotPage() {
 
       {isFormOpen && (
         <PedidoCompraForm 
-          filialId={activeFilialId!}
+          filialId={filialId!}
           onClose={() => setIsFormOpen(false)}
           onSave={(pedido, itens) => saveMutation.mutate({ pedido, itens })}
         />

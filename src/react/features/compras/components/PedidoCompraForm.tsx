@@ -4,8 +4,7 @@ import { Button, Card, Shimmer, Badge } from '../../../shared/ui';
 import type { PedidoCompraItem, PedidoCompra } from '../services/comprasApi';
 import { useQuery } from '@tanstack/react-query';
 import { listProdutos } from '../../produtos/services/produtosApi';
-import { useAuthStore } from '../../../app/useAuthStore';
-import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
 
 type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
@@ -14,7 +13,7 @@ type Props = {
 };
 
 export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
-  const { token } = useAuthStore();
+  const { resolve } = useApiContext();
   const [fornecedor, setFornecedor] = useState('');
   const [itens, setItens] = useState<PedidoCompraItem[]>([]);
   const [formaPgto, setFormaPgto] = useState('Boleto');
@@ -25,10 +24,11 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
     queryKey: ['produtos-compras', filialId],
     queryFn: () => {
-      const config = getSupabaseConfig();
-      return listProdutos({ ...config, token: token!, filialId });
+      const context = resolve();
+      if (!context) throw new Error('API context not ready');
+      return listProdutos(context);
     },
-    enabled: !!token && !!filialId
+    enabled: !!filialId
   });
 
   const addItem = () => {
@@ -180,7 +180,12 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                           ))
                         ) : (
                           <div className="p-4 text-center">
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Nenhum produto encontrado</p>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                              {searchTerm ? `Nenhum produto para "${searchTerm}"` : 'Nenhum produto encontrado'}
+                            </p>
+                            {!produtos.length && !isLoadingProdutos && (
+                              <p className="text-[8px] text-rose-400 mt-2 font-black uppercase tracking-tighter">Erro na conexão ou banco vazio</p>
+                            )}
                           </div>
                         )}
                       </div>

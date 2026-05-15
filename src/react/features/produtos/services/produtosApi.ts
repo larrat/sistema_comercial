@@ -52,12 +52,17 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
 }
 
 export async function listProdutos(context: ProdutoApiContext): Promise<Produto[]> {
+  console.log('[produtosApi] listProdutos calling...', context.filialId);
   const url = `${context.url}/rest/v1/produtos?filial_id=eq.${encodeURIComponent(context.filialId)}&is_active=eq.true&order=nome`;
   const res = await fetch(url, {
     headers: createHeaders(context.key, context.token),
     signal: AbortSignal.timeout(12000)
   });
   const body = await readJson(res);
+  console.log(
+    '[produtosApi] listProdutos body length:',
+    Array.isArray(body) ? body.length : 'not array'
+  );
   ensureOk(res, body, `Erro ${res.status} ao carregar produtos`);
   return Array.isArray(body) ? (body as Produto[]) : [];
 }
@@ -80,7 +85,7 @@ function createProdutoQueryParams(
 
   const q = String(filters.q || '').trim();
   if (q) {
-    const pattern = `*${q.replace(/\*/g, '').replace(/,/g, ' ')}*`;
+    const pattern = `%${q.replace(/%/g, '').replace(/,/g, ' ')}%`;
     conditions.push(`or(nome.ilike.${pattern},sku.ilike.${pattern},cat.ilike.${pattern})`);
   }
 
