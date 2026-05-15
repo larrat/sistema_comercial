@@ -42,6 +42,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
 import { LoadingState, ErrorState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
@@ -119,6 +120,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activePieIndex, setActivePieIndex] = useState(-1);
   const [activeBarIndex, setActiveBarIndex] = useState<number | null>(null);
+  const { alerts } = useGlobalAlerts();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -355,70 +357,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     };
   }, [clientes, pedidos]);
 
-  const alerts = useMemo(() => {
-    const list = [];
-    const semBaixaPedidos = pedidos.filter(p => p.status === 'entregue_aguardando_pagamento');
-    if (semBaixaPedidos.length > 0) {
-      const p = semBaixaPedidos[0];
-      const clienteNome = clientes.find(c => c.id === p.cliente_id)?.nome || 'Cliente';
-      list.push({
-        id: 'sem-baixa',
-        title: `${semBaixaPedidos.length} pedido${semBaixaPedidos.length > 1 ? 's' : ''} entregue${semBaixaPedidos.length > 1 ? 's' : ''} sem baixa`,
-        desc: `${clienteNome} · R$ ${fmt(p.total)} em aberto`,
-        link: `/app/pedidos/${p.id}`,
-        tone: 'warning'
-      });
-    }
-
-    if (healthMetrics.zeroStockCount > 0) {
-      list.push({
-        id: 'estoque-zero',
-        title: `Ruptura detectada em ${healthMetrics.zeroStockCount} itens`,
-        desc: 'Nexus AI: Risco de perda de venda imediata',
-        link: '/app/estoque',
-        tone: 'danger',
-        isPredictive: true
-      });
-    }
-
-    if (filial?.meta_mensal && stats.faturamento < filial.meta_mensal * 0.5) {
-      list.push({
-        id: 'meta-risco',
-        title: 'Meta mensal em risco',
-        desc: 'Nexus AI: Projeção atual indica 15% abaixo do alvo',
-        link: '/app/dashboard',
-        tone: 'warning',
-        isPredictive: true
-      });
-    }
-
-    if (healthMetrics.mix < 10 && stats.totalPedidos > 0) {
-      list.push({
-        id: 'mix-baixo',
-        title: 'Mix ativo crítico',
-        desc: 'Baixa diversificação de portfólio no período',
-        link: '/app/produtos',
-        tone: 'danger',
-        isPredictive: false
-      });
-    }
-
-    const vencidas = contasReceber.filter(c => c.vencimento && new Date(c.vencimento) < new Date()).length;
-    if (vencidas > 0) {
-      const valorVencido = contasReceber
-        .filter(c => c.vencimento && new Date(c.vencimento) < new Date())
-        .reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
-      list.push({
-        id: 'contas-vencidas',
-        title: `${vencidas} conta(s) vencida(s)`,
-        desc: `R$ ${fmt(valorVencido)} em atraso`,
-        link: '/app/receber',
-        tone: 'danger'
-      });
-    }
-
-    return list;
-  }, [pedidos, stats, healthMetrics, contasReceber]);
 
   if (status === 'loading') return <LoadingState description="Consolidando indicadores..." />;
   if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
@@ -755,21 +693,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           <HealthCheckCard />
           
           <FiscalHubCard />
-
-          <div className="mt-6 flex flex-col gap-4">
-            {alerts.slice(0, 2).map(alert => (
-              <div key={alert.id} className={`p-4 rounded-2xl border ${alert.tone === 'danger' ? 'bg-rose-500/5 border-rose-500/20' : 'bg-amber-500/5 border-amber-500/20'} rf-animate-fade`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertCircle size={14} className={alert.tone === 'danger' ? 'text-rose-400' : 'text-amber-400'} />
-                  <span className="text-[10px] font-black uppercase tracking-wider text-white">{alert.title}</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-medium mb-3">{alert.desc}</p>
-                <Button size="sm" variant="secondary" className="w-full !text-[10px] !py-1" onClick={() => navigate(alert.link)}>
-                  Tratar agora
-                </Button>
-              </div>
-            ))}
-          </div>
         </Col>
 
         {/* Coluna Lateral: Status e Mix Separados */}

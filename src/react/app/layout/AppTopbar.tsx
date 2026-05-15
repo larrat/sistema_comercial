@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { FilialSwitcher } from '../filial/FilialSwitcher';
 import { useHotkeys } from '../../shared/hooks/useHotkeys';
+import { NotificationCenter } from '../../features/dashboard/components/NotificationCenter';
 
 export function AppTopbar() {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -23,11 +24,12 @@ export function AppTopbar() {
         />
       </div>
       
-      <div className="flex items-center gap-6">
-        <div className="flex items-center">
+      <div className="flex items-center gap-8">
+        <NotificationCenter />
+        
+        <div className="flex items-center gap-6 border-l border-white/10 pl-8">
           <FilialSwitcher isTopbar={true} />
-        </div>
-        <div className="flex items-center h-10 pl-6 border-l border-white/10">
+          
           <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500 font-black text-sm shadow-sm">
             US
           </div>
