@@ -171,6 +171,8 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                                 <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
                                 {p.produto_pai_id && <Badge variant="neutral" className="!text-[8px] !py-0">Filho</Badge>}
                                 {!p.produto_pai_id && <Badge variant="emerald" className="!text-[8px] !py-0">Pai</Badge>}
+                                {p.genero && <span className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">/ {p.genero}</span>}
+                                {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
                               </div>
                               <span className="text-xs font-bold text-white mt-1">{p.nome}</span>
                               <span className="text-[10px] text-slate-500 mt-0.5">Custo Atual: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.custo || 0)}</span>
