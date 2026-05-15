@@ -84,6 +84,21 @@ export function useGlobalAlerts() {
       });
     }
 
+    // 5. Produtos-filho sem gênero ou tamanho (Legado)
+    const produtosIncompletos = produtos.filter(
+      (p) => p.produto_pai_id && (!p.genero || !p.tamanho)
+    );
+    if (produtosIncompletos.length > 0) {
+      list.push({
+        id: 'produtos-legado',
+        title: `${produtosIncompletos.length} produtos incompletos`,
+        desc: 'Nexus AI: Variações sem gênero ou tamanho definidos',
+        link: '/app/produtos',
+        tone: 'warning',
+        isPredictive: false
+      });
+    }
+
     return list;
   }, [pedidos, produtos, clientes, contasReceber, filial]);
 

@@ -9,7 +9,7 @@ import {
   Button,
   Badge
 } from '../../../shared/ui';
-import { Package } from 'lucide-react';
+import { Package, AlertTriangle } from 'lucide-react';
 import type { StatusBadgeTone } from '../../../shared/ui/StatusBadge';
 
 type Props = {
@@ -158,6 +158,14 @@ export function ProdutoListView({
                   Família
                 </Badge>
               ) : null}
+              {row.isVariante && (!row.prod.genero || !row.prod.tamanho) && (
+                <div 
+                  className="flex items-center text-amber-500"
+                  title="Dados de gênero ou tamanho ausentes (legado)"
+                >
+                  <AlertTriangle size={14} className="animate-pulse" />
+                </div>
+              )}
             </div>
           )
         },
@@ -310,6 +318,11 @@ export function ProdutoListMobile({
                       Família
                     </Badge>
                   ) : null}
+                  {isVariante && (!p.genero || !p.tamanho) && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-[9px] font-black text-amber-500 uppercase">
+                      <AlertTriangle size={10} /> Incompleto
+                    </span>
+                  )}
                 </div>
                 <div className="mobile-card-sub">
                   {p.sku || 'Sem SKU'}
