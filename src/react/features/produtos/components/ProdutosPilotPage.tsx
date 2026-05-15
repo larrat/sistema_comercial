@@ -85,7 +85,8 @@ function formValuesToProduto(
     esal: parseFloat(values.esal) || 0,
     ecm: parseFloat(values.ecm) || custo,
     hist_cot: existing?.hist_cot || [],
-    genero: values.genero
+    genero: values.genero,
+    tamanho: values.tamanho
   };
 }
 
