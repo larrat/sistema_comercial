@@ -38,7 +38,7 @@ function PremiumChartTooltip({ active, payload, label, formatter }: any) {
 
 import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import { ChartCard, EmptyChartState } from '../../../app/components/charts';
-import { EmptyState, ErrorState, StatusBadge, Button, LoadingState } from '../../../shared/ui';
+import { EmptyState, ErrorState, StatusBadge, Button, LoadingState, Badge } from '../../../shared/ui';
 import { markupToPrice } from '../hooks/useProdutoCalculations';
 import {
   useVariantesQuery,
