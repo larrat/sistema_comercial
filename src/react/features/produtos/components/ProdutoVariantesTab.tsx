@@ -781,3 +781,5 @@ export function ProdutoVariantesTab({ produto }: Props) {
     </motion.div>
   );
 }
+
+export default ProdutoVariantesTab;
