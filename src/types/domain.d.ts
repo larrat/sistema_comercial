@@ -86,6 +86,7 @@ export type Produto = {
   categoria_marketing?: string;
   genero?: 'masculino' | 'feminino' | null;
   tamanho?: string | null;
+  foto_url?: string | null;
 };
 
 export type CotacaoLog = {

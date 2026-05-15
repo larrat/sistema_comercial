@@ -111,8 +111,12 @@ export function AppTopbar() {
                       }}
                       className="w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group"
                     >
-                      <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-cyan-400 transition-colors">
-                        <Package size={20} />
+                      <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center text-slate-500 group-hover:text-cyan-400 transition-colors">
+                        {p.foto_url ? (
+                          <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package size={20} />
+                        )}
                       </div>
                       <div className="flex-1 text-left min-w-0">
                         <div className="flex items-center gap-2">

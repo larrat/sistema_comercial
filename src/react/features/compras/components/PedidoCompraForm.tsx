@@ -165,17 +165,26 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                             <button
                               key={p.id}
                               onClick={() => selectProduto(idx, p)}
-                              className="w-full flex flex-col items-start p-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors"
+                              className="w-full flex items-center gap-4 p-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left"
                             >
-                              <div className="flex items-center gap-2 w-full">
-                                <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
-                                {p.produto_pai_id && <Badge variant="neutral" className="!text-[8px] !py-0">Filho</Badge>}
-                                {!p.produto_pai_id && <Badge variant="emerald" className="!text-[8px] !py-0">Pai</Badge>}
-                                {p.genero && <span className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">/ {p.genero}</span>}
-                                {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
+                              <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-cyan-500/30 transition-colors">
+                                 {p.foto_url ? (
+                                   <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
+                                 ) : (
+                                   <Package size={18} className="text-slate-600" />
+                                 )}
                               </div>
-                              <span className="text-xs font-bold text-white mt-1">{p.nome}</span>
-                              <span className="text-[10px] text-slate-500 mt-0.5">Custo Atual: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.custo || 0)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 w-full mb-0.5">
+                                  <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
+                                  {p.produto_pai_id && <Badge variant="neutral" className="!text-[8px] !py-0">Filho</Badge>}
+                                  {!p.produto_pai_id && <Badge variant="emerald" className="!text-[8px] !py-0">Pai</Badge>}
+                                  {p.genero && <span className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">/ {p.genero}</span>}
+                                  {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
+                                </div>
+                                <div className="text-xs font-bold text-white truncate">{p.nome}</div>
+                                <div className="text-[10px] text-slate-500 mt-0.5 font-bold tracking-tight">Custo: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.custo || 0)}</div>
+                              </div>
                             </button>
                           ))
                         ) : (

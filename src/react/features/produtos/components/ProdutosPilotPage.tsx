@@ -86,7 +86,8 @@ function formValuesToProduto(
     ecm: parseFloat(values.ecm) || custo,
     hist_cot: existing?.hist_cot || [],
     genero: values.genero,
-    tamanho: values.tamanho
+    tamanho: values.tamanho,
+    foto_url: values.foto_url
   };
 }
 

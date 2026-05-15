@@ -1,9 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { TrendingUp } from 'lucide-react';
+import { Image, Upload, Trash2, Loader2, TrendingUp } from 'lucide-react';
 import type { Produto } from '../../../../types/domain';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { toast } from 'sonner';
 import {
   syncPriceFields,
   recalcFromCost,
@@ -36,6 +38,7 @@ const produtoSchema = z.object({
   is_sample: z.boolean().default(false),
   genero: z.enum(['masculino', 'feminino']).nullable().optional(),
   tamanho: z.string().nullable().optional(),
+  foto_url: z.string().nullable().optional(),
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
@@ -53,7 +56,7 @@ function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
   if (!p) return {
     nome: '', sku: '', un: 'un', cat: '', custo: '', precoVarejo: '', markupVarejo: '', margemVarejo: '',
     descontoVarejo: '', markupAtacado: '', margemAtacado: '', precoFixoAtacado: '', descontoAtacado: '',
-    qtmin: '', emin: '', esal: '', ecm: '', is_sample: false, genero: null, tamanho: null
+    qtmin: '', emin: '', esal: '', ecm: '', is_sample: false, genero: null, tamanho: null, foto_url: null
   };
 
   const custo = p.custo ?? 0;
@@ -82,7 +85,8 @@ function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
     ecm: p.ecm ? String(p.ecm) : '',
     is_sample: !!p.is_sample,
     genero: p.genero ?? null,
-    tamanho: p.tamanho ?? null
+    tamanho: p.tamanho ?? null,
+    foto_url: p.foto_url ?? null
   };
 }
 
@@ -113,10 +117,13 @@ function fmt(v: number): string {
 }
 
 export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar }: Props) {
+  const { resolve } = useApiContext();
   const { register, handleSubmit, setValue, getValues, watch, reset, formState: { errors } } = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
+
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     reset(toFormValues(produto));
@@ -207,16 +214,102 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   const preview = useMemo(() => calcPreview(watchedValues), [watchedValues]);
 
+  async function handleUpload(file: File) {
+    const context = resolve();
+    if (!context) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${context.filialId}/${crypto.randomUUID()}.${fileExt}`;
+      const url = `${context.url}/storage/v1/object/produtos/${fileName}`;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${context.token}`,
+          'apikey': context.key,
+          'Content-Type': file.type
+        },
+        body: file
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Erro ao fazer upload');
+      }
+
+      const publicUrl = `${context.url}/storage/v1/object/public/produtos/${fileName}`;
+      setValue('foto_url', publicUrl);
+      toast.success('Foto carregada com sucesso!');
+    } catch (e) {
+      console.error(e);
+      toast.error('Falha ao subir imagem. Verifique o tamanho ou tente novamente.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <form className="flex flex-col gap-10" onSubmit={handleSubmit(onSalvar)} data-testid="produto-form">
       <FormSection title="Essencial" description="Identificação básica para encontrar e vender o produto no dia a dia." aside={<span className="px-2 py-1 bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-blue-100">Obrigatório</span>}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Input label="Nome" required {...register('nome')} error={errors.nome?.message} autoFocus={!produto} data-testid="produto-form-nome" placeholder="Ex: Camisa Polo Premium" />
-          <Input label="SKU" helperText="Código interno único" {...register('sku')} data-testid="produto-form-sku" placeholder="Opcional" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <Select label="Unidade" {...register('un')} options={[{ value: 'un', label: 'un (Unidade)' }, { value: 'kg', label: 'kg (Quilograma)' }, { value: 'l', label: 'l (Litro)' }, { value: 'm', label: 'm (Metro)' }, { value: 'cx', label: 'cx (Caixa)' }, { value: 'pc', label: 'pc (Peça)' }, { value: 'par', label: 'par (Par)' }]} />
-          <Input label="Categoria" {...register('cat')} placeholder="Ex: Vestuário" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="flex flex-col gap-4">
+             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Foto do Produto</label>
+             <div className="relative group">
+                <div className="aspect-square w-full rounded-3xl bg-slate-100 border-2 border-dashed border-slate-200 overflow-hidden flex items-center justify-center transition-all group-hover:border-cyan-200">
+                   {watchedValues.foto_url ? (
+                     <div className="relative w-full h-full">
+                        <img src={watchedValues.foto_url} alt="Preview" className="w-full h-full object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => setValue('foto_url', null)}
+                          className="absolute top-3 right-3 p-2 bg-rose-500 text-white rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                     </div>
+                   ) : (
+                     <div className="flex flex-col items-center gap-3 text-slate-400">
+                        {uploading ? (
+                          <Loader2 size={32} className="animate-spin text-cyan-500" />
+                        ) : (
+                          <>
+                            <Image size={32} strokeWidth={1.5} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Nenhuma foto</span>
+                          </>
+                        )}
+                     </div>
+                   )}
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                  disabled={uploading}
+                />
+                {!watchedValues.foto_url && !uploading && (
+                  <div className="mt-3 flex justify-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 text-cyan-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-cyan-500/20">
+                       <Upload size={12} />
+                       Clique para subir
+                    </div>
+                  </div>
+                )}
+             </div>
+          </div>
+
+          <div className="md:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input label="Nome" required {...register('nome')} error={errors.nome?.message} autoFocus={!produto} data-testid="produto-form-nome" placeholder="Ex: Camisa Polo Premium" />
+              <Input label="SKU" helperText="Código interno único" {...register('sku')} data-testid="produto-form-sku" placeholder="Opcional" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Select label="Unidade" {...register('un')} options={[{ value: 'un', label: 'un (Unidade)' }, { value: 'kg', label: 'kg (Quilograma)' }, { value: 'l', label: 'l (Litro)' }, { value: 'm', label: 'm (Metro)' }, { value: 'cx', label: 'cx (Caixa)' }, { value: 'pc', label: 'pc (Peça)' }, { value: 'par', label: 'par (Par)' }]} />
+              <Input label="Categoria" {...register('cat')} placeholder="Ex: Vestuário" />
+            </div>
+          </div>
         </div>
         {pais.length > 0 && (
           <div className="mt-6 pt-6 border-t border-slate-100">

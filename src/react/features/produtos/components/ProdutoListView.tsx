@@ -152,6 +152,13 @@ export function ProdutoListView({
                   ↳
                 </span>
               ) : null}
+              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                 {row.prod.foto_url ? (
+                   <img src={row.prod.foto_url} alt={row.prod.nome} className="w-full h-full object-cover" />
+                 ) : (
+                   <Package size={14} className="text-slate-600" />
+                 )}
+              </div>
               <span className="truncate">{row.prod.nome}</span>
               {row.isPai ? (
                 <Badge variant="slate" className="text-[10px]">
@@ -307,26 +314,35 @@ export function ProdutoListMobile({
                <Package className="w-12 h-12" />
             </div>
             <div className="mobile-card-head">
-              <div style={{ minWidth: 0 }}>
-                <div className="mobile-card-title">
-                  {isVariante ? (
-                    <span style={{ color: 'var(--tx3)', fontSize: 11 }}>↳ </span>
-                  ) : null}
-                  {p.nome}
-                  {isPai ? (
-                    <Badge variant="slate" className="ml-1 text-[10px]">
-                      Família
-                    </Badge>
-                  ) : null}
-                  {isVariante && (!p.genero || !p.tamanho) && (
-                    <span className="ml-2 inline-flex items-center gap-1 text-[9px] font-black text-amber-500 uppercase">
-                      <AlertTriangle size={10} /> Incompleto
-                    </span>
-                  )}
+              <div className="flex items-center gap-3" style={{ minWidth: 0 }}>
+                <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-lg">
+                   {p.foto_url ? (
+                     <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
+                   ) : (
+                     <Package size={20} className="text-slate-600" />
+                   )}
                 </div>
-                <div className="mobile-card-sub">
-                  {p.sku || 'Sem SKU'}
-                  {p.cat ? ` · ${p.cat}` : ''}
+                <div style={{ minWidth: 0 }}>
+                  <div className="mobile-card-title truncate">
+                    {isVariante ? (
+                      <span style={{ color: 'var(--tx3)', fontSize: 11 }}>↳ </span>
+                    ) : null}
+                    {p.nome}
+                    {isPai ? (
+                      <Badge variant="slate" className="ml-1 text-[10px]">
+                        Família
+                      </Badge>
+                    ) : null}
+                    {isVariante && (!p.genero || !p.tamanho) && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-[9px] font-black text-amber-500 uppercase">
+                        <AlertTriangle size={10} /> Incompleto
+                      </span>
+                    )}
+                  </div>
+                  <div className="mobile-card-sub truncate">
+                    {p.sku || 'Sem SKU'}
+                    {p.cat ? ` · ${p.cat}` : ''}
+                  </div>
                 </div>
               </div>
               <StatusBadge tone={stockTone(saldo, emin)}>{stockLabel(saldo, emin)}</StatusBadge>
