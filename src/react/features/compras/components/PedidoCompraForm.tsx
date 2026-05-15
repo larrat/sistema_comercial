@@ -67,9 +67,15 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   };
 
   const filteredProdutos = useMemo(() => {
-    if (!searchTerm) return produtos;
+    // Identifica quais IDs são "Pais" (possuem filhos vinculados)
+    const parentIds = new Set(produtos.map(p => p.produto_pai_id).filter(Boolean));
+    
+    // Filtra apenas os que NÃO são pais (filhos ou independentes)
+    const sellable = produtos.filter(p => !parentIds.has(p.id));
+
+    if (!searchTerm) return sellable;
     const low = searchTerm.toLowerCase();
-    return produtos.filter(p => 
+    return sellable.filter(p => 
       p.nome.toLowerCase().includes(low) || 
       (p.sku && p.sku.toLowerCase().includes(low))
     );
@@ -177,8 +183,11 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 w-full mb-0.5">
                                   <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
-                                  {p.produto_pai_id && <Badge variant="neutral" className="!text-[8px] !py-0">Filho</Badge>}
-                                  {!p.produto_pai_id && <Badge variant="emerald" className="!text-[8px] !py-0">Pai</Badge>}
+                                  {p.produto_pai_id ? (
+                                    <Badge variant="neutral" className="!text-[8px] !py-0">Variante</Badge>
+                                  ) : (
+                                    <Badge variant="emerald" className="!text-[8px] !py-0">Único</Badge>
+                                  )}
                                   {p.genero && <span className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">/ {p.genero}</span>}
                                   {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
                                 </div>
@@ -200,7 +209,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                       </div>
                     )}
                   </div>
-                  <div className="w-24 space-y-1.5">
+                  <div className="w-24 space-y-1.5 self-start pt-1">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Qtd</label>
                     <input 
                       type="number" 
@@ -209,7 +218,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                       className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div className="w-32 space-y-1.5">
+                  <div className="w-32 space-y-1.5 self-start pt-1">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Custo Un.</label>
                     <input 
                       type="number" 
@@ -218,15 +227,17 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                       className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div className="w-32 space-y-1.5">
+                  <div className="w-32 space-y-1.5 self-start pt-1">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
                     <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-cyan-400">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item || 0)}
                     </div>
                   </div>
-                  <button onClick={() => removeItem(idx)} className="p-2.5 text-slate-600 hover:text-rose-500 transition-colors">
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="pb-1.5">
+                    <button onClick={() => removeItem(idx)} className="p-2.5 text-slate-600 hover:text-rose-500 transition-colors">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
               {itens.length === 0 && (
