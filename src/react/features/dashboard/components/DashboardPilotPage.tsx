@@ -772,9 +772,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </div>
         </Col>
 
-        {/* Coluna Lateral: Status e Mix */}
-        <Col>
-          <div className="rf-card-premium h-full rf-glass shadow-premium flex flex-col overflow-hidden">
+        {/* Coluna Lateral: Status e Mix Separados */}
+        <Col className="flex flex-col gap-6">
+          <div className="rf-card-premium rf-glass shadow-premium flex flex-col overflow-hidden">
             <div className="rf-card-premium__head">
               <h3 className="rf-card-premium__title">Status dos Pedidos</h3>
               <div className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-widest">
@@ -782,7 +782,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               </div>
             </div>
 
-            <div className="rf-card-premium__body flex-1 space-y-5">
+            <div className="rf-card-premium__body space-y-4 pb-6">
               {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
                 const count = statusDistribution[key] || 0;
                 const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
@@ -805,23 +805,25 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 );
               })}
             </div>
+          </div>
 
-            {/* Mix de Vendas Integrado */}
-            <div className="p-6 pt-0">
-              <div className="pt-6 border-t border-white/5">
-                <span className="block text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Mix de Vendas</span>
-                <div className="h-44">
-                  <DonutChart
-                    className="h-full"
-                    data={topProducts}
-                    category="receita"
-                    index="nome"
-                    valueFormatter={fmt}
-                    colors={["amber", "indigo", "emerald", "cyan", "violet", "rose", "fuchsia", "sky", "lime", "orange"]}
-                    showAnimation={true}
-                    variant="donut"
-                  />
-                </div>
+          <div className="rf-card-premium rf-glass shadow-premium flex flex-col overflow-hidden">
+            <div className="rf-card-premium__head">
+              <h3 className="rf-card-premium__title">Mix de Vendas</h3>
+              <p className="rf-card-premium__subtitle">Top 5 Categorias/Produtos</p>
+            </div>
+            <div className="rf-card-premium__body pb-6">
+              <div className="h-48">
+                <DonutChart
+                  className="h-full"
+                  data={topProducts}
+                  category="receita"
+                  index="nome"
+                  valueFormatter={fmt}
+                  colors={["amber", "indigo", "emerald", "cyan", "violet", "rose", "fuchsia", "sky", "lime", "orange"]}
+                  showAnimation={true}
+                  variant="donut"
+                />
               </div>
             </div>
           </div>
