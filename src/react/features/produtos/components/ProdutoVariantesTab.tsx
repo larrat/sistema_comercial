@@ -477,6 +477,7 @@ export function ProdutoVariantesTab({ produto }: Props) {
     ],
     [margemPai, metrics]
   );
+
   const giroChartData = useMemo(
     () =>
       metrics.map((row) => ({
@@ -487,6 +488,30 @@ export function ProdutoVariantesTab({ produto }: Props) {
       })),
     [metrics]
   );
+  
+  const sizeMixData = useMemo(() => {
+    const sizes: Record<string, number> = {};
+    metrics.forEach(m => {
+      const s = m.produto.tamanho || 'N/A';
+      sizes[s] = (sizes[s] || 0) + m.vendido;
+    });
+    return Object.entries(sizes)
+      .map(([label, value]) => ({ label, value, color: '#0ea5e9' }))
+      .sort((a, b) => b.value - a.value);
+  }, [metrics]);
+
+  const genderSplitData = useMemo(() => {
+    const genders: Record<string, number> = {};
+    metrics.forEach(m => {
+      const g = m.produto.genero || 'Unissex/Outros';
+      genders[g] = (genders[g] || 0) + m.receita;
+    });
+    return Object.entries(genders).map(([label, value]) => ({ 
+      label: label.toUpperCase(), 
+      value, 
+      color: label.toLowerCase() === 'feminino' ? '#ec4899' : label.toLowerCase() === 'masculino' ? '#6366f1' : '#94a3b8' 
+    }));
+  }, [metrics]);
 
   if (loadingVariantes) {
     return <LoadingState title="Carregando variantes..." />;
@@ -643,9 +668,21 @@ export function ProdutoVariantesTab({ produto }: Props) {
                 return (
                   <tr key={row.produto.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1.5">
-                        <span className="text-sm font-bold text-white">{row.produto.nome}</span>
-                        <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                           {row.produto.foto_url ? (
+                             <img src={row.produto.foto_url} alt={row.produto.nome} className="w-full h-full object-cover" />
+                           ) : (
+                             <Package size={14} className="text-slate-600" />
+                           )}
+                        </div>
+                        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-white truncate">{row.produto.nome}</span>
+                            {row.produto.tamanho && <Badge variant="slate" className="!text-[8px] !py-0 font-black">{row.produto.tamanho}</Badge>}
+                          </div>
+                          <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-xs font-medium text-slate-400">{row.produto.sku || '—'}</td>
@@ -680,6 +717,22 @@ export function ProdutoVariantesTab({ produto }: Props) {
       </motion.section>
 
       <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+        <SimpleVariantChart
+          title="Mix de Venda por Tamanho (Qty)"
+          data={sizeMixData}
+          dataKey="value"
+          colorKey="color"
+          formatter={(value) => fmtQ(value)}
+          emptyTitle="Sem dados de tamanho."
+        />
+        <SimpleVariantChart
+          title="Receita por Gênero (R$)"
+          data={genderSplitData}
+          dataKey="value"
+          colorKey="color"
+          formatter={(value) => fmtCurrency(value)}
+          emptyTitle="Sem dados de gênero."
+        />
         <StackedVariantChart
           title="Distribuição de Vendas (Qty)"
           data={qtySeriesData}
