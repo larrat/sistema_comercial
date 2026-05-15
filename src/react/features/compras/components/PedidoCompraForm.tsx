@@ -1,7 +1,11 @@
-import { useState } from 'react';
-import { X, Plus, Trash2, Save } from 'lucide-react';
-import { Button, Card } from '../../../shared/ui';
+import { useState, useMemo } from 'react';
+import { X, Plus, Trash2, Save, Search, Package } from 'lucide-react';
+import { Button, Card, Shimmer, Badge } from '../../../shared/ui';
 import type { PedidoCompraItem, PedidoCompra } from '../services/comprasApi';
+import { useQuery } from '@tanstack/react-query';
+import { listProdutos } from '../../produtos/services/produtosApi';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
@@ -10,10 +14,22 @@ type Props = {
 };
 
 export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
+  const { token } = useAuthStore();
   const [fornecedor, setFornecedor] = useState('');
   const [itens, setItens] = useState<PedidoCompraItem[]>([]);
   const [formaPgto, setFormaPgto] = useState('Boleto');
   const [obs, setObs] = useState('');
+  const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
+    queryKey: ['produtos-compras', filialId],
+    queryFn: () => {
+      const config = getSupabaseConfig();
+      return listProdutos({ ...config, token: token!, filialId });
+    },
+    enabled: !!token && !!filialId
+  });
 
   const addItem = () => {
     setItens([...itens, { produto_id: '', nome: '', qty: 1, custo_unitario: 0, total_item: 0 }]);
@@ -48,6 +64,23 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
       status: 'aberto'
     };
     onSave(pedido, itens);
+  };
+
+  const filteredProdutos = useMemo(() => {
+    if (!searchTerm) return produtos;
+    const low = searchTerm.toLowerCase();
+    return produtos.filter(p => 
+      p.nome.toLowerCase().includes(low) || 
+      (p.sku && p.sku.toLowerCase().includes(low))
+    );
+  }, [produtos, searchTerm]);
+
+  const selectProduto = (idx: number, p: any) => {
+    updateItem(idx, 'produto_id', p.id);
+    updateItem(idx, 'nome', p.nome);
+    updateItem(idx, 'custo_unitario', p.custo || 0);
+    setActiveItemIdx(null);
+    setSearchTerm('');
   };
 
   return (
@@ -98,16 +131,58 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
 
             <div className="space-y-3">
               {itens.map((item, idx) => (
-                <div key={idx} className="flex gap-4 items-end p-4 rounded-2xl bg-white/[0.02] border border-white/5 rf-animate-fade">
-                  <div className="flex-1 space-y-1.5">
+                <div key={idx} className="relative flex gap-4 items-end p-4 rounded-2xl bg-white/[0.02] border border-white/5 rf-animate-fade">
+                  <div className="flex-1 space-y-1.5 relative">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Produto</label>
-                    <input 
-                      type="text" 
-                      value={item.nome}
-                      onChange={(e) => updateItem(idx, 'nome', e.target.value)}
-                      placeholder="Nome do produto"
-                      className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white"
-                    />
+                    
+                    <div className="relative">
+                      <input 
+                        type="text" 
+                        value={activeItemIdx === idx ? searchTerm : item.nome}
+                        onChange={(e) => {
+                          setActiveItemIdx(idx);
+                          setSearchTerm(e.target.value);
+                        }}
+                        onFocus={() => {
+                          setActiveItemIdx(idx);
+                          setSearchTerm(item.nome);
+                        }}
+                        placeholder="Buscar produto..."
+                        className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white pr-8"
+                      />
+                      <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
+                    </div>
+
+                    {activeItemIdx === idx && (
+                      <div className="absolute top-full left-0 right-0 z-[60] mt-1 bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+                        {isLoadingProdutos ? (
+                          <div className="p-4 space-y-2">
+                            <Shimmer height={12} width="100%" />
+                            <Shimmer height={12} width="80%" />
+                          </div>
+                        ) : filteredProdutos.length > 0 ? (
+                          filteredProdutos.map(p => (
+                            <button
+                              key={p.id}
+                              onClick={() => selectProduto(idx, p)}
+                              className="w-full flex flex-col items-start p-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors"
+                            >
+                              <div className="flex items-center gap-2 w-full">
+                                <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
+                                {p.produto_pai_id && <Badge variant="neutral" className="!text-[8px] !py-0">Filho</Badge>}
+                                {!p.produto_pai_id && <Badge variant="emerald" className="!text-[8px] !py-0">Pai</Badge>}
+                              </div>
+                              <span className="text-xs font-bold text-white mt-1">{p.nome}</span>
+                              <span className="text-[10px] text-slate-500 mt-0.5">Custo Atual: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.custo || 0)}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center">
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Nenhum produto encontrado</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="w-24 space-y-1.5">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Qtd</label>
@@ -130,7 +205,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                   <div className="w-32 space-y-1.5">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
                     <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-cyan-400">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item)}
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item || 0)}
                     </div>
                   </div>
                   <button onClick={() => removeItem(idx)} className="p-2.5 text-slate-600 hover:text-rose-500 transition-colors">
