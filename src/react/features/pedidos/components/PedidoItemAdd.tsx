@@ -18,6 +18,9 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   function handleProdChange(id: string) {
+    const parentIds = new Set(produtos.map(p => p.produto_pai_id).filter(Boolean));
+    const isParent = parentIds.has(id);
+    
     setProdId(id);
     setError(null);
     if (!id) {
@@ -74,22 +77,30 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
         </div>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-        <div className="md:col-span-4 flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Produto</label>
-          <select
-            className="rf-input-premium w-full"
-            value={prodId}
-            onChange={(e) => handleProdChange(e.target.value)}
-            data-testid="pedido-item-prod"
-          >
-            <option value="">- selecione -</option>
-            {produtos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome}
-              </option>
-            ))}
-          </select>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+        <div className="md:col-span-4 rf-ui-form-field">
+          <label className="rf-ui-form-field__label">Produto</label>
+          <div className="rf-ui-form-field__control">
+            <select
+              className="rf-input-premium w-full"
+              value={prodId}
+              onChange={(e) => handleProdChange(e.target.value)}
+              data-testid="pedido-item-prod"
+            >
+              <option value="">- selecione -</option>
+              {(() => {
+                const parentIds = new Set(produtos.map(p => p.produto_pai_id).filter(Boolean));
+                return produtos
+                  .filter(p => !parentIds.has(p.id))
+                  .sort((a, b) => a.nome.localeCompare(b.nome))
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nome} {p.sku ? `[${p.sku}]` : ''}
+                    </option>
+                  ));
+              })()}
+            </select>
+          </div>
         </div>
 
         <div className="md:col-span-2">
@@ -120,24 +131,26 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
             label="Custo Aplicado"
             type="number"
             step="0.01"
-            placeholder="custo"
+            placeholder="cus"
             value={custo}
             onChange={(e) => setCusto(e.target.value)}
             data-testid="pedido-item-custo"
           />
         </div>
 
-        <div className="md:col-span-2 flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Origem</label>
-          <select
-            className="rf-input-premium w-full"
-            value={orig}
-            onChange={(e) => setOrig(e.target.value)}
-            data-testid="pedido-item-orig"
-          >
-            <option value="estoque">Estoque</option>
-            <option value="fornecedor">Fornecedor</option>
-          </select>
+        <div className="md:col-span-2 rf-ui-form-field">
+          <label className="rf-ui-form-field__label">Origem</label>
+          <div className="rf-ui-form-field__control">
+            <select
+              className="rf-input-premium w-full"
+              value={orig}
+              onChange={(e) => setOrig(e.target.value)}
+              data-testid="pedido-item-orig"
+            >
+              <option value="estoque">Estoque</option>
+              <option value="fornecedor">Fornecedor</option>
+            </select>
+          </div>
         </div>
       </div>
 
