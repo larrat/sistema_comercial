@@ -132,17 +132,25 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
   const cores = useMemo(() => coresInput.split(',').map(c => c.trim()).filter(Boolean), [coresInput]);
 
-  const onSubmit = (values: ProdutoFormValues) => { try { onSalvar(values, gradeSelecionada, cores); } catch (e) { console.error("Submit Error:", e); toast.error("Erro ao processar envio"); } };
+  const onSubmit = (values: ProdutoFormValues) => {
+    try {
+      onSalvar(values, gradeSelecionada, cores);
+    } catch (e) {
+      console.error("Submit Error:", e);
+      toast.error("Erro ao processar envio");
+    }
+  };
   const handleCustomSubmit = handleSubmit(onSubmit);
 
   useEffect(() => {
     reset(toFormValues(produto));
   }, [produto, reset]);
 
+  // Auto-switch tab on error
   useEffect(() => {
     const errorKeys = Object.keys(errors);
     if (errorKeys.length > 0) {
-      if (errors.nome) setActiveTab("geral");
+      if (errors.nome || errors.sku || errors.un || errors.cat) setActiveTab("geral");
       else if (errors.custo || errors.precoVarejo || errors.markupVarejo) setActiveTab("comercial");
     }
   }, [errors]);
@@ -214,7 +222,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
     const custo = parseFloat(watchedValues.custo) || 0;
     const current: SyncedPriceState = {
       preco: field === 'preco' ? raw : watchedValues.precoFixoAtacado || '',
-      markup: field === 'markup' ? raw : watchedValues.markupAtacado || '',
+      markup: field === 'markup' ? raw : watchedValues.markupVarejo || '',
       margem: field === 'margem' ? raw : watchedValues.margemAtacado || ''
     };
     const synced = syncPriceFields(field, current, custo);
@@ -238,7 +246,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden -mx-8 -mt-8">
+    <form onSubmit={handleCustomSubmit} className="flex flex-col h-full overflow-hidden -mx-8 -mt-8" data-testid="produto-form">
       {/* High-Tech Tab Navigation */}
       <div className="px-8 pt-8 pb-4 bg-slate-950/20 border-b border-white/5 sticky top-0 z-20 backdrop-blur-3xl">
         <div className="flex items-center p-1.5 bg-white/[0.03] border border-white/5 rounded-[1.25rem] shadow-inner">
@@ -267,7 +275,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       </div>
 
       {/* Form Content Area */}
-      <form onSubmit={handleCustomSubmit} className="flex-1 overflow-y-auto custom-scrollbar px-8 py-10" data-testid="produto-form">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-10">
         <AnimatePresence mode="wait">
           {activeTab === 'geral' && (
             <motion.div
@@ -525,17 +533,17 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
             </motion.div>
           )}
         </AnimatePresence>
-      </form>
+      </div>
 
       {/* Fixed Footer */}
       <div className="px-8 py-6 bg-slate-950/40 border-t border-white/5 backdrop-blur-3xl flex flex-col gap-4">
-        <FormError message={error} />
+        <FormError message={error || Object.values(errors).map(e => e?.message).filter(Boolean).join(", ")} />
         <FormActions 
           onCancel={onCancelar} 
           loading={saving} 
           submitLabel={produto ? 'Confirmar Edição' : 'Gerar e Finalizar'} 
         />
       </div>
-    </div>
+    </form>
   );
 }
