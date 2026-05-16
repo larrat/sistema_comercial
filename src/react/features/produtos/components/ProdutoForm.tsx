@@ -48,7 +48,7 @@ type Props = {
   pais: Produto[];
   saving: boolean;
   error: string | null;
-  onSalvar: (_values: ProdutoFormValues, _grade?: string[]) => void;
+  onSalvar: (_values: ProdutoFormValues, _grade?: string[], _cores?: string[]) => void;
   onCancelar: () => void;
 };
 
@@ -123,7 +123,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
 
-  const onSubmit = (values: ProdutoFormValues) => onSalvar(values, gradeSelecionada);
+  const onSubmit = (values: ProdutoFormValues) => onSalvar(values, gradeSelecionada, cores);
   const handleCustomSubmit = handleSubmit(onSubmit);
   
   const [uploading, setUploading] = useState(false);
@@ -134,8 +134,14 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   const watchedValues = watch();
   const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
+  const [coresInput, setCoresInput] = useState('');
   
   const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
+
+  const cores = useMemo(() => 
+    coresInput.split(',').map(c => c.trim()).filter(Boolean),
+    [coresInput]
+  );
 
   function handleCusto(raw: string) {
     const custo = parseFloat(raw) || 0;
@@ -452,20 +458,45 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                   </button>
                 ))}
              </div>
+             
+             <div className="mb-6">
+                <Typography variant="label" color="muted" className="mb-2 block">Cores (separe por vírgula):</Typography>
+                <input
+                  type="text"
+                  placeholder="Ex: Azul, Branco, Preto"
+                  value={coresInput}
+                  onChange={e => setCoresInput(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
+                />
+             </div>
 
-             {gradeSelecionada.length > 0 && (
+             {(gradeSelecionada.length > 0 || cores.length > 0) && (
                <motion.div 
                  initial={{ opacity: 0, y: 10 }} 
                  animate={{ opacity: 1, y: 0 }}
                  className="space-y-3 p-4 bg-cyan-500/5 rounded-2xl border border-cyan-500/10"
                >
-                 <Typography variant="caption" className="!text-cyan-400 font-bold uppercase tracking-widest">Preview da Grade ({gradeSelecionada.length} itens)</Typography>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {gradeSelecionada.map(size => (
-                      <div key={size} className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg border border-white/5">
-                        <span className="text-[10px] font-bold text-white uppercase">{watchedValues.nome} - {size}</span>
-                        <span className="text-[9px] font-mono text-slate-500">{watchedValues.sku ? `${watchedValues.sku}-${size}` : 'Automático'}</span>
-                      </div>
+                 <Typography variant="caption" className="!text-cyan-400 font-bold uppercase tracking-widest">
+                   Preview da Grade ({Math.max(1, gradeSelecionada.length) * Math.max(1, cores.length)} itens)
+                 </Typography>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                    {(cores.length > 0 ? cores : [null]).map(color => (
+                      (gradeSelecionada.length > 0 ? gradeSelecionada : [null]).map(size => {
+                        const nameParts = [watchedValues.nome.trim()];
+                        if (color) nameParts.push(color);
+                        if (size) nameParts.push(size);
+                        
+                        const skuParts = [watchedValues.sku.trim() || 'PROD'];
+                        if (color) skuParts.push(color.toUpperCase().slice(0, 3));
+                        if (size) skuParts.push(size);
+
+                        return (
+                          <div key={`${color}-${size}`} className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg border border-white/5">
+                            <span className="text-[10px] font-bold text-white uppercase">{nameParts.join(' - ')}</span>
+                            <span className="text-[9px] font-mono text-slate-500">{skuParts.join('-')}</span>
+                          </div>
+                        );
+                      })
                     ))}
                  </div>
                  <Typography variant="caption" color="muted" className="mt-2 block italic text-[9px]">

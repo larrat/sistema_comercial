@@ -248,7 +248,7 @@ export function ProdutoProfilePage({
     setEditingCadastro(true);
   }
 
-  async function handleSalvar(values: any, grade?: string[]) {
+  async function handleSalvar(values: any, grade?: string[], cores?: string[]) {
     const novoNome = values.nome.trim();
     const nomeAlterado = novoNome !== produto.nome;
     const catAlterada = (values.cat || '').trim() !== (produto.cat || '');
@@ -256,18 +256,36 @@ export function ProdutoProfilePage({
     
     const mapped = formValuesToProduto(values, produto.filial_id || '', produto);
     
-    // Preparar lote se houver grade
+    // Preparar lote se houver grade ou cores
     const payload: Produto[] = [mapped];
-    if (grade && grade.length > 0) {
-      grade.forEach(size => {
-        payload.push({
-          ...mapped,
-          id: crypto.randomUUID(),
-          produto_pai_id: mapped.id,
-          nome: `${mapped.nome} - ${size}`,
-          sku: mapped.sku ? `${mapped.sku}-${size}` : undefined,
-          tamanho: size,
-          esal: 0
+    const hasGrade = grade && grade.length > 0;
+    const hasCores = cores && cores.length > 0;
+
+    if (hasGrade || hasCores) {
+      const activeCores = hasCores ? cores : [null];
+      const activeSizes = hasGrade ? grade : [null];
+
+      activeCores.forEach(color => {
+        activeSizes.forEach(size => {
+          if (!color && !size) return;
+
+          const nameParts = [mapped.nome.trim()];
+          if (color) nameParts.push(color);
+          if (size) nameParts.push(size);
+          
+          const skuParts = [mapped.sku?.trim() || 'PROD'];
+          if (color) skuParts.push(color.toUpperCase().slice(0, 3));
+          if (size) skuParts.push(size);
+
+          payload.push({
+            ...mapped,
+            id: crypto.randomUUID(),
+            produto_pai_id: mapped.id,
+            nome: nameParts.join(' - '),
+            sku: skuParts.join('-'),
+            tamanho: size,
+            esal: 0
+          });
         });
       });
     }
@@ -295,7 +313,7 @@ export function ProdutoProfilePage({
           }
         }
 
-        toast.success(grade?.length ? `Produto e ${grade.length} variantes salvos!` : 'Alterações salvas com sucesso');
+        toast.success(payload.length > 1 ? `Produto e ${payload.length - 1} variantes salvos!` : 'Alterações salvas com sucesso');
         setEditingCadastro(false);
         setSearchParams((current) => {
           const next = new URLSearchParams(current);
@@ -830,7 +848,7 @@ export function ProdutoProfilePage({
             pais={pais}
             saving={saveMutation.isPending}
             error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
-            onSalvar={(values, grade) => void handleSalvar(values, grade)}
+            onSalvar={(values, grade, cores) => void handleSalvar(values, grade, cores)}
             onCancelar={() => {
               setEditingCadastro(false);
               setSearchParams((current) => {

@@ -123,23 +123,42 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     return produtoAtual ? parentProdutos.filter((p) => p.id !== produtoAtual.id) : parentProdutos;
   }, [modal, parentProdutos]);
 
-  async function handleSalvar(values: ProdutoFormValues, grade?: string[]) {
+  async function handleSalvar(values: ProdutoFormValues, grade?: string[], cores?: string[]) {
     const existing = modal.tipo === 'form' ? modal.produto : null;
     const parent = formValuesToProduto(values, filialId, existing);
     
     // Lista de produtos a serem salvos (Pai + Filhos)
     const payload: Produto[] = [parent];
     
-    if (grade && grade.length > 0) {
-      grade.forEach(size => {
-        payload.push({
-          ...parent,
-          id: crypto.randomUUID(),
-          produto_pai_id: parent.id,
-          nome: `${parent.nome} - ${size}`,
-          sku: parent.sku ? `${parent.sku}-${size}` : undefined,
-          tamanho: size,
-          esal: 0 // Inicia zerado
+    const hasGrade = grade && grade.length > 0;
+    const hasCores = cores && cores.length > 0;
+
+    if (hasGrade || hasCores) {
+      const activeCores = hasCores ? cores : [null];
+      const activeSizes = hasGrade ? grade : [null];
+
+      activeCores.forEach(color => {
+        activeSizes.forEach(size => {
+          // Se ambos forem null, é o próprio pai (já está no payload)
+          if (!color && !size) return;
+
+          const nameParts = [parent.nome.trim()];
+          if (color) nameParts.push(color);
+          if (size) nameParts.push(size);
+          
+          const skuParts = [parent.sku?.trim() || 'PROD'];
+          if (color) skuParts.push(color.toUpperCase().slice(0, 3));
+          if (size) skuParts.push(size);
+
+          payload.push({
+            ...parent,
+            id: crypto.randomUUID(),
+            produto_pai_id: parent.id,
+            nome: nameParts.join(' - '),
+            sku: skuParts.join('-'),
+            tamanho: size,
+            esal: 0
+          });
         });
       });
     }
@@ -147,7 +166,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     saveMutation.mutate(payload as any, {
       onSuccess: () => {
         setModal({ tipo: 'none' });
-        toast.success(grade?.length ? `Produto e ${grade.length} variantes criados!` : 'Produto salvo com sucesso');
+        toast.success(payload.length > 1 ? `Produto e ${payload.length - 1} variantes criados!` : 'Produto salvo com sucesso');
       }
     });
   }
