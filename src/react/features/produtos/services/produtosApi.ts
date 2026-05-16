@@ -299,9 +299,18 @@ export async function cascadeRenameProduto(
         let varianteAlterada = false;
         let novoNomeVariante = v.nome;
 
-        // Se o nome da variante começa com o nome antigo do pai, atualizamos o prefixo
-        if (v.nome.startsWith(antigoNome)) {
-          novoNomeVariante = v.nome.replace(antigoNome, novoNome);
+        // Tratamento case-insensitive para o prefixo
+        const nomeVarianteUpper = v.nome.toUpperCase();
+        const antigoNomeUpper = antigoNome.trim().toUpperCase();
+
+        if (nomeVarianteUpper.startsWith(antigoNomeUpper)) {
+          novoNomeVariante = novoNome + v.nome.substring(antigoNome.trim().length);
+          varianteAlterada = true;
+        } else if (v.nome.includes(' - ')) {
+          // Fallback: as variantes são geradas com ' - ' separando o nome do pai das opções
+          const parts = v.nome.split(' - ');
+          parts[0] = novoNome;
+          novoNomeVariante = parts.join(' - ');
           varianteAlterada = true;
         }
 
