@@ -297,7 +297,11 @@ export function ProdutoProfilePage({
             `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
           );
           if (devePropagar) {
-            await renameMutation.mutateAsync({ id: produto.id, novoNome });
+            await renameMutation.mutateAsync({ 
+              id: produto.id, 
+              novoNome, 
+              antigoNome: produto.nome 
+            });
           }
         }
 

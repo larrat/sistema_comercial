@@ -164,9 +164,9 @@ export function useProdutoMutations() {
   });
 
   const cascadeRename = useMutation({
-    mutationFn: ({ id, novoNome }: { id: string; novoNome: string }) => {
+    mutationFn: ({ id, novoNome, antigoNome }: { id: string; novoNome: string; antigoNome: string }) => {
       if (!context) throw new Error('API context not ready');
-      return cascadeRenameProduto(context, id, novoNome);
+      return cascadeRenameProduto(context, id, novoNome, antigoNome);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['produtos'] });

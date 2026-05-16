@@ -269,9 +269,10 @@ export async function saveProduto(
 export async function cascadeRenameProduto(
   context: ProdutoApiContext,
   produtoId: string,
-  novoNome: string
+  novoNome: string,
+  antigoNome: string
 ): Promise<void> {
-  // 1. Atualizar na tabela normalizada de itens
+  // 1. Atualizar na tabela normalizada de itens para o próprio produto
   const resItens = await fetch(
     `${context.url}/rest/v1/pedido_itens?produto_id=eq.${encodeURIComponent(produtoId)}&filial_id=eq.${encodeURIComponent(context.filialId)}`,
     {
@@ -285,6 +286,48 @@ export async function cascadeRenameProduto(
   if (!resItens.ok) {
     const body = await readJson(resItens);
     console.warn('[produtos] Falha ao atualizar nomes em pedido_itens:', body);
+  }
+
+  // 2. Propagar para Variantes (Filhos)
+  // Buscamos as variantes para atualizar seus nomes também
+  try {
+    const variantes = await listVariantesByPaiId(context, produtoId);
+    if (variantes.length > 0) {
+      const updates: Produto[] = [];
+      
+      for (const v of variantes) {
+        let varianteAlterada = false;
+        let novoNomeVariante = v.nome;
+
+        // Se o nome da variante começa com o nome antigo do pai, atualizamos o prefixo
+        if (v.nome.startsWith(antigoNome)) {
+          novoNomeVariante = v.nome.replace(antigoNome, novoNome);
+          varianteAlterada = true;
+        }
+
+        if (varianteAlterada) {
+          updates.push({ ...v, nome: novoNomeVariante });
+          
+          // Atualizar histórico de vendas da variante individualmente (PostgREST PATCH)
+          fetch(
+            `${context.url}/rest/v1/pedido_itens?produto_id=eq.${encodeURIComponent(v.id)}&filial_id=eq.${encodeURIComponent(context.filialId)}`,
+            {
+              method: 'PATCH',
+              headers: createHeaders(context.key, context.token),
+              body: JSON.stringify({ nome: novoNomeVariante }),
+              signal: AbortSignal.timeout(10000)
+            }
+          ).catch(e => console.warn(`[produtos] Falha ao atualizar histórico da variante ${v.id}:`, e));
+        }
+      }
+
+      // Atualizar nomes das variantes na tabela de produtos em lote
+      if (updates.length > 0) {
+        await saveProduto(context, updates as any);
+      }
+    }
+  } catch (e) {
+    console.error('[produtos] Erro ao processar cascata de nomes para variantes:', e);
   }
 
   // Nota: A atualização do campo legado 'pedidos.itens' (JSON) exigiria um processamento pesado no cliente
