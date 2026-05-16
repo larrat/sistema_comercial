@@ -27,12 +27,14 @@ import {
   TrendingUp,
   HelpCircle,
   Zap,
-  Settings
+  Settings,
+  Bell
 } from 'lucide-react';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { crmService } from '../../clientes/services/crmService';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
+import { useContasReceberMutations } from '../hooks/useContasReceberMutations';
 
 
 type ContasReceberPilotPageProps = {
