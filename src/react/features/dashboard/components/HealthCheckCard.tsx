@@ -1,6 +1,6 @@
 import React from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
-import { Button } from '../../../shared/ui';
+import { Button, Badge } from '../../../shared/ui';
 
 type Issue = {
   id: string;
