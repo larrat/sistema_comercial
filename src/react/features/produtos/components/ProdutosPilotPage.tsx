@@ -400,7 +400,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
             pageSize={pageSize}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            onNovo={() => setModal({ tipo: 'form', produto: null })}
+            onNovo={() => navigate('/app/produtos/novo')}
             onDetalhe={(id) => onOpenProduto?.(id)}
             onEditar={(id) => onOpenProduto?.(id, { edit: true })}
             onMovimentar={handleMovimentar}
@@ -415,7 +415,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
             pageSize={pageSize}
             onPageChange={setPage}
             onPageSizeChange={setPageSize}
-            onNovo={() => setModal({ tipo: 'form', produto: null })}
+            onNovo={() => navigate('/app/produtos/novo')}
             onDetalhe={(id) => onOpenProduto?.(id)}
             onEditar={(id) => onOpenProduto?.(id, { edit: true })}
             onMovimentar={handleMovimentar}
@@ -424,24 +424,6 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
         )}
       </motion.div>
 
-      <Drawer
-        open={modal.tipo === 'form'}
-        title={modal.tipo === 'form' && modal.produto ? 'Editar produto' : 'Novo produto'}
-        onClose={() => !saveMutation.isPending && setModal({ tipo: 'none' })}
-        closeOnOverlayClick={!saveMutation.isPending}
-        bodyClassName="!p-0 !overflow-hidden"
-      >
-        {modal.tipo === 'form' ? (
-          <ProdutoForm
-            produto={modal.produto}
-            pais={paisSemSelf}
-            saving={saveMutation.isPending}
-            error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
-            onSalvar={handleSalvar}
-            onCancelar={() => setModal({ tipo: 'none' })}
-          />
-        ) : null}
-      </Drawer>
 
       <ProdutoDeleteConfirmModal
         open={!!deleteTarget}

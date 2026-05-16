@@ -827,39 +827,42 @@ export function ProdutoProfilePage({
         </AnimatePresence>
       </section>
 
-      <Drawer
-        open={editingCadastro}
-        title="Edição do Produto"
-        subtitle={produto.nome}
-        size="lg"
-        bodyClassName="!p-0 bg-slate-900 !overflow-hidden"
-        onClose={() => {
-          setEditingCadastro(false);
-          setSearchParams((current) => {
-            const next = new URLSearchParams(current);
-            next.delete('edit');
-            return next;
-          });
-        }}
-      >
-        <div className="flex flex-col gap-0 pb-12">
-          <ProdutoForm
-            produto={produto}
-            pais={pais}
-            saving={saveMutation.isPending}
-            error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
-            onSalvar={(values, grade, cores) => void handleSalvar(values, grade, cores)}
-            onCancelar={() => {
-              setEditingCadastro(false);
-              setSearchParams((current) => {
-                const next = new URLSearchParams(current);
-                next.delete('edit');
-                return next;
-              });
-            }}
-          />
-        </div>
-      </Drawer>
+      <AnimatePresence>
+        {editingCadastro && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999] bg-slate-950/90 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-8"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-5xl h-full bg-slate-900/60 rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col"
+            >
+              <div className="flex-1 overflow-hidden p-8">
+                <ProdutoForm
+                  produto={produto}
+                  pais={pais}
+                  saving={saveMutation.isPending}
+                  error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
+                  onSalvar={(values, grade, cores) => void handleSalvar(values, grade, cores)}
+                  onCancelar={() => {
+                    setEditingCadastro(false);
+                    setSearchParams((current) => {
+                      const next = new URLSearchParams(current);
+                      next.delete("edit");
+                      return next;
+                    });
+                  }}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </motion.div>
   );
 }
