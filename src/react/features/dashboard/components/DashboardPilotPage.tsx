@@ -8,12 +8,13 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Sector
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  DonutChart, 
   Grid, 
   Col
 } from '@tremor/react';
@@ -667,16 +668,37 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </div>
           <div className="p-6 flex flex-col gap-6">
             <div className="h-48 relative">
-              <DonutChart
-                className="h-full"
-                data={topProducts}
-                category="receita"
-                index="nome"
-                valueFormatter={fmt}
-                colors={["cyan", "amber", "emerald", "indigo", "rose"]}
-                showAnimation={true}
-                variant="donut"
-              />
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={topProducts}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="receita"
+                    stroke="none"
+                  >
+                    {topProducts.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][index]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-3 rounded-2xl shadow-2xl ring-1 ring-white/5">
+                            <p className="text-[10px] font-black text-white uppercase tracking-widest">{payload[0].name}</p>
+                            <p className="text-xs font-black text-cyan-400 mt-1">{fmt(payload[0].value as number)}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                  <Typography variant="label" color="muted" className="!text-[9px]">Total</Typography>
                  <span className="text-xl font-black text-white font-display tracking-tight">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
