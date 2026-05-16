@@ -13,7 +13,14 @@ import {
   markupToMargin,
   type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
-import { FormActions, FormError, FormSection, Input, Select } from '../../../shared/ui';
+import { FormActions, FormError, FormSection, Input, Select, Typography } from '../../../shared/ui';
+import { motion } from 'framer-motion';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 const produtoSchema = z.object({
   id: z.string().optional(),
@@ -42,6 +49,9 @@ const produtoSchema = z.object({
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmt = (v: number) => BRL.format(v || 0);
 
 type Props = {
   produto: Produto | null;
