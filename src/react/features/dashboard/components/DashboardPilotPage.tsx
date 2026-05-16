@@ -756,7 +756,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
           <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
             <h3 className="text-sm font-bold text-white uppercase tracking-tight">Alertas Críticos</h3>
-            <Badge variant="rose">{alerts.length}</Badge>
+            <Badge variant="red">{alerts.length}</Badge>
           </div>
           <div className="p-6 flex-1 space-y-4">
             {alerts.length > 0 ? alerts.slice(0, 4).map(a => (
@@ -844,7 +844,7 @@ function FiscalHubCard() {
            <ShieldCheck className="w-4 h-4 text-emerald-400" />
            <span className="text-[10px] font-black text-white uppercase tracking-widest">Fiscal Hub</span>
         </div>
-        <Badge variant="emerald" className="!py-0 !text-[8px]">EM DIA</Badge>
+        <Badge variant="green" className="!py-0 !text-[8px]">EM DIA</Badge>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">

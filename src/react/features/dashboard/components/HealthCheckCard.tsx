@@ -25,7 +25,7 @@ export function HealthCheckCard() {
            <Activity size={16} className={hasCritical ? 'text-rose-500' : 'text-emerald-500'} />
            <span className="text-[10px] font-black text-white uppercase tracking-widest">Saúde do Sistema</span>
         </div>
-        <Badge variant={hasCritical ? 'rose' : 'emerald'} className="!py-0 !text-[8px]">
+        <Badge variant={hasCritical ? 'red' : 'green'} className="!py-0 !text-[8px]">
           {hasCritical ? 'ATENÇÃO' : 'SAUDÁVEL'}
         </Badge>
       </div>
