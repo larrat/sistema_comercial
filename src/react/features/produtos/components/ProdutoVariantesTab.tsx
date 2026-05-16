@@ -669,7 +669,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                 const emin = Number(row.produto.emin ?? 0);
                 return (
                   <tr key={row.produto.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 max-w-[200px] xl:max-w-[350px]">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
                            {row.produto.foto_url ? (
@@ -680,7 +680,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                         </div>
                         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-white truncate">{row.produto.nome}</span>
+                            <span className="text-sm font-bold text-white truncate" title={row.produto.nome}>{row.produto.nome}</span>
                             {row.produto.tamanho && <Badge variant="slate" className="!text-[8px] !py-0 font-black">{row.produto.tamanho}</Badge>}
                           </div>
                           <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
