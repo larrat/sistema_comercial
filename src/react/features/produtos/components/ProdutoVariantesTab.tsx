@@ -649,7 +649,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-hide">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5">
