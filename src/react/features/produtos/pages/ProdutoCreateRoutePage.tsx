@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { useApiContext } from '../../../shared/hooks/useApiContext';
-import { useAuthStore } from '../../auth/store/useAuthStore';
+import { useAuthStore } from '../../../app/useAuthStore';
 import { saveProduto } from '../services/produtosApi';
 import { ProdutoForm } from '../components/ProdutoForm';
 import { Typography } from '../../../shared/ui';
