@@ -312,7 +312,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
             
             <button
               className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan !py-2 !px-4 !text-xs !rounded-xl"
-              onClick={() => setModal({ tipo: 'form', produto: null })}
+              onClick={() => navigate('/app/produtos/novo')}
             >
               <Zap size={14} />
               <span className="hidden sm:inline">Novo produto</span>
