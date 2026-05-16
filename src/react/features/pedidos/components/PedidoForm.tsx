@@ -54,7 +54,7 @@ export function PedidoForm({
   // Queries
   const { data: clientesData, isLoading: isLoadingClientes } = useClientesLightQuery();
   const { data: rcasData, isLoading: isLoadingRcas } = useRcasQuery();
-  const { data: produtosPage, isLoading: isLoadingProdutos } = useProdutosQuery({}, 1, 1000);
+  const { data: produtosPage, isLoading: isLoadingProdutos } = useProdutosQuery({ includeVariants: true }, 1, 1000);
   
   const clientes = clientesData || [];
   const rcas = rcasData || [];

@@ -405,9 +405,10 @@ function SimpleVariantChart({
 
 type Props = {
   produto: Produto;
+  onOpenProduto?: (id: string, options?: { edit?: boolean }) => void;
 };
 
-export function ProdutoVariantesTab({ produto }: Props) {
+export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
   const [periodo, setPeriodo] = useState<Periodo>(90);
   const range = useMemo(() => getDateRange(periodo), [periodo]);
   const periodConfig = PERIOD_CONFIG[periodo];
@@ -660,13 +661,14 @@ export function ProdutoVariantesTab({ produto }: Props) {
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vendido</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Margem</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {metrics.map((row) => {
                 const emin = Number(row.produto.emin ?? 0);
                 return (
-                  <tr key={row.produto.id} className="hover:bg-white/5 transition-colors">
+                  <tr key={row.produto.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
@@ -697,6 +699,17 @@ export function ProdutoVariantesTab({ produto }: Props) {
                       <span className={`text-xs font-black ${row.margem && row.margem > 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
                         {fmtPercent(row.margem)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="!p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => onOpenProduto?.(row.produto.id, { edit: true })}
+                        title="Editar variante"
+                      >
+                        <TrendingUp size={12} className="rotate-90" />
+                      </Button>
                     </td>
                   </tr>
                 );

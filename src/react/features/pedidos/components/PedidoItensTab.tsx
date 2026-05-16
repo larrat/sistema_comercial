@@ -41,7 +41,7 @@ function normalizeNumber(value: string): number {
 
 export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Props) {
   // Usamos a query de produtos que já criamos no usePedidosQuery ou importamos de produtos
-  const { data: produtosPage, isLoading: isLoadingProdutos } = useProdutosQuery({}, 1, 1000);
+  const { data: produtosPage, isLoading: isLoadingProdutos } = useProdutosQuery({ includeVariants: true }, 1, 1000);
   const { updateItem, removeItem, addItem } = usePedidoMutations();
   const [editing, setEditing] = useState<EditingCell>(null);
   const [removeTarget, setRemoveTarget] = useState<{ item: PedidoItem; index: number } | null>(

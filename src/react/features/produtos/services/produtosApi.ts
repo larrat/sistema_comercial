@@ -11,6 +11,7 @@ export type ProdutoApiContext = {
 export type ProdutoListFilters = {
   q?: string;
   cat?: string;
+  includeVariants?: boolean;
 };
 export type ProdutoListPageQuery = ProdutoListFilters & {
   page?: number;
@@ -76,7 +77,10 @@ function createProdutoQueryParams(
   params.set('filial_id', `eq.${filialId}`);
   params.set('is_active', 'eq.true');
   params.set('order', 'nome');
-  const conditions: string[] = ['produto_pai_id.is.null'];
+  const conditions: string[] = [];
+  if (!filters.includeVariants && !filters.q) {
+    conditions.push('produto_pai_id.is.null');
+  }
 
   const cat = String(filters.cat || '').trim();
   if (cat) {

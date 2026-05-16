@@ -171,6 +171,7 @@ export function ProdutoProfilePage({
   error = null,
   onReload
 }: Props) {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingCadastro, setEditingCadastro] = useState(searchParams.get('edit') === '1');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -768,6 +769,9 @@ export function ProdutoProfilePage({
             {activeTab === 'variantes' && (
               <ProdutoVariantesTab
                 produto={produto}
+                onOpenProduto={(id, options) => {
+                  navigate(`/app/produtos/${id}${options?.edit ? '?edit=1' : ''}`);
+                }}
               />
             )}
           </motion.div>
