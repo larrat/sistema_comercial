@@ -36,12 +36,14 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   };
 
   const updateItem = (index: number, field: keyof PedidoCompraItem, value: any) => {
-    const newItens = [...itens];
-    newItens[index] = { ...newItens[index], [field]: value };
-    if (field === 'qty' || field === 'custo_unitario') {
-      newItens[index].total_item = newItens[index].qty * newItens[index].custo_unitario;
-    }
-    setItens(newItens);
+    setItens(prev => {
+      const newItens = [...prev];
+      newItens[index] = { ...newItens[index], [field]: value };
+      if (field === 'qty' || field === 'custo_unitario') {
+        newItens[index].total_item = newItens[index].qty * newItens[index].custo_unitario;
+      }
+      return newItens;
+    });
   };
 
   const removeItem = (index: number) => {
@@ -82,9 +84,17 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   }, [produtos, searchTerm]);
 
   const selectProduto = (idx: number, p: any) => {
-    updateItem(idx, 'produto_id', p.id);
-    updateItem(idx, 'nome', p.nome);
-    updateItem(idx, 'custo_unitario', p.custo || 0);
+    setItens(prev => {
+      const newItens = [...prev];
+      newItens[idx] = {
+        ...newItens[idx],
+        produto_id: p.id,
+        nome: p.nome,
+        custo_unitario: p.custo || 0,
+        total_item: newItens[idx].qty * (p.custo || 0)
+      };
+      return newItens;
+    });
     setActiveItemIdx(null);
     setSearchTerm('');
   };
