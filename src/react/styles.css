@@ -190,6 +190,20 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
+.rf-bento-span-12 { grid-column: span 12; }
+.rf-bento-span-8 { grid-column: span 8; }
+.rf-bento-span-6 { grid-column: span 6; }
+.rf-bento-span-4 { grid-column: span 4; }
+.rf-bento-span-3 { grid-column: span 3; }
+
+@media (max-width: 1024px) {
+  .rf-bento-span-8, .rf-bento-span-4, .rf-bento-span-3 { grid-column: span 6; }
+}
+
+@media (max-width: 768px) {
+  .rf-bento-span-12, .rf-bento-span-8, .rf-bento-span-6, .rf-bento-span-4, .rf-bento-span-3 { grid-column: span 12; }
+}
+
 /* Global Animations */
 @keyframes rf-fade-in {
   from {

@@ -10,7 +10,6 @@ type Issue = {
 };
 
 export function HealthCheckCard() {
-  // Mock data for health check
   const issues: Issue[] = [
     { id: '1', type: 'warning', title: 'Produtos sem Categoria', description: '12 itens no catálogo não possuem categoria definida.' },
     { id: '2', type: 'error', title: 'Clientes com CPF Inválido', description: '3 cadastros apresentam inconsistência no documento.' },
@@ -20,53 +19,34 @@ export function HealthCheckCard() {
   const hasCritical = issues.some(i => i.type === 'error');
 
   return (
-    <div className="rf-card-premium overflow-hidden border-white/5 bg-surface-card/40 backdrop-blur-xl">
-      <div className="p-5 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg ${hasCritical ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-            <Activity size={20} />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Saúde do Sistema</h3>
-            <p className="text-[10px] text-slate-500 font-medium">Integridade de dados e auditoria</p>
-          </div>
-        </div>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hasCritical ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-            {hasCritical ? 'Atenção' : 'Saudável'}
-          </span>
+           <Activity size={16} className={hasCritical ? 'text-rose-500' : 'text-emerald-500'} />
+           <span className="text-[10px] font-black text-white uppercase tracking-widest">Saúde do Sistema</span>
         </div>
+        <Badge variant={hasCritical ? 'rose' : 'emerald'} className="!py-0 !text-[8px]">
+          {hasCritical ? 'ATENÇÃO' : 'SAUDÁVEL'}
+        </Badge>
       </div>
 
-      <div className="p-5 flex flex-col gap-4">
+      <div className="flex-1 space-y-3">
         {issues.map(issue => (
-          <div key={issue.id} className="flex gap-3 items-start p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-default group">
+          <div key={issue.id} className="flex gap-3 items-start p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
             <div className={`mt-0.5 ${issue.type === 'error' ? 'text-rose-500' : 'text-amber-500'}`}>
-              <AlertTriangle size={16} />
+              <AlertTriangle size={14} />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors">{issue.title}</h4>
-              <p className="text-[11px] text-slate-500 leading-normal mt-0.5">{issue.description}</p>
+              <h4 className="text-[11px] font-bold text-slate-200 group-hover:text-white transition-colors uppercase tracking-tight">{issue.title}</h4>
+              <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{issue.description}</p>
             </div>
-            <Button size="sm" variant="secondary" className="!p-1.5 !rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-              <Search size={14} />
-            </Button>
           </div>
         ))}
-
-        {issues.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-8 opacity-40">
-            <CheckCircle2 size={32} className="text-emerald-500 mb-2" />
-            <p className="text-xs font-medium text-slate-400">Nenhuma inconsistência encontrada</p>
-          </div>
-        )}
       </div>
 
-      <div className="p-4 bg-black/20 border-t border-white/5">
-        <button className="w-full py-2 text-[10px] font-black text-cyan-400 uppercase tracking-widest hover:text-cyan-300 transition-colors">
-          Executar Saneamento Completo
-        </button>
-      </div>
+      <button className="mt-4 w-full py-2 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-cyan-400 transition-colors border-t border-white/5 pt-4">
+        Executar Auditoria
+      </button>
     </div>
   );
 }

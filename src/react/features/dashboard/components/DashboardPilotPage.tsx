@@ -227,7 +227,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   const topProducts = useMemo(() => {
     const productSales: Record<string, { nome: string; receita: number }> = {};
     
-    // Criar mapa de produto_pai para agrupamento inteligente
     const parentMap = new Map<string, string>();
     const nameMap = new Map<string, string>();
     produtos.forEach(p => {
@@ -235,28 +234,32 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       nameMap.set(p.id, p.nome);
     });
 
+    let totalReceita = 0;
     stats.vendasReais.forEach(p => {
       const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
       items.forEach(item => {
         if (!item.prodId) return;
         
-        // Se for filho, agrupar no ID do pai. Caso contrário, usar o próprio ID.
         const effectiveId = parentMap.get(item.prodId) || item.prodId;
         const effectiveName = nameMap.get(effectiveId) || item.nome || 'Produto';
+        const receita = Number(item.preco || 0) * Number(item.qty || 0);
         
         if (!productSales[effectiveId]) {
-          productSales[effectiveId] = { 
-            nome: effectiveName, 
-            receita: 0
-          };
+          productSales[effectiveId] = { nome: effectiveName, receita: 0 };
         }
-        productSales[effectiveId].receita += Number(item.preco || 0) * Number(item.qty || 0);
+        productSales[effectiveId].receita += receita;
+        totalReceita += receita;
       });
     });
     
     return Object.values(productSales)
-      .sort((a, b) => b.receita - a.receita);
-  }, [stats.vendasReais]);
+      .sort((a, b) => b.receita - a.receita)
+      .slice(0, 5) // Top 5
+      .map(p => ({
+        ...p,
+        percent: totalReceita > 0 ? (p.receita / totalReceita) * 100 : 0
+      }));
+  }, [stats.vendasReais, produtos]);
 
   const topProductsColors = [
     'var(--chart-primary)', 
@@ -421,7 +424,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         }
       />
 
-      {/* Linha 1: Stat Cards */}
+      {/* Linha 1: Stat Cards (Bento) */}
       <motion.section 
         initial="hidden"
         animate="visible"
@@ -432,11 +435,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             transition: { staggerChildren: 0.1 }
           }
         }}
-        className="rf-dashboard-row rf-dashboard-row--1"
+        className="rf-bento-grid"
       >
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6"
+          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1"
         >
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Faturamento</span>
           <div className="text-3xl font-black text-white">
@@ -455,7 +458,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         {visao !== 'operacional' && (
           <motion.article 
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 ring-1 ring-emerald-500/20"
+            className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 ring-1 ring-emerald-500/20"
           >
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lucro bruto</span>
             <div className="text-3xl font-black text-emerald-400">
@@ -476,7 +479,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6"
+          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1"
         >
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ticket médio</span>
           <div className="text-3xl font-black text-white">
@@ -494,7 +497,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className={`rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 ${stats.valorEmAberto === 0 ? 'ring-1 ring-emerald-500/20' : 'ring-1 ring-amber-500/20'}`}
+          className={`rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 ${stats.valorEmAberto === 0 ? 'ring-1 ring-emerald-500/20' : 'ring-1 ring-amber-500/20'}`}
         >
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Em aberto</span>
           <div className={`text-3xl font-black ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
@@ -511,272 +514,289 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
           </span>
         </motion.article>
-
-        {visao !== 'operacional' && (
-          <motion.article 
-            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            className={`rf-dash-card ${!filial?.meta_mensal ? 'is-warning' : ''}`}
-          >
-            <span className="rf-stat-label">Pacing mensal</span>
-            {filial?.meta_mensal ? (
-              <>
-                <div className={`rf-stat-value ${stats.faturamento >= filial.meta_mensal ? 'text-emerald-400' : 'text-amber-400'}`}>
-                  <CountUp 
-                    end={(stats.faturamento / filial.meta_mensal) * 100} 
-                    decimals={1} 
-                    decimal="," 
-                    suffix="%" 
-                    duration={2.6} 
-                  />
-                </div>
-                <span className="rf-stat-sub muted">Meta: {fmt(filial.meta_mensal)}</span>
-              </>
-            ) : (
-              <>
-                <span className="rf-stat-value text-slate-400">—%</span>
-                <span className="rf-stat-sub muted">Meta não configurada</span>
-              </>
-            )}
-          </motion.article>
-        )}
       </motion.section>
 
-      {/* Linha Principal de Gráficos e Status */}
-      <Grid numItemsLg={3} className="gap-6 mt-8">
-        {/* Gráfico de Faturamento e Lucro (Ocupa 2 colunas no LG) */}
+      {/* Linha Principal: Gráfico + Mix + Health (Bento) */}
+      <div className="rf-bento-grid mt-4">
+        {/* Gráfico de Faturamento e Lucro */}
         {visao !== 'operacional' && (
-          <Col numColSpanLg={2}>
-            <div className="rf-card-premium h-full rf-glass-glow shadow-premium overflow-hidden">
-              <div className="rf-card-premium__head">
-                <div>
-                  <h3 className="rf-card-premium__title">Faturamento e Lucro</h3>
-                  <p className="rf-card-premium__subtitle">Projeção e performance histórica</p>
-                </div>
-                <div className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
-                  {periodoDatas}
-                </div>
-              </div>
-              
-              <div className="rf-card-premium__body">
-                <div className="h-80 w-full mt-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsAreaChart
-                      data={chartData}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid 
-                        strokeDasharray="3 3" 
-                        vertical={false} 
-                        stroke="rgba(255,255,255,0.05)" 
-                      />
-                      <XAxis 
-                        dataKey="name" 
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
-                        dy={10}
-                      />
-                      <YAxis 
-                        hide={true} 
-                        domain={['auto', 'auto']}
-                      />
-                      <Tooltip 
-                        content={({ active, payload, label }) => {
-                          if (active && payload && payload.length) {
-                            return (
-                              <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl ring-1 ring-white/5">
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
-                                <div className="space-y-2">
-                                  {payload.map((entry: any, index: number) => (
-                                    <div key={index} className="flex items-center justify-between gap-8">
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                        <span className="text-[11px] font-bold text-slate-300 capitalize">{entry.name}</span>
-                                      </div>
-                                      <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="faturamento"
-                        stroke="var(--color-amber-vibrant)"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorFaturamento)"
-                        animationDuration={1500}
-                        dot={{ fill: 'var(--color-amber-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="lucro"
-                        stroke="var(--color-emerald-vibrant)"
-                        strokeWidth={3}
-                        fillOpacity={1}
-                        fill="url(#colorLucro)"
-                        animationDuration={2000}
-                        dot={{ fill: 'var(--color-emerald-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                    </RechartsAreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Custom Legend (Requested by user) */}
-                <div className="flex justify-center gap-8 mt-4 mb-2">
-                   <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[var(--color-amber-vibrant)] shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[var(--color-emerald-vibrant)] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lucro</span>
-                   </div>
-                </div>
-
-                {/* KPIs no rodapé do Card */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
-                  <div className="px-4 first:pl-0 border-r border-white/5">
-                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Melhor Dia</span>
-                    <span className="block text-lg font-black text-white">
-                      {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
-                    </span>
-                  </div>
-                  <div className="px-4 border-r border-white/5">
-                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Média Diária</span>
-                    <span className="block text-lg font-black text-white">
-                      {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
-                    </span>
-                  </div>
-                  <div className="px-4 border-r border-white/5">
-                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Período</span>
-                    <span className="block text-lg font-black text-white">
-                      {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
-                    </span>
-                  </div>
-                  <div className="px-4 last:pr-0">
-                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Margem Média</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-black text-emerald-400">
-                        {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
-                          ? ((chartData.reduce((acc, d) => acc + d.lucro, 0) / chartData.reduce((acc, d) => acc + d.faturamento, 0)) * 100).toFixed(1)
-                          : 0}%
-                      </span>
-                      <TrendingUp size={16} className="text-emerald-500" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Col>
-        )}
-
-        {/* Health Check & Alerts (Integrated into Grid) */}
-        <Col numColSpanLg={1}>
-          <HealthCheckCard />
-          
-          <FiscalHubCard />
-        </Col>
-
-        {/* Coluna Lateral: Status e Mix Separados */}
-        <Col className="flex flex-col gap-6">
-          <div className="rf-card-premium rf-glass shadow-premium flex flex-col overflow-hidden">
-            <div className="rf-card-premium__head">
-              <h3 className="rf-card-premium__title">Status dos Pedidos</h3>
-              <div className="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                {pedidos.length} TOTAL
-              </div>
-            </div>
-
-            <div className="rf-card-premium__body space-y-4 pb-6">
-              {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
-                const count = statusDistribution[key] || 0;
-                const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
-                return (
-                  <div key={key} className="space-y-1.5">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{config.label}</span>
-                      <span className="text-xs font-black text-white">{count}</span>
-                    </div>
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${perc}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full rounded-full"
-                        style={{ background: config.color }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="rf-card-premium rf-glass shadow-premium flex flex-col overflow-hidden">
-            <div className="rf-card-premium__head">
-              <h3 className="rf-card-premium__title">Mix de Vendas</h3>
-              <p className="rf-card-premium__subtitle">Top 5 Categorias/Produtos</p>
-            </div>
-            <div className="rf-card-premium__body pb-6">
-              <div className="h-48">
-                <DonutChart
-                  className="h-full"
-                  data={topProducts}
-                  category="receita"
-                  index="nome"
-                  valueFormatter={fmt}
-                  colors={["amber", "indigo", "emerald", "cyan", "violet", "rose", "fuchsia", "sky", "lime", "orange"]}
-                  showAnimation={true}
-                  variant="donut"
-                />
-              </div>
-            </div>
-          </div>
-        </Col>
-      </Grid>
-      {/* Linha 3: Saúde + Clientes + Alertas */}
-      <Grid numItemsLg={3} className="gap-6 mt-6">
-        {visao !== 'operacional' && (
-          <div className="rf-card-premium h-full rf-glass shadow-premium flex flex-col overflow-hidden">
-            <div className="rf-card-premium__head">
+          <div className="rf-bento-item rf-bento-span-8 rf-glass-glow shadow-premium overflow-hidden !p-0">
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
               <div>
-                <h3 className="rf-card-premium__title">Saúde da operação</h3>
-                <p className="rf-card-premium__subtitle">Sinais de maturidade da base</p>
+                <h3 className="text-sm font-bold text-white uppercase tracking-tight">Desempenho Comercial</h3>
+                <p className="text-[10px] text-slate-500 font-medium tracking-tight uppercase">Faturamento vs Lucro Bruto</p>
+              </div>
+              <div className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
+                {periodoDatas}
               </div>
             </div>
             
-            <div className="rf-card-premium__body space-y-6">
+            <div className="p-6">
+              <div className="h-80 w-full mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsAreaChart
+                    data={chartData}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid 
+                      strokeDasharray="3 3" 
+                      vertical={false} 
+                      stroke="rgba(255,255,255,0.05)" 
+                    />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      hide={true} 
+                      domain={['auto', 'auto']}
+                    />
+                    <Tooltip 
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl ring-1 ring-white/5">
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
+                              <div className="space-y-2">
+                                {payload.map((entry: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between gap-8">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                      <span className="text-[11px] font-bold text-slate-300 capitalize">{entry.name}</span>
+                                    </div>
+                                    <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="faturamento"
+                      stroke="var(--color-amber-vibrant)"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorFaturamento)"
+                      animationDuration={1500}
+                      dot={{ fill: 'var(--color-amber-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="lucro"
+                      stroke="var(--color-emerald-vibrant)"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorLucro)"
+                      animationDuration={2000}
+                      dot={{ fill: 'var(--color-emerald-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
+                      activeDot={{ r: 6, strokeWidth: 0 }}
+                    />
+                  </RechartsAreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="flex justify-center gap-8 mt-6">
+                 <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[var(--color-amber-vibrant)] shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[var(--color-emerald-vibrant)] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lucro</span>
+                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Melhor Dia</span>
+                  <span className="block text-lg font-black text-white">
+                    {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Média Diária</span>
+                  <span className="block text-lg font-black text-white">
+                    {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Período</span>
+                  <span className="block text-lg font-black text-white">
+                    {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Margem</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-black text-emerald-400">
+                      {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
+                        ? ((chartData.reduce((acc, d) => acc + d.lucro, 0) / chartData.reduce((acc, d) => acc + d.faturamento, 0)) * 100).toFixed(1)
+                        : 0}%
+                    </span>
+                    <TrendingUp size={16} className="text-emerald-500" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mix de Vendas (Bento Span 4) */}
+        <div className={`rf-bento-item ${visao === 'operacional' ? 'rf-bento-span-6' : 'rf-bento-span-4'} rf-glass overflow-hidden !p-0`}>
+          <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02]">
+            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Mix de Vendas</h3>
+            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Performance por Categoria</p>
+          </div>
+          <div className="p-6 flex flex-col gap-6">
+            <div className="h-48 relative">
+              <DonutChart
+                className="h-full"
+                data={topProducts}
+                category="receita"
+                index="nome"
+                valueFormatter={fmt}
+                colors={["amber", "indigo", "emerald", "cyan", "violet"]}
+                showAnimation={true}
+                variant="donut"
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Total</span>
+                 <span className="text-lg font-black text-white">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {topProducts.map((p, i) => (
+                <div key={p.nome} className="flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-1.5 h-1.5 rounded-full`} style={{ background: ['#f59e0b', '#6366f1', '#10b981', '#06b6d4', '#8b5cf6'][i] }} />
+                      <span className="text-slate-300 truncate max-w-[120px]">{p.nome}</span>
+                    </div>
+                    <span className="text-white">{p.percent.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${p.percent}%` }}
+                      transition={{ duration: 1, delay: i * 0.1 }}
+                      className="h-full rounded-full"
+                      style={{ background: ['#f59e0b', '#6366f1', '#10b981', '#06b6d4', '#8b5cf6'][i] }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Health Check */}
+        <div className={`rf-bento-item ${visao === 'operacional' ? 'rf-bento-span-6' : 'rf-bento-span-4'} rf-glass flex flex-col gap-4`}>
+           <HealthCheckCard />
+           <div className="mt-auto">
+              <FiscalHubCard />
+           </div>
+        </div>
+
+        {/* Status dos Pedidos (Bento Span 4) */}
+        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
+          <div className="px-6 py-4 border-b border-white/5 bg-white/[0.01]">
+            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Status da Base</h3>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{pedidos.length} Pedidos</span>
+              <div className="w-1 h-1 rounded-full bg-slate-600" />
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Sincronizado</span>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
+              const count = statusDistribution[key] || 0;
+              const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
+              return (
+                <div key={key} className="space-y-1.5">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{config.label}</span>
+                    <span className="text-xs font-black text-white">{count}</span>
+                  </div>
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${perc}%` }}
+                      transition={{ duration: 1, ease: "easeOut" }}
+                      className="h-full rounded-full"
+                      style={{ background: config.color }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Alertas e Pendências */}
+        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
+          <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Alertas Críticos</h3>
+            <Badge variant="rose">{alerts.length}</Badge>
+          </div>
+          <div className="p-6 flex-1 space-y-4">
+            {alerts.length > 0 ? alerts.slice(0, 4).map(a => (
+              <div key={a.id} className="flex items-start gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5 group hover:border-white/10 transition-all">
+                <div className={`p-2 rounded-lg ${a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                  {a.isPredictive ? <Zap size={14} /> : <AlertCircle size={14} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[11px] font-bold text-white truncate uppercase tracking-tight">{a.title}</span>
+                  <p className="text-[10px] text-slate-400 truncate mt-0.5">{a.desc}</p>
+                </div>
+              </div>
+            )) : (
+              <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
+                <CheckCircle2 size={32} className="text-emerald-500/30" />
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Tudo em dia</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Saúde da Operação (Bento Span 4) */}
+        {visao !== 'operacional' && (
+          <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
+            <div className="px-6 py-4 border-b border-white/5 bg-white/[0.01]">
+              <h3 className="text-sm font-bold text-white uppercase tracking-tight">Saúde da Operação</h3>
+              <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest tracking-tighter">Sinais Vitais</p>
+            </div>
+            
+            <div className="p-6 space-y-5">
               {[
-                { label: 'Contato da base', sub: 'WhatsApp ou e-mail', val: healthMetrics.contato, th: [80, 50] },
-                { label: 'Estoque saudável', sub: 'Produtos com saldo > 0', val: healthMetrics.estoque, th: [90, 70] },
-                { label: 'Mix ativo', sub: 'Saída no período', val: healthMetrics.mix, th: [30, 10] },
-                { label: 'Taxa de entrega', sub: 'Pedidos concluídos', val: healthMetrics.entrega, th: [70, 40] }
+                { label: 'Contato Base', val: healthMetrics.contato, th: [80, 50] },
+                { label: 'Estoque Ativo', val: healthMetrics.estoque, th: [90, 70] },
+                { label: 'Giro de Mix', val: healthMetrics.mix, th: [30, 10] },
+                { label: 'Eficiência Entrega', val: healthMetrics.entrega, th: [70, 40] }
               ].map(m => (
                 <div key={m.label} className="space-y-1.5">
                   <div className="flex justify-between items-end">
-                    <div>
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{m.label}</span>
-                      <span className="block text-[9px] text-slate-400">{m.sub}</span>
-                    </div>
-                    <span className="text-xs font-black text-white">{m.val.toFixed(1)}%</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{m.label}</span>
+                    <span className="text-xs font-black text-white">{m.val.toFixed(0)}%</span>
                   </div>
                   <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div 
@@ -794,103 +814,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             </div>
           </div>
         )}
-
-        <Col>
-          {visao === 'analitico' ? (
-            <div className="rf-card-premium h-full rf-glass shadow-premium flex flex-col overflow-hidden">
-              <div className="rf-card-premium__head">
-                <div>
-                  <h3 className="rf-card-premium__title">Base de clientes</h3>
-                  <p className="rf-card-premium__subtitle">{customerMetrics.total} ativos</p>
-                </div>
-                <div className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
-                  {customerMetrics.coberturaWhats.toFixed(0)}% COBERTURA
-                </div>
-              </div>
-              
-              <div className="rf-card-premium__body space-y-6">
-                {[
-                  { label: 'Com WhatsApp', val: customerMetrics.comWhats, color: 'emerald' },
-                  { label: 'Com e-mail', val: customerMetrics.comEmail, color: 'blue' },
-                  { label: 'Opt-in campanhas', val: customerMetrics.optIn, color: 'indigo' },
-                  { label: 'Compraram no período', val: customerMetrics.compraram, color: 'amber' }
-                ].map(m => (
-                  <div key={m.label} className="space-y-1.5">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{m.label}</span>
-                      <span className="text-xs font-black text-white">{m.val} / {customerMetrics.total}</span>
-                    </div>
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(m.val / customerMetrics.total) * 100}%` }}
-                        transition={{ duration: 1.2, ease: "easeOut" }}
-                        className="h-full rounded-full"
-                        style={{ background: m.color === 'emerald' ? '#10B981' : m.color === 'blue' ? '#3B82F6' : m.color === 'indigo' ? '#6366F1' : '#F59E0B' }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="rf-card-premium h-full rf-glass shadow-premium flex flex-col items-center justify-center text-center p-8 opacity-50 border-dashed">
-              <HelpCircle size={40} className="text-slate-500 mb-4" />
-              <h3 className="text-slate-400 text-sm font-bold uppercase tracking-widest">Métricas de Base</h3>
-              <p className="text-slate-400 text-xs mt-2">Disponível na visão Analítica</p>
-            </div>
-          )}
-        </Col>
-
-        <Col>
-          <div className="rf-card-premium h-full rf-glass shadow-premium flex flex-col overflow-hidden">
-            <div className="rf-card-premium__head">
-              <div>
-                <h3 className="rf-card-premium__title">Alertas e pendências</h3>
-                <p className="rf-card-premium__subtitle">Ações que precisam de atenção</p>
-              </div>
-              <div className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[10px] font-black uppercase tracking-widest border border-rose-500/20">
-                {alerts.length} PENDENTES
-              </div>
-            </div>
-
-            <div className="rf-card-premium__body flex-1 space-y-4">
-              {alerts.length > 0 ? alerts.map(a => (
-                <div key={a.id} className="flex items-start gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5 group hover:border-white/10 hover:bg-white/[0.04] transition-all">
-                  <div className={`p-2 rounded-lg ${a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                    {a.isPredictive ? <Zap size={16} /> : <AlertCircle size={16} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-white truncate uppercase tracking-tight">{a.title}</span>
-                      {a.isPredictive && (
-                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">NEXUS AI</span>
-                      )}
-                    </div>
-                    <p className="text-[10px] text-slate-400 truncate mt-0.5">{a.desc}</p>
-                  </div>
-                  <button 
-                    className="px-3 py-1 rounded text-[10px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-colors uppercase"
-                    onClick={() => window.location.href = a.link}
-                  >
-                    VER
-                  </button>
-                </div>
-              )) : (
-                <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
-                  <CheckCircle2 size={32} className="text-emerald-500/30" />
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Tudo limpo</p>
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 border-t border-white/5 flex justify-between items-center bg-black/10">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Sincronizado</span>
-              <span className="text-[9px] font-bold text-slate-400">{new Date().toLocaleTimeString()}</span>
-            </div>
-          </div>
-        </Col>
-      </Grid>
+      </div>
     </div>
   );
 }
@@ -902,7 +826,6 @@ function FiscalHubCard() {
   const handleEmit = async () => {
     setIsEmitting(true);
     try {
-      // Emitting for a random pending order just to demonstrate
       const result = await fiscalService.emitirNFe(token!, 'ANY-ORDER-ID');
       if (result.ok) {
         useToastStore.getState().addToast(`NFe ${result.nfe_id} emitida com sucesso!`, 'success');
@@ -915,33 +838,33 @@ function FiscalHubCard() {
   };
 
   return (
-    <div className="mt-6 rf-card-premium p-6 border-white/5 bg-gradient-to-br from-slate-900 to-indigo-950/20">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          Fiscal Hub
-        </h3>
-        <Badge variant="emerald">EM DIA</Badge>
-      </div>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">NFe Emitidas</span>
-          <span className="text-xs font-bold text-white">124</span>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <ShieldCheck className="w-4 h-4 text-emerald-400" />
+           <span className="text-[10px] font-black text-white uppercase tracking-widest">Fiscal Hub</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-400">Pendente Emissão</span>
-          <span className="text-xs font-bold text-amber-400">3</span>
-        </div>
-        <Button 
-          size="sm" 
-          variant="secondary" 
-          className="w-full !rounded-lg mt-2"
-          onClick={handleEmit}
-          loading={isEmitting}
-        >
-          {isEmitting ? 'Emitindo...' : 'Emitir Notas Pendentes'}
-        </Button>
+        <Badge variant="emerald" className="!py-0 !text-[8px]">EM DIA</Badge>
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+           <span className="block text-[8px] font-black text-slate-500 uppercase mb-1">Emitidas</span>
+           <span className="text-sm font-black text-white">124</span>
+        </div>
+        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
+           <span className="block text-[8px] font-black text-slate-500 uppercase mb-1">Pendentes</span>
+           <span className="text-sm font-black text-amber-400">3</span>
+        </div>
+      </div>
+      <Button 
+        size="sm" 
+        variant="secondary" 
+        className="w-full !rounded-lg !text-[10px] font-black"
+        onClick={handleEmit}
+        loading={isEmitting}
+      >
+        {isEmitting ? 'Emitindo...' : 'Emitir Pendências'}
+      </Button>
     </div>
   );
 }
