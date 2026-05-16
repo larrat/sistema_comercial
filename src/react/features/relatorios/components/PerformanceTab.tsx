@@ -46,42 +46,34 @@ export function PerformanceTab() {
       {/* KPIs de Topo */}
       <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
         <TremorCard decoration="left" decorationColor="indigo" className="!bg-surface-card !border-border-subtle">
-          <Text className="!text-text-muted">Total de Pedidos</Text>
-          <Metric className="!text-text-primary !font-black">{pedidos.length}</Metric>
+          <Text className="text-slate-400">Total de Pedidos</Text>
+          <Metric className="text-white !font-black">{pedidos.length}</Metric>
         </TremorCard>
         <TremorCard decoration="left" decorationColor="emerald" className="!bg-surface-card !border-border-subtle">
-          <Text className="!text-text-muted">Pedidos Entregues</Text>
-          <Metric className="!text-text-primary !font-black">{entregues.length}</Metric>
+          <Text className="text-slate-400">Pedidos Entregues</Text>
+          <Metric className="text-white !font-black">{entregues.length}</Metric>
         </TremorCard>
         <TremorCard decoration="left" decorationColor="cyan" className="!bg-surface-card !border-border-subtle">
-          <Text className="!text-text-muted">Faturamento</Text>
-          <Metric className="!text-text-primary !font-black">{fmt(faturamento)}</Metric>
+          <Text className="text-slate-400">Faturamento</Text>
+          <Metric className="text-white !font-black">{fmt(faturamento)}</Metric>
         </TremorCard>
         <TremorCard decoration="left" decorationColor="amber" className="!bg-surface-card !border-border-subtle">
-          <Text className="!text-text-muted">Ticket Médio</Text>
-          <Metric className="!text-text-primary !font-black">{fmt(ticketMedio)}</Metric>
+          <Text className="text-slate-400">Ticket Médio</Text>
+          <Metric className="text-white !font-black">{fmt(ticketMedio)}</Metric>
         </TremorCard>
       </Grid>
 
       <Grid numItemsLg={2} className="gap-6">
         {/* Distribuição por Status */}
         <TremorCard className="!bg-surface-card !border-border-subtle">
-          <Title className="!text-text-primary !font-bold">Distribuição por Status</Title>
-          <Flex className="mt-4">
-            <Text className="!text-text-muted"><Bold>Status</Bold></Text>
-            <Text className="!text-text-muted"><Bold>Qtd</Bold></Text>
-          </Flex>
-          <BarList data={statusData} color="emerald" className="mt-2" />
+          <Title className="text-white !font-bold">Distribuição por Status</Title>
+          <BarList data={statusData} color="emerald" className="mt-6" />
         </TremorCard>
 
         {/* Top Clientes */}
         <TremorCard className="!bg-surface-card !border-border-subtle">
-          <Title className="!text-text-primary !font-bold">Top 8 Clientes (Faturamento)</Title>
-          <Flex className="mt-4">
-            <Text className="!text-text-muted"><Bold>Cliente</Bold></Text>
-            <Text className="!text-text-muted"><Bold>Total</Bold></Text>
-          </Flex>
-          <BarList data={clientesData} valueFormatter={fmt} color="cyan" className="mt-2" />
+          <Title className="text-white !font-bold">Top 8 Clientes (Faturamento)</Title>
+          <BarList data={clientesData} valueFormatter={fmt} color="cyan" className="mt-6" />
         </TremorCard>
       </Grid>
     </div>

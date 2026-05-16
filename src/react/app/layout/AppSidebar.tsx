@@ -57,6 +57,81 @@ const groupColors: Record<string, string> = {
   'Administração': '#fb7185', // rose-400
 };
 
+interface NavItem {
+  id: string;
+  label: string;
+  path: string;
+}
+
+function SidebarNavItem({ 
+  item, 
+  collapsed, 
+  groupLabel 
+}: { 
+  item: NavItem; 
+  collapsed: boolean; 
+  groupLabel: string;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  const Icon = iconByPath[item.path] ?? Circle;
+  const gColor = groupColors[groupLabel] || '#3b82f6';
+
+  return (
+    <NavLink
+      to={item.path}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={({ isActive }) =>
+        `flex items-center rounded-lg transition-all duration-200 relative group
+        ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-3 py-2.5 w-full'}
+         ${
+           isActive
+             ? 'bg-cyan-500/10 text-white font-bold'
+             : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+         }`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <motion.div
+              layoutId="active-marker"
+              className="absolute left-0 w-1 h-5 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+              style={{ backgroundColor: gColor }}
+            />
+          )}
+
+          <Icon
+            size={collapsed ? 24 : 18}
+            strokeWidth={isActive ? 2.5 : 2}
+            className="flex-shrink-0 relative z-10 transition-transform group-active:scale-95"
+            style={{ color: isActive ? gColor : undefined }}
+          />
+
+          {!collapsed && (
+            <span className="truncate text-[13px] tracking-tight relative z-10">
+              {item.label}
+            </span>
+          )}
+
+          <AnimatePresence>
+            {collapsed && isHovered && (
+              <motion.div
+                initial={{ opacity: 0, x: 5 }}
+                animate={{ opacity: 1, x: 15 }}
+                exit={{ opacity: 0, x: 5 }}
+                className="absolute left-full ml-2 px-3 py-1.5 bg-slate-800 text-white text-[11px] font-bold rounded-md shadow-2xl border border-slate-700 whitespace-nowrap z-[100] pointer-events-none"
+              >
+                {item.label}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+    </NavLink>
+  );
+}
+
 export function AppSidebar() {
   const groups = useNavigationItems();
   const clearSession = useAuthStore((s) => s.clearSession);
@@ -165,68 +240,14 @@ export function AppSidebar() {
               {collapsed && <div className="h-px bg-slate-800/30 w-8 mb-1" />}
 
               <div className={`flex flex-col gap-0.5 ${collapsed ? 'items-center w-full' : ''}`}>
-                {filteredItems.map((item) => {
-                  const Icon = iconByPath[item.path] ?? Circle;
-                  const [isHovered, setIsHovered] = useState(false);
-                  const gColor = groupColors[group.label] || '#3b82f6';
-
-                  return (
-                    <NavLink
-                      key={item.id}
-                      to={item.path}
-                      onMouseEnter={() => setIsHovered(true)}
-                      onMouseLeave={() => setIsHovered(false)}
-                      className={({ isActive }) =>
-                        `flex items-center rounded-lg transition-all duration-200 relative group
-                        ${collapsed ? 'justify-center w-12 h-12' : 'gap-3 px-3 py-2.5 w-full'}
-                         ${
-                          isActive
-                             ? 'bg-cyan-500/10 text-white font-bold'
-                             : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                         }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          {isActive && (
-                            <motion.div 
-                              layoutId="active-marker"
-                              className="absolute left-0 w-1 h-5 bg-blue-500 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"
-                              style={{ backgroundColor: gColor }}
-                            />
-                          )}
-
-                          <Icon 
-                            size={collapsed ? 24 : 18} 
-                            strokeWidth={isActive ? 2.5 : 2} 
-                            className="flex-shrink-0 relative z-10 transition-transform group-active:scale-95"
-                            style={{ color: isActive ? gColor : undefined }}
-                          />
-                          
-                          {!collapsed && (
-                            <span className="truncate text-[13px] tracking-tight relative z-10">
-                              {item.label}
-                            </span>
-                          )}
-
-                          {/* Tooltip Collapsed */}
-                          <AnimatePresence>
-                            {collapsed && isHovered && (
-                              <motion.div
-                                initial={{ opacity: 0, x: 5 }}
-                                animate={{ opacity: 1, x: 15 }}
-                                exit={{ opacity: 0, x: 5 }}
-                                className="absolute left-full ml-2 px-3 py-1.5 bg-slate-800 text-white text-[11px] font-bold rounded-md shadow-2xl border border-slate-700 whitespace-nowrap z-[100] pointer-events-none"
-                              >
-                                {item.label}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
+                {filteredItems.map((item) => (
+                  <SidebarNavItem
+                    key={item.id}
+                    item={item}
+                    collapsed={collapsed}
+                    groupLabel={group.label}
+                  />
+                ))}
               </div>
             </div>
           );

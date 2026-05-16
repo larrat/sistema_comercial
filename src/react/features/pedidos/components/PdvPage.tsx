@@ -4,6 +4,7 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input, ScannerModal } from '../../../shared/ui';
+import { Camera } from 'lucide-react';
 import { usePedidoMutations } from '../hooks/usePedidosQuery';
 import { getNextPedidoNumber } from '../services/pedidosApi';
 import {
@@ -679,7 +680,7 @@ export function PdvPage() {
 
             <div className="rf-pdv__search">
               <span className="rf-pdv__search-icon" aria-hidden="true" onClick={() => setIsScannerOpen(true)}>
-                📷
+                <Camera size={18} strokeWidth={2.5} />
               </span>
               <input
                 ref={productInputRef}
@@ -733,7 +734,7 @@ export function PdvPage() {
                         <button
                           key={produto.id}
                           type="button"
-                          className={`rf-pdv__suggestion\${isActive ? ' is-active' : ''}`}
+                          className={`rf-pdv__suggestion ${isActive ? 'is-active' : ''}`}
                           onMouseEnter={() => setActiveSuggestionIndex(index)}
                           onClick={() => handleSelectProduto(produto)}
                         >
@@ -784,7 +785,7 @@ export function PdvPage() {
                     return (
                       <div
                         key={item.key}
-                        className={`rf-pdv__cart-row\${isFocused ? ' is-focused' : ''}`}
+                        className={`rf-pdv__cart-row ${isFocused ? 'is-focused' : ''}`}
                         tabIndex={0}
                         onFocus={() => setFocusedItemKey(item.key)}
                         onKeyDown={(event) => {
@@ -903,7 +904,7 @@ export function PdvPage() {
                   return (
                     <button
                       key={option.value}
-                      className={`rf-pdv__payment-btn\${isActive ? ' is-active' : ''}`}
+                      className={`rf-pdv__payment-btn ${isActive ? 'is-active' : ''}`}
                       type="button"
                       disabled={isDisabled}
                       onClick={() => setPaymentMethod(option.value)}
