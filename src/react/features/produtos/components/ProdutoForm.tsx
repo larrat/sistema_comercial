@@ -132,12 +132,20 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
   const cores = useMemo(() => coresInput.split(',').map(c => c.trim()).filter(Boolean), [coresInput]);
 
-  const onSubmit = (values: ProdutoFormValues) => onSalvar(values, gradeSelecionada, cores);
+  const onSubmit = (values: ProdutoFormValues) => { try { onSalvar(values, gradeSelecionada, cores); } catch (e) { console.error("Submit Error:", e); toast.error("Erro ao processar envio"); } };
   const handleCustomSubmit = handleSubmit(onSubmit);
 
   useEffect(() => {
     reset(toFormValues(produto));
   }, [produto, reset]);
+
+  useEffect(() => {
+    const errorKeys = Object.keys(errors);
+    if (errorKeys.length > 0) {
+      if (errors.nome) setActiveTab("geral");
+      else if (errors.custo || errors.precoVarejo || errors.markupVarejo) setActiveTab("comercial");
+    }
+  }, [errors]);
 
   async function handleUpload(file: File) {
     try {

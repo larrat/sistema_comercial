@@ -27,16 +27,19 @@ export function ProdutoCreateRoutePage() {
   const saveMutation = useMutation({
     mutationFn: (data: Produto | Produto[]) => saveProduto(context, data),
     onSuccess: () => {
+      toast.dismiss();
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
       toast.success('Produto(s) criado(s) com sucesso!');
       navigate('/app/produtos');
     },
     onError: (err: any) => {
+      toast.dismiss();
       toast.error(err.message || 'Erro ao salvar produto');
     }
   });
 
   const handleSalvar = async (values: ProdutoFormValues, grade?: string[], cores?: string[]) => {
+    const loadingToast = toast.loading("Processando catálogo...");
     try {
       const parent = formValuesToProduto(values, filialId, null);
       
@@ -76,7 +79,7 @@ export function ProdutoCreateRoutePage() {
         });
       }
 
-      saveMutation.mutate(payload);
+      console.log("Saving payload:", payload); saveMutation.mutate(payload);
     } catch (err: any) {
       toast.error(err.message || 'Erro ao processar dados do produto');
     }

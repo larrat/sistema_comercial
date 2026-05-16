@@ -113,7 +113,7 @@ export function formValuesToProduto(
       : parseFloat(values.markupVarejo || '0') || 0;
 
   return {
-    id: (values.id as string) ?? crypto.randomUUID(),
+    id: (values.id as string) || crypto.randomUUID(),
     filial_id: filialId,
     produto_pai_id: values.produto_pai_id ?? null,
     nome: values.nome.trim(),
