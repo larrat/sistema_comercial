@@ -79,8 +79,10 @@ export function ProdutoCreateRoutePage() {
         });
       }
 
-      console.log("Saving payload:", payload); saveMutation.mutate(payload);
+      console.log("Saving payload:", payload); 
+      saveMutation.mutate(payload);
     } catch (err: any) {
+      toast.dismiss();
       toast.error(err.message || 'Erro ao processar dados do produto');
     }
   };
@@ -127,3 +129,4 @@ export function ProdutoCreateRoutePage() {
     </motion.div>
   );
 }
+ Broadway
