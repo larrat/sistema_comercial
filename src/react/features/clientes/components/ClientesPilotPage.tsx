@@ -11,7 +11,8 @@ import {
   PageHeader,
   PillGroup,
   StatusBadge,
-  Button
+  Button,
+  Typography
 } from '../../../shared/ui';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -214,9 +215,9 @@ export function ClientesPilotPage({
         title="Clientes"
         description="Acompanhe a base de clientes, revise segmentos e abra cadastro ou detalhe sem sair da rotina operacional."
         meta={
-          <StatusBadge tone="info">
+          <Typography variant="label" color="muted" className="bg-white/5 px-3 py-1.5 rounded-xl border border-white/5">
             {total} no total · página {page} de {pageCount}
-          </StatusBadge>
+          </Typography>
         }
         actions={
           <div className="flex items-center gap-6">
@@ -232,7 +233,7 @@ export function ClientesPilotPage({
             <div className="h-8 w-px bg-white/10 mx-1" />
 
             <button
-              className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan"
+              className="rf-btn-premium rf-btn-premium--primary"
               data-testid="novo-btn"
               onClick={() => openNewCliente('header_button')}
             >
@@ -323,12 +324,12 @@ export function ClientesPilotPage({
                     label: 'Nome',
                     sortable: true,
                     render: (cliente) => (
-                      <div className="flex items-center gap-2" data-testid="cliente-card">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-medium text-slate-300">
+                      <div className="flex items-center gap-3" data-testid="cliente-card">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-cyan-400 uppercase tracking-tighter shadow-inner">
                           {getInitials(cliente.nome || '')}
                         </div>
                         <div className="min-w-0">
-                          <span className="block truncate text-sm font-medium text-slate-100">{cliente.nome}</span>
+                          <span className="block truncate text-sm font-black text-white">{cliente.nome}</span>
                           {cliente.apelido ? (
                             <span className="block truncate text-xs text-slate-400">{cliente.apelido}</span>
                           ) : null}

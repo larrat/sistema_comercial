@@ -7,7 +7,8 @@ import {
   EmptyState,
   StatusBadge,
   Button,
-  Badge
+  Badge,
+  Typography
 } from '../../../shared/ui';
 import { Package, AlertTriangle } from 'lucide-react';
 import type { StatusBadgeTone } from '../../../shared/ui/StatusBadge';
@@ -146,9 +147,9 @@ export function ProdutoListView({
           label: 'Produto',
           sortable: true,
           render: (row) => (
-            <div className={`flex items-center gap-2 ${row.isPai ? 'font-bold text-slate-100' : 'font-medium text-slate-300'}`}>
+            <div className={`flex items-center gap-3 ${row.isPai ? 'font-black' : 'font-medium'}`}>
               {row.isVariante ? (
-                <span className="text-slate-500 select-none" aria-hidden="true">
+                <span className="text-slate-600 select-none text-xs" aria-hidden="true">
                   ↳
                 </span>
               ) : null}
@@ -159,9 +160,9 @@ export function ProdutoListView({
                    <Package size={14} className="text-slate-600" />
                  )}
               </div>
-              <span className="truncate">{row.prod.nome}</span>
+              <span className={`truncate ${row.isPai ? 'text-white' : 'text-slate-200'}`}>{row.prod.nome}</span>
               {row.isPai ? (
-                <Badge variant="slate" className="text-[10px]">
+                <Badge variant="slate" className="text-[9px] font-black uppercase tracking-widest bg-white/5 border-white/10">
                   Família
                 </Badge>
               ) : null}
@@ -193,10 +194,10 @@ export function ProdutoListView({
             const { varejo, atacado } = calcPrecos(row.prod);
             return (
               <div className="flex flex-col gap-0.5">
-                <div className="text-[15px] font-bold text-slate-100">
+                <div className="text-[15px] font-black text-white font-display tracking-tight">
                   {varejo > 0 ? fmt(varejo) : '—'}
                 </div>
-                <div className="text-[11px] font-medium text-slate-500">
+                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                   Atacado: {atacado > 0 ? fmt(atacado) : '—'}
                 </div>
               </div>
@@ -307,8 +308,8 @@ export function ProdutoListMobile({
         return (
           <div
             key={p.id}
-            className="rf-card-premium p-4 flex flex-col gap-4 relative overflow-hidden"
-            style={isVariante ? { marginLeft: 16, borderLeft: '4px solid #8B5CF6' } : { borderLeft: '4px solid #3B82F6' }}
+            className="rf-card-premium rf-glass p-5 flex flex-col gap-5 relative overflow-hidden transition-all hover:scale-[1.01]"
+            style={isVariante ? { marginLeft: 20, borderLeft: '4px solid var(--color-indigo-vibrant)' } : { borderLeft: '4px solid var(--color-cyan-vibrant)' }}
           >
             <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
                <Package className="w-12 h-12" />
@@ -348,31 +349,24 @@ export function ProdutoListMobile({
               <StatusBadge tone={stockTone(saldo, emin)}>{stockLabel(saldo, emin)}</StatusBadge>
             </div>
 
-            <div className="mobile-card-meta">
-              <div>
-                Custo: <b style={{ color: 'var(--tx)' }}>{fmt(p.custo)}</b>
+            <div className="mobile-card-meta grid grid-cols-2 gap-y-3 gap-x-4 border-t border-white/5 pt-4">
+              <div className="flex flex-col">
+                <Typography variant="label" color="muted">Custo</Typography>
+                <span className="text-sm font-black text-white font-display">{fmt(p.custo)}</span>
               </div>
-              <div>
-                Varejo: <b style={{ color: 'var(--tx)' }}>{varejo > 0 ? fmt(varejo) : '—'}</b>
+              <div className="flex flex-col">
+                <Typography variant="label" color="muted">Varejo</Typography>
+                <span className="text-sm font-black text-white font-display">{varejo > 0 ? fmt(varejo) : '—'}</span>
               </div>
-              <div>
-                Atacado: <b style={{ color: 'var(--tx)' }}>{atacado > 0 ? fmt(atacado) : '—'}</b>
+              <div className="flex flex-col">
+                <Typography variant="label" color="muted">Atacado</Typography>
+                <span className="text-sm font-black text-slate-300 font-display">{atacado > 0 ? fmt(atacado) : '—'}</span>
               </div>
-              <div>
-                Saldo:{' '}
-                <b
-                  style={{
-                    color:
-                      saldo <= 0
-                        ? 'var(--r)'
-                        : emin > 0 && saldo < emin
-                          ? 'var(--a)'
-                          : 'var(--tx)'
-                  }}
-                >
-                  {fmtQ(saldo)} {p.un}
-                </b>
-                {emin > 0 ? ` · min. ${fmtQ(emin)}` : ''}
+              <div className="flex flex-col">
+                <Typography variant="label" color="muted">Saldo</Typography>
+                <span className={`text-sm font-black font-display ${saldo <= 0 ? 'text-rose-400' : emin > 0 && saldo < emin ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {fmtQ(saldo)} <span className="text-[10px] font-normal opacity-60">{p.un}</span>
+                </span>
               </div>
             </div>
 

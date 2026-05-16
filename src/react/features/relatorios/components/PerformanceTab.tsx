@@ -1,13 +1,8 @@
 import { 
   Card as TremorCard, 
-  Metric, 
-  Text, 
-  Flex, 
-  Grid, 
   BarList,
-  Title,
-  Bold
 } from '@tremor/react';
+import { Typography } from '../../../shared/ui/Typography';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 function fmt(v: number): string {
@@ -42,40 +37,48 @@ export function PerformanceTab() {
     .map(([name, data]) => ({ name, value: data.total }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* KPIs de Topo */}
-      <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
-        <TremorCard decoration="left" decorationColor="indigo" className="!bg-surface-card !border-border-subtle">
-          <Text className="text-slate-400">Total de Pedidos</Text>
-          <Metric className="text-white !font-black">{pedidos.length}</Metric>
-        </TremorCard>
-        <TremorCard decoration="left" decorationColor="emerald" className="!bg-surface-card !border-border-subtle">
-          <Text className="text-slate-400">Pedidos Entregues</Text>
-          <Metric className="text-white !font-black">{entregues.length}</Metric>
-        </TremorCard>
-        <TremorCard decoration="left" decorationColor="cyan" className="!bg-surface-card !border-border-subtle">
-          <Text className="text-slate-400">Faturamento</Text>
-          <Metric className="text-white !font-black">{fmt(faturamento)}</Metric>
-        </TremorCard>
-        <TremorCard decoration="left" decorationColor="amber" className="!bg-surface-card !border-border-subtle">
-          <Text className="text-slate-400">Ticket Médio</Text>
-          <Metric className="text-white !font-black">{fmt(ticketMedio)}</Metric>
-        </TremorCard>
-      </Grid>
+      <div className="rf-bento-grid">
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+          <Typography variant="label" color="muted">Total de Pedidos</Typography>
+          <Typography variant="h2" weight="black" className="text-white font-display">
+            {pedidos.length}
+          </Typography>
+        </div>
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+          <Typography variant="label" color="muted">Pedidos Entregues</Typography>
+          <Typography variant="h2" weight="black" className="text-emerald-400 font-display">
+            {entregues.length}
+          </Typography>
+        </div>
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+          <Typography variant="label" color="muted">Faturamento</Typography>
+          <Typography variant="h2" weight="black" className="text-white font-display">
+            {fmt(faturamento)}
+          </Typography>
+        </div>
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+          <Typography variant="label" color="muted">Ticket Médio</Typography>
+          <Typography variant="h2" weight="black" className="text-amber-400 font-display">
+            {fmt(ticketMedio)}
+          </Typography>
+        </div>
+      </div>
 
-      <Grid numItemsLg={2} className="gap-6">
+      <div className="rf-bento-grid">
         {/* Distribuição por Status */}
-        <TremorCard className="!bg-surface-card !border-border-subtle">
-          <Title className="text-white !font-bold">Distribuição por Status</Title>
-          <BarList data={statusData} color="emerald" className="mt-6" />
-        </TremorCard>
+        <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-8 border border-white/5">
+          <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-8">Distribuição por Status</Typography>
+          <BarList data={statusData} color="emerald" className="mt-2" />
+        </div>
 
         {/* Top Clientes */}
-        <TremorCard className="!bg-surface-card !border-border-subtle">
-          <Title className="text-white !font-bold">Top 8 Clientes (Faturamento)</Title>
-          <BarList data={clientesData} valueFormatter={fmt} color="cyan" className="mt-6" />
-        </TremorCard>
-      </Grid>
+        <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-8 border border-white/5">
+          <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-8">Top 8 Clientes (Faturamento)</Typography>
+          <BarList data={clientesData} valueFormatter={fmt} color="cyan" className="mt-2" />
+        </div>
+      </div>
     </div>
   );
 }

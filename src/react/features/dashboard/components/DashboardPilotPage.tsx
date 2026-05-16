@@ -52,12 +52,12 @@ const fmt = (v: number) => BRL.format(v || 0);
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   orcamento: { label: 'Orçamento', color: '#94A3B8' },
-  em_andamento: { label: 'Em andamento', color: '#6366F1' },
-  em_separacao: { label: 'Em separação', color: '#C5A059' },
-  entregue_aguardando_pagamento: { label: 'Entregue · aguardando pgto', color: '#F59E0B' },
-  pago_aguardando_entrega: { label: 'Pago · aguardando entrega', color: '#8B5CF6' },
-  concluido: { label: 'Concluído', color: '#10B981' },
-  cancelado: { label: 'Cancelado', color: '#EF4444' }
+  em_andamento: { label: 'Em andamento', color: 'var(--color-indigo-vibrant)' },
+  em_separacao: { label: 'Em separação', color: 'var(--color-amber-vibrant)' },
+  entregue_aguardando_pagamento: { label: 'Aguardando Pagamento', color: 'var(--color-cyan-vibrant)' },
+  pago_aguardando_entrega: { label: 'Aguardando Entrega', color: 'var(--color-indigo-vibrant)' },
+  concluido: { label: 'Concluído', color: 'var(--color-emerald-vibrant)' },
+  cancelado: { label: 'Cancelado', color: 'var(--color-rose-vibrant)' }
 };
 
 function cn(...inputs: ClassValue[]) {
@@ -439,10 +439,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       >
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1"
+          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl"
         >
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Faturamento</span>
-          <div className="text-3xl font-black text-white">
+          <Typography variant="label" color="muted" className="mb-1">Faturamento</Typography>
+          <div className="text-3xl font-black text-white font-display">
             <CountUp 
               end={stats.faturamento} 
               decimals={2} 
@@ -452,16 +452,16 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               separator="."
             />
           </div>
-          <span className="text-[10px] text-slate-500 font-medium">{stats.pedidosEntregues} entregue(s) no período</span>
+          <Typography variant="caption" color="muted" className="!lowercase first-letter:uppercase">{stats.pedidosEntregues} entregue(s) no período</Typography>
         </motion.article>
 
         {visao !== 'operacional' && (
           <motion.article 
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 ring-1 ring-emerald-500/20"
+            className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 ring-1 ring-emerald-500/20 shadow-2xl"
           >
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lucro bruto</span>
-            <div className="text-3xl font-black text-emerald-400">
+            <Typography variant="label" color="muted" className="mb-1">Lucro bruto</Typography>
+            <div className="text-3xl font-black text-emerald-400 font-display">
               <CountUp 
                 end={stats.lucroTotal} 
                 decimals={2} 
@@ -471,18 +471,18 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 separator="."
               />
             </div>
-            <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
+            <Typography variant="caption" className="!text-emerald-500 font-bold flex items-center gap-1">
               <TrendingUp size={12} strokeWidth={3} /> Margem {stats.margem.toFixed(1)}%
-            </span>
+            </Typography>
           </motion.article>
         )}
 
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1"
+          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl"
         >
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ticket médio</span>
-          <div className="text-3xl font-black text-white">
+          <Typography variant="label" color="muted" className="mb-1">Ticket médio</Typography>
+          <div className="text-3xl font-black text-white font-display">
             <CountUp 
               end={stats.ticketMedio} 
               decimals={2} 
@@ -492,15 +492,15 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               separator="."
             />
           </div>
-          <span className="text-[10px] text-slate-500 font-medium">{stats.totalPedidos} pedido(s) no período</span>
+          <Typography variant="caption" color="muted" className="!lowercase first-letter:uppercase">{stats.totalPedidos} pedido(s) no período</Typography>
         </motion.article>
 
         <motion.article 
           variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className={`rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 ${stats.valorEmAberto === 0 ? 'ring-1 ring-emerald-500/20' : 'ring-1 ring-amber-500/20'}`}
+          className={`rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 shadow-2xl ${stats.valorEmAberto === 0 ? 'ring-1 ring-emerald-500/20' : 'ring-1 ring-amber-500/20'}`}
         >
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Em aberto</span>
-          <div className={`text-3xl font-black ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+          <Typography variant="label" color="muted" className="mb-1">Em aberto</Typography>
+          <div className={`text-3xl font-black font-display ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
             <CountUp 
               end={stats.valorEmAberto} 
               decimals={2} 
@@ -510,9 +510,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               separator="."
             />
           </div>
-          <span className={`text-[10px] ${stats.valorEmAberto > 0 ? 'text-amber-500' : 'text-emerald-500'} font-bold`}>
+          <Typography variant="caption" className={`font-bold !lowercase first-letter:uppercase ${stats.valorEmAberto > 0 ? '!text-amber-500' : '!text-emerald-500'}`}>
             {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
-          </span>
+          </Typography>
         </motion.article>
       </motion.section>
 
@@ -521,10 +521,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         {/* Gráfico de Faturamento e Lucro */}
         {visao !== 'operacional' && (
           <div className="rf-bento-item rf-bento-span-8 rf-glass-glow shadow-premium overflow-hidden !p-0">
-            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-tight">Desempenho Comercial</h3>
-                <p className="text-[10px] text-slate-500 font-medium tracking-tight uppercase">Faturamento vs Lucro Bruto</p>
+            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+              <div className="space-y-0.5">
+                <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Desempenho Comercial</Typography>
+                <Typography variant="caption" color="muted">Faturamento vs Lucro Bruto</Typography>
               </div>
               <div className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
                 {periodoDatas}
@@ -568,16 +568,16 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       content={({ active, payload, label }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-slate-950/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl ring-1 ring-white/5">
-                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
-                              <div className="space-y-2">
+                            <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 animate-in fade-in zoom-in duration-200">
+                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 border-b border-white/5 pb-2">{label}</p>
+                              <div className="space-y-3">
                                 {payload.map((entry: any, index: number) => (
-                                  <div key={index} className="flex items-center justify-between gap-8">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                                      <span className="text-[11px] font-bold text-slate-300 capitalize">{entry.name}</span>
+                                  <div key={index} className="flex items-center justify-between gap-12">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(var(--rgb-white),0.4)]" style={{ backgroundColor: entry.color }} />
+                                      <span className="text-[11px] font-black text-slate-300 uppercase tracking-tight">{entry.name}</span>
                                     </div>
-                                    <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
+                                    <span className="text-xs font-black text-white font-display tracking-tight">{fmt(entry.value)}</span>
                                   </div>
                                 ))}
                               </div>
@@ -661,9 +661,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         {/* Mix de Vendas (Bento Span 4) */}
         <div className={`rf-bento-item ${visao === 'operacional' ? 'rf-bento-span-6' : 'rf-bento-span-4'} rf-glass overflow-hidden !p-0`}>
-          <div className="px-6 py-4 border-b border-white/5 bg-white/[0.02]">
-            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Mix de Vendas</h3>
-            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest">Performance por Categoria</p>
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Mix de Vendas</Typography>
+            <Typography variant="caption" color="muted">Performance por Categoria</Typography>
           </div>
           <div className="p-6 flex flex-col gap-6">
             <div className="h-48 relative">
@@ -673,13 +673,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 category="receita"
                 index="nome"
                 valueFormatter={fmt}
-                colors={["amber", "indigo", "emerald", "cyan", "violet"]}
+                colors={["cyan", "amber", "emerald", "indigo", "rose"]}
                 showAnimation={true}
                 variant="donut"
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Total</span>
-                 <span className="text-lg font-black text-white">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+                 <Typography variant="label" color="muted" className="!text-[9px]">Total</Typography>
+                 <span className="text-xl font-black text-white font-display tracking-tight">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
               </div>
             </div>
 
@@ -688,18 +688,18 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <div key={p.nome} className="flex flex-col gap-1.5">
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight">
                     <div className="flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full`} style={{ background: ['#f59e0b', '#6366f1', '#10b981', '#06b6d4', '#8b5cf6'][i] }} />
+                      <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(var(--rgb-white),0.2)]`} style={{ background: ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][i] }} />
                       <span className="text-slate-300 truncate max-w-[120px]">{p.nome}</span>
                     </div>
-                    <span className="text-white">{p.percent.toFixed(1)}%</span>
+                    <span className="text-white font-display">{p.percent.toFixed(1)}%</span>
                   </div>
-                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${p.percent}%` }}
                       transition={{ duration: 1, delay: i * 0.1 }}
                       className="h-full rounded-full"
-                      style={{ background: ['#f59e0b', '#6366f1', '#10b981', '#06b6d4', '#8b5cf6'][i] }}
+                      style={{ background: ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][i] }}
                     />
                   </div>
                 </div>
@@ -718,12 +718,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         {/* Status dos Pedidos (Bento Span 4) */}
         <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
-          <div className="px-6 py-4 border-b border-white/5 bg-white/[0.01]">
-            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Status da Base</h3>
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Status da Base</Typography>
             <div className="mt-1 flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{pedidos.length} Pedidos</span>
-              <div className="w-1 h-1 rounded-full bg-slate-600" />
-              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Sincronizado</span>
+              <Typography variant="label" color="muted" className="!text-[9px]">{pedidos.length} Pedidos</Typography>
+              <div className="w-1 h-1 rounded-full bg-slate-700" />
+              <Typography variant="label" className="!text-[9px] !text-emerald-500">Sincronizado</Typography>
             </div>
           </div>
 
