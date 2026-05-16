@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react
 import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingState } from './LoadingState';
 import { Button } from './Button';
+import { Typography } from './Typography';
 import { X } from 'lucide-react';
 
 export type DrawerProps = {
@@ -85,23 +86,27 @@ export function Drawer({
             aria-labelledby={title ? titleId : undefined}
             aria-label={title ? undefined : 'Painel lateral'}
           >
-            <div className="rf-ui-drawer__head">
+            <div className="rf-ui-drawer__head mb-8">
               <div className="min-w-0">
                 {title ? (
-                  <div id={titleId} className="rf-ui-drawer__title text-white font-black uppercase tracking-tight">
+                  <Typography variant="h3" weight="black" className="uppercase !text-lg">
                     {title}
-                  </div>
+                  </Typography>
                 ) : null}
-                {subtitle ? <div className="rf-ui-drawer__subtitle text-slate-400 text-[10px] uppercase font-bold mt-1 tracking-wider">{subtitle}</div> : null}
+                {subtitle ? (
+                  <Typography variant="label" color="muted" className="mt-1 !lowercase first-letter:uppercase">
+                    {subtitle}
+                  </Typography>
+                ) : null}
               </div>
               <div className="rf-ui-drawer__actions flex items-center gap-3">
                 {action}
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-white/5"
                   title="Fechar"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
             </div>

@@ -252,12 +252,16 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   return (
     <form className="flex flex-col gap-10" onSubmit={handleSubmit(onSalvar)} data-testid="produto-form">
-      <FormSection title="Essencial" description="Identificação básica para encontrar e vender o produto no dia a dia." aside={<span className="px-2 py-1 bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-blue-100">Obrigatório</span>}>
+      <FormSection 
+        title="Essencial" 
+        description="Identificação básica para encontrar e vender o produto no dia a dia." 
+        aside={<span className="px-2 py-1 bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-cyan-500/20">Obrigatório</span>}
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="flex flex-col gap-4">
-             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Foto do Produto</label>
+             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Foto do Produto</label>
              <div className="relative group">
-                <div className="aspect-square w-full rounded-3xl bg-slate-100 border-2 border-dashed border-slate-200 overflow-hidden flex items-center justify-center transition-all group-hover:border-cyan-200">
+                <div className="aspect-square w-full rounded-3xl bg-slate-900/50 border-2 border-dashed border-white/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-cyan-500/50">
                    {watchedValues.foto_url ? (
                      <div className="relative w-full h-full">
                         <img src={watchedValues.foto_url} alt="Preview" className="w-full h-full object-cover" />
@@ -312,7 +316,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           </div>
         </div>
         {pais.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-slate-100">
+          <div className="mt-6 pt-6 border-t border-white/5">
             <Select label="Variante de" helperText="Vincule este produto a uma família existente." value={watchedValues.produto_pai_id ?? ''} onChange={(e) => handlePaiChange(e.target.value)} options={[{ value: '', label: '— Produto Independente —' }, ...pais.filter((p) => p.id !== produto?.id).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => ({ value: p.id, label: `${p.nome}${p.sku ? ` [${p.sku}]` : ''}` }))]} />
           </div>
         )}
@@ -372,7 +376,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       </FormSection>
 
       <FormSection title="Financeiro" description="Custo base e formação estratégica de preços.">
-        <div className="bg-slate-50/80 p-6 rounded-2xl border border-slate-100 mb-6 flex flex-wrap items-end gap-6">
+        <div className="bg-white/5 p-6 rounded-2xl border border-white/5 mb-6 flex flex-wrap items-end gap-6">
           <Input label="Custo de Compra (R$)" required className="md:max-w-[200px] text-lg font-bold" type="number" min="0" step="0.01" value={watchedValues.custo} onChange={(e) => handleCusto(e.target.value)} error={errors.custo?.message} data-testid="produto-form-custo" />
           <div className="pb-2">
             <label className="flex items-center gap-2 cursor-pointer select-none group">
@@ -412,7 +416,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           <Input label="Estoque Mínimo" type="number" min="0" step="0.001" {...register('emin')} />
           <Input label="Alerta Reposição" type="number" min="0" step="0.001" {...register('esal')} />
         </div>
-        <div className="mt-6 pt-6 border-t border-slate-100 md:max-w-[200px]">
+        <div className="mt-6 pt-6 border-t border-white/5 md:max-w-[200px]">
           <Input label="Custo Médio (CM)" type="number" min="0" step="0.01" {...register('ecm')} />
         </div>
       </FormSection>
