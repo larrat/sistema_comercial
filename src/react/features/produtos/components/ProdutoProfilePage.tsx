@@ -21,6 +21,7 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
+import { formValuesToProduto } from '../hooks/useProdutoCalculations';
 import { ErrorState, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
 import { useProdutoMutations } from '../hooks/useProdutosQuery';
@@ -253,7 +254,9 @@ export function ProdutoProfilePage({
     const catAlterada = (values.cat || '').trim() !== (produto.cat || '');
     const unAlterada = (values.un || '').trim() !== (produto.un || '');
     
-    saveMutation.mutate({ ...values, id: produto.id, filial_id: produto.filial_id }, {
+    const mapped = formValuesToProduto(values, produto.filial_id || '', produto);
+    
+    saveMutation.mutate(mapped, {
       onSuccess: async () => {
         if (nomeAlterado) {
           const devePropagar = window.confirm(

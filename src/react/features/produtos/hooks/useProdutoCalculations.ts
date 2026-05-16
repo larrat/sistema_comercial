@@ -1,3 +1,6 @@
+import type { Produto } from '../../../../types/domain';
+import type { ProdutoFormValues } from '../types';
+
 export function priceToMarkup(custo: number, preco: number): number {
   if (custo <= 0 || preco <= 0) return 0;
   return (preco / custo - 1) * 100;
@@ -94,4 +97,44 @@ export function recalcFromCost(
       : atacado;
 
   return { varejo: newVarejo, atacado: newAtacado };
+}
+
+/** Converte valores do formulário para o objeto Produto do banco. */
+export function formValuesToProduto(
+  values: ProdutoFormValues,
+  filialId: string,
+  existing: Produto | null
+): Produto {
+  const custo = parseFloat(values.custo) || 0;
+  const precoVarejo = parseFloat(values.precoVarejo || '0') || 0;
+  const mkv =
+    precoVarejo > 0 && custo > 0
+      ? (precoVarejo / custo - 1) * 100
+      : parseFloat(values.markupVarejo || '0') || 0;
+
+  return {
+    id: (values.id as string) ?? crypto.randomUUID(),
+    filial_id: filialId,
+    produto_pai_id: values.produto_pai_id ?? null,
+    nome: values.nome.trim(),
+    sku: values.sku.trim() || undefined,
+    un: values.un || 'un',
+    cat: values.cat.trim() || undefined,
+    custo,
+    mkv,
+    mka: parseFloat(values.markupAtacado || '0') || 0,
+    pfa: parseFloat(values.precoFixoAtacado || '0') || 0,
+    dv: parseFloat(values.descontoVarejo || '0') || 0,
+    da: parseFloat(values.descontoAtacado || '0') || 0,
+    qtmin: parseFloat(values.qtmin || '0') || 0,
+    emin: parseFloat(values.emin || '0') || 0,
+    esal: parseFloat(values.esal || '0') || 0,
+    ecm: parseFloat(values.ecm || '0') || custo,
+    hist_cot: existing?.hist_cot || [],
+    genero: (values.genero as any) ?? null,
+    tamanho: values.tamanho ?? null,
+    foto_url: values.foto_url ?? null,
+    is_active: true,
+    is_sample: !!values.is_sample
+  };
 }

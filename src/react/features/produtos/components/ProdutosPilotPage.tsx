@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
+import { formValuesToProduto } from '../hooks/useProdutoCalculations';
 import type { Produto } from '../../../../types/domain';
 import type { ProdutoFormValues } from '../types';
 import { useProdutoStore } from '../store/useProdutoStore';
@@ -53,43 +54,6 @@ type Modal = { tipo: 'none' } | { tipo: 'form'; produto: Produto | null };
 type ProdutosPilotPageProps = {
   onOpenProduto?: (_produtoId: string, _options?: { edit?: boolean }) => void;
 };
-
-function formValuesToProduto(
-  values: ProdutoFormValues,
-  filialId: string,
-  existing: Produto | null
-): Produto {
-  const custo = parseFloat(values.custo) || 0;
-  const precoVarejo = parseFloat(values.precoVarejo) || 0;
-  const mkv =
-    precoVarejo > 0 && custo > 0
-      ? (precoVarejo / custo - 1) * 100
-      : parseFloat(values.markupVarejo) || 0;
-
-  return {
-    id: values.id ?? crypto.randomUUID(),
-    filial_id: filialId,
-    produto_pai_id: values.produto_pai_id ?? null,
-    nome: values.nome.trim(),
-    sku: values.sku.trim() || undefined,
-    un: values.un || 'un',
-    cat: values.cat.trim() || undefined,
-    custo,
-    mkv,
-    mka: parseFloat(values.markupAtacado) || 0,
-    pfa: parseFloat(values.precoFixoAtacado) || 0,
-    dv: parseFloat(values.descontoVarejo) || 0,
-    da: parseFloat(values.descontoAtacado) || 0,
-    qtmin: parseFloat(values.qtmin) || 0,
-    emin: parseFloat(values.emin) || 0,
-    esal: parseFloat(values.esal) || 0,
-    ecm: parseFloat(values.ecm) || custo,
-    hist_cot: existing?.hist_cot || [],
-    genero: values.genero,
-    tamanho: values.tamanho,
-    foto_url: values.foto_url
-  };
-}
 
 function useIsMobile() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 1280px)').matches;
