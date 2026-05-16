@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Image, Upload, Trash2, Loader2, TrendingUp } from 'lucide-react';
+import { Image, Upload, Trash2, Loader2, TrendingUp, RefreshCw, AlertCircle } from 'lucide-react';
 import type { Produto } from '../../../../types/domain';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { toast } from 'sonner';
@@ -10,11 +10,10 @@ import {
   syncPriceFields,
   recalcFromCost,
   markupToPrice,
-  markupToMargin,
   type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
 import { FormActions, FormError, FormSection, Input, Select, Typography } from '../../../shared/ui';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -59,41 +58,31 @@ type Props = {
   onCancelar: () => void;
 };
 
-function toFormValues(p: Produto | null): Partial<ProdutoFormValues> {
-  if (!p) return {
-    nome: '', sku: '', un: 'un', cat: '', custo: '', precoVarejo: '', markupVarejo: '', margemVarejo: '',
-    descontoVarejo: '', markupAtacado: '', margemAtacado: '', precoFixoAtacado: '', descontoAtacado: '',
-    qtmin: '', emin: '', esal: '', ecm: '', is_sample: false, genero: null, tamanho: null, foto_url: null
-  };
-
-  const custo = p.custo ?? 0;
-  const mkv = p.mkv ?? 0;
-  const mka = p.mka ?? 0;
-
+function toFormValues(p: Produto | null): ProdutoFormValues {
   return {
-    id: p.id,
-    produto_pai_id: p.produto_pai_id ?? null,
-    nome: p.nome,
-    sku: p.sku ?? '',
-    un: p.un ?? 'un',
-    cat: p.cat ?? '',
-    custo: custo > 0 ? String(custo) : '',
-    precoVarejo: mkv > 0 ? markupToPrice(custo, mkv).toFixed(2) : '',
-    markupVarejo: mkv > 0 ? mkv.toFixed(1) : '',
-    margemVarejo: mkv > 0 ? markupToMargin(mkv).toFixed(1) : '',
-    descontoVarejo: p.dv ? String(p.dv) : '',
-    markupAtacado: mka > 0 ? mka.toFixed(1) : '',
-    margemAtacado: mka > 0 ? markupToMargin(mka).toFixed(1) : '',
-    precoFixoAtacado: p.pfa ? String(p.pfa) : '',
-    descontoAtacado: p.da ? String(p.da) : '',
-    qtmin: p.qtmin ? String(p.qtmin) : '',
-    emin: p.emin ? String(p.emin) : '',
-    esal: p.esal ? String(p.esal) : '',
-    ecm: p.ecm ? String(p.ecm) : '',
-    is_sample: !!p.is_sample,
-    genero: p.genero ?? null,
-    tamanho: p.tamanho ?? null,
-    foto_url: p.foto_url ?? null
+    id: p?.id,
+    produto_pai_id: p?.produto_pai_id || null,
+    nome: p?.nome || '',
+    sku: p?.sku || '',
+    un: p?.un || 'un',
+    cat: p?.cat || '',
+    custo: p?.custo?.toString() || '0',
+    precoVarejo: p?.pvv?.toString() || '',
+    markupVarejo: p?.mkv?.toString() || '',
+    margemVarejo: '',
+    descontoVarejo: p?.dv?.toString() || '',
+    markupAtacado: p?.mka?.toString() || '',
+    margemAtacado: '',
+    precoFixoAtacado: p?.pfa?.toString() || '',
+    descontoAtacado: p?.da?.toString() || '',
+    qtmin: p?.qtmin?.toString() || '1',
+    emin: p?.emin?.toString() || '0',
+    esal: p?.esal?.toString() || '0',
+    ecm: p?.ecm?.toString() || '0',
+    is_sample: p?.is_sample || false,
+    genero: p?.genero || null,
+    tamanho: p?.tamanho || null,
+    foto_url: p?.foto_url || null,
   };
 }
 
@@ -125,30 +114,62 @@ function fmt(v: number): string {
 
 export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar }: Props) {
   const { resolve } = useApiContext();
-  const { register, handleSubmit, setValue, getValues, watch, reset, formState: { errors } } = useForm<ProdutoFormValues>({
+  const context = resolve();
+  
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
 
+  const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
+  const [coresInput, setCoresInput] = useState('');
+  const [activeTab, setActiveTab] = useState<'geral' | 'comercial' | 'grade' | 'logistica'>('geral');
+  const [uploading, setUploading] = useState(false);
+
+  const watchedValues = watch();
+  const preview = useMemo(() => calcPreview(watchedValues), [watchedValues]);
+  
+  const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
+  const cores = useMemo(() => coresInput.split(',').map(c => c.trim()).filter(Boolean), [coresInput]);
+
   const onSubmit = (values: ProdutoFormValues) => onSalvar(values, gradeSelecionada, cores);
   const handleCustomSubmit = handleSubmit(onSubmit);
-  
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     reset(toFormValues(produto));
   }, [produto, reset]);
 
-  const watchedValues = watch();
-  const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
-  const [coresInput, setCoresInput] = useState('');
-  
-  const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
+  async function handleUpload(file: File) {
+    try {
+      setUploading(true);
+      const ext = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${ext}`;
+      const url = `${context.url}/storage/v1/object/produtos/${fileName}`;
 
-  const cores = useMemo(() => 
-    coresInput.split(',').map(c => c.trim()).filter(Boolean),
-    [coresInput]
-  );
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${context.token}`,
+          'apikey': context.key,
+          'Content-Type': file.type
+        },
+        body: file
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Erro ao fazer upload');
+      }
+
+      const publicUrl = `${context.url}/storage/v1/object/public/produtos/${fileName}`;
+      setValue('foto_url', publicUrl);
+      toast.success('Foto carregada com sucesso!');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Falha no upload');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function handleCusto(raw: string) {
     const custo = parseFloat(raw) || 0;
@@ -161,10 +182,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       setValue('custo', raw);
       setValue('precoVarejo', varejo.preco);
       setValue('markupVarejo', varejo.markup);
-      setValue('margemVarejo', varejo.margem);
       setValue('precoFixoAtacado', atacado.preco);
       setValue('markupAtacado', atacado.markup);
-      setValue('margemAtacado', atacado.margem);
     } else {
       setValue('custo', raw);
     }
@@ -198,338 +217,317 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   function handlePaiChange(paiId: string) {
     const pai = pais.find((p) => p.id === paiId);
-    if (!pai) {
-      setValue('produto_pai_id', null);
-      return;
+    if (pai) {
+      setValue('nome', pai.nome);
+      setValue('cat', pai.cat || '');
+      setValue('custo', pai.custo.toString());
+      setValue('precoVarejo', pai.pvv?.toString() || '');
+      setValue('markupVarejo', pai.mkv?.toString() || '');
+      setValue('precoFixoAtacado', pai.pfa?.toString() || '');
+      setValue('markupAtacado', pai.mka?.toString() || '');
     }
-    setValue('produto_pai_id', paiId);
-    if (!getValues('nome')?.trim()) setValue('nome', `${pai.nome} - `);
-    if (!getValues('sku')?.trim() && pai.sku) setValue('sku', `${pai.sku}-`);
-    if (pai.un) setValue('un', pai.un);
-    if (pai.cat) setValue('cat', pai.cat);
-    const custo = pai.custo ?? 0;
-    if (custo > 0) setValue('custo', String(custo));
-    if (pai.dv) setValue('descontoVarejo', String(pai.dv));
-    if (pai.qtmin) setValue('qtmin', String(pai.qtmin));
-    if (pai.da) setValue('descontoAtacado', String(pai.da));
-    if (pai.emin) setValue('emin', String(pai.emin));
-    if (pai.esal) setValue('esal', String(pai.esal));
-    if (pai.ecm) setValue('ecm', String(pai.ecm));
-    const mkv = pai.mkv ?? 0;
-    if (mkv > 0) {
-      setValue('markupVarejo', mkv.toFixed(1));
-      setValue('margemVarejo', markupToMargin(mkv).toFixed(1));
-      if (custo > 0) setValue('precoVarejo', markupToPrice(custo, mkv).toFixed(2));
-    }
-    const mka = pai.mka ?? 0;
-    if (mka > 0) {
-      setValue('markupAtacado', mka.toFixed(1));
-      setValue('margemAtacado', markupToMargin(mka).toFixed(1));
-      if (custo > 0) setValue('precoFixoAtacado', markupToPrice(custo, mka).toFixed(2));
-    } else if (pai.pfa) {
-      setValue('precoFixoAtacado', String(pai.pfa));
-    }
-  }
-
-  const preview = useMemo(() => calcPreview(watchedValues), [watchedValues]);
-
-  async function handleUpload(file: File) {
-    const context = resolve();
-    if (!context) return;
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${context.filialId}/${crypto.randomUUID()}.${fileExt}`;
-      const url = `${context.url}/storage/v1/object/produtos/${fileName}`;
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${context.token}`,
-          'apikey': context.key,
-          'Content-Type': file.type
-        },
-        body: file
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Erro ao fazer upload');
-      }
-
-      const publicUrl = `${context.url}/storage/v1/object/public/produtos/${fileName}`;
-      setValue('foto_url', publicUrl);
-      toast.success('Foto carregada com sucesso!');
-    } catch (e) {
-      console.error(e);
-      toast.error('Falha ao subir imagem. Verifique o tamanho ou tente novamente.');
-    } finally {
-      setUploading(false);
-    }
+    setValue('produto_pai_id', paiId || null);
   }
 
   return (
-    <form onSubmit={handleCustomSubmit} className="space-y-10 pb-20" data-testid="produto-form">
-      <FormSection 
-        title="Essencial" 
-        description="Identificação básica para encontrar e vender o produto no dia a dia." 
-        aside={<span className="px-2 py-1 bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-cyan-500/20">Obrigatório</span>}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col gap-4">
-             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Foto do Produto</label>
-             <div className="relative group">
-                <div className="aspect-square w-full rounded-3xl bg-slate-900/50 border-2 border-dashed border-white/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-cyan-500/50">
-                   {watchedValues.foto_url ? (
-                     <div className="relative w-full h-full">
-                        <img src={watchedValues.foto_url} alt="Preview" className="w-full h-full object-cover" />
-                        <button 
-                          type="button"
-                          onClick={() => setValue('foto_url', null)}
-                          className="absolute top-3 right-3 p-2 bg-rose-500 text-white rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+    <div className="flex flex-col h-full overflow-hidden -mx-8 -mt-8">
+      {/* High-Tech Tab Navigation */}
+      <div className="px-8 pt-8 pb-4 bg-slate-950/20 border-b border-white/5 sticky top-0 z-20 backdrop-blur-3xl">
+        <div className="flex items-center p-1.5 bg-white/[0.03] border border-white/5 rounded-[1.25rem] shadow-inner">
+          {[
+            { id: 'geral', label: 'Geral', icon: <Image size={14} /> },
+            { id: 'comercial', label: 'Comercial', icon: <TrendingUp size={14} /> },
+            ...(!watchedValues.produto_pai_id ? [{ id: 'grade', label: 'Grade', icon: <RefreshCw size={14} /> }] : []),
+            { id: 'logistica', label: 'Logística', icon: <AlertCircle size={14} /> }
+          ].map((tab: any) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[1rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300",
+                activeTab === tab.id 
+                  ? "bg-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]" 
+                  : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
+              )}
+            >
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Form Content Area */}
+      <form onSubmit={handleCustomSubmit} className="flex-1 overflow-y-auto custom-scrollbar px-8 py-10" data-testid="produto-form">
+        <AnimatePresence mode="wait">
+          {activeTab === 'geral' && (
+            <motion.div
+              key="geral"
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-10"
+            >
+              <FormSection 
+                title="Essencial" 
+                description="Dados de identificação e classificação do item."
+                aside={<span className="px-2 py-1 bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-cyan-500/20">Obrigatório</span>}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="flex flex-col gap-4">
+                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Imagem de Capa</label>
+                     <div className="relative group">
+                        <div className="aspect-square w-full rounded-[2rem] bg-slate-900/50 border-2 border-dashed border-white/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-cyan-500/50">
+                           {watchedValues.foto_url ? (
+                             <div className="relative w-full h-full">
+                                <img src={watchedValues.foto_url} alt="Preview" className="w-full h-full object-cover" />
+                                <button 
+                                  type="button"
+                                  onClick={() => setValue('foto_url', null)}
+                                  className="absolute top-4 right-4 p-2 bg-rose-500 text-white rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                             </div>
+                           ) : (
+                             <div className="flex flex-col items-center gap-3 text-slate-500 group-hover:text-cyan-500 transition-colors">
+                                {uploading ? <Loader2 size={32} className="animate-spin" /> : <Image size={32} strokeWidth={1} />}
+                                <span className="text-[10px] font-black uppercase tracking-widest">Upload Foto</span>
+                             </div>
+                           )}
+                        </div>
+                        <input 
+                          type="file" accept="image/*" 
+                          onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+                          className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                          disabled={uploading}
+                        />
                      </div>
-                   ) : (
-                     <div className="flex flex-col items-center gap-3 text-slate-400">
-                        {uploading ? (
-                          <Loader2 size={32} className="animate-spin text-cyan-500" />
-                        ) : (
-                          <>
-                            <Image size={32} strokeWidth={1.5} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Nenhuma foto</span>
-                          </>
-                        )}
-                     </div>
-                   )}
+                  </div>
+
+                  <div className="md:col-span-2 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Input label="Nome Comercial" required {...register('nome')} error={errors.nome?.message} placeholder="Ex: Camisa Polo - Azul" />
+                      <Input label="Código SKU" helperText="Identificação única" {...register('sku')} placeholder="Opcional" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Select label="Unidade de Venda" {...register('un')} options={[{ value: 'un', label: 'Unidade (un)' }, { value: 'pc', label: 'Peça (pc)' }, { value: 'par', label: 'Par' }]} />
+                      <Input label="Categoria / Linha" {...register('cat')} placeholder="Ex: Vestuário" />
+                    </div>
+                  </div>
                 </div>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
-                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                  disabled={uploading}
-                />
-                {!watchedValues.foto_url && !uploading && (
-                  <div className="mt-3 flex justify-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 text-cyan-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-cyan-500/20">
-                       <Upload size={12} />
-                       Clique para subir
+
+                {pais.length > 0 && (
+                  <div className="mt-8 pt-8 border-t border-white/5">
+                    <Select 
+                      label="Vincular a Família (Produto Pai)" 
+                      value={watchedValues.produto_pai_id ?? ''} 
+                      onChange={(e) => handlePaiChange(e.target.value)} 
+                      options={[{ value: '', label: '— Produto Principal (Mestre) —' }, ...pais.filter(p => p.id !== produto?.id).map(p => ({ value: p.id, label: p.nome }))]} 
+                    />
+                  </div>
+                )}
+
+                {watchedValues.produto_pai_id && (
+                  <div className="mt-8 p-6 bg-white/[0.02] rounded-3xl border border-white/5 space-y-6">
+                    <div className="flex flex-col gap-4">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Atributos da Variante</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                           <span className="text-[9px] font-bold text-slate-600 uppercase">Gênero</span>
+                           <div className="flex gap-4">
+                             {['masculino', 'feminino'].map(g => (
+                               <label key={g} className="flex items-center gap-2 cursor-pointer group">
+                                 <input type="radio" value={g} {...register('genero')} className="w-4 h-4 text-cyan-500 bg-slate-900 border-white/10" />
+                                 <span className="text-xs font-bold text-slate-400 group-hover:text-white uppercase transition-colors">{g}</span>
+                               </label>
+                             ))}
+                           </div>
+                        </div>
+                        <div className="space-y-3">
+                           <span className="text-[9px] font-bold text-slate-600 uppercase">Grade</span>
+                           <div className="flex flex-wrap gap-1.5">
+                             {['P', 'M', 'G', 'GG', 'XG'].map(size => (
+                               <label key={size} className="relative cursor-pointer">
+                                 <input type="radio" value={size} {...register('tamanho')} className="peer absolute opacity-0" />
+                                 <div className="px-3 py-1.5 bg-white/5 rounded-lg text-[10px] font-black text-slate-500 border border-transparent peer-checked:bg-cyan-500 peer-checked:text-white peer-checked:shadow-[0_0_10px_rgba(6,182,212,0.3)] transition-all uppercase">{size}</div>
+                               </label>
+                             ))}
+                           </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
-             </div>
-          </div>
+              </FormSection>
+            </motion.div>
+          )}
 
-          <div className="md:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input label="Nome" required {...register('nome')} error={errors.nome?.message} autoFocus={!produto} data-testid="produto-form-nome" placeholder="Ex: Camisa Polo Premium" />
-              <Input label="SKU" helperText="Código interno único" {...register('sku')} data-testid="produto-form-sku" placeholder="Opcional" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Select label="Unidade" {...register('un')} options={[{ value: 'un', label: 'un (Unidade)' }, { value: 'kg', label: 'kg (Quilograma)' }, { value: 'l', label: 'l (Litro)' }, { value: 'm', label: 'm (Metro)' }, { value: 'cx', label: 'cx (Caixa)' }, { value: 'pc', label: 'pc (Peça)' }, { value: 'par', label: 'par (Par)' }]} />
-              <Input label="Categoria" {...register('cat')} placeholder="Ex: Vestuário" />
-            </div>
-          </div>
-        </div>
-        {pais.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-white/5">
-            <Select label="Variante de" helperText="Vincule este produto a uma família existente." value={watchedValues.produto_pai_id ?? ''} onChange={(e) => handlePaiChange(e.target.value)} options={[{ value: '', label: '— Produto Independente —' }, ...pais.filter((p) => p.id !== produto?.id).sort((a, b) => a.nome.localeCompare(b.nome)).map((p) => ({ value: p.id, label: `${p.nome}${p.sku ? ` [${p.sku}]` : ''}` }))]} />
-          </div>
-        )}
+          {activeTab === 'comercial' && (
+            <motion.div
+              key="comercial"
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-10"
+            >
+              <FormSection title="Precificação" description="Definição de custos e estratégias de venda.">
+                <div className="bg-cyan-500/5 p-8 rounded-[2rem] border border-cyan-500/10 mb-8">
+                   <Input label="Custo de Entrada (R$)" required className="!text-xl font-black text-white" type="number" min="0" step="0.01" value={watchedValues.custo} onChange={(e) => handleCusto(e.target.value)} error={errors.custo?.message} />
+                   <div className="mt-4 flex items-center gap-2">
+                     <input type="checkbox" {...register('is_sample')} className="w-4 h-4 rounded bg-slate-900 border-white/10 text-cyan-500" />
+                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Produto de Mostruário (Auditável)</span>
+                   </div>
+                </div>
 
-
-        {watchedValues.produto_pai_id && (
-          <div className="mt-8 pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-12">
-            <div className="flex-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Gênero do Modelo (Variação)</label>
-              <div className="flex flex-wrap gap-6">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="masculino" {...register('genero')} className="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300" />
-                  <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 transition-colors uppercase">Masculino</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="feminino" {...register('genero')} className="w-4 h-4 text-pink-600 focus:ring-pink-500 border-slate-300" />
-                  <span className="text-xs font-bold text-slate-700 group-hover:text-pink-600 transition-colors uppercase">Feminino</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="" {...register('genero', { setValueAs: v => v === "" ? null : v })} className="w-4 h-4 text-slate-400 focus:ring-slate-500 border-slate-300" />
-                  <span className="text-xs font-bold text-slate-500 group-hover:text-slate-700 transition-colors uppercase">Unissex / N/A</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex-[2]">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Tamanho / Grade</label>
-              <div className="flex flex-wrap gap-2">
-                {['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3'].map(size => (
-                  <label key={size} className={`flex-1 min-w-[50px] relative`}>
-                    <input 
-                      type="radio" 
-                      value={size} 
-                      {...register('tamanho')} 
-                      className="peer absolute opacity-0 cursor-pointer" 
-                    />
-                    <div className="px-3 py-2 border-2 border-slate-100 rounded-xl text-center text-xs font-black text-slate-400 peer-checked:border-cyan-500 peer-checked:bg-cyan-50 peer-checked:text-cyan-700 hover:border-slate-200 transition-all cursor-pointer">
-                      {size}
+                <div className="grid grid-cols-1 gap-12">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Venda Varejo</h4>
                     </div>
-                  </label>
-                ))}
-                <label className="flex-1 min-w-[50px] relative">
-                  <input 
-                    type="radio" 
-                    value="" 
-                    {...register('tamanho', { setValueAs: v => v === "" ? null : v })}
-                    className="peer absolute opacity-0 cursor-pointer" 
-                  />
-                  <div className="px-3 py-2 border-2 border-slate-100 rounded-xl text-center text-[10px] font-black text-slate-400 peer-checked:border-slate-500 peer-checked:bg-slate-50 peer-checked:text-slate-700 hover:border-slate-200 transition-all cursor-pointer uppercase">
-                    N/A
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <Input label="Preço Sugerido" className="font-black text-cyan-400" type="number" value={watchedValues.precoVarejo} onChange={(e) => handleVariavelVarejo('preco', e.target.value)} />
+                      <Input label="Markup (%)" type="number" value={watchedValues.markupVarejo} onChange={(e) => handleVariavelVarejo('markup', e.target.value)} />
+                      <Input label="Margem (%)" type="number" value={watchedValues.margemVarejo} onChange={(e) => handleVariavelVarejo('margem', e.target.value)} />
+                    </div>
                   </div>
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
-      </FormSection>
 
-      <FormSection title="Financeiro" description="Custo base e formação estratégica de preços.">
-        <div className="bg-white/5 p-6 rounded-2xl border border-white/5 mb-6 flex flex-wrap items-end gap-6">
-          <Input label="Custo de Compra (R$)" required className="md:max-w-[200px] text-lg font-bold" type="number" min="0" step="0.01" value={watchedValues.custo} onChange={(e) => handleCusto(e.target.value)} error={errors.custo?.message} data-testid="produto-form-custo" />
-          <div className="pb-2">
-            <label className="flex items-center gap-2 cursor-pointer select-none group">
-              <input type="checkbox" {...register('is_sample')} className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">PEÇA DE MOSTRUÁRIO</span>
-                <span className="text-[10px] text-slate-500 leading-tight">Flag de auditoria para itens de exposição/ensaio</span>
-              </div>
-            </label>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
-          <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-2">Venda Varejo</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input label="Preço (R$)" className="font-bold" type="number" min="0" step="0.01" value={watchedValues.precoVarejo} onChange={(e) => handleVariavelVarejo('preco', e.target.value)} />
-              <Input label="Markup (%)" type="number" min="0" step="0.1" value={watchedValues.markupVarejo} onChange={(e) => handleVariavelVarejo('markup', e.target.value)} />
-              <Input label="Margem (%)" type="number" min="0" step="0.1" value={watchedValues.margemVarejo} onChange={(e) => handleVariavelVarejo('margem', e.target.value)} />
-            </div>
-            <Input label="Desconto Máximo (%)" className="md:max-w-[150px]" type="number" min="0" max="100" step="0.1" {...register('descontoVarejo')} />
-          </div>
-          <div className="space-y-6">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2">Venda Atacado</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input label="Preço (R$)" className="font-bold" type="number" min="0" step="0.01" value={watchedValues.precoFixoAtacado} onChange={(e) => handleVariavelAtacado('preco', e.target.value)} />
-              <Input label="Markup (%)" type="number" min="0" step="0.1" value={watchedValues.markupAtacado} onChange={(e) => handleVariavelAtacado('markup', e.target.value)} />
-              <Input label="Margem (%)" type="number" min="0" step="0.1" value={watchedValues.margemAtacado} onChange={(e) => handleVariavelAtacado('margem', e.target.value)} />
-            </div>
-            <Input label="Desconto Máximo (%)" className="md:max-w-[150px]" type="number" min="0" max="100" step="0.1" {...register('descontoAtacado')} />
-          </div>
-        </div>
-      </FormSection>
+                  <div className="space-y-6 pt-10 border-t border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                      <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Venda Atacado</h4>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                      <Input label="Preço Sugerido" className="font-black text-emerald-400" type="number" value={watchedValues.precoFixoAtacado} onChange={(e) => handleVariavelAtacado('preco', e.target.value)} />
+                      <Input label="Markup (%)" type="number" value={watchedValues.markupAtacado} onChange={(e) => handleVariavelAtacado('markup', e.target.value)} />
+                      <Input label="Margem (%)" type="number" value={watchedValues.margemAtacado} onChange={(e) => handleVariavelAtacado('margem', e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </FormSection>
+            </motion.div>
+          )}
 
-      <FormSection title="Logística" description="Parâmetros para controle de estoque e reposição.">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Input label="Qtd Mínima (Venda)" type="number" min="0" step="0.001" {...register('qtmin')} />
-          <Input label="Estoque Mínimo" type="number" min="0" step="0.001" {...register('emin')} />
-          <Input label="Alerta Reposição" type="number" min="0" step="0.001" {...register('esal')} />
-        </div>
-        <div className="mt-6 pt-6 border-t border-white/5 md:max-w-[200px]">
-          <Input label="Custo Médio (CM)" type="number" min="0" step="0.01" {...register('ecm')} />
-        </div>
-      </FormSection>
+          {activeTab === 'grade' && !watchedValues.produto_pai_id && (
+            <motion.div
+              key="grade"
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 15 }}
+              transition={{ duration: 0.2 }}
+            >
+              <FormSection title="Gerador de Matriz" description="Criação automática de grades de tamanho e cor.">
+                <div className="bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
+                  <Typography variant="label" color="muted" className="mb-4 block uppercase tracking-tighter">Selecione os Tamanhos</Typography>
+                  <div className="flex flex-wrap gap-2 mb-8">
+                      {SIZES.map(size => (
+                        <button
+                          key={size} type="button"
+                          onClick={() => setGradeSelecionada(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size])}
+                          className={cn(
+                            "w-12 h-12 rounded-xl text-xs font-black transition-all border-2",
+                            gradeSelecionada.includes(size) ? "bg-cyan-500 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]" : "bg-white/5 border-white/5 text-slate-500 hover:border-white/10"
+                          )}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                  </div>
+                  
+                  <div className="mb-8">
+                      <Typography variant="label" color="muted" className="mb-3 block uppercase tracking-tighter">Cores Disponíveis (vírgula)</Typography>
+                      <input
+                        type="text" placeholder="Ex: Azul, Branco, Preto"
+                        value={coresInput} onChange={e => setCoresInput(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:ring-2 focus:ring-cyan-500/50 transition-all outline-none"
+                      />
+                  </div>
 
-      {!watchedValues.produto_pai_id && (
-        <FormSection title="Gerador de Grade" description="Crie variantes de tamanhos automaticamente para este produto.">
-          <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5">
-             <Typography variant="label" color="muted" className="mb-4 block">Selecione os tamanhos para gerar:</Typography>
-             <div className="flex flex-wrap gap-2 mb-6">
-                {SIZES.map(size => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => {
-                      setGradeSelecionada(prev => 
-                        prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
-                      );
-                    }}
-                    className={cn(
-                      "px-4 py-2 rounded-xl text-xs font-black transition-all border-2",
-                      gradeSelecionada.includes(size)
-                        ? "bg-cyan-500 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                        : "bg-white/5 border-white/5 text-slate-500 hover:border-white/10"
-                    )}
-                  >
-                    {size}
-                  </button>
-                ))}
-             </div>
-             
-             <div className="mb-6">
-                <Typography variant="label" color="muted" className="mb-2 block">Cores (separe por vírgula):</Typography>
-                <input
-                  type="text"
-                  placeholder="Ex: Azul, Branco, Preto"
-                  value={coresInput}
-                  onChange={e => setCoresInput(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"
-                />
-             </div>
+                  {(gradeSelecionada.length > 0 || cores.length > 0) && (
+                    <div className="space-y-4 p-6 bg-cyan-500/5 rounded-3xl border border-cyan-500/10">
+                      <div className="flex justify-between items-center">
+                        <Typography variant="caption" className="!text-cyan-400 font-bold uppercase tracking-widest">Preview da Matriz</Typography>
+                        <span className="px-2 py-0.5 bg-cyan-500 text-white text-[9px] font-black rounded-full">{Math.max(1, gradeSelecionada.length) * Math.max(1, cores.length)} itens</span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                          {(cores.length > 0 ? cores : [null]).map(color => (
+                            (gradeSelecionada.length > 0 ? gradeSelecionada : [null]).map(size => {
+                              if (!color && !size) return null;
+                              return (
+                                <div key={`${color}-${size}`} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5">
+                                  <span className="text-[10px] font-bold text-white uppercase">{watchedValues.nome} {color ? `- ${color}` : ''} {size ? `- ${size}` : ''}</span>
+                                  <span className="text-[9px] font-black text-cyan-500">VARIANTE</span>
+                                </div>
+                              );
+                            })
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </FormSection>
+            </motion.div>
+          )}
 
-             {(gradeSelecionada.length > 0 || cores.length > 0) && (
-               <motion.div 
-                 initial={{ opacity: 0, y: 10 }} 
-                 animate={{ opacity: 1, y: 0 }}
-                 className="space-y-3 p-4 bg-cyan-500/5 rounded-2xl border border-cyan-500/10"
-               >
-                 <Typography variant="caption" className="!text-cyan-400 font-bold uppercase tracking-widest">
-                   Preview da Grade ({Math.max(1, gradeSelecionada.length) * Math.max(1, cores.length)} itens)
-                 </Typography>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                    {(cores.length > 0 ? cores : [null]).map(color => (
-                      (gradeSelecionada.length > 0 ? gradeSelecionada : [null]).map(size => {
-                        const nameParts = [watchedValues.nome.trim()];
-                        if (color) nameParts.push(color);
-                        if (size) nameParts.push(size);
-                        
-                        const skuParts = [watchedValues.sku.trim() || 'PROD'];
-                        if (color) skuParts.push(color.toUpperCase().slice(0, 3));
-                        if (size) skuParts.push(size);
+          {activeTab === 'logistica' && (
+            <motion.div
+              key="logistica"
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-10"
+            >
+              <FormSection title="Logística" description="Controle de estoque e alarmes de reposição.">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <Input label="Estoque Mínimo" type="number" {...register('emin')} />
+                    <Input label="Alerta Reposição" type="number" {...register('esal')} />
+                  </div>
+                  <div className="p-6 bg-slate-900/50 rounded-3xl border border-white/5 flex flex-col justify-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg"><AlertCircle size={20} /></div>
+                      <Typography variant="h4" className="!text-xs font-black uppercase text-white">Sincronização Ativa</Typography>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">Os saldos físicos e custos médios são atualizados em tempo real através dos módulos de <strong>Entrada</strong> e <strong>Estoque</strong>.</p>
+                  </div>
+                </div>
+              </FormSection>
 
-                        return (
-                          <div key={`${color}-${size}`} className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg border border-white/5">
-                            <span className="text-[10px] font-bold text-white uppercase">{nameParts.join(' - ')}</span>
-                            <span className="text-[9px] font-mono text-slate-500">{skuParts.join('-')}</span>
-                          </div>
-                        );
-                      })
-                    ))}
-                 </div>
-                 <Typography variant="caption" color="muted" className="mt-2 block italic text-[9px]">
-                    * As variantes serão criadas com o mesmo custo e preços definidos acima.
-                 </Typography>
-               </motion.div>
-             )}
-          </div>
-        </FormSection>
-      )}
+              {preview && (
+                <div className="p-8 bg-emerald-500/10 rounded-[2.5rem] border border-emerald-500/20 relative overflow-hidden shadow-2xl">
+                  <TrendingUp size={120} className="absolute -right-4 -bottom-4 text-emerald-500/5 rotate-12" />
+                  <Typography variant="label" className="!text-emerald-400 font-black uppercase tracking-[0.2em] mb-6 block">Resumo Comercial Final</Typography>
+                  <div className="grid grid-cols-2 gap-8">
+                    <div>
+                      <span className="text-[9px] font-bold text-emerald-400/60 uppercase block mb-1">Margem Varejo</span>
+                      <span className="text-3xl font-black text-white font-display tracking-tight">{preview.pv > 0 ? fmt(preview.pv) : '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-emerald-400/60 uppercase block mb-1">Margem Atacado</span>
+                      <span className="text-3xl font-black text-white font-display tracking-tight">{preview.pa > 0 ? fmt(preview.pa) : '-'}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </form>
 
-      {preview && (
-        <div className="bg-emerald-900/90 backdrop-blur-xl p-6 rounded-3xl border border-emerald-500/30 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-5"><TrendingUp size={120} /></div>
-          <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 mb-4">Simulação de Preços Reais</h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-            <div className="space-y-1"><span className="text-[10px] font-bold text-emerald-300/60 uppercase">Varejo Consolidado</span><div className="flex items-baseline gap-2"><span className="text-2xl font-black text-white">{preview.pv > 0 ? fmt(preview.pv) : '-'}</span>{preview.pvMin > 0 && <span className="text-xs font-bold text-emerald-400/80 italic">min {fmt(preview.pvMin)}</span>}</div></div>
-            <div className="space-y-1"><span className="text-[10px] font-bold text-emerald-300/60 uppercase">Atacado Consolidado</span><div className="flex items-baseline gap-2"><span className="text-2xl font-black text-white">{preview.pa > 0 ? fmt(preview.pa) : '-'}</span>{preview.paMin > 0 && <span className="text-xs font-bold text-emerald-400/80 italic">min {fmt(preview.paMin)}</span>}</div></div>
-          </div>
-        </div>
-      )}
-
-      <div className="pt-6 border-t border-slate-100">
-        <FormError message={error} data-testid="produto-form-error" />
-        <FormActions onCancel={onCancelar} loading={saving} submitLabel={produto ? 'Confirmar Alterações' : 'Finalizar Cadastro'} />
+      {/* Fixed Footer */}
+      <div className="px-8 py-6 bg-slate-950/40 border-t border-white/5 backdrop-blur-3xl flex flex-col gap-4">
+        <FormError message={error} />
+        <FormActions 
+          onCancel={onCancelar} 
+          loading={saving} 
+          submitLabel={produto ? 'Confirmar Edição' : 'Gerar e Finalizar'} 
+        />
       </div>
-    </form>
+    </div>
   );
 }

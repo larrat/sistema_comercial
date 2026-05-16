@@ -832,7 +832,7 @@ export function ProdutoProfilePage({
         title="Edição do Produto"
         subtitle={produto.nome}
         size="lg"
-        bodyClassName="!p-8 bg-slate-900"
+        bodyClassName="!p-0 bg-slate-900 !overflow-hidden"
         onClose={() => {
           setEditingCadastro(false);
           setSearchParams((current) => {

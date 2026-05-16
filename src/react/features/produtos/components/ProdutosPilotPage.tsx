@@ -429,6 +429,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
         title={modal.tipo === 'form' && modal.produto ? 'Editar produto' : 'Novo produto'}
         onClose={() => !saveMutation.isPending && setModal({ tipo: 'none' })}
         closeOnOverlayClick={!saveMutation.isPending}
+        bodyClassName="!p-0 !overflow-hidden"
       >
         {modal.tipo === 'form' ? (
           <ProdutoForm
