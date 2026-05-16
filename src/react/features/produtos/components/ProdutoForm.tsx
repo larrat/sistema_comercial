@@ -50,9 +50,6 @@ const produtoSchema = z.object({
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmt = (v: number) => BRL.format(v || 0);
-
 type Props = {
   produto: Produto | null;
   pais: Produto[];
