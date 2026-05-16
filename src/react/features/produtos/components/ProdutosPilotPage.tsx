@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/shallow';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { formValuesToProduto } from '../hooks/useProdutoCalculations';
@@ -91,6 +92,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
 
   const session = useAuthStore((s) => s.session);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   const produtos = useMemo(() => produtosData?.rows ?? [], [produtosData]);
   const total = produtosData?.total ?? 0;
