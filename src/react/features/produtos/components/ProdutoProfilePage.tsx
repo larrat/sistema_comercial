@@ -198,8 +198,18 @@ export function ProdutoProfilePage({
   );
 
   useEffect(() => {
-    setEditingCadastro(searchParams.get('edit') === '1');
-  }, [produto.id, searchParams]);
+    const isEditing = searchParams.get('edit') === '1';
+    setEditingCadastro(isEditing);
+    
+    // Se estiver editando, garante que estamos na aba de cadastro
+    if (isEditing && activeTab !== 'cadastro') {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', 'cadastro');
+        return next;
+      }, { replace: true });
+    }
+  }, [produto.id, searchParams, activeTab]);
 
   useEffect(() => {
     if (editingCadastro && formRef.current) {
@@ -770,7 +780,8 @@ export function ProdutoProfilePage({
               <ProdutoVariantesTab
                 produto={produto}
                 onOpenProduto={(id, options) => {
-                  navigate(`/app/produtos/${id}${options?.edit ? '?edit=1' : ''}`);
+                  const search = options?.edit ? '?tab=cadastro&edit=1' : '';
+                  navigate(`/app/produtos/${id}${search}`);
                 }}
               />
             )}

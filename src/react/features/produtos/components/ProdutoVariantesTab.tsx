@@ -48,7 +48,7 @@ import {
 import type { VendaVarianteRow } from '../services/produtosApi';
 import ReactCountUp from 'react-countup';
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
-import { Package, ShoppingCart, DollarSign, TrendingUp, Calendar, Info } from 'lucide-react';
+import { Package, ShoppingCart, DollarSign, TrendingUp, Calendar, Info, Pencil, Eye } from 'lucide-react';
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -701,15 +701,26 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="!p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => onOpenProduto?.(row.produto.id, { edit: true })}
-                        title="Editar variante"
-                      >
-                        <TrendingUp size={12} className="rotate-90" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="!p-2 rounded-xl transition-all hover:bg-white/10"
+                          onClick={() => onOpenProduto?.(row.produto.id)}
+                          title="Ver detalhes"
+                        >
+                          <Eye size={14} className="text-slate-400" />
+                        </Button>
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          className="!p-2 rounded-xl transition-all hover:bg-white/10 hover:border-cyan-500/30"
+                          onClick={() => onOpenProduto?.(row.produto.id, { edit: true })}
+                          title="Editar cadastro"
+                        >
+                          <Pencil size={14} className="text-cyan-400" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 );
