@@ -123,13 +123,31 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     return produtoAtual ? parentProdutos.filter((p) => p.id !== produtoAtual.id) : parentProdutos;
   }, [modal, parentProdutos]);
 
-  async function handleSalvar(values: ProdutoFormValues) {
+  async function handleSalvar(values: ProdutoFormValues, grade?: string[]) {
     const existing = modal.tipo === 'form' ? modal.produto : null;
-    const produto = formValuesToProduto(values, filialId, existing);
+    const parent = formValuesToProduto(values, filialId, existing);
     
-    saveMutation.mutate(produto, {
+    // Lista de produtos a serem salvos (Pai + Filhos)
+    const payload: Produto[] = [parent];
+    
+    if (grade && grade.length > 0) {
+      grade.forEach(size => {
+        payload.push({
+          ...parent,
+          id: crypto.randomUUID(),
+          produto_pai_id: parent.id,
+          nome: `${parent.nome} - ${size}`,
+          sku: parent.sku ? `${parent.sku}-${size}` : undefined,
+          tamanho: size,
+          esal: 0 // Inicia zerado
+        });
+      });
+    }
+
+    saveMutation.mutate(payload as any, {
       onSuccess: () => {
         setModal({ tipo: 'none' });
+        toast.success(grade?.length ? `Produto e ${grade.length} variantes criados!` : 'Produto salvo com sucesso');
       }
     });
   }

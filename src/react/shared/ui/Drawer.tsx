@@ -86,7 +86,7 @@ export function Drawer({
             aria-labelledby={title ? titleId : undefined}
             aria-label={title ? undefined : 'Painel lateral'}
           >
-            <div className="rf-ui-drawer__head mb-8">
+            <div className="rf-ui-drawer__head">
               <div className="min-w-0">
                 {title ? (
                   <Typography variant="h3" weight="black" className="uppercase !text-lg">

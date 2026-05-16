@@ -119,8 +119,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   } = useDashboardStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activePieIndex, setActivePieIndex] = useState(-1);
-  const [activeBarIndex, setActiveBarIndex] = useState<number | null>(null);
   const { alerts } = useGlobalAlerts();
 
   const handleRefresh = async () => {
@@ -131,12 +129,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
   // --- Cálculos ---
   const stats = useMemo(() => {
-    // Vendas Reais: Apenas pedidos que já saíram do orçamento/andamento/separação e não foram cancelados
-    // Idealmente: entregue, pago ou concluído.
     const statusVenda = ['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido'];
     const vendasReais = pedidos.filter(p => statusVenda.includes(p.status));
-    
-    // Todos os pedidos que não foram cancelados (para ticket médio operacional se necessário, mas usaremos vendas reais por consistência)
     const faturamento = vendasReais.reduce((acc, p) => acc + Number(p.total || 0), 0);
     
     let lucroTotal = 0;
@@ -161,7 +155,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       ticketMedio,
       valorEmAberto,
       totalPedidos: vendasReais.length,
-      pedidosEntregues: vendasReais.length, // Já filtrado por status real de venda
+      pedidosEntregues: vendasReais.length,
       pedidosPendentes: contasReceber.length
     };
   }, [pedidos, contasReceber]);
@@ -169,7 +163,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   const chartData = useMemo(() => {
     const groups: Record<string, { name: string; faturamento: number; lucro: number }> = {};
     
-    // IMPORTANTE: O gráfico deve usar a MESMA base das stats (vendasReais) para ser "Certeiro"
     stats.vendasReais.forEach(p => {
       const date = new Date(p.data || '');
       let key = '';
@@ -255,48 +248,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     
     return Object.values(productSales)
       .sort((a, b) => b.receita - a.receita)
-      .slice(0, 5) // Top 5
+      .slice(0, 5)
       .map(p => ({
         ...p,
         percent: totalReceita > 0 ? (p.receita / totalReceita) * 100 : 0
       }));
   }, [stats.vendasReais, produtos]);
-
-  const topProductsColors = [
-    'var(--chart-primary)', 
-    'var(--chart-secondary)', 
-    'var(--chart-tertiary)', 
-    'var(--chart-quaternary)', 
-    'var(--chart-quinary)'
-  ];
-
-  const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-    return (
-      <g>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 8}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-          style={{ filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.1))' }}
-        />
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={outerRadius + 12}
-          outerRadius={outerRadius + 14}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-          opacity={0.3}
-        />
-      </g>
-    );
-  };
 
   const statusDistribution = useMemo(() => {
     const dist: Record<string, number> = {};
@@ -304,7 +261,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       dist[p.status] = (dist[p.status] || 0) + 1;
     });
     
-    // Identifica se há algum status não mapeado no STATUS_CONFIG
     const knownKeys = Object.keys(STATUS_CONFIG);
     const otherCount = pedidos.filter(p => !knownKeys.includes(p.status)).length;
     if (otherCount > 0) {
@@ -317,7 +273,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   const healthMetrics = useMemo(() => {
     const totalClientes = clientes.length;
     const comContato = clientes.filter(c => c.whatsapp || c.email).length;
-    
     const totalProdutos = produtos.length;
     const comEstoque = produtos.filter(p => Number(p.esal || 0) > 0).length;
     
@@ -335,41 +290,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       contato: totalClientes > 0 ? (comContato / totalClientes) * 100 : 0,
       estoque: totalProdutos > 0 ? (comEstoque / totalProdutos) * 100 : 0,
       mix: totalProdutos > 0 ? (produtosVendidos.size / totalProdutos) * 100 : 0,
-      entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0,
-      zeroStockCount: totalProdutos - comEstoque
+      entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0
     };
   }, [clientes, produtos, pedidos]);
 
-  const customerMetrics = useMemo(() => {
-    const total = clientes.length;
-    const comWhats = clientes.filter(c => c.whatsapp).length;
-    const comEmail = clientes.filter(c => c.email).length;
-    const optIn = clientes.filter(c => c.optin_marketing).length;
-    
-    const compradores = new Set();
-    pedidos.forEach(p => {
-      if (p.status !== 'cancelado') compradores.add(p.cliente_id);
-    });
-
-    return {
-      total,
-      comWhats,
-      comEmail,
-      optIn,
-      compraram: compradores.size,
-      coberturaWhats: total > 0 ? (comWhats / total) * 100 : 0
-    };
-  }, [clientes, pedidos]);
-
-
   if (status === 'loading') return <LoadingState description="Consolidando indicadores..." />;
   if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
-
-  const getHealthTone = (val: number, thresholds: [number, number]) => {
-    if (val >= thresholds[0]) return 'success';
-    if (val >= thresholds[1]) return 'warning';
-    return 'danger';
-  };
 
   return (
     <div className="flex-1 w-full flex flex-col gap-8 animate-in fade-in duration-500">
@@ -406,14 +332,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
             <Button 
               variant="secondary" 
-              onClick={() => {}}
-              leftIcon={<Zap size={14} className="text-amber-400" />}
-              className="!rounded-xl"
-            >
-              Daily Pulse
-            </Button>
-            <Button 
-              variant="secondary" 
               onClick={handleRefresh} 
               loading={isRefreshing}
               leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
@@ -425,101 +343,36 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         }
       />
 
-      {/* Linha 1: Stat Cards (Bento) */}
+      {/* Linha 1: Stat Cards */}
       <motion.section 
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-          }
-        }}
+        initial="hidden" animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         className="rf-bento-grid"
       >
-        <motion.article 
-          variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl"
-        >
-          <Typography variant="label" color="muted" className="mb-1">Faturamento</Typography>
-          <div className="text-3xl font-black text-white font-display">
-            <CountUp 
-              end={stats.faturamento} 
-              decimals={2} 
-              decimal="," 
-              prefix="R$ " 
-              duration={2} 
-              separator="."
-            />
-          </div>
-          <Typography variant="caption" color="muted" className="!lowercase first-letter:uppercase">{stats.pedidosEntregues} entregue(s) no período</Typography>
-        </motion.article>
-
-        {visao !== 'operacional' && (
+        {[
+          { label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-white' },
+          { label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', ring: 'ring-emerald-500/20' },
+          { label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-white' },
+          { label: 'Em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', ring: stats.valorEmAberto > 0 ? 'ring-amber-500/20' : 'ring-emerald-500/20' }
+        ].map((stat, i) => (
           <motion.article 
+            key={i}
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-            className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 ring-1 ring-emerald-500/20 shadow-2xl"
+            className={cn(
+              "rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl",
+              stat.ring
+            )}
           >
-            <Typography variant="label" color="muted" className="mb-1">Lucro bruto</Typography>
-            <div className="text-3xl font-black text-emerald-400 font-display">
-              <CountUp 
-                end={stats.lucroTotal} 
-                decimals={2} 
-                decimal="," 
-                prefix="R$ " 
-                duration={2.5} 
-                separator="."
-              />
+            <Typography variant="label" color="muted" className="mb-1">{stat.label}</Typography>
+            <div className={cn("text-3xl font-black font-display", stat.color)}>
+              <CountUp end={stat.val} decimals={2} decimal="," prefix={stat.prefix} duration={2} separator="." />
             </div>
-            <Typography variant="caption" className="!text-emerald-500 font-bold flex items-center gap-1">
-              <TrendingUp size={12} strokeWidth={3} /> Margem {stats.margem.toFixed(1)}%
-            </Typography>
           </motion.article>
-        )}
-
-        <motion.article 
-          variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className="rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl"
-        >
-          <Typography variant="label" color="muted" className="mb-1">Ticket médio</Typography>
-          <div className="text-3xl font-black text-white font-display">
-            <CountUp 
-              end={stats.ticketMedio} 
-              decimals={2} 
-              decimal="," 
-              prefix="R$ " 
-              duration={2.2} 
-              separator="."
-            />
-          </div>
-          <Typography variant="caption" color="muted" className="!lowercase first-letter:uppercase">{stats.totalPedidos} pedido(s) no período</Typography>
-        </motion.article>
-
-        <motion.article 
-          variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
-          className={`rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 shadow-2xl ${stats.valorEmAberto === 0 ? 'ring-1 ring-emerald-500/20' : 'ring-1 ring-amber-500/20'}`}
-        >
-          <Typography variant="label" color="muted" className="mb-1">Em aberto</Typography>
-          <div className={`text-3xl font-black font-display ${stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
-            <CountUp 
-              end={stats.valorEmAberto} 
-              decimals={2} 
-              decimal="," 
-              prefix="R$ " 
-              duration={2.4} 
-              separator="."
-            />
-          </div>
-          <Typography variant="caption" className={`font-bold !lowercase first-letter:uppercase ${stats.valorEmAberto > 0 ? '!text-amber-500' : '!text-emerald-500'}`}>
-            {stats.pedidosPendentes} pendências · {stats.valorEmAberto === 0 ? 'Quitado' : 'Aguardando'}
-          </Typography>
-        </motion.article>
+        ))}
       </motion.section>
 
-      {/* Linha Principal: Gráfico + Mix + Health (Bento) */}
+      {/* Linha Principal: Gráfico de Performance */}
       <div className="rf-bento-grid mt-4">
-        {/* Gráfico de Faturamento e Lucro */}
         {visao !== 'operacional' && (
           <div className="rf-bento-item rf-bento-span-8 rf-glass-glow shadow-premium overflow-hidden !p-0">
             <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
@@ -535,133 +388,68 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             <div className="p-6">
               <div className="h-80 w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RechartsAreaChart
-                    data={chartData}
-                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                  >
+                  <RechartsAreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="colorFaturamento" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
+                      <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
                       </linearGradient>
-                      <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="var(--color-emerald-vibrant)" stopOpacity={0}/>
+                      <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid 
-                      strokeDasharray="3 3" 
-                      vertical={false} 
-                      stroke="rgba(255,255,255,0.05)" 
-                    />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
-                      dy={10}
-                    />
-                    <YAxis 
-                      hide={true} 
-                      domain={['auto', 'auto']}
-                    />
-                    <Tooltip 
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 animate-in fade-in zoom-in duration-200">
-                              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 border-b border-white/5 pb-2">{label}</p>
-                              <div className="space-y-3">
-                                {payload.map((entry: any, index: number) => (
-                                  <div key={index} className="flex items-center justify-between gap-12">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(var(--rgb-white),0.4)]" style={{ backgroundColor: entry.color }} />
-                                      <span className="text-[11px] font-black text-slate-300 uppercase tracking-tight">{entry.name}</span>
-                                    </div>
-                                    <span className="text-xs font-black text-white font-display tracking-tight">{fmt(entry.value)}</span>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }} dy={10} />
+                    <YAxis hide domain={['auto', 'auto']} />
+                    <Tooltip content={({ active, payload, label }) => {
+                      if (active && payload?.length) {
+                        return (
+                          <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-2xl ring-1 ring-white/10">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
+                            <div className="space-y-2">
+                              {payload.map((entry: any, idx: number) => (
+                                <div key={idx} className="flex items-center justify-between gap-8">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                    <span className="text-[10px] font-bold text-slate-300 uppercase">{entry.name}</span>
                                   </div>
-                                ))}
-                              </div>
+                                  <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
+                                </div>
+                              ))}
                             </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="faturamento"
-                      stroke="var(--color-amber-vibrant)"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#colorFaturamento)"
-                      animationDuration={1500}
-                      dot={{ fill: 'var(--color-amber-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="lucro"
-                      stroke="var(--color-emerald-vibrant)"
-                      strokeWidth={3}
-                      fillOpacity={1}
-                      fill="url(#colorLucro)"
-                      animationDuration={2000}
-                      dot={{ fill: 'var(--color-emerald-vibrant)', r: 4, strokeWidth: 2, stroke: 'var(--surface-card)' }}
-                      activeDot={{ r: 6, strokeWidth: 0 }}
-                    />
+                          </div>
+                        );
+                      }
+                      return null;
+                    }} />
+                    <Area type="monotone" dataKey="faturamento" name="Faturamento" stroke="#fbbf24" strokeWidth={3} fillOpacity={1} fill="url(#colorFat)" />
+                    <Area type="monotone" dataKey="lucro" name="Lucro" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorLuc)" />
                   </RechartsAreaChart>
                 </ResponsiveContainer>
               </div>
 
-              <div className="flex justify-center gap-8 mt-6">
-                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[var(--color-amber-vibrant)] shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento</span>
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[var(--color-emerald-vibrant)] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lucro</span>
-                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Melhor Dia</span>
-                  <span className="block text-lg font-black text-white">
-                    {fmt(Math.max(...chartData.map(d => d.faturamento), 0))}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Média Diária</span>
-                  <span className="block text-lg font-black text-white">
-                    {fmt(chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0)}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Período</span>
-                  <span className="block text-lg font-black text-white">
-                    {fmt(chartData.reduce((acc, d) => acc + d.faturamento, 0))}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Margem</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-black text-emerald-400">
-                      {chartData.reduce((acc, d) => acc + d.faturamento, 0) > 0 
-                        ? ((chartData.reduce((acc, d) => acc + d.lucro, 0) / chartData.reduce((acc, d) => acc + d.faturamento, 0)) * 100).toFixed(1)
-                        : 0}%
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
+                {[
+                  { label: 'Melhor Dia', val: Math.max(...chartData.map(d => d.faturamento), 0) },
+                  { label: 'Média Diária', val: chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0 },
+                  { label: 'Total Período', val: chartData.reduce((acc, d) => acc + d.faturamento, 0) },
+                  { label: 'Margem Bruta', val: stats.margem, suffix: '%' }
+                ].map((m, i) => (
+                  <div key={i}>
+                    <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{m.label}</span>
+                    <span className="block text-lg font-black text-white">
+                      {m.suffix ? `${m.val.toFixed(1)}%` : fmt(m.val)}
                     </span>
-                    <TrendingUp size={16} className="text-emerald-500" />
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Mix de Vendas (Bento Span 4) */}
-        <div className={`rf-bento-item ${visao === 'operacional' ? 'rf-bento-span-6' : 'rf-bento-span-4'} rf-glass overflow-hidden !p-0`}>
+        {/* Mix de Vendas */}
+        <div className="rf-bento-item rf-bento-span-4 rf-glass overflow-hidden !p-0">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Mix de Vendas</Typography>
             <Typography variant="caption" color="muted">Performance por Categoria</Typography>
@@ -670,103 +458,78 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             <div className="h-48 relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={topProducts}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="receita"
-                    stroke="none"
-                  >
+                  <Pie data={topProducts} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="receita" stroke="none">
                     {topProducts.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][index]} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-3 rounded-2xl shadow-2xl ring-1 ring-white/5">
-                            <p className="text-[10px] font-black text-white uppercase tracking-widest">{payload[0].name}</p>
-                            <p className="text-xs font-black text-cyan-400 mt-1">{fmt(payload[0].value as number)}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
+                  <Tooltip content={({ active, payload }) => {
+                    if (active && payload?.length) {
+                      return (
+                        <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-3 rounded-2xl shadow-2xl">
+                          <p className="text-[10px] font-black text-white uppercase">{payload[0].name}</p>
+                          <p className="text-xs font-black text-cyan-400 mt-1">{fmt(payload[0].value as number)}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                  <Typography variant="label" color="muted" className="!text-[9px]">Total</Typography>
-                 <span className="text-xl font-black text-white font-display tracking-tight">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+                 <span className="text-xl font-black text-white font-display">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
               </div>
             </div>
 
             <div className="flex flex-col gap-3">
-              {topProducts.map((p, i) => (
-                <div key={p.nome} className="flex flex-col gap-1.5">
+              {topProducts.slice(0, 3).map((p, i) => (
+                <div key={i} className="space-y-1.5">
                   <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight">
                     <div className="flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_rgba(var(--rgb-white),0.2)]`} style={{ background: ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][i] }} />
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: ['#22d3ee', '#fbbf24', '#10b981'][i] }} />
                       <span className="text-slate-300 truncate max-w-[120px]">{p.nome}</span>
                     </div>
-                    <span className="text-white font-display">{p.percent.toFixed(1)}%</span>
+                    <span className="text-white">{p.percent.toFixed(1)}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${p.percent}%` }}
-                      transition={{ duration: 1, delay: i * 0.1 }}
-                      className="h-full rounded-full"
-                      style={{ background: ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][i] }}
-                    />
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${p.percent}%` }} className="h-full rounded-full" style={{ background: ['#22d3ee', '#fbbf24', '#10b981'][i] }} />
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Terceira Linha: Health, Status, Alerts */}
+      <div className="rf-bento-grid mt-4">
         {/* Health Check */}
-        <div className={`rf-bento-item ${visao === 'operacional' ? 'rf-bento-span-6' : 'rf-bento-span-4'} rf-glass flex flex-col gap-4`}>
+        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col gap-6">
            <HealthCheckCard />
-           <div className="mt-auto">
+           <div className="mt-auto pt-6 border-t border-white/5">
               <FiscalHubCard />
            </div>
         </div>
 
-        {/* Status dos Pedidos (Bento Span 4) */}
+        {/* Status da Base */}
         <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Status da Base</Typography>
-            <div className="mt-1 flex items-center gap-2">
-              <Typography variant="label" color="muted" className="!text-[9px]">{pedidos.length} Pedidos</Typography>
-              <div className="w-1 h-1 rounded-full bg-slate-700" />
-              <Typography variant="label" className="!text-[9px] !text-emerald-500">Sincronizado</Typography>
-            </div>
+            <Typography variant="label" color="muted" className="!text-[10px]">{pedidos.length} Pedidos Sincronizados</Typography>
           </div>
-
           <div className="p-6 space-y-4">
-            {[...Object.entries(STATUS_CONFIG), ...(statusDistribution['outros'] ? [['outros', { label: 'Outros', color: '#CBD5E1' }]] : [])].map(([key, config]: any) => {
+            {Object.entries(STATUS_CONFIG).slice(0, 5).map(([key, config]) => {
               const count = statusDistribution[key] || 0;
               const perc = pedidos.length > 0 ? (count / pedidos.length) * 100 : 0;
               return (
                 <div key={key} className="space-y-1.5">
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{config.label}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">{config.label}</span>
                     <span className="text-xs font-black text-white">{count}</span>
                   </div>
                   <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${perc}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ background: config.color }}
-                    />
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${perc}%` }} className="h-full rounded-full" style={{ background: config.color }} />
                   </div>
                 </div>
               );
@@ -774,68 +537,33 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </div>
         </div>
 
-        {/* Alertas e Pendências */}
+        {/* CRM / Alertas */}
         <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
-          <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
-            <h3 className="text-sm font-bold text-white uppercase tracking-tight">Alertas Críticos</h3>
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Alertas do CRM</Typography>
             <Badge variant="red">{alerts.length}</Badge>
           </div>
-          <div className="p-6 flex-1 space-y-4">
-            {alerts.length > 0 ? alerts.slice(0, 4).map(a => (
-              <div key={a.id} className="flex items-start gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5 group hover:border-white/10 transition-all">
-                <div className={`p-2 rounded-lg ${a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'}`}>
-                  {a.isPredictive ? <Zap size={14} /> : <AlertCircle size={14} />}
+          <div className="p-6 space-y-4">
+            {alerts.slice(0, 3).map(a => (
+              <div key={a.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex gap-4">
+                <div className={cn("p-2 rounded-lg", a.tone === 'danger' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400')}>
+                  <Zap size={14} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="block text-[11px] font-bold text-white truncate uppercase tracking-tight">{a.title}</span>
                   <p className="text-[10px] text-slate-400 truncate mt-0.5">{a.desc}</p>
                 </div>
               </div>
-            )) : (
-              <div className="flex flex-col items-center justify-center h-full py-8 text-center gap-3">
-                <CheckCircle2 size={32} className="text-emerald-500/30" />
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Tudo em dia</p>
+            ))}
+            <div className="pt-4 mt-4 border-t border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ação CRM</span>
+                 <TrendingUp size={12} className="text-indigo-400" />
               </div>
-            )}
+              <Button size="sm" variant="secondary" className="w-full !rounded-xl !text-[10px] font-black uppercase">Ativar Campanha</Button>
+            </div>
           </div>
         </div>
-
-        {/* Saúde da Operação (Bento Span 4) */}
-        {visao !== 'operacional' && (
-          <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
-            <div className="px-6 py-4 border-b border-white/5 bg-white/[0.01]">
-              <h3 className="text-sm font-bold text-white uppercase tracking-tight">Saúde da Operação</h3>
-              <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest tracking-tighter">Sinais Vitais</p>
-            </div>
-            
-            <div className="p-6 space-y-5">
-              {[
-                { label: 'Contato Base', val: healthMetrics.contato, th: [80, 50] },
-                { label: 'Estoque Ativo', val: healthMetrics.estoque, th: [90, 70] },
-                { label: 'Giro de Mix', val: healthMetrics.mix, th: [30, 10] },
-                { label: 'Eficiência Entrega', val: healthMetrics.entrega, th: [70, 40] }
-              ].map(m => (
-                <div key={m.label} className="space-y-1.5">
-                  <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{m.label}</span>
-                    <span className="text-xs font-black text-white">{m.val.toFixed(0)}%</span>
-                  </div>
-                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${m.val}%` }}
-                      transition={{ duration: 1.2, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ 
-                        background: m.val >= m.th[0] ? '#10B981' : m.val >= m.th[1] ? '#F59E0B' : '#EF4444' 
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -848,9 +576,9 @@ function FiscalHubCard() {
   const handleEmit = async () => {
     setIsEmitting(true);
     try {
-      const result = await fiscalService.emitirNFe(token!, 'ANY-ORDER-ID');
+      const result = await fiscalService.emitirNFe(token!, 'PENDING');
       if (result.ok) {
-        useToastStore.getState().addToast(`NFe ${result.nfe_id} emitida com sucesso!`, 'success');
+        useToastStore.getState().addToast(`NFe emitida com sucesso!`, 'success');
       } else {
         useToastStore.getState().addToast(result.error || 'Erro na emissão.', 'error');
       }
@@ -866,27 +594,18 @@ function FiscalHubCard() {
            <ShieldCheck className="w-4 h-4 text-emerald-400" />
            <span className="text-[10px] font-black text-white uppercase tracking-widest">Fiscal Hub</span>
         </div>
-        <Badge variant="green" className="!py-0 !text-[8px]">EM DIA</Badge>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
-           <span className="block text-[8px] font-black text-slate-500 uppercase mb-1">Emitidas</span>
-           <span className="text-sm font-black text-white">124</span>
-        </div>
-        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5">
-           <span className="block text-[8px] font-black text-slate-500 uppercase mb-1">Pendentes</span>
-           <span className="text-sm font-black text-amber-400">3</span>
-        </div>
+        <Badge variant="green" className="!py-0 !text-[8px]">ACTIVE</Badge>
       </div>
       <Button 
         size="sm" 
         variant="secondary" 
-        className="w-full !rounded-lg !text-[10px] font-black"
+        className="w-full !rounded-lg !text-[10px] font-black uppercase"
         onClick={handleEmit}
         loading={isEmitting}
       >
-        {isEmitting ? 'Emitindo...' : 'Emitir Pendências'}
+        {isEmitting ? 'Processando...' : 'Processar NFes Pendentes'}
       </Button>
     </div>
   );
 }
+ Broadway

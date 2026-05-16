@@ -48,7 +48,7 @@ type Props = {
   pais: Produto[];
   saving: boolean;
   error: string | null;
-  onSalvar: (_values: ProdutoFormValues) => void;
+  onSalvar: (_values: ProdutoFormValues, _grade?: string[]) => void;
   onCancelar: () => void;
 };
 
@@ -123,6 +123,9 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
 
+  const onSubmit = (values: ProdutoFormValues) => onSalvar(values, gradeSelecionada);
+  const handleCustomSubmit = handleSubmit(onSubmit);
+  
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -130,6 +133,9 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   }, [produto, reset]);
 
   const watchedValues = watch();
+  const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
+  
+  const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
 
   function handleCusto(raw: string) {
     const custo = parseFloat(raw) || 0;
@@ -251,7 +257,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   }
 
   return (
-    <form className="flex flex-col gap-10" onSubmit={handleSubmit(onSalvar)} data-testid="produto-form">
+    <form onSubmit={handleCustomSubmit} className="space-y-10 pb-20" data-testid="produto-form">
       <FormSection 
         title="Essencial" 
         description="Identificação básica para encontrar e vender o produto no dia a dia." 
@@ -420,6 +426,56 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
           <Input label="Custo Médio (CM)" type="number" min="0" step="0.01" {...register('ecm')} />
         </div>
       </FormSection>
+
+      {!watchedValues.produto_pai_id && (
+        <FormSection title="Gerador de Grade" description="Crie variantes de tamanhos automaticamente para este produto.">
+          <div className="bg-slate-900/40 p-6 rounded-[2rem] border border-white/5">
+             <Typography variant="label" color="muted" className="mb-4 block">Selecione os tamanhos para gerar:</Typography>
+             <div className="flex flex-wrap gap-2 mb-6">
+                {SIZES.map(size => (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => {
+                      setGradeSelecionada(prev => 
+                        prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
+                      );
+                    }}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-xs font-black transition-all border-2",
+                      gradeSelecionada.includes(size)
+                        ? "bg-cyan-500 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                        : "bg-white/5 border-white/5 text-slate-500 hover:border-white/10"
+                    )}
+                  >
+                    {size}
+                  </button>
+                ))}
+             </div>
+
+             {gradeSelecionada.length > 0 && (
+               <motion.div 
+                 initial={{ opacity: 0, y: 10 }} 
+                 animate={{ opacity: 1, y: 0 }}
+                 className="space-y-3 p-4 bg-cyan-500/5 rounded-2xl border border-cyan-500/10"
+               >
+                 <Typography variant="caption" className="!text-cyan-400 font-bold uppercase tracking-widest">Preview da Grade ({gradeSelecionada.length} itens)</Typography>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {gradeSelecionada.map(size => (
+                      <div key={size} className="flex items-center justify-between p-2 bg-white/[0.02] rounded-lg border border-white/5">
+                        <span className="text-[10px] font-bold text-white uppercase">{watchedValues.nome} - {size}</span>
+                        <span className="text-[9px] font-mono text-slate-500">{watchedValues.sku ? `${watchedValues.sku}-${size}` : 'Automático'}</span>
+                      </div>
+                    ))}
+                 </div>
+                 <Typography variant="caption" color="muted" className="mt-2 block italic text-[9px]">
+                    * As variantes serão criadas com o mesmo custo e preços definidos acima.
+                 </Typography>
+               </motion.div>
+             )}
+          </div>
+        </FormSection>
+      )}
 
       {preview && (
         <div className="bg-emerald-900/90 backdrop-blur-xl p-6 rounded-3xl border border-emerald-500/30 shadow-2xl relative overflow-hidden">

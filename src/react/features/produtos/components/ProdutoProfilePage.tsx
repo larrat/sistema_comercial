@@ -248,7 +248,7 @@ export function ProdutoProfilePage({
     setEditingCadastro(true);
   }
 
-  async function handleSalvar(values: any) {
+  async function handleSalvar(values: any, grade?: string[]) {
     const novoNome = values.nome.trim();
     const nomeAlterado = novoNome !== produto.nome;
     const catAlterada = (values.cat || '').trim() !== (produto.cat || '');
@@ -256,7 +256,23 @@ export function ProdutoProfilePage({
     
     const mapped = formValuesToProduto(values, produto.filial_id || '', produto);
     
-    saveMutation.mutate(mapped, {
+    // Preparar lote se houver grade
+    const payload: Produto[] = [mapped];
+    if (grade && grade.length > 0) {
+      grade.forEach(size => {
+        payload.push({
+          ...mapped,
+          id: crypto.randomUUID(),
+          produto_pai_id: mapped.id,
+          nome: `${mapped.nome} - ${size}`,
+          sku: mapped.sku ? `${mapped.sku}-${size}` : undefined,
+          tamanho: size,
+          esal: 0
+        });
+      });
+    }
+
+    saveMutation.mutate(payload as any, {
       onSuccess: async () => {
         if (nomeAlterado) {
           const devePropagar = window.confirm(
@@ -279,6 +295,7 @@ export function ProdutoProfilePage({
           }
         }
 
+        toast.success(grade?.length ? `Produto e ${grade.length} variantes salvos!` : 'Alterações salvas com sucesso');
         setEditingCadastro(false);
         setSearchParams((current) => {
           const next = new URLSearchParams(current);
@@ -813,7 +830,7 @@ export function ProdutoProfilePage({
             pais={pais}
             saving={saveMutation.isPending}
             error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
-            onSalvar={(values) => void handleSalvar(values)}
+            onSalvar={(values, grade) => void handleSalvar(values, grade)}
             onCancelar={() => {
               setEditingCadastro(false);
               setSearchParams((current) => {
