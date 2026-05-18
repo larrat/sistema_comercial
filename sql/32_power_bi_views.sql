@@ -16,7 +16,8 @@ select
   doc as cliente_documento,
   email as cliente_email,
   tel as cliente_telefone,
-  coalesce(canal, 'Direto') as cliente_canal,
+  coalesce(seg, 'Geral') as cliente_segmento,
+  coalesce(utm_source, 'Direto') as cliente_canal_aquisicao,
   created_at as cliente_cadastro_data
 from public.clientes;
 
