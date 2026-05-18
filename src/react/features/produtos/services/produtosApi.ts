@@ -77,7 +77,7 @@ function createProdutoQueryParams(
   params.set('filial_id', `eq.${filialId}`);
   params.set('is_active', 'eq.true');
   params.set('order', 'nome');
-  params.set('select', '*,variantes:produtos!produto_pai_id(id,nome,sku,esal,emin,custo,mkv,mka,pfa,tamanho,cor,genero,is_active)');
+  params.set('select', '*,variantes:produtos!produto_pai_id(id,nome,sku,esal,emin,custo,mkv,mka,pfa,tamanho,genero,is_active)');
   const conditions: string[] = [];
   if (!filters.includeVariants && !filters.q) {
     conditions.push('produto_pai_id.is.null');

@@ -245,8 +245,8 @@ export function ProdutoListView({
                         <div key={v.id} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5 text-slate-200">
                             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: v.esal <= 0 ? 'var(--color-rose-400)' : 'var(--color-emerald-400)' }} />
-                            <span className="font-medium truncate max-w-[160px]">
-                              {[v.tamanho, v.cor].filter(Boolean).join(' / ') || v.nome}
+                            <span className="font-medium truncate max-w-[160px]" title={v.nome}>
+                              {v.nome.replace(row.prod.nome, '').replace(/^\s*[-–—]\s*/, '').trim() || v.nome}
                             </span>
                           </div>
                           <span className={`font-bold font-mono ${v.esal <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
