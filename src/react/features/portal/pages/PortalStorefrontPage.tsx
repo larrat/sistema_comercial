@@ -22,6 +22,8 @@ export function PortalStorefrontPage() {
       });
       const data = await res.json();
       
+      if (!res.ok || !Array.isArray(data)) return [];
+
       // Filtra apenas produtos que podem ser vendidos (filhos ou isolados)
       const parentIds = new Set(data.map((p: any) => p.produto_pai_id).filter(Boolean));
       return data.filter((p: any) => !parentIds.has(p.id));
