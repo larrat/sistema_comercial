@@ -223,7 +223,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             key={i}
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
             className={cn(
-              "rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl",
+              "rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]",
               stat.ring
             )}
           >
@@ -238,7 +238,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       {/* Linha Principal: Gráfico de Performance */}
       <div className="rf-bento-grid mt-4">
         {visao !== 'operacional' && (
-          <div className="rf-bento-item rf-bento-span-8 rf-glass-glow shadow-premium overflow-hidden !p-0">
+          <div className="rf-bento-item rf-bento-span-8 rf-glass-glow shadow-premium overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-emerald-500/5">
             <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
               <div className="space-y-0.5">
                 <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Desempenho Comercial</Typography>
@@ -325,7 +325,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         )}
 
         {/* Mix de Vendas */}
-        <div className="rf-bento-item rf-bento-span-4 rf-glass overflow-hidden !p-0">
+        <div className="rf-bento-item rf-bento-span-4 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Mix de Vendas</Typography>
             <Typography variant="caption" color="muted">Performance por Categoria</Typography>
@@ -395,7 +395,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       {/* Terceira Linha: Health, Status, Alerts */}
       <div className="rf-bento-grid mt-4">
         {/* Health Check */}
-        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col gap-6">
+        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col gap-6 transition-all duration-300 hover:border-white/10">
            <HealthCheckCard />
            <div className="mt-auto pt-6 border-t border-white/5">
               <FiscalHubCard />
@@ -403,7 +403,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </div>
 
         {/* Status da Base */}
-        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
+        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0 transition-all duration-300 hover:border-white/10">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Status da Base</Typography>
             <Typography variant="label" color="muted" className="!text-[10px]">{pedidos.length} Pedidos Sincronizados</Typography>
@@ -428,7 +428,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </div>
 
         {/* CRM / Alertas */}
-        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0">
+        <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col overflow-hidden !p-0 transition-all duration-300 hover:border-white/10">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Alertas do CRM</Typography>
             <Badge variant="red">{alerts.length}</Badge>
