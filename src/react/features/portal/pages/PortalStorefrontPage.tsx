@@ -80,14 +80,25 @@ export function PortalStorefrontPage() {
       if (!filialId) return [];
 
       // 2. Buscar os produtos ativos pertencentes a esta filial
-      const res = await fetch(`${url}/rest/v1/produtos?filial_id=eq.${filialId}&is_active=eq.true&select=id,nome,descricao_padrao,pvv,custo,foto_url,cat,esal,sku,produto_pai_id`, {
+      const res = await fetch(`${url}/rest/v1/produtos?filial_id=eq.${filialId}&is_active=eq.true&select=id,nome,descricao_padrao,mkv,custo,foto_url,cat,esal,sku,produto_pai_id`, {
         headers: { apikey: key, Authorization: authHeader }
       });
       const data = await res.json();
       if (!res.ok || !Array.isArray(data)) return [];
       
-      const parentIds = new Set(data.map((p: any) => p.produto_pai_id).filter(Boolean));
-      return data.filter((p: any) => !parentIds.has(p.id));
+      // Calculate dynamic pvv (preco venda varejo) for each product
+      const mappedData = data.map((prod: any) => {
+        const custo = prod.custo || 0;
+        const mkv = prod.mkv || 0;
+        const pvv = mkv > 0 ? custo * (1 + mkv / 100) : 0;
+        return {
+          ...prod,
+          pvv: pvv || 0
+        };
+      });
+      
+      const parentIds = new Set(mappedData.map((p: any) => p.produto_pai_id).filter(Boolean));
+      return mappedData.filter((p: any) => !parentIds.has(p.id));
     }
   });
 
