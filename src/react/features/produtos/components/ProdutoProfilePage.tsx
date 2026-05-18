@@ -189,27 +189,11 @@ export function ProdutoProfilePage({
   const { data: movs = [], isLoading: loadingMovs } = useMovimentacoesQuery([produto.id]);
 
   const calculatedSaldo = useMemo(() => {
-    let currentBalance = toNumber(produto.esal);
-    let currentCm = toNumber(produto.ecm) || toNumber(produto.custo);
-    
-    [...movs]
-      .sort((a, b) => toNumber(a.ts) - toNumber(b.ts))
-      .forEach((mov: any) => {
-        if (mov.tipo === 'entrada') {
-          const qty = toNumber(mov.qty);
-          const costo = toNumber(mov.custo) || currentCm;
-          const nextBal = currentBalance + qty;
-          currentCm = nextBal > 0 ? (currentBalance * currentCm + qty * costo) / nextBal : costo;
-          currentBalance = nextBal;
-        } else if (mov.tipo === 'saida' || mov.tipo === 'transf') {
-          currentBalance -= toNumber(mov.qty);
-        } else if (mov.tipo === 'ajuste') {
-          currentBalance = toNumber(mov.saldo_real ?? mov.saldoReal);
-        }
-      });
-      
-    return { saldo: currentBalance, cm: currentCm };
-  }, [movs, produto.esal, produto.ecm, produto.custo]);
+    return { 
+      saldo: toNumber(produto.esal), 
+      cm: toNumber(produto.ecm) || toNumber(produto.custo) 
+    };
+  }, [produto.esal, produto.ecm, produto.custo]);
 
   const precos = useMemo(() => getPrecos(produto), [produto]);
   const kpis = useMemo(() => buildKpis(produto, calculatedSaldo), [produto, calculatedSaldo]);
