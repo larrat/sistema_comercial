@@ -179,7 +179,7 @@ export function PortalStorefrontPage() {
     setTryOnStep('processing');
     
     // Look up FAL API Key from environment or localStorage
-    const falKey = (import.meta.env.VITE_FAL_KEY || window.localStorage.getItem('FAL_KEY') || '').trim();
+    const falKey = ((import.meta as any).env?.VITE_FAL_KEY || window.localStorage.getItem('FAL_KEY') || '').trim();
     
     if (falKey) {
       try {
