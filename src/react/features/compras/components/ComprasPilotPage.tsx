@@ -23,9 +23,8 @@ import {
   LoadingState,
   ErrorState
 } from '../../../shared/ui';
-import { PedidoCompraForm } from './PedidoCompraForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listPedidosCompra, finalizarPedidoCompra, savePedidoCompra } from '../services/comprasApi';
+import { listPedidosCompra, finalizarPedidoCompra } from '../services/comprasApi';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 
@@ -37,7 +36,6 @@ export function ComprasPilotPage() {
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
     queryKey: ['pedidos-compra', filialId],
@@ -50,14 +48,6 @@ export function ComprasPilotPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
-    }
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: ({ pedido, itens }: any) => savePedidoCompra(token!, pedido, itens),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
-      setIsFormOpen(false);
     }
   });
 
@@ -84,20 +74,14 @@ export function ComprasPilotPage() {
                 Stock AI
               </Button>
             </Link>
-            <Button variant="primary" className="!rounded-xl" leftIcon={<Plus className="w-4 h-4" />} onClick={() => setIsFormOpen(true)}>
-              Novo pedido
-            </Button>
+            <Link to="/app/compras/novo">
+              <Button variant="primary" className="!rounded-xl" leftIcon={<Plus className="w-4 h-4" />}>
+                Novo pedido
+              </Button>
+            </Link>
           </div>
         }
       />
-
-      {isFormOpen && (
-        <PedidoCompraForm 
-          filialId={filialId!}
-          onClose={() => setIsFormOpen(false)}
-          onSave={(pedido, itens) => saveMutation.mutate({ pedido, itens })}
-        />
-      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
