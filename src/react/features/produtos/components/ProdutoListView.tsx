@@ -208,8 +208,58 @@ export function ProdutoListView({
           key: 'estoque',
           label: 'Estoque',
           render: (row) => {
-            const emin = row.prod.emin ?? 0;
-            const saldo = row.prod.esal ?? 0;
+            const activeVariants = Array.isArray((row.prod as any).variantes)
+              ? (row.prod as any).variantes.filter((v: any) => v.is_active !== false)
+              : [];
+            const hasVariants = activeVariants.length > 0;
+            
+            const saldo = hasVariants
+              ? activeVariants.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
+              : row.prod.esal ?? 0;
+              
+            const emin = hasVariants
+              ? activeVariants.reduce((acc: number, v: any) => acc + (v.emin ?? 0), 0)
+              : row.prod.emin ?? 0;
+
+            if (hasVariants) {
+              return (
+                <div className="flex flex-col gap-0.5 relative group cursor-help">
+                  <div className="text-sm font-bold text-slate-100 flex items-center gap-1.5 hover:text-[#C5A059] transition-colors">
+                    {fmtQ(saldo)} <span className="text-xs font-normal text-slate-500">{row.prod.un}</span>
+                    <span className="text-[9px] bg-slate-800 text-[#C5A059] px-1.5 py-0.5 rounded-md border border-[#C5A059]/20 font-black uppercase tracking-wider">
+                      {activeVariants.length} vars
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-[#C5A059]/80 font-bold uppercase tracking-wider text-[9px] flex items-center gap-1">
+                    <span>Grade Total</span>
+                  </div>
+
+                  {/* Popover flutuante no hover de luxo */}
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-slate-950/95 border border-white/10 backdrop-blur-md p-3.5 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-white/5 pb-1 flex items-center justify-between">
+                      <span>Estoque por Grade</span>
+                      <span className="text-[9px] text-[#C5A059]">{row.prod.un}</span>
+                    </div>
+                    <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1">
+                      {activeVariants.map((v: any) => (
+                        <div key={v.id} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5 text-slate-200">
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: v.esal <= 0 ? 'var(--color-rose-400)' : 'var(--color-emerald-400)' }} />
+                            <span className="font-medium truncate max-w-[160px]">
+                              {[v.tamanho, v.cor].filter(Boolean).join(' / ') || v.nome}
+                            </span>
+                          </div>
+                          <span className={`font-bold font-mono ${v.esal <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                            {fmtQ(v.esal)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div className="flex flex-col gap-0.5">
                 <div className="text-sm font-bold text-slate-100">
@@ -226,8 +276,19 @@ export function ProdutoListView({
           key: 'status',
           label: 'Status',
           render: (row) => {
-            const emin = row.prod.emin ?? 0;
-            const saldo = row.prod.esal ?? 0;
+            const activeVariants = Array.isArray((row.prod as any).variantes)
+              ? (row.prod as any).variantes.filter((v: any) => v.is_active !== false)
+              : [];
+            const hasVariants = activeVariants.length > 0;
+            
+            const saldo = hasVariants
+              ? activeVariants.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
+              : row.prod.esal ?? 0;
+              
+            const emin = hasVariants
+              ? activeVariants.reduce((acc: number, v: any) => acc + (v.emin ?? 0), 0)
+              : row.prod.emin ?? 0;
+
             return (
               <StatusBadge tone={stockTone(saldo, emin)}>
                 {stockLabel(saldo, emin)}
@@ -302,8 +363,19 @@ export function ProdutoListMobile({
     <div className="rf-ui-stack">
       {ordenados.map(({ prod: p, isPai, isVariante }) => {
         const { varejo, atacado } = calcPrecos(p);
-        const saldo = p.esal ?? 0;
-        const emin = p.emin ?? 0;
+        
+        const activeVariants = Array.isArray((p as any).variantes)
+          ? (p as any).variantes.filter((v: any) => v.is_active !== false)
+          : [];
+        const hasVariants = activeVariants.length > 0;
+        
+        const saldo = hasVariants
+          ? activeVariants.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
+          : p.esal ?? 0;
+          
+        const emin = hasVariants
+          ? activeVariants.reduce((acc: number, v: any) => acc + (v.emin ?? 0), 0)
+          : p.emin ?? 0;
 
         return (
           <div
@@ -334,6 +406,11 @@ export function ProdutoListMobile({
                         Família
                       </Badge>
                     ) : null}
+                    {hasVariants ? (
+                      <Badge variant="slate" className="ml-1 text-[9px] bg-slate-800 text-[#C5A059] border-[#C5A059]/20">
+                        {activeVariants.length} vars
+                      </Badge>
+                    ) : null}
                     {isVariante && (!p.genero || !p.tamanho) && (
                       <span className="ml-2 inline-flex items-center gap-1 text-[9px] font-black text-amber-500 uppercase">
                         <AlertTriangle size={10} /> Incompleto
@@ -348,7 +425,7 @@ export function ProdutoListMobile({
               </div>
               <StatusBadge tone={stockTone(saldo, emin)}>{stockLabel(saldo, emin)}</StatusBadge>
             </div>
-
+ 
             <div className="mobile-card-meta grid grid-cols-2 gap-y-3 gap-x-4 border-t border-white/5 pt-4">
               <div className="flex flex-col">
                 <Typography variant="label" color="muted">Custo</Typography>
@@ -363,7 +440,7 @@ export function ProdutoListMobile({
                 <span className="text-sm font-black text-slate-300 font-display">{atacado > 0 ? fmt(atacado) : '—'}</span>
               </div>
               <div className="flex flex-col">
-                <Typography variant="label" color="muted">Saldo</Typography>
+                <Typography variant="label" color="muted">{hasVariants ? 'Saldo (Grade)' : 'Saldo'}</Typography>
                 <span className={`text-sm font-black font-display ${saldo <= 0 ? 'text-rose-400' : emin > 0 && saldo < emin ? 'text-amber-400' : 'text-emerald-400'}`}>
                   {fmtQ(saldo)} <span className="text-[10px] font-normal opacity-60">{p.un}</span>
                 </span>
