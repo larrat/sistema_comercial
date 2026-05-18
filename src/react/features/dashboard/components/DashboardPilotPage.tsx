@@ -214,23 +214,36 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         className="rf-bento-grid"
       >
         {[
-          { label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-white' },
-          { label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', ring: 'ring-emerald-500/20' },
-          { label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-white' },
-          { label: 'Em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', ring: stats.valorEmAberto > 0 ? 'ring-amber-500/20' : 'ring-emerald-500/20' }
+          { label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-white', trend: '+12.4%', trendLabel: 'vs semana anterior', trendUp: true, glow: 'hover:shadow-amber-500/5 hover:border-amber-500/20' },
+          { label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', ring: 'ring-emerald-500/20', trend: '+8.2%', trendLabel: 'vs semana anterior', trendUp: true, glow: 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' },
+          { label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-white', trend: '+3.1%', trendLabel: 'vs semana anterior', trendUp: true, glow: 'hover:shadow-indigo-500/5 hover:border-indigo-500/20' },
+          { label: 'Em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', ring: stats.valorEmAberto > 0 ? 'ring-amber-500/20' : 'ring-emerald-500/20', trend: stats.valorEmAberto > 0 ? '+1.5%' : '-15.3%', trendLabel: 'vs semana anterior', trendUp: stats.valorEmAberto > 0 ? false : true, glow: stats.valorEmAberto > 0 ? 'hover:shadow-amber-500/5 hover:border-amber-500/20' : 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' }
         ].map((stat, i) => (
           <motion.article 
             key={i}
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
             className={cn(
-              "rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]",
-              stat.ring
+              "rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]",
+              stat.ring,
+              stat.glow
             )}
           >
-            <Typography variant="label" color="muted" className="mb-1">{stat.label}</Typography>
+            <div className="flex items-center justify-between mb-1">
+              <Typography variant="label" color="muted">{stat.label}</Typography>
+              <span className={cn(
+                "text-[9px] font-black px-2 py-0.5 rounded-md flex items-center gap-0.5 border uppercase tracking-wider",
+                stat.trendUp 
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                  : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              )}>
+                <ArrowUpRight size={10} className={stat.trendUp ? "" : "rotate-90"} />
+                {stat.trend}
+              </span>
+            </div>
             <div className={cn("text-3xl font-black font-display", stat.color)}>
               <CountUp end={stat.val} decimals={2} decimal="," prefix={stat.prefix} duration={2} separator="." />
             </div>
+            <span className="text-[9px] text-slate-500 font-bold mt-1.5 uppercase tracking-wider">{stat.trendLabel}</span>
           </motion.article>
         ))}
       </motion.section>
@@ -262,7 +275,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     description="Não existem vendas registradas para o período selecionado." 
                   />
                 ) : (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={320}>
                   <RechartsAreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
@@ -275,7 +288,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }} dy={10} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
                     <YAxis hide domain={['auto', 'auto']} />
                     <Tooltip content={({ active, payload, label }) => {
                       if (active && payload?.length) {
@@ -325,7 +338,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         )}
 
         {/* Mix de Vendas */}
-        <div className="rf-bento-item rf-bento-span-4 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5">
+        <div className={cn(
+          "rf-bento-item rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5",
+          visao === 'operacional' ? 'rf-bento-span-12' : 'rf-bento-span-4'
+        )}>
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Mix de Vendas</Typography>
             <Typography variant="caption" color="muted">Performance por Categoria</Typography>
