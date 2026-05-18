@@ -52,7 +52,17 @@ export function PortalStorefrontPage() {
     queryKey: ['portal-produtos'],
     queryFn: async () => {
       const { url, key } = getSupabaseConfig();
-      const res = await fetch(`${url}/rest/v1/produtos?is_active=eq.true&select=id,nome,descricao_padrao,pvv,custo,foto_url,cat,esal,sku,produto_pai_id`, {
+      
+      // 1. Obter a primeira filial_id cadastrada no sistema
+      const resFiliais = await fetch(`${url}/rest/v1/filiais?limit=1`, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` }
+      });
+      const filiais = await resFiliais.json();
+      const filialId = filiais[0]?.id;
+      if (!filialId) return [];
+
+      // 2. Buscar os produtos ativos pertencentes a esta filial
+      const res = await fetch(`${url}/rest/v1/produtos?filial_id=eq.${filialId}&is_active=eq.true&select=id,nome,descricao_padrao,pvv,custo,foto_url,cat,esal,sku,produto_pai_id`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` }
       });
       const data = await res.json();
