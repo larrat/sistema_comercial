@@ -106,6 +106,28 @@ export async function finalizarPedidoCompra(token: string, pedido: PedidoCompra)
       },
       body: JSON.stringify({ esal: novoSaldo, custo: item.custo_unitario })
     });
+
+    // Registra a movimentação no Kardex
+    await fetch(`${url}/rest/v1/movimentacoes`, {
+      method: 'POST',
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: `MOV-PC-${pedido.id}-${item.produto_id}-${Date.now()}`,
+        filial_id: pedido.filial_id,
+        prod_id: item.produto_id,
+        tipo: 'entrada',
+        data: new Date().toISOString().split('T')[0],
+        qty: item.qty,
+        custo: item.custo_unitario,
+        obs: `Entrada aut. via Pedido de Compra ${pedido.id}`,
+        saldo_real: novoSaldo,
+        ts: Date.now()
+      })
+    });
   }
 
   // 3. Gerar Contas a Pagar
