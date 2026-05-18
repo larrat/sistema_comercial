@@ -44,7 +44,7 @@ import { twMerge } from 'tailwind-merge';
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
-import { LoadingState, ErrorState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
+import { LoadingState, ErrorState, EmptyState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 
@@ -386,8 +386,19 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             </div>
             
             <div className="p-6">
-              <div className="h-80 w-full mt-4">
-                <ResponsiveContainer width="100%" height="100%">
+              <div 
+                className="h-80 w-full mt-4" 
+                role="figure" 
+                aria-label={`Gráfico de área exibindo o faturamento e lucro ao longo do período: ${periodoDatas}`}
+              >
+                {chartData.length === 0 ? (
+                  <EmptyState 
+                    icon={<TrendingUp size={32} className="text-slate-500" />} 
+                    title="Nenhum registro comercial" 
+                    description="Não existem vendas registradas para o período selecionado." 
+                  />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
                   <RechartsAreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
@@ -427,6 +438,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     <Area type="monotone" dataKey="lucro" name="Lucro" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorLuc)" />
                   </RechartsAreaChart>
                 </ResponsiveContainer>
+                )}
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
@@ -455,8 +467,20 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             <Typography variant="caption" color="muted">Performance por Categoria</Typography>
           </div>
           <div className="p-6 flex flex-col gap-6">
-            <div className="h-48 relative">
-              <ResponsiveContainer width="100%" height="100%">
+            {topProducts.length === 0 ? (
+              <EmptyState 
+                icon={<PieChart size={32} className="text-slate-500" />} 
+                title="Mix vazio" 
+                description="Sem movimentação de produtos no período." 
+              />
+            ) : (
+              <>
+                <div 
+                  className="h-48 relative"
+                  role="figure"
+                  aria-label="Gráfico de rosca exibindo a distribuição das vendas por categoria de produto"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={topProducts} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="receita" stroke="none">
                     {topProducts.map((_, index) => (
@@ -498,6 +522,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 </div>
               ))}
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>
