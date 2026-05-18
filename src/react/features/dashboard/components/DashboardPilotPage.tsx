@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
-import { useAuthStore } from '../../../app/useAuthStore';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -460,7 +460,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 }
 
 function FiscalHubCard() {
-  const { token } = useAuthStore();
+  const { token } = useApiContext();
   const [isEmitting, setIsEmitting] = useState(false);
 
   const handleEmit = async () => {

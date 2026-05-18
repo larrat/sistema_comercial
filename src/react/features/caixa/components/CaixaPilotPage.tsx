@@ -28,14 +28,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { SalesReceipt } from '../../../shared/services/DocumentService';
 import { listTransacoes, listCategorias, addTransacao, getSaldo } from '../services/caixaApi';
-import { useAuthStore } from '../../../app/useAuthStore';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmt = (v: number) => BRL.format(v || 0);
 
 export function CaixaPilotPage() {
-  const { token } = useAuthStore();
+  const { token } = useApiContext();
   const { activeFilialId } = useFilialStore();
   const queryClient = useQueryClient();
   const [filterType, setFilterType] = useState<'todos' | 'entrada' | 'saida'>('todos');

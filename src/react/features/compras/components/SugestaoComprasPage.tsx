@@ -11,7 +11,7 @@ import {
 } from '../../../shared/ui';
 import { Package, ShoppingCart, TrendingDown, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '../../../app/useAuthStore';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
@@ -28,7 +28,7 @@ type SugestaoCompra = {
 };
 
 export function SugestaoComprasPage() {
-  const { token } = useAuthStore();
+  const { token } = useApiContext();
   const { activeFilialId } = useFilialStore();
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'urgente' | 'atencao'>('todos');
 

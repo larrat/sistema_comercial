@@ -30,7 +30,7 @@ import {
   Settings,
   Bell
 } from 'lucide-react';
-import { useAuthStore } from '../../../app/useAuthStore';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { crmService } from '../../clientes/services/crmService';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
@@ -252,7 +252,7 @@ function CrmAutomationCard() {
   const [isProcessing, setIsProcessing] = useState(false);
   const filialId = useContasReceberStore(s => s.filial_id);
 
-  const { token } = useAuthStore();
+  const { token } = useApiContext();
   const handleProcess = async () => {
     if (!filialId || !token) return;
     setIsProcessing(true);
