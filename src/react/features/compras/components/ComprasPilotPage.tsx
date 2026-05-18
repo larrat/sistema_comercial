@@ -125,7 +125,7 @@ export function ComprasPilotPage() {
               render: (p) => (
                 <div className="flex flex-col">
                   <span className="text-xs font-black text-white uppercase tracking-tighter">{p.id}</span>
-                  <span className="text-[10px] text-slate-500">{new Date(p.criado_em).toLocaleDateString()}</span>
+                  <span className="text-[10px] text-slate-500">{new Intl.DateTimeFormat('pt-BR').format(new Date(p.criado_em))}</span>
                 </div>
               )
             },

@@ -125,6 +125,7 @@ export function PedidoCompraCreateRoutePage() {
       <div className="flex items-center gap-4 mb-8">
         <button 
           onClick={() => navigate('/app/compras')}
+          aria-label="Voltar para a listagem de compras"
           className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 text-slate-400 transition-all hover:text-white"
         >
           <ArrowLeft size={20} />
@@ -140,8 +141,11 @@ export function PedidoCompraCreateRoutePage() {
           {/* Header Data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
+              <label htmlFor="fornecedor" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
               <input 
+                id="fornecedor"
+                name="fornecedor"
+                autoComplete="organization"
                 type="text" 
                 value={fornecedor}
                 onChange={(e) => setFornecedor(e.target.value)}
@@ -150,8 +154,10 @@ export function PedidoCompraCreateRoutePage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Forma de Pagamento</label>
+              <label htmlFor="formaPgto" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Forma de Pagamento</label>
               <select 
+                id="formaPgto"
+                name="forma_pagamento"
                 value={formaPgto}
                 onChange={(e) => setFormaPgto(e.target.value)}
                 className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none text-lg"
@@ -177,10 +183,13 @@ export function PedidoCompraCreateRoutePage() {
               {itens.map((item, idx) => (
                 <div key={idx} className="relative flex flex-col md:flex-row gap-4 items-end p-6 rounded-3xl bg-white/[0.02] border border-white/5 rf-animate-fade">
                   <div className="flex-1 w-full md:w-auto space-y-2 relative">
-                    <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Produto / SKU</label>
+                    <label htmlFor={`search-${idx}`} className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Produto / SKU</label>
                     
                     <div className="relative">
                       <input 
+                        id={`search-${idx}`}
+                        name={`search_${idx}`}
+                        autoComplete="off"
                         type="text" 
                         value={activeItemIdx === idx ? searchTerm : item.nome}
                         onChange={(e) => {
@@ -247,8 +256,10 @@ export function PedidoCompraCreateRoutePage() {
                   
                   <div className="flex gap-4 w-full md:w-auto">
                     <div className="w-24 space-y-2">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Qtd</label>
+                      <label htmlFor={`qty-${idx}`} className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Qtd</label>
                       <input 
+                        id={`qty-${idx}`}
+                        name={`qty_${idx}`}
                         type="number" 
                         value={item.qty}
                         onChange={(e) => updateItem(idx, 'qty', Number(e.target.value))}
@@ -256,8 +267,10 @@ export function PedidoCompraCreateRoutePage() {
                       />
                     </div>
                     <div className="flex-1 md:w-36 space-y-2">
-                      <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Custo Un.</label>
+                      <label htmlFor={`custo-${idx}`} className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Custo Un.</label>
                       <input 
+                        id={`custo-${idx}`}
+                        name={`custo_${idx}`}
                         type="number" 
                         value={item.custo_unitario}
                         onChange={(e) => updateItem(idx, 'custo_unitario', Number(e.target.value))}
@@ -271,7 +284,7 @@ export function PedidoCompraCreateRoutePage() {
                       </div>
                     </div>
                     <div className="pb-1">
-                      <button onClick={() => removeItem(idx)} className="p-3 bg-white/5 rounded-xl text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 transition-colors h-[46px] flex items-center justify-center">
+                      <button aria-label="Remover item" onClick={() => removeItem(idx)} className="p-3 bg-white/5 rounded-xl text-slate-600 hover:text-rose-500 hover:bg-rose-500/10 transition-colors h-[46px] flex items-center justify-center">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -289,8 +302,10 @@ export function PedidoCompraCreateRoutePage() {
             </div>
             
             <div className="pt-6">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Observações Adicionais</label>
+              <label htmlFor="obs" className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Observações Adicionais</label>
               <textarea 
+                id="obs"
+                name="observacoes"
                 value={obs}
                 onChange={(e) => setObs(e.target.value)}
                 placeholder="Observações do pedido, previsão de entrega, transportadora..."
