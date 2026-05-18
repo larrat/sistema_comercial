@@ -224,29 +224,37 @@ export function ClienteCreateForm() {
   }
 
   return (
-    <div className="rf-cliente-novo-page">
+    <div className="max-w-7xl mx-auto p-4 sm:p-8 flex flex-col h-[100dvh] animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* TOPBAR */}
-      <header className="rf-cliente-novo-topbar">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={handleCancel}>← Clientes</Button>
-          <h1 className="text-xl font-bold">Novo cliente</h1>
+      <div className="flex items-center gap-4 mb-8">
+        <button 
+          onClick={handleCancel}
+          aria-label="Voltar para clientes"
+          className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 text-slate-400 transition-colors hover:text-white"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-black text-white uppercase tracking-tight">Novo Cliente</h1>
+          <p className="text-slate-500">Cadastre um novo cliente no sistema e defina suas preferências.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={handleCancel}>Cancelar</Button>
+        <div className="flex items-center gap-4">
+          <Button variant="secondary" className="!py-3 !px-6 !rounded-2xl" onClick={handleCancel}>Cancelar</Button>
           <Button 
             variant="primary" 
+            className="!py-3 !px-8 !rounded-2xl"
             onClick={handleSave}
             loading={saving}
           >
             Salvar cliente
           </Button>
         </div>
-      </header>
+      </div>
 
-      <div className="rf-cliente-novo-layout">
+      <div className="flex-1 bg-surface-card/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] shadow-2xl flex overflow-hidden">
         {/* SIDEBAR */}
-        <aside className="rf-cliente-novo-sidebar bg-slate-900/50 border-r border-white/5">
-          <nav className="flex flex-col gap-1">
+        <aside className="w-72 bg-black/20 border-r border-white/5 p-8 flex flex-col">
+          <nav className="flex flex-col gap-2">
             {SECTIONS.map((section) => {
               const isFilled = (section.id === 'essencial' && values.nome.trim() !== '') ||
                                (section.id === 'comercial' && (values.resp || values.rca_id || values.seg.length > 0)) ||
@@ -256,25 +264,24 @@ export function ClienteCreateForm() {
               return (
                 <button
                   key={section.id}
-                  className={`rf-nav-item ${activeSection === section.id ? 'is-active' : ''}`}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors text-left ${activeSection === section.id ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300'}`}
                   onClick={() => scrollToSection(section.id)}
                 >
-                  <span className={`rf-nav-icon ${isFilled ? 'is-done' : ''}`}>
+                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-colors ${isFilled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (activeSection === section.id ? 'bg-cyan-500 text-white' : 'bg-white/5 border border-white/10')}`}>
                     {isFilled ? '✓' : section.number}
                   </span>
-                  <span className="rf-nav-label">{section.label}</span>
-                  {isFilled && <span className="ml-auto text-emerald-400">✓</span>}
+                  <span className="flex-1 text-sm tracking-wide">{section.label}</span>
                 </button>
               );
             })}
           </nav>
 
-          <div className="mt-auto pt-8 border-t border-white/5">
-            <div className="flex justify-between text-xs font-medium text-slate-400 mb-2">
+          <div className="mt-auto pt-8">
+            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
               <span>Progresso</span>
               <span>{Math.round(progress / 25)} de 4</span>
             </div>
-            <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-emerald-500 transition-all duration-500" 
                 style={{ width: `${progress}%` }} 
@@ -284,291 +291,299 @@ export function ClienteCreateForm() {
         </aside>
 
         {/* MAIN COLUMN */}
-        <main className="rf-cliente-novo-main">
-          {/* ESSENCIAL */}
-          <section 
-            id="essencial" 
-            ref={sectionRefs.essencial}
-            className={`rf-section-card ${activeSection === 'essencial' ? 'is-focused' : ''}`}
-          >
-            <div className="rf-section-header">
-              <div>
-                <h2 className="text-lg font-bold text-white">Essencial</h2>
-                <p className="text-sm text-slate-400">Identificação básica e contatos principais.</p>
+        <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          <div className="max-w-4xl space-y-16 pb-32">
+            {/* ESSENCIAL */}
+            <section 
+              id="essencial" 
+              ref={sectionRefs.essencial}
+              className={`transition-opacity duration-300 ${activeSection === 'essencial' ? 'opacity-100' : 'opacity-50'}`}
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
+                <div>
+                  <h2 className="text-xl font-black text-white uppercase tracking-wider">Essencial</h2>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest">Identificação básica e contatos principais</p>
+                </div>
+                <StatusBadge tone={values.nome.trim() ? 'success' : 'warning'}>
+                  {values.nome.trim() ? 'Preenchido' : 'Obrigatório'}
+                </StatusBadge>
               </div>
-              <StatusBadge tone={values.nome.trim() ? 'success' : 'warning'}>
-                {values.nome.trim() ? 'Preenchido' : 'Obrigatório'}
-              </StatusBadge>
-            </div>
 
-            <div className="flex items-center gap-6 mb-8">
-              <div className="w-20 h-20 rounded-full bg-slate-800 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
-                {initials}
+              <div className="flex items-center gap-6 mb-8">
+                <div className="w-24 h-24 rounded-3xl bg-black/40 border border-white/5 text-cyan-400 flex items-center justify-center text-3xl font-black shadow-inner">
+                  {initials}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-300 uppercase tracking-widest">Identificação do avatar</p>
+                  <p className="text-xs text-slate-500">Gerado automaticamente pelo nome</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-300">Identificação do avatar</p>
-                <p className="text-xs text-slate-500">Gerado automaticamente pelo nome</p>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <Input
+                    label="Nome / Razão social *"
+                    required
+                    value={values.nome}
+                    onChange={e => update('nome', e.target.value)}
+                    placeholder="Nome completo ou Razão Social"
+                    error={!values.nome && activeSection === 'essencial' ? 'Obrigatório' : undefined}
+                  />
+                  <Input
+                    label="Apelido / Fantasia"
+                    value={values.apelido}
+                    onChange={e => update('apelido', e.target.value)}
+                    placeholder="Como é conhecido"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-6">
+                  <Input
+                    label="CPF / CNPJ"
+                    value={values.doc}
+                    onChange={e => handleDocChange(e.target.value)}
+                    placeholder="000.000.000-00"
+                  />
+                  <Select
+                    label="Tipo"
+                    value={values.tipo}
+                    onChange={e => update('tipo', e.target.value)}
+                    options={[
+                      { value: 'PF', label: 'PF' },
+                      { value: 'PJ', label: 'PJ' }
+                    ]}
+                  />
+                  <Select
+                    label="Status"
+                    value={values.status}
+                    onChange={e => update('status', e.target.value)}
+                    options={[
+                      { value: 'ativo', label: 'Ativo' },
+                      { value: 'inativo', label: 'Inativo' },
+                      { value: 'prospecto', label: 'Prospecto' }
+                    ]}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-6 pt-2">
+                  <Input
+                    label="Telefone"
+                    value={values.tel}
+                    onChange={e => update('tel', e.target.value)}
+                    placeholder="(00) 0000-0000"
+                  />
+                  <Input
+                    label="WhatsApp"
+                    value={values.whatsapp}
+                    onChange={e => update('whatsapp', e.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
+                  <Input
+                    label="E-mail"
+                    type="email"
+                    value={values.email}
+                    onChange={e => update('email', e.target.value)}
+                    placeholder="contato@empresa.com"
+                  />
+                </div>
               </div>
-            </div>
+            </section>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <Input
-                label="Nome / Razão social *"
-                required
-                value={values.nome}
-                onChange={e => update('nome', e.target.value)}
-                placeholder="Nome completo ou Razão Social"
-                error={!values.nome && activeSection === 'essencial' ? 'Obrigatório' : undefined}
-              />
-              <Input
-                label="Apelido / Fantasia"
-                value={values.apelido}
-                onChange={e => update('apelido', e.target.value)}
-                placeholder="Como é conhecido"
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <Input
-                label="CPF / CNPJ"
-                value={values.doc}
-                onChange={e => handleDocChange(e.target.value)}
-                placeholder="000.000.000-00"
-              />
-              <Select
-                label="Tipo"
-                value={values.tipo}
-                onChange={e => update('tipo', e.target.value)}
-                options={[
-                  { value: 'PF', label: 'PF' },
-                  { value: 'PJ', label: 'PJ' }
-                ]}
-              />
-              <Select
-                label="Status"
-                value={values.status}
-                onChange={e => update('status', e.target.value)}
-                options={[
-                  { value: 'ativo', label: 'Ativo' },
-                  { value: 'inativo', label: 'Inativo' },
-                  { value: 'prospecto', label: 'Prospecto' }
-                ]}
-              />
-            </div>
-
-            <div className="border-t border-white/5 pt-6 grid grid-cols-3 gap-4">
-              <Input
-                label="Telefone"
-                value={values.tel}
-                onChange={e => update('tel', e.target.value)}
-                placeholder="(00) 0000-0000"
-              />
-              <Input
-                label="WhatsApp"
-                value={values.whatsapp}
-                onChange={e => update('whatsapp', e.target.value)}
-                placeholder="(00) 00000-0000"
-              />
-              <Input
-                label="E-mail"
-                type="email"
-                value={values.email}
-                onChange={e => update('email', e.target.value)}
-                placeholder="contato@empresa.com"
-              />
-            </div>
-          </section>
-
-          {/* COMERCIAL */}
-          <section 
-            id="comercial" 
-            ref={sectionRefs.comercial}
-            className={`rf-section-card ${activeSection === 'comercial' ? 'is-focused' : ''}`}
-          >
-            <div className="rf-section-header">
-              <div>
-                <h2 className="text-lg font-bold text-white">Comercial</h2>
-                <p className="text-sm text-slate-400">Definições de venda e atendimento.</p>
+            {/* COMERCIAL */}
+            <section 
+              id="comercial" 
+              ref={sectionRefs.comercial}
+              className={`transition-opacity duration-300 ${activeSection === 'comercial' ? 'opacity-100' : 'opacity-50'}`}
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
+                <div>
+                  <h2 className="text-xl font-black text-white uppercase tracking-wider">Comercial</h2>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest">Definições de venda e atendimento</p>
+                </div>
+                <StatusBadge tone="info">Opcional</StatusBadge>
               </div>
-              <StatusBadge tone="info">Opcional</StatusBadge>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <Input
-                label="Responsável / Comprador"
-                value={values.resp}
-                onChange={e => update('resp', e.target.value)}
-                placeholder="Nome do contato principal"
-              />
-              <Select
-                label="Vendedor / RCA"
-                value={values.rca_id}
-                onChange={e => {
-                  const rca = rcas.find(r => r.id === e.target.value);
-                  setValues(prev => ({ ...prev, rca_id: e.target.value, rca_nome: rca?.nome || '' }));
-                }}
-                options={[
-                  { value: '', label: 'Selecione um vendedor' },
-                  ...rcas.map(r => ({ value: r.id, label: r.nome }))
-                ]}
-              />
-            </div>
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <Input
+                    label="Responsável / Comprador"
+                    value={values.resp}
+                    onChange={e => update('resp', e.target.value)}
+                    placeholder="Nome do contato principal"
+                  />
+                  <Select
+                    label="Vendedor / RCA"
+                    value={values.rca_id}
+                    onChange={e => {
+                      const rca = rcas.find(r => r.id === e.target.value);
+                      setValues(prev => ({ ...prev, rca_id: e.target.value, rca_nome: rca?.nome || '' }));
+                    }}
+                    options={[
+                      { value: '', label: 'Selecione um vendedor' },
+                      ...rcas.map(r => ({ value: r.id, label: r.nome }))
+                    ]}
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <Select
-                label="Tabela de preço"
-                value={values.tab}
-                onChange={e => update('tab', e.target.value)}
-                options={[
-                  { value: 'varejo', label: 'Varejo' },
-                  { value: 'atacado', label: 'Atacado' }
-                ]}
-              />
-              <Input
-                label="Limite de crédito"
-                disabled
-                value="R$ 0,00"
-                placeholder="R$ 0,00"
-                helperText="* Campo em implantação"
-              />
-            </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <Select
+                    label="Tabela de preço"
+                    value={values.tab}
+                    onChange={e => update('tab', e.target.value)}
+                    options={[
+                      { value: 'varejo', label: 'Varejo' },
+                      { value: 'atacado', label: 'Atacado' }
+                    ]}
+                  />
+                  <Input
+                    label="Limite de crédito"
+                    disabled
+                    value="R$ 0,00"
+                    placeholder="R$ 0,00"
+                    helperText="* Campo em implantação"
+                  />
+                </div>
 
-            <div className="border-t border-white/5 pt-6">
-              <label className="text-sm font-medium text-slate-300 mb-3 block">Segmento</label>
-              <div className="flex flex-wrap gap-2">
-                {['Varejo', 'Atacado', 'Salão', 'Academia', 'Revendedor'].map(tag => (
-                  <Button
-                    key={tag}
-                    variant={values.seg.includes(tag) ? 'primary' : 'secondary'}
-                    size="sm"
-                    className="rounded-full"
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {tag}
-                  </Button>
-                ))}
-                {isAddingTag ? (
-                  <div className="flex items-center gap-1">
-                    <Input 
-                      autoFocus
-                      className="w-32"
-                      value={newTag}
-                      onChange={e => setNewTag(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleAddTag()}
-                      onBlur={handleAddTag}
-                    />
+                <div className="pt-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Segmento</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Varejo', 'Atacado', 'Salão', 'Academia', 'Revendedor'].map(tag => (
+                      <Button
+                        key={tag}
+                        variant={values.seg.includes(tag) ? 'primary' : 'secondary'}
+                        size="sm"
+                        className="rounded-xl"
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                      </Button>
+                    ))}
+                    {isAddingTag ? (
+                      <div className="flex items-center gap-1">
+                        <Input 
+                          autoFocus
+                          className="w-32 !h-9"
+                          value={newTag}
+                          onChange={e => setNewTag(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleAddTag()}
+                          onBlur={handleAddTag}
+                        />
+                      </div>
+                    ) : (
+                      <Button variant="secondary" size="sm" className="rounded-xl border-dashed" onClick={() => setIsAddingTag(true)}>+ Novo</Button>
+                    )}
                   </div>
-                ) : (
-                  <Button variant="secondary" size="sm" className="rounded-full border-dashed" onClick={() => setIsAddingTag(true)}>+ Novo</Button>
-                )}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* ENDERECO */}
-          <section 
-            id="endereco" 
-            ref={sectionRefs.endereco}
-            className={`rf-section-card ${activeSection === 'endereco' ? 'is-focused' : ''}`}
-          >
-            <div className="rf-section-header">
-              <div>
-                <h2 className="text-lg font-bold text-white">Endereço</h2>
-                <p className="text-sm text-slate-400">Localização física do cliente.</p>
+            {/* ENDERECO */}
+            <section 
+              id="endereco" 
+              ref={sectionRefs.endereco}
+              className={`transition-opacity duration-300 ${activeSection === 'endereco' ? 'opacity-100' : 'opacity-50'}`}
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
+                <div>
+                  <h2 className="text-xl font-black text-white uppercase tracking-wider">Endereço</h2>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest">Localização física do cliente</p>
+                </div>
+                <StatusBadge tone="info">Opcional</StatusBadge>
               </div>
-              <StatusBadge tone="info">Opcional</StatusBadge>
-            </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <Input
-                label="CEP"
-                onBlur={e => handleCepBlur(e.target.value)}
-                placeholder="00000-000"
-              />
-              <Input
-                label="Estado"
-                value={values.estado}
-                onChange={e => update('estado', e.target.value.toUpperCase().slice(0, 2))}
-                placeholder="UF"
-              />
-              <Input
-                label="Cidade"
-                value={values.cidade}
-                onChange={e => update('cidade', e.target.value)}
-                placeholder="Cidade"
-              />
-            </div>
+              <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-6">
+                  <Input
+                    label="CEP"
+                    onBlur={e => handleCepBlur(e.target.value)}
+                    placeholder="00000-000"
+                  />
+                  <Input
+                    label="Estado"
+                    value={values.estado}
+                    onChange={e => update('estado', e.target.value.toUpperCase().slice(0, 2))}
+                    placeholder="UF"
+                  />
+                  <Input
+                    label="Cidade"
+                    value={values.cidade}
+                    onChange={e => update('cidade', e.target.value)}
+                    placeholder="Cidade"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-4 opacity-60">
-              <Input label="Logradouro" disabled placeholder="Rua, Av..." />
-              <Input label="Número / Complemento" disabled placeholder="123, Bloco A" />
-            </div>
-            <p className="text-[10px] text-slate-500 mt-2 italic">* Endereço detalhado em implantação</p>
-          </section>
-
-          {/* PREFERENCIAS */}
-          <section 
-            id="preferencias" 
-            ref={sectionRefs.preferencias}
-            className={`rf-section-card ${activeSection === 'preferencias' ? 'is-focused' : ''}`}
-          >
-            <div className="rf-section-header">
-              <div>
-                <h2 className="text-lg font-bold text-white">Preferências e opt-ins</h2>
-                <p className="text-sm text-slate-400">Permissões de comunicação e notas.</p>
+                <div className="grid grid-cols-2 gap-6 opacity-60">
+                  <Input label="Logradouro" disabled placeholder="Rua, Av..." />
+                  <Input label="Número / Complemento" disabled placeholder="123, Bloco A" />
+                </div>
+                <p className="text-[10px] font-bold text-amber-500/70 uppercase tracking-widest mt-2">* Detalhamento de endereço em implantação</p>
               </div>
-              <StatusBadge tone="info">Opcional</StatusBadge>
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-4 mb-8">
-              <label className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
-                <span className="text-sm font-medium text-slate-200">Aceita WhatsApp</span>
-                <input 
-                  type="checkbox" 
-                  className="toggle"
-                  checked={values.optin_sms}
-                  onChange={e => update('optin_sms', e.target.checked)}
-                />
-              </label>
-              <label className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
-                <span className="text-sm font-medium text-slate-200">Aceita e-mail marketing</span>
-                <input 
-                  type="checkbox" 
-                  className="toggle"
-                  checked={values.optin_email}
-                  onChange={e => update('optin_email', e.target.checked)}
-                />
-              </label>
-              <label className="flex items-center justify-between p-3 rounded-lg border border-white/5 hover:bg-white/5 transition-colors cursor-pointer">
-                <span className="text-sm font-medium text-slate-200">Participa de campanhas</span>
-                <input 
-                  type="checkbox" 
-                  className="toggle"
-                  checked={values.optin_marketing}
-                  onChange={e => update('optin_marketing', e.target.checked)}
-                />
-              </label>
-            </div>
+            {/* PREFERENCIAS */}
+            <section 
+              id="preferencias" 
+              ref={sectionRefs.preferencias}
+              className={`transition-opacity duration-300 ${activeSection === 'preferencias' ? 'opacity-100' : 'opacity-50'}`}
+            >
+              <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
+                <div>
+                  <h2 className="text-xl font-black text-white uppercase tracking-wider">Preferências</h2>
+                  <p className="text-xs text-slate-400 uppercase tracking-widest">Permissões de comunicação e notas</p>
+                </div>
+                <StatusBadge tone="info">Opcional</StatusBadge>
+              </div>
 
-            <div className="border-t border-white/5 pt-6 grid grid-cols-2 gap-4 mb-4">
-              <Input
-                label="Data de aniversário"
-                type="date"
-                value={values.data_aniversario}
-                onChange={e => update('data_aniversario', e.target.value)}
-              />
-              <Input
-                label="Observação interna"
-                type="textarea"
-                className="h-20 resize-none"
-                value={values.obs}
-                onChange={e => update('obs', e.target.value)}
-                placeholder="Anotações para a equipe"
-              />
-            </div>
-          </section>
+              <div className="space-y-8">
+                <div className="flex flex-col gap-4">
+                  <label className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-black/20 hover:bg-white/5 transition-colors cursor-pointer">
+                    <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Aceita WhatsApp</span>
+                    <input 
+                      type="checkbox" 
+                      className="toggle"
+                      checked={values.optin_sms}
+                      onChange={e => update('optin_sms', e.target.checked)}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-black/20 hover:bg-white/5 transition-colors cursor-pointer">
+                    <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Aceita e-mail marketing</span>
+                    <input 
+                      type="checkbox" 
+                      className="toggle"
+                      checked={values.optin_email}
+                      onChange={e => update('optin_email', e.target.checked)}
+                    />
+                  </label>
+                  <label className="flex items-center justify-between p-4 rounded-2xl border border-white/5 bg-black/20 hover:bg-white/5 transition-colors cursor-pointer">
+                    <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Participa de campanhas</span>
+                    <input 
+                      type="checkbox" 
+                      className="toggle"
+                      checked={values.optin_marketing}
+                      onChange={e => update('optin_marketing', e.target.checked)}
+                    />
+                  </label>
+                </div>
 
-          <div className="h-40" /> {/* Spacer for scroll bottom */}
+                <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                  <Input
+                    label="Data de aniversário"
+                    type="date"
+                    value={values.data_aniversario}
+                    onChange={e => update('data_aniversario', e.target.value)}
+                  />
+                  <Input
+                    label="Observação interna"
+                    type="textarea"
+                    className="h-24 resize-none"
+                    value={values.obs}
+                    onChange={e => update('obs', e.target.value)}
+                    placeholder="Anotações confidenciais para a equipe..."
+                  />
+                </div>
+              </div>
+            </section>
+          </div>
         </main>
       </div>
 

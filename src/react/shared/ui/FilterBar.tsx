@@ -68,7 +68,7 @@ export function FilterBar({
                   aria-hidden="true" 
                 />
                 <input
-                  className={`${search.className ?? 'rf-input-premium'} !pl-10 !h-10 w-full !bg-white/5 backdrop-blur-sm focus:border-brand-gold focus:ring-brand-gold/20 transition-all`}
+                  className={`${search.className ?? 'rf-input-premium'} !pl-10 !h-10 w-full !bg-white/5 backdrop-blur-sm focus:border-brand-gold focus:ring-brand-gold/20 transition-colors`}
                   type="search"
                   value={search.value}
                   onChange={(event) => search.onChange(event.target.value)}
@@ -81,7 +81,7 @@ export function FilterBar({
             {filters.map((filter) => (
               <select
                 key={filter.key}
-                className={`${filter.className ?? 'rf-input-premium'} !h-10 !py-0 !pr-10 !bg-white/5 backdrop-blur-sm focus:border-brand-gold transition-all cursor-pointer`}
+                className={`${filter.className ?? 'rf-input-premium'} !h-10 !py-0 !pr-10 !bg-white/5 backdrop-blur-sm focus:border-brand-gold transition-colors cursor-pointer`}
                 value={filter.value}
                 onChange={(event) => filter.onChange(event.target.value)}
                 aria-label={filter.ariaLabel ?? filter.label ?? `Filtro ${filter.key}`}

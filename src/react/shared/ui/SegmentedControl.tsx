@@ -29,7 +29,7 @@ export function SegmentedControl<T extends string | number>({
             type="button"
             onClick={() => onChange(option.id)}
             className={`
-              flex items-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-all duration-300
+              flex items-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-[0.15em] rounded-lg transition-colors duration-300
               ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-lg scale-[1.02]'

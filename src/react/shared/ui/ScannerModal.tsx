@@ -55,7 +55,7 @@ export function ScannerModal({ onScan, onClose, title = "Escanear Código" }: Pr
         <div className="p-6 border-t border-white/5 bg-black/20 flex justify-center">
           <button 
             onClick={onClose}
-            className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-white/5"
+            className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-colors border border-white/5"
           >
             Fechar Câmera
           </button>

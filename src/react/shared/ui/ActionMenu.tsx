@@ -63,7 +63,7 @@ export function ActionMenu({
       <button
         className={
           buttonClassName ??
-          'flex items-center justify-center h-9 w-9 rounded-xl text-slate-400 transition-all hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5 active:scale-95'
+          'flex items-center justify-center h-9 w-9 rounded-xl text-slate-400 transition-colors hover:bg-white/10 hover:text-white border border-transparent hover:border-white/5 active:scale-95'
         }
         type="button"
         aria-label={label}
@@ -90,7 +90,7 @@ export function ActionMenu({
           {items.map((item) => (
             <button
               key={item.key}
-              className={`block w-full px-4 py-2.5 text-left text-[11px] font-black uppercase tracking-widest transition-all ${
+              className={`block w-full px-4 py-2.5 text-left text-[11px] font-black uppercase tracking-widest transition-colors ${
                 item.danger ? 'text-rose-400 hover:bg-rose-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'
               }`}
               type="button"

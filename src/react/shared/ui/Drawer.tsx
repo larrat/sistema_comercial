@@ -103,7 +103,7 @@ export function Drawer({
                 {action}
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-white/5"
+                  className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors border border-white/5"
                   title="Fechar"
                 >
                   <X size={20} />

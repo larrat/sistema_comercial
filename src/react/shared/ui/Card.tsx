@@ -33,7 +33,7 @@ export function Card({
   const baseClasses = `
     rounded-2xl 
     border 
-    transition-all 
+    transition-colors 
     duration-300 
     overflow-hidden
     ${variants[variant]}
