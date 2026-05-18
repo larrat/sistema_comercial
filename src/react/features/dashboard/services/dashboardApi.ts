@@ -74,35 +74,35 @@ export async function fetchDashboardData(
   const crDateFilter = startDate ? `&vencimento=gte.${startDate}` : ''; // Simplified for dashboard
 
   const [pedidosRaw, produtos, clientes, contasReceber, filial] = await Promise.all([
-    fetch(`${ctx.url}/rest/v1/pedidos?${commonParams}${dateFilter}&order=data.desc`, {
+    fetch(`${ctx.url}/rest/v1/pedidos?${commonParams}${dateFilter}&select=id,status,total,itens,data&order=data.desc`, {
       headers
     }).then(async (r) => {
       const body = await readJson(r);
       ensureOk(r, body, 'Erro ao carregar pedidos');
       return body as Pedido[];
     }),
-    fetch(`${ctx.url}/rest/v1/produtos?${commonParams}&order=nome.asc`, { headers }).then(
+    fetch(`${ctx.url}/rest/v1/produtos?${commonParams}&select=id,nome,produto_pai_id,esal&order=nome.asc`, { headers }).then(
       async (r) => {
         const body = await readJson(r);
         ensureOk(r, body, 'Erro ao carregar produtos');
         return body as Produto[];
       }
     ),
-    fetch(`${ctx.url}/rest/v1/clientes?${commonParams}&order=nome.asc`, {
+    fetch(`${ctx.url}/rest/v1/clientes?${commonParams}&select=id,whatsapp,email&order=nome.asc`, {
       headers
     }).then(async (r) => {
       const body = await readJson(r);
       ensureOk(r, body, 'Erro ao carregar clientes');
       return body as Cliente[];
     }),
-    fetch(`${ctx.url}/rest/v1/contas_receber?${commonParams}${crDateFilter}`, {
+    fetch(`${ctx.url}/rest/v1/contas_receber?${commonParams}${crDateFilter}&select=id,valor_em_aberto`, {
       headers
     }).then(async (r) => {
       const body = await readJson(r);
       ensureOk(r, body, 'Erro ao carregar contas a receber');
       return body as ContaReceber[];
     }),
-    fetch(`${ctx.url}/rest/v1/filiais?id=eq.${encodeURIComponent(filialId)}&select=*`, {
+    fetch(`${ctx.url}/rest/v1/filiais?id=eq.${encodeURIComponent(filialId)}&select=id,nome`, {
       headers: { ...headers, Prefer: 'plurality=singular' }
     }).then(async (r) => {
       const body = await readJson(r);
