@@ -30,6 +30,7 @@ const SugestaoComprasRoutePage = lazy(() => import('../../features/compras/pages
 const PedidoCompraCreateRoutePage = lazy(() => import('../../features/compras/pages/PedidoCompraCreateRoutePage').then(m => ({ default: m.PedidoCompraCreateRoutePage })));
 const LoginPage = lazy(() => import('../../features/auth/components/LoginPage').then(m => ({ default: m.LoginPage })));
 const SetupPage = lazy(() => import('../../features/setup/components/SetupPage').then(m => ({ default: m.SetupPage })));
+const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/PortalStorefrontPage').then(m => ({ default: m.PortalStorefrontPage })));
 
 import { AppShell } from '../layout/AppShell';
 import { AdminOnlyRoute } from './AdminOnlyRoute';
@@ -100,6 +101,8 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               </Route>
             </Route>
           </Route>
+
+          <Route path="/portal" element={<PortalStorefrontPage />} />
 
           <Route
             path="/"
