@@ -24,7 +24,7 @@ import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { formValuesToProduto } from '../hooks/useProdutoCalculations';
 import { ErrorState, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
-import { useProdutoMutations } from '../hooks/useProdutosQuery';
+import { useProdutoMutations, useMovimentacoesQuery } from '../hooks/useProdutosQuery';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
 import { ProdutoForm } from './ProdutoForm';
 import { ProdutoVariantesTab } from './ProdutoVariantesTab';
@@ -186,9 +186,34 @@ export function ProdutoProfilePage({
   const formRef = useRef<HTMLDivElement>(null);
 
   const activeTab = normalizeTab(searchParams.get('tab'));
+  const { data: movs = [], isLoading: loadingMovs } = useMovimentacoesQuery([produto.id]);
+
+  const calculatedSaldo = useMemo(() => {
+    let currentBalance = toNumber(produto.esal);
+    let currentCm = toNumber(produto.ecm) || toNumber(produto.custo);
+    
+    [...movs]
+      .sort((a, b) => toNumber(a.ts) - toNumber(b.ts))
+      .forEach((mov: any) => {
+        if (mov.tipo === 'entrada') {
+          const qty = toNumber(mov.qty);
+          const costo = toNumber(mov.custo) || currentCm;
+          const nextBal = currentBalance + qty;
+          currentCm = nextBal > 0 ? (currentBalance * currentCm + qty * costo) / nextBal : costo;
+          currentBalance = nextBal;
+        } else if (mov.tipo === 'saida' || mov.tipo === 'transf') {
+          currentBalance -= toNumber(mov.qty);
+        } else if (mov.tipo === 'ajuste') {
+          currentBalance = toNumber(mov.saldo_real ?? mov.saldoReal);
+        }
+      });
+      
+    return { saldo: currentBalance, cm: currentCm };
+  }, [movs, produto.esal, produto.ecm, produto.custo]);
+
   const precos = useMemo(() => getPrecos(produto), [produto]);
-  const kpis = useMemo(() => buildKpis(produto, saldo), [produto, saldo]);
-  const stockStatus = getStockStatus(produto, saldo);
+  const kpis = useMemo(() => buildKpis(produto, calculatedSaldo), [produto, calculatedSaldo]);
+  const stockStatus = getStockStatus(produto, calculatedSaldo);
   
   const sortedHist = useMemo(
     () =>
@@ -662,14 +687,13 @@ export function ProdutoProfilePage({
                           {
                             label: 'Saldo em Mão',
                             value: (
-                              <span className={`font-bold ${saldo.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
-                                {formatQuantity(saldo.saldo)} {produto.un}
+                              <span className={`font-bold ${calculatedSaldo.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
+                                {formatQuantity(calculatedSaldo.saldo)} {produto.un}
                               </span>
                             )
                           },
                           { label: 'Ponto de Pedido (Mín)', value: `${formatQuantity(toNumber(produto.emin))} ${produto.un}` },
-                          { label: 'Alerta Reposição', value: toNumber(produto.esal) > 0 ? `${formatQuantity(toNumber(produto.esal))} ${produto.un}` : null },
-                          { label: 'Custo Médio (CM)', value: formatCurrency(saldo.cm || toNumber(produto.ecm) || precos.custo) }
+                          { label: 'Custo Médio (CM)', value: formatCurrency(calculatedSaldo.cm) }
                         ]}
                       />
                     </div>
@@ -789,8 +813,56 @@ export function ProdutoProfilePage({
                   </div>
                   <History className="w-4 h-4 text-slate-600" />
                 </div>
-                <div className="p-8 text-center">
-                  <p className="text-slate-400 text-sm italic font-medium">Registro cronológico de entradas, saídas e ajustes em desenvolvimento.</p>
+                <div className="p-0">
+                  {loadingMovs ? (
+                    <div className="p-8 text-center text-slate-400">Carregando movimentações...</div>
+                  ) : movs.length ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-[11px] border-collapse">
+                        <thead>
+                          <tr className="border-b border-white/5 text-slate-400 uppercase tracking-wider text-[10px] font-bold">
+                            <th className="px-6 py-4">Data</th>
+                            <th className="px-6 py-4">Operação</th>
+                            <th className="px-6 py-4 text-right">Qtd / Saldo</th>
+                            <th className="px-6 py-4 text-right">Custo Unitário</th>
+                            <th className="px-6 py-4">Observação</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[...movs].sort((a, b) => (b.ts || 0) - (a.ts || 0)).map((mov: any) => {
+                            const isEntrada = mov.tipo === 'entrada';
+                            const isSaida = mov.tipo === 'saida' || mov.tipo === 'transf';
+                            const badgeColor = isEntrada ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/10' : isSaida ? 'text-rose-400 bg-rose-500/10 border-rose-500/10' : 'text-amber-400 bg-amber-500/10 border-amber-500/10';
+                            
+                            return (
+                              <tr key={mov.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                                <td className="px-6 py-4 text-slate-400 font-medium">
+                                  {mov.data ? mov.data.split('-').reverse().join('/') : '—'}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`px-2 py-1 rounded-md border text-[9px] font-black uppercase ${badgeColor}`}>
+                                    {mov.tipo}
+                                  </span>
+                                </td>
+                                <td className={`px-6 py-4 text-right font-black ${isEntrada ? 'text-emerald-400' : isSaida ? 'text-rose-400' : 'text-white'}`}>
+                                  {isEntrada ? '+' : isSaida ? '-' : ''}
+                                  {mov.tipo === 'ajuste' ? `Ajuste: ${mov.saldo_real ?? mov.saldoReal}` : mov.qty}
+                                </td>
+                                <td className="px-6 py-4 text-right text-slate-300 font-bold">
+                                  {mov.custo && mov.custo > 0 ? formatCurrency(mov.custo) : '—'}
+                                </td>
+                                <td className="px-6 py-4 text-slate-400 text-xs italic max-w-[200px] truncate">
+                                  {mov.obs || '—'}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-slate-400 italic text-xs font-medium">Nenhuma movimentação registrada para este produto.</div>
+                  )}
                 </div>
               </article>
             )}

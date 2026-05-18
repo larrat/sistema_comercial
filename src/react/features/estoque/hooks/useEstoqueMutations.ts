@@ -119,6 +119,32 @@ export function useEstoqueMutations() {
         );
       }
 
+      // 1. Recalcular e atualizar sincronamente a tabela 'produtos' (esal e ecm) para refletir no PDV, Portal e Faturamento
+      let newSaldo = currentSaldo;
+      let newCm = currentCm;
+
+      if (draft.tipo === 'entrada') {
+        newSaldo = currentSaldo + quantidade;
+        newCm = newSaldo > 0 ? (currentSaldo * currentCm + quantidade * custo) / newSaldo : custo;
+      } else if (draft.tipo === 'saida' || draft.tipo === 'transf') {
+        newSaldo = currentSaldo - quantidade;
+      } else if (draft.tipo === 'ajuste') {
+        newSaldo = saldoReal;
+      }
+
+      await fetch(`${config.url}/rest/v1/produtos?id=eq.${draft.produtoId}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: config.key,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          esal: newSaldo,
+          ecm: newCm
+        })
+      });
+
       closeMovementModal();
       requestReload();
       useToastStore.getState().addToast(
