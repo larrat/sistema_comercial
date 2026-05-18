@@ -56,9 +56,24 @@ export function PortalStorefrontPage() {
     queryFn: async () => {
       const { url, key } = getSupabaseConfig();
       
+      // Smart token resolver: se o admin estiver logado e visualizando o portal,
+      // usamos a sessão autenticada dele. Caso contrário, usamos a chave anon padrão (Bearer ${key})
+      let authHeader = `Bearer ${key}`;
+      try {
+        const storedSession = window.localStorage.getItem('sc_auth_session_v1');
+        if (storedSession) {
+          const sessionObj = JSON.parse(storedSession);
+          if (sessionObj?.access_token) {
+            authHeader = `Bearer ${sessionObj.access_token}`;
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao ler token de sessão no portal:', e);
+      }
+
       // 1. Obter a primeira filial_id cadastrada no sistema
       const resFiliais = await fetch(`${url}/rest/v1/filiais?limit=1`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` }
+        headers: { apikey: key, Authorization: authHeader }
       });
       const filiais = await resFiliais.json();
       const filialId = filiais[0]?.id;
@@ -66,7 +81,7 @@ export function PortalStorefrontPage() {
 
       // 2. Buscar os produtos ativos pertencentes a esta filial
       const res = await fetch(`${url}/rest/v1/produtos?filial_id=eq.${filialId}&is_active=eq.true&select=id,nome,descricao_padrao,pvv,custo,foto_url,cat,esal,sku,produto_pai_id`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` }
+        headers: { apikey: key, Authorization: authHeader }
       });
       const data = await res.json();
       if (!res.ok || !Array.isArray(data)) return [];
@@ -262,15 +277,30 @@ export function PortalStorefrontPage() {
     try {
       const { url, key } = getSupabaseConfig();
 
+      // Smart token resolver: se o admin estiver logado e visualizando o portal,
+      // usamos a sessão autenticada dele. Caso contrário, usamos a chave anon padrão (Bearer ${key})
+      let authHeader = `Bearer ${key}`;
+      try {
+        const storedSession = window.localStorage.getItem('sc_auth_session_v1');
+        if (storedSession) {
+          const sessionObj = JSON.parse(storedSession);
+          if (sessionObj?.access_token) {
+            authHeader = `Bearer ${sessionObj.access_token}`;
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao ler token de sessão no checkout do portal:', e);
+      }
+
       const resFiliais = await fetch(`${url}/rest/v1/filiais?limit=1`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` }
+        headers: { apikey: key, Authorization: authHeader }
       });
       const filiais = await resFiliais.json();
       const filialId = filiais[0]?.id;
       if (!filialId) throw new Error('Nenhuma filial configurada no sistema.');
 
       const resLast = await fetch(`${url}/rest/v1/pedidos?filial_id=eq.${filialId}&select=num&order=num.desc&limit=1`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` }
+        headers: { apikey: key, Authorization: authHeader }
       });
       const lastOrder = await resLast.json();
       const nextNum = Array.isArray(lastOrder) && lastOrder[0]?.num ? Number(lastOrder[0].num) + 1 : 1;
@@ -293,7 +323,7 @@ export function PortalStorefrontPage() {
         method: 'POST',
         headers: {
           apikey: key,
-          Authorization: `Bearer ${key}`,
+          Authorization: authHeader,
           'Content-Type': 'application/json',
           Prefer: 'return=representation'
         },
