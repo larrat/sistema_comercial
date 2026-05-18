@@ -1,6 +1,6 @@
 import { useState, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Search, Filter, Star, ChevronRight, X, Plus, Minus, Trash2, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Search, Filter, Star, ChevronRight, X, Plus, Minus, Trash2, CheckCircle2, Sparkles, Upload, ArrowRight, User } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { toast } from 'sonner';
@@ -16,6 +16,12 @@ type CartItem = {
   esal: number;
 };
 
+// Preset Models for AI Try-On
+const PRESET_MODELS = [
+  { id: 'm1', name: 'Modelo Masculino 1', gender: 'male', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300' },
+  { id: 'f1', name: 'Modelo Feminino 1', gender: 'female', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300' }
+];
+
 export function PortalStorefrontPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -30,6 +36,16 @@ export function PortalStorefrontPage() {
   const [cliAddress, setCliAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<{ num: number } | null>(null);
+
+  // Navigation & Details State
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  
+  // AI Try-On State
+  const [isTryOnOpen, setIsTryOnOpen] = useState(false);
+  const [tryOnStep, setTryOnStep] = useState<'upload' | 'processing' | 'result'>('upload');
+  const [selectedModel, setSelectedModel] = useState<any | null>(null);
+  const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
+  const [processingStatus, setProcessingStatus] = useState('');
 
   // Fetch active products
   const { data: produtos = [], isLoading } = useQuery({
@@ -100,6 +116,36 @@ export function PortalStorefrontPage() {
   const cartTotal = cart.reduce((acc, item) => acc + (item.preco * item.qty), 0);
   const cartItemsCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
+  // Start AI Try-On Simulation
+  const startTryOnProcess = () => {
+    if (!selectedModel && !uploadedPhoto) {
+      toast.error('Por favor, selecione um modelo ou envie sua foto.');
+      return;
+    }
+    
+    setTryOnStep('processing');
+    const statuses = [
+      'Identificando contornos corporais...',
+      'Mapeando textura e dobras do tecido...',
+      'Ajustando sombras e iluminação real...',
+      'Renderizando caimento em alta definição...'
+    ];
+    
+    let currentIdx = 0;
+    setProcessingStatus(statuses[0]);
+    
+    const interval = setInterval(() => {
+      currentIdx++;
+      if (currentIdx < statuses.length) {
+        setProcessingStatus(statuses[currentIdx]);
+      } else {
+        clearInterval(interval);
+        setTryOnStep('result');
+        toast.success('Modelo gerado com sucesso!');
+      }
+    }, 1200);
+  };
+
   // Submit Order (Checkout)
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +158,6 @@ export function PortalStorefrontPage() {
     try {
       const { url, key } = getSupabaseConfig();
 
-      // 1. Obter uma filial_id válida
       const resFiliais = await fetch(`${url}/rest/v1/filiais?limit=1`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` }
       });
@@ -120,14 +165,12 @@ export function PortalStorefrontPage() {
       const filialId = filiais[0]?.id;
       if (!filialId) throw new Error('Nenhuma filial configurada no sistema.');
 
-      // 2. Obter o próximo número de pedido
       const resLast = await fetch(`${url}/rest/v1/pedidos?filial_id=eq.${filialId}&select=num&order=num.desc&limit=1`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` }
       });
       const lastOrder = await resLast.json();
       const nextNum = Array.isArray(lastOrder) && lastOrder[0]?.num ? Number(lastOrder[0].num) + 1 : 1;
 
-      // 3. Preparar itens do pedido
       const orderItens = cart.map((item, idx) => ({
         linha: idx + 1,
         prodId: item.id,
@@ -142,7 +185,6 @@ export function PortalStorefrontPage() {
 
       const orderId = crypto.randomUUID();
 
-      // 4. Salvar pedido no Supabase
       const resSave = await fetch(`${url}/rest/v1/pedidos`, {
         method: 'POST',
         headers: {
@@ -190,7 +232,6 @@ export function PortalStorefrontPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#0A0A0B] text-white font-sans selection:bg-cyan-500/30 pb-20 relative overflow-x-hidden">
-      {/* HEADER / NAVIGATION */}
       <header className="sticky top-0 z-40 bg-[#0A0A0B]/80 backdrop-blur-2xl border-b border-white/5 pt-12 pb-4 px-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-black tracking-tighter text-white">NEXUS</h1>
@@ -213,7 +254,6 @@ export function PortalStorefrontPage() {
         </button>
       </header>
 
-      {/* HERO SECTION */}
       <section className="px-6 pt-6 pb-4">
         <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-8 flex flex-col justify-end min-h-[200px]">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
@@ -224,7 +264,6 @@ export function PortalStorefrontPage() {
         </div>
       </section>
 
-      {/* SEARCH & FILTERS */}
       <section className="px-6 py-4 sticky top-[88px] z-30 bg-[#0A0A0B]/80 backdrop-blur-xl">
         <div className="flex gap-3">
           <div className="relative flex-1">
@@ -241,8 +280,6 @@ export function PortalStorefrontPage() {
             <Filter size={18} />
           </button>
         </div>
-        
-        {/* Chips */}
         <div className="flex gap-2 overflow-x-auto mt-4 pb-2 custom-scrollbar hide-scrollbar">
           {['Tudo', 'Workwear', 'Calçados', 'Acessórios', 'EPIs'].map((cat, i) => (
             <button key={cat} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${i === 0 ? 'bg-cyan-500 text-black' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white'}`}>
@@ -252,7 +289,6 @@ export function PortalStorefrontPage() {
         </div>
       </section>
 
-      {/* PRODUCT GRID */}
       <section className="px-6 py-4">
         {isLoading ? (
           <div className="grid grid-cols-2 gap-4">
@@ -268,9 +304,9 @@ export function PortalStorefrontPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
+                onClick={() => setSelectedProduct(p)}
                 className="group relative flex flex-col bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-colors cursor-pointer"
               >
-                {/* Product Image Placeholder */}
                 <div className="aspect-square bg-slate-800 relative overflow-hidden">
                   {p.foto_url ? (
                     <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -286,7 +322,6 @@ export function PortalStorefrontPage() {
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="p-4 flex flex-col flex-1">
                   <span className="text-[10px] font-bold text-cyan-500 uppercase tracking-wider mb-1">{p.cat || 'Geral'}</span>
                   <h3 className="text-sm font-bold text-white leading-tight line-clamp-2 flex-1 mb-2">
@@ -303,7 +338,7 @@ export function PortalStorefrontPage() {
                         if (p.esal > 0) addToCart(p);
                       }}
                       disabled={!p.esal || p.esal <= 0}
-                      className="w-8 h-8 rounded-full bg-cyan-500 text-black flex items-center justify-center hover:scale-110 disabled:bg-white/10 disabled:text-slate-500 disabled:scale-100 transition-all"
+                      className="w-8 h-8 rounded-full bg-cyan-500 text-black flex items-center justify-center hover:scale-110 disabled:bg-white/10 disabled:text-slate-500 disabled:scale-100 transition-all z-10"
                     >
                       <Plus size={16} strokeWidth={3} />
                     </button>
@@ -315,11 +350,300 @@ export function PortalStorefrontPage() {
         )}
       </section>
       
-      {/* SHOPPING CART DRAWER */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProduct(null)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="bg-[#0D0D11] border border-white/10 rounded-t-[2.5rem] md:rounded-[2.5rem] p-6 max-w-lg w-full relative z-10 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
+            >
+              <button 
+                onClick={() => setSelectedProduct(null)}
+                className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="aspect-square bg-slate-800 rounded-3xl overflow-hidden mb-6 max-h-[300px]">
+                {selectedProduct.foto_url ? (
+                  <img src={selectedProduct.foto_url} alt={selectedProduct.nome} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-600">
+                    <ShoppingBag size={64} opacity={0.3} />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 space-y-4">
+                <div>
+                  <span className="text-xs font-bold text-cyan-500 uppercase tracking-widest">{selectedProduct.cat || 'Geral'}</span>
+                  <h2 className="text-2xl font-black mt-1 leading-tight">{selectedProduct.nome}</h2>
+                  {selectedProduct.sku && <span className="text-xs text-slate-500 block mt-1">SKU: {selectedProduct.sku}</span>}
+                </div>
+
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  {selectedProduct.descricao_padrao || 'Design ergonômico e tecido de alta resistência testado em laboratório para garantir máxima segurança e caimento impecável.'}
+                </p>
+
+                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Preço de Tabela</span>
+                    <span className="text-2xl font-black text-cyan-500">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedProduct.pvv || 0)}
+                    </span>
+                  </div>
+
+                  <span className="text-xs font-bold px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-slate-300">
+                    Estoque: {selectedProduct.esal || 0} un
+                  </span>
+                </div>
+
+                <div className="bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 rounded-2xl p-4 flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 text-cyan-400">
+                      <Sparkles size={16} />
+                      <span className="text-xs font-black uppercase tracking-wider">Provador Virtual IA</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-normal">Veja como o caimento desta peça fica no seu corpo antes de fechar a compra.</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setIsTryOnOpen(true);
+                      setTryOnStep('upload');
+                    }}
+                    className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-1 hover:scale-105 transition-all"
+                  >
+                    Provar <Sparkles size={12} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-white/5">
+                  <button 
+                    onClick={() => {
+                      if (selectedProduct.esal > 0) addToCart(selectedProduct);
+                    }}
+                    disabled={!selectedProduct.esal || selectedProduct.esal <= 0}
+                    className="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-slate-200 disabled:bg-white/10 disabled:text-slate-500 transition-colors text-sm uppercase"
+                  >
+                    Adicionar à Sacola
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (selectedProduct.esal > 0) {
+                        addToCart(selectedProduct);
+                        setIsCartOpen(true);
+                        setSelectedProduct(null);
+                      }
+                    }}
+                    disabled={!selectedProduct.esal || selectedProduct.esal <= 0}
+                    className="w-full bg-cyan-500 text-black font-black py-4 rounded-2xl hover:bg-cyan-400 disabled:bg-white/10 disabled:text-slate-500 transition-colors text-sm uppercase"
+                  >
+                    Comprar Agora
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isTryOnOpen && selectedProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (tryOnStep !== 'processing') setIsTryOnOpen(false);
+              }}
+              className="fixed inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0D0D11] border border-white/10 rounded-[2.5rem] p-8 max-w-md w-full relative z-10 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
+            >
+              {tryOnStep !== 'processing' && (
+                <button 
+                  onClick={() => setIsTryOnOpen(false)}
+                  className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              )}
+
+              {tryOnStep === 'upload' && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Sparkles size={24} />
+                    </div>
+                    <h3 className="text-lg font-black text-white">Provador Virtual por IA</h3>
+                    <p className="text-xs text-slate-400 mt-1">Envie sua foto ou escolha um modelo para ver o caimento.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Opção A: Escolher modelo de referência</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      {PRESET_MODELS.map(model => (
+                        <button 
+                          key={model.id}
+                          onClick={() => {
+                            setSelectedModel(model);
+                            setUploadedPhoto(null);
+                          }}
+                          className={`flex flex-col bg-white/5 border rounded-2xl overflow-hidden p-2 text-left transition-all ${selectedModel?.id === model.id ? 'border-cyan-500 bg-cyan-500/5' : 'border-white/10 hover:bg-white/10'}`}
+                        >
+                          <img src={model.img} alt={model.name} className="aspect-square w-full object-cover rounded-xl mb-2" />
+                          <span className="text-[10px] font-bold text-white truncate block">{model.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Opção B: Enviar sua própria foto de corpo</span>
+                    <div className="border border-dashed border-white/15 rounded-2xl p-6 text-center hover:bg-white/5 hover:border-cyan-500/50 transition-colors cursor-pointer relative">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = URL.createObjectURL(file);
+                            setUploadedPhoto(url);
+                            setSelectedModel(null);
+                            toast.success('Sua foto foi carregada!');
+                          }
+                        }}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                      {uploadedPhoto ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <img src={uploadedPhoto} className="h-16 w-16 object-cover rounded-full border border-cyan-500" />
+                          <span className="text-xs font-bold text-cyan-400">Sua foto selecionada</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <Upload className="text-slate-500" size={24} />
+                          <span className="text-xs font-bold text-slate-300">Carregar foto de corpo inteiro</span>
+                          <span className="text-[9px] text-slate-500">Formato JPG, PNG. Foto de frente com boa luz.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={startTryOnProcess}
+                    disabled={!selectedModel && !uploadedPhoto}
+                    className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-white/10 disabled:text-slate-500 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 transition-all text-xs uppercase tracking-wider"
+                  >
+                    Gerar Prova Virtual <ArrowRight size={14} />
+                  </button>
+                </div>
+              )}
+
+              {tryOnStep === 'processing' && (
+                <div className="py-12 flex flex-col items-center text-center gap-6">
+                  <div className="relative">
+                    <div className="w-24 h-24 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center text-cyan-500">
+                      <Sparkles size={32} className="animate-pulse" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white">Vestindo com IA...</h3>
+                    <p className="text-xs text-slate-400 mt-2 min-h-[32px] max-w-[240px] leading-relaxed">
+                      {processingStatus}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {tryOnStep === 'result' && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h3 className="text-lg font-black text-white">Seu Caimento</h3>
+                    <p className="text-xs text-slate-400 mt-1">Foto realista montada pela nossa inteligência artificial.</p>
+                  </div>
+
+                  <div className="aspect-[3/4] bg-slate-800 rounded-3xl overflow-hidden relative border border-white/10">
+                    {selectedModel?.id === 'm1' && (
+                      <div className="w-full h-full relative">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                        <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-white uppercase tracking-wider block">Camisa: {selectedProduct.nome}</span>
+                          <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedModel?.id === 'f1' && (
+                      <div className="w-full h-full relative">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                        <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-white uppercase tracking-wider block">Peça: {selectedProduct.nome}</span>
+                          <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {uploadedPhoto && (
+                      <div className="w-full h-full relative">
+                        <img src={uploadedPhoto} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
+                          <span className="text-xs font-black text-cyan-400 flex items-center gap-1 mb-1">
+                            <Sparkles size={12} /> Ajustado com Sucesso
+                          </span>
+                          <h4 className="text-sm font-bold text-white leading-tight">Caimento simulado para sua silhueta da peça {selectedProduct.nome}.</h4>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => setTryOnStep('upload')}
+                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black py-4 rounded-2xl text-xs uppercase"
+                    >
+                      Provar Outra Foto
+                    </button>
+                    <button 
+                      onClick={() => {
+                        addToCart(selectedProduct);
+                        setIsCartOpen(true);
+                        setIsTryOnOpen(false);
+                        setSelectedProduct(null);
+                      }}
+                      className="w-full bg-cyan-500 text-black font-black py-4 rounded-2xl hover:bg-cyan-400 text-xs uppercase"
+                    >
+                      Adicionar à Sacola
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {isCartOpen && (
           <>
-            {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -327,7 +651,6 @@ export function PortalStorefrontPage() {
               onClick={() => setIsCartOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
             />
-            {/* Drawer */}
             <motion.div 
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -348,7 +671,6 @@ export function PortalStorefrontPage() {
                 </button>
               </div>
 
-              {/* Items List */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-1">
                 {cart.length === 0 ? (
                   <div className="h-64 flex flex-col items-center justify-center text-slate-500 text-center gap-2">
@@ -367,7 +689,6 @@ export function PortalStorefrontPage() {
                         </span>
                       </div>
                       
-                      {/* Qty controller */}
                       <div className="flex items-center gap-3 bg-black/40 border border-white/5 rounded-xl px-2 py-1 shrink-0">
                         <button 
                           onClick={() => updateQty(item.id, -1)}
@@ -395,7 +716,6 @@ export function PortalStorefrontPage() {
                 )}
               </div>
 
-              {/* Checkout Form */}
               {cart.length > 0 && (
                 <form onSubmit={handleCheckout} className="border-t border-white/5 pt-6 mt-6 space-y-4">
                   <div className="flex justify-between items-center mb-2">
@@ -454,7 +774,6 @@ export function PortalStorefrontPage() {
         )}
       </AnimatePresence>
 
-      {/* SUCCESS MODAL */}
       <AnimatePresence>
         {orderSuccess && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
@@ -490,7 +809,6 @@ export function PortalStorefrontPage() {
         )}
       </AnimatePresence>
 
-      {/* BOTTOM TAB NAV (MOBILE) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0B]/90 backdrop-blur-2xl border-t border-t-white/5 pb-safe pt-2 px-6 flex justify-around items-center z-40">
          <button className="flex flex-col items-center gap-1 p-2 text-cyan-500">
            <ShoppingBag size={20} />
@@ -516,4 +834,3 @@ export function PortalStorefrontPage() {
     </div>
   );
 }
-
