@@ -86,7 +86,7 @@ export async function finalizarPedidoCompra(token: string, pedido: PedidoCompra)
   if (!resStatus.ok) throw new Error('Erro ao finalizar pedido');
 
   // 2. Atualizar Estoque (Dar Entrada)
-  const itens = pedido.itens || [];
+  const itens = (pedido as any).pedido_compra_itens || pedido.itens || [];
   for (const item of itens) {
     // Incrementa esal (estoque atual) e atualiza custo (opcionalmente)
     // Aqui usamos um RPC ou PATCH incremental. Como não temos RPC pronto, usamos PATCH simples (Risco de corrida, mas aceitável para MVP industrial)
