@@ -34,7 +34,8 @@ select
   nome as produto_nome,
   coalesce(cat, 'Sem Categoria') as produto_categoria,
   coalesce(un, 'un') as produto_unidade,
-  coalesce(preco, 0) as produto_preco_venda,
+  (custo * (1 + coalesce(mkv, 0) / 100)) as produto_preco_venda,
+  coalesce(custo, 0) as produto_custo,
   coalesce(mkv, 0) as produto_markup,
   is_active as produto_ativo
 from public.produtos;
