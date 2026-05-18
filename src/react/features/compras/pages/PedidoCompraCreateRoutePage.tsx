@@ -25,6 +25,7 @@ export function PedidoCompraCreateRoutePage() {
   const [obs, setObs] = useState('');
   const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
     queryKey: ['produtos-compras', filialId],
@@ -114,13 +115,14 @@ export function PedidoCompraCreateRoutePage() {
     });
     setActiveItemIdx(null);
     setSearchTerm('');
+    setHighlightedIndex(-1);
   };
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-7xl mx-auto p-4 sm:p-8 flex flex-col min-h-screen"
+      className="max-w-7xl mx-auto p-4 sm:p-8 flex flex-col h-[100dvh]"
     >
       <div className="flex items-center gap-4 mb-8">
         <button 
@@ -142,16 +144,23 @@ export function PedidoCompraCreateRoutePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
               <label htmlFor="fornecedor" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
-              <input 
-                id="fornecedor"
-                name="fornecedor"
-                autoComplete="organization"
-                type="text" 
-                value={fornecedor}
-                onChange={(e) => setFornecedor(e.target.value)}
-                placeholder="Nome do fornecedor ou razão social"
-                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-all text-lg"
-              />
+              <div className="relative flex items-center">
+                {fornecedor && (
+                  <div className="absolute left-4 w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center font-black text-xs uppercase border border-cyan-500/30">
+                    {fornecedor.substring(0, 2)}
+                  </div>
+                )}
+                <input 
+                  id="fornecedor"
+                  name="fornecedor"
+                  autoComplete="organization"
+                  type="text" 
+                  value={fornecedor}
+                  onChange={(e) => setFornecedor(e.target.value)}
+                  placeholder="Nome do fornecedor ou razão social"
+                  className={`w-full bg-black/20 border border-white/5 rounded-2xl py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-all text-lg ${fornecedor ? 'pl-16 pr-5' : 'px-5'}`}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <label htmlFor="formaPgto" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Forma de Pagamento</label>
@@ -199,6 +208,24 @@ export function PedidoCompraCreateRoutePage() {
                         onFocus={() => {
                           setActiveItemIdx(idx);
                           setSearchTerm(item.nome);
+                          setHighlightedIndex(-1);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            setHighlightedIndex(prev => (prev < filteredProdutos.length - 1 ? prev + 1 : prev));
+                          } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+                          } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (highlightedIndex >= 0 && filteredProdutos[highlightedIndex]) {
+                              selectProduto(idx, filteredProdutos[highlightedIndex]);
+                            }
+                          } else if (e.key === 'Escape') {
+                            setActiveItemIdx(null);
+                            setHighlightedIndex(-1);
+                          }
                         }}
                         placeholder="Buscar produto pelo nome ou SKU..."
                         className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-sm text-white pr-10"
@@ -214,11 +241,11 @@ export function PedidoCompraCreateRoutePage() {
                             <Shimmer height={12} width="80%" />
                           </div>
                         ) : filteredProdutos.length > 0 ? (
-                          filteredProdutos.map(p => (
+                          filteredProdutos.map((p, pIndex) => (
                             <button
                               key={p.id}
                               onClick={() => selectProduto(idx, p)}
-                              className="w-full flex items-center gap-4 p-4 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left"
+                              className={`w-full flex items-center gap-4 p-4 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left ${highlightedIndex === pIndex ? 'bg-white/10 border-l-4 !border-l-cyan-500' : ''}`}
                             >
                               <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-cyan-500/30 transition-colors">
                                  {p.foto_url ? (
