@@ -39,19 +39,19 @@ export function ProdutoMetrics({ produtos }: Props) {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={item} className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6">
+      <motion.div variants={item} className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]">
         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Produtos</span>
         <span className="text-3xl font-black text-white">
           <CountUp end={produtos.length} duration={1.5} />
         </span>
       </motion.div>
-      <motion.div variants={item} className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6">
+      <motion.div variants={item} className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]">
         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Categorias</span>
         <span className="text-3xl font-black text-white">
           <CountUp end={categorias} duration={1.5} />
         </span>
       </motion.div>
-      <motion.div variants={item} className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6">
+      <motion.div variants={item} className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 p-6 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-emerald-500/5 active:scale-[0.99]">
         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Com precificação</span>
         <span className="text-3xl font-black text-emerald-400">
           <CountUp end={comPrecificacao} duration={1.5} />

@@ -83,9 +83,8 @@ export function ComprasPilotPage() {
         }
       />
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5">
+        <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]">
            <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500"><ShoppingBag size={16} /></div>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Aberto</span>
@@ -94,7 +93,7 @@ export function ComprasPilotPage() {
              {pedidos.filter(p => p.status === 'aberto').length}
            </h3>
         </div>
-        <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5">
+        <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-emerald-500/5 active:scale-[0.99]">
            <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><Truck size={16} /></div>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recebidos</span>

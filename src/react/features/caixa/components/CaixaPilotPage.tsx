@@ -122,9 +122,8 @@ export function CaixaPilotPage() {
         />
       )}
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="relative overflow-hidden border-white/5 bg-surface-card/40 backdrop-blur-xl">
+        <Card className="relative overflow-hidden border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Saldo Atual</span>
             <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500">
@@ -141,7 +140,7 @@ export function CaixaPilotPage() {
           </div>
         </Card>
 
-        <Card className="border-white/5 bg-surface-card/40 backdrop-blur-xl">
+        <Card className="border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-emerald-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Entradas (Total)</span>
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
@@ -154,7 +153,7 @@ export function CaixaPilotPage() {
           <p className="mt-2 text-[11px] text-slate-500 font-medium">Vendas e recebimentos</p>
         </Card>
 
-        <Card className="border-white/5 bg-surface-card/40 backdrop-blur-xl">
+        <Card className="border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-rose-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Saídas (Total)</span>
             <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
