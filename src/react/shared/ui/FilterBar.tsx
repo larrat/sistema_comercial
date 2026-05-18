@@ -1,31 +1,11 @@
-import type { ReactNode } from 'react';
+import { useState, useDeferredValue, useEffect, type ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from './Button';
 
-type FilterBarOption = {
-  value: string;
-  label: string;
-};
-
-type FilterBarSearchConfig = {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  ariaLabel?: string;
-  className?: string;
-  testId?: string;
-};
-
-type FilterBarFilterConfig = {
-  key: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: FilterBarOption[];
-  label?: string;
-  className?: string;
-  ariaLabel?: string;
-  testId?: string;
-};
+// ... (keep types same) ...
+type FilterBarOption = { value: string; label: string; };
+type FilterBarSearchConfig = { value: string; onChange: (value: string) => void; placeholder?: string; ariaLabel?: string; className?: string; testId?: string; };
+type FilterBarFilterConfig = { key: string; value: string; onChange: (value: string) => void; options: FilterBarOption[]; label?: string; className?: string; ariaLabel?: string; testId?: string; };
 
 type FilterBarProps = {
   children?: ReactNode;
@@ -37,19 +17,26 @@ type FilterBarProps = {
   activeFilterCount?: number;
 };
 
-export function FilterBar({
-  children,
-  className,
-  search,
-  filters = [],
-  actions,
-  onClearFilters,
-  activeFilterCount
-}: FilterBarProps) {
-  const hasConfigMode = Boolean(search) || filters.length > 0;
-  const showClear =
-    Boolean(onClearFilters) && (activeFilterCount === undefined || activeFilterCount > 0);
+export function FilterBar({ children, className, search, filters = [], actions, onClearFilters, activeFilterCount }: FilterBarProps) {
+  const [localSearch, setLocalSearch] = useState(search?.value ?? '');
+  const deferredSearch = useDeferredValue(localSearch);
 
+  // Sync deferred local state to parent
+  useEffect(() => {
+    if (search && deferredSearch !== search.value) {
+      search.onChange(deferredSearch);
+    }
+  }, [deferredSearch]);
+
+  // Sync parent external changes back to local state
+  useEffect(() => {
+    if (search && search.value !== deferredSearch && search.value !== localSearch) {
+      setLocalSearch(search.value);
+    }
+  }, [search?.value]);
+
+  const hasConfigMode = Boolean(search) || filters.length > 0;
+  const showClear = Boolean(onClearFilters) && (activeFilterCount === undefined || activeFilterCount > 0);
   const clearButton = showClear ? (
     <Button variant="secondary" size="sm" onClick={onClearFilters}>
       {activeFilterCount !== undefined ? `Limpar filtros (${activeFilterCount})` : 'Limpar filtros'}
@@ -70,8 +57,8 @@ export function FilterBar({
                 <input
                   className={`${search.className ?? 'rf-input-premium'} !pl-10 !h-10 w-full !bg-white/5 backdrop-blur-sm focus:border-brand-gold focus:ring-brand-gold/20 transition-colors`}
                   type="search"
-                  value={search.value}
-                  onChange={(event) => search.onChange(event.target.value)}
+                  value={localSearch}
+                  onChange={(event) => setLocalSearch(event.target.value)}
                   placeholder={search.placeholder ?? 'Buscar...'}
                   aria-label={search.ariaLabel ?? 'Buscar'}
                   data-testid={search.testId}

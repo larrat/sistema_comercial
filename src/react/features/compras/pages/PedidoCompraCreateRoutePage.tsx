@@ -25,6 +25,7 @@ export function PedidoCompraCreateRoutePage() {
   const [obs, setObs] = useState('');
   const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
@@ -93,13 +94,14 @@ export function PedidoCompraCreateRoutePage() {
     // Filtra apenas os que NÃO são pais (filhos ou independentes)
     const sellable = produtos.filter(p => !parentIds.has(p.id));
 
-    if (!searchTerm) return sellable;
-    const low = searchTerm.toLowerCase();
+    if (!deferredSearchTerm) return sellable.slice(0, 50); // Mostra primeiros 50 por padrão
+
+    const low = deferredSearchTerm.toLowerCase();
     return sellable.filter(p => 
       p.nome.toLowerCase().includes(low) || 
       (p.sku && p.sku.toLowerCase().includes(low))
-    );
-  }, [produtos, searchTerm]);
+    ).slice(0, 15);
+  }, [produtos, deferredSearchTerm]);
 
   const selectProduto = (idx: number, p: any) => {
     setItens(prev => {
