@@ -267,7 +267,7 @@ function CrmAutomationCard() {
   };
 
   return (
-    <div className="rf-card-premium p-6 border-white/5 bg-gradient-to-br from-indigo-950/20 to-slate-900/50">
+    <div className="rf-card-premium p-6 border-white/5 bg-gradient-to-br from-indigo-950/20 to-slate-900/50 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-indigo-500/5 active:scale-[0.99]">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">

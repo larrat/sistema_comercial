@@ -106,7 +106,7 @@ export function SugestaoComprasPage() {
         />
       </div>
 
-      <div className="rf-card-premium p-6 flex flex-col gap-6">
+      <div className="rf-card-premium p-6 flex flex-col gap-6 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5">
         <div className="flex items-center justify-between">
           <PillGroup
             options={[
