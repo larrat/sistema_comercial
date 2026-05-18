@@ -44,6 +44,12 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
     if (!prod) return;
 
     const qtyNum = parseFloat(qty) || 1;
+
+    if (orig === 'estoque' && qtyNum > (prod.esal || 0)) {
+      setError(`Estoque insuficiente. Saldo atual: ${prod.esal || 0}.`);
+      return;
+    }
+
     const precoNum = parseFloat(preco) || calcPrecoSugerido(prod, tipo);
     const custoNum = parseFloat(custo) || prod.custo || 0;
 
@@ -95,7 +101,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
                   .sort((a, b) => a.nome.localeCompare(b.nome))
                   .map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nome} {p.sku ? `[${p.sku}]` : ''}
+                      {p.nome} {p.sku ? `[${p.sku}]` : ''} — Estoque: {p.esal || 0}
                     </option>
                   ));
               })()}

@@ -415,6 +415,10 @@ export function PdvPage() {
   }, [session?.access_token, filialId]);
 
   function handleSelectProduto(produto: PdvProdutoSearchResult) {
+    if (Number(produto.esal) <= 0) {
+      toast.error(`Produto "${produto.nome}" está sem saldo no estoque.`);
+      return;
+    }
     addItem(createCartItemFromProduto(produto));
     setProductQuery('');
     setProductResults([]);
