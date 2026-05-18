@@ -207,7 +207,11 @@ export function DataTable<Row>({
               key={row.id}
               onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
               className={getRowClassName ? getRowClassName(row.original, row.index) : undefined}
-              style={onRowClick ? { cursor: 'pointer' } : undefined}
+              style={{ 
+                ...(onRowClick ? { cursor: 'pointer' } : {}),
+                contentVisibility: 'auto',
+                containIntrinsicSize: '0 64px'
+              }}
             >
               {row.getVisibleCells().map(cell => (
                 <td 
