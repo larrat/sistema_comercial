@@ -25,14 +25,14 @@ import {
 } from '../../../shared/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listPedidosCompra, finalizarPedidoCompra } from '../services/comprasApi';
-import { useAuthStore } from '../../../app/useAuthStore';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmt = (v: number) => BRL.format(v || 0);
 
 export function ComprasPilotPage() {
-  const { token } = useAuthStore();
+  const { token } = useApiContext();
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
