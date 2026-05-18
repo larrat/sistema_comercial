@@ -49,7 +49,7 @@ create or replace view public.v_pbi_d_filiais as
 select
   id as filial_id,
   nome as filial_nome,
-  coalesce(uf, 'BR') as filial_uf,
+  coalesce(estado, 'BR') as filial_uf,
   criado_em as filial_cadastro_data
 from public.filiais;
 
@@ -92,7 +92,7 @@ select
   t.valor as caixa_valor,
   (case when t.tipo = 'saida' then -t.valor else t.valor end) as caixa_valor_sinalizado,
   t.descricao as transacao_descricao
-from public.transacoes_caixa t
+from public.caixa_transacoes t
 left join public.caixa_categorias c on c.id = t.categoria_id;
 
 comment on view public.v_pbi_f_caixa is 'Tabela Fato Movimentações de Caixa para o Power BI (v_pbi_f_caixa)';
