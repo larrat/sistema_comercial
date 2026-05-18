@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Produto, PedidoItem } from '../../../../types/domain';
 import { calcPrecoSugerido } from '../utils/pedidoRules';
 import { Button, Input } from '../../../shared/ui';
+import { useRoleStore } from '../../../app/useRoleStore';
 
 type Props = {
   produtos: Produto[];
@@ -16,6 +17,8 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
   const [custo, setCusto] = useState('');
   const [orig, setOrig] = useState('estoque');
   const [error, setError] = useState<string | null>(null);
+  
+  const role = useRoleStore((state) => state.role);
 
   function handleProdChange(id: string) {
     const parentIds = new Set(produtos.map(p => p.produto_pai_id).filter(Boolean));
@@ -45,7 +48,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
 
     const qtyNum = parseFloat(qty) || 1;
 
-    if (orig === 'estoque' && qtyNum > (prod.esal || 0)) {
+    if (orig === 'estoque' && qtyNum > (prod.esal || 0) && role !== 'admin') {
       setError(`Estoque insuficiente. Saldo atual: ${prod.esal || 0}.`);
       return;
     }

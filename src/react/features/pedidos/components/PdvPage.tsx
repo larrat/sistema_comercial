@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
+import { useRoleStore } from '../../../app/useRoleStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input, ScannerModal } from '../../../shared/ui';
@@ -181,6 +182,7 @@ export function PdvPage() {
 
   const session = useAuthStore((state) => state.session);
   const filialId = useFilialStore((state) => state.filialId);
+  const role = useRoleStore((state) => state.role);
   const { save } = usePedidoMutations();
 
   const [saleToken, setSaleToken] = useState(() => createSaleToken());
@@ -415,7 +417,7 @@ export function PdvPage() {
   }, [session?.access_token, filialId]);
 
   function handleSelectProduto(produto: PdvProdutoSearchResult) {
-    if (Number(produto.esal) <= 0) {
+    if (Number(produto.esal) <= 0 && role !== 'admin') {
       toast.error(`Produto "${produto.nome}" está sem saldo no estoque.`);
       return;
     }
