@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   AreaChart as RechartsAreaChart, 
@@ -47,6 +47,7 @@ import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
 import { LoadingState, ErrorState, EmptyState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
+import DashboardWorker from '../workers/dashboard.worker?worker';
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmt = (v: number) => BRL.format(v || 0);
@@ -127,174 +128,37 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     setIsRefreshing(false);
   };
 
-  // --- Cálculos ---
-  const stats = useMemo(() => {
-    const statusVenda = ['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido'];
-    const vendasReais = pedidos.filter(p => statusVenda.includes(p.status));
-    const faturamento = vendasReais.reduce((acc, p) => acc + Number(p.total || 0), 0);
-    
-    let lucroTotal = 0;
-    vendasReais.forEach(p => {
-      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
-      items.forEach(item => {
-        const preco = Number(item.preco || 0);
-        const custo = Number(item.custo || 0);
-        const qty = Number(item.qty || 0);
-        lucroTotal += (preco - custo) * qty;
-      });
+  // --- Cálculos via Web Worker ---
+  const [workerData, setWorkerData] = useState<{
+    stats: any;
+    chartData: any;
+    periodoDatas: string;
+    topProducts: any;
+    statusDistribution: any;
+  } | null>(null);
+
+  const workerRef = useRef<Worker>();
+
+  useEffect(() => {
+    workerRef.current = new DashboardWorker();
+    workerRef.current.onmessage = (e) => setWorkerData(e.data);
+    return () => workerRef.current?.terminate();
+  }, []);
+
+  useEffect(() => {
+    if (!workerRef.current) return;
+    workerRef.current.postMessage({
+      pedidos,
+      produtos,
+      clientes,
+      contasReceber,
+      periodo,
+      statusKeys: Object.keys(STATUS_CONFIG)
     });
+  }, [pedidos, produtos, clientes, contasReceber, periodo]);
 
-    const ticketMedio = vendasReais.length > 0 ? faturamento / vendasReais.length : 0;
-    const valorEmAberto = contasReceber.reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
-    
-    return {
-      vendasReais,
-      faturamento,
-      lucroTotal,
-      margem: faturamento > 0 ? (lucroTotal / faturamento) * 100 : 0,
-      ticketMedio,
-      valorEmAberto,
-      totalPedidos: vendasReais.length,
-      pedidosEntregues: vendasReais.length,
-      pedidosPendentes: contasReceber.length
-    };
-  }, [pedidos, contasReceber]);
-
-  const chartData = useMemo(() => {
-    const groups: Record<string, { name: string; faturamento: number; lucro: number }> = {};
-    
-    stats.vendasReais.forEach(p => {
-      const date = new Date(p.data || '');
-      let key = '';
-      let label = '';
-      
-      if (periodo === 'semana') {
-        key = date.toISOString().slice(0, 10);
-        label = `${date.getDate()}/${date.getMonth() + 1}`;
-      } else if (periodo === 'mes') {
-        const week = Math.ceil(date.getDate() / 7);
-        key = `W${week}`;
-        label = `Semana ${week}`;
-      } else {
-        key = date.toISOString().slice(0, 7);
-        label = date.toLocaleString('pt-BR', { month: 'short' });
-      }
-
-      if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0 };
-      groups[key].faturamento += Number(p.total || 0);
-      
-      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
-      items.forEach(item => {
-        groups[key].lucro += (Number(item.preco || 0) - Number(item.custo || 0)) * Number(item.qty || 0);
-      });
-    });
-
-    return Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
-  }, [stats.vendasReais, periodo]);
-
-  const periodoDatas = useMemo(() => {
-    const now = new Date();
-    let start = new Date(now);
-    let end = new Date(now);
-
-    if (periodo === 'semana') {
-      const day = now.getDay();
-      start.setDate(now.getDate() - day);
-      end.setDate(now.getDate() + (6 - day));
-    } else if (periodo === 'mes') {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-      end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    } else if (periodo === 'ano') {
-      start = new Date(now.getFullYear(), 0, 1);
-      end = new Date(now.getFullYear(), 11, 31);
-    } else {
-      if (!pedidos.length) return 'Todo o período';
-      const dates = pedidos.map(p => new Date(p.data || ''));
-      start = new Date(Math.min(...dates.map(d => d.getTime())));
-      end = new Date(Math.max(...dates.map(d => d.getTime())));
-    }
-    
-    const fmtDate = (d: Date) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-    return `${fmtDate(start)} — ${fmtDate(end)}`;
-  }, [pedidos, periodo]);
-
-  const topProducts = useMemo(() => {
-    const productSales: Record<string, { nome: string; receita: number }> = {};
-    
-    const parentMap = new Map<string, string>();
-    const nameMap = new Map<string, string>();
-    produtos.forEach(p => {
-      if (p.produto_pai_id) parentMap.set(p.id, p.produto_pai_id);
-      nameMap.set(p.id, p.nome);
-    });
-
-    let totalReceita = 0;
-    stats.vendasReais.forEach(p => {
-      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
-      items.forEach(item => {
-        if (!item.prodId) return;
-        
-        const effectiveId = parentMap.get(item.prodId) || item.prodId;
-        const effectiveName = nameMap.get(effectiveId) || item.nome || 'Produto';
-        const receita = Number(item.preco || 0) * Number(item.qty || 0);
-        
-        if (!productSales[effectiveId]) {
-          productSales[effectiveId] = { nome: effectiveName, receita: 0 };
-        }
-        productSales[effectiveId].receita += receita;
-        totalReceita += receita;
-      });
-    });
-    
-    return Object.values(productSales)
-      .sort((a, b) => b.receita - a.receita)
-      .slice(0, 5)
-      .map(p => ({
-        ...p,
-        percent: totalReceita > 0 ? (p.receita / totalReceita) * 100 : 0
-      }));
-  }, [stats.vendasReais, produtos]);
-
-  const statusDistribution = useMemo(() => {
-    const dist: Record<string, number> = {};
-    pedidos.forEach(p => {
-      dist[p.status] = (dist[p.status] || 0) + 1;
-    });
-    
-    const knownKeys = Object.keys(STATUS_CONFIG);
-    const otherCount = pedidos.filter(p => !knownKeys.includes(p.status)).length;
-    if (otherCount > 0) {
-      dist['outros'] = otherCount;
-    }
-    
-    return dist;
-  }, [pedidos]);
-
-  const healthMetrics = useMemo(() => {
-    const totalClientes = clientes.length;
-    const comContato = clientes.filter(c => c.whatsapp || c.email).length;
-    const totalProdutos = produtos.length;
-    const comEstoque = produtos.filter(p => Number(p.esal || 0) > 0).length;
-    
-    const produtosVendidos = new Set();
-    pedidos.forEach(p => {
-      if (p.status === 'cancelado') return;
-      const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || [])) as PedidoItem[];
-      items.forEach(i => produtosVendidos.add(i.prodId));
-    });
-
-    const validPedidos = pedidos.filter(p => p.status !== 'cancelado');
-    const entregues = validPedidos.filter(p => ['entregue_aguardando_pagamento', 'concluido'].includes(p.status)).length;
-
-    return {
-      contato: totalClientes > 0 ? (comContato / totalClientes) * 100 : 0,
-      estoque: totalProdutos > 0 ? (comEstoque / totalProdutos) * 100 : 0,
-      mix: totalProdutos > 0 ? (produtosVendidos.size / totalProdutos) * 100 : 0,
-      entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0
-    };
-  }, [clientes, produtos, pedidos]);
-
-  if (status === 'loading') return <LoadingState description="Consolidando indicadores..." />;
+  if (status === 'loading' || !workerData) return <LoadingState description="Consolidando indicadores..." />;
+  const { stats, chartData, periodoDatas, topProducts, statusDistribution } = workerData;
   if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
 
   return (
