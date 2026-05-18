@@ -14,8 +14,7 @@ import { motion } from 'framer-motion';
 
 export function PedidoCompraCreateRoutePage() {
   const navigate = useNavigate();
-  const { resolve } = useApiContext();
-  const { token } = useAuthStore();
+  const { resolve, token } = useApiContext();
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   
