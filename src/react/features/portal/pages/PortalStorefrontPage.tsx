@@ -1,6 +1,6 @@
 import { useState, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Search, Filter, Star, ChevronRight, X, Plus, Minus, Trash2, CheckCircle2, Sparkles, Upload, ArrowRight, User } from 'lucide-react';
+import { ShoppingBag, Search, Filter, Star, ChevronRight, X, Plus, Minus, Trash2, CheckCircle2, Sparkles, Upload, ArrowRight, User, Key, Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { toast } from 'sonner';
@@ -46,6 +46,9 @@ export function PortalStorefrontPage() {
   const [selectedModel, setSelectedModel] = useState<any | null>(null);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState('');
+  const [resultImage, setResultImage] = useState<string | null>(null);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(window.localStorage.getItem('FAL_KEY') || '');
 
   // Fetch active products
   const { data: produtos = [], isLoading } = useQuery({
@@ -126,14 +129,8 @@ export function PortalStorefrontPage() {
   const cartTotal = cart.reduce((acc, item) => acc + (item.preco * item.qty), 0);
   const cartItemsCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
-  // Start AI Try-On Simulation
-  const startTryOnProcess = () => {
-    if (!selectedModel && !uploadedPhoto) {
-      toast.error('Por favor, selecione um modelo ou envie sua foto.');
-      return;
-    }
-    
-    setTryOnStep('processing');
+  // Premium Mock Try-On Fallback
+  const runMockTryOn = () => {
     const statuses = [
       'Identificando contornos corporais...',
       'Mapeando textura e dobras do tecido...',
@@ -150,10 +147,107 @@ export function PortalStorefrontPage() {
         setProcessingStatus(statuses[currentIdx]);
       } else {
         clearInterval(interval);
+        setResultImage(null); // Will default to preset mock image
         setTryOnStep('result');
-        toast.success('Modelo gerado com sucesso!');
+        toast.success('Simulação de caimento gerada com sucesso!');
       }
     }, 1200);
+  };
+
+  // Start AI Try-On Process
+  const startTryOnProcess = async () => {
+    if (!selectedModel && !uploadedPhoto) {
+      toast.error('Por favor, selecione um modelo ou envie sua foto.');
+      return;
+    }
+    
+    setTryOnStep('processing');
+    
+    // Look up FAL API Key from environment or localStorage
+    const falKey = (import.meta.env.VITE_FAL_KEY || window.localStorage.getItem('FAL_KEY') || '').trim();
+    
+    if (falKey) {
+      try {
+        setProcessingStatus('Enviando imagens para o servidor da fal.ai...');
+        
+        // 1. Get the garment image.
+        const garmentImage = selectedProduct.foto_url || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300';
+        
+        // 2. Get the person image.
+        const personImage = uploadedPhoto || selectedModel?.img;
+        
+        setProcessingStatus('Inicializando Rede Neural (IDM-VTON)...');
+        
+        // Call Fal.ai REST API directly
+        const response = await fetch('https://queue.fal.run/fal-ai/idm-vton', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Key ${falKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            human_image_url: personImage,
+            garment_image_url: garmentImage,
+            garment_description: selectedProduct.nome
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Falha ao registrar tarefa no servidor da fal.ai');
+        }
+        
+        const queueData = await response.json();
+        const request_id = queueData.request_id;
+        
+        setProcessingStatus('Processando nos clusters de GPU da fal.ai (geralmente leva ~10 a 15 segundos)...');
+        
+        // Poll for results
+        let resultData: any = null;
+        for (let i = 0; i < 30; i++) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const pollResponse = await fetch(`https://queue.fal.run/fal-ai/idm-vton/requests/${request_id}`, {
+            headers: {
+              'Authorization': `Key ${falKey}`,
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (pollResponse.ok) {
+            const statusData = await pollResponse.json();
+            if (statusData.status === 'COMPLETED') {
+              resultData = statusData.response;
+              break;
+            } else if (statusData.status === 'FAILED') {
+              throw new Error('Processamento falhou na fal.ai');
+            }
+            
+            // Show real progress logs
+            if (statusData.logs && statusData.logs.length > 0) {
+              const lastLog = statusData.logs[statusData.logs.length - 1].message;
+              setProcessingStatus(`IA: ${lastLog}`);
+            }
+          }
+        }
+        
+        if (resultData && (resultData.image?.url || resultData.image_url)) {
+          const finalImageUrl = resultData.image?.url || resultData.image_url;
+          setResultImage(finalImageUrl);
+          setTryOnStep('result');
+          toast.success('Imagem gerada com sucesso pela IA da fal.ai!');
+        } else {
+          throw new Error('Formato de resposta inválido do servidor da fal.ai');
+        }
+      } catch (err: any) {
+        console.error(err);
+        toast.error(`Falha na API da IA: ${err.message || 'Erro de comunicação'}. Usando simulação...`);
+        runMockTryOn();
+      }
+    } else {
+      // Graceful premium mock fallback
+      runMockTryOn();
+    }
   };
 
   // Submit Order (Checkout)
@@ -486,16 +580,72 @@ export function PortalStorefrontPage() {
               className="bg-[#0D0D11] border border-white/10 rounded-[2.5rem] p-8 max-w-md w-full relative z-10 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
             >
               {tryOnStep !== 'processing' && (
-                <button 
-                  onClick={() => setIsTryOnOpen(false)}
-                  className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
-                >
-                  <X size={16} />
-                </button>
+                <>
+                  <button 
+                    onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                    className="absolute top-6 left-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                    title="Configurar Chave da API Fal.ai"
+                  >
+                    <Key size={16} />
+                  </button>
+                  <button 
+                    onClick={() => setIsTryOnOpen(false)}
+                    className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </>
               )}
 
-              {tryOnStep === 'upload' && (
-                <div className="space-y-6">
+              {/* API Key Config Panel */}
+              {showApiKeyInput && tryOnStep !== 'processing' && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="mb-6 p-5 bg-white/5 border border-white/10 rounded-2xl space-y-3 mt-6"
+                >
+                  <div className="flex items-center gap-2 text-cyan-400">
+                    <Settings size={14} />
+                    <span className="text-xs font-black uppercase tracking-wider">Configurar Chave Fal.ai</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    Insira sua API Key da fal.ai para habilitar prova de roupa real com IA. Os dados são salvos localmente no seu navegador de forma segura.
+                  </p>
+                  <input 
+                    type="password"
+                    placeholder="fal_key_..."
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
+                  />
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        window.localStorage.setItem('FAL_KEY', apiKeyInput);
+                        toast.success('Chave da API salva com sucesso!');
+                        setShowApiKeyInput(false);
+                      }}
+                      className="flex-1 bg-cyan-500 text-black font-bold py-2 rounded-xl text-[10px] uppercase hover:bg-cyan-400 transition-colors"
+                    >
+                      Salvar
+                    </button>
+                    <button 
+                      onClick={() => {
+                        window.localStorage.removeItem('FAL_KEY');
+                        setApiKeyInput('');
+                        toast.info('Chave removida. Usando simulação.');
+                        setShowApiKeyInput(false);
+                      }}
+                      className="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-2 rounded-xl text-[10px] uppercase border border-white/10 transition-colors"
+                    >
+                      Limpar
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {tryOnStep === 'upload' && !showApiKeyInput && (
+                <div className="space-y-6 mt-4">
                   <div className="text-center">
                     <div className="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Sparkles size={24} />
@@ -532,10 +682,13 @@ export function PortalStorefrontPage() {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const url = URL.createObjectURL(file);
-                            setUploadedPhoto(url);
-                            setSelectedModel(null);
-                            toast.success('Sua foto foi carregada!');
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setUploadedPhoto(reader.result as string);
+                              setSelectedModel(null);
+                              toast.success('Sua foto foi carregada!');
+                            };
+                            reader.readAsDataURL(file);
                           }
                         }}
                         className="absolute inset-0 opacity-0 cursor-pointer"
@@ -575,7 +728,7 @@ export function PortalStorefrontPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-black text-white">Vestindo com IA...</h3>
-                    <p className="text-xs text-slate-400 mt-2 min-h-[32px] max-w-[240px] leading-relaxed">
+                    <p className="text-xs text-slate-400 mt-2 min-h-[48px] max-w-[260px] leading-relaxed">
                       {processingStatus}
                     </p>
                   </div>
@@ -589,46 +742,61 @@ export function PortalStorefrontPage() {
                     <p className="text-xs text-slate-400 mt-1">Foto realista montada pela nossa inteligência artificial.</p>
                   </div>
 
-                  <div className="aspect-[3/4] bg-slate-800 rounded-3xl overflow-hidden relative border border-white/10">
-                    {selectedModel?.id === 'm1' && (
+                  <div className="aspect-[3/4] bg-[#14141a] rounded-3xl overflow-hidden relative border border-white/10 flex items-center justify-center">
+                    {resultImage ? (
                       <div className="w-full h-full relative">
-                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                        <img src={resultImage} className="w-full h-full object-cover" alt="Resultado da Prova Virtual" />
+                        <div className="absolute inset-0 bg-cyan-500/5 mix-blend-overlay" />
                         <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-white uppercase tracking-wider block">Camisa: {selectedProduct.nome}</span>
-                          <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedModel?.id === 'f1' && (
-                      <div className="w-full h-full relative">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
-                        <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-white uppercase tracking-wider block">Peça: {selectedProduct.nome}</span>
-                          <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {uploadedPhoto && (
-                      <div className="w-full h-full relative">
-                        <img src={uploadedPhoto} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
-                          <span className="text-xs font-black text-cyan-400 flex items-center gap-1 mb-1">
-                            <Sparkles size={12} /> Ajustado com Sucesso
+                          <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Peça: {selectedProduct.nome}</span>
+                          <span className="text-xs font-black text-cyan-400 flex items-center gap-1">
+                            <Sparkles size={12} className="animate-pulse" /> IA Real
                           </span>
-                          <h4 className="text-sm font-bold text-white leading-tight">Caimento simulado para sua silhueta da peça {selectedProduct.nome}.</h4>
                         </div>
                       </div>
+                    ) : (
+                      <>
+                        {selectedModel?.id === 'm1' && (
+                          <div className="w-full h-full relative">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                            <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Camisa: {selectedProduct.nome}</span>
+                              <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedModel?.id === 'f1' && (
+                          <div className="w-full h-full relative">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                            <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
+                              <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Peça: {selectedProduct.nome}</span>
+                              <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {uploadedPhoto && (
+                          <div className="w-full h-full relative">
+                            <img src={uploadedPhoto} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
+                              <span className="text-xs font-black text-cyan-400 flex items-center gap-1 mb-1">
+                                <Sparkles size={12} /> Ajustado com Sucesso
+                              </span>
+                              <h4 className="text-sm font-bold text-white leading-tight">Caimento simulado para sua silhueta da peça {selectedProduct.nome}.</h4>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <button 
                       onClick={() => setTryOnStep('upload')}
-                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black py-4 rounded-2xl text-xs uppercase"
+                      className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black py-4 rounded-2xl text-xs uppercase transition-colors"
                     >
                       Provar Outra Foto
                     </button>
@@ -639,7 +807,7 @@ export function PortalStorefrontPage() {
                         setIsTryOnOpen(false);
                         setSelectedProduct(null);
                       }}
-                      className="w-full bg-cyan-500 text-black font-black py-4 rounded-2xl hover:bg-cyan-400 text-xs uppercase"
+                      className="w-full bg-cyan-500 text-black font-black py-4 rounded-2xl hover:bg-cyan-400 text-xs uppercase transition-all"
                     >
                       Adicionar à Sacola
                     </button>
