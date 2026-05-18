@@ -18,7 +18,8 @@ select
   tel as cliente_telefone,
   coalesce(seg, 'Geral') as cliente_segmento,
   coalesce(utm_source, 'Direto') as cliente_canal_aquisicao,
-  created_at as cliente_cadastro_data
+  data_primeira_compra as cliente_primeira_compra_data,
+  coalesce(is_active, true) as cliente_ativo
 from public.clientes;
 
 comment on view public.v_pbi_d_clientes is 'Dimensão Clientes para o Power BI (v_pbi_d_clientes)';
