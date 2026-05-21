@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Save } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button, Card } from '../../../shared/ui';
 import type { CaixaTransacao } from '../services/caixaApi';
 
@@ -19,9 +20,9 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
   const filteredCategories = categories.filter(c => c.tipo === tipo);
 
   const handleSave = () => {
-    if (valor <= 0) return alert('Informe um valor válido');
-    if (!categoriaId) return alert('Selecione uma categoria');
-    if (!descricao) return alert('Informe uma descrição');
+    if (valor <= 0) return toast.error('Informe um valor válido');
+    if (!categoriaId) return toast.error('Selecione uma categoria');
+    if (!descricao) return toast.error('Informe uma descrição');
 
     onSave({
       filial_id: filialId,

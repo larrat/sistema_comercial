@@ -61,12 +61,7 @@ export function useFilialMutations() {
 
   async function remover(id: string) {
     const filial = filiais.find((f) => f.id === id);
-    if (
-      !confirm(
-        `Remover a filial "${filial?.nome ?? id}"? Esta ação afeta cadastros, pedidos e acessos vinculados.`
-      )
-    )
-      return;
+    if (!filial) return;
 
     try {
       await deleteFilial(getCtx(), id);

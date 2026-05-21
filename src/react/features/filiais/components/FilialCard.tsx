@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Button } from '../../../shared/ui';
+import { ConfirmModal } from '../../../shared/ui/ConfirmModal';
 import type { Filial } from '../../../../types/domain';
 import { useFiliaisStore } from '../store/useFiliaisStore';
 import { useFilialMutations } from '../hooks/useFilialMutations';
@@ -8,6 +10,7 @@ type Props = { filial: Filial };
 export function FilialCard({ filial }: Props) {
   const openEdit = useFiliaisStore((s) => s.openEdit);
   const { remover } = useFilialMutations();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const cor = filial.cor ?? '#163F80';
   const localidade =
@@ -38,11 +41,23 @@ export function FilialCard({ filial }: Props) {
         <Button
           variant="danger"
           size="sm"
-          onClick={() => void remover(filial.id)}
+          onClick={() => setShowConfirm(true)}
         >
           Remover
         </Button>
       </div>
+
+      <ConfirmModal
+        open={showConfirm}
+        title="Remover Filial"
+        description={`Remover a filial "${filial.nome}"? Esta ação afeta cadastros, pedidos e acessos vinculados.`}
+        isDestructive
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={() => {
+          setShowConfirm(false);
+          void remover(filial.id);
+        }}
+      />
     </div>
   );
 }

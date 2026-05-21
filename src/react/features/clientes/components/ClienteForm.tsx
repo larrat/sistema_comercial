@@ -15,6 +15,7 @@ import {
 } from '../../../shared/ui';
 import { useClienteMutations } from '../hooks/useClientesQuery';
 import { useRcas } from '../hooks/useRcas';
+import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
 
 const clienteSchema = z.object({
   nome: z.string().min(1, 'Nome do cliente é obrigatório.'),
@@ -132,11 +133,13 @@ export function ClienteForm({
     setValue,
     watch,
     reset,
-    formState: { errors }
+    formState: { errors, isDirty }
   } = useForm<ClienteFormValues>({
     resolver: zodResolver(clienteSchema),
     defaultValues: useMemo(() => toFormValues(initialCliente), [initialCliente])
   });
+
+  useUnsavedChangesGuard(isDirty);
 
   useEffect(() => {
     reset(toFormValues(initialCliente));

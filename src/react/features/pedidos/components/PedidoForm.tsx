@@ -18,6 +18,7 @@ import { usePedidoStore } from '../store/usePedidoStore';
 import { usePedidosQuery, usePedidoMutations, useClientesLightQuery, useRcasQuery } from '../hooks/usePedidosQuery';
 import { useProdutosQuery } from '../../produtos/hooks/useProdutosQuery';
 import { findClienteByInput } from '../services/clientesLightApi';
+import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
 import { PedidoItemsSection } from './PedidoItemsSection';
 import { PEDIDO_STATUS_LABEL, normalizePedStatus } from '../types';
 import {
@@ -79,6 +80,22 @@ export function PedidoForm({
   const selectedCliente = useMemo(() => findClienteByInput(clientes, cli.trim()), [clientes, cli]);
   const totalPedido = useMemo(() => calculatePedidoTotal(itens), [itens]);
   const pedidoNumero = initialPedido?.num ?? 'NOVO';
+
+  const isDirty = useMemo(() => {
+    if (!initialPedido) {
+      return Boolean(cli.trim() || itens.length > 0 || obs.trim());
+    }
+    return cli !== (initialPedido.cli ?? '') || 
+           rcaId !== (initialPedido.rca_id ?? '') ||
+           status !== normalizePedStatus(initialPedido.status) ||
+           pgto !== (initialPedido.pgto ?? 'a_vista') ||
+           prazo !== (initialPedido.prazo ?? 'imediato') ||
+           obs !== (initialPedido.obs ?? '') ||
+           itens.length !== existingItens.length ||
+           tipo !== (initialPedido.tipo ?? 'varejo');
+  }, [initialPedido, cli, rcaId, status, pgto, prazo, obs, itens.length, existingItens.length, tipo]);
+
+  useUnsavedChangesGuard(isDirty);
 
   function addItem(item: PedidoItem) {
     setItens((prev) => [...prev, item]);

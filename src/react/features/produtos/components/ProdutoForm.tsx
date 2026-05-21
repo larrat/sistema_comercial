@@ -10,8 +10,8 @@ import {
   syncPriceFields,
   recalcFromCost,
   markupToPrice,
-  type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
+import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
 import { FormActions, FormError, FormSection, Input, Select, Typography } from '../../../shared/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -116,10 +116,12 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   const { resolve } = useApiContext();
   const context = resolve();
   
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<ProdutoFormValues>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
+
+  useUnsavedChangesGuard(isDirty);
 
   const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
   const [coresInput, setCoresInput] = useState('');

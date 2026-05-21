@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { X, Plus, Trash2, Save, Search, Package } from 'lucide-react';
+import { X, Search, Check, AlertCircle, Plus, Trash2, Save, Package } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button, Card, Shimmer, Badge } from '../../../shared/ui';
 import type { PedidoCompraItem, PedidoCompra } from '../services/comprasApi';
 import { useQuery } from '@tanstack/react-query';
@@ -53,8 +54,8 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   const total = itens.reduce((acc, i) => acc + i.total_item, 0);
 
   const handleSave = () => {
-    if (!fornecedor) return alert('Informe o fornecedor');
-    if (itens.length === 0) return alert('Adicione pelo menos um item');
+    if (!fornecedor) return toast.error('Informe o fornecedor');
+    if (itens.length === 0) return toast.error('Adicione pelo menos um item');
     
     const pedido: Partial<PedidoCompra> = {
       id: `PC-${Date.now()}`,

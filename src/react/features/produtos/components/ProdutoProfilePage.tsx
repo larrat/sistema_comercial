@@ -307,28 +307,36 @@ export function ProdutoProfilePage({
     saveMutation.mutate(payload as any, {
       onSuccess: async () => {
         if (nomeAlterado) {
-          const devePropagar = window.confirm(
-            `O nome do produto foi alterado para "${novoNome}". Deseja atualizar o nome em todo o histórico de vendas e registros antigos?`
-          );
-          if (devePropagar) {
-            await renameMutation.mutateAsync({ 
-              id: produto.id, 
-              novoNome, 
-              antigoNome: produto.nome 
-            });
-          }
+          toast.message(`O nome do produto foi alterado para "${novoNome}".`, {
+            description: 'Deseja atualizar o nome em todo o histórico de vendas?',
+            duration: 10000,
+            action: {
+              label: 'Atualizar Histórico',
+              onClick: () => {
+                renameMutation.mutate({ 
+                  id: produto.id, 
+                  novoNome, 
+                  antigoNome: produto.nome 
+                });
+              }
+            }
+          });
         }
 
         if (!produto.produto_pai_id && (catAlterada || unAlterada)) {
-          const devePropagarFilhos = window.confirm(
-            `A classificação do produto foi alterada. Deseja replicar a Categoria e Unidade para todas as variantes (filhos)?`
-          );
-          if (devePropagarFilhos) {
-            await updateMutation.mutateAsync({ 
-              id: produto.id, 
-              data: { cat: values.cat?.trim() || null, un: values.un?.trim() || 'un' } 
-            });
-          }
+          toast.message(`A classificação do produto principal foi alterada.`, {
+            description: 'Deseja replicar a Categoria e Unidade para todas as variantes?',
+            duration: 10000,
+            action: {
+              label: 'Atualizar Variantes',
+              onClick: () => {
+                updateMutation.mutate({ 
+                  id: produto.id, 
+                  data: { cat: values.cat?.trim() || null, un: values.un?.trim() || 'un' } 
+                });
+              }
+            }
+          });
         }
 
         toast.success(payload.length > 1 ? `Produto e ${payload.length - 1} variantes salvos!` : 'Alterações salvas com sucesso');

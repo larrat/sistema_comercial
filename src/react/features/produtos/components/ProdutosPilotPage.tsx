@@ -21,7 +21,8 @@ import {
   Button,
   PillGroup,
   Shimmer,
-  SkeletonList
+  SkeletonList,
+  ConfirmModal
 } from '../../../shared/ui';
 import { Wrench, Loader2, Zap, RefreshCw } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
@@ -89,6 +90,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [sanitizing, setSanitizing] = useState(false);
   const [sanitizingProgress, setSanitizingProgress] = useState(0);
+  const [showSanitizeConfirm, setShowSanitizeConfirm] = useState(false);
 
   const session = useAuthStore((s) => s.session);
   const isMobile = useIsMobile();
@@ -191,10 +193,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     useInterModuleStore.getState().navegarParaMovProduto(id);
   }
 
-  async function handleSanitize() {
-    if (!session?.access_token || !filialId) return;
-    if (!window.confirm('Deseja rodar o saneamento em todos os produtos? Isso removerá resquícios de texto e corrigirá campos vazios para padrão do banco.')) return;
-
+  async function executeSanitize() {
     setSanitizing(true);
     setSanitizingProgress(0);
     const { url, key } = getSupabaseConfig();
@@ -302,7 +301,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
               <Button
                 variant="secondary"
                 leftIcon={<Wrench className="w-4 h-4 text-amber-400" />}
-                onClick={handleSanitize}
+                onClick={() => setShowSanitizeConfirm(true)}
                 title="Corrigir resquícios e erros de cadastro"
                 className="!rounded-xl"
               >
@@ -436,6 +435,17 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
         }}
         onConfirm={() => {
           if (deleteTarget) handleRemover(deleteTarget.id);
+        }}
+      />
+
+      <ConfirmModal
+        open={showSanitizeConfirm}
+        title="Sanear Produtos"
+        description="Deseja rodar o saneamento em todos os produtos? Isso removerá resquícios de texto e corrigirá campos vazios para padrão do banco."
+        onCancel={() => setShowSanitizeConfirm(false)}
+        onConfirm={() => {
+          setShowSanitizeConfirm(false);
+          void executeSanitize();
         }}
       />
     </motion.div>
