@@ -31,8 +31,8 @@ import { listTransacoes, listCategorias, addTransacao, getSaldo } from '../servi
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmt = (v: number) => BRL.format(v || 0);
+
+const fmt = (v: number) => fmtBRL(v || 0);
 
 export function CaixaPilotPage() {
   const { token } = useApiContext();

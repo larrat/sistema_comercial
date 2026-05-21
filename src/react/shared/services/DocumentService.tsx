@@ -165,7 +165,7 @@ export const SalesReceipt = ({ pedido, filialNome }: ReceiptProps) => (
         <View style={styles.totalBox}>
           <Text style={styles.totalLabel}>Valor Total Final</Text>
           <Text style={styles.totalValue}>
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pedido.total)}
+            {fmtBRL(pedido.total)}
           </Text>
           <Text style={[styles.label, { marginTop: 8 }]}>PAGAMENTO: {pedido.pgto || pedido.forma_pagamento || 'N/A'}</Text>
         </View>

@@ -45,8 +45,8 @@ import { HealthCheckCard } from './HealthCheckCard';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import DashboardWorker from '../workers/dashboard.worker?worker';
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmt = (v: number) => BRL.format(v || 0);
+
+const fmt = (v: number) => fmtBRL(v || 0);
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   orcamento: { label: 'Orçamento', color: '#94A3B8' },

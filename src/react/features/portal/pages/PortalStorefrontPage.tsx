@@ -475,7 +475,7 @@ export function PortalStorefrontPage() {
                   
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-base font-black text-white">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.pvv || 0)}
+                      {fmtBRL(p.pvv || 0)}
                     </span>
                     <button 
                       onClick={(e) => {
@@ -544,7 +544,7 @@ export function PortalStorefrontPage() {
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">Preço de Tabela</span>
                     <span className="text-2xl font-black text-teal-500">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedProduct.pvv || 0)}
+                      {fmtBRL(selectedProduct.pvv || 0)}
                     </span>
                   </div>
 
@@ -904,7 +904,7 @@ export function PortalStorefrontPage() {
                         <h4 className="text-xs font-bold text-white truncate">{item.nome}</h4>
                         {item.sku && <span className="text-[10px] text-slate-500 block">SKU: {item.sku}</span>}
                         <span className="text-sm font-black text-teal-500 block mt-1">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}
+                          {fmtBRL(item.preco)}
                         </span>
                       </div>
                       
@@ -940,7 +940,7 @@ export function PortalStorefrontPage() {
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-slate-400 font-bold">Total do Pedido:</span>
                     <span className="text-2xl font-black text-white">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cartTotal)}
+                      {fmtBRL(cartTotal)}
                     </span>
                   </div>
 

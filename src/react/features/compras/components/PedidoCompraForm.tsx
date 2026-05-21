@@ -202,7 +202,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                                   {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
                                 </div>
                                 <div className="text-xs font-bold text-white truncate">{p.nome}</div>
-                                <div className="text-[10px] text-slate-500 mt-0.5 font-bold tracking-tight">Custo: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.custo || 0)}</div>
+                                <div className="text-[10px] text-slate-500 mt-0.5 font-bold tracking-tight">Custo: {fmtBRL(p.custo || 0)}</div>
                               </div>
                             </button>
                           ))
@@ -240,7 +240,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                   <div className="w-32 space-y-1.5 self-start pt-1">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
                     <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-teal-400">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item || 0)}
+                      {fmtBRL(item.total_item || 0)}
                     </div>
                   </div>
                   <div className="pb-1.5">
@@ -263,7 +263,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
           <div>
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total do Pedido</span>
             <span className="text-2xl font-black text-white">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
+              {fmtBRL(total)}
             </span>
           </div>
           <div className="flex items-center gap-3">

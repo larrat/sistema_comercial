@@ -16,7 +16,7 @@ type ChartTooltipProps = {
 };
 
 function defaultValueFormatter(value: ChartTooltipValue): string {
-  if (typeof value === 'number') return new Intl.NumberFormat('pt-BR').format(value);
+  if (typeof value === 'number') return fmtBRL(value);
   if (typeof value === 'string') return value;
   return '—';
 }

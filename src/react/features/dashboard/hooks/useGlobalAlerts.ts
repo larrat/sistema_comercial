@@ -13,8 +13,8 @@ export type DashboardAlert = {
   isPredictive?: boolean;
 };
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmt = (v: number) => BRL.format(v || 0);
+
+const fmt = (v: number) => fmtBRL(v || 0);
 
 export function useGlobalAlerts() {
   const { pedidos, produtos, clientes, contasReceber, filial } = useDashboardStore();

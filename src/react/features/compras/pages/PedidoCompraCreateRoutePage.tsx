@@ -267,7 +267,7 @@ export function PedidoCompraCreateRoutePage() {
                                   {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
                                 </div>
                                 <div className="text-sm font-bold text-white truncate">{p.nome}</div>
-                                <div className="text-[10px] text-slate-500 mt-1 font-bold tracking-tight">Custo Atual: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.custo || 0)}</div>
+                                <div className="text-[10px] text-slate-500 mt-1 font-bold tracking-tight">Custo Atual: {fmtBRL(p.custo || 0)}</div>
                               </div>
                             </button>
                           ))
@@ -308,7 +308,7 @@ export function PedidoCompraCreateRoutePage() {
                     <div className="flex-1 md:w-36 space-y-2">
                       <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
                       <div className="w-full bg-white/5 border border-transparent rounded-xl px-4 py-3 text-sm font-black text-teal-400">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item || 0)}
+                        {fmtBRL(item.total_item || 0)}
                       </div>
                     </div>
                     <div className="pb-1">
@@ -348,7 +348,7 @@ export function PedidoCompraCreateRoutePage() {
           <div>
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total do Pedido</span>
             <span className="text-3xl font-black text-white tracking-tight">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}
+              {fmtBRL(total)}
             </span>
           </div>
           <div className="flex w-full sm:w-auto items-center gap-4">

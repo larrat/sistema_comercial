@@ -28,8 +28,8 @@ import { listPedidosCompra, finalizarPedidoCompra } from '../services/comprasApi
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const fmt = (v: number) => BRL.format(v || 0);
+
+const fmt = (v: number) => fmtBRL(v || 0);
 
 export function ComprasPilotPage() {
   const { token } = useApiContext();

@@ -2,7 +2,7 @@ import { Typography } from '../../../shared/ui/Typography';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
 function fmt(v: number): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  return fmtBRL(v);
 }
 
 export function PerformanceTab() {

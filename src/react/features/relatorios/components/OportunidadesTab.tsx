@@ -22,7 +22,7 @@ function pct(v: number): string {
 }
 
 function fmt(v: number): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  return fmtBRL(v);
 }
 
 function fmtDataHora(v: string | null | undefined): string {

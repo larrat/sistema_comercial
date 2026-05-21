@@ -11,7 +11,7 @@ function fmtDataHora(v: string | null | undefined): string {
 }
 
 function fmt(v: number | null | undefined): string {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v ?? 0));
+  return fmtBRL(Number(v ?? 0));
 }
 
 export function ValidacaoModal() {
