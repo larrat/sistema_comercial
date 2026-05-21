@@ -483,8 +483,10 @@ export async function savePedido(
   input: PedidoSaveInput
 ): Promise<Pedido> {
   let num = input.num;
-  if (num === undefined || num === null) {
+  if (num === undefined || num === null || num === '' || Number.isNaN(Number(num)) || Number(num) <= 0) {
     num = await getNextPedidoNumber(context);
+  } else {
+    num = Number(num);
   }
 
   // Agregado legado mantido ate o dual-write do PDV na Fase 5.

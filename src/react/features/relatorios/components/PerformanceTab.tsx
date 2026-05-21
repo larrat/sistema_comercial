@@ -1,7 +1,3 @@
-import { 
-  Card as TremorCard, 
-  BarList,
-} from '@tremor/react';
 import { Typography } from '../../../shared/ui/Typography';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 
@@ -22,7 +18,10 @@ export function PerformanceTab() {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {})
-  ).map(([name, value]) => ({ name, value }));
+  ).map(([name, value]) => ({ name, value }))
+   .sort((a, b) => b.value - a.value);
+
+  const maxStatusValue = Math.max(1, ...statusData.map(d => d.value));
 
   const clientesData = Object.entries(
     pedidos.reduce<Record<string, { total: number }>>((acc, p) => {
@@ -35,6 +34,8 @@ export function PerformanceTab() {
     .sort(([, a], [, b]) => b.total - a.total)
     .slice(0, 8)
     .map(([name, data]) => ({ name, value: data.total }));
+    
+  const maxClienteValue = Math.max(1, ...clientesData.map(d => d.value));
 
   return (
     <div className="space-y-8">
@@ -70,13 +71,45 @@ export function PerformanceTab() {
         {/* Distribuição por Status */}
         <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-8 border border-white/5">
           <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-8">Distribuição por Status</Typography>
-          <BarList data={statusData} color="emerald" className="mt-2" />
+          <div className="flex flex-col gap-3 mt-4">
+            {statusData.map((item, idx) => (
+              <div key={idx} className="flex flex-col gap-1">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-200 truncate">{item.name}</span>
+                  <span className="text-emerald-400 font-bold">{item.value}</span>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full" 
+                    style={{ width: `${Math.min(100, (item.value / maxStatusValue) * 100)}%` }} 
+                  />
+                </div>
+              </div>
+            ))}
+            {statusData.length === 0 && <span className="text-slate-500 italic">Sem dados.</span>}
+          </div>
         </div>
 
         {/* Top Clientes */}
         <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-8 border border-white/5">
           <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-8">Top 8 Clientes (Faturamento)</Typography>
-          <BarList data={clientesData} valueFormatter={fmt} color="teal" className="mt-2" />
+          <div className="flex flex-col gap-3 mt-4">
+            {clientesData.map((item, idx) => (
+              <div key={idx} className="flex flex-col gap-1">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-200 truncate pr-4">{item.name}</span>
+                  <span className="text-teal-400 font-bold">{fmt(item.value)}</span>
+                </div>
+                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-teal-500 rounded-full" 
+                    style={{ width: `${Math.min(100, (item.value / maxClienteValue) * 100)}%` }} 
+                  />
+                </div>
+              </div>
+            ))}
+            {clientesData.length === 0 && <span className="text-slate-500 italic">Sem dados.</span>}
+          </div>
         </div>
       </div>
     </div>

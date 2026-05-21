@@ -20,24 +20,27 @@ function hoje(): string {
 }
 
 export function getValorRecebido(cr: ContaReceber): number {
-  if (Number.isFinite(Number(cr.valor_recebido))) return roundMoney(Number(cr.valor_recebido));
-  return cr.status === 'recebido' ? roundMoney(Number(cr.valor || 0)) : 0;
+  if (cr.status === 'recebido' || cr.status === 'pago') return roundMoney(Number(cr.valor || 0));
+  if (cr.valor_recebido != null && Number.isFinite(Number(cr.valor_recebido))) return roundMoney(Number(cr.valor_recebido));
+  return 0;
 }
 
 export function getValorEmAberto(cr: ContaReceber): number {
-  if (Number.isFinite(Number(cr.valor_em_aberto))) return roundMoney(Number(cr.valor_em_aberto));
+  if (cr.status === 'recebido' || cr.status === 'pago') return 0;
+  if (cr.valor_em_aberto != null && Number.isFinite(Number(cr.valor_em_aberto))) return roundMoney(Number(cr.valor_em_aberto));
   return roundMoney(Math.max(0, Number(cr.valor || 0) - getValorRecebido(cr)));
 }
 
 export function getStatusLabel(cr: ContaReceber): string {
+  if (cr.status === 'recebido' || cr.status === 'pago') return 'Recebido';
   const aberto = getValorEmAberto(cr);
-  if (aberto <= 0 || cr.status === 'recebido') return 'Recebido';
+  if (aberto <= 0) return 'Recebido';
   if (getValorRecebido(cr) > 0 || cr.status === 'parcial') return 'Parcial';
   return 'Pendente';
 }
 
 export function getStatusEfetivo(cr: ContaReceber): 'pendente_ok' | 'vencido' | 'recebido' {
-  if (getValorEmAberto(cr) <= 0 || cr.status === 'recebido') return 'recebido';
+  if (cr.status === 'recebido' || cr.status === 'pago' || getValorEmAberto(cr) <= 0) return 'recebido';
   if (cr.vencimento < hoje()) return 'vencido';
   return 'pendente_ok';
 }

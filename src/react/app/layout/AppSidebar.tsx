@@ -155,15 +155,15 @@ export function AppSidebar() {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 72 : 280 }}
+      animate={{ width: collapsed ? 80 : 280 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="flex flex-col bg-surface-sidebar border-r border-white/5 text-slate-300 z-40 relative shadow-2xl h-screen sticky top-0 overflow-hidden"
+      className="flex flex-col bg-surface-card/40 backdrop-blur-3xl border-r border-white/[0.04] text-slate-300 z-40 relative shadow-[10px_0_40px_-10px_rgba(0,0,0,0.5)] h-screen overflow-hidden"
       aria-label="Navegação principal"
     >
       {/* Header / Logo */}
       <div className={`flex-shrink-0 flex items-center h-[88px] ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>
         <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center' : ''}`}>
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600 text-white shadow-lg border border-white/10 shrink-0">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 text-white shadow-[0_0_20px_rgba(20,184,166,0.3)] border border-white/10 shrink-0">
             <Store size={22} strokeWidth={2.5} />
           </div>
           <AnimatePresence mode="wait">
@@ -194,13 +194,13 @@ export function AppSidebar() {
       {!collapsed && (
         <div className="px-4 mb-6 mt-2">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-teal-400 transition-colors" size={14} />
             <input 
               type="text"
-              placeholder="Buscar..."
+              placeholder="Buscar menu..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/5 border border-white/5 rounded-lg py-2 pl-12 pr-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 transition-all"
+              className="w-full bg-black/20 border border-white/5 rounded-xl py-2.5 pl-11 pr-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 transition-all shadow-inner"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ export function AppSidebar() {
         <div className="flex justify-center pb-4 pt-2">
           <button
             type="button"
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-all"
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.02] text-slate-400 hover:text-white transition-all shadow-sm"
             onClick={toggleSidebar}
           >
             <ChevronRight size={18} />
@@ -255,26 +255,26 @@ export function AppSidebar() {
       </nav>
 
       {/* Footer / User Profile */}
-      <div className={`flex-shrink-0 mt-auto border-t border-slate-800/50 bg-slate-900/50 ${collapsed ? 'p-3' : 'p-4'}`}>
+      <div className={`flex-shrink-0 mt-auto border-t border-white/[0.04] bg-black/20 backdrop-blur-xl ${collapsed ? 'p-3' : 'p-4'}`}>
         <div className={`flex flex-col gap-4 ${collapsed ? 'items-center' : ''}`}>
           {!collapsed && (
             <div className="flex items-center gap-3 px-1">
-              <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center border border-slate-700 shrink-0">
-                <span className="text-sm font-bold text-white">{userInitial}</span>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 flex items-center justify-center border border-white/10 shrink-0 shadow-inner">
+                <span className="text-sm font-bold text-white drop-shadow-md">{userInitial}</span>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-sm font-bold text-white truncate capitalize leading-none">{userName}</span>
-                <span className="text-[10px] font-medium text-slate-500 truncate mt-1.5">{(user?.email as string) || ''}</span>
+                <span className="text-sm font-bold text-white truncate capitalize leading-none tracking-tight">{userName}</span>
+                <span className="text-[10px] font-medium text-slate-400 truncate mt-1.5">{(user?.email as string) || ''}</span>
               </div>
             </div>
           )}
           
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-2 rounded-lg text-xs font-bold text-slate-500 hover:text-rose-400 hover:bg-rose-400/10 transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2 justify-center'}`}
+            className={`flex items-center gap-2 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2.5 justify-center'}`}
             title={collapsed ? "Encerrar Sessão" : undefined}
           >
-            <LogOut size={collapsed ? 20 : 16} strokeWidth={2.5} className="shrink-0" />
+            <LogOut size={collapsed ? 18 : 16} strokeWidth={2.5} className="shrink-0" />
             {!collapsed && <span>Encerrar Sessão</span>}
           </button>
         </div>

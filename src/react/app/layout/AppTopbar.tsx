@@ -57,9 +57,9 @@ export function AppTopbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 w-full flex h-16 items-center justify-between px-8 bg-surface-card/60 backdrop-blur-2xl border-b border-white/5 shadow-xl">
+    <header className="sticky top-0 z-30 w-full flex h-20 items-center justify-between px-4 sm:px-8 bg-surface-card/40 backdrop-blur-3xl border-b border-white/[0.04] shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
       <div className="flex-1 max-w-lg relative group">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-teal-500 transition-colors">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-teal-400 transition-colors">
           <Search className="w-4 h-4" />
         </div>
         <input 
@@ -72,7 +72,7 @@ export function AppTopbar() {
           }}
           onFocus={() => setShowResults(true)}
           placeholder="Busca global de produtos... (Alt + K)" 
-          className="block w-full h-10 pl-11 pr-10 border border-white/5 rounded-xl leading-5 bg-black/20 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500/20 focus:border-teal-500/50 sm:text-sm text-white transition-all shadow-inner"
+          className="block w-full h-11 pl-11 pr-10 border border-white/5 rounded-2xl leading-5 bg-black/20 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500/30 focus:border-teal-500/50 sm:text-sm text-white transition-all shadow-inner"
         />
         {query && (
           <button 
@@ -144,10 +144,10 @@ export function AppTopbar() {
         </AnimatePresence>
       </div>
       
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4 sm:gap-6">
         <NotificationCenter />
         
-        <div className="h-8 w-px bg-white/10 mx-2" />
+        <div className="h-8 w-px bg-white/10 mx-1" />
         
         <FilialSwitcher isTopbar={true} />
         

@@ -141,10 +141,31 @@ export async function finalizarPedidoCompra(token: string, pedido: PedidoCompra)
       fornecedor_nome: pedido.fornecedor_nome,
       valor: pedido.total,
       vencimento: new Date().toISOString().split('T')[0], // Vence hoje por padrão
-      status: 'pendente',
+      status: 'pago', // Pago imediatamente, pois debita o caixa
       categoria: 'Mercadoria'
     })
   });
 
-  logAudit(token, 'pedido_compra', pedido.id, 'UPDATE', { status: 'finalizado' });
+  // 4. Debitar do Caixa automaticamente
+  const resCat = await fetch(`${url}/rest/v1/caixa_categorias?nome=eq.Mercadoria&select=id`, {
+    headers: { apikey: key, Authorization: `Bearer ${token}` }
+  });
+  const catData = await resCat.json();
+  const categoria_id = catData?.[0]?.id || null;
+
+  await fetch(`${url}/rest/v1/caixa_transacoes`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filial_id: pedido.filial_id,
+      tipo: 'saida',
+      valor: pedido.total,
+      categoria_id: categoria_id, // Pode ser null se a constraint permitir ou gerar erro se restrito, ideal pegar o ID correto
+      descricao: `Compra #${pedido.id} - ${pedido.fornecedor_nome}`,
+      entidade_id: pedido.id,
+      entidade_tipo: 'fornecedor'
+    })
+  });
+
+  logAudit(token, 'pedido_compra', pedido.id, 'UPDATE', { status: 'finalizado', caixa_debitado: true });
 }

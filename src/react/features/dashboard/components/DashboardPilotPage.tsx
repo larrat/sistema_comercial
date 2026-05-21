@@ -14,10 +14,6 @@ import {
 } from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Grid, 
-  Col
-} from '@tremor/react';
 
 // Fallback para garantir que CountUp seja um componente válido em produção (Vercel)
 const CountUp = (ReactCountUp as any).default || ReactCountUp;

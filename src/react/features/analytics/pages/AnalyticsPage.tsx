@@ -1,17 +1,5 @@
 import { useMemo, useState } from 'react';
-import { 
-  Card as TremorCard, 
-  Title, 
-  Text, 
-  Grid, 
-  Metric, 
-  BarList, 
-  Flex, 
-  Badge as TremorBadge,
-  Bold,
-  Col
-} from '@tremor/react';
-import { DataTable } from '../../../shared/ui';
+import { Card, Badge, Typography, DataTable } from '../../../shared/ui';
 
 type AnalyticsEvent = {
   id: string;
@@ -78,38 +66,53 @@ export function AnalyticsPage() {
   return (
     <div className="w-full flex flex-col gap-8">
       {/* KPIs de Performance */}
-      <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
-        <TremorCard decoration="top" decorationColor="indigo" className="!bg-surface-card !border-border-subtle shadow-premium">
-          <Text className="!text-text-muted uppercase tracking-tighter font-bold">Ações registradas</Text>
-          <Metric className="!text-text-primary !font-black">{kpis.total}</Metric>
-        </TremorCard>
-        <TremorCard decoration="top" decorationColor="teal" className="!bg-surface-card !border-border-subtle shadow-premium">
-          <Text className="!text-text-muted uppercase tracking-tighter font-bold">Tempo médio</Text>
-          <Metric className="!text-text-primary !font-black">{kpis.avgDuration}ms</Metric>
-        </TremorCard>
-        <TremorCard decoration="top" decorationColor="amber" className="!bg-surface-card !border-border-subtle shadow-premium">
-          <Text className="!text-text-muted uppercase tracking-tighter font-bold">Ação mais usada</Text>
-          <Metric className="!text-text-primary !text-lg !font-bold mt-2 truncate">{kpis.topEvent}</Metric>
-        </TremorCard>
-        <TremorCard decoration="top" decorationColor={kpis.errors > 0 ? 'rose' : 'emerald'} className="!bg-surface-card !border-border-subtle shadow-premium">
-          <Text className="!text-text-muted uppercase tracking-tighter font-bold">Falhas (Erros)</Text>
-          <Metric className={`!font-black ${kpis.errors > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{kpis.errors}</Metric>
-        </TremorCard>
-      </Grid>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="flex flex-col gap-2">
+          <Typography variant="label" color="muted" className="uppercase tracking-tighter">Ações registradas</Typography>
+          <Typography variant="h2" className="!font-black text-indigo-400">{kpis.total}</Typography>
+        </Card>
+        <Card className="flex flex-col gap-2">
+          <Typography variant="label" color="muted" className="uppercase tracking-tighter">Tempo médio</Typography>
+          <Typography variant="h2" className="!font-black text-teal-400">{kpis.avgDuration}ms</Typography>
+        </Card>
+        <Card className="flex flex-col gap-2">
+          <Typography variant="label" color="muted" className="uppercase tracking-tighter">Ação mais usada</Typography>
+          <Typography variant="h3" className="!font-bold text-amber-400 mt-2 truncate">{kpis.topEvent}</Typography>
+        </Card>
+        <Card className="flex flex-col gap-2">
+          <Typography variant="label" color="muted" className="uppercase tracking-tighter">Falhas (Erros)</Typography>
+          <Typography variant="h2" className={`!font-black ${kpis.errors > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{kpis.errors}</Typography>
+        </Card>
+      </div>
 
-      <Grid numItemsLg={3} className="gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Gráfico de Ações Lentas */}
-        <Col numColSpanLg={1}>
-          <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
-            <Title className="!text-text-primary !font-bold mb-6">Latência por Evento (ms)</Title>
-            <BarList data={slowActionsData} color="indigo" valueFormatter={(v) => `${v}ms`} />
-          </TremorCard>
-        </Col>
+        <div className="lg:col-span-1">
+          <Card className="h-full flex flex-col gap-4">
+            <Typography variant="h4" className="font-bold">Latência por Evento (ms)</Typography>
+            <div className="flex flex-col gap-3 mt-4">
+              {slowActionsData.map((item, idx) => (
+                <div key={idx} className="flex flex-col gap-1">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-300 truncate">{item.name}</span>
+                    <span className="text-slate-400 font-mono">{item.value}ms</span>
+                  </div>
+                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-indigo-500 rounded-full" 
+                      style={{ width: `${Math.min(100, (item.value / 2000) * 100)}%` }} 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
 
         {/* Tabela de Eventos */}
-        <Col numColSpanLg={2}>
-          <TremorCard className="!bg-surface-card !border-border-subtle shadow-premium">
-            <Title className="!text-text-primary !font-bold mb-6">Log de Operações em Tempo Real</Title>
+        <div className="lg:col-span-2">
+          <Card className="h-full">
+            <Typography variant="h4" className="font-bold mb-6">Log de Operações em Tempo Real</Typography>
             <DataTable
               data={paginatedEvents}
               rowKey={(row) => row.id}
@@ -122,24 +125,24 @@ export function AnalyticsPage() {
                 setPage(1);
               }}
               columns={[
-                { key: 'evento', label: 'Evento', render: (row) => <Bold className="!text-text-primary">{row.event}</Bold> },
-                { key: 'area', label: 'Módulo', render: (row) => <TremorBadge color="slate">{row.area}</TremorBadge> },
-                { key: 'duracao', label: 'Duração', render: (row) => <Text color={row.durationMs > 1000 ? 'rose' : 'slate'}>{row.durationMs}ms</Text> },
+                { key: 'evento', label: 'Evento', render: (row) => <strong className="text-slate-200">{row.event}</strong> },
+                { key: 'area', label: 'Módulo', render: (row) => <Badge tone="neutral">{row.area}</Badge> },
+                { key: 'duracao', label: 'Duração', render: (row) => <span className={row.durationMs > 1000 ? 'text-rose-400' : 'text-slate-400'}>{row.durationMs}ms</span> },
                 {
                   key: 'status',
                   label: 'Status',
                   render: (row) => (
-                    <TremorBadge color={row.status === 'error' ? 'rose' : 'emerald'}>
+                    <Badge tone={row.status === 'error' ? 'danger' : 'success'}>
                       {row.status.toUpperCase()}
-                    </TremorBadge>
+                    </Badge>
                   )
                 },
-                { key: 'hora', label: 'Hora', render: (row) => <Text className="!font-mono !text-[10px]">{row.createdAt}</Text> }
+                { key: 'hora', label: 'Hora', render: (row) => <span className="font-mono text-[10px] text-slate-500">{row.createdAt}</span> }
               ]}
             />
-          </TremorCard>
-        </Col>
-      </Grid>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
