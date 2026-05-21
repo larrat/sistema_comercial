@@ -187,44 +187,44 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     });
   }, [pedidos, produtos, clientes, contasReceber, periodo]);
 
+  if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
   if (status === 'loading' || !workerData) return <LoadingState description="Consolidando indicadores comerciais..." />;
   const { stats, chartData, periodoDatas, topProducts, statusDistribution } = workerData;
-  if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
 
   // Mapeamento dos cartões de métricas superiores (KPIs)
   const metricCards = [
     { 
-      label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-[#C5A059]', borderColor: '#C5A059', 
-      trend: stats.trends?.faturamento !== null ? `${stats.trends.faturamento > 0 ? '+' : ''}${stats.trends.faturamento.toFixed(1)}%` : '-', 
+      label: 'Faturamento', val: stats?.faturamento || 0, prefix: 'R$ ', color: 'text-[#C5A059]', borderColor: '#C5A059', 
+      trend: typeof stats?.trends?.faturamento === 'number' ? `${stats.trends.faturamento > 0 ? '+' : ''}${stats.trends.faturamento.toFixed(1)}%` : '-', 
       trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
-      trendUp: stats.trends?.faturamento !== null ? stats.trends.faturamento >= 0 : true,
+      trendUp: typeof stats?.trends?.faturamento === 'number' ? stats.trends.faturamento >= 0 : true,
     },
     { 
-      label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', borderColor: '#10b981', 
-      trend: stats.trends?.lucro !== null ? `${stats.trends.lucro > 0 ? '+' : ''}${stats.trends.lucro.toFixed(1)}%` : '-', 
+      label: 'Lucro bruto', val: stats?.lucroTotal || 0, prefix: 'R$ ', color: 'text-emerald-400', borderColor: '#10b981', 
+      trend: typeof stats?.trends?.lucro === 'number' ? `${stats.trends.lucro > 0 ? '+' : ''}${stats.trends.lucro.toFixed(1)}%` : '-', 
       trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
-      trendUp: stats.trends?.lucro !== null ? stats.trends.lucro >= 0 : true,
+      trendUp: typeof stats?.trends?.lucro === 'number' ? stats.trends.lucro >= 0 : true,
     },
     { 
-      label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-cyan-400', borderColor: '#22d3ee', 
-      trend: stats.trends?.ticket !== null ? `${stats.trends.ticket > 0 ? '+' : ''}${stats.trends.ticket.toFixed(1)}%` : '-', 
+      label: 'Ticket médio', val: stats?.ticketMedio || 0, prefix: 'R$ ', color: 'text-cyan-400', borderColor: '#22d3ee', 
+      trend: typeof stats?.trends?.ticket === 'number' ? `${stats.trends.ticket > 0 ? '+' : ''}${stats.trends.ticket.toFixed(1)}%` : '-', 
       trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
-      trendUp: stats.trends?.ticket !== null ? stats.trends.ticket >= 0 : true,
+      trendUp: typeof stats?.trends?.ticket === 'number' ? stats.trends.ticket >= 0 : true,
     },
     { 
-      label: 'Contas em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', borderColor: '#f59e0b', 
+      label: 'Contas em aberto', val: stats?.valorEmAberto || 0, prefix: 'R$ ', color: (stats?.valorEmAberto || 0) > 0 ? 'text-amber-400' : 'text-emerald-400', borderColor: '#f59e0b', 
       trend: '-', 
       trendLabel: 'Variação N/A', 
-      trendUp: stats.valorEmAberto === 0,
+      trendUp: (stats?.valorEmAberto || 0) === 0,
     },
     { 
-      label: 'Inadimplência', val: workerData.financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (workerData.financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', borderColor: '#f43f5e', 
+      label: 'Inadimplência', val: workerData?.financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (workerData?.financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', borderColor: '#f43f5e', 
       trend: '-', 
       trendLabel: 'Variação N/A', 
-      trendUp: (workerData.financeMetrics?.inadimplencia || 0) <= 5,
+      trendUp: (workerData?.financeMetrics?.inadimplencia || 0) <= 5,
     },
     { 
-      label: 'DSO (Prazo)', val: workerData.financeMetrics?.dso || 0, prefix: '', suffix: ' dias', color: 'text-indigo-400', borderColor: '#818cf8', 
+      label: 'DSO (Prazo)', val: workerData?.financeMetrics?.dso || 0, prefix: '', suffix: ' dias', color: 'text-indigo-400', borderColor: '#818cf8', 
       trend: '-', 
       trendLabel: 'Variação N/A', 
       trendUp: true,
@@ -301,9 +301,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />
               </div>
               <div className="mt-4 mb-2 relative z-10">
-                <span className={cn("text-3xl font-black font-display tracking-tight", stat.color)}>
+                <span className={cn("text-2xl xl:text-3xl font-black font-display tracking-tight truncate whitespace-nowrap block tabular-nums", stat.color)}>
                   <CountUp 
-                    end={stat.val} 
+                    end={stat.val || 0} 
                     decimals={stat.suffix === ' dias' ? 0 : 2} 
                     decimal="," 
                     prefix={stat.prefix} 
@@ -411,7 +411,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         )}
 
         {/* Meta Gauge */}
-        <div className="lg:col-span-1">
+        <div className={visao === 'operacional' ? 'lg:col-span-3' : 'lg:col-span-1'}>
           <Card className="flex flex-col items-center justify-center h-full text-center transition-all duration-300 hover:shadow-2xl border-t-2! border-t-[#C5A059]" variant="glass">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white mb-2">Meta Mensal</Typography>
             <Typography variant="caption" color="muted">Percentual de Atingimento</Typography>
@@ -430,7 +430,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       {/* Gráficos Secundários Analíticos (Grid Simétrico de 3 Colunas) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Funil de Vendas */}
-        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-indigo-400">
+        <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-indigo-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Funil de Vendas</Typography>
             <Typography variant="caption" color="muted">Eficiência por etapa do pedido</Typography>
@@ -441,7 +441,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Mix de Vendas */}
-        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-cyan-400">
+        <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-cyan-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Mix de Vendas</Typography>
             <Typography variant="caption" color="muted">Top Categorias mais vendidas</Typography>
@@ -501,7 +501,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Aging Contas a Receber */}
-        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-emerald-400">
+        <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-emerald-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Aging Receber</Typography>
             <Typography variant="caption" color="muted">Distribuição de contas vencidas por faixas</Typography>
@@ -544,7 +544,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       {/* Terceira Linha: Vitalidade, CRM & Ações */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Métricas Vitais & Saúde do Sistema */}
-        <Card variant="glass" className="flex flex-col gap-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-teal-400">
+        <Card variant="glass" className="flex flex-col h-full gap-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-teal-400">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-2">
                <Activity size={16} className="text-teal-400" />
@@ -580,7 +580,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Vendedores / Ranking RCAs */}
-        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-indigo-400">
+        <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-indigo-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Desempenho Comercial Vendedores</Typography>
             <Typography variant="caption" color="muted">Top 5 faturamento no período</Typography>
@@ -591,7 +591,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* CRM / Alertas de Ação Comercial */}
-        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-rose-400">
+        <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-rose-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex justify-between items-center">
             <div>
               <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Alertas Operacionais & CRM</Typography>
