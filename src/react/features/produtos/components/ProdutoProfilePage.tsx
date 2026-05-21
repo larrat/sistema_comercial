@@ -24,7 +24,7 @@ import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { formValuesToProduto } from '../hooks/useProdutoCalculations';
 import { ErrorState, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
-import { useProdutoMutations, useMovimentacoesQuery } from '../hooks/useProdutosQuery';
+import { useProdutoMutations, useMovimentacoesQuery, useVariantesQuery } from '../hooks/useProdutosQuery';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
 import { ProdutoForm } from './ProdutoForm';
 import { ProdutoVariantesTab } from './ProdutoVariantesTab';
@@ -186,7 +186,12 @@ export function ProdutoProfilePage({
   const formRef = useRef<HTMLDivElement>(null);
 
   const activeTab = normalizeTab(searchParams.get('tab'));
-  const { data: movs = [], isLoading: loadingMovs } = useMovimentacoesQuery([produto.id]);
+  
+  const isPai = !produto.produto_pai_id;
+  const { data: variantes = [] } = useVariantesQuery(isPai ? produto.id : null);
+  const queryIds = isPai ? [produto.id, ...variantes.map(v => v.id)] : [produto.id];
+
+  const { data: movs = [], isLoading: loadingMovs } = useMovimentacoesQuery(queryIds);
 
   const calculatedSaldo = useMemo(() => {
     return { 
