@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -25,11 +25,11 @@ import {
 } from '../../../shared/ui';
 import { CaixaTransacaoForm } from './CaixaTransacaoForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { SalesReceipt } from '../../../shared/services/DocumentService';
 import { listTransacoes, listCategorias, addTransacao, getSaldo } from '../services/caixaApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
+
+const CaixaPdfButton = lazy(() => import('./CaixaPdfButton'));
 
 
 const fmt = (v: number) => fmtBRL(v || 0);
@@ -92,16 +92,9 @@ export function CaixaPilotPage() {
                  Conciliação
                </Button>
              </Link>
-             <PDFDownloadLink 
-               document={<SalesReceipt pedido={{ total: saldo, itens: transacoes.map(t => ({ nome: t.descricao, qty: 1, preco: t.valor })), num: 'CX-RESUMO', data: new Date().toISOString() }} filialNome="Nexus Industrial" />} 
-               fileName={`caixa_${new Date().toISOString().split('T')[0]}.pdf`}
-             >
-               {({ loading }) => (
-                 <Button variant="secondary" leftIcon={<Filter size={16} />} loading={loading}>
-                   Exportar PDF
-                 </Button>
-               )}
-             </PDFDownloadLink>
+             <Suspense fallback={<Button variant="secondary" loading>Exportar PDF</Button>}>
+               <CaixaPdfButton transacoes={transacoes} saldo={saldo} />
+             </Suspense>
              <Button 
                variant="primary" 
                leftIcon={<Plus size={16} />}
