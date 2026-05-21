@@ -75,34 +75,55 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
   };
 
   // --- Chart Data ---
-  const groups: Record<string, { name: string; faturamento: number; lucro: number }> = {};
-  vendasReais.forEach(p => {
+  const groups: Record<string, { name: string; faturamento: number; lucro: number; faturamentoAnt: number; lucroAnt: number; sortKey: number }> = {};
+  
+  const processGroup = (p: any, isAnt: boolean) => {
     const date = new Date(p.data || '');
     let key = '';
     let label = '';
+    let sortKey = 0;
     
     if (periodo === 'semana') {
-      key = date.toISOString().slice(0, 10);
-      label = `${date.getDate()}/${date.getMonth() + 1}`;
+      const day = date.getDay();
+      const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      key = `D${day}`;
+      label = days[day];
+      sortKey = day;
     } else if (periodo === 'mes') {
       const week = Math.ceil(date.getDate() / 7);
       key = `W${week}`;
       label = `Semana ${week}`;
+      sortKey = week;
     } else {
-      key = date.toISOString().slice(0, 7);
+      const month = date.getMonth();
       const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      label = months[date.getMonth()];
+      key = `M${month}`;
+      label = months[month];
+      sortKey = month;
     }
 
-    if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0 };
-    groups[key].faturamento += Number(p.total || 0);
+    if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey };
     
+    const faturamentoVal = Number(p.total || 0);
+    let lucroVal = 0;
     const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || []));
     items.forEach((item: any) => {
-      groups[key].lucro += (Number(item.preco || 0) - Number(item.custo || 0)) * Number(item.qty || 0);
+      lucroVal += (Number(item.preco || 0) - Number(item.custo || 0)) * Number(item.qty || 0);
     });
-  });
-  const chartData = Object.values(groups).sort((a, b) => a.name.localeCompare(b.name));
+
+    if (isAnt) {
+      groups[key].faturamentoAnt += faturamentoVal;
+      groups[key].lucroAnt += lucroVal;
+    } else {
+      groups[key].faturamento += faturamentoVal;
+      groups[key].lucro += lucroVal;
+    }
+  };
+
+  vendasReais.forEach(p => processGroup(p, false));
+  vendasReaisAnteriores.forEach(p => processGroup(p, true));
+
+  const chartData = Object.values(groups).sort((a, b) => a.sortKey - b.sortKey);
 
   // --- Período Datas ---
   const now = new Date();
@@ -201,12 +222,170 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
     entrega: validPedidos.length > 0 ? (entregues / validPedidos.length) * 100 : 0
   };
 
+  // --- RCA Ranking ---
+  const rcaMap: Record<string, { id: string; nome: string; faturamento: number }> = {};
+  vendasReais.forEach(p => {
+    const rcaId = p.rca_id || 'sem_rca';
+    const rcaNome = p.rca_nome || 'Sem Vendedor';
+    if (!rcaMap[rcaId]) {
+      rcaMap[rcaId] = { id: rcaId, nome: rcaNome, faturamento: 0 };
+    }
+    rcaMap[rcaId].faturamento += Number(p.total || 0);
+  });
+  const rcaRanking = Object.values(rcaMap)
+    .sort((a, b) => b.faturamento - a.faturamento)
+    .slice(0, 5);
+
+  // --- Funnel ---
+  const countStatus = (statuses: string[]) => pedidos.filter(p => statuses.includes(p.status)).length;
+  const orcamentos = countStatus(['orcamento']);
+  const ativos = countStatus(['em_andamento', 'em_separacao', 'entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido']);
+  const faturados = countStatus(['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido']);
+  const concluidos = countStatus(['concluido']);
+
+  const funnelData = [
+    { id: 'orcamentos', label: 'Orçamentos', value: orcamentos + ativos, color: '#94a3b8' },
+    { id: 'ativos', label: 'Pedidos Ativos', value: ativos, color: '#3b82f6' },
+    { id: 'faturados', label: 'Faturados', value: faturados, color: '#8b5cf6' },
+    { id: 'concluidos', label: 'Concluídos', value: concluidos, color: '#10b981' },
+  ].filter(f => f.value > 0);
+
+  // --- Financial Metrics & Aging ---
+  const nowMs = Date.now();
+  const DAY_MS = 1000 * 3600 * 24;
+  
+  let aVencer = 0;
+  let atraso30 = 0;
+  let atraso60 = 0;
+  let atraso90 = 0;
+  let atraso90Mais = 0;
+  let valorAtrasado = 0;
+
+  contasReceber.forEach(c => {
+    const val = Number(c.valor_em_aberto || 0);
+    if (val <= 0) return;
+
+    const venc = new Date(c.data_vencimento || '').getTime();
+    const diffDays = Math.floor((nowMs - venc) / DAY_MS);
+
+    if (diffDays <= 0) {
+      aVencer += val;
+    } else {
+      valorAtrasado += val;
+      if (diffDays <= 30) atraso30 += val;
+      else if (diffDays <= 60) atraso60 += val;
+      else if (diffDays <= 90) atraso90 += val;
+      else atraso90Mais += val;
+    }
+  });
+
+  const agingData = [
+    { id: 'a_vencer', label: 'A Vencer', value: aVencer, color: '#10b981' },
+    { id: '1_30', label: '1-30 dias', value: atraso30, color: '#fbbf24' },
+    { id: '31_60', label: '31-60 dias', value: atraso60, color: '#f59e0b' },
+    { id: '61_90', label: '61-90 dias', value: atraso90, color: '#ea580c' },
+    { id: '90_mais', label: '> 90 dias', value: atraso90Mais, color: '#ef4444' }
+  ].filter(a => a.value > 0);
+
+  const daysInPeriod = Math.max(1, Math.floor((end.getTime() - start.getTime()) / DAY_MS));
+  const dso = faturamento > 0 ? (valorEmAberto / faturamento) * daysInPeriod : 0;
+  const inadimplencia = valorEmAberto > 0 ? (valorAtrasado / valorEmAberto) * 100 : 0;
+
+  const financeMetrics = {
+    dso,
+    inadimplencia,
+    valorAtrasado
+  };
+
+  // --- Cash Flow Projection (Next 7 Days) ---
+  const cashFlowMap: Record<string, number> = {};
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(nowMs + i * DAY_MS);
+    const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
+    cashFlowMap[key] = 0;
+  }
+
+  contasReceber.forEach(c => {
+    const val = Number(c.valor_em_aberto || 0);
+    if (val <= 0) return;
+    const venc = new Date(c.data_vencimento || '').getTime();
+    const diffDays = Math.floor((venc - nowMs) / DAY_MS);
+    
+    // Only if within next 7 days
+    if (diffDays >= 0 && diffDays < 7) {
+      const d = new Date(venc);
+      const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
+      if (cashFlowMap[key] !== undefined) {
+        cashFlowMap[key] += val;
+      }
+    }
+  });
+
+  const cashFlowData = Object.entries(cashFlowMap).map(([name, receita]) => ({
+    name,
+    receita
+  }));
+
+  // --- RFM Segmentation (Simplified for period) ---
+  const clientStats: Record<string, { recency: number, frequency: number, monetary: number }> = {};
+  
+  vendasReais.forEach(p => {
+    const cId = p.cliente_id || 'unknown';
+    const total = Number(p.total || 0);
+    const date = new Date(p.data || p.criado_em || '').getTime();
+    
+    if (!clientStats[cId]) {
+      clientStats[cId] = { recency: date, frequency: 0, monetary: 0 };
+    }
+    
+    clientStats[cId].frequency += 1;
+    clientStats[cId].monetary += total;
+    if (date > clientStats[cId].recency) {
+      clientStats[cId].recency = date;
+    }
+  });
+
+  let campeoes = { size: 0, value: 0 };
+  let leais = { size: 0, value: 0 };
+  let risco = { size: 0, value: 0 };
+  let novos = { size: 0, value: 0 };
+
+  Object.values(clientStats).forEach(c => {
+    const diffDays = Math.floor((nowMs - c.recency) / DAY_MS);
+    if (diffDays <= 15 && c.frequency >= 3) {
+      campeoes.size += 1;
+      campeoes.value += c.monetary;
+    } else if (c.frequency >= 2) {
+      leais.size += 1;
+      leais.value += c.monetary;
+    } else if (diffDays > 30) {
+      risco.size += 1;
+      risco.value += c.monetary;
+    } else {
+      novos.size += 1;
+      novos.value += c.monetary;
+    }
+  });
+
+  const rfmData = [
+    { name: 'Campeões', size: campeoes.size, value: campeoes.value, color: '#10b981' }, // emerald
+    { name: 'Leais', size: leais.size, value: leais.value, color: '#3b82f6' }, // blue
+    { name: 'Novos', size: novos.size, value: novos.value, color: '#8b5cf6' }, // violet
+    { name: 'Risco', size: risco.size, value: risco.value, color: '#f43f5e' } // rose
+  ].filter(g => g.size > 0);
+
   self.postMessage({
     stats,
     chartData,
     periodoDatas,
     topProducts,
     statusDistribution,
-    healthMetrics
+    healthMetrics,
+    rcaRanking,
+    funnelData,
+    agingData,
+    financeMetrics,
+    cashFlowData,
+    rfmData
   });
 };

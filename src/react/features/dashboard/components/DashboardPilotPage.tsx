@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
 import {
   AlertCircle,
+  Activity,
   ArrowUpRight,
   CheckCircle2,
   ChevronRight,
@@ -43,6 +44,12 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
 import { LoadingState, ErrorState, EmptyState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
+import { FunnelChart } from './FunnelChart';
+import { RcaRankingChart } from './RcaRankingChart';
+import { MetaGaugeChart } from './MetaGaugeChart';
+import { AgingChart } from './AgingChart';
+import { CashFlowProjection } from './CashFlowProjection';
+import { RfmSegmentation } from './RfmSegmentation';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import DashboardWorker from '../workers/dashboard.worker?worker';
 
@@ -238,13 +245,27 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             trendLabel: 'Variação N/A', 
             trendUp: stats.valorEmAberto === 0, 
             glow: stats.valorEmAberto > 0 ? 'hover:shadow-amber-500/5 hover:border-amber-500/20' : 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' 
+          },
+          { 
+            label: 'Inadimplência', val: workerData.financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (workerData.financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', ring: (workerData.financeMetrics?.inadimplencia || 0) > 5 ? 'ring-rose-500/20' : 'ring-emerald-500/20', 
+            trend: '-', 
+            trendLabel: '', 
+            trendUp: (workerData.financeMetrics?.inadimplencia || 0) <= 5, 
+            glow: 'hover:shadow-rose-500/5 hover:border-rose-500/20' 
+          },
+          { 
+            label: 'DSO (Prazo)', val: workerData.financeMetrics?.dso || 0, prefix: '', suffix: ' d', color: 'text-white', ring: 'ring-indigo-500/20', 
+            trend: '-', 
+            trendLabel: '', 
+            trendUp: true, 
+            glow: 'hover:shadow-indigo-500/5 hover:border-indigo-500/20' 
           }
         ].map((stat, i) => (
           <motion.article 
             key={i}
             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
             className={cn(
-              "rf-bento-item rf-bento-span-3 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]",
+              "rf-bento-item rf-bento-span-2 !bg-surface-card/40 backdrop-blur-xl flex flex-col gap-1 border border-white/5 shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.99]",
               stat.ring,
               stat.glow
             )}
@@ -264,7 +285,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               </span>
             </div>
             <div className={cn("text-3xl font-black font-display", stat.color)}>
-              <CountUp end={stat.val} decimals={2} decimal="," prefix={stat.prefix} duration={2} separator="." />
+              <CountUp end={stat.val} decimals={stat.suffix === ' d' ? 0 : 2} decimal="," prefix={stat.prefix} suffix={stat.suffix} duration={2} separator="." />
             </div>
             <span className="text-[9px] text-slate-500 font-bold mt-1.5 uppercase tracking-wider">{stat.trendLabel}</span>
           </motion.article>
@@ -305,9 +326,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                         <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.3}/>
                         <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
                       </linearGradient>
-                      <linearGradient id="colorLuc" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <linearGradient id="colorFatAnt" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#94a3b8" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
@@ -334,8 +355,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       }
                       return null;
                     }} />
-                    <Area type="monotone" dataKey="faturamento" name="Faturamento" stroke="#fbbf24" strokeWidth={3} fillOpacity={1} fill="url(#colorFat)" />
-                    <Area type="monotone" dataKey="lucro" name="Lucro" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorLuc)" />
+                    <Area type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" fillOpacity={1} fill="url(#colorFatAnt)" />
+                    <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="#fbbf24" strokeWidth={3} fillOpacity={1} fill="url(#colorFat)" />
                   </RechartsAreaChart>
                 </ResponsiveContainer>
                 )}
@@ -343,9 +364,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8 pt-6 border-t border-white/5">
                 {[
-                  { label: 'Melhor Dia', val: Math.max(...chartData.map(d => d.faturamento), 0) },
-                  { label: 'Média Diária', val: chartData.length > 0 ? chartData.reduce((acc, d) => acc + d.faturamento, 0) / chartData.length : 0 },
-                  { label: 'Total Período', val: chartData.reduce((acc, d) => acc + d.faturamento, 0) },
+                  { label: 'Melhor Dia', val: Math.max(...chartData.map((d: any) => d.faturamento), 0) },
+                  { label: 'Média Diária', val: chartData.length > 0 ? chartData.reduce((acc: any, d: any) => acc + d.faturamento, 0) / chartData.length : 0 },
+                  { label: 'Total Período', val: chartData.reduce((acc: any, d: any) => acc + d.faturamento, 0) },
                   { label: 'Margem Bruta', val: stats.margem, suffix: '%' }
                 ].map((m, i) => (
                   <div key={i}>
@@ -360,32 +381,68 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           </div>
         )}
 
-        {/* Mix de Vendas */}
+        {/* Meta Gauge */}
         <div className={cn(
-          "rf-bento-item rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-teal-500/5",
-          visao === 'operacional' ? 'rf-bento-span-12' : 'rf-bento-span-4'
+          "rf-bento-item rf-glass flex flex-col items-center justify-center transition-all duration-300 hover:border-white/10",
+          visao === 'operacional' ? 'rf-bento-span-4' : 'rf-bento-span-4'
         )}>
+          <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight mb-2">Meta Mensal</Typography>
+          <MetaGaugeChart faturamento={stats.faturamento} meta={filial?.meta_mensal || 0} />
+          {(!filial || !filial.meta_mensal) && (
+            <div className="mt-4">
+               <Typography variant="label" color="muted">Nenhuma meta configurada.</Typography>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Gráficos Secundários */}
+      <div className="rf-bento-grid mt-4">
+        {/* Funil de Conversão */}
+        <div className="rf-bento-item rf-bento-span-3 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-indigo-500/5">
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Funil de Vendas</Typography>
+            <Typography variant="caption" color="muted">Eficiência</Typography>
+          </div>
+          <div className="p-6">
+            <FunnelChart data={workerData.funnelData || []} />
+          </div>
+        </div>
+
+        {/* Ranking RCAs */}
+        <div className="rf-bento-item rf-bento-span-3 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-amber-500/5">
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Vendedores</Typography>
+            <Typography variant="caption" color="muted">Top 5 Faturamento</Typography>
+          </div>
+          <div className="p-6">
+             <RcaRankingChart data={workerData.rcaRanking || []} />
+          </div>
+        </div>
+
+        {/* Mix de Vendas */}
+        <div className="rf-bento-item rf-bento-span-3 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-teal-500/5">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Mix de Vendas</Typography>
-            <Typography variant="caption" color="muted">Performance por Categoria</Typography>
+            <Typography variant="caption" color="muted">Top Categorias</Typography>
           </div>
           <div className="p-6 flex flex-col gap-6">
             {topProducts.length === 0 ? (
               <EmptyState 
                 icon={<PieChart size={32} className="text-slate-500" />} 
                 title="Mix vazio" 
-                description="Sem movimentação de produtos no período." 
+                description="Sem movimentação." 
               />
             ) : (
               <>
                 <div 
-                  className="h-48 relative"
+                  className="h-32 relative"
                   role="figure"
-                  aria-label="Gráfico de rosca exibindo a distribuição das vendas por categoria de produto"
+                  aria-label="Gráfico de rosca exibindo a distribuição das vendas"
                 >
                   <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={topProducts} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="receita" stroke="none">
+                  <Pie data={topProducts} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={5} dataKey="receita" stroke="none">
                     {topProducts.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][index]} />
                     ))}
@@ -405,28 +462,61 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                  <Typography variant="label" color="muted" className="!text-[9px]">Total</Typography>
-                 <span className="text-xl font-black text-white font-display">{fmt(topProducts.reduce((acc, p) => acc + p.receita, 0))}</span>
+                 <span className="text-sm font-black text-white font-display">{fmt(topProducts.reduce((acc: any, p: any) => acc + p.receita, 0))}</span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
-              {topProducts.slice(0, 3).map((p, i) => (
-                <div key={i} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-tight">
-                    <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2">
+              {topProducts.slice(0, 3).map((p: any, i: number) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-tight">
+                    <div className="flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 rounded-full" style={{ background: ['#22d3ee', '#fbbf24', '#10b981'][i] }} />
-                      <span className="text-slate-300 truncate max-w-[120px]">{p.nome}</span>
+                      <span className="text-slate-300 truncate max-w-[80px]">{p.nome}</span>
                     </div>
                     <span className="text-white">{p.percent.toFixed(1)}%</span>
-                  </div>
-                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${p.percent}%` }} className="h-full rounded-full" style={{ background: ['#22d3ee', '#fbbf24', '#10b981'][i] }} />
                   </div>
                 </div>
               ))}
             </div>
             </>
             )}
+          </div>
+        </div>
+
+        {/* Aging Contas a Receber */}
+        <div className="rf-bento-item rf-bento-span-3 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-rose-500/5">
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Aging Receber</Typography>
+            <Typography variant="caption" color="muted">Faixas de Atraso</Typography>
+          </div>
+          <div className="p-6">
+             <AgingChart data={workerData.agingData || []} />
+          </div>
+        </div>
+      </div>
+
+      {/* Gráficos Financeiros */}
+      <div className="rf-bento-grid mt-4">
+        {/* Cash Flow Projection */}
+        <div className="rf-bento-item rf-bento-span-7 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5">
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Previsão de Recebimentos</Typography>
+            <Typography variant="caption" color="muted">Próximos 7 dias</Typography>
+          </div>
+          <div className="p-6">
+             <CashFlowProjection data={workerData.cashFlowData || []} />
+          </div>
+        </div>
+
+        {/* RFM Segmentation */}
+        <div className="rf-bento-item rf-bento-span-5 rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-violet-500/5">
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
+            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Segmentação RFM</Typography>
+            <Typography variant="caption" color="muted">Base de Clientes Ativos</Typography>
+          </div>
+          <div className="p-6">
+             <RfmSegmentation data={workerData.rfmData || []} />
           </div>
         </div>
       </div>
@@ -440,10 +530,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <Activity size={16} className="text-teal-400" />
                 <span className="text-[10px] font-black text-white uppercase tracking-widest">Métricas Vitais</span>
              </div>
-             <div className="grid grid-cols-4 gap-2">
+             <div className="grid grid-cols-3 gap-2">
                 {[
                   { label: 'Contato', val: workerData.healthMetrics?.contato || 0, color: 'bg-teal-500' },
-                  { label: 'Estoque', val: workerData.healthMetrics?.estoque || 0, color: 'bg-emerald-500' },
                   { label: 'Mix', val: workerData.healthMetrics?.mix || 0, color: 'bg-indigo-500' },
                   { label: 'Entrega', val: workerData.healthMetrics?.entrega || 0, color: 'bg-amber-500' }
                 ].map((m, i) => (

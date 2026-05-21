@@ -77,13 +77,23 @@ export async function savePedidoCompra(
 export async function finalizarPedidoCompra(token: string, pedido: PedidoCompra) {
   const { url, key } = getSupabaseConfig();
 
-  // 1. Atualizar Status do Pedido
-  const resStatus = await fetch(`${url}/rest/v1/pedidos_compra?id=eq.${pedido.id}`, {
+  // 1. Atualizar Status do Pedido de forma Atômica
+  const resStatus = await fetch(`${url}/rest/v1/pedidos_compra?id=eq.${pedido.id}&status=eq.aberto`, {
     method: 'PATCH',
-    headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    headers: { 
+      apikey: key, 
+      Authorization: `Bearer ${token}`, 
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation' 
+    },
     body: JSON.stringify({ status: 'finalizado', finalizado_em: new Date().toISOString() })
   });
   if (!resStatus.ok) throw new Error('Erro ao finalizar pedido');
+  
+  const updatedData = await resStatus.json();
+  if (!updatedData || updatedData.length === 0) {
+    throw new Error('Este pedido já foi finalizado ou não está aberto.');
+  }
 
   // 2. Atualizar Estoque (Dar Entrada)
   const itens = (pedido as any).pedido_compra_itens || pedido.itens || [];
