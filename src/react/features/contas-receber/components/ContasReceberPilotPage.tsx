@@ -4,8 +4,8 @@ import { useToastStore } from '../../../app/lib/useToastStore';
 import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
 import {
+  ActionMenu,
   DataTable,
-  Modal,
   EmptyState,
   ErrorState,
   FilterBar,

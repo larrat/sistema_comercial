@@ -48,6 +48,7 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   const [formOrigin, setFormOrigin] = useState<string>('unknown');
   const [prefillClienteId, setPrefillClienteId] = useState<string | null>(null);
 
+  function openNewPedido(origin: string, clienteId?: string | null) {
     if (clienteId) {
       navigate(`/app/pedidos/novo?cliente=${clienteId}`);
     } else {

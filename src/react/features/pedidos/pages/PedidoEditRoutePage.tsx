@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { PedidoForm } from '../components/PedidoForm';
-import { usePedidoDetailQuery } from '../hooks/usePedidosQuery';
+import { usePedidoQuery } from '../hooks/usePedidosQuery';
 import { Button, ErrorState, EmptyState, LoadingState } from '../../../shared/ui';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 export function PedidoEditRoutePage() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
   const navigate = useNavigate();
-  const { data: pedido, isLoading, isError, error, refetch } = usePedidoDetailQuery(pedidoId);
+  const { data: pedido, isLoading, error } = usePedidoQuery(pedidoId);
 
   const handleBack = useCallback(() => {
     navigate(-1);
