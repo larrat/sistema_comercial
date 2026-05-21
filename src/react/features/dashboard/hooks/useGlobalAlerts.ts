@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useMemo } from 'react';
 import { useDashboardStore } from '../store/useDashboardStore';
 import type { PedidoItem } from '../../../../types/domain';

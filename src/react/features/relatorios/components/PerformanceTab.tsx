@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { Typography } from '../../../shared/ui/Typography';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 

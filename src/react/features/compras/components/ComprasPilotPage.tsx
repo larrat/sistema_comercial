@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useMemo } from 'react';
 import { 
   ShoppingBag, 

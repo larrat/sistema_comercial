@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useMemo, useDeferredValue } from 'react';
 import { Plus, Trash2, Save, Search, Package, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

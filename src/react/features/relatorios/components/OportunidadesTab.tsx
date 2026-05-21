@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useMemo } from 'react';
 import { Card, Badge, Typography } from '../../../shared/ui';
 import { 

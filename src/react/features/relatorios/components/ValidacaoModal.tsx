@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState } from 'react';
 import { Modal, Button, Input, Select } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';

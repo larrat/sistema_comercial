@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Search, Filter, Star, ChevronRight, X, Plus, Minus, Trash2, CheckCircle2, Sparkles, Upload, ArrowRight, User, Key, Settings } from 'lucide-react';

@@ -1,3 +1,4 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useMemo } from 'react';
 import { X, Search, Check, AlertCircle, Plus, Trash2, Save, Package } from 'lucide-react';
 import { toast } from 'sonner';
