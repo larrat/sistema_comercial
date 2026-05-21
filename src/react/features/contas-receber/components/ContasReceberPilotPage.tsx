@@ -35,7 +35,7 @@ import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { crmService } from '../../clientes/services/crmService';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 import { ContaReceberConfirmModal } from './ContaReceberConfirmModal';
-import { useContasReceberMutations, getStatusEfetivo } from '../hooks/useContasReceberMutations';
+import { useContasReceberMutations, getStatusEfetivo, getValorEmAberto, getValorRecebido, getStatusLabel } from '../hooks/useContasReceberMutations';
 
 
 type ContasReceberPilotPageProps = {
