@@ -494,13 +494,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
-                     <Typography 
-                       variant="label" 
-                       className="!text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block"
+                     <span 
+                       className="text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block"
                        style={{ color: hoveredSegment ? hoveredSegment.color : '#94a3b8' }}
                      >
                        {hoveredSegment ? hoveredSegment.nome : "Total"}
-                     </Typography>
+                     </span>
                      <span className="text-xs lg:text-sm font-black text-white font-display transition-all duration-150">
                        {fmt(hoveredSegment ? hoveredSegment.receita : topProducts.reduce((acc: any, p: any) => acc + p.receita, 0))}
                      </span>
@@ -531,7 +530,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             <div>
               <div className="flex items-center gap-1.5">
                 <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Atraso de Recebíveis (Aging)</Typography>
-                <PremiumTooltip content="Aging categoriza os valores que os clientes te devem com base no tempo de atraso. Útil para monitorar inadimplência antiga.">
+                <PremiumTooltip content="O Aging (Cronologia de Contas a Receber) organiza todos os valores que os clientes devem à sua empresa com base no tempo de atraso das faturas. Ele permite identificar rapidamente quais dívidas estão vencidas há pouco tempo (de 1 a 30 dias) e quais correm alto risco de inadimplência (mais de 90 dias), ajudando nas ações de cobrança e na saúde do fluxo de caixa.">
                   <HelpCircle size={13} className="text-slate-400 cursor-help hover:text-white transition-colors animate-pulse" />
                 </PremiumTooltip>
               </div>

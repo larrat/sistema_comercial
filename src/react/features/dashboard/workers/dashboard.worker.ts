@@ -302,7 +302,7 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
     { id: '31_60', label: '31-60 dias', value: atraso60, color: '#f59e0b' },
     { id: '61_90', label: '61-90 dias', value: atraso90, color: '#ea580c' },
     { id: '90_mais', label: '> 90 dias', value: atraso90Mais, color: '#ef4444' }
-  ].filter(a => a.value > 0);
+  ];
 
   const daysInPeriod = Math.max(1, Math.floor((end.getTime() - start.getTime()) / DAY_MS));
   const dso = faturamento > 0 ? (valorEmAberto / faturamento) * daysInPeriod : 0;
