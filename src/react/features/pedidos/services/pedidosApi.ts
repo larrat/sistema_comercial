@@ -482,9 +482,14 @@ export async function savePedido(
   context: PedidoApiContext,
   input: PedidoSaveInput
 ): Promise<Pedido> {
+  let num = input.num;
+  if (num === undefined || num === null) {
+    num = await getNextPedidoNumber(context);
+  }
+
   // Agregado legado mantido ate o dual-write do PDV na Fase 5.
   // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
-  const payload = { ...input, itens: JSON.stringify(input.itens) };
+  const payload = { ...input, num, itens: JSON.stringify(input.itens) };
   const res = await fetch(`${context.url}/rest/v1/pedidos`, {
     method: 'POST',
     headers: {
