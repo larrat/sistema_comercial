@@ -77,6 +77,23 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
   // --- Chart Data ---
   const groups: Record<string, { name: string; faturamento: number; lucro: number; faturamentoAnt: number; lucroAnt: number; sortKey: number }> = {};
   
+  // Pre-populate groups based on selected period to prevent orphan points (single floating dots)
+  if (periodo === 'semana') {
+    const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    days.forEach((dayLabel, index) => {
+      groups[`D${index}`] = { name: dayLabel, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey: index };
+    });
+  } else if (periodo === 'mes') {
+    for (let w = 1; w <= 5; w++) {
+      groups[`W${w}`] = { name: `Semana ${w}`, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey: w };
+    }
+  } else if (periodo === 'ano') {
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    months.forEach((monthLabel, index) => {
+      groups[`M${index}`] = { name: monthLabel, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey: index };
+    });
+  }
+
   const processGroup = (p: any, isAnt: boolean) => {
     const date = new Date(p.data || '');
     let key = '';
@@ -299,8 +316,14 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
 
   // --- Cash Flow Projection (Next 7 Days) ---
   const cashFlowMap: Record<string, number> = {};
+  
+  // Normalize today to midnight local time to avoid timezone/hour offset bugs
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const todayMidnightMs = todayMidnight.getTime();
+
   for (let i = 0; i < 7; i++) {
-    const d = new Date(nowMs + i * DAY_MS);
+    const d = new Date(todayMidnightMs + i * DAY_MS);
     const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
     cashFlowMap[key] = 0;
   }
@@ -308,13 +331,18 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
   contasReceber.forEach(c => {
     const val = Number(c.valor_em_aberto || 0);
     if (val <= 0) return;
-    const venc = new Date(c.data_vencimento || '').getTime();
-    const diffDays = Math.floor((venc - nowMs) / DAY_MS);
+    
+    // Normalize due date to local midnight to match todayMidnightMs comparison
+    const vencDate = new Date(c.data_vencimento || '');
+    const vencMidnight = new Date(vencDate.getFullYear(), vencDate.getMonth(), vencDate.getDate());
+    vencMidnight.setHours(0, 0, 0, 0);
+    const vencMs = vencMidnight.getTime();
+    
+    const diffDays = Math.round((vencMs - todayMidnightMs) / DAY_MS);
     
     // Only if within next 7 days
     if (diffDays >= 0 && diffDays < 7) {
-      const d = new Date(venc);
-      const key = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}`;
+      const key = `${vencMidnight.getDate().toString().padStart(2, '0')}/${(vencMidnight.getMonth()+1).toString().padStart(2, '0')}`;
       if (cashFlowMap[key] !== undefined) {
         cashFlowMap[key] += val;
       }

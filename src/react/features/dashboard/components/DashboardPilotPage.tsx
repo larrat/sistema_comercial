@@ -143,6 +143,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   } = useDashboardStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hoveredSegment, setHoveredSegment] = useState<{ nome: string; receita: number } | null>(null);
   const { alerts } = useGlobalAlerts();
 
   const handleRefresh = async () => {
@@ -281,7 +282,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       <motion.section 
         initial="hidden" animate="visible"
         variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-6"
       >
         {metricCards.map((stat, i) => (
           <motion.article 
@@ -292,6 +293,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between h-full min-h-[140px] relative border-t-2! group" 
               style={{ borderTopColor: stat.borderColor }}
               variant="glass"
+              padding="sm"
             >
               {/* Efeito glow no hover */}
               <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -301,7 +303,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />
               </div>
               <div className="mt-4 mb-2 relative z-10">
-                <span className={cn("text-2xl xl:text-3xl font-black font-display tracking-tight truncate whitespace-nowrap block tabular-nums", stat.color)}>
+                <span className={cn("text-xl lg:text-2xl 2xl:text-3xl font-black font-display tracking-tight truncate whitespace-nowrap block tabular-nums", stat.color)}>
                   <CountUp 
                     end={stat.val || 0} 
                     decimals={stat.suffix === ' dias' ? 0 : 2} 
@@ -458,27 +460,50 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <div className="h-32 relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={topProducts} cx="50%" cy="50%" innerRadius={42} outerRadius={55} paddingAngle={4} dataKey="receita" stroke="none">
+                      <Pie 
+                        data={topProducts} 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius={42} 
+                        outerRadius={55} 
+                        paddingAngle={4} 
+                        dataKey="receita" 
+                        stroke="none"
+                        onMouseEnter={(_, index) => {
+                          if (typeof index === 'number' && topProducts[index]) {
+                            setHoveredSegment({ 
+                              nome: topProducts[index].nome, 
+                              receita: topProducts[index].receita 
+                            });
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredSegment(null);
+                        }}
+                      >
                         {topProducts.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][index]} />
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][index]}
+                            className="transition-all duration-200 cursor-pointer origin-center hover:opacity-90"
+                          />
                         ))}
                       </Pie>
-                      <Tooltip content={({ active, payload }) => {
-                        if (active && payload?.length) {
-                          return (
-                            <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-3 rounded-2xl shadow-2xl">
-                              <p className="text-[10px] font-black text-white uppercase">{payload[0].name}</p>
-                              <p className="text-xs font-black text-teal-400 mt-1">{fmt(payload[0].value as number)}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }} />
                     </PieChart>
                   </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                     <Typography variant="label" color="muted" className="!text-[9px] uppercase tracking-widest font-black">Total</Typography>
-                     <span className="text-sm font-black text-white font-display">{fmt(topProducts.reduce((acc: any, p: any) => acc + p.receita, 0))}</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
+                     <Typography 
+                       variant="label" 
+                       className={cn(
+                         "!text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block",
+                         hoveredSegment ? "text-cyan-400" : "text-slate-400"
+                       )}
+                     >
+                       {hoveredSegment ? hoveredSegment.nome : "Total"}
+                     </Typography>
+                     <span className="text-xs lg:text-sm font-black text-white font-display transition-all duration-150">
+                       {fmt(hoveredSegment ? hoveredSegment.receita : topProducts.reduce((acc: any, p: any) => acc + p.receita, 0))}
+                     </span>
                   </div>
                 </div>
 
