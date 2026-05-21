@@ -57,7 +57,7 @@ export function calculateEstoqueSaldos(
 
   produtos.forEach((produto) => {
     map[produto.id] = {
-      saldo: toNumber(produto.esal),
+      saldo: 0, // Inicia do zero para poder calcular o Custo Médio corretamente repassando o histórico
       cm: toNumber(produto.ecm) || toNumber(produto.custo)
     };
   });
@@ -103,21 +103,24 @@ export function buildEstoquePositionRows(
 
   return produtos
     .map((produto) => {
-      const saldo = saldos[produto.id] || {
-        saldo: toNumber(produto.esal),
+      const hist = saldos[produto.id] || {
+        saldo: 0,
         cm: toNumber(produto.ecm) || toNumber(produto.custo)
       };
+      
+      const saldoReal = toNumber(produto.esal);
       const minimo = toNumber(produto.emin);
+      
       return {
         id: produto.id,
         nome: produto.nome,
         sku: produto.sku || '',
         unidade: produto.unidade || produto.un || '',
-        saldo: saldo.saldo,
-        custoMedio: saldo.cm,
-        valorEstoque: saldo.saldo * saldo.cm,
+        saldo: saldoReal, // Usa o saldo real da tabela produtos como fonte da verdade
+        custoMedio: hist.cm,
+        valorEstoque: saldoReal * hist.cm,
         minimo,
-        status: getSaldoStatus(saldo.saldo, minimo)
+        status: getSaldoStatus(saldoReal, minimo)
       };
     })
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
