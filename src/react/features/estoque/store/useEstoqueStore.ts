@@ -9,13 +9,16 @@ import type {
   EstoqueMovementType,
   EstoquePositionRow,
   EstoqueStatusFilter,
-  EstoqueView
+  EstoqueView,
+  EstoquePeriodoFilter
 } from '../types';
 
 type EstoqueStoreState = {
   view: EstoqueView;
+  periodo: EstoquePeriodoFilter;
   buscaPosicao: string;
   statusFilter: EstoqueStatusFilter;
+  categoriaFilter: string;
   buscaHistorico: string;
   tipoHistorico: EstoqueMovementType;
   metrics: EstoqueMetrics;
@@ -31,8 +34,10 @@ type EstoqueStoreState = {
 
 type EstoqueStoreActions = {
   setView: (view: EstoqueView) => void;
+  setPeriodo: (periodo: EstoquePeriodoFilter) => void;
   setBuscaPosicao: (value: string) => void;
   setStatusFilter: (value: EstoqueStatusFilter) => void;
+  setCategoriaFilter: (value: string) => void;
   setBuscaHistorico: (value: string) => void;
   setTipoHistorico: (value: EstoqueMovementType) => void;
   setData: (payload: {
@@ -51,8 +56,11 @@ type EstoqueStoreActions = {
 const EMPTY_METRICS: EstoqueMetrics = {
   produtos: 0,
   valorEmEstoque: 0,
+  valorEmEstoqueTendency: null,
   emAlerta: 0,
-  zerados: 0
+  zerados: 0,
+  giroMedio: 0,
+  giroMedioTendency: null
 };
 
 function createMovementDraft(
@@ -73,8 +81,10 @@ function createMovementDraft(
 
 export const useEstoqueStore = create<EstoqueStoreState & EstoqueStoreActions>((set) => ({
   view: 'posicao',
+  periodo: 'mes',
   buscaPosicao: '',
   statusFilter: '',
+  categoriaFilter: '',
   buscaHistorico: '',
   tipoHistorico: '',
   metrics: EMPTY_METRICS,
@@ -88,8 +98,10 @@ export const useEstoqueStore = create<EstoqueStoreState & EstoqueStoreActions>((
   error: null,
 
   setView: (view) => set({ view }),
+  setPeriodo: (periodo) => set({ periodo }),
   setBuscaPosicao: (buscaPosicao) => set({ buscaPosicao }),
   setStatusFilter: (statusFilter) => set({ statusFilter }),
+  setCategoriaFilter: (categoriaFilter) => set({ categoriaFilter }),
   setBuscaHistorico: (buscaHistorico) => set({ buscaHistorico }),
   setTipoHistorico: (tipoHistorico) => set({ tipoHistorico }),
   setData: ({ snapshot = null, metrics, positionRows, historyRows }) =>

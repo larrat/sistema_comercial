@@ -120,18 +120,41 @@ export function buildEstoquePositionRows(
         custoMedio: hist.cm,
         valorEstoque: saldoReal * hist.cm,
         minimo,
-        status: getSaldoStatus(saldoReal, minimo)
+        status: getSaldoStatus(saldoReal, minimo),
+        categoria: produto.cat || produto.categoria || 'Sem categoria'
       };
     })
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
-export function buildEstoqueMetrics(rows: EstoquePositionRow[]): EstoqueMetrics {
+export function buildEstoqueMetrics(
+  rows: EstoquePositionRow[],
+  movimentacoes: MovimentoEstoque[]
+): EstoqueMetrics {
+  const valorEmEstoque = rows.reduce((total, row) => total + row.valorEstoque, 0);
+
+  // Calcula Custo das Mercadorias Vendidas (Saídas)
+  let custoSaidas = 0;
+  movimentacoes.forEach(mov => {
+    if (mov.tipo === 'saida') {
+      const qty = toNumber(mov.qty);
+      const row = rows.find(r => r.id === (mov.prodId || mov.prod_id));
+      const custo = row ? row.custoMedio : 0;
+      custoSaidas += (qty * custo);
+    }
+  });
+
+  // Giro = COGS / Average Inventory (using current inventory as proxy for now)
+  const giroMedio = valorEmEstoque > 0 ? (custoSaidas / valorEmEstoque) : 0;
+
   return {
     produtos: rows.length,
-    valorEmEstoque: rows.reduce((total, row) => total + row.valorEstoque, 0),
+    valorEmEstoque,
+    valorEmEstoqueTendency: 'neutral', // placeholder for now
     emAlerta: rows.filter((row) => row.status === 'baixo').length,
-    zerados: rows.filter((row) => row.status === 'zerado').length
+    zerados: rows.filter((row) => row.status === 'zerado').length,
+    giroMedio,
+    giroMedioTendency: 'up' // placeholder for now
   };
 }
 
@@ -172,9 +195,11 @@ export function buildEstoqueHistoryRows(
 export function filterEstoquePositionRows(
   rows: EstoquePositionRow[],
   query: string,
-  statusFilter: EstoqueStatusFilter
+  statusFilter: EstoqueStatusFilter,
+  categoriaFilter?: string
 ): EstoquePositionRow[] {
   const normalizedQuery = query.trim().toLowerCase();
+  const normalizedCategoria = categoriaFilter?.trim().toLowerCase();
 
   return rows.filter((row) => {
     const matchesQuery =
@@ -191,7 +216,9 @@ export function filterEstoquePositionRows(
       matchesStatus = row.saldo <= 0;
     }
 
-    return matchesQuery && matchesStatus;
+    const matchesCategoria = !normalizedCategoria || (row.categoria || '').toLowerCase() === normalizedCategoria;
+
+    return matchesQuery && matchesStatus && matchesCategoria;
   });
 }
 

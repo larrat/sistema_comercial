@@ -51,6 +51,24 @@ export function useGlobalAlerts() {
       });
     }
 
+    // 2.1. Excesso de estoque preditivo
+    const excessoCount = produtos.filter((p) => {
+      const min = Number(p.emin || 0);
+      const sal = Number(p.esal || 0);
+      return min > 0 && sal > min * 5; // Saldo 5x maior que o mínimo
+    }).length;
+
+    if (excessoCount > 0) {
+      list.push({
+        id: 'estoque-excesso',
+        title: `Excesso de estoque em ${excessoCount} itens`,
+        desc: 'Nexus AI: Capital imobilizado, sugere-se promoção',
+        link: '/app/estoque',
+        tone: 'warning',
+        isPredictive: true
+      });
+    }
+
     // 3. Contas vencidas
     const vencidas = contasReceber.filter(
       (c) => c.vencimento && new Date(c.vencimento) < new Date()

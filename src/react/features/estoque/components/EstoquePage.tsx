@@ -9,8 +9,11 @@ import type { EstoqueHistoryRow } from '../types';
 import { EstoqueDeleteConfirmModal } from './EstoqueDeleteConfirmModal';
 import { EstoqueFilters } from './EstoqueFilters';
 import { EstoqueHistoryTable } from './EstoqueHistoryTable';
+import { EstoqueCoverageTable } from './EstoqueCoverageTable';
+import { EstoqueIdleTable } from './EstoqueIdleTable';
 import { EstoqueMovementModal } from './EstoqueMovementModal';
 import { EstoqueMetrics } from './EstoqueMetrics';
+import { EstoqueCharts } from './EstoqueCharts';
 import { EstoquePageHeader } from './EstoquePageHeader';
 import { EstoquePositionTable } from './EstoquePositionTable';
 
@@ -43,6 +46,11 @@ export function EstoquePage() {
         onReload={requestReload}
       />
       <EstoqueMetrics metrics={metrics} />
+      
+      {status !== 'loading' && positionRows.length > 0 ? (
+        <EstoqueCharts />
+      ) : null}
+
       <EstoqueFilters />
 
       {status === 'error' && error ? (
@@ -55,7 +63,12 @@ export function EstoquePage() {
       ) : null}
 
       <FormSection
-        title={view === 'posicao' ? 'Posição de estoque' : 'Histórico de movimentações'}
+        title={
+          view === 'posicao' ? 'Posição de estoque' :
+          view === 'historico' ? 'Histórico de movimentações' :
+          view === 'cobertura' ? 'Cobertura de estoque' :
+          'Produtos sem movimento'
+        }
       >
         {status === 'loading' ? (
           <LoadingState
@@ -83,6 +96,14 @@ export function EstoquePage() {
             deletingId={deleting ? deletingRow?.id ?? null : null}
             onDelete={setDeletingRow}
           />
+        ) : null}
+
+        {status !== 'loading' && view === 'cobertura' ? (
+          <EstoqueCoverageTable rows={positionRows} />
+        ) : null}
+
+        {status !== 'loading' && view === 'sem_movimento' ? (
+          <EstoqueIdleTable rows={positionRows} />
         ) : null}
       </FormSection>
       <EstoqueMovementModal />

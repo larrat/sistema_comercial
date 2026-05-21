@@ -1,8 +1,11 @@
 import type { MovimentoEstoque, Produto } from '../../../types/domain';
 
-export type EstoqueView = 'posicao' | 'historico';
+export type EstoqueView = 'posicao' | 'historico' | 'cobertura' | 'sem_movimento';
+
+export type EstoquePeriodoFilter = 'semana' | 'mes' | 'ano' | 'tudo';
 
 export type EstoqueStatusFilter = '' | 'ok' | 'baixo' | 'zerado';
+export type EstoqueCategoriaFilter = string;
 
 export type EstoqueMovementType = '' | 'entrada' | 'saida' | 'ajuste' | 'transf';
 export type EstoqueMovementMode = Exclude<EstoqueMovementType, ''>;
@@ -17,6 +20,7 @@ export type EstoquePositionRow = {
   valorEstoque: number;
   minimo: number;
   status: EstoqueStatusFilter;
+  categoria?: string;
 };
 
 export type EstoqueHistoryRow = {
@@ -29,11 +33,16 @@ export type EstoqueHistoryRow = {
   observacao: string;
 };
 
+export type Tendency = 'up' | 'down' | 'neutral' | null;
+
 export type EstoqueMetrics = {
   produtos: number;
   valorEmEstoque: number;
+  valorEmEstoqueTendency: Tendency;
   emAlerta: number;
   zerados: number;
+  giroMedio: number;
+  giroMedioTendency: Tendency;
 };
 
 export type EstoquePositionSnapshot = {

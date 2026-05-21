@@ -56,7 +56,7 @@ export function useEstoqueData() {
 
         const positionRows = buildEstoquePositionRows(produtos, movimentacoes);
         const historyRows = buildEstoqueHistoryRows(produtos, movimentacoes);
-        const metrics = buildEstoqueMetrics(positionRows);
+        const metrics = buildEstoqueMetrics(positionRows, movimentacoes);
 
         setData({
           snapshot: { produtos, movimentacoes },
