@@ -12,6 +12,7 @@ import { useClienteMutations } from '../hooks/useClienteMutations';
 import { useRcas } from '../hooks/useRcas';
 import { useClienteStore, selectSegmentos } from '../store/useClienteStore';
 import { useShallow } from 'zustand/shallow';
+import { toast } from 'sonner';
 
 type ClienteFormValues = {
   nome: string;
@@ -151,9 +152,14 @@ export function ClienteCreateForm() {
             cidade: data.localidade,
             estado: data.uf
           }));
+        } else {
+          toast.error('CEP não encontrado');
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error('Erro ao buscar CEP:', err);
+        toast.error('Falha ao buscar CEP');
+      });
   }
 
   function formatCpfCnpj(v: string) {

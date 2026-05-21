@@ -58,7 +58,7 @@ export const fiscalService = {
         method: 'PATCH',
         headers,
         body: JSON.stringify({ fiscal_status: 'erro' })
-      }).catch(() => {});
+      }).catch((err) => console.error('Erro ao atualizar status fiscal:', err));
 
       return {
         ok: false,

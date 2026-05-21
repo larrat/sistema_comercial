@@ -24,6 +24,9 @@ import { usePedidosQuery, usePedidosSummaryQuery, usePedidoMutations } from '../
 import { PedidoCancelConfirmModal } from './PedidoCancelConfirmModal';
 import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
 import { motion, type Variants } from 'framer-motion';
+import { toast } from 'sonner';
+import { exportToCSV } from '../../../shared/lib/exportUtils';
+import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -146,6 +149,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
   const [entregaTargetId, setEntregaTargetId] = useState<string | null>(null);
   const lastFilterKeyRef = useRef<string>('');
 
+
   const summary = summaryData || {
     total: 0,
     emAbertoCount: 0,
@@ -156,6 +160,40 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
 
   const pedidos = pedidosPage?.rows || [];
   const total = pedidosPage?.total || 0;
+
+  const handleExport = () => {
+    if (!pedidos.length) {
+      toast.warning('Nenhum pedido para exportar nesta página.');
+      return;
+    }
+    exportToCSV(
+      pedidos,
+      [
+        { key: 'id', label: 'ID' },
+        { key: 'data', label: 'Data' },
+        { key: 'cliente_nome', label: 'Cliente' },
+        { key: 'status', label: 'Status' },
+        { key: 'total', label: 'Total' }
+      ],
+      'pedidos'
+    );
+    toast.success('Arquivo exportado com sucesso.');
+  };
+
+  useKeyboardShortcuts([
+    {
+      key: 'e',
+      metaKey: true,
+      preventDefault: true,
+      handler: handleExport
+    },
+    {
+      key: 'n',
+      metaKey: true,
+      preventDefault: true,
+      handler: onNovoPedido
+    }
+  ]);
 
   const tabCounts = useMemo(
     () => ({
@@ -250,16 +288,26 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
 
             <div className="h-8 w-px bg-white/10 mx-1" />
 
-            <Button
-              variant="primary"
-              onClick={onNovoPedido}
-              data-testid="pedido-novo-btn"
-            >
-              Novo pedido
-            </Button>
-          </div>
-        }
-      />
+              <Button
+                variant="secondary"
+                onClick={handleExport}
+                title="Exportar Pedidos (Cmd+E)"
+                className="!rounded-xl"
+              >
+                CSV
+              </Button>
+              <button
+                className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan !py-2 !px-4 !text-xs !rounded-xl"
+                onClick={onNovoPedido}
+                data-testid="novo-pedido"
+                title="Novo Pedido (Cmd+N)"
+              >
+                <span className="hidden sm:inline">Novo pedido</span>
+                <span className="sm:hidden">Novo</span>
+              </button>
+            </div>
+          }
+        />
 
       {/* KPI Grid */}
       <motion.section 

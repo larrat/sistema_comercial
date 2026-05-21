@@ -2,6 +2,10 @@ import { useEffect } from 'react';
 
 type KeyboardShortcut = {
   key: string;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
   handler: (event: KeyboardEvent) => void;
   enabled?: boolean;
   preventDefault?: boolean;
@@ -21,6 +25,11 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
       for (const shortcut of shortcuts) {
         if (shortcut.enabled === false) continue;
         if (event.key.toLowerCase() !== shortcut.key.toLowerCase()) continue;
+        if (shortcut.ctrlKey && !event.ctrlKey) continue;
+        if (shortcut.metaKey && !event.metaKey) continue;
+        if (shortcut.shiftKey && !event.shiftKey) continue;
+        if (shortcut.altKey && !event.altKey) continue;
+
         if (!shortcut.allowInInput && isTypingTarget(event.target)) continue;
 
         if (shortcut.preventDefault) event.preventDefault();

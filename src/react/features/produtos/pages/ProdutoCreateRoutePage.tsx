@@ -79,7 +79,6 @@ export function ProdutoCreateRoutePage() {
         });
       }
 
-      console.log("Saving payload:", payload); 
       saveMutation.mutate(payload);
     } catch (err: any) {
       toast.dismiss();

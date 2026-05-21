@@ -39,7 +39,7 @@ export async function signOut(base: ApiBase, token: string): Promise<void> {
     method: 'POST',
     headers: { apikey: base.key, Authorization: `Bearer ${token}` },
     signal: AbortSignal.timeout(6000)
-  }).catch(() => {});
+  }).catch((err) => console.error('Erro no logout', err));
 }
 
 export async function getMeuPerfil(

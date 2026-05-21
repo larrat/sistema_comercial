@@ -30,6 +30,8 @@ import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { toast } from 'sonner';
 import { motion, type Variants } from 'framer-motion';
+import { exportToCSV } from '../../../shared/lib/exportUtils';
+import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 
 const pageContainer: Variants = {
   hidden: { opacity: 0 },
@@ -111,6 +113,40 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     useInterModuleStore.getState().clearNovoProduto();
     setModal({ tipo: 'form', produto: null });
   }, [abrirNovoProduto]);
+
+  const handleExport = () => {
+    if (!filteredProdutos.length) {
+      toast.warning('Nenhum produto para exportar.');
+      return;
+    }
+    exportToCSV(
+      filteredProdutos,
+      [
+        { key: 'sku', label: 'SKU' },
+        { key: 'nome', label: 'Nome' },
+        { key: 'cat', label: 'Categoria' },
+        { key: 'esal', label: 'Estoque' },
+        { key: 'preco', label: 'Preço Venda' }
+      ],
+      'produtos'
+    );
+    toast.success('Arquivo exportado com sucesso.');
+  };
+
+  useKeyboardShortcuts([
+    {
+      key: 'e',
+      metaKey: true,
+      preventDefault: true,
+      handler: handleExport
+    },
+    {
+      key: 'n',
+      metaKey: true,
+      preventDefault: true,
+      handler: () => navigate('/app/produtos/novo')
+    }
+  ]);
 
   const filteredProdutos = useMemo(() => {
     let list = produtos;
@@ -290,6 +326,15 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
               className="!rounded-xl"
             >
               <span className="hidden xl:inline">Atualizar</span>
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={handleExport}
+              title="Exportar Produtos (Cmd+E)"
+              className="!rounded-xl"
+            >
+              CSV
             </Button>
 
             {sanitizing ? (
