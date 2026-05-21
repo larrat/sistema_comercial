@@ -656,9 +656,18 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .rf-ui-stat-grid,
 .rf-ui-stat-grid--2,
 .rf-ui-stat-grid--3,
+.rf-ui-stat-grid--5,
+.rf-produtos-metrics {
+  display: grid;
+  gap: 16px;
+}
 
 .rf-ui-stat-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rf-ui-stat-grid--5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .rf-ui-stat-grid--3 {
