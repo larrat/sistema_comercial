@@ -16,7 +16,8 @@ import {
   StatCard,
   StatusBadge,
   Button,
-  Input
+  Input,
+  Badge
 } from '../../../shared/ui';
 import {
   AlertCircle,
