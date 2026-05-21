@@ -194,37 +194,37 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   // Mapeamento dos cartões de métricas superiores (KPIs)
   const metricCards = [
     { 
-      label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-white', 
+      label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-[#C5A059]', borderColor: '#C5A059', 
       trend: stats.trends?.faturamento !== null ? `${stats.trends.faturamento > 0 ? '+' : ''}${stats.trends.faturamento.toFixed(1)}%` : '-', 
       trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
       trendUp: stats.trends?.faturamento !== null ? stats.trends.faturamento >= 0 : true,
     },
     { 
-      label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', 
+      label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', borderColor: '#10b981', 
       trend: stats.trends?.lucro !== null ? `${stats.trends.lucro > 0 ? '+' : ''}${stats.trends.lucro.toFixed(1)}%` : '-', 
       trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
       trendUp: stats.trends?.lucro !== null ? stats.trends.lucro >= 0 : true,
     },
     { 
-      label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-white', 
+      label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-cyan-400', borderColor: '#22d3ee', 
       trend: stats.trends?.ticket !== null ? `${stats.trends.ticket > 0 ? '+' : ''}${stats.trends.ticket.toFixed(1)}%` : '-', 
       trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
       trendUp: stats.trends?.ticket !== null ? stats.trends.ticket >= 0 : true,
     },
     { 
-      label: 'Contas em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', 
+      label: 'Contas em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', borderColor: '#f59e0b', 
       trend: '-', 
       trendLabel: 'Variação N/A', 
       trendUp: stats.valorEmAberto === 0,
     },
     { 
-      label: 'Inadimplência', val: workerData.financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (workerData.financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', 
+      label: 'Inadimplência', val: workerData.financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (workerData.financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', borderColor: '#f43f5e', 
       trend: '-', 
       trendLabel: 'Variação N/A', 
       trendUp: (workerData.financeMetrics?.inadimplencia || 0) <= 5,
     },
     { 
-      label: 'DSO (Prazo)', val: workerData.financeMetrics?.dso || 0, prefix: '', suffix: ' dias', color: 'text-white', 
+      label: 'DSO (Prazo)', val: workerData.financeMetrics?.dso || 0, prefix: '', suffix: ' dias', color: 'text-indigo-400', borderColor: '#818cf8', 
       trend: '-', 
       trendLabel: 'Variação N/A', 
       trendUp: true,
@@ -288,13 +288,20 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             key={i}
             variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
           >
-            <Card className="hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between h-full min-h-[140px]" variant="solid">
-              <div className="flex items-start justify-between gap-2">
+            <Card 
+              className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between h-full min-h-[140px] relative border-t-2! group" 
+              style={{ borderTopColor: stat.borderColor }}
+              variant="glass"
+            >
+              {/* Efeito glow no hover */}
+              <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              
+              <div className="flex items-start justify-between gap-2 relative z-10">
                 <Typography variant="label" color="muted" className="text-[10px] font-black uppercase tracking-wider">{stat.label}</Typography>
                 <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />
               </div>
-              <div className="mt-4 mb-2">
-                <span className={cn("text-3xl font-black font-display tracking-tight text-white", stat.color)}>
+              <div className="mt-4 mb-2 relative z-10">
+                <span className={cn("text-3xl font-black font-display tracking-tight", stat.color)}>
                   <CountUp 
                     end={stat.val} 
                     decimals={stat.suffix === ' dias' ? 0 : 2} 
@@ -306,7 +313,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   />
                 </span>
               </div>
-              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block mt-1">{stat.trendLabel}</span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block mt-1 relative z-10">{stat.trendLabel}</span>
             </Card>
           </motion.article>
         ))}
@@ -316,7 +323,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {visao !== 'operacional' && (
           <div className="lg:col-span-2">
-            <Card padding="none" variant="solid" className="h-full flex flex-col justify-between">
+            <Card padding="none" variant="glass" className="h-full flex flex-col justify-between transition-all duration-300 hover:shadow-2xl">
               <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
                 <div className="space-y-0.5">
                   <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Desempenho Comercial</Typography>
@@ -405,7 +412,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         {/* Meta Gauge */}
         <div className="lg:col-span-1">
-          <Card className="flex flex-col items-center justify-center h-full text-center" variant="solid">
+          <Card className="flex flex-col items-center justify-center h-full text-center transition-all duration-300 hover:shadow-2xl border-t-2! border-t-[#C5A059]" variant="glass">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white mb-2">Meta Mensal</Typography>
             <Typography variant="caption" color="muted">Percentual de Atingimento</Typography>
             <div className="w-full flex justify-center py-2">
@@ -423,7 +430,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       {/* Gráficos Secundários Analíticos (Grid Simétrico de 3 Colunas) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Funil de Vendas */}
-        <Card padding="none" variant="solid" className="flex flex-col">
+        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-indigo-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Funil de Vendas</Typography>
             <Typography variant="caption" color="muted">Eficiência por etapa do pedido</Typography>
@@ -434,7 +441,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Mix de Vendas */}
-        <Card padding="none" variant="solid" className="flex flex-col">
+        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-cyan-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Mix de Vendas</Typography>
             <Typography variant="caption" color="muted">Top Categorias mais vendidas</Typography>
@@ -494,7 +501,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Aging Contas a Receber */}
-        <Card padding="none" variant="solid" className="flex flex-col">
+        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-emerald-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Aging Receber</Typography>
             <Typography variant="caption" color="muted">Distribuição de contas vencidas por faixas</Typography>
@@ -509,7 +516,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Previsão de Recebimentos */}
         <div className="lg:col-span-7">
-          <Card padding="none" variant="solid" className="h-full flex flex-col">
+          <Card padding="none" variant="glass" className="h-full flex flex-col transition-all duration-300 hover:shadow-2xl border-t-2! border-t-[#C5A059]">
             <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
               <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Fluxo de Caixa (Previsão)</Typography>
               <Typography variant="caption" color="muted">Valores a receber previstos para os próximos 7 dias</Typography>
@@ -522,7 +529,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         {/* Segmentação RFM */}
         <div className="lg:col-span-5">
-          <Card padding="none" variant="solid" className="h-full flex flex-col">
+          <Card padding="none" variant="glass" className="h-full flex flex-col transition-all duration-300 hover:shadow-2xl border-t-2! border-t-teal-400">
             <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
               <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Segmentação RFM</Typography>
               <Typography variant="caption" color="muted">Classificação analítica dos clientes ativos</Typography>
@@ -537,7 +544,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       {/* Terceira Linha: Vitalidade, CRM & Ações */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Métricas Vitais & Saúde do Sistema */}
-        <Card variant="solid" className="flex flex-col gap-6">
+        <Card variant="glass" className="flex flex-col gap-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-teal-400">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-2">
                <Activity size={16} className="text-teal-400" />
@@ -573,7 +580,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Vendedores / Ranking RCAs */}
-        <Card padding="none" variant="solid" className="flex flex-col">
+        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-indigo-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Desempenho Comercial Vendedores</Typography>
             <Typography variant="caption" color="muted">Top 5 faturamento no período</Typography>
@@ -584,7 +591,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* CRM / Alertas de Ação Comercial */}
-        <Card padding="none" variant="solid" className="flex flex-col">
+        <Card padding="none" variant="glass" className="flex flex-col transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-rose-400">
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex justify-between items-center">
             <div>
               <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Alertas Operacionais & CRM</Typography>
