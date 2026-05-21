@@ -159,7 +159,7 @@ export function PedidoCompraCreateRoutePage() {
                   value={fornecedor}
                   onChange={(e) => setFornecedor(e.target.value)}
                   placeholder="Nome do fornecedor ou razão social"
-                  className={`w-full bg-black/20 border border-white/5 rounded-2xl py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all text-lg ${fornecedor ? 'pl-16 pr-5' : 'px-5'}`}
+                  className={`w-full bg-black/20 border border-white/5 rounded-2xl py-4 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all text-lg ${fornecedor ? 'pl-16 pr-5' : 'px-5'}`}
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export function PedidoCompraCreateRoutePage() {
                 name="forma_pagamento"
                 value={formaPgto}
                 onChange={(e) => setFormaPgto(e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all appearance-none text-lg"
+                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all appearance-none text-lg"
               >
                 <option value="Boleto">Boleto Bancário</option>
                 <option value="PIX">PIX</option>
@@ -337,7 +337,7 @@ export function PedidoCompraCreateRoutePage() {
                 value={obs}
                 onChange={(e) => setObs(e.target.value)}
                 placeholder="Observações do pedido, previsão de entrega, transportadora..."
-                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all text-sm h-24 resize-none"
+                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all text-sm h-24 resize-none"
               />
             </div>
           </div>

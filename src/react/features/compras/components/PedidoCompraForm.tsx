@@ -118,7 +118,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                 value={fornecedor}
                 onChange={(e) => setFornecedor(e.target.value)}
                 placeholder="Nome do fornecedor ou razão social"
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 transition-all"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
               />
             </div>
             <div className="space-y-1.5">
@@ -126,7 +126,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
               <select 
                 value={formaPgto}
                 onChange={(e) => setFormaPgto(e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 transition-all appearance-none"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all appearance-none"
               >
                 <option value="Boleto">Boleto Bancário</option>
                 <option value="PIX">PIX</option>

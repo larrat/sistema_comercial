@@ -4221,3 +4221,11 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .recharts-surface {
   margin-right: 2px !important;
 }
+
+/* --- MODAL SIZES --- */
+.rf-ui-modal--sm { max-width: 24rem !important; }
+.rf-ui-modal--md { max-width: 32rem !important; }
+.rf-ui-modal--lg { max-width: 48rem !important; }
+.rf-ui-modal--xl { max-width: 64rem !important; }
+.rf-ui-modal--full { max-width: 95vw !important; height: 95vh !important; }
+

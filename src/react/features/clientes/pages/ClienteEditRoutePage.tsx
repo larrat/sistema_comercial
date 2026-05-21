@@ -5,6 +5,7 @@ import { ClienteForm } from '../components/ClienteForm';
 import { useClienteProfile } from '../hooks/useClienteProfile';
 import { Button, ErrorState, EmptyState, LoadingState } from '../../../shared/ui';
 import { ChevronLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function ClienteEditRoutePage() {
   const { clienteId } = useParams<{ clienteId: string }>();
@@ -75,6 +76,7 @@ export function ClienteEditRoutePage() {
       <div className="flex items-center gap-4">
         <button
           onClick={handleBack}
+          aria-label="Voltar"
           className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
         >
           <ChevronLeft size={20} />
@@ -89,7 +91,10 @@ export function ClienteEditRoutePage() {
         <ClienteForm
           initialCliente={cliente}
           analyticsOrigin="route_page"
-          onSaved={() => handleBack()}
+          onSaved={() => {
+            toast.success('Cliente atualizado com sucesso!');
+            handleBack();
+          }}
           onCancel={() => handleBack()}
         />
       </div>

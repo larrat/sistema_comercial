@@ -657,7 +657,7 @@ export function PortalStorefrontPage() {
                     placeholder="fal_key_..."
                     value={apiKeyInput}
                     onChange={(e) => setApiKeyInput(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500/50"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50"
                   />
                   <div className="flex gap-2">
                     <button 

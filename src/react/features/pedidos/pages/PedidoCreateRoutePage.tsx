@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { PedidoForm } from '../components/PedidoForm';
 import { ChevronLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function PedidoCreateRoutePage() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export function PedidoCreateRoutePage() {
       <div className="flex items-center gap-4">
         <button
           onClick={handleBack}
+          aria-label="Voltar"
           className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
         >
           <ChevronLeft size={20} />
@@ -33,7 +35,10 @@ export function PedidoCreateRoutePage() {
           prefillClienteId={clienteId}
           initialPedido={null}
           analyticsOrigin="route_page"
-          onSaved={(pedido) => navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`)}
+          onSaved={(pedido) => {
+            toast.success('Pedido criado com sucesso!');
+            navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
+          }}
           onCancel={() => handleBack()}
         />
       </div>
