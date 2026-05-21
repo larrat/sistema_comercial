@@ -1,4 +1,5 @@
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { logAudit } from '../../../shared/services/auditService';
 
 export type CaixaTransacao = {
   id?: number;
@@ -43,6 +44,8 @@ export async function addTransacao(token: string, transacao: CaixaTransacao) {
     body: JSON.stringify(transacao)
   });
   if (!res.ok) throw new Error('Erro ao registrar movimentação de caixa');
+  
+  logAudit(token, 'caixa_transacoes', 'new', 'INSERT', transacao);
 }
 
 export async function getSaldo(token: string, filialId: string) {

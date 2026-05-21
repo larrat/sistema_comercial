@@ -3,6 +3,7 @@ import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useToastStore } from '../../../app/lib/useToastStore';
 import { useFiliaisStore } from '../store/useFiliaisStore';
 import { upsertFilial, deleteFilial } from '../services/filiaisApi';
+import { logAudit } from '../../../shared/services/auditService';
 
 function uid() {
   return crypto.randomUUID();
@@ -45,6 +46,7 @@ export function useFilialMutations() {
         meta_mensal: form.meta_mensal ? parseFloat(form.meta_mensal) : undefined
       };
       const saved = await upsertFilial(getCtx(), filial);
+      logAudit(getCtx().token, 'filiais', saved.id, modalEditId ? 'UPDATE' : 'INSERT', saved);
       upsertLocal(saved);
       closeModal();
       useToastStore
@@ -65,6 +67,7 @@ export function useFilialMutations() {
 
     try {
       await deleteFilial(getCtx(), id);
+      logAudit(getCtx().token, 'filiais', id, 'SOFT_DELETE');
       removeLocal(id);
       useToastStore.getState().addToast('Filial removida.', 'success');
     } catch (e) {

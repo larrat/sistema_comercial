@@ -1,4 +1,5 @@
 import type { Cliente } from '../../../../types/domain';
+import { logAudit } from '../../../shared/services/auditService';
 
 export type ClienteApiContext = {
   url: string;
@@ -289,7 +290,9 @@ export async function saveCliente(
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao salvar cliente`);
   if (Array.isArray(body) && body[0]) {
-    return body[0] as Cliente;
+    const saved = body[0] as Cliente;
+    logAudit(context.token, 'clientes', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
+    return saved;
   }
   return payload as Cliente;
 }

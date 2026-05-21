@@ -1,6 +1,7 @@
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { TAB_STATUSES, normalizePedStatus, type PedidoSummary, type PedidoTab } from '../types';
 import { normalizePedido } from '../utils/normalizePedido';
+import { logAudit } from '../../../shared/services/auditService';
 
 declare global {
   interface Window {
@@ -514,6 +515,8 @@ export async function savePedido(
     }
   }
 
+  logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
+
   return saved;
 }
 
@@ -533,6 +536,8 @@ export async function updatePedidoStatus(
   );
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao atualizar status do pedido`);
+  
+  logAudit(context.token, 'pedidos', pedidoId, 'UPDATE', { status: newStatus });
 }
 
 export async function marcarPedidoEntregue(
@@ -547,6 +552,7 @@ export async function marcarPedidoEntregue(
   });
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao confirmar entrega`);
+  logAudit(context.token, 'pedidos', pedidoId, 'UPDATE', { acao: 'marcar_entregue' });
   return normalizePedido(body as Pedido);
 }
 
