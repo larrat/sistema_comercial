@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Typography } from '../../../shared/ui';
 import { fmtBRL } from '../../../shared/lib/formatters';
 
 type AgingBucket = {
@@ -20,8 +19,9 @@ export function AgingChart({ data }: AgingChartProps) {
   const total = data.reduce((acc, d) => acc + d.value, 0);
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      <div className="flex w-full h-4 rounded-full overflow-hidden bg-white/5 gap-0.5">
+    <div className="flex flex-col gap-5 w-full">
+      {/* Segmented aging bar */}
+      <div className="flex w-full h-3 rounded-full overflow-hidden bg-[#1e293b] gap-[2px]">
         {data.map((bucket, index) => {
           if (bucket.value === 0) return null;
           const percent = (bucket.value / total) * 100;
@@ -30,25 +30,38 @@ export function AgingChart({ data }: AgingChartProps) {
               key={bucket.id}
               initial={{ width: 0 }}
               animate={{ width: `${percent}%` }}
-              transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
-              className="h-full first:rounded-l-full last:rounded-r-full"
+              transition={{ duration: 0.8, delay: index * 0.05, ease: 'easeOut' }}
+              className="h-full first:rounded-l-full last:rounded-r-full hover:brightness-110 transition-all cursor-help"
               style={{ backgroundColor: bucket.color }}
-              title={`${bucket.label}: ${fmtBRL(bucket.value)}`}
+              title={`${bucket.label}: ${fmtBRL(bucket.value)} (${percent.toFixed(1)}%)`}
             />
           );
         })}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-2">
-        {data.map(bucket => (
-          <div key={bucket.id} className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: bucket.color }} />
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{bucket.label}</span>
+      {/* Structured details list */}
+      <div className="grid grid-cols-2 gap-x-6 gap-y-3.5 mt-2">
+        {data.map(bucket => {
+          const percent = total > 0 ? (bucket.value / total) * 100 : 0;
+          return (
+            <div key={bucket.id} className="flex items-center justify-between border-b border-white/[0.02] pb-1.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: bucket.color }} />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                  {bucket.label}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-1 text-right pl-2">
+                <span className="text-xs font-black text-white">{fmtBRL(bucket.value)}</span>
+                {bucket.value > 0 && (
+                  <span className="text-[8px] font-bold text-slate-500">
+                    ({percent.toFixed(0)}%)
+                  </span>
+                )}
+              </div>
             </div>
-            <span className="text-xs font-black text-white ml-3.5">{fmtBRL(bucket.value)}</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ export function MetaGaugeChart({ faturamento, meta }: MetaGaugeChartProps) {
               stroke="none"
             >
               <Cell fill={color} />
-              <Cell fill="rgba(255,255,255,0.05)" />
+              <Cell fill="#1e293b" />
             </Pie>
           </PieChart>
         </ResponsiveContainer>

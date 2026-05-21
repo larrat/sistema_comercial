@@ -43,11 +43,11 @@ export function FunnelChart({ data }: FunnelChartProps) {
               </div>
             </div>
             
-            <div className="h-4 w-full bg-white/5 rounded-full overflow-hidden relative">
+            <div className="h-2.5 w-full bg-[#1e293b] rounded-full overflow-hidden relative">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentOfMax}%` }}
-                transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
+                transition={{ duration: 0.8, delay: index * 0.05, ease: 'easeOut' }}
                 className="h-full rounded-full"
                 style={{ backgroundColor: step.color }}
               />

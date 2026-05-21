@@ -37,37 +37,7 @@ export function useGlobalAlerts() {
       });
     }
 
-    // 2. Ruptura de estoque
-    const comEstoque = produtos.filter((p) => Number(p.esal || 0) > 0).length;
-    const zeroStockCount = produtos.length - comEstoque;
-    if (zeroStockCount > 0) {
-      list.push({
-        id: 'estoque-zero',
-        title: `Ruptura detectada em ${zeroStockCount} itens`,
-        desc: 'Nexus AI: Risco de perda de venda imediata',
-        link: '/app/estoque',
-        tone: 'danger',
-        isPredictive: true
-      });
-    }
-
-    // 2.1. Excesso de estoque preditivo
-    const excessoCount = produtos.filter((p) => {
-      const min = Number(p.emin || 0);
-      const sal = Number(p.esal || 0);
-      return min > 0 && sal > min * 5; // Saldo 5x maior que o mínimo
-    }).length;
-
-    if (excessoCount > 0) {
-      list.push({
-        id: 'estoque-excesso',
-        title: `Excesso de estoque em ${excessoCount} itens`,
-        desc: 'Nexus AI: Capital imobilizado, sugere-se promoção',
-        link: '/app/estoque',
-        tone: 'warning',
-        isPredictive: true
-      });
-    }
+    // 2. Ruptura de estoque e Excesso de estoque removidos do Dashboard Comercial a pedido do usuário
 
     // 3. Contas vencidas
     const vencidas = contasReceber.filter(

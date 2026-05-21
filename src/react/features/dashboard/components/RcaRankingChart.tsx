@@ -32,12 +32,13 @@ export function RcaRankingChart({ data }: RcaRankingChartProps) {
               <span className="text-xs font-black text-white">{fmtBRL(item.faturamento)}</span>
             </div>
             
-            <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden relative">
+            <div className="h-2 w-full bg-[#1e293b] rounded-full overflow-hidden relative">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentOfMax}%` }}
-                transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
-                className="h-full rounded-full bg-indigo-500"
+                transition={{ duration: 0.8, delay: index * 0.05, ease: 'easeOut' }}
+                className="h-full rounded-full"
+                style={{ backgroundColor: '#818cf8' }}
               />
               <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
             </div>

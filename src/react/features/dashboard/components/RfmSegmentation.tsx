@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResponsiveContainer, Treemap, Tooltip as RechartsTooltip } from 'recharts';
+import { motion } from 'framer-motion';
 import { fmtBRL } from '../../../shared/lib/formatters';
 
 type RfmGroup = {
@@ -16,75 +16,41 @@ type RfmSegmentationProps = {
 export function RfmSegmentation({ data }: RfmSegmentationProps) {
   if (!data || data.length === 0) return null;
 
+  const totalClients = data.reduce((acc, d) => acc + d.size, 0);
+
   return (
-    <div className="w-full h-48">
-      <ResponsiveContainer width="100%" height="100%">
-        <Treemap
-          data={data}
-          dataKey="size"
-          aspectRatio={4 / 3}
-          stroke="#0f172a"
-          content={<CustomTreemapContent />}
-        >
-          <RechartsTooltip 
-            content={({ active, payload }) => {
-              if (active && payload?.length) {
-                const item = payload[0].payload as RfmGroup;
-                return (
-                  <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-3 rounded-2xl shadow-2xl">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1" style={{ color: item.color }}>{item.name}</p>
-                    <div className="flex flex-col gap-1 mt-2">
-                      <div className="flex justify-between gap-6">
-                        <span className="text-[10px] text-slate-500 uppercase">Clientes</span>
-                        <span className="text-[11px] font-bold text-white">{item.size}</span>
-                      </div>
-                      <div className="flex justify-between gap-6">
-                        <span className="text-[10px] text-slate-500 uppercase">Receita</span>
-                        <span className="text-[11px] font-bold text-white">{fmtBRL(item.value)}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            }} 
-          />
-        </Treemap>
-      </ResponsiveContainer>
+    <div className="flex flex-col gap-4 w-full">
+      {data.map((item, index) => {
+        const percent = totalClients > 0 ? (item.size / totalClients) * 100 : 0;
+        return (
+          <div key={item.name} className="flex flex-col gap-1.5 group">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-[11px] font-black text-slate-200 uppercase tracking-widest group-hover:text-white transition-colors">
+                  {item.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                  {item.size} {item.size === 1 ? 'cliente' : 'clientes'} ({percent.toFixed(0)}%)
+                </span>
+                <span className="text-xs font-black text-white">{fmtBRL(item.value)}</span>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${percent}%` }}
+                transition={{ duration: 0.8, delay: index * 0.1, ease: 'easeOut' }}
+                className="h-full rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
+              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
+            </div>
+          </div>
+        );
+      })}
     </div>
-  );
-}
-
-function CustomTreemapContent(props: any) {
-  const { depth, x, y, width, height, index, name, color, value } = props;
-
-  return (
-    <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        style={{
-          fill: color || '#1e293b',
-          stroke: '#0f172a',
-          strokeWidth: 2,
-          strokeOpacity: 0.5,
-        }}
-      />
-      {width > 50 && height > 30 && (
-        <text
-          x={x + width / 2}
-          y={y + height / 2}
-          textAnchor="middle"
-          fill="#fff"
-          fontSize={10}
-          fontWeight={800}
-          className="uppercase tracking-widest drop-shadow-md"
-        >
-          {name}
-        </text>
-      )}
-    </g>
   );
 }
