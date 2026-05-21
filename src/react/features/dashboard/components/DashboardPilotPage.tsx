@@ -143,7 +143,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   } = useDashboardStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hoveredSegment, setHoveredSegment] = useState<{ nome: string; receita: number } | null>(null);
+  const [hoveredSegment, setHoveredSegment] = useState<{ nome: string; receita: number; color: string } | null>(null);
   const { alerts } = useGlobalAlerts();
 
   const handleRefresh = async () => {
@@ -471,9 +471,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                         stroke="none"
                         onMouseEnter={(_, index) => {
                           if (typeof index === 'number' && topProducts[index]) {
+                            const colors = ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'];
                             setHoveredSegment({ 
                               nome: topProducts[index].nome, 
-                              receita: topProducts[index].receita 
+                              receita: topProducts[index].receita,
+                              color: colors[index % colors.length]
                             });
                           }
                         }}
@@ -494,10 +496,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
                      <Typography 
                        variant="label" 
-                       className={cn(
-                         "!text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block",
-                         hoveredSegment ? "text-cyan-400" : "text-slate-400"
-                       )}
+                       className="!text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block"
+                       style={{ color: hoveredSegment ? hoveredSegment.color : '#94a3b8' }}
                      >
                        {hoveredSegment ? hoveredSegment.nome : "Total"}
                      </Typography>
@@ -527,9 +527,16 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         {/* Aging Contas a Receber */}
         <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-emerald-400">
-          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
-            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Aging Receber</Typography>
-            <Typography variant="caption" color="muted">Distribuição de contas vencidas por faixas</Typography>
+          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Atraso de Recebíveis (Aging)</Typography>
+                <PremiumTooltip content="Aging categoriza os valores que os clientes te devem com base no tempo de atraso. Útil para monitorar inadimplência antiga.">
+                  <HelpCircle size={13} className="text-slate-400 cursor-help hover:text-white transition-colors animate-pulse" />
+                </PremiumTooltip>
+              </div>
+              <Typography variant="caption" color="muted">Distribuição de contas vencidas por faixas</Typography>
+            </div>
           </div>
           <div className="p-6 flex-1 flex flex-col justify-center">
              <AgingChart data={workerData.agingData || []} />

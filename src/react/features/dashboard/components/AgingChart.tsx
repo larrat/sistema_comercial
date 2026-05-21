@@ -40,21 +40,21 @@ export function AgingChart({ data }: AgingChartProps) {
       </div>
 
       {/* Structured details list */}
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3.5 mt-2">
+      <div className="flex flex-col gap-2.5 mt-2">
         {data.map(bucket => {
           const percent = total > 0 ? (bucket.value / total) * 100 : 0;
           return (
-            <div key={bucket.id} className="flex items-center justify-between border-b border-white/[0.02] pb-1.5">
+            <div key={bucket.id} className="flex items-center justify-between border-b border-white/[0.02] pb-2 last:border-b-0">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: bucket.color }} />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: bucket.color }} />
+                <span className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider">
                   {bucket.label}
                 </span>
               </div>
               <div className="flex items-baseline gap-1 text-right pl-2">
                 <span className="text-xs font-black text-white">{fmtBRL(bucket.value)}</span>
                 {bucket.value > 0 && (
-                  <span className="text-[8px] font-bold text-slate-500">
+                  <span className="text-[9px] font-bold text-slate-500">
                     ({percent.toFixed(0)}%)
                   </span>
                 )}
