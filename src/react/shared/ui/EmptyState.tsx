@@ -23,7 +23,7 @@ export function EmptyState({
       data-testid={testId}
     >
       {icon ? <div className="text-2xl text-slate-400 mb-3">{icon}</div> : null}
-      <p className="text-sm font-semibold text-slate-600 m-0">{title}</p>
+      <p className="text-sm font-semibold text-slate-300 m-0">{title}</p>
       {description ? <p className="text-xs text-slate-400 mt-1.5 max-w-md">{description}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>

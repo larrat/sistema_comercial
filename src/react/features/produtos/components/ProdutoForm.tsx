@@ -263,7 +263,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               className={cn(
                 "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-[1rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300",
                 activeTab === tab.id 
-                  ? "bg-cyan-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]" 
+                  ? "bg-teal-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]" 
                   : "text-slate-500 hover:text-slate-300 hover:bg-white/5"
               )}
             >
@@ -289,13 +289,13 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               <FormSection 
                 title="Essencial" 
                 description="Dados de identificação e classificação do item."
-                aside={<span className="px-2 py-1 bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-cyan-500/20">Obrigatório</span>}
+                aside={<span className="px-2 py-1 bg-teal-500/10 text-teal-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-teal-500/20">Obrigatório</span>}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="flex flex-col gap-4">
                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Imagem de Capa</label>
                      <div className="relative group">
-                        <div className="aspect-square w-full rounded-[2rem] bg-slate-900/50 border-2 border-dashed border-white/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-cyan-500/50">
+                        <div className="aspect-square w-full rounded-[2rem] bg-slate-900/50 border-2 border-dashed border-white/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-teal-500/50">
                            {watchedValues.foto_url ? (
                              <div className="relative w-full h-full">
                                 <img src={watchedValues.foto_url} alt="Preview" className="w-full h-full object-cover" />
@@ -308,7 +308,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                                 </button>
                              </div>
                            ) : (
-                             <div className="flex flex-col items-center gap-3 text-slate-500 group-hover:text-cyan-500 transition-colors">
+                             <div className="flex flex-col items-center gap-3 text-slate-500 group-hover:text-teal-500 transition-colors">
                                 {uploading ? <Loader2 size={32} className="animate-spin" /> : <Image size={32} strokeWidth={1} />}
                                 <span className="text-[10px] font-black uppercase tracking-widest">Upload Foto</span>
                              </div>
@@ -356,7 +356,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                            <div className="flex gap-4">
                              {['masculino', 'feminino'].map(g => (
                                <label key={g} className="flex items-center gap-2 cursor-pointer group">
-                                 <input type="radio" value={g} {...register('genero')} className="w-4 h-4 text-cyan-500 bg-slate-900 border-white/10" />
+                                 <input type="radio" value={g} {...register('genero')} className="w-4 h-4 text-teal-500 bg-slate-900 border-white/10" />
                                  <span className="text-xs font-bold text-slate-400 group-hover:text-white uppercase transition-colors">{g}</span>
                                </label>
                              ))}
@@ -368,7 +368,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                              {['P', 'M', 'G', 'GG', 'XG'].map(size => (
                                <label key={size} className="relative cursor-pointer">
                                  <input type="radio" value={size} {...register('tamanho')} className="peer absolute opacity-0" />
-                                 <div className="px-3 py-1.5 bg-white/5 rounded-lg text-[10px] font-black text-slate-500 border border-transparent peer-checked:bg-cyan-500 peer-checked:text-white peer-checked:shadow-[0_0_10px_rgba(6,182,212,0.3)] transition-all uppercase">{size}</div>
+                                 <div className="px-3 py-1.5 bg-white/5 rounded-lg text-[10px] font-black text-slate-500 border border-transparent peer-checked:bg-teal-500 peer-checked:text-white peer-checked:shadow-[0_0_10px_rgba(6,182,212,0.3)] transition-all uppercase">{size}</div>
                                </label>
                              ))}
                            </div>
@@ -391,10 +391,10 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               className="space-y-10"
             >
               <FormSection title="Precificação" description="Definição de custos e estratégias de venda.">
-                <div className="bg-cyan-500/5 p-8 rounded-[2rem] border border-cyan-500/10 mb-8">
+                <div className="bg-teal-500/5 p-8 rounded-[2rem] border border-teal-500/10 mb-8">
                    <Input label="Custo de Entrada (R$)" required className="!text-xl font-black text-white" type="number" min="0" step="0.01" value={watchedValues.custo} onChange={(e) => handleCusto(e.target.value)} error={errors.custo?.message} />
                    <div className="mt-4 flex items-center gap-2">
-                     <input type="checkbox" {...register('is_sample')} className="w-4 h-4 rounded bg-slate-900 border-white/10 text-cyan-500" />
+                     <input type="checkbox" {...register('is_sample')} className="w-4 h-4 rounded bg-slate-900 border-white/10 text-teal-500" />
                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Produto de Mostruário (Auditável)</span>
                    </div>
                 </div>
@@ -402,11 +402,11 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                 <div className="grid grid-cols-1 gap-12">
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-6 bg-cyan-500 rounded-full" />
+                      <div className="w-1.5 h-6 bg-teal-500 rounded-full" />
                       <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Venda Varejo</h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      <Input label="Preço Sugerido" className="font-black text-cyan-400" type="number" value={watchedValues.precoVarejo} onChange={(e) => handleVariavelVarejo('preco', e.target.value)} />
+                      <Input label="Preço Sugerido" className="font-black text-teal-400" type="number" value={watchedValues.precoVarejo} onChange={(e) => handleVariavelVarejo('preco', e.target.value)} />
                       <Input label="Markup (%)" type="number" value={watchedValues.markupVarejo} onChange={(e) => handleVariavelVarejo('markup', e.target.value)} />
                       <Input label="Margem (%)" type="number" value={watchedValues.margemVarejo} onChange={(e) => handleVariavelVarejo('margem', e.target.value)} />
                     </div>
@@ -446,7 +446,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                           onClick={() => setGradeSelecionada(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size])}
                           className={cn(
                             "w-12 h-12 rounded-xl text-xs font-black transition-all border-2",
-                            gradeSelecionada.includes(size) ? "bg-cyan-500 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]" : "bg-white/5 border-white/5 text-slate-500 hover:border-white/10"
+                            gradeSelecionada.includes(size) ? "bg-teal-500 border-teal-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]" : "bg-white/5 border-white/5 text-slate-500 hover:border-white/10"
                           )}
                         >
                           {size}
@@ -459,15 +459,15 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                       <input
                         type="text" placeholder="Ex: Azul, Branco, Preto"
                         value={coresInput} onChange={e => setCoresInput(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:ring-2 focus:ring-cyan-500/50 transition-all outline-none"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:ring-2 focus:ring-teal-500/50 transition-all outline-none"
                       />
                   </div>
 
                   {(gradeSelecionada.length > 0 || cores.length > 0) && (
-                    <div className="space-y-4 p-6 bg-cyan-500/5 rounded-3xl border border-cyan-500/10">
+                    <div className="space-y-4 p-6 bg-teal-500/5 rounded-3xl border border-teal-500/10">
                       <div className="flex justify-between items-center">
-                        <Typography variant="caption" className="!text-cyan-400 font-bold uppercase tracking-widest">Preview da Matriz</Typography>
-                        <span className="px-2 py-0.5 bg-cyan-500 text-white text-[9px] font-black rounded-full">{Math.max(1, gradeSelecionada.length) * Math.max(1, cores.length)} itens</span>
+                        <Typography variant="caption" className="!text-teal-400 font-bold uppercase tracking-widest">Preview da Matriz</Typography>
+                        <span className="px-2 py-0.5 bg-teal-500 text-white text-[9px] font-black rounded-full">{Math.max(1, gradeSelecionada.length) * Math.max(1, cores.length)} itens</span>
                       </div>
                       <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                           {(cores.length > 0 ? cores : [null]).map(color => (
@@ -476,7 +476,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                               return (
                                 <div key={`${color}-${size}`} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5">
                                   <span className="text-[10px] font-bold text-white uppercase">{watchedValues.nome} {color ? `- ${color}` : ''} {size ? `- ${size}` : ''}</span>
-                                  <span className="text-[9px] font-black text-cyan-500">VARIANTE</span>
+                                  <span className="text-[9px] font-black text-teal-500">VARIANTE</span>
                                 </div>
                               );
                             })

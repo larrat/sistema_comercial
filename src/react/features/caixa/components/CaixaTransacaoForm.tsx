@@ -62,7 +62,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
               step="0.01"
               value={valor}
               onChange={(e) => setValor(Number(e.target.value))}
-              className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-2xl font-black text-white focus:outline-none focus:border-cyan-500/50 transition-all"
+              className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-2xl font-black text-white focus:outline-none focus:border-teal-500/50 transition-all"
             />
           </div>
 
@@ -71,7 +71,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
             <select 
               value={categoriaId}
               onChange={(e) => setCategoriaId(e.target.value)}
-              className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none"
+              className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 transition-all appearance-none"
             >
               <option value="">Selecione...</option>
               {filteredCategories.map(c => (
@@ -86,7 +86,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               placeholder="Ex: Pagamento Internet Abril"
-              className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-all h-24 resize-none"
+              className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 transition-all h-24 resize-none"
             />
           </div>
         </div>

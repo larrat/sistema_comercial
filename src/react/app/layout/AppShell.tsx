@@ -11,7 +11,7 @@ export function AppShell() {
   const { sidebarCollapsed: collapsed } = useUIStore();
   
   return (
-    <div className={`flex min-h-screen w-full bg-surface-page text-primary font-sans selection:bg-cyan-500/30 selection:text-cyan-200`}>
+    <div className={`flex min-h-screen w-full bg-surface-page text-primary font-sans selection:bg-teal-500/30 selection:text-teal-200`}>
       <AppSidebar />
       <div className="flex flex-1 flex-col min-w-0 transition-all duration-300">
         <AppTopbar />

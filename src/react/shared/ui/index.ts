@@ -22,9 +22,9 @@ export { FormError } from './FormError';
 export { FormActions } from './FormActions';
 export type { FormActionsProps } from './FormActions';
 export { Modal } from './Modal';
-export { Drawer } from './Drawer';
+
 export { SegmentedControl } from './SegmentedControl';
-export type { DrawerProps } from './Drawer';
+
 export type { DataTableColumn } from './DataTable';
 export type { ActionMenuItem } from './ActionMenu';
 export { PillGroup } from './PillGroup';

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge, SegmentedControl, Button } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
-import { RcaDrawer } from './RcaDrawer';
+import { RcaModal } from './RcaModal';
 import type { Rca } from '../../../../types/domain';
 
 export function RcasPage() {
@@ -130,7 +130,7 @@ export function RcasPage() {
         )}
       />
 
-      <RcaDrawer />
+      <RcaModal />
     </div>
   );
 }

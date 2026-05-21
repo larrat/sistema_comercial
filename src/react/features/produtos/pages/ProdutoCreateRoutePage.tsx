@@ -106,7 +106,7 @@ export function ProdutoCreateRoutePage() {
           </button>
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <PackagePlus size={16} className="text-cyan-500" />
+              <PackagePlus size={16} className="text-teal-500" />
               <Typography variant="label" color="muted" className="!text-[10px] uppercase tracking-widest font-black">Catálogo Nexus</Typography>
             </div>
             <Typography variant="h2" weight="black" className="uppercase tracking-tight">Novo Produto</Typography>

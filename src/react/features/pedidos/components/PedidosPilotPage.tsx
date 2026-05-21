@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Drawer } from '../../../shared/ui';
+
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
-import { PedidoForm } from './PedidoForm';
+
 import type { Pedido } from '../../../../types/domain';
 import { motion, type Variants } from 'framer-motion';
 
@@ -48,17 +48,11 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   const [formOrigin, setFormOrigin] = useState<string>('unknown');
   const [prefillClienteId, setPrefillClienteId] = useState<string | null>(null);
 
-  function openNewPedido(origin = 'list_button', clienteId: string | null = null) {
-    setEditingId('new');
-    setFormOrigin(origin);
-    setPrefillClienteId(clienteId);
-    trackEvent('pedido_iniciado', {
-      metadata: {
-        origin,
-        has_cliente_prefill: Boolean(clienteId)
-      },
-      result: 'success'
-    });
+    if (clienteId) {
+      navigate(`/app/pedidos/novo?cliente=${clienteId}`);
+    } else {
+      navigate('/app/pedidos/novo');
+    }
   }
 
   useEffect(() => {
@@ -72,15 +66,12 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
     if (!routeIntent.pedidoId) return;
 
     if (routeIntent.view === 'edit') {
-      setEditingId(routeIntent.pedidoId);
-      setPrefillClienteId(null);
+      navigate(`/app/pedidos/${routeIntent.pedidoId}/editar`);
       return;
     }
 
-    setEditingId(null);
-    setPrefillClienteId(null);
     navigate(`/app/pedidos/${encodeURIComponent(routeIntent.pedidoId)}`);
-  }, [navigate, routeIntent?.clienteId, routeIntent?.pedidoId, routeIntent?.view]);
+  }, [navigate, routeIntent]);
 
   return (
     <motion.main 
@@ -100,37 +91,7 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
         />
       </motion.div>
 
-      <Drawer
-        open={!!editingId}
-        title={
-          editingId === 'new'
-            ? 'Novo pedido'
-            : 'Editar pedido'
-        }
-        subtitle="Defina cliente, itens e condições sem alterar as regras atuais do pedido."
-        size="lg"
-        onClose={() => {
-          setEditingId(null);
-          setPrefillClienteId(null);
-        }}
-      >
-        {editingId ? (
-          <PedidoForm
-            prefillClienteId={editingId === 'new' ? prefillClienteId : null}
-            initialPedido={null} // O form carregará se necessário ou usaremos query no form
-            analyticsOrigin={formOrigin}
-            onSaved={(pedido) => {
-              setEditingId(null);
-              setPrefillClienteId(null);
-              navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
-            }}
-            onCancel={() => {
-              setEditingId(null);
-              setPrefillClienteId(null);
-            }}
-          />
-        ) : null}
-      </Drawer>
+
     </motion.main>
   );
 }

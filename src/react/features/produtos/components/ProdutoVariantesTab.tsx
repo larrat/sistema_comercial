@@ -714,11 +714,11 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                         <Button 
                           variant="secondary" 
                           size="sm" 
-                          className="!p-2 rounded-xl transition-all hover:bg-white/10 hover:border-cyan-500/30"
+                          className="!p-2 rounded-xl transition-all hover:bg-white/10 hover:border-teal-500/30"
                           onClick={() => onOpenProduto?.(row.produto.id, { edit: true })}
                           title="Editar cadastro"
                         >
-                          <Pencil size={14} className="text-cyan-400" />
+                          <Pencil size={14} className="text-teal-400" />
                         </Button>
                       </div>
                     </td>

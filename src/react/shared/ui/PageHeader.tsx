@@ -20,11 +20,11 @@ export function PageHeader({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           {kicker ? (
-            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--color-brand-gold)] mb-0.5 opacity-90">
+            <div className="text-[10px] font-black uppercase tracking-[0.25em] text-teal-400 mb-0.5 opacity-90">
               {kicker}
             </div>
           ) : null}
-          <h1 className="text-xl md:text-2xl font-black text-white tracking-tight leading-none m-0">
+          <h1 className="text-xl md:text-2xl font-black text-white tracking-tight leading-none m-0 font-['Plus_Jakarta_Sans']">
             {title}
           </h1>
           {description ? (
@@ -42,7 +42,7 @@ export function PageHeader({
       </div>
 
       {meta && (
-        <div className="flex items-center gap-4 py-2 px-3 bg-slate-50/50 rounded-lg border border-slate-200/50 w-fit">
+        <div className="flex items-center gap-4 py-2 px-3 bg-slate-900/50 rounded-lg border border-slate-700/50 w-fit">
           {meta}
         </div>
       )}

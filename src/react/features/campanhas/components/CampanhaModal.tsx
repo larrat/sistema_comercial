@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Drawer, FormField, Button, Input, Select } from '../../../shared/ui';
+import { Modal, FormField, Button, Input, Select } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import type { Campanha } from '../../../../types/domain';
@@ -28,7 +28,7 @@ const EXEMPLO: Record<string, string> = {
   filial: 'Loja Centro'
 };
 
-export function CampanhaDrawer() {
+export function CampanhaModal() {
   const campModal = useCampanhasStore((s) => s.campModal);
   const closeCampModal = useCampanhasStore((s) => s.closeCampModal);
   const saving = useCampanhasStore((s) => s.saving);
@@ -74,7 +74,7 @@ export function CampanhaDrawer() {
   const preview = mensagem ? substituirTokens(mensagem, EXEMPLO) : '';
 
   return (
-    <Drawer
+    <Modal
       open={campModal.open}
       title={item ? 'Editar campanha' : 'Nova campanha'}
       size="md"
@@ -183,6 +183,6 @@ export function CampanhaDrawer() {
           </div>
         )}
       </div>
-    </Drawer>
+    </Modal>
   );
 }

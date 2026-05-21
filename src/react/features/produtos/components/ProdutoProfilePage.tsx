@@ -22,7 +22,7 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { formValuesToProduto } from '../hooks/useProdutoCalculations';
-import { ErrorState, LoadingState, Drawer, Button, Badge } from '../../../shared/ui';
+import { ErrorState, LoadingState, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
 import { useProdutoMutations, useMovimentacoesQuery, useVariantesQuery } from '../hooks/useProdutosQuery';
 import type { ProdutoFormValues, ProdutoSaldo } from '../types';
@@ -537,7 +537,7 @@ export function ProdutoProfilePage({
             {activeTab === tab.id && (
               <motion.div 
                 layoutId="activeTab"
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500"
               />
             )}
           </button>

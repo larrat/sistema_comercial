@@ -123,10 +123,10 @@ export function CaixaPilotPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="relative overflow-hidden border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]">
+        <Card className="relative overflow-hidden border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-teal-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Saldo Atual</span>
-            <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500">
+            <div className="p-2 rounded-lg bg-teal-500/10 text-teal-500">
               <Wallet size={20} />
             </div>
           </div>

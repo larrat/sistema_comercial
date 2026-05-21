@@ -134,7 +134,7 @@ export function OportunidadesTab() {
           <Text className="!text-text-muted font-bold uppercase tracking-tighter">Pendentes</Text>
           <Metric className="!text-text-primary !font-black">{pendentes}</Metric>
         </TremorCard>
-        <TremorCard decoration="left" decorationColor="cyan" className="!bg-surface-card !border-border-subtle shadow-premium">
+        <TremorCard decoration="left" decorationColor="teal" className="!bg-surface-card !border-border-subtle shadow-premium">
           <Text className="!text-text-muted font-bold uppercase tracking-tighter">Conversão</Text>
           <Flex justifyContent="start" className="gap-2">
             <Metric className="!text-text-primary !font-black">{pct(taxa)}</Metric>

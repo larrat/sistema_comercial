@@ -12,7 +12,7 @@ import {
 } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
-import { CampanhaDrawer } from './CampanhaDrawer';
+import { CampanhaModal } from './CampanhaModal';
 import { WhatsAppPreviewModal } from './WhatsAppPreviewModal';
 import { FilaWhatsAppSection } from './FilaWhatsAppSection';
 import { HistoricoEnviosSection } from './HistoricoEnviosSection';
@@ -196,7 +196,7 @@ export function CampanhasPage() {
       <FilaWhatsAppSection />
       <HistoricoEnviosSection />
 
-      <CampanhaDrawer />
+      <CampanhaModal />
       <WhatsAppPreviewModal />
 
       <Modal

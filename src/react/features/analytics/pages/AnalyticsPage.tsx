@@ -83,7 +83,7 @@ export function AnalyticsPage() {
           <Text className="!text-text-muted uppercase tracking-tighter font-bold">Ações registradas</Text>
           <Metric className="!text-text-primary !font-black">{kpis.total}</Metric>
         </TremorCard>
-        <TremorCard decoration="top" decorationColor="cyan" className="!bg-surface-card !border-border-subtle shadow-premium">
+        <TremorCard decoration="top" decorationColor="teal" className="!bg-surface-card !border-border-subtle shadow-premium">
           <Text className="!text-text-muted uppercase tracking-tighter font-bold">Tempo médio</Text>
           <Metric className="!text-text-primary !font-black">{kpis.avgDuration}ms</Metric>
         </TremorCard>

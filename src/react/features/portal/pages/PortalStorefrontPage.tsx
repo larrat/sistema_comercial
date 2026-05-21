@@ -376,11 +376,11 @@ export function PortalStorefrontPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#0A0A0B] text-white font-sans selection:bg-cyan-500/30 pb-20 relative overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-[#0A0A0B] text-white font-sans selection:bg-teal-500/30 pb-20 relative overflow-x-hidden">
       <header className="sticky top-0 z-40 bg-[#0A0A0B]/80 backdrop-blur-2xl border-b border-white/5 pt-12 pb-4 px-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-black tracking-tighter text-white">NEXUS</h1>
-          <p className="text-[10px] text-cyan-500 font-bold tracking-widest uppercase">B2B Portal</p>
+          <p className="text-[10px] text-teal-500 font-bold tracking-widest uppercase">B2B Portal</p>
         </div>
         <button 
           onClick={() => setIsCartOpen(true)}
@@ -391,7 +391,7 @@ export function PortalStorefrontPage() {
             <motion.span 
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="absolute -top-1 -right-1 bg-cyan-500 text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center"
+              className="absolute -top-1 -right-1 bg-teal-500 text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center"
             >
               {cartItemsCount}
             </motion.span>
@@ -418,7 +418,7 @@ export function PortalStorefrontPage() {
               placeholder="Buscar produtos..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
             />
           </div>
           <button className="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-300 hover:bg-white/10 transition-colors shrink-0">
@@ -427,7 +427,7 @@ export function PortalStorefrontPage() {
         </div>
         <div className="flex gap-2 overflow-x-auto mt-4 pb-2 custom-scrollbar hide-scrollbar">
           {['Tudo', 'Workwear', 'Calçados', 'Acessórios', 'EPIs'].map((cat, i) => (
-            <button key={cat} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${i === 0 ? 'bg-cyan-500 text-black' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white'}`}>
+            <button key={cat} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${i === 0 ? 'bg-teal-500 text-black' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white'}`}>
               {cat}
             </button>
           ))}
@@ -468,7 +468,7 @@ export function PortalStorefrontPage() {
                 </div>
 
                 <div className="p-4 flex flex-col flex-1">
-                  <span className="text-[10px] font-bold text-cyan-500 uppercase tracking-wider mb-1">{p.cat || 'Geral'}</span>
+                  <span className="text-[10px] font-bold text-teal-500 uppercase tracking-wider mb-1">{p.cat || 'Geral'}</span>
                   <h3 className="text-sm font-bold text-white leading-tight line-clamp-2 flex-1 mb-2">
                     {p.nome}
                   </h3>
@@ -483,7 +483,7 @@ export function PortalStorefrontPage() {
                         if (p.esal > 0) addToCart(p);
                       }}
                       disabled={!p.esal || p.esal <= 0}
-                      className="w-8 h-8 rounded-full bg-cyan-500 text-black flex items-center justify-center hover:scale-110 disabled:bg-white/10 disabled:text-slate-500 disabled:scale-100 transition-all z-10"
+                      className="w-8 h-8 rounded-full bg-teal-500 text-black flex items-center justify-center hover:scale-110 disabled:bg-white/10 disabled:text-slate-500 disabled:scale-100 transition-all z-10"
                     >
                       <Plus size={16} strokeWidth={3} />
                     </button>
@@ -531,7 +531,7 @@ export function PortalStorefrontPage() {
 
               <div className="flex-1 space-y-4">
                 <div>
-                  <span className="text-xs font-bold text-cyan-500 uppercase tracking-widest">{selectedProduct.cat || 'Geral'}</span>
+                  <span className="text-xs font-bold text-teal-500 uppercase tracking-widest">{selectedProduct.cat || 'Geral'}</span>
                   <h2 className="text-2xl font-black mt-1 leading-tight">{selectedProduct.nome}</h2>
                   {selectedProduct.sku && <span className="text-xs text-slate-500 block mt-1">SKU: {selectedProduct.sku}</span>}
                 </div>
@@ -543,7 +543,7 @@ export function PortalStorefrontPage() {
                 <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-4">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">Preço de Tabela</span>
-                    <span className="text-2xl font-black text-cyan-500">
+                    <span className="text-2xl font-black text-teal-500">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedProduct.pvv || 0)}
                     </span>
                   </div>
@@ -553,9 +553,9 @@ export function PortalStorefrontPage() {
                   </span>
                 </div>
 
-                <div className="bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 border border-cyan-500/20 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div className="bg-gradient-to-br from-teal-500/10 to-indigo-500/10 border border-teal-500/20 rounded-2xl p-4 flex items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-400">
+                    <div className="flex items-center gap-1.5 text-teal-400">
                       <Sparkles size={16} />
                       <span className="text-xs font-black uppercase tracking-wider">Provador Virtual IA</span>
                     </div>
@@ -566,7 +566,7 @@ export function PortalStorefrontPage() {
                       setIsTryOnOpen(true);
                       setTryOnStep('upload');
                     }}
-                    className="bg-cyan-500 hover:bg-cyan-400 text-black px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-1 hover:scale-105 transition-all"
+                    className="bg-teal-500 hover:bg-teal-400 text-black px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-1 hover:scale-105 transition-all"
                   >
                     Provar <Sparkles size={12} />
                   </button>
@@ -591,7 +591,7 @@ export function PortalStorefrontPage() {
                       }
                     }}
                     disabled={!selectedProduct.esal || selectedProduct.esal <= 0}
-                    className="w-full bg-cyan-500 text-black font-black py-4 rounded-2xl hover:bg-cyan-400 disabled:bg-white/10 disabled:text-slate-500 transition-colors text-sm uppercase"
+                    className="w-full bg-teal-500 text-black font-black py-4 rounded-2xl hover:bg-teal-400 disabled:bg-white/10 disabled:text-slate-500 transition-colors text-sm uppercase"
                   >
                     Comprar Agora
                   </button>
@@ -645,7 +645,7 @@ export function PortalStorefrontPage() {
                   animate={{ height: 'auto', opacity: 1 }}
                   className="mb-6 p-5 bg-white/5 border border-white/10 rounded-2xl space-y-3 mt-6"
                 >
-                  <div className="flex items-center gap-2 text-cyan-400">
+                  <div className="flex items-center gap-2 text-teal-400">
                     <Settings size={14} />
                     <span className="text-xs font-black uppercase tracking-wider">Configurar Chave Fal.ai</span>
                   </div>
@@ -657,7 +657,7 @@ export function PortalStorefrontPage() {
                     placeholder="fal_key_..."
                     value={apiKeyInput}
                     onChange={(e) => setApiKeyInput(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500/50"
                   />
                   <div className="flex gap-2">
                     <button 
@@ -666,7 +666,7 @@ export function PortalStorefrontPage() {
                         toast.success('Chave da API salva com sucesso!');
                         setShowApiKeyInput(false);
                       }}
-                      className="flex-1 bg-cyan-500 text-black font-bold py-2 rounded-xl text-[10px] uppercase hover:bg-cyan-400 transition-colors"
+                      className="flex-1 bg-teal-500 text-black font-bold py-2 rounded-xl text-[10px] uppercase hover:bg-teal-400 transition-colors"
                     >
                       Salvar
                     </button>
@@ -688,7 +688,7 @@ export function PortalStorefrontPage() {
               {tryOnStep === 'upload' && !showApiKeyInput && (
                 <div className="space-y-6 mt-4">
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <div className="w-12 h-12 bg-teal-500/10 border border-teal-500/20 text-teal-500 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Sparkles size={24} />
                     </div>
                     <h3 className="text-lg font-black text-white">Provador Virtual por IA</h3>
@@ -705,7 +705,7 @@ export function PortalStorefrontPage() {
                             setSelectedModel(model);
                             setUploadedPhoto(null);
                           }}
-                          className={`flex flex-col bg-white/5 border rounded-2xl overflow-hidden p-2 text-left transition-all ${selectedModel?.id === model.id ? 'border-cyan-500 bg-cyan-500/5' : 'border-white/10 hover:bg-white/10'}`}
+                          className={`flex flex-col bg-white/5 border rounded-2xl overflow-hidden p-2 text-left transition-all ${selectedModel?.id === model.id ? 'border-teal-500 bg-teal-500/5' : 'border-white/10 hover:bg-white/10'}`}
                         >
                           <img src={model.img} alt={model.name} className="aspect-square w-full object-cover rounded-xl mb-2" />
                           <span className="text-[10px] font-bold text-white truncate block">{model.name}</span>
@@ -716,7 +716,7 @@ export function PortalStorefrontPage() {
 
                   <div className="space-y-3">
                     <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Opção B: Enviar sua própria foto de corpo</span>
-                    <div className="border border-dashed border-white/15 rounded-2xl p-6 text-center hover:bg-white/5 hover:border-cyan-500/50 transition-colors cursor-pointer relative">
+                    <div className="border border-dashed border-white/15 rounded-2xl p-6 text-center hover:bg-white/5 hover:border-teal-500/50 transition-colors cursor-pointer relative">
                       <input 
                         type="file" 
                         accept="image/*"
@@ -736,8 +736,8 @@ export function PortalStorefrontPage() {
                       />
                       {uploadedPhoto ? (
                         <div className="flex flex-col items-center gap-2">
-                          <img src={uploadedPhoto} className="h-16 w-16 object-cover rounded-full border border-cyan-500" />
-                          <span className="text-xs font-bold text-cyan-400">Sua foto selecionada</span>
+                          <img src={uploadedPhoto} className="h-16 w-16 object-cover rounded-full border border-teal-500" />
+                          <span className="text-xs font-bold text-teal-400">Sua foto selecionada</span>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-2">
@@ -752,7 +752,7 @@ export function PortalStorefrontPage() {
                   <button 
                     onClick={startTryOnProcess}
                     disabled={!selectedModel && !uploadedPhoto}
-                    className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-white/10 disabled:text-slate-500 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 transition-all text-xs uppercase tracking-wider"
+                    className="w-full bg-teal-500 hover:bg-teal-400 disabled:bg-white/10 disabled:text-slate-500 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 transition-all text-xs uppercase tracking-wider"
                   >
                     Gerar Prova Virtual <ArrowRight size={14} />
                   </button>
@@ -762,8 +762,8 @@ export function PortalStorefrontPage() {
               {tryOnStep === 'processing' && (
                 <div className="py-12 flex flex-col items-center text-center gap-6">
                   <div className="relative">
-                    <div className="w-24 h-24 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center text-cyan-500">
+                    <div className="w-24 h-24 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center text-teal-500">
                       <Sparkles size={32} className="animate-pulse" />
                     </div>
                   </div>
@@ -787,10 +787,10 @@ export function PortalStorefrontPage() {
                     {resultImage ? (
                       <div className="w-full h-full relative">
                         <img src={resultImage} className="w-full h-full object-cover" alt="Resultado da Prova Virtual" />
-                        <div className="absolute inset-0 bg-cyan-500/5 mix-blend-overlay" />
+                        <div className="absolute inset-0 bg-teal-500/5 mix-blend-overlay" />
                         <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
                           <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Peça: {selectedProduct.nome}</span>
-                          <span className="text-xs font-black text-cyan-400 flex items-center gap-1">
+                          <span className="text-xs font-black text-teal-400 flex items-center gap-1">
                             <Sparkles size={12} className="animate-pulse" /> IA Real
                           </span>
                         </div>
@@ -800,10 +800,10 @@ export function PortalStorefrontPage() {
                         {selectedModel?.id === 'm1' && (
                           <div className="w-full h-full relative">
                             <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-teal-500/10 mix-blend-overlay" />
                             <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
                               <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Camisa: {selectedProduct.nome}</span>
-                              <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
+                              <span className="text-xs font-black text-teal-400">Excelente Caimento</span>
                             </div>
                           </div>
                         )}
@@ -811,10 +811,10 @@ export function PortalStorefrontPage() {
                         {selectedModel?.id === 'f1' && (
                           <div className="w-full h-full relative">
                             <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-teal-500/10 mix-blend-overlay" />
                             <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
                               <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Peça: {selectedProduct.nome}</span>
-                              <span className="text-xs font-black text-cyan-400">Excelente Caimento</span>
+                              <span className="text-xs font-black text-teal-400">Excelente Caimento</span>
                             </div>
                           </div>
                         )}
@@ -823,7 +823,7 @@ export function PortalStorefrontPage() {
                           <div className="w-full h-full relative">
                             <img src={uploadedPhoto} className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-6">
-                              <span className="text-xs font-black text-cyan-400 flex items-center gap-1 mb-1">
+                              <span className="text-xs font-black text-teal-400 flex items-center gap-1 mb-1">
                                 <Sparkles size={12} /> Ajustado com Sucesso
                               </span>
                               <h4 className="text-sm font-bold text-white leading-tight">Caimento simulado para sua silhueta da peça {selectedProduct.nome}.</h4>
@@ -848,7 +848,7 @@ export function PortalStorefrontPage() {
                         setIsTryOnOpen(false);
                         setSelectedProduct(null);
                       }}
-                      className="w-full bg-cyan-500 text-black font-black py-4 rounded-2xl hover:bg-cyan-400 text-xs uppercase transition-all"
+                      className="w-full bg-teal-500 text-black font-black py-4 rounded-2xl hover:bg-teal-400 text-xs uppercase transition-all"
                     >
                       Adicionar à Sacola
                     </button>
@@ -879,7 +879,7 @@ export function PortalStorefrontPage() {
             >
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                  <ShoppingBag className="text-cyan-500" size={24} />
+                  <ShoppingBag className="text-teal-500" size={24} />
                   <h2 className="text-xl font-black">Sua Sacola</h2>
                 </div>
                 <button 
@@ -903,7 +903,7 @@ export function PortalStorefrontPage() {
                       <div className="flex-1 min-w-0">
                         <h4 className="text-xs font-bold text-white truncate">{item.nome}</h4>
                         {item.sku && <span className="text-[10px] text-slate-500 block">SKU: {item.sku}</span>}
-                        <span className="text-sm font-black text-cyan-500 block mt-1">
+                        <span className="text-sm font-black text-teal-500 block mt-1">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco)}
                         </span>
                       </div>
@@ -953,7 +953,7 @@ export function PortalStorefrontPage() {
                         value={cliName}
                         onChange={e => setCliName(e.target.value)}
                         placeholder="Ex: João da Silva"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
                       />
                     </div>
                     <div>
@@ -964,7 +964,7 @@ export function PortalStorefrontPage() {
                         value={cliPhone}
                         onChange={e => setCliPhone(e.target.value)}
                         placeholder="Ex: (11) 99999-9999"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
                       />
                     </div>
                     <div>
@@ -974,7 +974,7 @@ export function PortalStorefrontPage() {
                         onChange={e => setCliAddress(e.target.value)}
                         placeholder="Ex: Av. Industrial, 123 - Bloco B. Se em branco, considera-se Retirada na Loja."
                         rows={2}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all resize-none"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all resize-none"
                       />
                     </div>
                   </div>
@@ -982,7 +982,7 @@ export function PortalStorefrontPage() {
                   <button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 disabled:bg-white/15 disabled:text-slate-500 transition-all shadow-lg shadow-cyan-500/10 mt-2 text-sm uppercase tracking-wider"
+                    className="w-full bg-teal-500 hover:bg-teal-400 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 disabled:bg-white/15 disabled:text-slate-500 transition-all shadow-lg shadow-teal-500/10 mt-2 text-sm uppercase tracking-wider"
                   >
                     {isSubmitting ? 'Processando...' : 'Confirmar e Enviar Pedido'}
                   </button>
@@ -1009,7 +1009,7 @@ export function PortalStorefrontPage() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#0D0D11] border border-white/10 rounded-[2.5rem] p-8 max-w-sm w-full text-center relative z-10 shadow-2xl"
             >
-              <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto mb-4 text-cyan-500">
+              <div className="w-16 h-16 bg-teal-500/10 border border-teal-500/30 rounded-full flex items-center justify-center mx-auto mb-4 text-teal-500">
                 <CheckCircle2 size={36} />
               </div>
               <h3 className="text-xl font-black mb-2 text-white">Pedido Feito!</h3>
@@ -1029,7 +1029,7 @@ export function PortalStorefrontPage() {
       </AnimatePresence>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-[#0A0A0B]/90 backdrop-blur-2xl border-t border-t-white/5 pb-safe pt-2 px-6 flex justify-around items-center z-40">
-         <button className="flex flex-col items-center gap-1 p-2 text-cyan-500">
+         <button className="flex flex-col items-center gap-1 p-2 text-teal-500">
            <ShoppingBag size={20} />
            <span className="text-[9px] font-bold">Loja</span>
          </button>
@@ -1043,7 +1043,7 @@ export function PortalStorefrontPage() {
          >
            <ShoppingBag size={20} />
            {cartItemsCount > 0 && (
-             <span className="absolute top-1.5 right-3 bg-cyan-500 text-black text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+             <span className="absolute top-1.5 right-3 bg-teal-500 text-black text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                {cartItemsCount}
              </span>
            )}

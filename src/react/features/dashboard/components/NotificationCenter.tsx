@@ -26,7 +26,7 @@ export function NotificationCenter() {
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-          isOpen ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/5'
+          isOpen ? 'bg-teal-500 text-white shadow-lg shadow-teal-500/20' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white border border-white/5'
         }`}
       >
         <Bell size={18} className={total > 0 ? 'animate-pulse' : ''} />
@@ -70,11 +70,11 @@ export function NotificationCenter() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-[11px] font-black text-white uppercase tracking-tight truncate">{alert.title}</span>
-                            {alert.isPredictive && <span className="text-[8px] font-black bg-cyan-500/10 text-cyan-400 px-1 rounded border border-cyan-500/20">AI</span>}
+                            {alert.isPredictive && <span className="text-[8px] font-black bg-teal-500/10 text-teal-400 px-1 rounded border border-teal-500/20">AI</span>}
                           </div>
                           <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{alert.desc}</p>
                           
-                          <div className="mt-3 flex items-center gap-1 text-[9px] font-black text-cyan-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="mt-3 flex items-center gap-1 text-[9px] font-black text-teal-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                             Tratar agora <ChevronRight size={10} />
                           </div>
                         </div>

@@ -84,7 +84,7 @@ export function ConciliacaoBancaria() {
         </div>
       )}
 
-      <div className="rf-card-premium p-6 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5">
+      <div className="rf-card-premium p-6 transition-all duration-300 hover:border-white/10 hover:shadow-teal-500/5">
         {transacoes.length === 0 ? (
           <EmptyState
             title="Nenhum arquivo importado"

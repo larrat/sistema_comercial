@@ -5,7 +5,7 @@ import { useContasReceberStore } from '../store/useContasReceberStore';
 import type { CrTab } from '../store/useContasReceberStore';
 import {
   DataTable,
-  Drawer,
+  Modal,
   EmptyState,
   ErrorState,
   FilterBar,
@@ -445,7 +445,7 @@ function BaixaParcialModal({
   );
 }
 
-type ContaDetailDrawerProps = {
+type ContaDetailModalProps = {
   conta: ContaReceber | null;
   baixas: ContaReceberBaixa[];
   inFlight: boolean;
@@ -457,7 +457,7 @@ type ContaDetailDrawerProps = {
   onEstornar: (contaId: string, baixaId: string) => void;
 };
 
-function ContaDetailDrawer({
+function ContaDetailModal({
   conta,
   baixas,
   inFlight,
@@ -467,14 +467,14 @@ function ContaDetailDrawer({
   onBaixaParcial,
   onDesfazer,
   onEstornar
-}: ContaDetailDrawerProps) {
+}: ContaDetailModalProps) {
   if (!conta) return null;
 
   const recebido = getValorRecebido(conta);
   const aberto = getValorEmAberto(conta);
 
   return (
-    <Drawer
+    <Modal
       open={open}
       title={conta.cliente}
       subtitle={[
@@ -506,7 +506,7 @@ function ContaDetailDrawer({
 
         <BaixaHistorico baixas={baixas} contaId={conta.id} onEstornar={onEstornar} />
       </div>
-    </Drawer>
+    </Modal>
   );
 }
 
@@ -968,7 +968,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         />
       ) : null}
 
-      <ContaDetailDrawer
+      <ContaDetailModal
         open={!!detailConta}
         conta={detailConta}
         baixas={detailBaixas}

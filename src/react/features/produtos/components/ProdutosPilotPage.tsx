@@ -13,7 +13,7 @@ import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
 import { ProdutoForm } from './ProdutoForm';
 import { ProdutoDeleteConfirmModal } from './ProdutoDeleteConfirmModal';
 import {
-  Drawer,
+
   ErrorState,
   FilterBar,
   PageHeader,
@@ -295,7 +295,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
 
             {sanitizing ? (
               <div className="flex items-center gap-2 bg-slate-50/5 px-3 py-1.5 rounded-xl border border-white/5 animate-pulse">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-400" />
                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-tight">{sanitizingProgress}%</span>
               </div>
             ) : (

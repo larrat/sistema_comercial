@@ -44,7 +44,7 @@ export function HealthCheckCard() {
         ))}
       </div>
 
-      <button className="mt-4 w-full py-2 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-cyan-400 transition-colors border-t border-white/5 pt-4">
+      <button className="mt-4 w-full py-2 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-teal-400 transition-colors border-t border-white/5 pt-4">
         Executar Auditoria
       </button>
     </div>

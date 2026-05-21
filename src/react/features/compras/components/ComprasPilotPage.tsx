@@ -70,7 +70,7 @@ export function ComprasPilotPage() {
         actions={
           <div className="flex gap-3">
             <Link to="/app/compras/sugestoes">
-              <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-cyan-400" />}>
+              <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-teal-400" />}>
                 Stock AI
               </Button>
             </Link>
@@ -84,9 +84,9 @@ export function ComprasPilotPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-cyan-500/5 active:scale-[0.99]">
+        <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-teal-500/5 active:scale-[0.99]">
            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-500"><ShoppingBag size={16} /></div>
+              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-500"><ShoppingBag size={16} /></div>
               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Aberto</span>
            </div>
            <h3 className="text-2xl font-black text-white">

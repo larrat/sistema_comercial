@@ -76,7 +76,7 @@ export function PerformanceTab() {
         {/* Top Clientes */}
         <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-8 border border-white/5">
           <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-8">Top 8 Clientes (Faturamento)</Typography>
-          <BarList data={clientesData} valueFormatter={fmt} color="cyan" className="mt-2" />
+          <BarList data={clientesData} valueFormatter={fmt} color="teal" className="mt-2" />
         </div>
       </div>
     </div>

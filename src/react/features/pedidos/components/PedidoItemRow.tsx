@@ -24,7 +24,7 @@ export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
         <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.sku || 'SEM SKU'}</div>
       </td>
       <td>
-        <Badge variant={item.orig === 'estoque' ? 'green' : 'cyan'}>
+        <Badge variant={item.orig === 'estoque' ? 'green' : 'teal'}>
           {item.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}
         </Badge>
       </td>

@@ -6,12 +6,15 @@ import type { AppBootstrapState } from '../hooks/useAppBootstrap';
 // Lazy loading for feature pages to reduce initial bundle size
 const ClienteCreateRoutePage = lazy(() => import('../../features/clientes/pages/ClienteCreateRoutePage').then(m => ({ default: m.ClienteCreateRoutePage })));
 const ClienteProfileRoutePage = lazy(() => import('../../features/clientes/pages/ClienteProfileRoutePage').then(m => ({ default: m.ClienteProfileRoutePage })));
+const ClienteEditRoutePage = lazy(() => import('../../features/clientes/pages/ClienteEditRoutePage').then(m => ({ default: m.ClienteEditRoutePage })));
 const ClientesRoutePage = lazy(() => import('../../features/clientes/pages/ClientesRoutePage').then(m => ({ default: m.ClientesRoutePage })));
 const ContasReceberRoutePage = lazy(() => import('../../features/contas-receber/pages/ContasReceberRoutePage').then(m => ({ default: m.ContasReceberRoutePage })));
 const DashboardRoutePage = lazy(() => import('../../features/dashboard/pages/DashboardRoutePage').then(m => ({ default: m.DashboardRoutePage })));
 const CotacaoRoutePage = lazy(() => import('../../features/cotacao/pages/CotacaoRoutePage').then(m => ({ default: m.CotacaoRoutePage })));
 const EstoqueRoutePage = lazy(() => import('../../features/estoque/pages/EstoqueRoutePage').then(m => ({ default: m.EstoqueRoutePage })));
 const PedidoProfileRoutePage = lazy(() => import('../../features/pedidos/pages/PedidoProfileRoutePage').then(m => ({ default: m.PedidoProfileRoutePage })));
+const PedidoCreateRoutePage = lazy(() => import('../../features/pedidos/pages/PedidoCreateRoutePage').then(m => ({ default: m.PedidoCreateRoutePage })));
+const PedidoEditRoutePage = lazy(() => import('../../features/pedidos/pages/PedidoEditRoutePage').then(m => ({ default: m.PedidoEditRoutePage })));
 const PedidosRoutePage = lazy(() => import('../../features/pedidos/pages/PedidosRoutePage').then(m => ({ default: m.PedidosRoutePage })));
 const PdvRoutePage = lazy(() => import('../../features/pedidos/pages/PdvRoutePage').then(m => ({ default: m.PdvRoutePage })));
 const ProdutoProfileRoutePage = lazy(() => import('../../features/produtos/pages/ProdutoProfileRoutePage').then(m => ({ default: m.ProdutoProfileRoutePage })));
@@ -78,10 +81,13 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="clientes" element={<ClientesRoutePage />} />
               <Route path="clientes/novo" element={<ClienteCreateRoutePage />} />
               <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />
+              <Route path="clientes/:clienteId/editar" element={<ClienteEditRoutePage />} />
               <Route path="estoque" element={<EstoqueRoutePage />} />
               <Route path="cotacao" element={<CotacaoRoutePage />} />
               <Route path="pedidos" element={<PedidosRoutePage />} />
+              <Route path="pedidos/novo" element={<PedidoCreateRoutePage />} />
               <Route path="pedidos/:pedidoId" element={<PedidoProfileRoutePage />} />
+              <Route path="pedidos/:pedidoId/editar" element={<PedidoEditRoutePage />} />
               <Route path="receber" element={<ContasReceberRoutePage />} />
               <Route path="produtos" element={<ProdutosRoutePage />} />
               <Route path="produtos/novo" element={<ProdutoCreateRoutePage />} />

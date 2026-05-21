@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import {
   ActionMenu,
   DataTable,
-  Drawer,
   ErrorState,
   FilterBar,
   PageHeader,
@@ -44,6 +43,7 @@ export function ClientesPilotPage({
   onOpenCliente,
   onNewCliente
 }: ClientesPilotPageProps) {
+  const navigate = useNavigate();
   const page = useClienteStore((s) => s.page);
   const pageSize = useClienteStore((s) => s.pageSize);
   const filtro = useClienteStore((s) => s.filtro);
@@ -178,9 +178,11 @@ export function ClientesPilotPage({
   }
 
   function openEditCliente(clienteId: string, origin = 'row_menu') {
-    setSurfaceTab('lista');
-    setEditingId(clienteId);
-    setEditorOrigin(origin);
+    trackEvent('cliente_edit_aberto', {
+      metadata: { origin },
+      result: 'success'
+    });
+    navigate(`/app/clientes/${clienteId}/editar`);
   }
 
   useKeyboardShortcuts([
@@ -325,7 +327,7 @@ export function ClientesPilotPage({
                     sortable: true,
                     render: (cliente) => (
                       <div className="flex items-center gap-3" data-testid="cliente-card">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-cyan-400 uppercase tracking-tighter shadow-inner">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-teal-400 uppercase tracking-tighter shadow-inner">
                           {getInitials(cliente.nome || '')}
                         </div>
                         <div className="min-w-0">
@@ -412,23 +414,7 @@ export function ClientesPilotPage({
         />
       ) : null}
 
-      <Drawer
-        open={!!editingId && editingId !== 'new'}
-        title="Editar cliente"
-        onClose={() => setEditingId(null)}
-        closeOnOverlayClick={!deleteMutation.isPending}
-      >
-        <ClienteForm
-          initialCliente={editingCliente}
-          analyticsOrigin={editorOrigin}
-          onSaved={() => {
-            setSurfaceTab('lista');
-            setEditingId(null);
-            refetchClientes();
-          }}
-          onCancel={() => setEditingId(null)}
-        />
-      </Drawer>
+
 
       <ClienteDeleteConfirmModal
         open={!!deleteTarget}

@@ -51,11 +51,11 @@ export function FilterBar({ children, className, search, filters = [], actions, 
             {search ? (
               <div className="relative flex items-center group" style={{ minWidth: 240, flex: 1 }}>
                 <Search 
-                  className="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-brand-gold transition-colors" 
+                  className="absolute left-3 w-4 h-4 text-slate-400 group-focus-within:text-teal-500 transition-colors" 
                   aria-hidden="true" 
                 />
                 <input
-                  className={`${search.className ?? 'rf-input-premium'} !pl-10 !h-10 w-full !bg-white/5 backdrop-blur-sm focus:border-brand-gold focus:ring-brand-gold/20 transition-colors`}
+                  className={`${search.className ?? 'rf-input-premium'} !pl-10 !h-10 w-full !bg-white/5 backdrop-blur-sm focus:border-teal-500 focus:ring-teal-500/20 transition-colors`}
                   type="search"
                   value={localSearch}
                   onChange={(event) => setLocalSearch(event.target.value)}
@@ -68,7 +68,7 @@ export function FilterBar({ children, className, search, filters = [], actions, 
             {filters.map((filter) => (
               <select
                 key={filter.key}
-                className={`${filter.className ?? 'rf-input-premium'} !h-10 !py-0 !pr-10 !bg-white/5 backdrop-blur-sm focus:border-brand-gold transition-colors cursor-pointer`}
+                className={`${filter.className ?? 'rf-input-premium'} !h-10 !py-0 !pr-10 !bg-white/5 backdrop-blur-sm focus:border-teal-500 transition-colors cursor-pointer`}
                 value={filter.value}
                 onChange={(event) => filter.onChange(event.target.value)}
                 aria-label={filter.ariaLabel ?? filter.label ?? `Filtro ${filter.key}`}

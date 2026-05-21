@@ -267,7 +267,7 @@ export function ClienteCreateForm() {
                   className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors text-left ${activeSection === section.id ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300'}`}
                   onClick={() => scrollToSection(section.id)}
                 >
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-colors ${isFilled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (activeSection === section.id ? 'bg-cyan-500 text-white' : 'bg-white/5 border border-white/10')}`}>
+                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-colors ${isFilled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (activeSection === section.id ? 'bg-teal-500 text-white' : 'bg-white/5 border border-white/10')}`}>
                     {isFilled ? '✓' : section.number}
                   </span>
                   <span className="flex-1 text-sm tracking-wide">{section.label}</span>
@@ -310,7 +310,7 @@ export function ClienteCreateForm() {
               </div>
 
               <div className="flex items-center gap-6 mb-8">
-                <div className="w-24 h-24 rounded-3xl bg-black/40 border border-white/5 text-cyan-400 flex items-center justify-center text-3xl font-black shadow-inner">
+                <div className="w-24 h-24 rounded-3xl bg-black/40 border border-white/5 text-teal-400 flex items-center justify-center text-3xl font-black shadow-inner">
                   {initials}
                 </div>
                 <div>

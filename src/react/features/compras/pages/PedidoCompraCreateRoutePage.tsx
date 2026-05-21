@@ -147,7 +147,7 @@ export function PedidoCompraCreateRoutePage() {
               <label htmlFor="fornecedor" className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
               <div className="relative flex items-center">
                 {fornecedor && (
-                  <div className="absolute left-4 w-8 h-8 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center font-black text-xs uppercase border border-cyan-500/30">
+                  <div className="absolute left-4 w-8 h-8 bg-teal-500/20 text-teal-400 rounded-xl flex items-center justify-center font-black text-xs uppercase border border-teal-500/30">
                     {fornecedor.substring(0, 2)}
                   </div>
                 )}
@@ -159,7 +159,7 @@ export function PedidoCompraCreateRoutePage() {
                   value={fornecedor}
                   onChange={(e) => setFornecedor(e.target.value)}
                   placeholder="Nome do fornecedor ou razão social"
-                  className={`w-full bg-black/20 border border-white/5 rounded-2xl py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-all text-lg ${fornecedor ? 'pl-16 pr-5' : 'px-5'}`}
+                  className={`w-full bg-black/20 border border-white/5 rounded-2xl py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all text-lg ${fornecedor ? 'pl-16 pr-5' : 'px-5'}`}
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export function PedidoCompraCreateRoutePage() {
                 name="forma_pagamento"
                 value={formaPgto}
                 onChange={(e) => setFormaPgto(e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none text-lg"
+                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all appearance-none text-lg"
               >
                 <option value="Boleto">Boleto Bancário</option>
                 <option value="PIX">PIX</option>
@@ -246,9 +246,9 @@ export function PedidoCompraCreateRoutePage() {
                             <button
                               key={p.id}
                               onClick={() => selectProduto(idx, p)}
-                              className={`w-full flex items-center gap-4 p-4 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left ${highlightedIndex === pIndex ? 'bg-white/10 border-l-4 !border-l-cyan-500' : ''}`}
+                              className={`w-full flex items-center gap-4 p-4 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left ${highlightedIndex === pIndex ? 'bg-white/10 border-l-4 !border-l-teal-500' : ''}`}
                             >
-                              <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-cyan-500/30 transition-colors">
+                              <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-teal-500/30 transition-colors">
                                  {p.foto_url ? (
                                    <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
                                  ) : (
@@ -257,7 +257,7 @@ export function PedidoCompraCreateRoutePage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 w-full mb-1">
-                                  <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
+                                  <span className="text-[10px] font-black text-teal-500 uppercase">{p.sku || 'S/SKU'}</span>
                                   {p.produto_pai_id ? (
                                     <Badge variant="neutral" className="!text-[8px] !py-0">Variante</Badge>
                                   ) : (
@@ -307,7 +307,7 @@ export function PedidoCompraCreateRoutePage() {
                     </div>
                     <div className="flex-1 md:w-36 space-y-2">
                       <label className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
-                      <div className="w-full bg-white/5 border border-transparent rounded-xl px-4 py-3 text-sm font-black text-cyan-400">
+                      <div className="w-full bg-white/5 border border-transparent rounded-xl px-4 py-3 text-sm font-black text-teal-400">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item || 0)}
                       </div>
                     </div>
@@ -337,7 +337,7 @@ export function PedidoCompraCreateRoutePage() {
                 value={obs}
                 onChange={(e) => setObs(e.target.value)}
                 placeholder="Observações do pedido, previsão de entrega, transportadora..."
-                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-cyan-500/50 transition-all text-sm h-24 resize-none"
+                className="w-full bg-black/20 border border-white/5 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-500/50 transition-all text-sm h-24 resize-none"
               />
             </div>
           </div>

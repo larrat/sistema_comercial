@@ -1,8 +1,8 @@
-import { Drawer, Button, Input } from '../../../shared/ui';
+import { Modal, Button, Input } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 
-export function RcaDrawer() {
+export function RcaModal() {
   const drawerOpen = useRcasStore((s) => s.drawerOpen);
   const drawerNome = useRcasStore((s) => s.drawerNome);
   const drawerEditId = useRcasStore((s) => s.drawerEditId);
@@ -12,7 +12,7 @@ export function RcaDrawer() {
   const { salvar } = useRcasMutations();
 
   return (
-    <Drawer
+    <Modal
       open={drawerOpen}
       title={drawerEditId ? 'Editar vendedor' : 'Novo vendedor'}
       size="sm"
@@ -47,6 +47,6 @@ export function RcaDrawer() {
           disabled={saving}
         />
       </div>
-    </Drawer>
+    </Modal>
   );
 }

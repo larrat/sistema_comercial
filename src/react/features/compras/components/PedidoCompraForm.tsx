@@ -118,7 +118,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                 value={fornecedor}
                 onChange={(e) => setFornecedor(e.target.value)}
                 placeholder="Nome do fornecedor ou razão social"
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-all"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 transition-all"
               />
             </div>
             <div className="space-y-1.5">
@@ -126,7 +126,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
               <select 
                 value={formaPgto}
                 onChange={(e) => setFormaPgto(e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500/50 transition-all appearance-none"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 transition-all appearance-none"
               >
                 <option value="Boleto">Boleto Bancário</option>
                 <option value="PIX">PIX</option>
@@ -183,7 +183,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                               onClick={() => selectProduto(idx, p)}
                               className="w-full flex items-center gap-4 p-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left"
                             >
-                              <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-cyan-500/30 transition-colors">
+                              <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-teal-500/30 transition-colors">
                                  {p.foto_url ? (
                                    <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
                                  ) : (
@@ -192,7 +192,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 w-full mb-0.5">
-                                  <span className="text-[10px] font-black text-cyan-500 uppercase">{p.sku || 'S/SKU'}</span>
+                                  <span className="text-[10px] font-black text-teal-500 uppercase">{p.sku || 'S/SKU'}</span>
                                   {p.produto_pai_id ? (
                                     <Badge variant="neutral" className="!text-[8px] !py-0">Variante</Badge>
                                   ) : (
@@ -239,7 +239,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                   </div>
                   <div className="w-32 space-y-1.5 self-start pt-1">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
-                    <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-cyan-400">
+                    <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-teal-400">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.total_item || 0)}
                     </div>
                   </div>

@@ -1,16 +1,15 @@
 @import 'tailwindcss';
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* --- NEXUS INDUSTRIAL: SEMANTIC DESIGN SYSTEM --- */
   /* --- DESIGN TOKENS: COLORS (PALETTE) --- */
-  --color-absolute-midnight: #020617;
-  --color-deep-slate: #0f172a;
-  --color-cyan-vibrant: #22d3ee; /* Cyan-400 for better contrast on dark */
+  --color-absolute-midnight: #030712;
+  --color-deep-slate: #0a0f1a;
+  --color-teal-primary: #14b8a6; /* Teal Primary */
   --color-emerald-vibrant: #10b981; /* Emerald-500 */
-  --color-amber-vibrant: #fbbf24; /* Amber-400 */
+  --color-amber-vibrant: #f59e0b; /* Amber-500 */
   --color-indigo-vibrant: #818cf8; /* Indigo-400 */
-  --color-rose-vibrant: #fb7185; /* Rose-400 */
+  --color-rose-vibrant: #f43f5e; /* Rose-500 */
 
   /* RGB Channels for dynamic opacity */
   --rgb-white: 255, 255, 255;
@@ -23,27 +22,27 @@
   --surface-page: var(--color-absolute-midnight);
   --surface-card: var(--color-deep-slate);
   --surface-sidebar: var(--color-absolute-midnight);
-  --surface-hover: rgba(var(--rgb-white), var(--opacity-subtle));
-  --surface-active: rgba(var(--rgb-white), var(--opacity-medium));
+  --surface-hover: rgba(var(--rgb-white), 0.02);
+  --surface-active: rgba(var(--rgb-white), 0.04);
 
   /* --- SEMANTIC TOKENS: TEXT --- */
-  --text-primary: #f8fafc; /* Slate-50 */
-  --text-secondary: #e2e8f0; /* Slate-200 */
-  --text-tertiary: #cbd5e1; /* Slate-300 */
-  --text-muted: #94a3b8; /* Slate-400 */
-  --text-accent: var(--color-cyan-vibrant);
+  --text-primary: #f1f5f9; /* Slate-100 */
+  --text-secondary: #cbd5e1; /* Slate-300 */
+  --text-tertiary: #94a3b8; /* Slate-400 */
+  --text-muted: #64748b; /* Slate-500 */
+  --text-accent: var(--color-teal-primary);
 
   /* --- SEMANTIC TOKENS: BORDERS --- */
-  --border-subtle: rgba(var(--rgb-white), var(--opacity-subtle));
-  --border-bold: rgba(var(--rgb-white), var(--opacity-medium));
-  --border-focus: var(--color-cyan-vibrant);
+  --border-subtle: rgba(var(--rgb-white), 0.04);
+  --border-bold: rgba(var(--rgb-white), 0.06);
+  --border-focus: rgba(20, 184, 166, 0.4);
 
   /* --- SEMANTIC TOKENS: ACTIONS --- */
-  --action-primary: var(--color-cyan-vibrant);
+  --action-primary: var(--color-teal-primary);
   --action-success: var(--color-emerald-vibrant);
 
   /* --- COMPONENT TOKENS: CHARTS --- */
-  --chart-primary: var(--color-cyan-vibrant);
+  --chart-primary: var(--color-teal-primary);
   --chart-secondary: var(--color-amber-vibrant);
   --chart-tertiary: var(--color-emerald-vibrant);
   --chart-quaternary: var(--color-indigo-vibrant);
@@ -72,9 +71,9 @@
   --color-danger: var(--action-danger);
 
   /* --- UTILS --- */
-  --font-display: 'Outfit', sans-serif;
-  --font-sans: 'Inter', sans-serif;
-  --radius-premium: 14px;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Satoshi', sans-serif;
+  --radius-premium: 16px;
   --radius-xl: 20px;
   --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
   --gradient-premium: linear-gradient(135deg, #0891b2 0%, #10b981 50%, #22d3ee 100%);
@@ -128,24 +127,24 @@
 
 /* Glassmorphism Variants */
 .rf-glass {
-  background: var(--surface-hover);
+  background: rgba(10, 15, 26, 0.6);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-subtle);
 }
 
 .rf-glass-heavy {
-  background: rgba(15, 23, 42, 0.85); /* Keeping deep for contrast */
+  background: rgba(10, 15, 26, 0.85); /* Keeping deep for contrast */
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border: 1px solid var(--border-bold);
 }
 
 .rf-glass-glow {
-  background: rgba(var(--rgb-white), 0.03);
+  background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(var(--rgb-white), 0.1);
-  box-shadow: 0 0 40px rgba(34, 211, 238, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 40px rgba(20, 184, 166, 0.05);
 }
 
 .produtos-filter-bar {
@@ -484,22 +483,23 @@ h1, h2, h3, h4, h5, h6, .rf-display {
 }
 
 .tbl th {
-  background: var(--color-background-tertiary);
-  color: var(--color-text-secondary);
+  background: rgba(10, 15, 26, 0.4);
+  color: var(--text-muted);
+  font-family: 'Satoshi', sans-serif;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border-primary);
+  letter-spacing: 0.05em;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
   text-align: left;
   white-space: nowrap;
 }
 
 .tbl td {
-  padding: 16px;
-  border-bottom: 1px solid var(--color-border-tertiary);
-  color: var(--color-text-primary);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
   vertical-align: middle;
   transition: background 0.2s;
 }
@@ -511,11 +511,11 @@ h1, h2, h3, h4, h5, h6, .rf-display {
 }
 
 .tbl tr:hover td {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .tbl tr:hover {
-  transform: translateX(2px);
+  transform: translateX(1px);
 }
 
 .tbl tr:last-child td {
@@ -936,7 +936,9 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-color: rgb(0 0 0 / 45%);
+  background-color: rgba(3, 7, 18, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -945,9 +947,10 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .modal-panel {
   position: relative;
-  background: var(--color-background-primary, var(--panel));
-  border-radius: var(--border-radius-lg, var(--radius-lg));
-  box-shadow: 0 8px 32px rgb(0 0 0 / 18%);
+  background: var(--surface-card);
+  border-radius: var(--radius-premium);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   width: 100%;
   max-width: 480px;
   max-height: calc(100vh - 48px);
@@ -4115,22 +4118,22 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-input-premium {
   width: 100%;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-subtle);
+  background: #0d1321;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius-premium);
   padding: 12px 16px;
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .rf-input-premium:focus {
   border-color: var(--action-primary);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2);
-  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15), 0 4px 12px rgba(0, 0, 0, 0.3);
+  background: #0a0f1a;
 }
 
 .rf-input-premium::placeholder {

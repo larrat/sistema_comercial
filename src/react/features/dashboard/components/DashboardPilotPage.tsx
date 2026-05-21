@@ -56,7 +56,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   orcamento: { label: 'Orçamento', color: '#94A3B8' },
   em_andamento: { label: 'Em andamento', color: 'var(--color-indigo-vibrant)' },
   em_separacao: { label: 'Em separação', color: 'var(--color-amber-vibrant)' },
-  entregue_aguardando_pagamento: { label: 'Aguardando Pagamento', color: 'var(--color-cyan-vibrant)' },
+  entregue_aguardando_pagamento: { label: 'Aguardando Pagamento', color: 'var(--color-teal-primary)' },
   pago_aguardando_entrega: { label: 'Aguardando Entrega', color: 'var(--color-indigo-vibrant)' },
   concluido: { label: 'Concluído', color: 'var(--color-emerald-vibrant)' },
   cancelado: { label: 'Cancelado', color: 'var(--color-rose-vibrant)' }
@@ -257,7 +257,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight">Desempenho Comercial</Typography>
                 <Typography variant="caption" color="muted">Faturamento vs Lucro Bruto</Typography>
               </div>
-              <div className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest">
+              <div className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold uppercase tracking-widest">
                 {periodoDatas}
               </div>
             </div>
@@ -339,7 +339,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
         {/* Mix de Vendas */}
         <div className={cn(
-          "rf-bento-item rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-cyan-500/5",
+          "rf-bento-item rf-glass overflow-hidden !p-0 transition-all duration-300 hover:border-white/10 hover:shadow-teal-500/5",
           visao === 'operacional' ? 'rf-bento-span-12' : 'rf-bento-span-4'
         )}>
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.02]">
@@ -372,7 +372,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       return (
                         <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-3 rounded-2xl shadow-2xl">
                           <p className="text-[10px] font-black text-white uppercase">{payload[0].name}</p>
-                          <p className="text-xs font-black text-cyan-400 mt-1">{fmt(payload[0].value as number)}</p>
+                          <p className="text-xs font-black text-teal-400 mt-1">{fmt(payload[0].value as number)}</p>
                         </div>
                       );
                     }

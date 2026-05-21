@@ -28,8 +28,8 @@ export function Button({
   const variants: Record<ButtonVariant, string> = {
     primary: 'rf-btn-premium--primary',
     secondary: '', // default premium is secondary-like
-    danger: '!bg-red-500 !text-white !border-red-600 hover:!bg-red-600',
-    ghost: '!bg-transparent !border-transparent !shadow-none hover:!bg-slate-800/50'
+    danger: '!bg-rose-500/10 !text-rose-500 !border-rose-500/20 hover:!bg-rose-500/20 hover:!border-rose-500/30',
+    ghost: '!bg-transparent !border-transparent !shadow-none hover:!bg-white/[0.04]'
   };
 
   const sizes: Record<ButtonSize, string> = {
@@ -42,7 +42,7 @@ export function Button({
     baseStyles,
     variants[variant],
     sizes[size],
-    loading || disabled ? 'opacity-50 pointer-events-none' : '',
+    loading || disabled ? 'opacity-50 pointer-events-none' : 'active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40',
     className
   ].filter(Boolean).join(' ');
 
