@@ -9,6 +9,7 @@ export type DashboardApiContext = {
 
 export type DashboardAggregates = {
   pedidos: Pedido[];
+  pedidosAnteriores?: Pedido[];
   produtos: Produto[];
   clientes: Cliente[];
   contasReceber: ContaReceber[];
@@ -61,19 +62,47 @@ export function buildDateRange(periodo: string): [string | null, string] {
   return [null, today];
 }
 
+export function buildPreviousDateRange(periodo: string): [string | null, string | null] {
+  const now = new Date();
+
+  if (periodo === 'semana') {
+    const end = new Date(now);
+    end.setDate(now.getDate() - 7); // end is start of current period
+    const endStr = end.toISOString().slice(0, 10);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 7);
+    return [start.toISOString().slice(0, 10), endStr];
+  }
+  if (periodo === 'mes') {
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    // last day of previous month
+    const end = new Date(now.getFullYear(), now.getMonth(), 0); 
+    return [start.toISOString().slice(0, 10), end.toISOString().slice(0, 10)];
+  }
+  if (periodo === 'ano') {
+    const start = new Date(now.getFullYear() - 1, 0, 1);
+    const end = new Date(now.getFullYear() - 1, 11, 31);
+    return [start.toISOString().slice(0, 10), end.toISOString().slice(0, 10)];
+  }
+  return [null, null];
+}
+
 export async function fetchDashboardData(
   ctx: DashboardApiContext,
   filialId: string,
   periodo: string
 ): Promise<DashboardAggregates> {
   const [startDate, endDate] = buildDateRange(periodo);
+  const [prevStart, prevEnd] = buildPreviousDateRange(periodo);
+  
   const headers = createHeaders(ctx.key, ctx.token);
   const commonParams = `filial_id=eq.${encodeURIComponent(filialId)}`;
 
   const dateFilter = startDate ? `&data=gte.${startDate}&data=lte.${endDate}` : '';
+  const prevDateFilter = prevStart ? `&data=gte.${prevStart}&data=lte.${prevEnd}` : '';
   const crDateFilter = startDate ? `&vencimento=gte.${startDate}` : ''; // Simplified for dashboard
 
-  const [pedidosRaw, produtos, clientes, contasReceber, filial] = await Promise.all([
+  const [pedidosRaw, pedidosAnterioresRaw, produtos, clientes, contasReceber, filial] = await Promise.all([
     fetch(`${ctx.url}/rest/v1/pedidos?${commonParams}${dateFilter}&select=id,status,total,itens,data&order=data.desc`, {
       headers
     }).then(async (r) => {
@@ -81,6 +110,13 @@ export async function fetchDashboardData(
       ensureOk(r, body, 'Erro ao carregar pedidos');
       return body as Pedido[];
     }),
+    prevStart && prevEnd ? fetch(`${ctx.url}/rest/v1/pedidos?${commonParams}${prevDateFilter}&select=id,status,total,itens,data&order=data.desc`, {
+      headers
+    }).then(async (r) => {
+      const body = await readJson(r);
+      ensureOk(r, body, 'Erro ao carregar pedidos anteriores');
+      return body as Pedido[];
+    }) : Promise.resolve([]),
     fetch(`${ctx.url}/rest/v1/produtos?${commonParams}&select=id,nome,produto_pai_id,esal&order=nome.asc`, { headers }).then(
       async (r) => {
         const body = await readJson(r);
@@ -112,6 +148,7 @@ export async function fetchDashboardData(
   ]);
 
   const pedidos = await hydratePedidosWithNormalizedItens({ ...ctx, filialId }, pedidosRaw);
+  const pedidosAnteriores = await hydratePedidosWithNormalizedItens({ ...ctx, filialId }, pedidosAnterioresRaw as Pedido[]);
 
-  return { pedidos, produtos, clientes, contasReceber, filial };
+  return { pedidos, pedidosAnteriores, produtos, clientes, contasReceber, filial };
 }

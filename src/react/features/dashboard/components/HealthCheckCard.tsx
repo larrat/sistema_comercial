@@ -2,6 +2,8 @@ import React from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
 import { Button, Badge } from '../../../shared/ui';
 
+import { useDashboardStore } from '../store/useDashboardStore';
+
 type Issue = {
   id: string;
   type: 'warning' | 'error';
@@ -10,11 +12,33 @@ type Issue = {
 };
 
 export function HealthCheckCard() {
-  const issues: Issue[] = [
-    { id: '1', type: 'warning', title: 'Produtos sem Categoria', description: '12 itens no catálogo não possuem categoria definida.' },
-    { id: '2', type: 'error', title: 'Clientes com CPF Inválido', description: '3 cadastros apresentam inconsistência no documento.' },
-    { id: '3', type: 'warning', title: 'Pedidos com Pendência', description: '5 pedidos aguardam validação de estoque há mais de 24h.' }
-  ];
+  const { produtos, clientes, pedidos } = useDashboardStore();
+
+  const prodSemCat = produtos.filter(p => !p.cat && !p.categoria).length;
+  const cliSemContato = clientes.filter(c => !c.whatsapp && !c.email).length;
+  
+  const seteDiasAtras = new Date();
+  seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+  const pedPendentes = pedidos.filter(p => {
+    const isPendente = ['orcamento', 'em_andamento', 'em_separacao'].includes(p.status);
+    const date = new Date(p.data || new Date());
+    return isPendente && date < seteDiasAtras;
+  }).length;
+
+  const issues: Issue[] = [];
+  if (prodSemCat > 0) {
+    issues.push({ id: '1', type: 'warning', title: 'Produtos sem Categoria', description: `${prodSemCat} itens no catálogo não possuem categoria definida.` });
+  }
+  if (cliSemContato > 0) {
+    issues.push({ id: '2', type: 'warning', title: 'Clientes sem Contato', description: `${cliSemContato} cadastros não possuem WhatsApp ou Email.` });
+  }
+  if (pedPendentes > 0) {
+    issues.push({ id: '3', type: 'error', title: 'Pedidos Estagnados', description: `${pedPendentes} pedidos abertos há mais de 7 dias.` });
+  }
+
+  if (issues.length === 0) {
+    issues.push({ id: 'ok', type: 'warning', title: 'Tudo Certo', description: 'Nenhum problema detectado na base de dados.' });
+  }
 
   const hasCritical = issues.some(i => i.type === 'error');
 

@@ -1,5 +1,6 @@
 export type DashboardWorkerPayload = {
   pedidos: any[];
+  pedidosAnteriores?: any[];
   produtos: any[];
   clientes: any[];
   contasReceber: any[];
@@ -8,7 +9,7 @@ export type DashboardWorkerPayload = {
 };
 
 self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
-  const { pedidos, produtos, clientes, contasReceber, periodo, statusKeys } = e.data;
+  const { pedidos, pedidosAnteriores = [], produtos, clientes, contasReceber, periodo, statusKeys } = e.data;
 
   const statusVenda = ['entregue_aguardando_pagamento', 'pago_aguardando_entrega', 'concluido'];
   const vendasReais = pedidos.filter(p => statusVenda.includes(p.status));
@@ -28,6 +29,38 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
   const ticketMedio = vendasReais.length > 0 ? faturamento / vendasReais.length : 0;
   const valorEmAberto = contasReceber.reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
   
+  // -- Stats Anteriores para Tendência --
+  const vendasReaisAnteriores = pedidosAnteriores.filter(p => statusVenda.includes(p.status));
+  const faturamentoAnt = vendasReaisAnteriores.reduce((acc, p) => acc + Number(p.total || 0), 0);
+  
+  let lucroTotalAnt = 0;
+  vendasReaisAnteriores.forEach(p => {
+    const items = (typeof p.itens === 'string' ? JSON.parse(p.itens) : (p.itens || []));
+    items.forEach((item: any) => {
+      const preco = Number(item.preco || 0);
+      const custo = Number(item.custo || 0);
+      const qty = Number(item.qty || 0);
+      lucroTotalAnt += (preco - custo) * qty;
+    });
+  });
+
+  const ticketMedioAnt = vendasReaisAnteriores.length > 0 ? faturamentoAnt / vendasReaisAnteriores.length : 0;
+  // Para contas a receber (em aberto), como não temos o saldo histórico preciso, vamos considerar a variação 0 ou calcular se tivéssemos.
+  // Por enquanto "Em Aberto" não terá variação baseada no histórico de pedidos.
+
+  const calcTrend = (current: number, previous: number) => {
+    if (periodo === 'tudo') return null; // Sem comparativo
+    if (previous === 0) return current > 0 ? 100 : 0; // Se antes era 0 e agora tem algo, 100% aumento
+    return ((current - previous) / previous) * 100;
+  };
+
+  const trends = {
+    faturamento: calcTrend(faturamento, faturamentoAnt),
+    lucro: calcTrend(lucroTotal, lucroTotalAnt),
+    ticket: calcTrend(ticketMedio, ticketMedioAnt),
+    emAberto: null // Sem baseline fácil para contas a receber
+  };
+
   const stats = {
     vendasReais: [], // Não precisamos devolver o array inteiro
     faturamento,
@@ -37,7 +70,8 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
     valorEmAberto,
     totalPedidos: vendasReais.length,
     pedidosEntregues: vendasReais.length,
-    pedidosPendentes: contasReceber.length
+    pedidosPendentes: contasReceber.length,
+    trends
   };
 
   // --- Chart Data ---

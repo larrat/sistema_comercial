@@ -211,10 +211,34 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         className="rf-bento-grid"
       >
         {[
-          { label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-white', trend: '+12.4%', trendLabel: 'vs semana anterior', trendUp: true, glow: 'hover:shadow-amber-500/5 hover:border-amber-500/20' },
-          { label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', ring: 'ring-emerald-500/20', trend: '+8.2%', trendLabel: 'vs semana anterior', trendUp: true, glow: 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' },
-          { label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-white', trend: '+3.1%', trendLabel: 'vs semana anterior', trendUp: true, glow: 'hover:shadow-indigo-500/5 hover:border-indigo-500/20' },
-          { label: 'Em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', ring: stats.valorEmAberto > 0 ? 'ring-amber-500/20' : 'ring-emerald-500/20', trend: stats.valorEmAberto > 0 ? '+1.5%' : '-15.3%', trendLabel: 'vs semana anterior', trendUp: stats.valorEmAberto > 0 ? false : true, glow: stats.valorEmAberto > 0 ? 'hover:shadow-amber-500/5 hover:border-amber-500/20' : 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' }
+          { 
+            label: 'Faturamento', val: stats.faturamento, prefix: 'R$ ', color: 'text-white', 
+            trend: stats.trends?.faturamento !== null ? `${stats.trends.faturamento > 0 ? '+' : ''}${stats.trends.faturamento.toFixed(1)}%` : '-', 
+            trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
+            trendUp: stats.trends?.faturamento !== null ? stats.trends.faturamento >= 0 : true, 
+            glow: 'hover:shadow-amber-500/5 hover:border-amber-500/20' 
+          },
+          { 
+            label: 'Lucro bruto', val: stats.lucroTotal, prefix: 'R$ ', color: 'text-emerald-400', ring: 'ring-emerald-500/20', 
+            trend: stats.trends?.lucro !== null ? `${stats.trends.lucro > 0 ? '+' : ''}${stats.trends.lucro.toFixed(1)}%` : '-', 
+            trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
+            trendUp: stats.trends?.lucro !== null ? stats.trends.lucro >= 0 : true, 
+            glow: 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' 
+          },
+          { 
+            label: 'Ticket médio', val: stats.ticketMedio, prefix: 'R$ ', color: 'text-white', 
+            trend: stats.trends?.ticket !== null ? `${stats.trends.ticket > 0 ? '+' : ''}${stats.trends.ticket.toFixed(1)}%` : '-', 
+            trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
+            trendUp: stats.trends?.ticket !== null ? stats.trends.ticket >= 0 : true, 
+            glow: 'hover:shadow-indigo-500/5 hover:border-indigo-500/20' 
+          },
+          { 
+            label: 'Em aberto', val: stats.valorEmAberto, prefix: 'R$ ', color: stats.valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400', ring: stats.valorEmAberto > 0 ? 'ring-amber-500/20' : 'ring-emerald-500/20', 
+            trend: '-', 
+            trendLabel: 'Variação N/A', 
+            trendUp: stats.valorEmAberto === 0, 
+            glow: stats.valorEmAberto > 0 ? 'hover:shadow-amber-500/5 hover:border-amber-500/20' : 'hover:shadow-emerald-500/5 hover:border-emerald-500/20' 
+          }
         ].map((stat, i) => (
           <motion.article 
             key={i}
@@ -229,11 +253,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
               <Typography variant="label" color="muted">{stat.label}</Typography>
               <span className={cn(
                 "text-[9px] font-black px-2 py-0.5 rounded-md flex items-center gap-0.5 border uppercase tracking-wider",
-                stat.trendUp 
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                  : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                stat.trend === '-' 
+                  ? "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                  : stat.trendUp 
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+                    : "bg-rose-500/10 text-rose-400 border-rose-500/20"
               )}>
-                <ArrowUpRight size={10} className={stat.trendUp ? "" : "rotate-90"} />
+                {stat.trend !== '-' && <ArrowUpRight size={10} className={stat.trendUp ? "" : "rotate-90"} />}
                 {stat.trend}
               </span>
             </div>
@@ -409,7 +435,36 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       <div className="rf-bento-grid mt-4">
         {/* Health Check */}
         <div className="rf-bento-item rf-bento-span-4 rf-glass flex flex-col gap-6 transition-all duration-300 hover:border-white/10">
-           <HealthCheckCard />
+           <div className="flex flex-col gap-4">
+             <div className="flex items-center gap-2 mb-2">
+                <Activity size={16} className="text-teal-400" />
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">Métricas Vitais</span>
+             </div>
+             <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: 'Contato', val: workerData.healthMetrics?.contato || 0, color: 'bg-teal-500' },
+                  { label: 'Estoque', val: workerData.healthMetrics?.estoque || 0, color: 'bg-emerald-500' },
+                  { label: 'Mix', val: workerData.healthMetrics?.mix || 0, color: 'bg-indigo-500' },
+                  { label: 'Entrega', val: workerData.healthMetrics?.entrega || 0, color: 'bg-amber-500' }
+                ].map((m, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2">
+                    <div className="relative w-12 h-12 rounded-full flex items-center justify-center border border-white/10 bg-white/5">
+                      <svg className="absolute inset-0 w-full h-full -rotate-90">
+                        <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="2" fill="none" className="text-white/5" />
+                        <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="138" strokeDashoffset={138 - (138 * m.val) / 100} className={`text-transparent ${m.color.replace('bg-', 'text-')} transition-all duration-1000`} />
+                      </svg>
+                      <span className="text-[9px] font-black text-white">{Math.round(m.val)}%</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">{m.label}</span>
+                  </div>
+                ))}
+             </div>
+           </div>
+
+           <div className="pt-4 border-t border-white/5">
+             <HealthCheckCard />
+           </div>
+
            <div className="mt-auto pt-6 border-t border-white/5">
               <FiscalHubCard />
            </div>
