@@ -234,6 +234,10 @@ export function usePedidoMutations() {
       queryClient.invalidateQueries({ queryKey: ['pedidos-summary'] });
       queryClient.invalidateQueries({ queryKey: ['pedido'] });
       toast.success('Entrega confirmada com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao confirmar entrega: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+      console.error('[pedidos] Erro confirmarEntrega:', error);
     }
   });
 
