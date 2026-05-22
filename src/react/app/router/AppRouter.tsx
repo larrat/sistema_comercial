@@ -1,7 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-
-import type { AppBootstrapState } from '../hooks/useAppBootstrap';
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Navigate, Route, Routes } from 'react-router-dom';
+import { useMemo } from 'react';
 
 // Lazy loading for feature pages to reduce initial bundle size
 const ClienteCreateRoutePage = lazy(() => import('../../features/clientes/pages/ClienteCreateRoutePage').then(m => ({ default: m.ClienteCreateRoutePage })));
@@ -61,71 +59,75 @@ function RouteLoader() {
 }
 
 export function AppRouter({ bootstrap }: AppRouterProps) {
-  return (
-    <BrowserRouter>
-      <Suspense fallback={<RouteLoader />}>
-        <Routes>
-          <Route element={<LoginRouteAccess bootstrap={bootstrap} />}>
-            <Route path="/login" element={<LoginPage />} />
-          </Route>
+  const router = useMemo(() => createBrowserRouter(
+    createRoutesFromElements(
+      <>
+        <Route element={<LoginRouteAccess bootstrap={bootstrap} />}>
+          <Route path="/login" element={<LoginPage />} />
+        </Route>
 
-          <Route element={<SetupRouteAccess bootstrap={bootstrap} />}>
-            <Route path="/setup" element={<SetupPage />} />
-          </Route>
+        <Route element={<SetupRouteAccess bootstrap={bootstrap} />}>
+          <Route path="/setup" element={<SetupPage />} />
+        </Route>
 
-          <Route element={<ProtectedAppRoute bootstrap={bootstrap} />}>
-            <Route path="/app" element={<AppShell />}>
-              <Route index element={<AppRootRedirect />} />
-              <Route path="pdv" element={<PdvRoutePage />} />
-              <Route path="dashboard" element={<DashboardRoutePage />} />
-              <Route path="clientes" element={<ClientesRoutePage />} />
-              <Route path="clientes/novo" element={<ClienteCreateRoutePage />} />
-              <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />
-              <Route path="clientes/:clienteId/editar" element={<ClienteEditRoutePage />} />
-              <Route path="estoque" element={<EstoqueRoutePage />} />
-              <Route path="cotacao" element={<CotacaoRoutePage />} />
-              <Route path="pedidos" element={<PedidosRoutePage />} />
-              <Route path="pedidos/novo" element={<PedidoCreateRoutePage />} />
-              <Route path="pedidos/:pedidoId" element={<PedidoProfileRoutePage />} />
-              <Route path="pedidos/:pedidoId/editar" element={<PedidoEditRoutePage />} />
-              <Route path="receber" element={<ContasReceberRoutePage />} />
-              <Route path="produtos" element={<ProdutosRoutePage />} />
-              <Route path="produtos/novo" element={<ProdutoCreateRoutePage />} />
-              <Route path="produtos/:produtoId" element={<ProdutoProfileRoutePage />} />
-              <Route path="rcas" element={<RcasRoutePage />} />
-              <Route path="relatorios" element={<RelatoriosRoutePage />} />
-              <Route path="campanhas" element={<CampanhasRoutePage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="compras" element={<ComprasRoutePage />} />
-              <Route path="compras/novo" element={<PedidoCompraCreateRoutePage />} />
-              <Route path="compras/sugestoes" element={<SugestaoComprasRoutePage />} />
-              <Route path="caixa" element={<CaixaRoutePage />} />
-              <Route path="caixa/conciliacao" element={<ConciliacaoBancariaRoutePage />} />
-              <Route element={<AdminOnlyRoute />}>
-                <Route path="filiais" element={<FiliaisRoutePage />} />
-                <Route path="acessos" element={<AcessosRoutePage />} />
-              </Route>
+        <Route element={<ProtectedAppRoute bootstrap={bootstrap} />}>
+          <Route path="/app" element={<AppShell />}>
+            <Route index element={<AppRootRedirect />} />
+            <Route path="pdv" element={<PdvRoutePage />} />
+            <Route path="dashboard" element={<DashboardRoutePage />} />
+            <Route path="clientes" element={<ClientesRoutePage />} />
+            <Route path="clientes/novo" element={<ClienteCreateRoutePage />} />
+            <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />
+            <Route path="clientes/:clienteId/editar" element={<ClienteEditRoutePage />} />
+            <Route path="estoque" element={<EstoqueRoutePage />} />
+            <Route path="cotacao" element={<CotacaoRoutePage />} />
+            <Route path="pedidos" element={<PedidosRoutePage />} />
+            <Route path="pedidos/novo" element={<PedidoCreateRoutePage />} />
+            <Route path="pedidos/:pedidoId" element={<PedidoProfileRoutePage />} />
+            <Route path="pedidos/:pedidoId/editar" element={<PedidoEditRoutePage />} />
+            <Route path="receber" element={<ContasReceberRoutePage />} />
+            <Route path="produtos" element={<ProdutosRoutePage />} />
+            <Route path="produtos/novo" element={<ProdutoCreateRoutePage />} />
+            <Route path="produtos/:produtoId" element={<ProdutoProfileRoutePage />} />
+            <Route path="rcas" element={<RcasRoutePage />} />
+            <Route path="relatorios" element={<RelatoriosRoutePage />} />
+            <Route path="campanhas" element={<CampanhasRoutePage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="compras" element={<ComprasRoutePage />} />
+            <Route path="compras/novo" element={<PedidoCompraCreateRoutePage />} />
+            <Route path="compras/sugestoes" element={<SugestaoComprasRoutePage />} />
+            <Route path="caixa" element={<CaixaRoutePage />} />
+            <Route path="caixa/conciliacao" element={<ConciliacaoBancariaRoutePage />} />
+            <Route element={<AdminOnlyRoute />}>
+              <Route path="filiais" element={<FiliaisRoutePage />} />
+              <Route path="acessos" element={<AcessosRoutePage />} />
             </Route>
           </Route>
+        </Route>
 
-          <Route path="/portal" element={<PortalStorefrontPage />} />
+        <Route path="/portal" element={<PortalStorefrontPage />} />
 
-          <Route
-            path="/"
-            element={
-              bootstrap.status === 'authenticated_with_filial' ? (
-                <Navigate to={getDefaultAppPath()} replace />
-              ) : bootstrap.status === 'authenticated_without_filial' ? (
-                <Navigate to="/setup" replace />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          />
+        <Route
+          path="/"
+          element={
+            bootstrap.status === 'authenticated_with_filial' ? (
+              <Navigate to={getDefaultAppPath()} replace />
+            ) : bootstrap.status === 'authenticated_without_filial' ? (
+              <Navigate to="/setup" replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </>
+    )
+  ), [bootstrap.status, bootstrap.filialId, bootstrap.user?.id]);
+
+  return (
+    <Suspense fallback={<RouteLoader />}>
+      <RouterProvider router={router} />
+    </Suspense>
   );
 }
