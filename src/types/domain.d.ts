@@ -216,6 +216,8 @@ export type Pedido = {
   nfe_id?: string | null;
   nfe_url?: string | null;
   campanha_id?: string | null;
+  custo_frete?: number;
+  outros_custos?: number;
 };
 
 export type ContaReceber = {

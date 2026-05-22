@@ -51,7 +51,12 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
 
   const produtos = produtosPage?.rows || [];
   const total = useMemo(() => calculatePedidoTotal(itens), [itens]);
-  const lucroTotal = useMemo(() => calculatePedidoLucroTotal(itens), [itens]);
+  const lucroTotal = useMemo(() => {
+    const lucroItens = calculatePedidoLucroTotal(itens);
+    const frete = Number(pedido.custo_frete) || 0;
+    const outros = Number(pedido.outros_custos) || 0;
+    return lucroItens - frete - outros;
+  }, [itens, pedido.custo_frete, pedido.outros_custos]);
 
   function startEdit(item: PedidoItem, index: number, field: EditableField) {
     if (!canEdit) return;

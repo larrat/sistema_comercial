@@ -124,7 +124,10 @@ export function PedidoProfilePage({
   
   const itens = useMemo(() => parseItens(pedido), [pedido]);
   const total = calculatePedidoTotal(itens);
-  const lucroTotal = calculatePedidoLucroTotal(itens);
+  const lucroItens = calculatePedidoLucroTotal(itens);
+  const custoFrete = Number(pedido.custo_frete) || 0;
+  const outrosCustos = Number(pedido.outros_custos) || 0;
+  const lucroTotal = lucroItens - custoFrete - outrosCustos;
   const margemTotal = total > 0 ? (lucroTotal / total) * 100 : 0;
   const valorEmAberto = getValorEmAberto(financeiro.conta);
 

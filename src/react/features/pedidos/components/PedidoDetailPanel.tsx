@@ -211,7 +211,14 @@ export function PedidoDetailPanel({ pedido }: Props) {
         )}
       </div>
 
-      <PedidoItemsSection itens={itens} produtos={[]} tipo={pedido.tipo ?? 'varejo'} readOnly />
+      <PedidoItemsSection 
+        itens={itens} 
+        produtos={[]} 
+        tipo={pedido.tipo ?? 'varejo'} 
+        custoFrete={pedido.custo_frete}
+        outrosCustos={pedido.outros_custos}
+        readOnly 
+      />
 
       <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 shadow-sm mt-6">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">

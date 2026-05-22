@@ -73,6 +73,8 @@ export function PedidoForm({
   const [prazo, setPrazo] = useState(initialPedido?.prazo ?? 'imediato');
   const [tipo, setTipo] = useState(initialPedido?.tipo ?? 'varejo');
   const [obs, setObs] = useState(initialPedido?.obs ?? '');
+  const [custoFrete, setCustoFrete] = useState<string>(initialPedido?.custo_frete?.toString() ?? '');
+  const [outrosCustos, setOutrosCustos] = useState<string>(initialPedido?.outros_custos?.toString() ?? '');
   const [itens, setItens] = useState<PedidoItem[]>(existingItens);
   const [errors, setErrors] = useState<PedidoFormErrors>({});
   const [showAdvanced, setShowAdvanced] = useState(Boolean(initialPedido?.obs));
@@ -92,8 +94,10 @@ export function PedidoForm({
            prazo !== (initialPedido.prazo ?? 'imediato') ||
            obs !== (initialPedido.obs ?? '') ||
            itens.length !== existingItens.length ||
-           tipo !== (initialPedido.tipo ?? 'varejo');
-  }, [initialPedido, cli, rcaId, status, pgto, prazo, obs, itens.length, existingItens.length, tipo]);
+           tipo !== (initialPedido.tipo ?? 'varejo') ||
+           (parseFloat(custoFrete || '0') !== (initialPedido.custo_frete ?? 0)) ||
+           (parseFloat(outrosCustos || '0') !== (initialPedido.outros_custos ?? 0));
+  }, [initialPedido, cli, rcaId, status, pgto, prazo, obs, itens.length, existingItens.length, tipo, custoFrete, outrosCustos]);
 
   useUnsavedChangesGuard(isDirty);
 
@@ -177,7 +181,9 @@ export function PedidoForm({
       tipo,
       obs: obs.trim(),
       itens,
-      total: totalPedido
+      total: totalPedido,
+      custo_frete: parseFloat(custoFrete || '0'),
+      outros_custos: parseFloat(outrosCustos || '0')
     };
 
     save.mutate(pedidoInput, {
@@ -301,6 +307,8 @@ export function PedidoForm({
                   itens={itens}
                   produtos={produtos}
                   tipo={tipo}
+                  custoFrete={parseFloat(custoFrete || '0')}
+                  outrosCustos={parseFloat(outrosCustos || '0')}
                   onAdd={addItem}
                   onRemove={removeItem}
                 />
@@ -364,6 +372,34 @@ export function PedidoForm({
                     { value: 'varejo', label: 'Varejo' },
                     { value: 'atacado', label: 'Atacado' }
                   ]}
+                />
+              </div>
+            </FormSection>
+
+            <FormSection
+              title="Custos Operacionais"
+              description="Registre despesas atreladas a este pedido. Estes valores abatem automaticamente o ganho na transação gerencial."
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Custo de Frete (R$)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={custoFrete}
+                  onChange={(e) => setCustoFrete(e.target.value)}
+                  placeholder="0.00"
+                  helperText="Valor gasto com transporte ou frete."
+                />
+                <Input
+                  label="Outros Custos (R$)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={outrosCustos}
+                  onChange={(e) => setOutrosCustos(e.target.value)}
+                  placeholder="0.00"
+                  helperText="Embalagens extras, taxas ou serviços de terceiros."
                 />
               </div>
             </FormSection>
