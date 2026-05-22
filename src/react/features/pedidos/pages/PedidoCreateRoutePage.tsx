@@ -4,11 +4,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PedidoForm } from '../components/PedidoForm';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePedidoMutations } from '../hooks/usePedidosQuery';
+import { Button } from '../../../shared/ui';
 
 export function PedidoCreateRoutePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const clienteId = searchParams.get('cliente') || null;
+  const { save } = usePedidoMutations();
 
   const handleBack = useCallback(() => {
     navigate(-1);
@@ -24,9 +27,22 @@ export function PedidoCreateRoutePage() {
         >
           <ChevronLeft size={20} />
         </button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-black text-white">Novo Pedido</h1>
           <p className="text-sm text-slate-400">Preencha os dados abaixo para iniciar uma nova venda</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleBack} variant="secondary">
+            Cancelar
+          </Button>
+          <Button 
+            variant="primary" 
+            form="pedido-form-element" 
+            type="submit"
+            loading={save.isPending}
+          >
+            Salvar pedido
+          </Button>
         </div>
       </div>
 

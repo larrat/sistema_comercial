@@ -203,7 +203,7 @@ export function PedidoForm({
       )}
 
       {!formLoading && (
-        <form onSubmit={(e) => void handleSubmit(e)}>
+        <form id="pedido-form-element" onSubmit={(e) => void handleSubmit(e)}>
           <div className="rf-ui-stack">
             <FormError message={errors.geral} data-testid="pedido-form-error" />
 
@@ -391,15 +391,6 @@ export function PedidoForm({
                 </FormField>
               </div>
             </details>
-          </div>
-
-          <div className="sticky bottom-0 z-10 pt-4 pb-2 mt-6 bg-slate-950 border-t border-white/10">
-            <FormActions
-              onCancel={onCancel}
-              cancelLabel="Voltar"
-              loading={save.isPending}
-              submitLabel={isEdit ? 'Salvar alterações' : 'Salvar pedido'}
-            />
           </div>
         </form>
       )}

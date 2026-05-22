@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { PedidoForm } from '../components/PedidoForm';
-import { usePedidoQuery } from '../hooks/usePedidosQuery';
+import { usePedidoQuery, usePedidoMutations } from '../hooks/usePedidosQuery';
 import { Button, ErrorState, EmptyState, LoadingState } from '../../../shared/ui';
 import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
@@ -81,9 +81,22 @@ export function PedidoEditRoutePage() {
         >
           <ChevronLeft size={20} />
         </button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-black text-white">Editar Pedido</h1>
           <p className="text-sm text-slate-400">Pedido #{pedido.num}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleBack} variant="secondary">
+            Cancelar
+          </Button>
+          <Button 
+            variant="primary" 
+            form="pedido-form-element" 
+            type="submit"
+            loading={usePedidoMutations().save.isPending}
+          >
+            Salvar alterações
+          </Button>
         </div>
       </div>
 
