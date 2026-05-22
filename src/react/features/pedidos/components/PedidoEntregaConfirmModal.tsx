@@ -81,7 +81,7 @@ export function PedidoEntregaConfirmModal({
           <p className="table-cell-muted">
             Confirme apenas quando a mercadoria tiver sido entregue ao cliente.
           </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</div>
               <div className="font-bold text-slate-900">{pedido.cli || '—'}</div>
@@ -109,7 +109,9 @@ export function PedidoEntregaConfirmModal({
               </StatusBadge>
             </div>
           </div>
-          <StatusBadge tone="info">{getPaymentWarning(pedido)}</StatusBadge>
+          <div className="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm rounded-lg leading-relaxed">
+            {getPaymentWarning(pedido)}
+          </div>
         </div>
       ) : null}
     </Modal>
