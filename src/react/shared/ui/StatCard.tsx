@@ -36,12 +36,12 @@ export function StatCard({ label, value, description, foot, tone = 'default', on
   return (
     <section 
       onClick={onClick}
-      className={`!p-8 rounded-xl border shadow-sm transition-colors flex flex-col items-center text-center gap-4 overflow-hidden ${toneClasses[tone]} ${onClick ? 'cursor-pointer hover:shadow-md hover:translate-y-[-2px] active:translate-y-0' : ''}`}
+      className={`!p-5 rounded-xl border shadow-sm transition-colors flex flex-col items-center text-center gap-2 overflow-hidden ${toneClasses[tone]} ${onClick ? 'cursor-pointer hover:shadow-md hover:translate-y-[-2px] active:translate-y-0' : ''}`}
     >
       <Typography variant="label" color="inherit" className={labelToneClasses[tone]}>
         {label}
       </Typography>
-      <Typography variant="h2" color="inherit" weight="bold">
+      <Typography variant="h3" color="inherit" weight="bold">
         {value}
       </Typography>
       {description ? (

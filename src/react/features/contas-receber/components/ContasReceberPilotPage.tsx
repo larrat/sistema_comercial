@@ -638,7 +638,19 @@ function ContasList({
         {
           key: 'recebido',
           header: 'Recebido',
-          render: (conta) => <span className="table-cell-strong tone-success">{fmt(getValorRecebido(conta))}</span>,
+          render: (conta) => {
+            const recebido = getValorRecebido(conta);
+            const total = conta.valor;
+            const percent = total > 0 ? Math.min(100, Math.round((recebido / total) * 100)) : 0;
+            return (
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="table-cell-strong tone-success">{fmt(recebido)}</span>
+                <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden" title={`${percent}% Recebido`}>
+                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${percent}%` }} />
+                </div>
+              </div>
+            );
+          },
           align: 'right'
         },
         {
@@ -659,7 +671,7 @@ function ContasList({
           header: 'Vencimento',
           render: (conta) => (
             <span className={getStatusEfetivo(conta) === 'vencido' ? 'tone-danger table-cell-strong' : 'table-cell-muted'}>
-              {conta.vencimento}
+              {conta.vencimento.split('-').reverse().join('/')}
             </span>
           )
         },
@@ -843,17 +855,18 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
           actions={
             onRetryLoad ? (
-              <Button size="sm" type="button" onClick={onRetryLoad}>
+              <Button size="sm" type="button" onClick={onRetryLoad} className="gap-2">
+                <RefreshCw size={14} className="animate-spin" />
                 Atualizar
               </Button>
             ) : undefined
           }
         />
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8">
             <ContasReceberMetrics contas={contas} baixas={baixas} />
           </div>
-          <div>
+          <div className="lg:col-span-4">
             <CrmAutomationCard />
           </div>
         </div>
@@ -874,17 +887,18 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
           actions={
             onRetryLoad ? (
-              <Button size="sm" type="button" onClick={onRetryLoad}>
+              <Button size="sm" type="button" onClick={onRetryLoad} className="gap-2">
+                <RefreshCw size={14} />
                 Atualizar
               </Button>
             ) : undefined
           }
         />
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8">
             <ContasReceberMetrics contas={contas} baixas={baixas} />
           </div>
-          <div>
+          <div className="lg:col-span-4">
             <CrmAutomationCard />
           </div>
         </div>
@@ -906,7 +920,8 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         actions={
           <div className="flex items-center gap-3">
             {onRetryLoad ? (
-              <Button size="sm" onClick={onRetryLoad}>
+              <Button size="sm" onClick={onRetryLoad} className="gap-2">
+                <RefreshCw size={14} />
                 Atualizar
               </Button>
             ) : null}
@@ -914,25 +929,21 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         }
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
           <ContasReceberMetrics contas={contas} baixas={baixas} />
         </div>
-        <div>
+        <div className="lg:col-span-4">
           <CrmAutomationCard />
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="mb-2">
         <SegmentedControl
           options={TABS.map(t => ({ id: t.key, label: t.label }))}
           activeId={activeTab}
           onChange={(id) => setActiveTab(id as CrTab)}
         />
-        
-        <div className="flex items-center gap-2">
-          <StatusBadge tone="info">{filteredContas.length} títulos visíveis</StatusBadge>
-        </div>
       </div>
 
       <FilterBar
@@ -944,6 +955,9 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         }}
         activeFilterCount={searchQuery ? 1 : 0}
         onClearFilters={searchQuery ? () => setSearchQuery('') : undefined}
+        actions={
+          <StatusBadge tone="vibrant-blue">{filteredContas.length} títulos visíveis</StatusBadge>
+        }
       />
 
       <ContasList
