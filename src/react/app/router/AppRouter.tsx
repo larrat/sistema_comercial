@@ -1,5 +1,5 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Navigate, Route, Routes } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useMemo, lazy, Suspense } from 'react';
 
 // Lazy loading for feature pages to reduce initial bundle size
 const ClienteCreateRoutePage = lazy(() => import('../../features/clientes/pages/ClienteCreateRoutePage').then(m => ({ default: m.ClienteCreateRoutePage })));
