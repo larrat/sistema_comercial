@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 :root {
+  color-scheme: dark;
   /* --- NEXUS INDUSTRIAL: SEMANTIC DESIGN SYSTEM --- */
   /* --- DESIGN TOKENS: COLORS (PALETTE) --- */
   --color-absolute-midnight: #030712;
@@ -262,6 +263,11 @@
 .rf-btn-premium--primary:hover {
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
   transform: translateY(-2px) scale(1.02);
+}
+
+select option {
+  background-color: var(--color-deep-slate);
+  color: var(--text-primary);
 }
 
 body {
