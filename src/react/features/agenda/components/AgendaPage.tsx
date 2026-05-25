@@ -10,10 +10,12 @@ import { useUnifiedCalendar } from '../hooks/useUnifiedCalendar';
 import type { UnifiedCalendarEvent } from '../types';
 import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { AgendaEventModal } from './AgendaEventModal';
 import { toast } from 'sonner';
 
 export function AgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { integration, saveIntegration } = useGoogleIntegration();
   const config = getSupabaseConfig();
   
@@ -91,7 +93,10 @@ export function AgendaPage() {
               Google Conectado
             </div>
           )}
-          <button className="flex items-center gap-2 rounded-lg bg-indigo-500/10 px-4 py-2 text-sm font-bold text-indigo-400 hover:bg-indigo-500/20">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 rounded-lg bg-indigo-500/10 px-4 py-2 text-sm font-bold text-indigo-400 hover:bg-indigo-500/20"
+          >
             <LucidePlus className="h-4 w-4" />
             Novo Evento
           </button>
@@ -169,6 +174,11 @@ export function AgendaPage() {
         </div>
       </div>
       
+      <AgendaEventModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        selectedDate={currentDate} 
+      />
     </div>
   );
 }
