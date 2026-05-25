@@ -22,12 +22,16 @@ export function CotacaoTabs({ activeTab }: Props) {
   }
 
   return (
-    <div className="tabs">
+    <div className="flex items-center gap-2 border-b border-white/10 pb-4 mb-4 overflow-x-auto hide-scrollbar">
       {TABS.map((tab) => (
         <button
           key={tab.id}
           type="button"
-          className={`tb ${activeTab === tab.id ? 'on' : ''}`}
+          className={`shrink-0 rounded-lg px-4 py-2 text-sm font-bold transition-all ${
+            activeTab === tab.id
+              ? 'bg-indigo-500 text-white shadow-md'
+              : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
+          }`}
           onClick={() => goToTab(tab.id)}
         >
           {tab.label}

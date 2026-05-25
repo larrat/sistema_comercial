@@ -282,7 +282,7 @@ export async function upsertCotacaoConfig(
   config: CotacaoConfig
 ): Promise<void> {
   const res = await fetch(
-    `${context.url}/rest/v1/cotacao_config?on_conflict=filial_id`,
+    `${context.url}/rest/v1/cotacao_config?on_conflict=id`,
     {
       method: 'POST',
       headers: createHeaders(context.key, context.token),
