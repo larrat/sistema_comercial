@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useFilialStore } from '../../filiais/store/useFilialStore';
-import { useSessionStore } from '../../auth/store/useSessionStore';
-import { useConfig } from '../../../app/config/configProvider';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { crmApi } from '../services/crmApi';
 import type { CrmEstagio, CrmOportunidadeDraft } from '../types';
 import { toast } from 'sonner';
@@ -9,16 +9,16 @@ import { toast } from 'sonner';
 export function useCrmMutations() {
   const queryClient = useQueryClient();
   const filialId = useFilialStore((s) => s.filialId);
-  const session = useSessionStore((s) => s.session);
-  const config = useConfig();
+  const session = useAuthStore((s) => s.session);
+  const config = getSupabaseConfig();
 
   const getContext = () => {
     if (!filialId || !session?.access_token || !config.ready) {
       throw new Error('Sessão, filial ou configuração não pronta');
     }
     return {
-      url: config.backendUrl,
-      key: config.supabaseAnonKey,
+      url: config.url,
+      key: config.key,
       token: session.access_token,
       filialId,
     };

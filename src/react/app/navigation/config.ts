@@ -60,6 +60,13 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     roles: ['operador', 'gerente', 'admin']
   },
   {
+    id: 'contratos',
+    label: 'Contratos e O.S.',
+    path: '/app/contratos',
+    group: 'Operação',
+    roles: ['operador', 'gerente', 'admin']
+  },
+  {
     id: 'pedidos',
     label: 'Pedidos',
     path: '/app/pedidos',

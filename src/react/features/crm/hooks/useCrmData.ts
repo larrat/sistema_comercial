@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { useFilialStore } from '../../filiais/store/useFilialStore';
-import { useSessionStore } from '../../auth/store/useSessionStore';
-import { useConfig } from '../../../app/config/configProvider';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { crmApi } from '../services/crmApi';
 
 export function useCrmData() {
   const filialId = useFilialStore((s) => s.filialId);
-  const session = useSessionStore((s) => s.session);
-  const config = useConfig();
+  const session = useAuthStore((s) => s.session);
+  const config = getSupabaseConfig();
 
   const token = session?.access_token;
 
@@ -17,8 +17,8 @@ export function useCrmData() {
       if (!filialId || !token || !config.ready) return [];
       
       return crmApi.getOportunidades({
-        url: config.backendUrl,
-        key: config.supabaseAnonKey,
+        url: config.url,
+        key: config.key,
         token,
         filialId,
       });

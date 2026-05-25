@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCrmData } from '../hooks/useCrmData';
 import { useCrmMutations } from '../hooks/useCrmMutations';
+import { useContratosMutations } from '../../contratos/hooks/useContratosMutations';
 import type { CrmEstagio, CrmOportunidade } from '../types';
 import { LucidePhone, LucideMapPin, LucideDollarSign, LucideCalendarClock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -19,7 +22,9 @@ const COLUMNS: { id: CrmEstagio; label: string; color: string }[] = [
 export function CrmKanban() {
   const { data: oportunidades = [], isLoading } = useCrmData();
   const { updateEstagio } = useCrmMutations();
+  const { createContrato, isCreatingContrato } = useContratosMutations();
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   if (isLoading) {
     return <div className="p-8 text-center text-slate-400">Carregando funil...</div>;
@@ -42,6 +47,24 @@ export function CrmKanban() {
       await updateEstagio({ id: draggedId, estagio: newEstagio });
     }
     setDraggedId(null);
+  };
+
+  const handleGerarContrato = async (op: CrmOportunidade) => {
+    if (!op.cliente_id) {
+      toast.error('Vincule um cliente à oportunidade antes de gerar contrato.');
+      return;
+    }
+    try {
+      const c = await createContrato({
+        cliente_id: op.cliente_id,
+        oportunidade_id: op.id,
+        titulo: `Contrato Reforma: ${op.nome_lead}`,
+        valor_total: Number(op.valor_estimado) || 0,
+      });
+      navigate(`/app/contratos/${c.id}`);
+    } catch (e) {
+      // toast is already handled in mutation
+    }
   };
 
   const formatCurrency = (val: number) =>
@@ -117,6 +140,16 @@ export function CrmKanban() {
                         {format(new Date(op.criado_em), "dd MMM", { locale: ptBR })}
                       </div>
                     </div>
+
+                    {op.estagio === 'fechado' && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleGerarContrato(op); }}
+                        disabled={isCreatingContrato}
+                        className="mt-3 w-full rounded-lg bg-teal-500/10 py-1.5 text-[11px] font-bold text-teal-400 hover:bg-teal-500/20 hover:text-white transition-colors"
+                      >
+                        Gerar Contrato
+                      </button>
+                    )}
                   </motion.div>
                 ))}
               </AnimatePresence>
