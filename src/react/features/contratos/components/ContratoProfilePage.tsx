@@ -5,6 +5,8 @@ import { LucideArrowLeft, LucideHammer, LucideCalendar, LucideUser, LucidePlus }
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { OrdemServicoModal } from './OrdemServicoModal';
+import { AnalisadorContratoModal } from './AnalisadorContratoModal';
+import { LucideBot } from 'lucide-react';
 
 export function ContratoProfilePage() {
   const { id } = useParams();
@@ -13,6 +15,7 @@ export function ContratoProfilePage() {
   const { data: ordensServico = [] } = useOrdensServicoData(id);
   
   const [isOsModalOpen, setIsOsModalOpen] = useState(false);
+  const [isAnalisadorOpen, setIsAnalisadorOpen] = useState(false);
 
   if (isLoading) return <div className="p-8 text-slate-400">Carregando contrato...</div>;
   if (!contrato) return <div className="p-8 text-rose-400">Contrato não encontrado.</div>;
@@ -63,13 +66,22 @@ export function ContratoProfilePage() {
                 <LucideHammer className="h-5 w-5 text-teal-500" />
                 Ordens de Serviço (O.S.)
               </h2>
-              <button 
-                onClick={() => setIsOsModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-teal-500/10 px-3 py-1.5 text-xs font-bold text-teal-400 hover:bg-teal-500/20"
-              >
-                <LucidePlus className="h-3 w-3" />
-                Nova O.S.
-              </button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsAnalisadorOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-400 hover:bg-indigo-500/20"
+                >
+                  <LucideBot className="h-3 w-3" />
+                  Analisar Prazos (NLP)
+                </button>
+                <button 
+                  onClick={() => setIsOsModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-teal-500/10 px-3 py-1.5 text-xs font-bold text-teal-400 hover:bg-teal-500/20"
+                >
+                  <LucidePlus className="h-3 w-3" />
+                  Nova O.S.
+                </button>
+              </div>
             </div>
 
             <div className="p-4">
@@ -125,6 +137,14 @@ export function ContratoProfilePage() {
         <OrdemServicoModal 
           contratoId={contrato.id} 
           onClose={() => setIsOsModalOpen(false)} 
+        />
+      )}
+      
+      {isAnalisadorOpen && (
+        <AnalisadorContratoModal 
+          contratoId={contrato.id} 
+          isOpen={isAnalisadorOpen} 
+          onClose={() => setIsAnalisadorOpen(false)} 
         />
       )}
     </div>
