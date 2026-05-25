@@ -129,7 +129,7 @@ export function AgendaPage() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="flex flex-1 flex-col rounded-xl border border-white/10 bg-slate-900/40 overflow-hidden">
+      <div className="flex flex-col shrink-0 rounded-xl border border-white/10 bg-slate-900/40 overflow-hidden min-h-[600px]">
         {/* Week Headers */}
         <div className="grid grid-cols-7 border-b border-white/5 bg-white/[0.02]">
           {weekDays.map(day => (
