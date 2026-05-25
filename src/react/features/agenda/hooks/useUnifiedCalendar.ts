@@ -23,21 +23,20 @@ export function useUnifiedCalendar(currentDate: Date) {
       if (!filialId || !token || !config.ready) return [];
       const ctx = { url: config.url, key: config.key, token, filialId };
       
-      // 1. Busca eventos genéricos da agenda
-      const agendaEvents = await agendaApi.getEventos(ctx, start, end);
-      
-      // 2. Busca Ordens de Serviço do período
-      const resOs = await fetch(
-        `${ctx.url}/rest/v1/ordens_servico?filial_id=eq.${ctx.filialId}&data_agendada=gte.${start}&data_agendada=lte.${end}&select=*`,
-        { headers: { 'Content-Type': 'application/json', apikey: ctx.key, Authorization: `Bearer ${token}` } }
-      );
-      const osList = resOs.ok ? await resOs.json() : [];
+      // Start top-level requests concurrently
+      const [agendaEvents, resOs, resInteg] = await Promise.all([
+        agendaApi.getEventos(ctx, start, end),
+        fetch(
+          `${ctx.url}/rest/v1/ordens_servico?filial_id=eq.${ctx.filialId}&data_agendada=gte.${start}&data_agendada=lte.${end}&select=*`,
+          { headers: { 'Content-Type': 'application/json', apikey: ctx.key, Authorization: `Bearer ${token}` } }
+        ),
+        fetch(
+          `${ctx.url}/rest/v1/user_integrations?user_id=eq.${session.user.id}&provider=eq.google&select=*`,
+          { headers: { 'Content-Type': 'application/json', apikey: ctx.key, Authorization: `Bearer ${token}` } }
+        )
+      ]);
 
-      // 3. Busca integração do Google ativa
-      const resInteg = await fetch(
-        `${ctx.url}/rest/v1/user_integrations?user_id=eq.${session.user.id}&provider=eq.google&select=*`,
-        { headers: { 'Content-Type': 'application/json', apikey: ctx.key, Authorization: `Bearer ${token}` } }
-      );
+      const osList = resOs.ok ? await resOs.json() : [];
       const integration = resInteg.ok ? (await resInteg.json())[0] : null;
 
       const unified: UnifiedCalendarEvent[] = [];
@@ -76,25 +75,29 @@ export function useUnifiedCalendar(currentDate: Date) {
         try {
           const calendars = await googleCalendarApi.getCalendarList(integration.access_token);
           
-          // Pra cada agenda, busca os eventos do mês
-          for (const cal of calendars.items || []) {
+          // Pra cada agenda, busca os eventos do mês (de forma CONCORRENTE)
+          const calendarPromises = (calendars.items || []).map(async (cal: any) => {
             const googleEvents = await googleCalendarApi.getEvents(integration.access_token, start, end, cal.id);
-            
-            (googleEvents.items || []).forEach((ge: any) => {
-              if (ge.start?.dateTime || ge.start?.date) {
-                unified.push({
-                  id: `google_${ge.id}`,
-                  title: ge.summary || 'Sem Título',
-                  start: parseISO(ge.start.dateTime || ge.start.date),
-                  end: parseISO(ge.end?.dateTime || ge.end?.date || ge.start.date),
-                  allDay: !!ge.start.date,
-                  source: 'google',
-                  color: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-                  originalData: ge
-                });
-              }
-            });
-          }
+            return googleEvents.items || [];
+          });
+          
+          const allGoogleEventsArrays = await Promise.all(calendarPromises);
+          const flatGoogleEvents = allGoogleEventsArrays.flat();
+          
+          flatGoogleEvents.forEach((ge: any) => {
+            if (ge.start?.dateTime || ge.start?.date) {
+              unified.push({
+                id: `google_${ge.id}`,
+                title: ge.summary || 'Sem Título',
+                start: parseISO(ge.start.dateTime || ge.start.date),
+                end: parseISO(ge.end?.dateTime || ge.end?.date || ge.start.date),
+                allDay: !!ge.start.date,
+                source: 'google',
+                color: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+                originalData: ge
+              });
+            }
+          });
         } catch (err) {
           console.error("Falha ao buscar Google Calendar (o token pode estar expirado):", err);
         }
@@ -103,5 +106,7 @@ export function useUnifiedCalendar(currentDate: Date) {
       return unified;
     },
     enabled: !!filialId && !!token && config.ready,
+    staleTime: 1000 * 30, // 30 segundos de cache
+    refetchInterval: 1000 * 60, // Recarrega silenciosamente a cada 1 minuto
   });
 }
