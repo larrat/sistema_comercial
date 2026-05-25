@@ -42,7 +42,7 @@ export function AgendaEventModal({ isOpen, onClose, selectedDate }: AgendaEventM
         },
         body: JSON.stringify({
           filial_id: filialId,
-          criado_por_user_id: session.user.id,
+          criado_por: session.user.id,
           titulo,
           descricao,
           data_inicio: new Date(dataInicio).toISOString(),

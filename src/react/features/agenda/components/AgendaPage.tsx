@@ -46,6 +46,7 @@ export function AgendaPage() {
     url.searchParams.set('provider', 'google');
     url.searchParams.set('redirect_to', window.location.origin + '/app/agenda');
     url.searchParams.set('scopes', 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events');
+    url.searchParams.set('query_params', '{"access_type":"offline","prompt":"consent"}');
     
     // Redireciona a página para a tela de login do Google (via Supabase)
     window.location.href = url.toString();
@@ -65,7 +66,7 @@ export function AgendaPage() {
   const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   return (
-    <div className="flex h-full flex-col p-6 overflow-hidden">
+    <div className="flex h-full flex-col p-6 overflow-y-auto hide-scrollbar">
       <header className="mb-6 flex items-center justify-between shrink-0">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-white flex items-center gap-2">
