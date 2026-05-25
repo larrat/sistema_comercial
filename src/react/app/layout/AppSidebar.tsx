@@ -271,7 +271,7 @@ export function AppSidebar() {
           const isExpanded = !!expandedGroups[group.label] || collapsed;
 
           return (
-            <div key={group.label} className={`flex flex-col ${collapsed ? 'items-center w-full' : 'bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.02]'}`}>
+            <div key={group.label} className={`shrink-0 flex flex-col ${collapsed ? 'items-center w-full' : 'bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.02]'}`}>
               {/* Group Header (Accordion Toggle) */}
               {!collapsed && (
                 <button 
