@@ -37,6 +37,8 @@ const LoginPage = lazy(() => import('../../features/auth/components/LoginPage').
 const SetupPage = lazy(() => import('../../features/setup/components/SetupPage').then(m => ({ default: m.SetupPage })));
 const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/PortalStorefrontPage').then(m => ({ default: m.PortalStorefrontPage })));
 
+import { AuthCallback } from '../../features/auth/AuthCallback';
+import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
 import { AdminOnlyRoute } from './AdminOnlyRoute';
 import { LoginRouteAccess, ProtectedAppRoute, SetupRouteAccess } from './routeAccess';
@@ -77,36 +79,46 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
         <Route element={<ProtectedAppRoute bootstrap={bootstrap} />}>
           <Route path="/app" element={<AppShell />}>
             <Route index element={<AppRootRedirect />} />
-            <Route path="pdv" element={<PdvRoutePage />} />
-            <Route path="dashboard" element={<DashboardRoutePage />} />
-            <Route path="clientes" element={<ClientesRoutePage />} />
-            <Route path="clientes/novo" element={<ClienteCreateRoutePage />} />
-            <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />
-            <Route path="clientes/:clienteId/editar" element={<ClienteEditRoutePage />} />
-            <Route path="estoque" element={<EstoqueRoutePage />} />
-            <Route path="cotacao" element={<CotacaoRoutePage />} />
-            <Route path="agenda" element={<AgendaPage />} />
-            <Route path="crm" element={<CrmPage />} />
-            <Route path="contratos" element={<ContratosPage />} />
-            <Route path="contratos/:id" element={<ContratoProfilePage />} />
-            <Route path="pedidos" element={<PedidosRoutePage />} />
-            <Route path="pedidos/novo" element={<PedidoCreateRoutePage />} />
-            <Route path="pedidos/:pedidoId" element={<PedidoProfileRoutePage />} />
-            <Route path="pedidos/:pedidoId/editar" element={<PedidoEditRoutePage />} />
-            <Route path="receber" element={<ContasReceberRoutePage />} />
-            <Route path="produtos" element={<ProdutosRoutePage />} />
-            <Route path="produtos/novo" element={<ProdutoCreateRoutePage />} />
-            <Route path="produtos/:produtoId" element={<ProdutoProfileRoutePage />} />
-            <Route path="rcas" element={<RcasRoutePage />} />
-            <Route path="relatorios" element={<RelatoriosRoutePage />} />
-            <Route path="campanhas" element={<CampanhasRoutePage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="compras" element={<ComprasRoutePage />} />
-            <Route path="compras/novo" element={<PedidoCompraCreateRoutePage />} />
-            <Route path="compras/sugestoes" element={<SugestaoComprasRoutePage />} />
-            <Route path="caixa" element={<CaixaRoutePage />} />
-            <Route path="caixa/conciliacao" element={<ConciliacaoBancariaRoutePage />} />
-            <Route element={<AdminOnlyRoute />}>
+            
+            {/* Telas Abertas (Operador, Gerente, Admin) */}
+            <Route element={<RoleProtectedRoute allowedRoles={['admin', 'gerente', 'operador']} />}>
+              <Route path="pdv" element={<PdvRoutePage />} />
+              <Route path="pedidos" element={<PedidosRoutePage />} />
+              <Route path="pedidos/novo" element={<PedidoCreateRoutePage />} />
+              <Route path="pedidos/:pedidoId" element={<PedidoProfileRoutePage />} />
+              <Route path="pedidos/:pedidoId/editar" element={<PedidoEditRoutePage />} />
+              <Route path="clientes" element={<ClientesRoutePage />} />
+              <Route path="clientes/novo" element={<ClienteCreateRoutePage />} />
+              <Route path="clientes/:clienteId" element={<ClienteProfileRoutePage />} />
+              <Route path="clientes/:clienteId/editar" element={<ClienteEditRoutePage />} />
+              <Route path="produtos" element={<ProdutosRoutePage />} />
+              <Route path="produtos/novo" element={<ProdutoCreateRoutePage />} />
+              <Route path="produtos/:produtoId" element={<ProdutoProfileRoutePage />} />
+              <Route path="estoque" element={<EstoqueRoutePage />} />
+              <Route path="cotacao" element={<CotacaoRoutePage />} />
+              <Route path="agenda" element={<AgendaPage />} />
+              <Route path="crm" element={<CrmPage />} />
+              <Route path="contratos" element={<ContratosPage />} />
+              <Route path="contratos/:id" element={<ContratoProfilePage />} />
+            </Route>
+
+            {/* Telas Gerenciais (Gerente, Admin) */}
+            <Route element={<RoleProtectedRoute allowedRoles={['admin', 'gerente']} />}>
+              <Route path="dashboard" element={<DashboardRoutePage />} />
+              <Route path="receber" element={<ContasReceberRoutePage />} />
+              <Route path="compras" element={<ComprasRoutePage />} />
+              <Route path="compras/novo" element={<PedidoCompraCreateRoutePage />} />
+              <Route path="compras/sugestoes" element={<SugestaoComprasRoutePage />} />
+              <Route path="caixa" element={<CaixaRoutePage />} />
+              <Route path="caixa/conciliacao" element={<ConciliacaoBancariaRoutePage />} />
+              <Route path="rcas" element={<RcasRoutePage />} />
+              <Route path="relatorios" element={<RelatoriosRoutePage />} />
+              <Route path="campanhas" element={<CampanhasRoutePage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+            </Route>
+
+            {/* Telas Admin */}
+            <Route element={<RoleProtectedRoute allowedRoles={['admin']} />}>
               <Route path="filiais" element={<FiliaisRoutePage />} />
               <Route path="acessos" element={<AcessosRoutePage />} />
             </Route>

@@ -8,7 +8,7 @@ import {
   writeStorageString
 } from './lib/storage';
 
-const APP_ROLES: AppUserRole[] = ['vendedor', 'estoque', 'admin'];
+const APP_ROLES: AppUserRole[] = ['admin', 'gerente', 'operador'];
 
 function normalizeRole(raw: string | null): AppUserRole {
   const v = String(raw || '')
