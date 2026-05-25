@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useCurrentUserRole, type AppUserRole } from '../hooks/useCurrentUserRole';
-import { getDefaultAppPath } from './paths';
+import { getDefaultAppPath } from './routes';
 
 type RoleProtectedRouteProps = {
   allowedRoles: AppUserRole[];

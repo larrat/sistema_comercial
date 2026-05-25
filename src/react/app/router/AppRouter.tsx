@@ -37,7 +37,6 @@ const LoginPage = lazy(() => import('../../features/auth/components/LoginPage').
 const SetupPage = lazy(() => import('../../features/setup/components/SetupPage').then(m => ({ default: m.SetupPage })));
 const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/PortalStorefrontPage').then(m => ({ default: m.PortalStorefrontPage })));
 
-import { AuthCallback } from '../../features/auth/AuthCallback';
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
 import { AdminOnlyRoute } from './AdminOnlyRoute';
