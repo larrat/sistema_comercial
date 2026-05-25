@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   addMonths, subMonths, format, startOfMonth, endOfMonth, 
   startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, 
@@ -8,13 +8,46 @@ import { ptBR } from 'date-fns/locale';
 import { LucideCalendar, LucideChevronLeft, LucideChevronRight, LucidePlus } from 'lucide-react';
 import { useUnifiedCalendar } from '../hooks/useUnifiedCalendar';
 import type { UnifiedCalendarEvent } from '../types';
+import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { toast } from 'sonner';
 
 export function AgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const { integration, saveIntegration } = useGoogleIntegration();
+  const config = getSupabaseConfig();
   
   // Custom hook que puxa dados da agenda interna, de OS e futuramente do Google
   const { data: events = [], isLoading } = useUnifiedCalendar(currentDate);
+
+  useEffect(() => {
+    // Intercepta o retorno do fluxo OAuth do Supabase na URL
+    const hash = window.location.hash;
+    if (hash && hash.includes('provider_token=')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const providerToken = params.get('provider_token');
+      const providerRefreshToken = params.get('provider_refresh_token');
+
+      if (providerToken) {
+        saveIntegration({ accessToken: providerToken, refreshToken: providerRefreshToken || undefined })
+          .then(() => {
+            // Limpa a URL para remover os tokens expostos
+            window.history.replaceState(null, '', window.location.pathname);
+          });
+      }
+    }
+  }, [saveIntegration]);
+
+  const handleConnectGoogle = () => {
+    if (!config.ready) return;
+    const url = new URL(`${config.url}/auth/v1/authorize`);
+    url.searchParams.set('provider', 'google');
+    url.searchParams.set('redirect_to', window.location.origin + '/app/agenda');
+    url.searchParams.set('scopes', 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events');
+    
+    // Redireciona a página para a tela de login do Google (via Supabase)
+    window.location.href = url.toString();
+  };
 
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -42,12 +75,22 @@ export function AgendaPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => toast.info('Requer configuração no painel do Supabase com o Client ID do Google Cloud.')}
-            className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400 hover:bg-emerald-500/20"
-          >
-            Conectar Google
-          </button>
+          {!integration ? (
+            <button 
+              onClick={handleConnectGoogle}
+              className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-400 hover:bg-emerald-500/20"
+            >
+              Conectar Google
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-2 text-sm font-bold text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+              </span>
+              Google Conectado
+            </div>
+          )}
           <button className="flex items-center gap-2 rounded-lg bg-indigo-500/10 px-4 py-2 text-sm font-bold text-indigo-400 hover:bg-indigo-500/20">
             <LucidePlus className="h-4 w-4" />
             Novo Evento
