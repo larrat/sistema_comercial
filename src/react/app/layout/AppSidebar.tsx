@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3,
   Building2,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Circle,
@@ -42,6 +43,7 @@ const iconByPath: Record<string, LucideIcon> = {
   '/app/relatorios': BarChart3,
   '/app/campanhas': Megaphone,
   '/app/analytics': TrendingUp,
+  '/app/agenda': CalendarDays,
   '/app/crm': Kanban,
   '/app/contratos': FileSignature,
   '/app/clientes': Users,

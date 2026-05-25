@@ -23,6 +23,7 @@ const RelatoriosRoutePage = lazy(() => import('../../features/relatorios/pages/R
 const CampanhasRoutePage = lazy(() => import('../../features/campanhas/pages/CampanhasRoutePage').then(m => ({ default: m.CampanhasRoutePage })));
 const AnalyticsPage = lazy(() => import('../../features/analytics/pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const CrmPage = lazy(() => import('../../features/crm/components/CrmPage').then(m => ({ default: m.CrmPage })));
+const AgendaPage = lazy(() => import('../../features/agenda/components/AgendaPage').then(m => ({ default: m.AgendaPage })));
 const ContratosPage = lazy(() => import('../../features/contratos/components/ContratosPage').then(m => ({ default: m.ContratosPage })));
 const ContratoProfilePage = lazy(() => import('../../features/contratos/components/ContratoProfilePage').then(m => ({ default: m.ContratoProfilePage })));
 const FiliaisRoutePage = lazy(() => import('../../features/filiais/pages/FiliaisRoutePage').then(m => ({ default: m.FiliaisRoutePage })));
@@ -84,6 +85,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route path="clientes/:clienteId/editar" element={<ClienteEditRoutePage />} />
             <Route path="estoque" element={<EstoqueRoutePage />} />
             <Route path="cotacao" element={<CotacaoRoutePage />} />
+            <Route path="agenda" element={<AgendaPage />} />
             <Route path="crm" element={<CrmPage />} />
             <Route path="contratos" element={<ContratosPage />} />
             <Route path="contratos/:id" element={<ContratoProfilePage />} />
