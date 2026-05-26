@@ -79,7 +79,16 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
   }
 
   return (
-    <div data-testid="pedido-item-add" className="rf-glass p-6 rounded-2xl border border-white/5 flex flex-col gap-4">
+    <div
+      data-testid="pedido-item-add"
+      className="rf-glass p-6 rounded-2xl border border-white/5 flex flex-col gap-4"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleAdd();
+        }
+      }}
+    >
       {error && (
         <div className="text-xs font-bold text-rose-500 uppercase tracking-widest bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
           {error}
@@ -100,7 +109,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
               {(() => {
                 const parentIds = new Set(produtos.map(p => p.produto_pai_id).filter(Boolean));
                 return produtos
-                  .filter(p => !parentIds.has(p.id))
+                  .filter(p => !parentIds.has(p.id) && (p.esal || 0) > 0)
                   .sort((a, b) => a.nome.localeCompare(b.nome))
                   .map((p) => (
                     <option key={p.id} value={p.id}>
@@ -165,6 +174,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
 
       <div className="flex justify-end mt-2">
         <Button
+          type="button"
           variant="primary"
           onClick={handleAdd}
           data-testid="pedido-item-add-btn"

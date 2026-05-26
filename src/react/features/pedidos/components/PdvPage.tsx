@@ -320,7 +320,8 @@ export function PdvPage() {
       searchProdutosPdv(context, query, 8)
         .then((results) => {
           if (requestId !== productSearchRequestRef.current) return;
-          setProductResults(results);
+          const inStockResults = results.filter((p) => Number(p.esal) > 0);
+          setProductResults(inStockResults);
           setActiveSuggestionIndex(0);
           setProductSearchMs(Math.round(performance.now() - startedAt));
         })
