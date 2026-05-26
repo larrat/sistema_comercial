@@ -384,8 +384,8 @@ export function PedidoDetailPanel({ pedido }: Props) {
         onClose={() => {
           if (!cancelarPedido.isPending) setShowCancelConfirm(false);
         }}
-        onConfirm={() => {
-          cancelarPedido.mutate(pedido, {
+        onConfirm={(isRecusaAvaria) => {
+          cancelarPedido.mutate({ pedido, isRecusaAvaria }, {
             onSuccess: () => setShowCancelConfirm(false)
           });
         }}

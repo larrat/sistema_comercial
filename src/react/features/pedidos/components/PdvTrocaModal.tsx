@@ -22,8 +22,13 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
   const filialId = useFilialStore((s) => s.filialId);
 
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [damaged, setDamaged] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [valeGerado, setValeGerado] = useState<{ codigo: string; valor: number } | null>(null);
+
+  const toggleDamaged = (prodId: string) => {
+    setDamaged((prev) => ({ ...prev, [prodId]: !prev[prodId] }));
+  };
 
   if (!open) return null;
 
@@ -79,7 +84,8 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
           return {
             produtoId: prodId,
             quantidade: qty,
-            valorUnitario: item?.preco || 0
+            valorUnitario: item?.preco || 0,
+            isAvariado: !!damaged[prodId]
           };
         });
 
@@ -211,6 +217,17 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
                       <div className="text-[10px] text-slate-400 font-bold mt-1">
                         Preço unitário: {fmtCurrency(item.preco || 0)} • Comprado: {item.qty} un
                       </div>
+                      {selectedQty > 0 && (
+                        <label className="flex items-center gap-1.5 mt-2 text-[9px] text-rose-400 font-black cursor-pointer uppercase select-none w-max">
+                          <input
+                            type="checkbox"
+                            checked={!!damaged[item.prodId]}
+                            onChange={() => toggleDamaged(item.prodId)}
+                            className="rounded border-rose-500/30 bg-black/40 text-rose-500 focus:ring-0 focus:ring-offset-0 h-3.5 w-3.5"
+                          />
+                          Item Danificado (Registrar Avaria)
+                        </label>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3">

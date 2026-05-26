@@ -525,7 +525,8 @@ export async function savePedido(
 export async function updatePedidoStatus(
   context: PedidoApiContext,
   pedidoId: string,
-  newStatus: string
+  newStatus: string,
+  isRecusaAvaria?: boolean
 ): Promise<void> {
   const res = await fetch(
     `${context.url}/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoId)}&filial_id=eq.${encodeURIComponent(context.filialId)}`,
@@ -540,6 +541,73 @@ export async function updatePedidoStatus(
   ensureOk(res, body, `Erro ${res.status} ao atualizar status do pedido`);
   
   logAudit(context.token, 'pedidos', pedidoId, 'UPDATE', { status: newStatus });
+
+  // Recusa por Avaria no Transporte (Cenário 2)
+  if (newStatus === 'cancelado' && isRecusaAvaria) {
+    try {
+      const pedRes = await fetch(`${context.url}/rest/v1/pedidos?id=eq.${encodeURIComponent(pedidoId)}&select=itens`, {
+        headers: createHeaders(context.key, context.token)
+      });
+      if (pedRes.ok) {
+        const pedData = await readJson(pedRes) as any[];
+        const pedido = pedData?.[0];
+        if (pedido) {
+          let items: PedidoItem[] = [];
+          if (Array.isArray(pedido.itens)) {
+            items = pedido.itens as PedidoItem[];
+          } else if (typeof pedido.itens === 'string') {
+            try {
+              items = JSON.parse(pedido.itens);
+            } catch {}
+          }
+
+          for (const item of items) {
+            const prodId = item.prodId;
+            if (prodId && item.qty) {
+              const valor_custo_perda = Number(item.qty) * (item.preco || 0);
+              const avId = crypto.randomUUID();
+
+              // 1. Registrar Avaria
+              await fetch(`${context.url}/rest/v1/avarias`, {
+                method: 'POST',
+                headers: createHeaders(context.key, context.token),
+                body: JSON.stringify({
+                  id: avId,
+                  filial_id: context.filialId,
+                  produto_id: prodId,
+                  quantidade: Number(item.qty),
+                  custo_unitario: item.preco || 0,
+                  valor_custo_perda,
+                  motivo: 'quebra',
+                  destino: 'descarte',
+                  observacoes: `Avaria por Recusa / Transporte Danificado (Pedido #${pedidoId.substring(0, 8)})`
+                })
+              });
+
+              // 2. Registrar Saída de Ajuste no Kardex
+              await fetch(`${context.url}/rest/v1/movimentacoes`, {
+                method: 'POST',
+                headers: createHeaders(context.key, context.token),
+                body: JSON.stringify({
+                  id: `MOV-AV-${avId}-${Date.now()}`,
+                  filial_id: context.filialId,
+                  prod_id: prodId,
+                  tipo: 'saida',
+                  data: new Date().toISOString().split('T')[0],
+                  qty: Number(item.qty),
+                  custo: item.preco || 0,
+                  obs: `Saída automática por Avaria de Transporte - Pedido #${pedidoId.substring(0, 8)}`,
+                  ts: Date.now()
+                })
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Erro ao registrar avarias por recusa de transporte:', err);
+    }
+  }
 }
 
 export async function marcarPedidoEntregue(
@@ -650,7 +718,7 @@ export async function registrarDevolucaoCompleta(
     pedidoId: string | null;
     clienteId: string | null;
     valorTotalCredito: number;
-    itens: Array<{ produtoId: string; quantidade: number; valorUnitario: number }>;
+    itens: Array<{ produtoId: string; quantidade: number; valorUnitario: number; isAvariado?: boolean }>;
   }
 ): Promise<{ valeCodigo: string; valeValor: number }> {
   const headers = createHeaders(context.key, context.token);
@@ -723,6 +791,45 @@ export async function registrarDevolucaoCompleta(
       headers,
       body: JSON.stringify(movBody)
     });
+
+    if (item.isAvariado) {
+      try {
+        const avId = crypto.randomUUID();
+        await fetch(`${context.url}/rest/v1/avarias`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            id: avId,
+            filial_id: context.filialId,
+            produto_id: item.produtoId,
+            quantidade: item.quantidade,
+            custo_unitario: item.valorUnitario,
+            valor_custo_perda: item.quantidade * item.valorUnitario,
+            motivo: 'defeito_fabrica',
+            destino: 'descarte',
+            observacoes: `Avaria gerada na Logística Reversa (Devolução #${devolucaoId.substring(0, 8)})`
+          })
+        });
+
+        await fetch(`${context.url}/rest/v1/movimentacoes`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            id: `MOV-AV-${avId}-${Date.now()}`,
+            filial_id: context.filialId,
+            prod_id: item.produtoId,
+            tipo: 'saida',
+            data: new Date().toISOString().split('T')[0],
+            qty: item.quantidade,
+            custo: item.valorUnitario,
+            obs: `Saída automática por Avaria - Devolução #${devolucaoId.substring(0, 8)}`,
+            ts: Date.now() + 5
+          })
+        });
+      } catch (err) {
+        console.warn('Erro ao registrar avaria no retorno de logística reversa:', err);
+      }
+    }
   }
 
   return { valeCodigo, valeValor: params.valorTotalCredito };

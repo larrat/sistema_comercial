@@ -173,12 +173,15 @@ export function usePedidoMutations() {
   });
 
   const cancelarPedido = useMutation({
-    mutationFn: (pedido: Pedido) => {
+    mutationFn: ({ pedido, isRecusaAvaria }: { pedido: Pedido; isRecusaAvaria?: boolean }) => {
       if (!context) throw new Error('API context not ready');
-      return updatePedidoStatus(context, pedido.id, 'cancelado');
+      return updatePedidoStatus(context, pedido.id, 'cancelado', isRecusaAvaria);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos'] });
+      queryClient.invalidateQueries({ queryKey: ['pedidos-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['pedido'] });
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
       toast.success('Pedido cancelado.');
     },
     onError: (error: Error) => {

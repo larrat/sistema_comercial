@@ -15,7 +15,8 @@ import {
   savePedido,
   getValeTroca,
   updateValeTrocaStatus,
-  registrarDevolucaoCompleta
+  registrarDevolucaoCompleta,
+  updatePedidoStatus
 } from './pedidosApi';
 
 const context = {
@@ -493,11 +494,81 @@ describe('pedidosApi server-side listagem', () => {
       expect(res.valeCodigo).toContain('VALE-');
       
       // Verification of stock movement restore insert
-      expect(fetch).toHaveBeenLastCalledWith(
+      expect(fetch).toHaveBeenCalledWith(
         'https://example.supabase.co/rest/v1/movimentacoes',
         expect.objectContaining({
           method: 'POST',
           body: expect.stringContaining('"tipo":"entrada"')
+        })
+      );
+    });
+
+    it('registrarDevolucaoCompleta should register an avaria and a saida movement if isAvariado is true', async () => {
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(makeResponse([{}]))
+        .mockResolvedValueOnce(makeResponse([{}]))
+        .mockResolvedValueOnce(makeResponse([{}]))
+        .mockResolvedValueOnce(makeResponse([{}]))
+        .mockResolvedValueOnce(makeResponse([{ id: 'av1' }]))
+        .mockResolvedValueOnce(makeResponse([{ id: 'mov-out' }]));
+
+      const res = await registrarDevolucaoCompleta(context, {
+        pedidoId: 'p1',
+        clienteId: 'c1',
+        valorTotalCredito: 100,
+        itens: [{ produtoId: 'prod-1', quantidade: 2, valorUnitario: 50, isAvariado: true }]
+      });
+
+      expect(res.valeValor).toBe(100);
+
+      // Verify POST to /avarias
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/avarias',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"motivo":"defeito_fabrica"')
+        })
+      );
+
+      // Verify POST to /movimentacoes for avaria 'saida'
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/movimentacoes',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"tipo":"saida"')
+        })
+      );
+    });
+  });
+
+  describe('updatePedidoStatus transit avaria integration', () => {
+    it('should register transit avaria and saida movements when isRecusaAvaria is true', async () => {
+      const mockPedido = {
+        id: 'p1',
+        itens: JSON.stringify([{ prodId: 'prod-1', qty: 2, preco: 30 }])
+      };
+
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(makeResponse([{}])) // status PATCH
+        .mockResolvedValueOnce(makeResponse([{}])) // logs_auditoria POST (audit log)
+        .mockResolvedValueOnce(makeResponse([mockPedido])) // GET pedido items
+        .mockResolvedValueOnce(makeResponse([{ id: 'av2' }])) // avarias POST
+        .mockResolvedValueOnce(makeResponse([{ id: 'mov-out2' }])); // movimentacoes POST
+
+      await updatePedidoStatus(context, 'p1', 'cancelado', true);
+
+      // Verify status PATCH called
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/pedidos?id=eq.p1&filial_id=eq.filial-1',
+        expect.objectContaining({ method: 'PATCH' })
+      );
+
+      // Verify avarias register called
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/avarias',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"motivo":"quebra"')
         })
       );
     });

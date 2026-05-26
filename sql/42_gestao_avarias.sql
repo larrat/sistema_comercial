@@ -34,4 +34,8 @@ exception
   when duplicate_object then null;
 end $$;
 
+-- Alterar tabela ordens_servico para suportar controle de garantia pós-obra (Cenário 3)
+alter table public.ordens_servico
+  add column if not exists is_garantia boolean not null default false;
+
 commit;

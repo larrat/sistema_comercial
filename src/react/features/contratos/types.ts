@@ -51,6 +51,7 @@ export type OrdemServico = {
   responsavel_id?: string;
   terceirizado_id?: string | null;
   valor_parceiro?: number;
+  is_garantia?: boolean;
   criado_por?: string;
   criado_em: string;
   atualizado_em: string;
@@ -93,7 +94,7 @@ export type DiarioObra = {
 };
 
 export type ContratoDraft = Pick<Contrato, 'cliente_id' | 'oportunidade_id' | 'titulo' | 'valor_total' | 'data_inicio' | 'previsao_fim'>;
-export type OrdemServicoDraft = Pick<OrdemServico, 'contrato_id' | 'titulo' | 'descricao' | 'data_agendada' | 'responsavel_id' | 'terceirizado_id' | 'valor_parceiro'>;
+export type OrdemServicoDraft = Pick<OrdemServico, 'contrato_id' | 'titulo' | 'descricao' | 'data_agendada' | 'responsavel_id' | 'terceirizado_id' | 'valor_parceiro' | 'is_garantia'>;
 export type ContratoAditivoDraft = Pick<ContratoAditivo, 'contrato_id' | 'titulo' | 'valor'>;
 export type ContratoCronogramaDraft = Pick<ContratoCronograma, 'contrato_id' | 'titulo' | 'data_inicio' | 'data_fim' | 'percentual_conclusao' | 'precedente_id' | 'valor_faturamento'>;
 export type DiarioObraDraft = Pick<DiarioObra, 'contrato_id' | 'titulo' | 'relatorio' | 'fotos' | 'clima' | 'mao_de_obra_qtd'>;

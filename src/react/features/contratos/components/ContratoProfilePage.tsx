@@ -821,9 +821,13 @@ export function ContratoProfilePage() {
                     {ordensServico.filter(os => os.status === 'concluida' && os.valor_parceiro && os.valor_parceiro > 0).map(os => (
                       <div key={os.id} className="flex justify-between items-center p-3 rounded-xl border border-white/5 bg-white/[0.01] text-xs">
                         <div>
-                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-wider">MÃO DE OBRA TERCEIRIZADA</span>
+                          <span className={`text-[9px] font-black uppercase tracking-wider ${os.is_garantia ? 'text-rose-400' : 'text-indigo-400'}`}>
+                            {os.is_garantia ? 'MÃO DE OBRA (ASSISTÊNCIA / GARANTIA)' : 'MÃO DE OBRA TERCEIRIZADA'}
+                          </span>
                           <div className="font-bold text-white mt-0.5">Repasse: OS-{os.titulo}</div>
-                          <div className="text-[10px] text-slate-500 font-semibold mt-1">OS concluída • Medição aprovada</div>
+                          <div className="text-[10px] text-slate-500 font-semibold mt-1">
+                            {os.is_garantia ? 'OS de Garantia pós-obra concluída' : 'OS concluída • Medição aprovada'}
+                          </div>
                         </div>
                         <span className="font-black text-rose-400">{fmtBRL(os.valor_parceiro || 0)}</span>
                       </div>

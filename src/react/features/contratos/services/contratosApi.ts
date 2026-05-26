@@ -98,8 +98,8 @@ export const contratosApi = {
           headers: headers(ctx),
           body: JSON.stringify({
             filial_id: ctx.filialId,
-            titulo: `O.S.: ${os.titulo}`,
-            descricao: os.descricao || `Serviço agendado ref. O.S. #${os.id}`,
+            titulo: os.is_garantia ? `[GARANTIA] O.S.: ${os.titulo}` : `O.S.: ${os.titulo}`,
+            descricao: os.descricao || `Serviço agendado ${os.is_garantia ? 'sob regime de GARANTIA' : ''} ref. O.S. #${os.id}`,
             tipo: 'visita',
             data_inicio: dataInicio.toISOString(),
             data_fim: dataFim.toISOString(),

@@ -12,6 +12,7 @@ type FormData = {
   descricao: string;
   terceirizado_id: string;
   valor_parceiro: number;
+  is_garantia: boolean;
 };
 
 export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string, onClose: () => void }) {
@@ -43,6 +44,7 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
       descricao: data.descricao,
       terceirizado_id: data.terceirizado_id || null,
       valor_parceiro: data.valor_parceiro ? Number(data.valor_parceiro) : 0,
+      is_garantia: !!data.is_garantia
     });
     onClose();
   };
@@ -112,6 +114,20 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
                 />
               </div>
             </div>
+            
+            <label className="flex items-center gap-2 p-3 rounded-xl border border-rose-500/20 bg-rose-500/5 cursor-pointer hover:bg-rose-500/10 transition-colors mt-1">
+              <input
+                type="checkbox"
+                {...register('is_garantia')}
+                className="rounded border-rose-500/30 bg-black/40 text-rose-500 focus:ring-0 focus:ring-offset-0 h-4 w-4"
+              />
+              <div className="flex-1">
+                <div className="text-[10px] font-black text-rose-400 uppercase tracking-wider">O.S. de Garantia / Assistência</div>
+                <div className="text-[9px] text-slate-400 mt-0.5 leading-normal">
+                  Esta ordem de serviço é corretiva e está sob regime de garantia pós-obra do contrato.
+                </div>
+              </div>
+            </label>
           </div>
 
           <div className="mt-8 flex justify-end gap-3 border-t border-white/5 pt-5">
