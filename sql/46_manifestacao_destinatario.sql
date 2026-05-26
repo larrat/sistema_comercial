@@ -4,9 +4,9 @@
 
 begin;
 
-create table if exists public.nfe_destinadas (
+create table if not exists public.nfe_destinadas (
     id uuid primary key default gen_random_uuid(),
-    filial_id uuid not null references public.filiais(id) on delete cascade,
+    filial_id text not null references public.filiais(id) on delete cascade,
     chave_acesso char(44) unique not null,
     cnpj_emitente varchar(14) not null,
     nome_emitente varchar(255) not null,
@@ -27,7 +27,7 @@ create index if not exists idx_nfe_destinadas_cnpj on public.nfe_destinadas(cnpj
 -- Seed de dados idempotente (vincula dinamicamente a primeira filial disponível)
 do $$
 declare
-    v_filial_id uuid;
+    v_filial_id text;
     v_count integer;
 begin
     select count(*) into v_count from public.nfe_destinadas;
