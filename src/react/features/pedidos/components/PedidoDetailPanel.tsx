@@ -17,6 +17,7 @@ import { ACAO_LABEL, NEXT_STATUS, normalizePedStatus } from '../types';
 import { FormError, StatusBadge, Button, Badge, LoadingState } from '../../../shared/ui';
 import type { StatusBadgeTone } from '../../../shared/ui';
 import { PedidoEntregaConfirmModal } from './PedidoEntregaConfirmModal';
+import { PdvTrocaModal } from './PdvTrocaModal';
 
 type Props = {
   pedido: Pedido;
@@ -100,6 +101,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
   const [showBaixaForm, setShowBaixaForm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showEntregaConfirm, setShowEntregaConfirm] = useState(false);
+  const [isTrocaModalOpen, setIsTrocaModalOpen] = useState(false);
   const [baixaLoading, setBaixaLoading] = useState(false);
   const [baixaError, setBaixaError] = useState<string | null>(null);
 
@@ -328,6 +330,15 @@ export function PedidoDetailPanel({ pedido }: Props) {
       </div>
 
       <div className="flex items-center gap-3 justify-end mt-8 pt-6 border-t border-white/5">
+        {status === 'concluido' && (
+          <Button
+            variant="secondary"
+            onClick={() => setIsTrocaModalOpen(true)}
+            className="flex items-center gap-1.5"
+          >
+            Trocar / Devolver Peças
+          </Button>
+        )}
         {nextStatus && acaoLabel && (
           <Button
             variant="primary"
@@ -409,6 +420,11 @@ export function PedidoDetailPanel({ pedido }: Props) {
         onConfirm={(valor) => {
           if (conta) void handleConfirmarBaixa(conta.id, valor);
         }}
+      />
+      <PdvTrocaModal
+        open={isTrocaModalOpen}
+        onClose={() => setIsTrocaModalOpen(false)}
+        pedido={pedido}
       />
     </div>
   );

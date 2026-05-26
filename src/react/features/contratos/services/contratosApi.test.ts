@@ -109,7 +109,8 @@ describe('contratosApi reforms extensions', () => {
         percentual_conclusao: 0,
         data_inicio: '2026-05-20',
         data_fim: '2026-05-25',
-        precedente_id: null
+        precedente_id: null,
+        valor_faturamento: 0
       });
 
       expect(result).toEqual(mockPhase);
@@ -193,6 +194,116 @@ describe('contratosApi reforms extensions', () => {
       expect(fetchMock).toHaveBeenCalledWith(
         'https://example.supabase.co/rest/v1/user_filiais?filial_id=eq.filial-1&select=user_id,user_nome,user_email&order=user_nome.asc',
         expect.any(Object)
+      );
+    });
+  });
+
+  describe('Ordens de Serviço Integrations', () => {
+    it('should create an OS and automatically register it in the agenda', async () => {
+      const mockOs = {
+        id: 'os-uuid',
+        contrato_id: 'c1',
+        titulo: 'Reboco Sala',
+        data_agendada: '2026-05-26T12:00:00.000Z',
+        responsavel_id: 'r1',
+        terceirizado_id: 't1',
+        criado_por: 'u1'
+      };
+
+      fetchMock.mockImplementation(async (url) => {
+        if (url.toString().includes('ordens_servico')) {
+          return new Response(JSON.stringify([mockOs]), { status: 201 });
+        }
+        if (url.toString().includes('agenda_eventos')) {
+          return new Response(JSON.stringify([{ id: 'ev1' }]), { status: 201 });
+        }
+        return new Response(null, { status: 404 });
+      });
+
+      const result = await contratosApi.createOrdemServico(ctx, {
+        contrato_id: 'c1',
+        titulo: 'Reboco Sala',
+        descricao: '',
+        data_agendada: '2026-05-26T12:00:00.000Z',
+        responsavel_id: 'r1',
+        terceirizado_id: 't1'
+      });
+
+      expect(result).toEqual(mockOs);
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/agenda_eventos',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"titulo":"O.S.: Reboco Sala"')
+        })
+      );
+    });
+
+    it('should generate a Conta a Pagar on OS completion if partner value is positive', async () => {
+      const mockOs = {
+        id: 'os-uuid',
+        titulo: 'Instalação Elétrica',
+        contrato_id: 'c1',
+        valor_parceiro: 1500,
+        terceirizado_id: 't1'
+      };
+
+      fetchMock.mockImplementation(async (url) => {
+        if (url.toString().includes('ordens_servico')) {
+          // PATCH and GET details use this URL
+          return new Response(JSON.stringify([mockOs]), { status: 200 });
+        }
+        if (url.toString().includes('user_filiais')) {
+          return new Response(JSON.stringify([{ user_nome: 'Marcos Eletricista' }]), { status: 200 });
+        }
+        if (url.toString().includes('contas_pagar')) {
+          return new Response(JSON.stringify([{ id: 'cp1' }]), { status: 201 });
+        }
+        return new Response(null, { status: 404 });
+      });
+
+      await contratosApi.updateOsStatus(ctx, 'os-uuid', 'concluida');
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/contas_pagar',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"fornecedor_nome":"Marcos Eletricista"')
+        })
+      );
+    });
+  });
+
+  describe('Milestone Notification Integration', () => {
+    it('should queue a WhatsApp campaign log when faturando milestone', async () => {
+      fetchMock.mockImplementation(async (url) => {
+        if (url.toString().includes('contas_receber')) {
+          return new Response(JSON.stringify([{ id: 'cr1' }]), { status: 201 });
+        }
+        if (url.toString().includes('clientes')) {
+          return new Response(JSON.stringify([{ tel: '11999999999', whatsapp: '11988888888' }]), { status: 200 });
+        }
+        if (url.toString().includes('campanha_envios')) {
+          return new Response(JSON.stringify([{ id: 'env1' }]), { status: 201 });
+        }
+        return new Response(null, { status: 404 });
+      });
+
+      await contratosApi.faturarMarcoCronograma(ctx, {
+        contratoId: 'c1',
+        cronogramaId: 'f1',
+        clienteId: 'cli1',
+        clienteNome: 'Roberto',
+        valor: 5000,
+        tituloFase: 'Fundação Obra'
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/campanha_envios',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('Roberto')
+        })
       );
     });
   });

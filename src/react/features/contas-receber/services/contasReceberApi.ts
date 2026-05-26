@@ -121,6 +121,45 @@ export async function registrarBaixaRpc(
   });
   const body = await readJson(res);
   ensureOk(res, body, 'Erro ao registrar baixa');
+
+  // Lançamento de Caixa Automático na Liquidação de Título (Cenário D)
+  try {
+    const contaRes = await fetch(`${ctx.url}/rest/v1/contas_receber?id=eq.${encodeURIComponent(params.contaId)}`, {
+      headers: headers(ctx.key, ctx.token)
+    });
+    if (contaRes.ok) {
+      const contas = await readJson(contaRes) as any[];
+      const conta = contas?.[0];
+      if (conta) {
+        let categoriaId: string | null = null;
+        const catRes = await fetch(`${ctx.url}/rest/v1/caixa_categorias?nome=eq.Serviço&select=id`, {
+          headers: headers(ctx.key, ctx.token)
+        });
+        if (catRes.ok) {
+          const cats = await readJson(catRes) as any[];
+          if (cats?.[0]?.id) {
+            categoriaId = cats[0].id;
+          }
+        }
+
+        await fetch(`${ctx.url}/rest/v1/caixa_transacoes`, {
+          method: 'POST',
+          headers: headers(ctx.key, ctx.token),
+          body: JSON.stringify({
+            filial_id: ctx.filialId,
+            tipo: 'entrada',
+            valor: params.valor,
+            categoria_id: categoriaId,
+            descricao: `Baixa de Conta a Receber #${params.contaId} - Cliente: ${conta.cliente}`,
+            entidade_id: params.baixaId,
+            entidade_tipo: 'cliente'
+          })
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('Erro ao registrar transação de caixa correspondente à baixa:', err);
+  }
 }
 
 export async function estornarBaixaRpc(ctx: CrApiContext, baixaId: string): Promise<void> {

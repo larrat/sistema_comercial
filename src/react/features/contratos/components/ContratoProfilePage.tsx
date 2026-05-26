@@ -55,6 +55,7 @@ export function ContratoProfilePage() {
   const [newPhaseStart, setNewPhaseStart] = useState('');
   const [newPhaseEnd, setNewPhaseEnd] = useState('');
   const [newPhasePrecedente, setNewPhasePrecedente] = useState('');
+  const [newPhaseValorFaturamento, setNewPhaseValorFaturamento] = useState(0);
 
   const [newDiarioTitle, setNewDiarioTitle] = useState('');
   const [newDiarioRelatorio, setNewDiarioRelatorio] = useState('');
@@ -109,6 +110,17 @@ export function ContratoProfilePage() {
       return listPedidosCompra(session.access_token, filialId);
     },
     enabled: !!filialId && !!session?.access_token
+  });
+
+  // 7. Fetch Accounts Receivable (Faturamentos) for this contract
+  const { data: faturamentos = [], refetch: refetchFaturamentos } = useQuery({
+    queryKey: ['contrato-faturamentos', id, filialId],
+    queryFn: () => {
+      const context = resolve();
+      if (!context || !id) throw new Error('API context not ready');
+      return contratosApi.getContratoContasReceber(context, id);
+    },
+    enabled: !!id && !!filialId
   });
 
   // Financial Calculations
@@ -177,7 +189,30 @@ export function ContratoProfilePage() {
       setNewPhaseStart('');
       setNewPhaseEnd('');
       setNewPhasePrecedente('');
+      setNewPhaseValorFaturamento(0);
       toast.success('Nova fase adicionada ao cronograma!');
+    }
+  });
+
+  const faturarMarcoMutation = useMutation({
+    mutationFn: (params: { cronogramaId: string; valor: number; tituloFase: string }) => {
+      const context = resolve();
+      if (!context || !contrato) throw new Error('API or contract not ready');
+      return contratosApi.faturarMarcoCronograma(context, {
+        contratoId: contrato.id,
+        cronogramaId: params.cronogramaId,
+        clienteId: contrato.cliente_id,
+        clienteNome: contrato.cliente?.nome || 'Cliente da Obra',
+        valor: params.valor,
+        tituloFase: params.tituloFase
+      });
+    },
+    onSuccess: () => {
+      refetchFaturamentos();
+      toast.success('Faturamento lançado no contas a receber com sucesso!');
+    },
+    onError: (err: any) => {
+      toast.error('Erro ao faturar marco físico', { description: err.message });
     }
   });
 
@@ -227,7 +262,8 @@ export function ContratoProfilePage() {
       data_inicio: newPhaseStart,
       data_fim: newPhaseEnd,
       percentual_conclusao: 0,
-      precedente_id: newPhasePrecedente || null
+      precedente_id: newPhasePrecedente || null,
+      valor_faturamento: newPhaseValorFaturamento
     });
   };
 
@@ -476,9 +512,41 @@ export function ContratoProfilePage() {
                           />
                         </div>
 
-                        <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold mt-2">
-                          <span>Início: {fase.data_inicio ? format(new Date(fase.data_inicio), 'dd/MM/yyyy') : '-'}</span>
-                          <span>Fim: {fase.data_fim ? format(new Date(fase.data_fim), 'dd/MM/yyyy') : '-'}</span>
+                        <div className="flex flex-wrap items-center justify-between gap-4 mt-2 border-t border-white/5 pt-2">
+                          <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">
+                            <span>Início: {fase.data_inicio ? format(new Date(fase.data_inicio), 'dd/MM/yyyy') : '-'}</span>
+                            <span>Fim: {fase.data_fim ? format(new Date(fase.data_fim), 'dd/MM/yyyy') : '-'}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            {fase.valor_faturamento > 0 && (
+                              <span className="text-[9px] bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1">
+                                <DollarSign size={10} />
+                                Faturamento: {fmtBRL(Number(fase.valor_faturamento))}
+                              </span>
+                            )}
+                            {fase.percentual_conclusao === 100 && fase.valor_faturamento > 0 && (
+                              <>
+                                {faturamentos.find((f: any) => f.cronograma_id === fase.id) ? (
+                                  <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md">
+                                    <Check size={10} /> Faturado ✓
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => faturarMarcoMutation.mutate({
+                                      cronogramaId: fase.id,
+                                      valor: Number(fase.valor_faturamento),
+                                      tituloFase: fase.titulo
+                                    })}
+                                    disabled={faturarMarcoMutation.isPending}
+                                    className="flex items-center gap-1 rounded-md bg-gradient-to-r from-teal-500 to-indigo-600 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                                  >
+                                    {faturarMarcoMutation.isPending ? '...' : 'Faturar Marco'}
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -533,6 +601,18 @@ export function ContratoProfilePage() {
                         <option key={c.id} value={c.id}>{c.titulo}</option>
                       ))}
                     </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                      <DollarSign size={12} className="text-slate-500" /> Valor do Faturamento (R$)
+                    </label>
+                    <input 
+                      type="number" 
+                      placeholder="Ex: 5000"
+                      value={newPhaseValorFaturamento || ''}
+                      onChange={(e) => setNewPhaseValorFaturamento(Number(e.target.value))}
+                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
+                    />
                   </div>
                   <Button type="submit" variant="primary" className="w-full">Lançar Fase</Button>
                 </form>

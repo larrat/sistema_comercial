@@ -12,7 +12,10 @@ import {
   listPedidosSummary,
   marcarPedidoEntregue,
   removerPedidoItem,
-  savePedido
+  savePedido,
+  getValeTroca,
+  updateValeTrocaStatus,
+  registrarDevolucaoCompleta
 } from './pedidosApi';
 
 const context = {
@@ -442,5 +445,61 @@ describe('pedidosApi server-side listagem', () => {
         })
       })
     );
+  });
+
+  describe('Reverse Logistics & Vale-Troca', () => {
+    it('getValeTroca fetches active coupon details', async () => {
+      const mockVale = { id: 'v1', codigo: 'VALE-123', valor: 150, status: 'ativo' };
+      vi.mocked(fetch).mockResolvedValueOnce(makeResponse([mockVale]));
+
+      const result = await getValeTroca(context, 'VALE-123');
+
+      expect(result).toEqual(mockVale);
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/vale_trocas?codigo=eq.VALE-123&filial_id=eq.filial-1&limit=1',
+        expect.any(Object)
+      );
+    });
+
+    it('updateValeTrocaStatus updates coupon status in database', async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(makeResponse({}));
+
+      await updateValeTrocaStatus(context, 'v1', 'utilizado');
+
+      expect(fetch).toHaveBeenCalledWith(
+        'https://example.supabase.co/rest/v1/vale_trocas?id=eq.v1',
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'utilizado' })
+        })
+      );
+    });
+
+    it('registrarDevolucaoCompleta registers returns and inserts stock movement', async () => {
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(makeResponse([{}])) // vale_troca insert
+        .mockResolvedValueOnce(makeResponse([{}])) // devolucao insert
+        .mockResolvedValueOnce(makeResponse([{}])) // devolucao_itens insert
+        .mockResolvedValueOnce(makeResponse([{}])); // movimentacao insert
+
+      const res = await registrarDevolucaoCompleta(context, {
+        pedidoId: 'p1',
+        clienteId: 'c1',
+        valorTotalCredito: 100,
+        itens: [{ produtoId: 'prod-1', quantidade: 2, valorUnitario: 50 }]
+      });
+
+      expect(res.valeValor).toBe(100);
+      expect(res.valeCodigo).toContain('VALE-');
+      
+      // Verification of stock movement restore insert
+      expect(fetch).toHaveBeenLastCalledWith(
+        'https://example.supabase.co/rest/v1/movimentacoes',
+        expect.objectContaining({
+          method: 'POST',
+          body: expect.stringContaining('"tipo":"entrada"')
+        })
+      );
+    });
   });
 });

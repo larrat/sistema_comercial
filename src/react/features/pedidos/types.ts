@@ -93,3 +93,31 @@ export function normalizePedStatus(status: string | null | undefined): string {
   if (raw === 'pago') return 'pago_aguardando_entrega';
   return raw;
 }
+
+export type ValeTroca = {
+  id: string;
+  filial_id: string;
+  cliente_id?: string | null;
+  codigo: string;
+  valor: number;
+  status: 'ativo' | 'utilizado';
+  criado_em: string;
+};
+
+export type Devolucao = {
+  id: string;
+  filial_id: string;
+  pedido_id?: string | null;
+  cliente_id?: string | null;
+  vale_troca_id?: string | null;
+  criado_em: string;
+  vale_troca?: ValeTroca;
+};
+
+export type DevolucaoItem = {
+  id: string;
+  devolucao_id: string;
+  produto_id: string;
+  quantidade: number;
+  valor_unitario: number;
+};

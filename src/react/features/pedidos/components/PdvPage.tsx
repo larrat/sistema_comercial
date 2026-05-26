@@ -5,9 +5,9 @@ import { useRoleStore } from '../../../app/useRoleStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { EmptyState, ErrorState, Modal, StatusBadge, Button, Input, ScannerModal } from '../../../shared/ui';
-import { Camera } from 'lucide-react';
+import { Camera, Ticket, DollarSign } from 'lucide-react';
 import { usePedidoMutations } from '../hooks/usePedidosQuery';
-import { getNextPedidoNumber } from '../services/pedidosApi';
+import { getNextPedidoNumber, getValeTroca, updateValeTrocaStatus } from '../services/pedidosApi';
 import {
   searchClientesLight,
   type ClienteLight
@@ -203,6 +203,9 @@ export function PdvPage() {
   const [clienteSearching, setClienteSearching] = useState(false);
   const [mixedModalOpen, setMixedModalOpen] = useState(false);
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [valeCodigoInput, setValeCodigoInput] = useState('');
+  const [appliedVale, setAppliedVale] = useState<{ id: string; codigo: string; valor: number } | null>(null);
+  const [isValeLoading, setIsValeLoading] = useState(false);
   const [discountDraft, setDiscountDraft] = useState(() => discountValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [pendingQueueCount, setPendingQueueCount] = useState(0);
@@ -224,9 +227,14 @@ export function PdvPage() {
   const queueProcessingRef = useRef(false);
 
   const totals = useMemo(() => calculateCartTotals(items, discountValue), [items, discountValue]);
+
+  const finalTotal = useMemo(() => {
+    return Math.max(0, totals.total - (appliedVale ? appliedVale.valor : 0));
+  }, [totals.total, appliedVale]);
+
   const mixedValidation = useMemo(
-    () => validateMixedPayments(mixedPayments, totals.total),
-    [mixedPayments, totals.total]
+    () => validateMixedPayments(mixedPayments, finalTotal),
+    [mixedPayments, finalTotal]
   );
   const saving = save.isPending;
   const canFinalize =
@@ -255,6 +263,8 @@ export function PdvPage() {
     setClienteSearchError(null);
     setSaleToken(createSaleToken());
     setDiscountDraft('0,00');
+    setAppliedVale(null);
+    setValeCodigoInput('');
     setNextPedidoNum((current) => current + 1);
     window.requestAnimationFrame(() => productInputRef.current?.focus());
   }
@@ -519,19 +529,15 @@ export function PdvPage() {
       pgto: mapPdvPaymentToPedido(paymentMethod!),
       prazo: paymentMethod === 'fiado' ? normalizePrazoCliente(selectedCliente) : 'imediato',
       tipo: 'varejo',
-      obs: '',
+      obs: appliedVale ? `Vale-Troca utilizado: ${appliedVale.codigo} (R$ ${appliedVale.valor})` : '',
       itens: buildPedidoItensFromCart(items, totals.discountValue),
-      total: totals.total,
+      total: finalTotal,
       origem_venda: 'pdv',
-      pgto_meta:
-        paymentMethod === 'misto'
-          ? {
-              method: paymentMethod,
-              parts: mixedValidation.parts
-            }
-          : {
-              method: paymentMethod
-            },
+      pgto_meta: {
+        method: paymentMethod,
+        ...(paymentMethod === 'misto' ? { parts: mixedValidation.parts } : {}),
+        ...(appliedVale ? { vale_troca_codigo: appliedVale.codigo, vale_troca_valor: appliedVale.valor } : {})
+      },
       venda_fechada: true,
       venda_fechada_em: new Date().toISOString(),
       venda_fechada_por: getUserIdentifier(session)
@@ -539,6 +545,15 @@ export function PdvPage() {
 
     try {
       await submitPdvPayload(payload);
+      
+      // Consume the vale-troca coupon in database if applied
+      if (appliedVale) {
+        const ctx = resolveContext();
+        if (ctx) {
+          await updateValeTrocaStatus(ctx, appliedVale.id, 'utilizado');
+        }
+      }
+
       toast.success('Venda finalizada. O PDV já está pronto para a próxima.');
       setLastCompletedSale({
         numero: payload.num,
@@ -861,9 +876,15 @@ export function PdvPage() {
                     <strong>− {formatCurrencyBRL(totals.discountValue)}</strong>
                   </div>
                 ) : null}
-                <div className="rf-pdv__summary-row is-total">
-                  <span>Total</span>
-                  <strong>{formatCurrencyBRL(totals.total)}</strong>
+                {appliedVale && (
+                  <div className="rf-pdv__summary-row text-teal-400 font-bold">
+                    <span>Vale-Troca ({appliedVale.codigo})</span>
+                    <strong>− {formatCurrencyBRL(appliedVale.valor)}</strong>
+                  </div>
+                )}
+                <div className="rf-pdv__summary-row is-total border-t border-white/5 pt-1.5">
+                  <span>Total a Pagar</span>
+                  <strong>{formatCurrencyBRL(finalTotal)}</strong>
                 </div>
               </div>
               <div className="rf-pdv__cart-actions">
@@ -900,7 +921,79 @@ export function PdvPage() {
               )}
             </section>
 
-            <section className="rf-pdv__panel is-expanded">
+            {/* Premium Vale-Troca Resgate Panel */}
+            <section className="rf-pdv__panel bg-teal-500/[0.01] border-teal-500/10" style={{ marginTop: '1rem' }}>
+              <header className="rf-pdv__panel-head flex items-center justify-between">
+                <div className="rf-pdv__title flex items-center gap-1.5 text-xs font-black uppercase text-teal-400">
+                  <Ticket size={14} className="text-teal-400" />
+                  Cupom de Vale-Troca
+                </div>
+                {appliedVale && (
+                  <button 
+                    onClick={() => setAppliedVale(null)}
+                    className="text-[9px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-300"
+                  >
+                    Remover
+                  </button>
+                )}
+              </header>
+
+              {appliedVale ? (
+                <div className="p-3 bg-teal-500/5 border border-teal-500/10 rounded-xl flex justify-between items-center text-xs">
+                  <div>
+                    <div className="font-mono font-black text-white">{appliedVale.codigo}</div>
+                    <div className="text-[10px] text-slate-500 font-bold mt-0.5">Saldo de troca ativo</div>
+                  </div>
+                  <strong className="text-teal-400 text-sm font-black">− {formatCurrencyBRL(appliedVale.valor)}</strong>
+                </div>
+              ) : (
+                <div className="p-3 space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="VALE-XXXXXX"
+                      value={valeCodigoInput}
+                      onChange={(e) => setValeCodigoInput(e.target.value.toUpperCase())}
+                      className="flex-1 bg-black/40 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-white uppercase font-mono tracking-wider focus:border-teal-500 focus:outline-none placeholder-slate-600"
+                    />
+                    <button
+                      type="button"
+                      disabled={isValeLoading || !valeCodigoInput.trim()}
+                      onClick={async () => {
+                        setIsValeLoading(true);
+                        try {
+                          const ctx = resolveContext();
+                          if (!ctx) throw new Error('API context not ready');
+                          const vale = await getValeTroca(ctx, valeCodigoInput.trim());
+                          if (!vale) {
+                            toast.error('Cupom de vale-troca não encontrado');
+                          } else if (vale.status !== 'ativo') {
+                            toast.error('Este vale-troca já foi utilizado');
+                          } else {
+                            setAppliedVale({
+                              id: vale.id,
+                              codigo: vale.codigo,
+                              valor: Number(vale.valor)
+                            });
+                            toast.success(`Vale-Troca de ${formatCurrencyBRL(Number(vale.valor))} aplicado com sucesso!`);
+                            setValeCodigoInput('');
+                          }
+                        } catch (err: any) {
+                          toast.error(err.message || 'Erro ao validar vale-troca');
+                        } finally {
+                          setIsValeLoading(false);
+                        }
+                      }}
+                      className="rounded-lg bg-teal-500/10 border border-teal-500/25 px-3 py-1.5 text-xs font-black uppercase text-teal-400 hover:bg-teal-500/20 active:scale-[0.98] transition-all disabled:opacity-40"
+                    >
+                      {isValeLoading ? '...' : 'Aplicar'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section className="rf-pdv__panel is-expanded" style={{ marginTop: '1rem' }}>
               <header className="rf-pdv__panel-head">
                 <div className="rf-pdv__title">Pagamento</div>
               </header>

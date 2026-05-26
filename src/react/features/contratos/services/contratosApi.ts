@@ -85,7 +85,36 @@ export const contratosApi = {
     });
     if (!res.ok) throw new Error('Erro ao criar ordem de serviço');
     const data = await res.json();
-    return data[0];
+    const os = data[0] as OrdemServico;
+
+    // Sincronização com Agenda Global (Cenário B)
+    if (os.data_agendada) {
+      try {
+        const dataInicio = new Date(os.data_agendada);
+        const dataFim = new Date(dataInicio.getTime() + 2 * 60 * 60 * 1000); // +2h padrão
+
+        await fetch(`${ctx.url}/rest/v1/agenda_eventos`, {
+          method: 'POST',
+          headers: headers(ctx),
+          body: JSON.stringify({
+            filial_id: ctx.filialId,
+            titulo: `O.S.: ${os.titulo}`,
+            descricao: os.descricao || `Serviço agendado ref. O.S. #${os.id}`,
+            tipo: 'visita',
+            data_inicio: dataInicio.toISOString(),
+            data_fim: dataFim.toISOString(),
+            dia_inteiro: false,
+            participantes: [os.responsavel_id, os.terceirizado_id].filter(Boolean),
+            criado_por: os.criado_por || null
+          })
+        });
+      } catch (err) {
+        // Silencia erro para não travar fluxo de O.S.
+        console.warn('Erro ao sincronizar com agenda:', err);
+      }
+    }
+
+    return os;
   },
   
   async updateOsStatus(ctx: ApiContext, id: string, status: OrdemServico['status']): Promise<void> {
@@ -95,6 +124,56 @@ export const contratosApi = {
       body: JSON.stringify({ status, atualizado_em: new Date().toISOString() })
     });
     if (!res.ok) throw new Error('Erro ao atualizar OS');
+
+    // Repasse Financeiro a Terceirizados (Cenário A)
+    if (status === 'concluida') {
+      try {
+        const osRes = await fetch(`${ctx.url}/rest/v1/ordens_servico?id=eq.${id}&select=*`, {
+          headers: headers(ctx)
+        });
+        if (osRes.ok) {
+          const osData = await osRes.json();
+          const os = osData[0] as OrdemServico | undefined;
+          if (os && os.valor_parceiro && os.valor_parceiro > 0 && os.terceirizado_id) {
+            let terceirizadoNome = `Prestador O.S. ${id.substring(0, 8)}`;
+            
+            // Buscar nome do parceiro
+            const userRes = await fetch(
+              `${ctx.url}/rest/v1/user_filiais?user_id=eq.${os.terceirizado_id}&filial_id=eq.${ctx.filialId}&select=user_nome`,
+              { headers: headers(ctx) }
+            );
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              if (userData?.[0]?.user_nome) {
+                terceirizadoNome = userData[0].user_nome;
+              }
+            }
+
+            // Criar Conta a Pagar
+            await fetch(`${ctx.url}/rest/v1/contas_pagar`, {
+              method: 'POST',
+              headers: {
+                ...headers(ctx),
+                'Prefer': 'resolution=merge-duplicates'
+              },
+              body: JSON.stringify({
+                id: `CP-OS-${id}`,
+                filial_id: ctx.filialId,
+                pedido_compra_id: null,
+                fornecedor_nome: terceirizadoNome,
+                valor: os.valor_parceiro,
+                vencimento: new Date().toISOString().split('T')[0],
+                status: 'pendente',
+                categoria: 'Mão de Obra',
+                obs: `Repasse automático ref. conclusão da O.S. "${os.titulo}"`
+              })
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao gerar repasse para terceirizado:', err);
+      }
+    }
   },
 
   // Termos Aditivos (Change Orders)
@@ -181,5 +260,99 @@ export const contratosApi = {
     });
     if (!res.ok) throw new Error('Erro ao buscar usuários da filial');
     return res.json();
+  },
+
+  async getContratoContasReceber(ctx: ApiContext, contratoId: string): Promise<any[]> {
+    const res = await fetch(`${ctx.url}/rest/v1/contas_receber?contrato_id=eq.${contratoId}&filial_id=eq.${ctx.filialId}`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar faturamento do contrato');
+    return res.json();
+  },
+
+  async faturarMarcoCronograma(
+    ctx: ApiContext,
+    params: {
+      contratoId: string;
+      cronogramaId: string;
+      clienteId: string;
+      clienteNome: string;
+      valor: number;
+      tituloFase: string;
+    }
+  ): Promise<void> {
+    const id = `CR-${params.cronogramaId.substring(0, 8)}-${Date.now().toString().substring(8)}`;
+    
+    const vencimentoDate = new Date();
+    vencimentoDate.setDate(vencimentoDate.getDate() + 15);
+    const vencimento = vencimentoDate.toISOString().split('T')[0];
+
+    const body = {
+      id,
+      filial_id: ctx.filialId,
+      contrato_id: params.contratoId,
+      cronograma_id: params.cronogramaId,
+      cliente_id: params.clienteId || null,
+      cliente: params.clienteNome,
+      valor: params.valor,
+      vencimento,
+      status: 'pendente',
+      obs: `Faturamento automático da fase "${params.tituloFase}" da obra.`
+    };
+
+    const res = await fetch(`${ctx.url}/rest/v1/contas_receber`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: ctx.key,
+        Authorization: `Bearer ${ctx.token}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error('Erro ao faturar marco físico do cronograma');
+
+    // Régua de Notificação de Faturamento (Cenário C)
+    if (params.clienteId) {
+      try {
+        const cliRes = await fetch(`${ctx.url}/rest/v1/clientes?id=eq.${params.clienteId}&select=tel,whatsapp,email`, {
+          headers: { apikey: ctx.key, Authorization: `Bearer ${ctx.token}` }
+        });
+        if (cliRes.ok) {
+          const cliData = await cliRes.json();
+          const cliente = cliData?.[0];
+          if (cliente) {
+            const destino = cliente.whatsapp || cliente.tel || cliente.email || 'N/A';
+            const valorFmt = params.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            const vencParts = vencimento.split('-');
+            const vencFmt = vencParts.length === 3 ? `${vencParts[2]}/${vencParts[1]}/${vencParts[0]}` : vencimento;
+
+            const mensagem = `Olá, ${params.clienteNome}! A fase "${params.tituloFase}" do seu projeto foi concluída e faturada. Geramos o recebível de ${valorFmt} com vencimento para ${vencFmt}.`;
+
+            await fetch(`${ctx.url}/rest/v1/campanha_envios`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                apikey: ctx.key,
+                Authorization: `Bearer ${ctx.token}`
+              },
+              body: JSON.stringify({
+                filial_id: ctx.filialId,
+                campanha_id: null,
+                cliente_id: params.clienteId,
+                canal: 'whatsapp',
+                destino,
+                mensagem,
+                status: 'pendente'
+              })
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Erro ao enfileirar notificação de faturamento:', err);
+      }
+    }
   }
 };

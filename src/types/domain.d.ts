@@ -223,9 +223,11 @@ export type Pedido = {
 export type ContaReceber = {
   id: Id;
   filial_id: Id;
-  pedido_id: Id;
+  pedido_id?: Id | null;
   pedido_num?: number | null;
   cliente_id?: Id | null;
+  contrato_id?: Id | null;
+  cronograma_id?: Id | null;
   cliente: string;
   valor: number;
   valor_recebido?: number;

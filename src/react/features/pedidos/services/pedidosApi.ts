@@ -616,3 +616,114 @@ export async function adicionarPedidoItem(
   ensureOk(res, body, `Erro ${res.status} ao adicionar item ao pedido`);
   return normalizePedido(body as Pedido);
 }
+
+export async function getValeTroca(
+  context: PedidoApiContext,
+  codigo: string
+): Promise<any | null> {
+  const res = await fetch(
+    `${context.url}/rest/v1/vale_trocas?codigo=eq.${encodeURIComponent(codigo)}&filial_id=eq.${context.filialId}&limit=1`,
+    { headers: createHeaders(context.key, context.token), signal: AbortSignal.timeout(6000) }
+  );
+  if (!res.ok) return null;
+  const data = await readJson(res);
+  if (Array.isArray(data)) return data[0] || null;
+  return null;
+}
+
+export async function updateValeTrocaStatus(
+  context: PedidoApiContext,
+  valeId: string,
+  status: 'ativo' | 'utilizado'
+): Promise<void> {
+  const res = await fetch(`${context.url}/rest/v1/vale_trocas?id=eq.${valeId}`, {
+    method: 'PATCH',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({ status })
+  });
+  if (!res.ok) throw new Error('Erro ao atualizar status do vale-troca');
+}
+
+export async function registrarDevolucaoCompleta(
+  context: PedidoApiContext,
+  params: {
+    pedidoId: string | null;
+    clienteId: string | null;
+    valorTotalCredito: number;
+    itens: Array<{ produtoId: string; quantidade: number; valorUnitario: number }>;
+  }
+): Promise<{ valeCodigo: string; valeValor: number }> {
+  const headers = createHeaders(context.key, context.token);
+
+  const valeId = crypto.randomUUID();
+  const randCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const valeCodigo = `VALE-${randCode}`;
+  
+  const valeBody = {
+    id: valeId,
+    filial_id: context.filialId,
+    cliente_id: params.clienteId || null,
+    codigo: valeCodigo,
+    valor: params.valorTotalCredito,
+    status: 'ativo'
+  };
+
+  const valeRes = await fetch(`${context.url}/rest/v1/vale_trocas`, {
+    method: 'POST',
+    headers: { ...headers, 'Prefer': 'return=representation' },
+    body: JSON.stringify(valeBody)
+  });
+  if (!valeRes.ok) throw new Error('Erro ao criar cupom de vale-troca');
+
+  const devolucaoId = crypto.randomUUID();
+  const devBody = {
+    id: devolucaoId,
+    filial_id: context.filialId,
+    pedido_id: params.pedidoId || null,
+    cliente_id: params.clienteId || null,
+    vale_troca_id: valeId
+  };
+
+  const devRes = await fetch(`${context.url}/rest/v1/devolucoes`, {
+    method: 'POST',
+    headers: { ...headers, 'Prefer': 'return=representation' },
+    body: JSON.stringify(devBody)
+  });
+  if (!devRes.ok) throw new Error('Erro ao registrar devolução');
+
+  const devItensBody = params.itens.map(item => ({
+    id: crypto.randomUUID(),
+    devolucao_id: devolucaoId,
+    produto_id: item.produtoId,
+    quantidade: item.quantidade,
+    valor_unitario: item.valorUnitario
+  }));
+
+  const devItensRes = await fetch(`${context.url}/rest/v1/devolucao_itens`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(devItensBody)
+  });
+  if (!devItensRes.ok) throw new Error('Erro ao salvar itens devolvidos');
+
+  for (const item of params.itens) {
+    const movId = crypto.randomUUID();
+    const movBody = {
+      id: movId,
+      filial_id: context.filialId,
+      prod_id: item.produtoId,
+      prodId: item.produtoId,
+      tipo: 'entrada',
+      qty: item.quantidade,
+      obs: `Estorno de estoque por devolução de produto (Devolução #${devolucaoId.substring(0, 8)})`,
+      ts: Date.now()
+    };
+    await fetch(`${context.url}/rest/v1/movimentacoes`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(movBody)
+    });
+  }
+
+  return { valeCodigo, valeValor: params.valorTotalCredito };
+}
