@@ -10,7 +10,10 @@ import {
   XCircle,
   Truck,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Calendar,
+  DollarSign,
+  Clipboard
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
@@ -22,7 +25,8 @@ import {
   DataTable,
   StatusBadge,
   LoadingState,
-  ErrorState
+  ErrorState,
+  Modal
 } from '../../../shared/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listPedidosCompra, finalizarPedidoCompra, cancelarPedidoCompra } from '../services/comprasApi';
@@ -42,6 +46,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPedido, setSelectedPedido] = useState<any | null>(null);
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
     queryKey: ['pedidos-compra', filialId],
@@ -185,6 +190,25 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
               label: '',
               render: (p) => (
                 <div className="flex gap-2 justify-end">
+                   <Button 
+                     size="sm" 
+                     variant="secondary" 
+                     className="!rounded-lg !text-[10px]"
+                     onClick={() => setSelectedPedido(p)}
+                   >
+                     Detalhes
+                   </Button>
+                   {p.status === 'aberto' && (
+                     <Button 
+                       size="sm" 
+                       variant="primary" 
+                       className="!rounded-lg !text-[10px]"
+                       onClick={() => finalizarMutation.mutate(p)}
+                       loading={finalizarMutation.isPending}
+                     >
+                       Dar Entrada
+                     </Button>
+                   )}
                    {p.status !== 'cancelado' && (
                      <Button 
                        size="sm" 
@@ -200,25 +224,113 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
                        Cancelar
                      </Button>
                    )}
-                   {p.status === 'aberto' ? (
-                     <Button 
-                       size="sm" 
-                       variant="primary" 
-                       className="!rounded-lg !text-[10px]"
-                       onClick={() => finalizarMutation.mutate(p)}
-                       loading={finalizarMutation.isPending}
-                     >
-                       Dar Entrada
-                     </Button>
-                   ) : (
-                     <Button size="sm" variant="secondary" className="!rounded-lg !text-[10px]">Ver Detalhes</Button>
-                   )}
                 </div>
               )
             }
           ]}
         />
       </div>
+
+      {/* Modal de Detalhes do Pedido de Compra */}
+      <Modal
+        open={!!selectedPedido}
+        onClose={() => setSelectedPedido(null)}
+        title="Detalhes do Pedido de Compra"
+        subtitle={selectedPedido ? `Código da ordem: ${selectedPedido.id}` : undefined}
+        size="lg"
+      >
+        {selectedPedido && (
+          <div className="space-y-6 animate-in fade-in zoom-in-95 duration-200">
+            {/* Cabecalho de Infos Gerais */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Fornecedor</span>
+                <span className="text-sm font-bold text-slate-200 truncate">{selectedPedido.fornecedor_nome}</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Data de Emissão</span>
+                <span className="text-sm font-bold text-slate-200">
+                  {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(selectedPedido.criado_em))}
+                </span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Forma de Pagamento</span>
+                <span className="text-sm font-bold text-slate-200">{selectedPedido.forma_pagamento || 'Não informada'}</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Status do Pedido</span>
+                <div className="mt-1">
+                  <StatusBadge tone={selectedPedido.status === 'finalizado' ? 'success' : selectedPedido.status === 'aberto' ? 'warning' : 'neutral'}>
+                    {selectedPedido.status.toUpperCase()}
+                  </StatusBadge>
+                </div>
+              </div>
+            </div>
+
+            {/* Observações */}
+            {selectedPedido.obs && (
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Observações</span>
+                <p className="text-xs text-slate-400 whitespace-pre-wrap leading-relaxed">{selectedPedido.obs}</p>
+              </div>
+            )}
+
+            {/* Tabela de Itens */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Itens da Compra</span>
+              <div className="overflow-hidden border border-white/5 rounded-2xl bg-black/20">
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/[0.01]">
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider">Produto</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Qtd</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Custo Unitário</th>
+                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {((selectedPedido.pedido_compra_itens || selectedPedido.itens || []) as any[]).map((item, idx) => (
+                      <tr key={idx} className="border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors">
+                        <td className="p-4">
+                          <span className="text-xs font-bold text-slate-200">{item.nome}</span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <span className="text-xs font-semibold text-slate-300">{item.qty}</span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <span className="text-xs font-semibold text-slate-300">{fmt(item.custo_unitario)}</span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <span className="text-xs font-black text-teal-400">{fmt(item.total_item || (item.qty * item.custo_unitario))}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {(!selectedPedido.pedido_compra_itens || selectedPedido.pedido_compra_itens.length === 0) && (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-xs text-slate-500 font-bold uppercase tracking-wider">
+                          Nenhum item cadastrado neste pedido de compra.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Total do Pedido */}
+            <div className="flex justify-between items-center p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Valor Total da Ordem</span>
+              <span className="text-2xl font-black text-[#C5A059] tracking-tight">{fmt(selectedPedido.total)}</span>
+            </div>
+            
+            <div className="flex justify-end pt-2">
+              <Button variant="secondary" onClick={() => setSelectedPedido(null)} className="!rounded-xl px-6">
+                Fechar Detalhes
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </main>
   );
 }
