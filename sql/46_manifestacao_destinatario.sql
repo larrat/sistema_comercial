@@ -15,7 +15,7 @@ create table if not exists public.nfe_destinadas (
     manifesto_status varchar(30) default 'sem_manifesto' check (manifesto_status in ('sem_manifesto', 'ciencia', 'confirmado', 'desconhecido')),
     nfe_status varchar(20) default 'autorizada',
     xml_armazenado text,
-    importado_compra_id varchar(50) references public.pedidos_compra(id) on delete set null,
+    importado_compra_id text references public.pedidos_compra(id) on delete set null,
     criado_em timestamp with time zone default now()
 );
 
