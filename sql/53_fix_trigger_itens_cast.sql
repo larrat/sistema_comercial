@@ -221,17 +221,29 @@ begin
     end if;
 
     -- Baixa automática → dispara trg_caixa_auto_baixas → registra no caixa
-    insert into public.contas_receber_baixas (
-      id, filial_id, conta_receber_id, pedido_id, pedido_num,
-      cliente_id, cliente, valor, recebido_em, observacao
-    ) values (
-      'BAIXA-AUTO-' || new.id,
-      new.filial_id, v_conta_id, new.id, new.num,
-      new.cliente_id, new.cli,
-      new.total, now(),
-      'Baixa automática — Venda à Vista'
-    )
-    on conflict (id) do nothing;
+    -- Só insere se:
+    --   (a) ainda não existe baixa com esse ID (evita duplicata), E
+    --   (b) a conta ainda tem saldo em aberto (evita erro do guard "conta já quitada")
+    if not exists (
+      select 1 from public.contas_receber_baixas
+       where id = 'BAIXA-AUTO-' || new.id
+    ) and exists (
+      select 1 from public.contas_receber
+       where id = v_conta_id
+         and coalesce(valor_em_aberto,
+               greatest(coalesce(valor,0) - coalesce(valor_recebido,0), 0)) > 0
+    ) then
+      insert into public.contas_receber_baixas (
+        id, filial_id, conta_receber_id, pedido_id, pedido_num,
+        cliente_id, cliente, valor, recebido_em, observacao
+      ) values (
+        'BAIXA-AUTO-' || new.id,
+        new.filial_id, v_conta_id, new.id, new.num,
+        new.cliente_id, new.cli,
+        new.total, now(),
+        'Baixa automática — Venda à Vista'
+      );
+    end if;
   end if;
 
   -- ── 4. REABERTURA PARA ORÇAMENTO (estorno completo) ──
