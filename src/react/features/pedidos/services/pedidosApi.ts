@@ -626,6 +626,38 @@ export async function marcarPedidoEntregue(
   return normalizePedido(body as Pedido);
 }
 
+export type CancelamentoPedidoResult = {
+  ok: boolean;
+  ja_cancelado?: boolean;
+  pedido_id: string;
+  pedido_num?: number;
+  contas_canceladas: number;
+  itens_estoque_revertidos: number;
+  cancelado_em?: string;
+};
+
+/**
+ * Cancela um pedido de forma atômica via RPC pedido_cancelar_seguro.
+ * Estorna baixas parciais, cancela contas_receber e devolve estoque ao Kardex.
+ * Bloqueia pedidos com NF-e emitida.
+ */
+export async function cancelarPedidoSeguro(
+  context: PedidoApiContext,
+  pedidoId: string,
+  motivo = 'Cancelado pelo operador'
+): Promise<CancelamentoPedidoResult> {
+  const res = await fetch(`${context.url}/rest/v1/rpc/pedido_cancelar_seguro`, {
+    method: 'POST',
+    headers: createHeaders(context.key, context.token),
+    body: JSON.stringify({ p_pedido_id: pedidoId, p_motivo: motivo }),
+    signal: AbortSignal.timeout(15000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao cancelar pedido`);
+  logAudit(context.token, 'pedidos', pedidoId, 'UPDATE', { acao: 'cancelamento_seguro', motivo });
+  return body as CancelamentoPedidoResult;
+}
+
 export async function atualizarPedidoItem(
   context: PedidoApiContext,
   pedidoId: string,

@@ -7,11 +7,13 @@ import {
   savePedido,
   updatePedidoStatus,
   marcarPedidoEntregue,
+  cancelarPedidoSeguro,
   adicionarPedidoItem,
   removerPedidoItem,
   atualizarPedidoItem,
   type PedidoListFilters,
-  type PedidoSaveInput
+  type PedidoSaveInput,
+  type CancelamentoPedidoResult
 } from '../services/pedidosApi';
 import { gerarContaForcado, type ContaReceberInput } from '../services/contasReceberApi';
 import { listClientesLight } from '../services/clientesLightApi';
@@ -173,19 +175,36 @@ export function usePedidoMutations() {
   });
 
   const cancelarPedido = useMutation({
-    mutationFn: ({ pedido, isRecusaAvaria }: { pedido: Pedido; isRecusaAvaria?: boolean }) => {
+    mutationFn: ({ pedido, isRecusaAvaria, motivo }: { pedido: Pedido; isRecusaAvaria?: boolean; motivo?: string }) => {
       if (!context) throw new Error('API context not ready');
+      // Validação de NF-e emitida feita também no RPC, mas bloqueamos cedo no cliente
       if (pedido.fiscal_status === 'emitido') {
         throw new Error('Não é permitido cancelar um pedido com Nota Fiscal já emitida na SEFAZ. Por favor, cancele ou estorne a Nota Fiscal primeiro no painel fiscal.');
       }
-      return updatePedidoStatus(context, pedido.id, 'cancelado', isRecusaAvaria);
+      const motivoFinal = isRecusaAvaria
+        ? 'Recusa por avaria no transporte'
+        : (motivo ?? 'Cancelado pelo operador');
+      return cancelarPedidoSeguro(context, pedido.id, motivoFinal);
     },
-    onSuccess: () => {
+    onSuccess: (resultado: CancelamentoPedidoResult) => {
       queryClient.invalidateQueries({ queryKey: ['pedidos'] });
       queryClient.invalidateQueries({ queryKey: ['pedidos-summary'] });
       queryClient.invalidateQueries({ queryKey: ['pedido'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
-      toast.success('Pedido cancelado.');
+      queryClient.invalidateQueries({ queryKey: ['pedido-financeiro'] });
+      queryClient.invalidateQueries({ queryKey: ['contas-receber'] });
+      if (resultado.ja_cancelado) {
+        toast.info('Este pedido já estava cancelado.');
+      } else {
+        const partes: string[] = ['Pedido cancelado com sucesso.'];
+        if (resultado.contas_canceladas > 0) {
+          partes.push(`${resultado.contas_canceladas} conta(s) a receber estornada(s).`);
+        }
+        if (resultado.itens_estoque_revertidos > 0) {
+          partes.push(`${resultado.itens_estoque_revertidos} item(ns) devolvido(s) ao estoque.`);
+        }
+        toast.success(partes.join(' '));
+      }
     },
     onError: (error: Error) => {
       toast.error(error.message);
