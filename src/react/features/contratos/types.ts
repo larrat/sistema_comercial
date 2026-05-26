@@ -32,6 +32,9 @@ export type Contrato = {
     nome: string;
     doc?: string;
   };
+  aditivos?: ContratoAditivo[];
+  cronograma?: ContratoCronograma[];
+  diarios?: DiarioObra[];
 };
 
 export type OsStatus = 'agendada' | 'em_andamento' | 'concluida' | 'cancelada';
@@ -46,10 +49,50 @@ export type OrdemServico = {
   data_agendada?: string;
   data_conclusao?: string;
   responsavel_id?: string;
+  terceirizado_id?: string | null;
+  valor_parceiro?: number;
   criado_por?: string;
   criado_em: string;
   atualizado_em: string;
 };
 
+export type ContratoAditivo = {
+  id: string;
+  filial_id: string;
+  contrato_id: string;
+  titulo: string;
+  valor: number;
+  criado_por?: string;
+  criado_em: string;
+};
+
+export type ContratoCronograma = {
+  id: string;
+  filial_id: string;
+  contrato_id: string;
+  titulo: string;
+  data_inicio?: string;
+  data_fim?: string;
+  percentual_conclusao: number;
+  precedente_id?: string | null;
+  criado_em: string;
+};
+
+export type DiarioObra = {
+  id: string;
+  filial_id: string;
+  contrato_id: string;
+  titulo: string;
+  relatorio: string;
+  fotos?: string[];
+  clima?: 'ensolarado' | 'chuvoso' | 'nublado';
+  mao_de_obra_qtd?: number;
+  criado_por?: string;
+  criado_em: string;
+};
+
 export type ContratoDraft = Pick<Contrato, 'cliente_id' | 'oportunidade_id' | 'titulo' | 'valor_total' | 'data_inicio' | 'previsao_fim'>;
-export type OrdemServicoDraft = Pick<OrdemServico, 'contrato_id' | 'titulo' | 'descricao' | 'data_agendada' | 'responsavel_id'>;
+export type OrdemServicoDraft = Pick<OrdemServico, 'contrato_id' | 'titulo' | 'descricao' | 'data_agendada' | 'responsavel_id' | 'terceirizado_id' | 'valor_parceiro'>;
+export type ContratoAditivoDraft = Pick<ContratoAditivo, 'contrato_id' | 'titulo' | 'valor'>;
+export type ContratoCronogramaDraft = Pick<ContratoCronograma, 'contrato_id' | 'titulo' | 'data_inicio' | 'data_fim' | 'percentual_conclusao' | 'precedente_id'>;
+export type DiarioObraDraft = Pick<DiarioObra, 'contrato_id' | 'titulo' | 'relatorio' | 'fotos' | 'clima' | 'mao_de_obra_qtd'>;

@@ -1,4 +1,15 @@
-import type { Contrato, ContratoDraft, OrdemServico, OrdemServicoDraft, Servico } from '../types';
+import type { 
+  Contrato, 
+  ContratoDraft, 
+  OrdemServico, 
+  OrdemServicoDraft, 
+  ContratoAditivo, 
+  ContratoAditivoDraft, 
+  ContratoCronograma, 
+  ContratoCronogramaDraft, 
+  DiarioObra, 
+  DiarioObraDraft 
+} from '../types';
 
 type ApiContext = {
   url: string;
@@ -84,5 +95,91 @@ export const contratosApi = {
       body: JSON.stringify({ status, atualizado_em: new Date().toISOString() })
     });
     if (!res.ok) throw new Error('Erro ao atualizar OS');
+  },
+
+  // Termos Aditivos (Change Orders)
+  async getContratoAditivos(ctx: ApiContext, contratoId: string): Promise<ContratoAditivo[]> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_aditivos?contrato_id=eq.${contratoId}&filial_id=eq.${ctx.filialId}&order=criado_em.desc`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar aditivos do contrato');
+    return res.json();
+  },
+
+  async createContratoAditivo(ctx: ApiContext, draft: ContratoAditivoDraft): Promise<ContratoAditivo> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_aditivos`, {
+      method: 'POST',
+      headers: { ...headers(ctx), 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        ...draft,
+        filial_id: ctx.filialId
+      })
+    });
+    if (!res.ok) throw new Error('Erro ao criar aditivo de contrato');
+    const data = await res.json();
+    return data[0];
+  },
+
+  // Cronograma da Obra (Gantt)
+  async getContratoCronograma(ctx: ApiContext, contratoId: string): Promise<ContratoCronograma[]> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_cronograma?contrato_id=eq.${contratoId}&filial_id=eq.${ctx.filialId}&order=data_inicio.asc`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar cronograma do contrato');
+    return res.json();
+  },
+
+  async createContratoCronograma(ctx: ApiContext, draft: ContratoCronogramaDraft): Promise<ContratoCronograma> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_cronograma`, {
+      method: 'POST',
+      headers: { ...headers(ctx), 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        ...draft,
+        filial_id: ctx.filialId
+      })
+    });
+    if (!res.ok) throw new Error('Erro ao criar marco no cronograma');
+    const data = await res.json();
+    return data[0];
+  },
+
+  async updateCronogramaProgresso(ctx: ApiContext, id: string, percentualConclusao: number): Promise<void> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_cronograma?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: headers(ctx),
+      body: JSON.stringify({ percentual_conclusao: percentualConclusao })
+    });
+    if (!res.ok) throw new Error('Erro ao atualizar progresso do cronograma');
+  },
+
+  // Diário de Obra (RDO)
+  async getDiarioObra(ctx: ApiContext, contratoId: string): Promise<DiarioObra[]> {
+    const res = await fetch(`${ctx.url}/rest/v1/diario_obra?contrato_id=eq.${contratoId}&filial_id=eq.${ctx.filialId}&order=criado_em.desc`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar diário de obra');
+    return res.json();
+  },
+
+  async createDiarioObra(ctx: ApiContext, draft: DiarioObraDraft): Promise<DiarioObra> {
+    const res = await fetch(`${ctx.url}/rest/v1/diario_obra`, {
+      method: 'POST',
+      headers: { ...headers(ctx), 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        ...draft,
+        filial_id: ctx.filialId
+      })
+    });
+    if (!res.ok) throw new Error('Erro ao criar diário de obra');
+    const data = await res.json();
+    return data[0];
+  },
+
+  async getFilialUsers(ctx: ApiContext): Promise<Array<{ user_id: string, user_nome: string, user_email: string }>> {
+    const res = await fetch(`${ctx.url}/rest/v1/user_filiais?filial_id=eq.${ctx.filialId}&select=user_id,user_nome,user_email&order=user_nome.asc`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar usuários da filial');
+    return res.json();
   }
 };

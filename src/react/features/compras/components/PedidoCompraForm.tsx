@@ -7,6 +7,7 @@ import type { PedidoCompraItem, PedidoCompra } from '../services/comprasApi';
 import { useQuery } from '@tanstack/react-query';
 import { listProdutos } from '../../produtos/services/produtosApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { contratosApi } from '../../contratos/services/contratosApi';
 
 type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
@@ -20,6 +21,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   const [itens, setItens] = useState<PedidoCompraItem[]>([]);
   const [formaPgto, setFormaPgto] = useState('Boleto');
   const [obs, setObs] = useState('');
+  const [contratoId, setContratoId] = useState<string | null>(null);
   const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -29,6 +31,16 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
       const context = resolve();
       if (!context) throw new Error('API context not ready');
       return listProdutos(context);
+    },
+    enabled: !!filialId
+  });
+
+  const { data: contratos = [] } = useQuery({
+    queryKey: ['contratos-compras-selector', filialId],
+    queryFn: () => {
+      const context = resolve();
+      if (!context) throw new Error('API context not ready');
+      return contratosApi.getContratos(context);
     },
     enabled: !!filialId
   });
@@ -65,7 +77,8 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
       total,
       forma_pagamento: formaPgto,
       obs,
-      status: 'aberto'
+      status: 'aberto',
+      contrato_id: contratoId
     };
     onSave(pedido, itens);
   };
@@ -112,7 +125,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
               <input 
@@ -135,6 +148,21 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                 <option value="Transferencia">Transferência</option>
                 <option value="Cartao">Cartão de Crédito</option>
                 <option value="Dinheiro">Dinheiro</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Apropriar para Obra / Contrato</label>
+              <select 
+                value={contratoId || ''}
+                onChange={(e) => setContratoId(e.target.value || null)}
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all appearance-none"
+              >
+                <option value="">Nenhuma obra (Despesa Geral)</option>
+                {contratos.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.titulo} ({c.cliente?.nome || 'Sem nome'})
+                  </option>
+                ))}
               </select>
             </div>
           </div>

@@ -20,6 +20,7 @@ export type PedidoCompra = {
   criado_em: string;
   itens?: PedidoCompraItem[];
   pedido_compra_itens?: PedidoCompraItem[];
+  contrato_id?: string | null;
 };
 
 export async function listPedidosCompra(token: string, filialId: string) {
