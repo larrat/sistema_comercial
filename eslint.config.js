@@ -12,7 +12,8 @@ export default [
       '.git/**',
       '.vscode/**',
       'dist-react/**',
-      'coverage/**'
+      'coverage/**',
+      'scratch/**'
     ]
   },
   js.configs.recommended,
@@ -37,7 +38,7 @@ export default [
     }
   },
   {
-    files: ['src/**/*.ts', 'supabase/functions/**/*.ts'],
+    files: ['src/**/*.ts', 'src/**/*.tsx', 'supabase/functions/**/*.ts'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

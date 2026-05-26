@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { EmptyState, StatCard } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 

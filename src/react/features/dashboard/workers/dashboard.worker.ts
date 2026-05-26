@@ -373,10 +373,10 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
     }
   });
 
-  let campeoes = { size: 0, value: 0 };
-  let leais = { size: 0, value: 0 };
-  let risco = { size: 0, value: 0 };
-  let novos = { size: 0, value: 0 };
+  const campeoes = { size: 0, value: 0 };
+  const leais = { size: 0, value: 0 };
+  const risco = { size: 0, value: 0 };
+  const novos = { size: 0, value: 0 };
 
   Object.values(clientStats).forEach(c => {
     const diffDays = Math.floor((nowMs - c.recency) / DAY_MS);

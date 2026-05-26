@@ -43,10 +43,8 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar =
     }
   }
 
-  // Carrega filiais em background para mostrar o nome na topbar imediatamente
   useEffect(() => {
     void loadFiliais();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.access_token]);
 
   function handleOpen() {

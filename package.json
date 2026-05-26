@@ -25,7 +25,7 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,ts,d.ts}": [
+    "*.{js,ts,tsx,d.ts}": [
       "prettier --write --ignore-unknown",
       "eslint --fix"
     ],

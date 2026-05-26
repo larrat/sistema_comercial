@@ -28,7 +28,7 @@ function norm(s: unknown) {
 function normalizarNumeroBR(v: unknown): number {
   let s = String(v ?? '').trim();
   if (!s) return 0;
-  s = s.replace(/ /g, ' ').replace(/[R$\s%]/g, '');
+  s = s.replace(/\u00a0/g, ' ').replace(/[R$\s%]/g, '');
   if (s.includes('.') && s.includes(',')) {
     s = s.replace(/\./g, '').replace(',', '.');
   } else if (s.includes(',')) {
@@ -174,7 +174,7 @@ export function buildCotacaoImportPlan(
   const startRow = Math.max(0, draft.startLine - 1);
   const linhas = sheet.rows.slice(startRow);
 
-  let novos = 0;
+  const novos = 0;
   let atualizados = 0;
   let falhas = 0;
   let ignorados = 0;
@@ -378,7 +378,7 @@ export async function persistCotacaoImport(
       .filter((item) => item.status === 'matched' && item.produtoId)
       .map((item) => [norm(item.nomeOriginal), String(item.produtoId)])
   );
-  let created = 0;
+  const created = 0;
   let updated = 0;
   let produtosFalhados = 0;
 

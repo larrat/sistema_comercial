@@ -91,7 +91,7 @@ function SidebarNavItem({
          ${
            isActive
              ? 'bg-white/10 text-white font-bold'
-             : 'text-slate-400 hover:text-white hover:bg-white/5'
+             : 'text-slate-400 hover:text-white'
          }`
       }
     >
@@ -105,17 +105,41 @@ function SidebarNavItem({
             />
           )}
 
-          <Icon
-            size={collapsed ? 22 : 18}
-            strokeWidth={isActive ? 2.5 : 2}
-            className="flex-shrink-0 relative z-10 transition-transform group-active:scale-95"
-            style={{ color: isActive ? gColor : undefined }}
-          />
+          {!isActive && isHovered && (
+            <motion.div
+              layoutId={`hover-bg-${groupLabel}`}
+              className="absolute inset-0 bg-white/[0.03] rounded-lg border border-white/[0.02]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            />
+          )}
+
+          <motion.div
+            animate={{ 
+              scale: isHovered ? 1.08 : 1,
+              rotate: isHovered ? 2 : 0
+            }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            className="flex-shrink-0 relative z-10"
+          >
+            <Icon
+              size={collapsed ? 22 : 18}
+              strokeWidth={isActive ? 2.5 : 2}
+              className="transition-transform group-active:scale-95"
+              style={{ color: isActive ? gColor : undefined }}
+            />
+          </motion.div>
 
           {!collapsed && (
-            <span className="truncate text-[13px] tracking-tight relative z-10">
+            <motion.span 
+              animate={{ x: isHovered ? 4 : 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="truncate text-[13px] tracking-tight relative z-10"
+            >
               {item.label}
-            </span>
+            </motion.span>
           )}
 
           <AnimatePresence>

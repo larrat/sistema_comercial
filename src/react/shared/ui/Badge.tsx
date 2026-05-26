@@ -6,14 +6,12 @@ export interface BadgeProps {
   children: ReactNode;
   variant?: BadgeVariant;
   className?: string;
-  outline?: boolean;
 }
 
 export function Badge({
   children,
   variant = 'slate',
-  className = '',
-  outline = false
+  className = ''
 }: BadgeProps) {
   const variants: Record<BadgeVariant, string> = {
     blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',

@@ -150,9 +150,9 @@ export async function transferMovimentacao(
     }
 
     if (error instanceof Error) {
-      throw new Error(`Falha ao concluir a transferência: ${error.message}. Operação revertida no destino.`);
+      throw new Error(`Falha ao concluir a transferência: ${error.message}. Operação revertida no destino.`, { cause: error });
     }
 
-    throw new Error('Falha ao concluir a transferência. Operação revertida no destino.');
+    throw new Error('Falha ao concluir a transferência. Operação revertida no destino.', { cause: error });
   }
 }

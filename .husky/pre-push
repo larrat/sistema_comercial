@@ -1,1 +1,1 @@
-npm run test:pilot:clientes
+npm run typecheck && npm run test:react
