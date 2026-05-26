@@ -16,6 +16,7 @@ import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { usePedidosQuery, usePedidoMutations, useClientesLightQuery, useRcasQuery } from '../hooks/usePedidosQuery';
+import { useFilialStore } from '../../../app/useFilialStore';
 import { useProdutosQuery } from '../../produtos/hooks/useProdutosQuery';
 import { findClienteByInput } from '../services/clientesLightApi';
 import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
@@ -51,6 +52,7 @@ export function PedidoForm({
 }: Props) {
   const { trackEvent } = useAnalytics({ module: 'pedidos' });
   const { save } = usePedidoMutations();
+  const filialId = useFilialStore((state) => state.filialId);
   
   // Queries
   const { data: clientesData, isLoading: isLoadingClientes } = useClientesLightQuery();
@@ -169,6 +171,7 @@ export function PedidoForm({
 
     const pedidoInput = {
       id,
+      filial_id: initialPedido?.filial_id ?? filialId ?? '',
       num: initialPedido?.num,
       cli: clienteFound.nome,
       cliente_id: clienteFound.id,

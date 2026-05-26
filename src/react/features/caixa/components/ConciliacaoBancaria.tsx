@@ -35,7 +35,7 @@ export function ConciliacaoBancaria() {
         // Match simulation
         const withStatus = parsed.map(t => ({
           ...t,
-          status: t.valor > 0 ? 'match' : 'no_match',
+          status: (t.valor > 0 ? 'match' : 'no_match') as 'match' | 'no_match',
           vinculo_id: t.valor > 0 ? `PED-${Math.floor(Math.random() * 500)}` : undefined
         }));
 
@@ -78,9 +78,9 @@ export function ConciliacaoBancaria() {
 
       {transacoes.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <StatCard label="Total Importado" value={transacoes.length} icon={<FileText className="w-5 h-5" />} />
-          <StatCard label="Conciliados (Match)" value={transacoes.filter(t => t.status === 'match').length} tone="positive" icon={<CheckCircle className="w-5 h-5" />} />
-          <StatCard label="Pendentes" value={transacoes.filter(t => t.status === 'no_match').length} tone="warning" icon={<RefreshCw className="w-5 h-5" />} />
+          <StatCard label="Total Importado" value={transacoes.length} />
+          <StatCard label="Conciliados (Match)" value={transacoes.filter(t => t.status === 'match').length} tone="success" />
+          <StatCard label="Pendentes" value={transacoes.filter(t => t.status === 'no_match').length} tone="warning" />
         </div>
       )}
 
@@ -106,12 +106,14 @@ export function ConciliacaoBancaria() {
             data={transacoes}
             columns={[
               {
+                key: 'data',
                 header: 'Data',
-                cell: (row) => new Date(row.data).toLocaleDateString()
+                render: (row) => new Date(row.data).toLocaleDateString()
               },
               {
+                key: 'descricao',
                 header: 'Descrição no Extrato',
-                cell: (row) => (
+                render: (row) => (
                   <div className="flex flex-col">
                     <span className="font-bold text-white uppercase text-xs">{row.descricao}</span>
                     <span className="text-[10px] text-slate-500">ID: {row.id}</span>
@@ -119,16 +121,18 @@ export function ConciliacaoBancaria() {
                 )
               },
               {
+                key: 'valor',
                 header: 'Valor',
-                cell: (row) => (
+                render: (row) => (
                   <span className={row.valor > 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                     {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(row.valor)}
                   </span>
                 )
               },
               {
+                key: 'status',
                 header: 'Status / Vínculo',
-                cell: (row) => (
+                render: (row) => (
                   <div className="flex items-center gap-2">
                     {row.status === 'match' ? (
                       <Badge variant="green" className="gap-1">
@@ -145,8 +149,9 @@ export function ConciliacaoBancaria() {
                 )
               },
               {
+                key: 'actions',
                 header: 'Ações',
-                cell: (row) => (
+                render: (row) => (
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary">Vincular</Button>
                     {row.status === 'match' && <Button size="sm" variant="primary">Confirmar</Button>}

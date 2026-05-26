@@ -166,9 +166,10 @@ describe('saveProduto', () => {
   it('faz POST com on_conflict=id e Prefer header', async () => {
     vi.mocked(fetch).mockResolvedValue(makeResponse([PRODUTO]));
     await saveProduto(context, PRODUTO);
-    // saveProduto agora faz um fetch prévio para auto-vínculo inteligente
-    const lastCall = vi.mocked(fetch).mock.calls[vi.mocked(fetch).mock.calls.length - 1];
-    const [url, opts] = lastCall;
+    // saveProduto agora faz um fetch prévio para auto-vínculo inteligente e gravação de log assíncrona
+    const saveCall = vi.mocked(fetch).mock.calls.find(([url]) => String(url).includes('on_conflict=id'));
+    expect(saveCall).toBeDefined();
+    const [url, opts] = saveCall!;
     expect(url).toContain('on_conflict=id');
     expect((opts as RequestInit).method).toBe('POST');
     const headers = (opts as RequestInit).headers as Record<string, string>;

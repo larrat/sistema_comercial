@@ -196,9 +196,9 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                                 <div className="flex items-center gap-2 w-full mb-0.5">
                                   <span className="text-[10px] font-black text-teal-500 uppercase">{p.sku || 'S/SKU'}</span>
                                   {p.produto_pai_id ? (
-                                    <Badge variant="neutral" className="!text-[8px] !py-0">Variante</Badge>
+                                    <Badge variant="slate" className="!text-[8px] !py-0">Variante</Badge>
                                   ) : (
-                                    <Badge variant="emerald" className="!text-[8px] !py-0">Único</Badge>
+                                    <Badge variant="green" className="!text-[8px] !py-0">Único</Badge>
                                   )}
                                   {p.genero && <span className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">/ {p.genero}</span>}
                                   {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}

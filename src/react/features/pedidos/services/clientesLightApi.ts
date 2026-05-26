@@ -4,7 +4,7 @@ import type { PedidoApiContext } from './pedidosApi';
 /** Campos mínimos necessários para o form de pedido */
 export type ClienteLight = Pick<
   Cliente,
-  'id' | 'nome' | 'rca_id' | 'rca_nome' | 'prazo' | 'whatsapp' | 'tel'
+  'id' | 'nome' | 'rca_id' | 'rca_nome' | 'prazo' | 'whatsapp' | 'tel' | 'doc' | 'is_defaulter'
 >;
 
 function createHeaders(context: PedidoApiContext): HeadersInit {
@@ -56,7 +56,7 @@ export async function searchClientesLight(
   const pattern = `*${query.replace(/\*/g, '').replace(/,/g, ' ')}*`;
   const params = new URLSearchParams();
   params.set('filial_id', `eq.${context.filialId}`);
-  params.set('select', 'id,nome,rca_id,rca_nome,prazo,whatsapp,tel');
+  params.set('select', 'id,nome,rca_id,rca_nome,prazo,whatsapp,tel,doc,is_defaulter');
   params.set('order', 'nome.asc');
   params.set('limit', String(limit));
   params.set(

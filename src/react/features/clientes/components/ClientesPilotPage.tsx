@@ -69,6 +69,7 @@ export function ClientesPilotPage({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [editorOrigin, setEditorOrigin] = useState<string>('unknown');
+  const [isFormOpen, setIsFormOpen] = useState(false);
   
   const { trackEvent } = useAnalytics({ module: 'clientes' });
   const lastSearchKeyRef = useRef<string>('');
@@ -175,6 +176,8 @@ export function ClientesPilotPage({
       result: 'success'
     });
     setEditingId(null);
+    setEditorOrigin(origin);
+    setIsFormOpen(true);
     onNewCliente?.();
   }
 
@@ -183,6 +186,9 @@ export function ClientesPilotPage({
       metadata: { origin },
       result: 'success'
     });
+    setEditorOrigin(origin);
+    setEditingId(clienteId);
+    setIsFormOpen(true);
     navigate(`/app/clientes/${clienteId}/editar`);
   }
 
@@ -414,8 +420,26 @@ export function ClientesPilotPage({
           onDetalhe={(clienteId) => openDetail(clienteId, 'resumo', 'segmentos')}
         />
       ) : null}
-
-
+      {isFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" data-testid="cliente-form-modal">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl relative">
+            <ClienteForm
+              initialCliente={editingCliente}
+              onSaved={(savedCli) => {
+                setIsFormOpen(false);
+                setEditingId(null);
+                refetchClientes();
+                onOpenCliente?.(savedCli.id, { tab: 'resumo', origin: 'save_success' });
+              }}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setEditingId(null);
+              }}
+              analyticsOrigin={editorOrigin}
+            />
+          </div>
+        </div>
+      )}
 
       <ClienteDeleteConfirmModal
         open={!!deleteTarget}

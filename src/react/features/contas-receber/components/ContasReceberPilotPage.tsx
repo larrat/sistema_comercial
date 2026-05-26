@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useToastStore } from '../../../app/lib/useToastStore';
 import { useContasReceberStore } from '../store/useContasReceberStore';
+import { useFilialStore } from '../../../app/useFilialStore';
 import type { CrTab } from '../store/useContasReceberStore';
 import {
   ActionMenu,
@@ -251,7 +252,7 @@ function ContasReceberMetrics({
 function CrmAutomationCard() {
   const [active, setActive] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const filialId = useContasReceberStore(s => s.filial_id);
+  const filialId = useFilialStore(s => s.filialId);
 
   const { token } = useApiContext();
   const handleProcess = async () => {
@@ -296,14 +297,14 @@ function CrmAutomationCard() {
             <Bell size={14} className="text-amber-400" />
             <span className="text-xs font-medium text-slate-300">Vencimento em 2 dias</span>
           </div>
-          <Badge variant="neutral">WHATSAPP</Badge>
+          <Badge variant="slate">WHATSAPP</Badge>
         </div>
         <div className="p-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <AlertCircle size={14} className="text-rose-400" />
             <span className="text-xs font-medium text-slate-300">Atraso após 3 dias</span>
           </div>
-          <Badge variant="neutral">WHATSAPP + EMAIL</Badge>
+          <Badge variant="slate">WHATSAPP + EMAIL</Badge>
         </div>
       </div>
 

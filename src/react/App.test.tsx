@@ -6,6 +6,7 @@ import { App } from './App';
 const useClienteDataMock = vi.fn();
 const authHydrateMock = vi.fn();
 const filialHydrateMock = vi.fn();
+const roleHydrateMock = vi.fn();
 
 let authState: {
   status: 'unknown' | 'authenticated' | 'unauthenticated';
@@ -15,9 +16,26 @@ let filialState: {
   hydrate: () => void;
   filialId?: string | null;
 };
+let roleState: {
+  role: 'admin' | 'gerente' | 'operador' | null;
+  hydrate: () => void;
+};
 
 vi.mock('./features/clientes/components/ClientesPilotPage', () => ({
   ClientesPilotPage: () => <div data-testid="clientes-pilot-page">Clientes pilot</div>
+}));
+
+vi.mock('./features/dashboard/pages/DashboardRoutePage', () => ({
+  DashboardRoutePage: () => <div data-testid="dashboard-pilot-page">Dashboard pilot</div>
+}));
+
+vi.mock('./features/dashboard/workers/dashboard.worker?worker', () => ({
+  default: class MockWorker {
+    postMessage() {}
+    addEventListener() {}
+    removeEventListener() {}
+    terminate() {}
+  }
 }));
 
 vi.mock('./features/clientes/hooks/useClienteData', () => ({
@@ -32,11 +50,16 @@ vi.mock('./app/useFilialStore', () => ({
   useFilialStore: (selector: (state: typeof filialState) => unknown) => selector(filialState)
 }));
 
+vi.mock('./app/useRoleStore', () => ({
+  useRoleStore: (selector: (state: typeof roleState) => unknown) => selector(roleState)
+}));
+
 describe('App', () => {
   beforeEach(() => {
     useClienteDataMock.mockReset();
     authHydrateMock.mockReset();
     filialHydrateMock.mockReset();
+    roleHydrateMock.mockReset();
     authState = {
       status: 'unknown',
       hydrate: authHydrateMock
@@ -44,6 +67,10 @@ describe('App', () => {
     filialState = {
       hydrate: filialHydrateMock,
       filialId: null
+    };
+    roleState = {
+      role: 'admin',
+      hydrate: roleHydrateMock
     };
   });
 
@@ -53,6 +80,7 @@ describe('App', () => {
     expect(screen.getAllByText('', { selector: '.sk-line' })).toHaveLength(2);
     expect(authHydrateMock).toHaveBeenCalled();
     expect(filialHydrateMock).toHaveBeenCalled();
+    expect(roleHydrateMock).toHaveBeenCalled();
   });
 
   it('mostra a rota de login quando nao ha sessao', async () => {
@@ -61,7 +89,7 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Entrar/i })).toBeInTheDocument();
     });
   });
 

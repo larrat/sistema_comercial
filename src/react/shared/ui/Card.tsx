@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
 
 type CardProps = {
   children: ReactNode;
@@ -7,6 +7,7 @@ type CardProps = {
   padding?: 'none' | 'sm' | 'md' | 'lg';
   id?: string;
   onClick?: () => void;
+  style?: CSSProperties;
 };
 
 export function Card({ 
@@ -15,7 +16,8 @@ export function Card({
   variant = 'solid', 
   padding = 'md',
   id,
-  onClick
+  onClick,
+  style
 }: CardProps) {
   const paddings = {
     none: 'p-0',
@@ -43,7 +45,7 @@ export function Card({
   `.replace(/\s+/g, ' ').trim();
 
   return (
-    <div id={id} className={baseClasses} onClick={onClick}>
+    <div id={id} className={baseClasses} onClick={onClick} style={style}>
       {children}
     </div>
   );

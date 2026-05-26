@@ -1,6 +1,8 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import React from 'react';
 
 import type { Cliente } from '../../../../types/domain';
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -8,13 +10,22 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useClienteStore } from '../store/useClienteStore';
 import { ClientesPilotPage } from './ClientesPilotPage';
-import { deleteCliente, saveCliente } from '../services/clientesApi';
+import { deleteCliente, saveCliente, listClientesPage, listClienteSegmentos } from '../services/clientesApi';
 import {
   getClienteFidelidadeSaldo,
   listClienteFidelidadeLancamentos
 } from '../services/fidelidadeApi';
 import { listNotas } from '../services/notasApi';
 import { listPedidosByCliente } from '../services/pedidosApi';
+
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+  useBlocker: () => ({
+    state: 'unblocked',
+    proceed: vi.fn(),
+    reset: vi.fn()
+  })
+}));
 
 vi.mock('../../../app/supabaseConfig', () => ({
   getSupabaseConfig: vi.fn()
@@ -26,12 +37,18 @@ vi.mock('../../../shared/hooks/useAnalytics', () => ({
   })
 }));
 
+vi.mock('../hooks/useRcas', () => ({
+  useRcas: () => []
+}));
+
 vi.mock('../services/clientesApi', async () => {
   const actual = await vi.importActual('../services/clientesApi');
   return {
     ...actual,
     saveCliente: vi.fn(),
-    deleteCliente: vi.fn()
+    deleteCliente: vi.fn(),
+    listClientesPage: vi.fn(),
+    listClienteSegmentos: vi.fn()
   };
 });
 
@@ -63,6 +80,8 @@ vi.mock('../services/pedidosApi', async () => {
 const getSupabaseConfigMock = vi.mocked(getSupabaseConfig);
 const saveClienteMock = vi.mocked(saveCliente);
 const deleteClienteMock = vi.mocked(deleteCliente);
+const listClientesPageMock = vi.mocked(listClientesPage);
+const listClienteSegmentosMock = vi.mocked(listClienteSegmentos);
 const listNotasMock = vi.mocked(listNotas);
 const getClienteFidelidadeSaldoMock = vi.mocked(getClienteFidelidadeSaldo);
 const listClienteFidelidadeLancamentosMock = vi.mocked(listClienteFidelidadeLancamentos);
@@ -101,6 +120,19 @@ function resetStores() {
   useFilialStore.setState({ filialId: 'filial-1' });
 }
 
+const renderWithProviders = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+};
+
 describe('ClientesPilotPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -114,6 +146,14 @@ describe('ClientesPilotPage', () => {
     getClienteFidelidadeSaldoMock.mockResolvedValue(null);
     listClienteFidelidadeLancamentosMock.mockResolvedValue([]);
     listPedidosByClienteMock.mockResolvedValue([]);
+    listClientesPageMock.mockResolvedValue({
+      rows: CLIENTES,
+      total: 1,
+      page: 1,
+      pageSize: 20,
+      pageCount: 1
+    });
+    listClienteSegmentosMock.mockResolvedValue(['Varejo']);
   });
 
   it('cria um novo cliente pelo formulario React', async () => {
@@ -127,7 +167,7 @@ describe('ClientesPilotPage', () => {
       seg: 'Atacado'
     });
 
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
+    renderWithProviders(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
     await userEvent.click(screen.getByTestId('novo-btn'));
     await userEvent.type(screen.getByTestId('form-nome'), 'Ana Paula');
@@ -170,8 +210,27 @@ describe('ClientesPilotPage', () => {
       seg: 'Varejo'
     });
 
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
+    listClientesPageMock
+      .mockResolvedValueOnce({
+        rows: CLIENTES,
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        pageCount: 1
+      })
+      .mockResolvedValue({
+        rows: [
+          { id: '1', nome: 'Maria Souza Premium', status: 'ativo', seg: 'Varejo', email: 'maria@a.com' }
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        pageCount: 1
+      });
 
+    renderWithProviders(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
+
+    await screen.findByText('Maria Souza');
     await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Editar'));
     const nomeInput = screen.getByTestId('form-nome');
@@ -209,9 +268,25 @@ describe('ClientesPilotPage', () => {
 
   it('remove cliente da lista pelo fluxo real de exclusao', async () => {
     deleteClienteMock.mockResolvedValue(undefined);
+    listClientesPageMock
+      .mockResolvedValueOnce({
+        rows: CLIENTES,
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        pageCount: 1
+      })
+      .mockResolvedValue({
+        rows: [],
+        total: 0,
+        page: 1,
+        pageSize: 20,
+        pageCount: 0
+      });
 
-    render(<ClientesPilotPage />);
+    renderWithProviders(<ClientesPilotPage />);
 
+    await screen.findByText('Maria Souza');
     await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Excluir'));
     await userEvent.click(screen.getByTestId('confirmar-exclusao-btn'));
@@ -235,15 +310,16 @@ describe('ClientesPilotPage', () => {
 
   it('abre o perfil dedicado ao clicar em um cliente existente', async () => {
     const onOpenCliente = vi.fn();
-    render(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
+    renderWithProviders(<ClientesPilotPage onOpenCliente={onOpenCliente} />);
 
+    await screen.findByText('Maria Souza');
     await userEvent.click(screen.getByTestId('cliente-card'));
 
     expect(onOpenCliente).toHaveBeenCalledWith('1', { tab: 'resumo', origin: 'list_row' });
   });
 
   it('abre novo formulario ao clicar no botao Novo cliente', async () => {
-    render(<ClientesPilotPage />);
+    renderWithProviders(<ClientesPilotPage />);
 
     await userEvent.click(screen.getByTestId('novo-btn'));
 
@@ -251,8 +327,9 @@ describe('ClientesPilotPage', () => {
   });
 
   it('abre formulario de edicao via menu de acoes', async () => {
-    render(<ClientesPilotPage />);
+    renderWithProviders(<ClientesPilotPage />);
 
+    await screen.findByText('Maria Souza');
     await userEvent.click(screen.getByTestId('cli-menu-btn'));
     await userEvent.click(screen.getByText('Editar'));
 
@@ -261,8 +338,9 @@ describe('ClientesPilotPage', () => {
   });
 
   it('limpa filtros ao clicar no botao Limpar', async () => {
-    render(<ClientesPilotPage />);
+    renderWithProviders(<ClientesPilotPage />);
 
+    await screen.findByText('Maria Souza');
     await userEvent.type(screen.getByTestId('busca-input'), 'maria');
     expect(screen.getByTestId('busca-input')).toHaveValue('maria');
 
@@ -275,8 +353,9 @@ describe('ClientesPilotPage', () => {
   });
 
   it('alterna para a superficie de segmentos ao clicar na aba', async () => {
-    render(<ClientesPilotPage />);
+    renderWithProviders(<ClientesPilotPage />);
 
+    await screen.findByText('Maria Souza');
     await userEvent.click(screen.getByText('Segmentos'));
 
     const segmentView = await screen.findByTestId('cliente-segment-view');
@@ -291,8 +370,9 @@ describe('ClientesPilotPage', () => {
     const revokeObjectURLMock = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
     const clickMock = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
-    render(<ClientesPilotPage />);
+    renderWithProviders(<ClientesPilotPage />);
 
+    await screen.findByText('Maria Souza');
     await userEvent.click(screen.getByTestId('export-btn'));
 
     expect(createObjectURLMock).toHaveBeenCalledOnce();

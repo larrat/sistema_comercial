@@ -34,6 +34,7 @@ export type PdvQueuedSale = {
   queueId: string;
   payload: {
     id: string;
+    filial_id: string;
     num: number;
     cli: string;
     cliente_id: string | null;

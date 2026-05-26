@@ -136,9 +136,9 @@ export function AnalisadorContratoModal({ isOpen, onClose, contratoId }: Props) 
           data_fim: new Date(evt.date.getTime() + 60 * 60 * 1000).toISOString(),
           dia_inteiro: true,
           descricao: `[Extraído por IA NLP do Contrato]\nContexto original: ${evt.contextSnippet}`,
-          tipo: evt.type === 'agenda' ? 'reuniao' : evt.type === 'financeiro' ? 'lembrete' : 'tarefa',
+          tipo: evt.type === 'agenda' ? 'reuniao' : evt.type === 'financeiro' ? 'lembrete' : 'outro',
           contrato_id: contratoId,
-          criado_por: session.user.id
+          criado_por: session.user.id as string
         });
       }
     },

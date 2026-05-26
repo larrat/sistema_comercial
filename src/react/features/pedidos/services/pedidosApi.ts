@@ -484,7 +484,7 @@ export async function savePedido(
   input: PedidoSaveInput
 ): Promise<Pedido> {
   let num = input.num;
-  if (num === undefined || num === null || num === '' || Number.isNaN(Number(num)) || Number(num) <= 0) {
+  if (num === undefined || num === null || Number.isNaN(Number(num)) || Number(num) <= 0) {
     num = await getNextPedidoNumber(context);
   } else {
     num = Number(num);
@@ -515,7 +515,9 @@ export async function savePedido(
     }
   }
 
-  logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
+  if (saved) {
+    logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
+  }
 
   return saved;
 }

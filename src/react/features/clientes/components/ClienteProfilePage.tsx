@@ -276,12 +276,12 @@ function buildKpis(pedidosAbertos: Pedido[], pedidosFechados: Pedido[], contas: 
 }
 
 function getRfmLabel(rfm?: { r: number; f: number; m: number }) {
-  if (!rfm) return 'Sem análise';
+  if (!rfm) return { label: 'Sem análise', tone: 'slate' as const };
   const score = (rfm.r + rfm.f + rfm.m) / 3;
-  if (score >= 4) return { label: 'Campeão', tone: 'positive' };
-  if (score >= 3) return { label: 'Fiel', tone: 'positive' };
-  if (score >= 2) return { label: 'Potencial', tone: 'neutral' };
-  return { label: 'Risco de Churn', tone: 'negative' };
+  if (score >= 4) return { label: 'Campeão', tone: 'green' as const };
+  if (score >= 3) return { label: 'Fiel', tone: 'green' as const };
+  if (score >= 2) return { label: 'Potencial', tone: 'slate' as const };
+  return { label: 'Risco de Churn', tone: 'red' as const };
 }
 
 function renderMetadataLine(cliente: Cliente, pedidos: Pedido[]) {
@@ -818,7 +818,7 @@ export function ClienteProfilePage({
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
                   Nexus Intelligence
-                  <Badge variant="purple" className="!text-[8px]">IA</Badge>
+                  <Badge variant="indigo" className="!text-[8px]">IA</Badge>
                 </h3>
               </div>
               <div className="flex flex-col gap-4">
@@ -826,7 +826,7 @@ export function ClienteProfilePage({
                   <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Score RFM</span>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-bold text-white">{getRfmLabel(cliente.score_rfm).label}</span>
-                    <Badge variant={getRfmLabel(cliente.score_rfm).tone as any}>
+                    <Badge variant={getRfmLabel(cliente.score_rfm).tone}>
                       {((cliente.score_rfm?.r || 0) + (cliente.score_rfm?.f || 0) + (cliente.score_rfm?.m || 0)).toFixed(1)}
                     </Badge>
                   </div>

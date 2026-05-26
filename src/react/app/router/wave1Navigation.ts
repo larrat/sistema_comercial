@@ -11,7 +11,7 @@ export type Wave1LegacyPage =
   | 'relatorios'
   | 'campanhas';
 
-export type ClienteProfileTab = 'resumo' | 'pedidos' | 'financeiro' | 'notas' | 'cadastro';
+export type ClienteProfileTab = 'resumo' | 'pedidos' | 'financeiro' | 'notas' | 'cadastro' | 'marketing';
 export type ProdutoProfileTab = 'resumo' | 'precificacao' | 'estoque' | 'cadastro';
 
 export type PedidoRouteIntent = {

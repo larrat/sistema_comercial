@@ -11,7 +11,8 @@ import {
   FormField,
   Badge,
   FormError,
-  FormActions
+  FormActions,
+  Button
 } from '../../../shared/ui';
 import { useClienteMutations } from '../hooks/useClientesQuery';
 import { useRcas } from '../hooks/useRcas';
@@ -78,7 +79,7 @@ function toFormValues(cliente?: Cliente | null): Partial<ClienteFormValues> {
     resp: cliente?.resp ?? '',
     rca_id: cliente?.rca_id ?? '',
     rca_nome: cliente?.rca_nome ?? '',
-    time: typeof cliente?.time === 'string' ? cliente.time : (cliente?.time ?? []).join(', '),
+    time: typeof cliente?.time === 'string' ? cliente.time : ((cliente?.time || []) as string[]).join(', '),
     seg: cliente?.seg ?? '',
     tab: cliente?.tab ?? 'padrao',
     prazo: cliente?.prazo ?? 'a_vista',
@@ -134,9 +135,9 @@ export function ClienteForm({
     watch,
     reset,
     formState: { errors, isDirty }
-  } = useForm<ClienteFormValues>({
+  } = useForm<any>({
     resolver: zodResolver(clienteSchema),
-    defaultValues: useMemo(() => toFormValues(initialCliente), [initialCliente])
+    defaultValues: useMemo(() => toFormValues(initialCliente) as any, [initialCliente])
   });
 
   useUnsavedChangesGuard(isDirty);
@@ -145,7 +146,7 @@ export function ClienteForm({
     reset(toFormValues(initialCliente));
   }, [initialCliente, reset]);
 
-  const onSubmit = (values: ClienteFormValues) => {
+  const onSubmit = (values: any) => {
     saveMutation.mutate({
       ...values,
       id: initialCliente?.id,
@@ -176,7 +177,7 @@ export function ClienteForm({
             label="Nome / Razão social"
             required
             {...register('nome')}
-            error={errors.nome?.message}
+            error={errors.nome?.message as string}
             data-testid="form-nome"
           />
           <Input
@@ -232,7 +233,7 @@ export function ClienteForm({
             onBlur={(e) => setValue('tel', formatPhone(e.target.value))}
             placeholder="(11) 3333-4444"
             autoComplete="tel"
-            error={errors.tel?.message}
+            error={errors.tel?.message as string}
             data-testid="form-tel"
           />
           <Input
@@ -251,7 +252,7 @@ export function ClienteForm({
             {...register('email')}
             placeholder="exemplo@cliente.com.br"
             autoComplete="email"
-            error={errors.email?.message}
+            error={errors.email?.message as string}
             data-testid="form-email"
           />
         </div>
@@ -368,11 +369,27 @@ export function ClienteForm({
       <FormError message={saveMutation.error instanceof Error ? saveMutation.error.message : null} data-testid="form-error" />
 
       <div className="form-sticky-actions">
-        <FormActions
-          onCancel={onCancel}
-          loading={saveMutation.isPending}
-          submitLabel={initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
-        />
+        <FormActions onCancel={onCancel} loading={saveMutation.isPending}>
+          {onCancel ? (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onCancel}
+              disabled={saveMutation.isPending}
+              data-testid="cancelar-btn"
+            >
+              Cancelar
+            </Button>
+          ) : null}
+          <Button
+            type="submit"
+            variant="primary"
+            loading={saveMutation.isPending}
+            data-testid="salvar-btn"
+          >
+            {initialCliente ? 'Salvar alterações' : 'Salvar cliente'}
+          </Button>
+        </FormActions>
       </div>
     </form>
   );

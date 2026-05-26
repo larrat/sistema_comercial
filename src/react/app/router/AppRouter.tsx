@@ -1,5 +1,6 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Navigate, Route, Routes } from 'react-router-dom';
 import { useMemo, lazy, Suspense } from 'react';
+import type { AppBootstrapState } from '../hooks/useAppBootstrap';
 
 // Lazy loading for feature pages to reduce initial bundle size
 const ClienteCreateRoutePage = lazy(() => import('../../features/clientes/pages/ClienteCreateRoutePage').then(m => ({ default: m.ClienteCreateRoutePage })));
@@ -142,7 +143,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
         <Route path="*" element={<Navigate to="/" replace />} />
       </>
     )
-  ), [bootstrap.status, bootstrap.filialId, bootstrap.user?.id]);
+  ), [bootstrap.status, bootstrap.filialId]);
 
   return (
     <Suspense fallback={<RouteLoader />}>

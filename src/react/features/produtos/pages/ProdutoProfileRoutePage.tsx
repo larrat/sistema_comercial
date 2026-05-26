@@ -54,7 +54,7 @@ export function ProdutoProfileRoutePage() {
                 <Button variant="secondary" size="sm" onClick={handleBack}>
                   Voltar para produtos
                 </Button>
-                <Button size="sm" onClick={refetchProduto}>
+                <Button size="sm" onClick={() => { void refetchProduto(); }}>
                   Tentar novamente
                 </Button>
               </div>

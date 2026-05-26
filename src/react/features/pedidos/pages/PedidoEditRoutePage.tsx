@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 export function PedidoEditRoutePage() {
   const { pedidoId } = useParams<{ pedidoId: string }>();
   const navigate = useNavigate();
-  const { data: pedido, isLoading, error } = usePedidoQuery(pedidoId);
+  const { data: pedido, isLoading, error, isError, refetch } = usePedidoQuery(pedidoId);
 
   const handleBack = useCallback(() => {
     navigate(-1);

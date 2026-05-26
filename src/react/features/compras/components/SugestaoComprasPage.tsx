@@ -29,11 +29,11 @@ type SugestaoCompra = {
 
 export function SugestaoComprasPage() {
   const { token } = useApiContext();
-  const { activeFilialId } = useFilialStore();
+  const { filialId } = useFilialStore();
   const [filtroStatus, setFiltroStatus] = useState<'todos' | 'urgente' | 'atencao'>('todos');
 
   const { data: sugestoes = [], isLoading } = useQuery({
-    queryKey: ['sugestao-compras', activeFilialId],
+    queryKey: ['sugestao-compras', filialId],
     queryFn: async () => {
       if (!token) return [];
       const { url, key } = getSupabaseConfig();
@@ -90,19 +90,16 @@ export function SugestaoComprasPage() {
         <StatCard 
           label="Reposição Urgente" 
           value={stats.urgentes} 
-          tone={stats.urgentes > 0 ? 'negative' : 'positive'}
-          icon={<AlertCircle className="w-5 h-5" />}
+          tone={stats.urgentes > 0 ? 'danger' : 'success'}
         />
         <StatCard 
           label="Em Atenção" 
           value={stats.atencao} 
           tone="warning"
-          icon={<TrendingDown className="w-5 h-5" />}
         />
         <StatCard 
           label="Cobertura Média" 
           value={`${stats.coberturaMedia} dias`} 
-          icon={<Package className="w-5 h-5" />}
         />
       </div>
 
@@ -123,8 +120,9 @@ export function SugestaoComprasPage() {
           data={filteredData}
           columns={[
             {
+              key: 'produto',
               header: 'Produto',
-              cell: (row) => (
+              render: (row) => (
                 <div className="flex flex-col">
                   <span className="font-bold text-white">{row.produto_nome}</span>
                   <span className="text-[10px] text-slate-500 font-mono">{row.sku}</span>
@@ -132,8 +130,9 @@ export function SugestaoComprasPage() {
               )
             },
             {
+              key: 'status',
               header: 'Status',
-              cell: (row) => (
+              render: (row) => (
                 <Badge variant={
                   row.status_reposicao === 'urgente' ? 'red' : 
                   row.status_reposicao === 'atencao' ? 'yellow' : 'green'
@@ -143,16 +142,19 @@ export function SugestaoComprasPage() {
               )
             },
             {
+              key: 'estoque_atual',
               header: 'Estoque Atual',
-              cell: (row) => `${row.estoque_atual.toFixed(0)} un`
+              render: (row) => `${row.estoque_atual.toFixed(0)} un`
             },
             {
+              key: 'consumo_diario_medio',
               header: 'Consumo Médio',
-              cell: (row) => `${row.consumo_diario_medio.toFixed(2)} / dia`
+              render: (row) => `${row.consumo_diario_medio.toFixed(2)} / dia`
             },
             {
+              key: 'dias_cobertura',
               header: 'Cobertura',
-              cell: (row) => (
+              render: (row) => (
                 <div className="flex flex-col">
                   <span className={row.dias_cobertura <= 7 ? 'text-rose-400 font-bold' : 'text-white'}>
                     {row.dias_cobertura.toFixed(0)} dias
@@ -161,16 +163,18 @@ export function SugestaoComprasPage() {
               )
             },
             {
+              key: 'qtd_sugerida',
               header: 'Sugerido',
-              cell: (row) => (
+              render: (row) => (
                 <span className="text-emerald-400 font-black">
                   +{row.qtd_sugerida.toFixed(0)}
                 </span>
               )
             },
             {
+              key: 'actions',
               header: 'Ações',
-              cell: () => (
+              render: () => (
                 <Button size="sm" variant="secondary">Comprar</Button>
               )
             }

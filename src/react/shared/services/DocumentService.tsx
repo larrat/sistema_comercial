@@ -7,6 +7,7 @@ import {
   PDFViewer,
   Font
 } from '@react-pdf/renderer';
+import { fmtBRL } from '../lib/formatters';
 
 // Registrar fonte (opcional, mas melhora a estética)
 // Font.register({ family: 'Inter', src: '...' });

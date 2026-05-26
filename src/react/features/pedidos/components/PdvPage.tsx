@@ -508,6 +508,7 @@ export function PdvPage() {
     const paymentLabel = PAYMENT_OPTIONS.find((option) => option.value === paymentMethod)?.label ?? 'Pagamento';
     const payload: PdvQueuedSale['payload'] = {
       id: globalThis.crypto.randomUUID(),
+      filial_id: filialId!,
       num: nextPedidoNum,
       cli: selectedCliente?.nome || 'CONSUMIDOR FINAL',
       cliente_id: selectedCliente?.id ?? null,
@@ -888,7 +889,7 @@ export function PdvPage() {
                 <div className="rf-pdv__cliente">
                   <div className="rf-pdv__cliente-info">
                     <strong>{selectedCliente.nome}</strong>
-                    <span>{selectedCliente.documento || 'Sem documento'}</span>
+                    <span>{selectedCliente.doc || 'Sem documento'}</span>
                   </div>
                   <button className="rf-pdv__cliente-remove" type="button" onClick={() => setSelectedCliente(null)}>
                     Remover
@@ -924,7 +925,7 @@ export function PdvPage() {
               </div>
               {paymentMethod === 'misto' && (
                 <div className="rf-pdv__payment-meta">
-                  <Button variant="secondary" size="sm" fullWidth onClick={() => setMixedModalOpen(true)}>
+                  <Button variant="secondary" size="sm" className="w-full" onClick={() => setMixedModalOpen(true)}>
                     Configurar Misto ({mixedValidation.parts.length} part{mixedValidation.parts.length === 1 ? 'e' : 'es'})
                   </Button>
                 </div>
@@ -934,7 +935,7 @@ export function PdvPage() {
             <div className="rf-pdv__finalize">
               <Button
                 variant="primary"
-                fullWidth
+                className="w-full"
                 size="lg"
                 disabled={!canFinalize}
                 loading={saving}
@@ -951,7 +952,7 @@ export function PdvPage() {
         open={clienteModalOpen}
         query={clienteQuery}
         results={clienteResults}
-        searching={clienteSearching}
+        loading={clienteSearching}
         error={clienteSearchError}
         onClose={() => setClienteModalOpen(false)}
         onQueryChange={setClienteQuery}
@@ -964,7 +965,7 @@ export function PdvPage() {
       <PdvPagamentoMistoModal
         open={mixedModalOpen}
         total={totals.total}
-        payments={mixedPayments}
+        initialParts={mixedPayments}
         onClose={() => setMixedModalOpen(false)}
         onSave={(parts) => {
           setMixedPayments(parts);
@@ -1025,7 +1026,7 @@ export function PdvPage() {
         onClose={() => setReceiptOpen(false)}
         onPrint={handlePrintReceipt}
         onWhatsapp={handleWhatsappReceipt}
-        whatsappEnabled={!!getClienteWhatsappLink(lastCompletedSale?.cliente ?? null)}
+        canWhatsapp={!!getClienteWhatsappLink(lastCompletedSale?.cliente ?? null)}
       />
       {isScannerOpen && (
         <ScannerModal 

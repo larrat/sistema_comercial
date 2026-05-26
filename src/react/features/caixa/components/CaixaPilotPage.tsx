@@ -37,15 +37,15 @@ const fmt = (v: number) => fmtBRL(v || 0);
 
 export function CaixaPilotPage() {
   const { token } = useApiContext();
-  const { activeFilialId } = useFilialStore();
+  const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   const [filterType, setFilterType] = useState<'todos' | 'entrada' | 'saida'>('todos');
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: transacoes = [], isLoading, isError } = useQuery({
-    queryKey: ['caixa-transacoes', activeFilialId],
-    queryFn: () => listTransacoes(token!, activeFilialId!),
-    enabled: !!token && !!activeFilialId
+    queryKey: ['caixa-transacoes', filialId],
+    queryFn: () => listTransacoes(token!, filialId!),
+    enabled: !!token && !!filialId
   });
 
   const { data: categories = [] } = useQuery({
@@ -110,7 +110,7 @@ export function CaixaPilotPage() {
       {isFormOpen && (
         <CaixaTransacaoForm 
           categories={categories}
-          filialId={activeFilialId!}
+          filialId={filialId!}
           onClose={() => setIsFormOpen(false)}
           onSave={(t) => addMutation.mutate(t)}
         />

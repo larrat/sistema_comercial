@@ -19,6 +19,7 @@ export type PedidoCompra = {
   obs?: string;
   criado_em: string;
   itens?: PedidoCompraItem[];
+  pedido_compra_itens?: PedidoCompraItem[];
 };
 
 export async function listPedidosCompra(token: string, filialId: string) {

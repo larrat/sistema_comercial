@@ -29,7 +29,8 @@ import {
   HelpCircle,
   Zap,
   ShieldCheck,
-  FileText as FileIcon
+  FileText as FileIcon,
+  PieChart as PieChartIcon
 } from 'lucide-react';
 import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
@@ -168,7 +169,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     rfmData: any;
   } | null>(null);
 
-  const workerRef = useRef<Worker>();
+  const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
     workerRef.current = new DashboardWorker();
@@ -451,7 +452,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           <div className="p-6 flex-1 flex flex-col justify-center">
             {topProducts.length === 0 ? (
               <EmptyState 
-                icon={<PieChart size={32} className="text-slate-500" />} 
+                icon={<PieChartIcon size={32} className="text-slate-500" />} 
                 title="Mix vazio" 
                 description="Sem movimentação de produtos no período." 
               />

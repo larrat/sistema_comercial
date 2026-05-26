@@ -126,7 +126,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
         { key: 'nome', label: 'Nome' },
         { key: 'cat', label: 'Categoria' },
         { key: 'esal', label: 'Estoque' },
-        { key: 'preco', label: 'Preço Venda' }
+        { key: (row: Produto) => row.pfa ?? 0, label: 'Preço Venda' }
       ],
       'produtos'
     );
@@ -290,7 +290,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const pageHeader = (
     <PageHeader
       kicker="Catálogo"
-      title={<span className="text-white font-black tracking-tight">Produtos</span>}
+      title="Produtos"
       description="Gerencie catálogo, estoque visível e ações rápidas da filial."
       actions={
         <div className="flex items-center gap-4">

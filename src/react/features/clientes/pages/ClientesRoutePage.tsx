@@ -24,9 +24,6 @@ export function ClientesRoutePage() {
     <ClientesPilotPage
       onOpenCliente={handleOpenCliente}
       onNewCliente={handleNewCliente}
-      onRetryLoad={reload}
-      onLoadFilteredAll={loadFilteredAll}
-      onLoadSegmentClientes={ensureSegmentClientes}
     />
   );
 }

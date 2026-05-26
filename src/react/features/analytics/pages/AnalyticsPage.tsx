@@ -89,7 +89,7 @@ export function AnalyticsPage() {
         {/* Gráfico de Ações Lentas */}
         <div className="lg:col-span-1">
           <Card className="h-full flex flex-col gap-4">
-            <Typography variant="h4" className="font-bold">Latência por Evento (ms)</Typography>
+            <Typography variant="h3" className="font-bold">Latência por Evento (ms)</Typography>
             <div className="flex flex-col gap-3 mt-4">
               {slowActionsData.map((item, idx) => (
                 <div key={idx} className="flex flex-col gap-1">
@@ -112,7 +112,7 @@ export function AnalyticsPage() {
         {/* Tabela de Eventos */}
         <div className="lg:col-span-2">
           <Card className="h-full">
-            <Typography variant="h4" className="font-bold mb-6">Log de Operações em Tempo Real</Typography>
+            <Typography variant="h3" className="font-bold mb-6">Log de Operações em Tempo Real</Typography>
             <DataTable
               data={paginatedEvents}
               rowKey={(row) => row.id}
@@ -126,13 +126,13 @@ export function AnalyticsPage() {
               }}
               columns={[
                 { key: 'evento', label: 'Evento', render: (row) => <strong className="text-slate-200">{row.event}</strong> },
-                { key: 'area', label: 'Módulo', render: (row) => <Badge tone="neutral">{row.area}</Badge> },
+                { key: 'area', label: 'Módulo', render: (row) => <Badge variant="slate">{row.area}</Badge> },
                 { key: 'duracao', label: 'Duração', render: (row) => <span className={row.durationMs > 1000 ? 'text-rose-400' : 'text-slate-400'}>{row.durationMs}ms</span> },
                 {
                   key: 'status',
                   label: 'Status',
                   render: (row) => (
-                    <Badge tone={row.status === 'error' ? 'danger' : 'success'}>
+                    <Badge variant={row.status === 'error' ? 'red' : 'green'}>
                       {row.status.toUpperCase()}
                     </Badge>
                   )

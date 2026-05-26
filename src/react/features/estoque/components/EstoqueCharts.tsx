@@ -98,10 +98,10 @@ export function EstoqueCharts() {
           data={movData}
           xKey="name"
           series={[
-            { key: 'entrada', name: 'Entradas', color: 'var(--color-emerald-500)' },
-            { key: 'saida', name: 'Saídas', color: 'var(--color-rose-500)' },
-            { key: 'ajuste', name: 'Ajustes', color: 'var(--color-amber-500)' },
-            { key: 'transf', name: 'Transf.', color: 'var(--color-blue-500)' }
+            { key: 'entrada', label: 'Entradas', color: 'var(--color-emerald-500)' },
+            { key: 'saida', label: 'Saídas', color: 'var(--color-rose-500)' },
+            { key: 'ajuste', label: 'Ajustes', color: 'var(--color-amber-500)' },
+            { key: 'transf', label: 'Transf.', color: 'var(--color-blue-500)' }
           ]}
           valueFormatter={fmtNumber}
           ariaLabel="Volume de movimentações recentes"
@@ -115,7 +115,7 @@ export function EstoqueCharts() {
           data={abcData}
           xKey="name"
           series={[
-            { key: 'valor', name: 'Valor em Estoque', color: 'var(--color-primary)' }
+            { key: 'valor', label: 'Valor em Estoque', color: 'var(--color-primary)' }
           ]}
           valueFormatter={fmtCurrency}
           ariaLabel="Curva ABC de produtos em estoque"

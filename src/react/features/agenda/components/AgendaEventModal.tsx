@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LucideX, LucideCalendar, LucideClock, LucideAlignLeft } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../../app/useAuthStore';
+import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { toast } from 'sonner';
 
@@ -14,7 +15,7 @@ type AgendaEventModalProps = {
 export function AgendaEventModal({ isOpen, onClose, selectedDate }: AgendaEventModalProps) {
   const queryClient = useQueryClient();
   const session = useAuthStore(s => s.session);
-  const filialId = useAuthStore(s => s.filialId);
+  const filialId = useFilialStore(s => s.filialId);
   const config = getSupabaseConfig();
 
   const [titulo, setTitulo] = useState('');

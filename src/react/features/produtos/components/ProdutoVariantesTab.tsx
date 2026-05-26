@@ -747,7 +747,6 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           dataKey="value"
           colorKey="color"
           formatter={(value) => fmtQ(value)}
-          emptyTitle="Sem dados de tamanho."
         />
         <SimpleVariantChart
           title="Receita por Gênero (R$)"
@@ -755,7 +754,6 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           dataKey="value"
           colorKey="color"
           formatter={(value) => fmtCurrency(value)}
-          emptyTitle="Sem dados de gênero."
         />
         <StackedVariantChart
           title="Distribuição de Vendas (Qty)"

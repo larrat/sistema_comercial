@@ -10,7 +10,7 @@ const formSchema = z.object({
   nome_lead: z.string().min(3, 'Nome muito curto'),
   telefone: z.string().min(8, 'Telefone inválido'),
   endereco_obra: z.string().min(5, 'Endereço obrigatório para vistoria'),
-  valor_estimado: z.preprocess((val) => Number(val), z.number().min(0)),
+  valor_estimado: z.coerce.number().min(0),
   tags: z.string(), // We will split this by comma
 });
 
@@ -19,15 +19,16 @@ type FormData = z.infer<typeof formSchema>;
 export function OportunidadeModal({ onClose }: { onClose: () => void }) {
   const { createOportunidade, isCreating } = useCrmMutations();
   
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<any>({
     resolver: zodResolver(formSchema),
     defaultValues: { valor_estimado: 0 }
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: any) => {
     const draft: CrmOportunidadeDraft = {
       ...data,
-      tags: data.tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: String(data.tags || '').split(',').map(t => t.trim()).filter(Boolean),
+      valor_estimado: Number(data.valor_estimado || 0)
     };
     
     await createOportunidade(draft);
@@ -55,7 +56,7 @@ export function OportunidadeModal({ onClose }: { onClose: () => void }) {
                 className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                 placeholder="Ex: João Silva ou Condomínio XYZ"
               />
-              {errors.nome_lead && <span className="mt-1 text-xs text-rose-500">{errors.nome_lead.message}</span>}
+              {errors.nome_lead && <span className="mt-1 text-xs text-rose-500">{errors.nome_lead.message as string}</span>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -68,7 +69,7 @@ export function OportunidadeModal({ onClose }: { onClose: () => void }) {
                   className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                   placeholder="(00) 00000-0000"
                 />
-                {errors.telefone && <span className="mt-1 text-xs text-rose-500">{errors.telefone.message}</span>}
+                {errors.telefone && <span className="mt-1 text-xs text-rose-500">{errors.telefone.message as string}</span>}
               </div>
 
               <div>
@@ -94,7 +95,7 @@ export function OportunidadeModal({ onClose }: { onClose: () => void }) {
                 className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
                 placeholder="Rua, Número, Bairro, Apartamento..."
               />
-              {errors.endereco_obra && <span className="mt-1 text-xs text-rose-500">{errors.endereco_obra.message}</span>}
+              {errors.endereco_obra && <span className="mt-1 text-xs text-rose-500">{errors.endereco_obra.message as string}</span>}
             </div>
 
             <div>

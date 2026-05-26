@@ -115,6 +115,7 @@ export function PedidoProfilePage({
   const userRole = useRoleStore((state) => state.role);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showBaixaConfirm, setShowBaixaConfirm] = useState(false);
+  const [isBaixando, setIsBaixando] = useState(false);
   const { updateStatus } = usePedidoMutations();
   const { registrarBaixa } = useContasReceberMutations();
 
@@ -151,16 +152,25 @@ export function PedidoProfilePage({
   async function handleConfirmarBaixa() {
     if (!financeiro.conta) return;
     const aberto = getValorEmAberto(financeiro.conta);
-    const result = await registrarBaixa(
-      financeiro.conta.id,
-      aberto,
-      new Date().toISOString(),
-      'Baixa via detalhe do pedido'
-    );
-    if (result.ok) {
-      toast.success('Baixa registrada com sucesso!');
-      void onReloadFinanceiro?.();
-      setShowBaixaConfirm(false);
+    setIsBaixando(true);
+    try {
+      const result = await registrarBaixa(
+        financeiro.conta.id,
+        aberto,
+        new Date().toISOString(),
+        'Baixa via detalhe do pedido'
+      );
+      if (result.ok) {
+        toast.success('Baixa registrada com sucesso!');
+        void onReloadFinanceiro?.();
+        setShowBaixaConfirm(false);
+      } else {
+        toast.error(result.error || 'Erro ao registrar baixa.');
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Erro ao registrar baixa.');
+    } finally {
+      setIsBaixando(false);
     }
   }
 
@@ -501,8 +511,8 @@ export function PedidoProfilePage({
           contaLabel={`${pedido.cli} — Pedido #${pedido.num}`}
           valorLabel={formatPedidoCurrency(valorEmAberto)}
           confirmLabel="Confirmar recebimento"
-          submitting={registrarBaixa.isPending}
-          onClose={() => !registrarBaixa.isPending && setShowBaixaConfirm(false)}
+          submitting={isBaixando}
+          onClose={() => !isBaixando && setShowBaixaConfirm(false)}
           onConfirm={handleConfirmarBaixa}
         />
       )}

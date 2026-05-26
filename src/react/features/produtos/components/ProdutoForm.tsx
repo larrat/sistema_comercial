@@ -10,6 +10,7 @@ import {
   syncPriceFields,
   recalcFromCost,
   markupToPrice,
+  type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
 import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
 import { FormActions, FormError, FormSection, Input, Select, Typography } from '../../../shared/ui';
@@ -26,7 +27,7 @@ const produtoSchema = z.object({
   produto_pai_id: z.string().nullable().optional(),
   nome: z.string().min(1, 'Nome do produto é obrigatório.'),
   sku: z.string().optional(),
-  un: z.string().default('un'),
+  un: z.string(),
   cat: z.string().optional(),
   custo: z.string().refine(v => parseFloat(v) > 0, 'Informe o custo do produto.'),
   precoVarejo: z.string().optional(),
@@ -41,7 +42,7 @@ const produtoSchema = z.object({
   emin: z.string().optional(),
   esal: z.string().optional(),
   ecm: z.string().optional(),
-  is_sample: z.boolean().default(false),
+  is_sample: z.boolean(),
   genero: z.enum(['masculino', 'feminino']).nullable().optional(),
   tamanho: z.string().nullable().optional(),
   foto_url: z.string().nullable().optional(),
@@ -54,7 +55,7 @@ type Props = {
   pais: Produto[];
   saving: boolean;
   error: string | null;
-  onSalvar: (_values: ProdutoFormValues, _grade?: string[], _cores?: string[]) => void;
+  onSalvar: (_values: ProdutoFormValues, _grade?: string[], _cores?: string[]) => void | Promise<void>;
   onCancelar: () => void;
 };
 
@@ -142,7 +143,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
       toast.error("Erro ao processar envio");
     }
   };
-  const handleCustomSubmit = handleSubmit(onSubmit);
+  const handleCustomSubmit = handleSubmit(onSubmit as any);
 
   useEffect(() => {
     reset(toFormValues(produto));
@@ -509,7 +510,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                   <div className="p-6 bg-slate-900/50 rounded-3xl border border-white/5 flex flex-col justify-center gap-4">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg"><AlertCircle size={20} /></div>
-                      <Typography variant="h4" className="!text-xs font-black uppercase text-white">Sincronização Ativa</Typography>
+                      <Typography variant="h3" as="h4" className="!text-xs font-black uppercase text-white">Sincronização Ativa</Typography>
                     </div>
                     <p className="text-[11px] text-slate-500 leading-relaxed">Os saldos físicos e custos médios são atualizados em tempo real através dos módulos de <strong>Entrada</strong> e <strong>Estoque</strong>.</p>
                   </div>

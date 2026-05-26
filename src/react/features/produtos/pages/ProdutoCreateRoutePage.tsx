@@ -20,7 +20,7 @@ export function ProdutoCreateRoutePage() {
   const { resolve } = useApiContext();
   const context = resolve();
   const session = useAuthStore(s => s.session);
-  const filialId = session?.user?.user_metadata?.filial_id ?? '';
+  const filialId = (session?.user as any)?.user_metadata?.filial_id ?? '';
 
   const { data: parentProdutos = [], isLoading: loadingPais, isError: errorPais } = usePaisQuery();
 
@@ -86,8 +86,8 @@ export function ProdutoCreateRoutePage() {
     }
   };
 
-  if (loadingPais) return <LoadingState message="Carregando base de produtos..." />;
-  if (errorPais) return <ErrorState message="Erro ao carregar dependências do catálogo" />;
+  if (loadingPais) return <LoadingState title="Carregando base de produtos..." />;
+  if (errorPais) return <ErrorState title="Erro ao carregar dependências do catálogo" />;
 
   return (
     <motion.div 

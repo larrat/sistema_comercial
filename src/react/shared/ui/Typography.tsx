@@ -1,4 +1,4 @@
-import { ReactNode, ElementType } from 'react';
+import type { ReactNode, ElementType } from 'react';
 
 type TypographyVariant = 'h1' | 'h2' | 'h3' | 'body' | 'body-sm' | 'caption' | 'label';
 

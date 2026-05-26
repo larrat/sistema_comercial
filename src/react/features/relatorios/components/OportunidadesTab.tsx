@@ -151,7 +151,7 @@ export function OportunidadesTab() {
       {/* Tabela de Resumo Mensal */}
       <Card>
         <div className="flex justify-between items-center mb-6">
-          <Typography variant="h4" className="font-bold">Resumo por Mês</Typography>
+          <Typography variant="h3" as="h4" className="font-bold">Resumo por Mês</Typography>
           <div className="flex gap-4">
             <FilterBar
               filters={[
@@ -168,7 +168,6 @@ export function OportunidadesTab() {
                   options: [{ value: '', label: 'Mês' }, ...MESES.map((mes, idx) => ({ value: String(idx + 1).padStart(2, '0'), label: mes }))]
                 }
               ]}
-              compact
               onClearFilters={() => { setFiltroAno(''); setFiltroMes(''); }}
             />
           </div>
@@ -189,7 +188,7 @@ export function OportunidadesTab() {
               header: 'Conversão',
               align: 'right',
               render: (row: GrupoRow) => (
-                <Badge tone={ (row.validadas / row.total) > 0.5 ? 'success' : 'warning' }>
+                <Badge variant={ (row.validadas / row.total) > 0.5 ? 'green' : 'yellow' }>
                   {pct(row.total > 0 ? (row.validadas / row.total) * 100 : 0)}
                 </Badge>
               )
@@ -212,11 +211,11 @@ export function OportunidadesTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="flex flex-col gap-6">
           <div className="flex justify-between items-center">
-            <Typography variant="h4" className="font-bold flex items-center gap-2">
+            <Typography variant="h3" as="h4" className="font-bold flex items-center gap-2">
               <Clock size={18} className="text-amber-500" />
               Oportunidades Abertas
             </Typography>
-            <Badge tone="warning">{pendentesLista.length}</Badge>
+            <Badge variant="yellow">{pendentesLista.length}</Badge>
           </div>
           
           <div className="space-y-4">
@@ -235,11 +234,11 @@ export function OportunidadesTab() {
 
         <Card className="flex flex-col gap-6">
           <div className="flex justify-between items-center">
-            <Typography variant="h4" className="font-bold flex items-center gap-2">
+            <Typography variant="h3" as="h4" className="font-bold flex items-center gap-2">
               <CheckCircle2 size={18} className="text-emerald-500" />
               Validações Recentes
             </Typography>
-            <Badge tone="success">{validadasLista.length}</Badge>
+            <Badge variant="green">{validadasLista.length}</Badge>
           </div>
 
           <div className="space-y-4">
@@ -252,7 +251,7 @@ export function OportunidadesTab() {
                     {item.pedido_total ? ` • ${fmt(item.pedido_total)}` : ''}
                   </Typography>
                 </div>
-                <Badge tone="success">OK</Badge>
+                <Badge variant="green">OK</Badge>
               </div>
             ))}
             {validadasLista.length === 0 && <Typography variant="body" color="muted" className="text-center py-8 italic">Nenhuma validação.</Typography>}

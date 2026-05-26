@@ -1,3 +1,5 @@
+import { fmtBRL } from '../../../shared/lib/formatters';
+
 type ChartTooltipValue = number | string | null | undefined;
 
 type TooltipRow = {

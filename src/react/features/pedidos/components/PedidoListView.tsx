@@ -171,7 +171,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
       [
         { key: 'id', label: 'ID' },
         { key: 'data', label: 'Data' },
-        { key: 'cliente_nome', label: 'Cliente' },
+        { key: (row: Pedido) => row.cli || '', label: 'Cliente' },
         { key: 'status', label: 'Status' },
         { key: 'total', label: 'Total' }
       ],

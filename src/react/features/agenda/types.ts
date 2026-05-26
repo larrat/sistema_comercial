@@ -12,6 +12,7 @@ export type AgendaEvento = {
   google_event_id?: string;
   participantes?: any;
   criado_por?: string;
+  contrato_id?: string | null;
   criado_em: string;
   atualizado_em: string;
 };
