@@ -30,6 +30,8 @@ export type PedidoSaveInput = {
   venda_fechada?: boolean;
   venda_fechada_em?: string | null;
   venda_fechada_por?: string | null;
+  custo_frete?: number;
+  outros_custos?: number;
 };
 
 export type PedidoApiContext = {
@@ -493,33 +495,78 @@ export async function savePedido(
   // Agregado legado mantido ate o dual-write do PDV na Fase 5.
   // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
   const payload = { ...input, num, itens: JSON.stringify(input.itens) };
-  const res = await fetch(`${context.url}/rest/v1/pedidos`, {
-    method: 'POST',
-    headers: {
-      ...createHeaders(context.key, context.token),
-      Prefer: 'resolution=merge-duplicates,return=representation'
-    },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(12000)
-  });
-  const body = await readJson(res);
-  ensureOk(res, body, `Erro ${res.status} ao salvar pedido`);
+  try {
+    const res = await fetch(`${context.url}/rest/v1/pedidos`, {
+      method: 'POST',
+      headers: {
+        ...createHeaders(context.key, context.token),
+        Prefer: 'resolution=merge-duplicates,return=representation'
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(12000)
+    });
+    const body = await readJson(res);
+    ensureOk(res, body, `Erro ${res.status} ao salvar pedido`);
 
-  const saved = (Array.isArray(body) ? body[0] : body) as Pedido;
+    const saved = (Array.isArray(body) ? body[0] : body) as Pedido;
 
-  if (input.origem_venda === 'pdv' && isPedidoItensDualWriteEnabled()) {
-    try {
-      await upsertPedidoItensNormalizados(context, input);
-    } catch (error) {
-      console.warn('[pedidos] dual-write do PDV falhou; a venda segue gravada no agregado.', error);
+    if (input.origem_venda === 'pdv' && isPedidoItensDualWriteEnabled()) {
+      try {
+        await upsertPedidoItensNormalizados(context, input);
+      } catch (error) {
+        console.warn('[pedidos] dual-write do PDV falhou; a venda segue gravada no agregado.', error);
+      }
     }
-  }
 
-  if (saved) {
-    logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
-  }
+    if (saved) {
+      logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
+    }
 
-  return saved;
+    return saved;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    const isMissingColumn = 
+      message.includes('custo_frete') || 
+      message.includes('outros_custos') || 
+      message.includes('schema cache');
+
+    if (!isMissingColumn) throw error;
+
+    console.warn('[pedidos] Schema cache desatualizado ou colunas de custos ausentes. Salvando no modo compatível.');
+
+    // Fallback: Remover colunas novas do payload e embutir em obs
+    const { custo_frete, outros_custos, ...fallbackPayload } = payload;
+    const fallbackObs = [
+      payload.obs,
+      typeof custo_frete === 'number' ? `[Custo Frete: R$ ${custo_frete.toFixed(2)}]` : '',
+      typeof outros_custos === 'number' ? `[Outros Custos: R$ ${outros_custos.toFixed(2)}]` : ''
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const res = await fetch(`${context.url}/rest/v1/pedidos`, {
+      method: 'POST',
+      headers: {
+        ...createHeaders(context.key, context.token),
+        Prefer: 'resolution=merge-duplicates,return=representation'
+      },
+      body: JSON.stringify({
+        ...fallbackPayload,
+        obs: fallbackObs
+      }),
+      signal: AbortSignal.timeout(12000)
+    });
+    const body = await readJson(res);
+    ensureOk(res, body, `Erro ${res.status} ao salvar pedido (modo compatibilidade)`);
+
+    const saved = (Array.isArray(body) ? body[0] : body) as Pedido;
+
+    if (saved) {
+      logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
+    }
+
+    return saved;
+  }
 }
 
 export async function updatePedidoStatus(
