@@ -175,6 +175,9 @@ export function usePedidoMutations() {
   const cancelarPedido = useMutation({
     mutationFn: ({ pedido, isRecusaAvaria }: { pedido: Pedido; isRecusaAvaria?: boolean }) => {
       if (!context) throw new Error('API context not ready');
+      if (pedido.fiscal_status === 'emitido') {
+        throw new Error('Não é permitido cancelar um pedido com Nota Fiscal já emitida na SEFAZ. Por favor, cancele ou estorne a Nota Fiscal primeiro no painel fiscal.');
+      }
       return updatePedidoStatus(context, pedido.id, 'cancelado', isRecusaAvaria);
     },
     onSuccess: () => {
