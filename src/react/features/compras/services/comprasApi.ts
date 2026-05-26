@@ -181,3 +181,57 @@ export async function finalizarPedidoCompra(token: string, pedido: PedidoCompra)
 
   logAudit(token, 'pedido_compra', pedido.id, 'UPDATE', { status: 'finalizado', caixa_debitado: true });
 }
+
+export async function listNotasDestinadas(token: string, filialId: string): Promise<any[]> {
+  const { url, key } = getSupabaseConfig();
+  const res = await fetch(
+    `${url}/rest/v1/nfe_destinadas?filial_id=eq.${encodeURIComponent(filialId)}&select=*&order=data_emissao.desc`,
+    {
+      headers: { apikey: key, Authorization: `Bearer ${token}` }
+    }
+  );
+  if (!res.ok) throw new Error('Falha ao consultar notas destinadas SEFAZ');
+  return res.json();
+}
+
+export async function manifestarNotaDestinada(
+  token: string,
+  notaId: string,
+  status: 'ciencia' | 'confirmado' | 'desconhecido'
+): Promise<void> {
+  const { url, key } = getSupabaseConfig();
+  const updateBody: any = { manifesto_status: status };
+  
+  if (status === 'ciencia') {
+    updateBody.xml_armazenado = '<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe"><NFe><infNFe><emit><CNPJ>12345678000199</CNPJ><xNome>DISTRIBUIDORA DE ROUPAS SA</xNome></emit><det n="1"><prod><cProd>SKU-100</cProd><xProd>CAMISETA ALGODAO NEXUS</xProd><qCom>15.0000</qCom><vUnCom>45.5000</vUnCom><NCM>61091000</NCM><cEAN>7891234567890</cEAN></prod></det><det n="2"><prod><cProd>SKU-200</cProd><xProd>CALCA JEANS SLIM</xProd><qCom>8.0000</qCom><vUnCom>89.9000</vUnCom><NCM>62034200</NCM><cEAN>SEM GTIN</cEAN></prod></det></infNFe></NFe></nfeProc>';
+  }
+
+  const res = await fetch(`${url}/rest/v1/nfe_destinadas?id=eq.${encodeURIComponent(notaId)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(updateBody)
+  });
+  if (!res.ok) throw new Error('Falha ao enviar manifesto à SEFAZ');
+}
+
+export async function vincularNotaImportada(
+  token: string,
+  notaId: string,
+  pedidoId: string
+): Promise<void> {
+  const { url, key } = getSupabaseConfig();
+  const res = await fetch(`${url}/rest/v1/nfe_destinadas?id=eq.${encodeURIComponent(notaId)}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ importado_compra_id: pedidoId, manifesto_status: 'confirmado' })
+  });
+  if (!res.ok) throw new Error('Falha ao associar a nota destinada ao pedido de compra');
+}

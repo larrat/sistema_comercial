@@ -927,3 +927,18 @@ export type DomBindingsDeps = {
   setFiltroNotificacoes?: (value?: string) => void;
   executarAcaoGerencial?: (acao?: string) => void;
 };
+
+export type NfeDestinada = {
+  id: string;
+  filial_id: string;
+  chave_acesso: string;
+  cnpj_emitente: string;
+  nome_emitente: string;
+  valor_total: number;
+  data_emissao: string;
+  manifesto_status: 'sem_manifesto' | 'ciencia' | 'confirmado' | 'desconhecido';
+  nfe_status: 'autorizada' | 'cancelada';
+  xml_armazenado?: string;
+  importado_compra_id?: string | null;
+  criado_em: string;
+};

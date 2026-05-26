@@ -32,7 +32,11 @@ import { useFilialStore } from '../../../app/useFilialStore';
 
 const fmt = (v: number) => fmtBRL(v || 0);
 
-export function ComprasPilotPage() {
+type ComprasPilotPageProps = {
+  hideHeader?: boolean;
+};
+
+export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) {
   const { token } = useApiContext();
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
@@ -64,25 +68,27 @@ export function ComprasPilotPage() {
 
   return (
     <main className="flex-1 w-full flex flex-col gap-8 animate-in fade-in duration-500">
-      <PageHeader
-        kicker="Suprimentos"
-        title="Pedidos de Compra"
-        description="Gerencie ordens de compra e entrada de mercadorias no estoque."
-        actions={
-          <div className="flex gap-3">
-            <Link to="/app/compras/sugestoes">
-              <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-teal-400" />}>
-                Stock AI
-              </Button>
-            </Link>
-            <Link to="/app/compras/novo">
-              <Button variant="primary" className="!rounded-xl" leftIcon={<Plus className="w-4 h-4" />}>
-                Novo pedido
-              </Button>
-            </Link>
-          </div>
-        }
-      />
+      {!hideHeader && (
+        <PageHeader
+          kicker="Suprimentos"
+          title="Pedidos de Compra"
+          description="Gerencie ordens de compra e entrada de mercadorias no estoque."
+          actions={
+            <div className="flex gap-3">
+              <Link to="/app/compras/sugestoes">
+                <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-teal-400" />}>
+                  Stock AI
+                </Button>
+              </Link>
+              <Link to="/app/compras/novo">
+                <Button variant="primary" className="!rounded-xl" leftIcon={<Plus className="w-4 h-4" />}>
+                  Novo pedido
+                </Button>
+              </Link>
+            </div>
+          }
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-teal-500/5 active:scale-[0.99]">

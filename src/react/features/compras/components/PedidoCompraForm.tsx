@@ -14,6 +14,7 @@ type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
   onClose: () => void;
   filialId: string;
+  prefillData?: { fornecedor: string; itens: PedidoCompraItem[] };
 };
 
 interface FormItem extends PedidoCompraItem {
@@ -21,10 +22,10 @@ interface FormItem extends PedidoCompraItem {
   xmlSku?: string;
 }
 
-export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
+export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Props) {
   const { resolve } = useApiContext();
-  const [fornecedor, setFornecedor] = useState('');
-  const [itens, setItens] = useState<FormItem[]>([]);
+  const [fornecedor, setFornecedor] = useState(prefillData?.fornecedor || '');
+  const [itens, setItens] = useState<FormItem[]>(prefillData?.itens || []);
   const [formaPgto, setFormaPgto] = useState('Boleto');
   const [obs, setObs] = useState('');
   const [contratoId, setContratoId] = useState<string | null>(null);
