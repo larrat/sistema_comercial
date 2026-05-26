@@ -7,7 +7,7 @@ begin;
 -- 1. Expansão de tabelas
 -- Adicionar coluna de conciliação fina em transações de caixa
 alter table if exists public.caixa_transacoes
-  add column if not exists conta_receber_baixa_id uuid references public.contas_receber_baixas(id) on delete cascade;
+  add column if not exists conta_receber_baixa_id text references public.contas_receber_baixas(id) on delete cascade;
 
 create index if not exists ix_caixa_transacoes_baixa on public.caixa_transacoes (conta_receber_baixa_id);
 
@@ -24,7 +24,7 @@ declare
   v_valor numeric;
   v_descricao text;
   v_filial_id text;
-  v_baixa_id uuid;
+  v_baixa_id text;
 begin
   v_baixa_id := null;
 
