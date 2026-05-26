@@ -1,6 +1,6 @@
 import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useMemo } from 'react';
-import { X, Search, Check, AlertCircle, Plus, Trash2, Save, Package } from 'lucide-react';
+import { X, Search, Check, AlertCircle, Plus, Trash2, Save, Package, FileText, UploadCloud } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Card, Shimmer, Badge } from '../../../shared/ui';
 import type { PedidoCompraItem, PedidoCompra } from '../services/comprasApi';
@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { listProdutos } from '../../produtos/services/produtosApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { contratosApi } from '../../contratos/services/contratosApi';
+import { parseNFXML } from '../lib/xmlInvoiceParser';
 
 type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
@@ -15,15 +16,21 @@ type Props = {
   filialId: string;
 };
 
+interface FormItem extends PedidoCompraItem {
+  isXmlMatched?: boolean;
+  xmlSku?: string;
+}
+
 export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
   const { resolve } = useApiContext();
   const [fornecedor, setFornecedor] = useState('');
-  const [itens, setItens] = useState<PedidoCompraItem[]>([]);
+  const [itens, setItens] = useState<FormItem[]>([]);
   const [formaPgto, setFormaPgto] = useState('Boleto');
   const [obs, setObs] = useState('');
   const [contratoId, setContratoId] = useState<string | null>(null);
   const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
   const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
     queryKey: ['produtos-compras', filialId],
@@ -49,7 +56,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
     setItens([...itens, { produto_id: '', nome: '', qty: 1, custo_unitario: 0, total_item: 0 }]);
   };
 
-  const updateItem = (index: number, field: keyof PedidoCompraItem, value: any) => {
+  const updateItem = (index: number, field: keyof FormItem, value: any) => {
     setItens(prev => {
       const newItens = [...prev];
       newItens[index] = { ...newItens[index], [field]: value };
@@ -70,6 +77,12 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
     if (!fornecedor) return toast.error('Informe o fornecedor');
     if (itens.length === 0) return toast.error('Adicione pelo menos um item');
     
+    // Check if there are any unmatched products
+    const unmatchedCount = itens.filter(i => i.produto_id === '').length;
+    if (unmatchedCount > 0) {
+      return toast.error(`Existem ${unmatchedCount} itens sem vínculo no catálogo. Por favor, associe todos os produtos antes de salvar.`);
+    }
+
     const pedido: Partial<PedidoCompra> = {
       id: `PC-${Date.now()}`,
       filial_id: filialId,
@@ -105,13 +118,103 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
         ...newItens[idx],
         produto_id: p.id,
         nome: p.nome,
-        custo_unitario: p.custo || 0,
-        total_item: newItens[idx].qty * (p.custo || 0)
+        custo_unitario: newItens[idx].custo_unitario || p.custo || 0,
+        total_item: newItens[idx].qty * (newItens[idx].custo_unitario || p.custo || 0),
+        isXmlMatched: true
       };
       return newItens;
     });
     setActiveItemIdx(null);
     setSearchTerm('');
+  };
+
+  const matchProduct = (importedSku: string, importedName: string, importedEan?: string) => {
+    const parentIds = new Set(produtos.map(p => p.produto_pai_id).filter(Boolean));
+    const sellable = produtos.filter(p => !parentIds.has(p.id));
+
+    // 1. Try match by SKU or barcode/EAN
+    let found = sellable.find(p => 
+      (p.sku && p.sku.toLowerCase() === importedSku.toLowerCase()) ||
+      (importedEan && p.codigo_barras && p.codigo_barras === importedEan) ||
+      (p.codigo_fornecedor && p.codigo_fornecedor.toLowerCase() === importedSku.toLowerCase())
+    );
+
+    // 2. Try match by name exactly
+    if (!found) {
+      found = sellable.find(p => 
+        p.nome.toLowerCase().trim() === importedName.toLowerCase().trim()
+      );
+    }
+
+    return found;
+  };
+
+  const handleXmlUpload = (file: File) => {
+    if (!file.name.endsWith('.xml')) {
+      toast.error('Por favor, envie apenas arquivos XML de Notas Fiscais.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const xmlText = e.target?.result as string;
+        const parsed = parseNFXML(xmlText);
+
+        setFornecedor(parsed.nomeEmitente);
+
+        const newItens: FormItem[] = parsed.itens.map(imported => {
+          const matched = matchProduct(imported.cProd, imported.xProd, imported.cEAN);
+          return {
+            produto_id: matched ? matched.id : '',
+            nome: matched ? matched.nome : imported.xProd,
+            qty: imported.qCom,
+            custo_unitario: imported.vUnCom,
+            total_item: imported.qCom * imported.vUnCom,
+            isXmlMatched: !!matched,
+            xmlSku: imported.cProd
+          };
+        });
+
+        setItens(newItens);
+
+        const matchedCount = newItens.filter(i => i.isXmlMatched).length;
+        const unmatchedCount = newItens.length - matchedCount;
+
+        if (unmatchedCount === 0) {
+          toast.success(`NF-e importada! Todos os ${matchedCount} itens foram vinculados ao catálogo.`);
+        } else {
+          toast.warning(
+            `NF-e importada com pendências: ${matchedCount} de ${newItens.length} itens vinculados. ` +
+            `${unmatchedCount} itens precisam ser associados manualmente.`,
+            { duration: 8000 }
+          );
+        }
+      } catch (err: any) {
+        console.error(err);
+        toast.error(err.message || 'Erro ao processar o arquivo XML.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleXmlUpload(file);
+    }
   };
 
   return (
@@ -125,6 +228,57 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          
+          {/* Smart XML Importer Drag & Drop Zone */}
+          <div 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`relative p-6 border-2 border-dashed rounded-3xl transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden ${
+              isDragging 
+                ? 'border-teal-400 bg-teal-950/20 shadow-lg shadow-teal-500/10 scale-[1.01]' 
+                : 'border-white/10 hover:border-teal-500/30 bg-white/[0.01] hover:bg-white/[0.02]'
+            }`}
+          >
+            {isDragging && (
+              <div className="absolute inset-0 bg-teal-500/5 animate-pulse pointer-events-none" />
+            )}
+
+            <div className="flex items-center gap-4 text-left">
+              <div className={`p-4 rounded-2xl transition-all duration-300 ${
+                isDragging 
+                  ? 'bg-teal-500/20 text-teal-300 scale-110' 
+                  : 'bg-white/5 text-slate-400 group-hover:text-teal-400 group-hover:bg-teal-500/10'
+              }`}>
+                {isDragging ? <UploadCloud size={28} className="animate-bounce" /> : <FileText size={28} />}
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                  Importador Inteligente de Nota Fiscal (XML)
+                  <Badge variant="green" className="!py-0 !px-1.5 !text-[8px]">Novo</Badge>
+                </h4>
+                <p className="text-[10px] text-slate-400 mt-1 max-w-md leading-relaxed">
+                  Arraste o arquivo XML da NF-e (.xml) ou clique para preencher automaticamente o fornecedor, itens, custos e quantidades.
+                </p>
+              </div>
+            </div>
+
+            <label className="flex-shrink-0 cursor-pointer">
+              <input 
+                type="file" 
+                accept=".xml" 
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleXmlUpload(file);
+                }} 
+                className="hidden" 
+              />
+              <span className="inline-flex items-center gap-2 px-5 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all hover:shadow-lg hover:shadow-teal-500/20 active:scale-95">
+                Selecionar Arquivo
+              </span>
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
@@ -177,7 +331,21 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
 
             <div className="space-y-3">
               {itens.map((item, idx) => (
-                <div key={idx} className="relative flex gap-4 items-end p-4 rounded-2xl bg-white/[0.02] border border-white/5 rf-animate-fade">
+                <div 
+                  key={idx} 
+                  className={`relative flex gap-4 items-end p-4 rounded-2xl border transition-all duration-300 rf-animate-fade ${
+                    item.isXmlMatched === false 
+                      ? 'bg-rose-950/10 border-rose-500/20 shadow-inner' 
+                      : 'bg-white/[0.02] border-white/5'
+                  }`}
+                >
+                  {item.isXmlMatched === false && (
+                    <div className="absolute -top-2.5 left-4 flex items-center gap-1.5 bg-[#0f172a] text-rose-400 px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-rose-500/30">
+                      <AlertCircle size={10} />
+                      Não Vinculado ({item.xmlSku || 'S/SKU'}) — Associe um produto
+                    </div>
+                  )}
+
                   <div className="flex-1 space-y-1.5 relative">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Produto</label>
                     
@@ -194,7 +362,11 @@ export function PedidoCompraForm({ onSave, onClose, filialId }: Props) {
                           setSearchTerm(item.nome);
                         }}
                         placeholder="Buscar produto..."
-                        className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white pr-8"
+                        className={`w-full bg-black/20 border rounded-lg px-3 py-2 text-xs text-white pr-8 focus:outline-none transition-colors ${
+                          item.isXmlMatched === false 
+                            ? 'border-rose-500/30 focus:border-rose-500/60' 
+                            : 'border-white/5 focus:border-teal-500/50'
+                        }`}
                       />
                       <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
                     </div>
