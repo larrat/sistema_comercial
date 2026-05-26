@@ -220,6 +220,7 @@ export function PdvPage() {
     createdAt: string;
   } | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [showScannerHalo, setShowScannerHalo] = useState(false);
 
   const productInputRef = useRef<HTMLInputElement>(null);
   const productSearchRequestRef = useRef(0);
@@ -436,6 +437,8 @@ export function PdvPage() {
     setProductResults([]);
     setProductSearchError(null);
     setActiveSuggestionIndex(0);
+    setShowScannerHalo(true);
+    setTimeout(() => setShowScannerHalo(false), 800);
     window.requestAnimationFrame(() => productInputRef.current?.focus());
   }
 
@@ -684,10 +687,13 @@ export function PdvPage() {
     <main className="rf-content rf-pdv-page" data-testid="pdv-page">
       <section className="rf-pdv">
         <div className="rf-pdv__layout">
-          <section className="rf-pdv__left">
+          <section className="rf-pdv__left rf-pdv-glass-card">
             <header className="rf-pdv__panel-head">
               <div>
-                <div className="rf-pdv__title">Nova venda</div>
+                <div className="rf-pdv__title flex items-center gap-2 text-gold-premium font-extrabold uppercase tracking-wide">
+                  <DollarSign size={16} />
+                  Nova venda
+                </div>
               </div>
               <div className="rf-pdv__head-meta">
                 {pendingQueueCount > 0 ? (
@@ -700,13 +706,13 @@ export function PdvPage() {
               </div>
             </header>
 
-            <div className="rf-pdv__search">
-              <span className="rf-pdv__search-icon" aria-hidden="true" onClick={() => setIsScannerOpen(true)}>
+            <div className={`rf-pdv__search ${showScannerHalo ? 'rf-scanner-success-halo' : ''} transition-all duration-300`}>
+              <span className="rf-pdv__search-icon hover:scale-110 active:scale-95 transition-all text-emerald-400 cursor-pointer" aria-hidden="true" onClick={() => setIsScannerOpen(true)} title="Scanner de câmera">
                 <Camera size={18} strokeWidth={2.5} />
               </span>
               <input
                 ref={productInputRef}
-                className="rf-pdv__search-input"
+                className="rf-pdv__search-input focus:border-emerald-500/40"
                 type="search"
                 placeholder="Buscar produto por nome ou código..."
                 value={productQuery}
@@ -884,7 +890,7 @@ export function PdvPage() {
                 )}
                 <div className="rf-pdv__summary-row is-total border-t border-white/5 pt-1.5">
                   <span>Total a Pagar</span>
-                  <strong>{formatCurrencyBRL(finalTotal)}</strong>
+                  <strong className="text-gold-premium font-mono text-2xl tracking-tight">{formatCurrencyBRL(finalTotal)}</strong>
                 </div>
               </div>
               <div className="rf-pdv__cart-actions">
@@ -899,10 +905,10 @@ export function PdvPage() {
           </section>
 
           <aside className="rf-pdv__right">
-            <section className="rf-pdv__panel">
+            <section className="rf-pdv__panel rf-pdv-glass-card">
               <header className="rf-pdv__panel-head">
                 <div className="rf-pdv__title">Cliente</div>
-                <Button variant="secondary" size="sm" onClick={() => setClienteModalOpen(true)}>
+                <Button variant="secondary" size="sm" className="rf-pdv-btn-premium" onClick={() => setClienteModalOpen(true)}>
                   {selectedCliente ? 'Alterar' : 'Selecionar'}
                 </Button>
               </header>
@@ -929,7 +935,7 @@ export function PdvPage() {
             </section>
 
             {/* Premium Vale-Troca Resgate Panel */}
-            <section className="rf-pdv__panel bg-teal-500/[0.01] border-teal-500/10" style={{ marginTop: '1rem' }}>
+            <section className="rf-pdv__panel rf-pdv-glass-card" style={{ marginTop: '1rem' }}>
               <header className="rf-pdv__panel-head flex items-center justify-between">
                 <div className="rf-pdv__title flex items-center gap-1.5 text-xs font-black uppercase text-teal-400">
                   <Ticket size={14} className="text-teal-400" />
@@ -1000,7 +1006,7 @@ export function PdvPage() {
               )}
             </section>
 
-            <section className="rf-pdv__panel is-expanded" style={{ marginTop: '1rem' }}>
+            <section className="rf-pdv__panel rf-pdv-glass-card is-expanded" style={{ marginTop: '1rem' }}>
               <header className="rf-pdv__panel-head">
                 <div className="rf-pdv__title">Pagamento</div>
               </header>
@@ -1018,14 +1024,14 @@ export function PdvPage() {
                   return (
                     <button
                       key={option.value}
-                      className={`rf-pdv__payment-btn ${isActive ? 'is-active' : ''}`}
+                      className={`rf-pdv__payment-btn rf-pdv-btn-premium ${isActive ? 'is-active bg-emerald-500/10 border-emerald-500/30' : ''}`}
                       type="button"
                       disabled={isDisabled}
                       onClick={() => setPaymentMethod(option.value)}
                     >
                       <span className="rf-pdv__payment-emoji">{option.emoji}</span>
                       <span className="rf-pdv__payment-label">{option.label}</span>
-                      {isActive ? <span className="rf-pdv__payment-check">✓</span> : null}
+                      {isActive ? <span className="rf-pdv__payment-check text-emerald-400">✓</span> : null}
                     </button>
                   );
                 })}
@@ -1039,19 +1045,29 @@ export function PdvPage() {
               )}
             </section>
 
-            <div className="rf-pdv__finalize">
+            <div className="rf-pdv__finalize mt-4">
               <Button
                 variant="primary"
-                className="w-full"
+                className="w-full bg-gold-premium-gradient text-slate-900 font-extrabold shadow-lg hover:brightness-110 rf-pdv-btn-premium border-none"
                 size="lg"
                 disabled={!canFinalize}
                 loading={saving}
                 onClick={() => void handleFinalizeSale()}
               >
-                Finalizar venda (F2)
+                Finalizar Venda (F9)
               </Button>
             </div>
           </aside>
+        </div>
+
+        {/* Shortcuts Panel */}
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-slate-400 text-xs py-3 px-4 bg-slate-950/30 backdrop-blur-md rounded-2xl border border-white/5 shadow-inner">
+          <span className="flex items-center gap-1.5"><kbd className="rf-shortcut-badge">Esc</kbd> Cancelar Venda</span>
+          <span className="flex items-center gap-1.5"><kbd className="rf-shortcut-badge">F2</kbd> Selecionar Cliente</span>
+          <span className="flex items-center gap-1.5"><kbd className="rf-shortcut-badge">F7</kbd> Aplicar Desconto</span>
+          <span className="flex items-center gap-1.5"><kbd className="rf-shortcut-badge">F8</kbd> Pagamento Misto</span>
+          <span className="flex items-center gap-1.5"><kbd className="rf-shortcut-badge">F9</kbd> Confirmar & Finalizar</span>
+          <span className="flex items-center gap-1.5"><kbd className="rf-shortcut-badge">/</kbd> Focar Busca</span>
         </div>
       </section>
 

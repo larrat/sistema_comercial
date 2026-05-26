@@ -2513,3 +2513,70 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 .mobile-card-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 13px; color: var(--text-secondary); padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 .mobile-card-meta-gap { gap: 12px 8px; }
 .mobile-card-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; padding-top: 4px; }
+
+/* --- PREMIUM OBSIDIAN GLASSMOPHISM & PDV REDESIGN --- */
+.rf-pdv-glass-card {
+  background: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rf-pdv-glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.65) !important;
+}
+
+.rf-pdv-btn-premium {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rf-pdv-btn-premium:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.rf-pdv-btn-premium:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Shortcuts helper keyboard badge */
+.rf-shortcut-badge {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Emerald Scanner Successful Confirmation Halo */
+.rf-scanner-success-halo {
+  animation: esmeralda-halo-pulse 0.8s ease-out;
+}
+
+@keyframes esmeralda-halo-pulse {
+  0% {
+    box-shadow: 0 0 0 0px rgba(16, 185, 129, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+  }
+}
+
+/* Premium Gold Text styles */
+.text-gold-premium {
+  color: #C5A059 !important;
+}
+
+.bg-gold-premium-gradient {
+  background: linear-gradient(135deg, #E6C587 0%, #C5A059 100%) !important;
+  color: #111827 !important;
+}
+
