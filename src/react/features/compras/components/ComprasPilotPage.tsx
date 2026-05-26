@@ -25,9 +25,10 @@ import {
   ErrorState
 } from '../../../shared/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listPedidosCompra, finalizarPedidoCompra } from '../services/comprasApi';
+import { listPedidosCompra, finalizarPedidoCompra, cancelarPedidoCompra } from '../services/comprasApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
+import { toast } from 'sonner';
 
 
 const fmt = (v: number) => fmtBRL(v || 0);
@@ -53,6 +54,22 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
+      toast.success('Pedido finalizado e entrada registrada no estoque!');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao finalizar o pedido');
+    }
+  });
+
+  const cancelarMutation = useMutation({
+    mutationFn: (pId: string) => cancelarPedidoCompra(token!, pId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
+      queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
+      toast.success('Pedido de compra cancelado com sucesso!');
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao cancelar o pedido de compra.');
     }
   });
 
@@ -167,7 +184,22 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
               key: 'actions',
               label: '',
               render: (p) => (
-                <div className="flex justify-end">
+                <div className="flex gap-2 justify-end">
+                   {p.status !== 'cancelado' && (
+                     <Button 
+                       size="sm" 
+                       variant="secondary" 
+                       className="!rounded-lg !text-[10px] hover:!bg-rose-500/10 hover:!text-rose-400 hover:!border-rose-500/20"
+                       onClick={() => {
+                         if (confirm('Tem certeza de que deseja cancelar este pedido de compra? Esta operação reverterá o estoque e as contas associadas de forma segura e irreversível.')) {
+                           cancelarMutation.mutate(p.id);
+                         }
+                       }}
+                       loading={cancelarMutation.isPending}
+                     >
+                       Cancelar
+                     </Button>
+                   )}
                    {p.status === 'aberto' ? (
                      <Button 
                        size="sm" 

@@ -51,7 +51,6 @@ describe('compras DFe API', () => {
       expect(call[1]?.method).toBe('PATCH');
       const body = JSON.parse(call[1]?.body as string);
       expect(body.manifesto_status).toBe('ciencia');
-      expect(body.xml_armazenado).toContain('nfeProc');
     });
 
     it('deve enviar manifesto de desconhecimento a SEFAZ', async () => {

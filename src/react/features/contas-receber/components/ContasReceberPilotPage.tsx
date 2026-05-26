@@ -106,6 +106,8 @@ function filterContas(
     .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
     .filter(
       (c) =>
+        // Contas canceladas nunca aparecem nas abas normais
+        getStatusEfetivo(c) !== 'cancelado' &&
         getStatusEfetivo(c) === statusEfetivo &&
         (!q ||
           c.cliente.toLowerCase().includes(q) ||
@@ -113,6 +115,7 @@ function filterContas(
           getStatusLabel(c).toLowerCase().includes(q))
     );
 }
+
 
 type BaixaHistoricoProps = {
   baixas: ContaReceberBaixa[];

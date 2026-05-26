@@ -33,9 +33,20 @@ function ensureOk(res: Response, body: unknown, fallback: string): void {
   throw new Error(`${fallback}: ${res.status}`);
 }
 
-export async function listContas(ctx: CrApiContext): Promise<ContaReceber[]> {
+export async function listContas(ctx: CrApiContext, diasHistorico = 90): Promise<ContaReceber[]> {
+  // Limita ao período configurado (padrão: últimos 90 dias) para não carregar
+  // milhares de registros no browser. Contas mais antigas podem ser buscadas
+  // aumentando diasHistorico ou criando um relatório histórico separado.
+  const dataLimite = new Date(Date.now() - diasHistorico * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split('T')[0];
+
   const res = await fetch(
-    `${ctx.url}/rest/v1/contas_receber?filial_id=eq.${encodeURIComponent(ctx.filialId)}&order=vencimento.asc`,
+    `${ctx.url}/rest/v1/contas_receber` +
+      `?filial_id=eq.${encodeURIComponent(ctx.filialId)}` +
+      `&or=(status.eq.pendente,status.eq.parcial,status.eq.cancelado,vencimento.gte.${dataLimite})` +
+      `&order=vencimento.asc` +
+      `&limit=500`,
     { headers: headers(ctx.key, ctx.token), signal: AbortSignal.timeout(12000) }
   );
   const body = await readJson(res);
@@ -43,15 +54,22 @@ export async function listContas(ctx: CrApiContext): Promise<ContaReceber[]> {
   return Array.isArray(body) ? (body as ContaReceber[]) : [];
 }
 
-export async function listBaixas(ctx: CrApiContext): Promise<ContaReceberBaixa[]> {
+export async function listBaixas(ctx: CrApiContext, diasHistorico = 90): Promise<ContaReceberBaixa[]> {
+  const dataLimite = new Date(Date.now() - diasHistorico * 24 * 60 * 60 * 1000).toISOString();
+
   const res = await fetch(
-    `${ctx.url}/rest/v1/contas_receber_baixas?filial_id=eq.${encodeURIComponent(ctx.filialId)}&order=recebido_em.desc`,
+    `${ctx.url}/rest/v1/contas_receber_baixas` +
+      `?filial_id=eq.${encodeURIComponent(ctx.filialId)}` +
+      `&recebido_em=gte.${encodeURIComponent(dataLimite)}` +
+      `&order=recebido_em.desc` +
+      `&limit=500`,
     { headers: headers(ctx.key, ctx.token), signal: AbortSignal.timeout(12000) }
   );
   const body = await readJson(res);
   ensureOk(res, body, 'Erro ao carregar baixas');
   return Array.isArray(body) ? (body as ContaReceberBaixa[]) : [];
 }
+
 
 export async function upsertConta(ctx: CrApiContext, conta: ContaReceber): Promise<void> {
   const res = await fetch(`${ctx.url}/rest/v1/contas_receber`, {
@@ -121,46 +139,11 @@ export async function registrarBaixaRpc(
   });
   const body = await readJson(res);
   ensureOk(res, body, 'Erro ao registrar baixa');
-
-  // Lançamento de Caixa Automático na Liquidação de Título (Cenário D)
-  try {
-    const contaRes = await fetch(`${ctx.url}/rest/v1/contas_receber?id=eq.${encodeURIComponent(params.contaId)}`, {
-      headers: headers(ctx.key, ctx.token)
-    });
-    if (contaRes.ok) {
-      const contas = await readJson(contaRes) as any[];
-      const conta = contas?.[0];
-      if (conta) {
-        let categoriaId: string | null = null;
-        const catRes = await fetch(`${ctx.url}/rest/v1/caixa_categorias?nome=eq.Serviço&select=id`, {
-          headers: headers(ctx.key, ctx.token)
-        });
-        if (catRes.ok) {
-          const cats = await readJson(catRes) as any[];
-          if (cats?.[0]?.id) {
-            categoriaId = cats[0].id;
-          }
-        }
-
-        await fetch(`${ctx.url}/rest/v1/caixa_transacoes`, {
-          method: 'POST',
-          headers: headers(ctx.key, ctx.token),
-          body: JSON.stringify({
-            filial_id: ctx.filialId,
-            tipo: 'entrada',
-            valor: params.valor,
-            categoria_id: categoriaId,
-            descricao: `Baixa de Conta a Receber #${params.contaId} - Cliente: ${conta.cliente}`,
-            entidade_id: params.baixaId,
-            entidade_tipo: 'cliente'
-          })
-        });
-      }
-    }
-  } catch (err) {
-    console.warn('Erro ao registrar transação de caixa correspondente à baixa:', err);
-  }
+  // Nota: O lançamento de caixa é feito automaticamente pelo trigger
+  // trg_caixa_auto_baixas → fn_log_caixa_auto() no banco de dados.
+  // Não inserir aqui para evitar duplicidade.
 }
+
 
 export async function estornarBaixaRpc(ctx: CrApiContext, baixaId: string): Promise<void> {
   const res = await fetch(`${ctx.url}/rest/v1/rpc/rpc_estornar_baixa`, {

@@ -36,19 +36,10 @@ describe('contasReceberApi integration tests', () => {
     expect(result).toEqual(mockBaixas);
   });
 
-  it('should register a baixa and automatically post a cash transacao', async () => {
+  it('should register a baixa via RPC call', async () => {
     fetchMock.mockImplementation(async (url) => {
       if (url.toString().includes('rpc/rpc_registrar_baixa')) {
         return new Response(JSON.stringify({ success: true }), { status: 200 });
-      }
-      if (url.toString().includes('contas_receber?id=eq.c1')) {
-        return new Response(JSON.stringify([{ id: 'c1', cliente: 'Roberto Sales' }]), { status: 200 });
-      }
-      if (url.toString().includes('caixa_categorias')) {
-        return new Response(JSON.stringify([{ id: 'cat-servico' }]), { status: 200 });
-      }
-      if (url.toString().includes('caixa_transacoes')) {
-        return new Response(JSON.stringify([{ id: 1 }]), { status: 201 });
       }
       return new Response(null, { status: 404 });
     });
@@ -61,20 +52,18 @@ describe('contasReceberApi integration tests', () => {
       observacao: 'Pagamento total'
     });
 
-    // Expecting cash transaction post
+    // Expecting RPC post
     expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.supabase.co/rest/v1/caixa_transacoes',
+      'https://example.supabase.co/rest/v1/rpc/rpc_registrar_baixa',
       expect.objectContaining({
         method: 'POST',
-        body: expect.stringContaining('"valor":1500')
-      })
-    );
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://example.supabase.co/rest/v1/caixa_transacoes',
-      expect.objectContaining({
-        method: 'POST',
-        body: expect.stringContaining('"descricao":"Baixa de Conta a Receber #c1 - Cliente: Roberto Sales"')
+        body: JSON.stringify({
+          p_baixa_id: 'b1',
+          p_conta_receber_id: 'c1',
+          p_valor: 1500,
+          p_recebido_em: '2026-05-26T12:00:00Z',
+          p_observacao: 'Pagamento total'
+        })
       })
     );
   });
