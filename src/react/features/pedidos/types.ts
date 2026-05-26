@@ -35,7 +35,7 @@ export const TAB_STATUSES: Record<PedidoTab, string[]> = {
 
 /** Próximo status na progressão operacional */
 export const NEXT_STATUS: Record<string, string> = {
-  orcamento: 'supplier_check',
+  orcamento: 'confirmado',
   supplier_check: 'confirmado',
   confirmado: 'em_separacao',
   em_separacao: 'entregue_aguardando_pagamento',
@@ -45,7 +45,7 @@ export const NEXT_STATUS: Record<string, string> = {
 
 /** Label do botão de avanço por status atual */
 export const ACAO_LABEL: Record<string, string> = {
-  orcamento: 'Validar Fornecedor',
+  orcamento: 'Confirmar Pedido',
   supplier_check: 'Confirmar',
   confirmado: 'Separar',
   em_separacao: 'Entregar',
