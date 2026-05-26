@@ -1,5 +1,6 @@
 -- 46_manifestacao_destinatario.sql
 -- Objetivo: Criar a tabela public.nfe_destinadas para controle de notas emitidas contra o CNPJ da filial e suporte a Manifestação do Destinatário (SEFAZ).
+-- Inclui otimização física de índices, restrições de integridade contra fraudes e segurança RLS.
 -- Idempotente: pode rodar mais de uma vez.
 
 begin;
@@ -16,13 +17,60 @@ create table if not exists public.nfe_destinadas (
     nfe_status varchar(20) default 'autorizada',
     xml_armazenado text,
     importado_compra_id text references public.pedidos_compra(id) on delete set null,
-    criado_em timestamp with time zone default now()
+    criado_em timestamp with time zone default now(),
+    -- Impedir fisicamente que uma nota fiscal fraudulenta seja importada
+    constraint chk_nfe_destinadas_bloqueio_fraude check (
+        not (manifesto_status = 'desconhecido' and importado_compra_id is not null)
+    )
 );
 
--- Criar índices para otimização
-create index if not exists idx_nfe_destinadas_filial_id on public.nfe_destinadas(filial_id);
-create index if not exists idx_nfe_destinadas_chave on public.nfe_destinadas(chave_acesso);
-create index if not exists idx_nfe_destinadas_cnpj on public.nfe_destinadas(cnpj_emitente);
+-- Habilitar Row Level Security (RLS) para segurança multi-inquilino
+alter table public.nfe_destinadas enable row level security;
+
+-- Política de leitura: Membros da filial podem consultar suas notas destinadas
+drop policy if exists "Membros da filial podem consultar notas destinadas" on public.nfe_destinadas;
+create policy "Membros da filial podem consultar notas destinadas"
+    on public.nfe_destinadas
+    for select
+    to authenticated
+    using (
+        filial_id in (
+            select filial_id 
+            from public.user_filiais 
+            where user_id = auth.uid()
+        )
+    );
+
+-- Política de atualização: Membros da filial podem registrar manifestos
+drop policy if exists "Membros da filial podem manifestar notas" on public.nfe_destinadas;
+create policy "Membros da filial podem manifestar notas"
+    on public.nfe_destinadas
+    for update
+    to authenticated
+    using (
+        filial_id in (
+            select filial_id 
+            from public.user_filiais 
+            where user_id = auth.uid()
+        )
+    )
+    with check (
+        filial_id in (
+            select filial_id 
+            from public.user_filiais 
+            where user_id = auth.uid()
+        )
+    );
+
+-- Criar índices de alta performance
+-- Índice composto otimizado para o dashboard operacional que busca por filial e ordena por data de emissão
+create index if not exists idx_nfe_destinadas_filial_emissao 
+    on public.nfe_destinadas(filial_id, data_emissao desc);
+
+create index if not exists idx_nfe_destinadas_cnpj 
+    on public.nfe_destinadas(cnpj_emitente);
+
+-- Nota: O índice para chave_acesso não é necessário, pois a declaração UNIQUE cria o índice automaticamente.
 
 -- Seed de dados idempotente (vincula dinamicamente a primeira filial disponível)
 do $$
