@@ -7,6 +7,7 @@ import {
   type PdvMixedPaymentPart,
   validateMixedPayments
 } from '../pdv/pdvCart';
+import type { ClienteLight } from '../services/clientesLightApi';
 
 type PdvPagamentoMistoModalProps = {
   open: boolean;
@@ -14,6 +15,7 @@ type PdvPagamentoMistoModalProps = {
   initialParts: PdvMixedPaymentPart[];
   onClose: () => void;
   onSave: (parts: PdvMixedPaymentPart[]) => void;
+  cliente?: ClienteLight | null;
 };
 
 const MIXED_METHOD_OPTIONS: Array<{ value: PdvMixedPaymentMethod; label: string }> = [
@@ -29,10 +31,18 @@ export function PdvPagamentoMistoModal({
   total,
   initialParts,
   onClose,
-  onSave
+  onSave,
+  cliente
 }: PdvPagamentoMistoModalProps) {
   const [parts, setParts] = useState<PdvMixedPaymentPart[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const options = useMemo(() => {
+    if (!cliente || cliente.is_defaulter) {
+      return MIXED_METHOD_OPTIONS.filter((opt) => opt.value !== 'fiado');
+    }
+    return MIXED_METHOD_OPTIONS;
+  }, [cliente]);
 
   useEffect(() => {
     if (!open) return;
@@ -104,7 +114,7 @@ export function PdvPagamentoMistoModal({
               onChange={(event) =>
                 updatePart(index, { method: event.target.value as PdvMixedPaymentMethod })
               }
-              options={MIXED_METHOD_OPTIONS}
+              options={options}
             />
 
             <Input

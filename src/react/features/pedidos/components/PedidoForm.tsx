@@ -216,6 +216,12 @@ export function PedidoForm({
           <div className="rf-ui-stack">
             <FormError message={errors.geral} data-testid="pedido-form-error" />
 
+            {selectedCliente?.is_defaulter && (
+              <div className="empty-inline form-warn-inline !bg-rose-500/10 !text-rose-400 !border-rose-500/20" data-testid="pedido-form-warn-defaulter">
+                Atenção: Este cliente possui restrições financeiras (Inadimplente). As condições de venda a prazo estão bloqueadas. Por favor, selecione pagamento À Vista ou PIX.
+              </div>
+            )}
+
             {normalizePedStatus(status) === 'entregue_aguardando_pagamento' &&
               prazo === 'imediato' && (
                 <div className="empty-inline form-warn-inline" data-testid="pedido-form-warn-prazo">
@@ -253,7 +259,14 @@ export function PedidoForm({
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-slate-500 font-medium">Cliente</span>
-                  <strong className="text-white truncate">{selectedCliente?.nome || 'Não selecionado'}</strong>
+                  <div className="flex items-center gap-2 truncate">
+                    <strong className="text-white truncate">{selectedCliente?.nome || 'Não selecionado'}</strong>
+                    {selectedCliente?.is_defaulter ? (
+                      <span className="text-[9px] font-black uppercase bg-rose-500/15 text-rose-400 border border-rose-500/25 px-1.5 py-0.5 rounded animate-pulse">
+                        Inadimplente
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </FormSection>
@@ -430,6 +443,27 @@ export function PedidoForm({
                 </FormField>
               </div>
             </details>
+
+            <FormActions onCancel={onCancel} loading={save.isPending}>
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={onCancel}
+                  disabled={save.isPending}
+                >
+                  Cancelar
+                </Button>
+              )}
+              <Button 
+                type="submit" 
+                variant="primary" 
+                loading={save.isPending}
+                data-testid="pedido-form-submit"
+              >
+                {isEdit ? 'Salvar alterações' : 'Salvar pedido'}
+              </Button>
+            </FormActions>
           </div>
         </form>
       )}

@@ -240,7 +240,7 @@ export function PdvPage() {
   const canFinalize =
     items.length > 0 &&
     !!paymentMethod &&
-    (paymentMethod !== 'fiado' || !!selectedCliente) &&
+    (paymentMethod !== 'fiado' || (!!selectedCliente && !selectedCliente.is_defaulter)) &&
     (paymentMethod !== 'misto' || mixedValidation.isValid) &&
     !saving;
 
@@ -909,7 +909,14 @@ export function PdvPage() {
               {selectedCliente ? (
                 <div className="rf-pdv__cliente">
                   <div className="rf-pdv__cliente-info">
-                    <strong>{selectedCliente.nome}</strong>
+                    <div className="flex items-center gap-2">
+                      <strong>{selectedCliente.nome}</strong>
+                      {selectedCliente.is_defaulter && (
+                        <span className="text-[9px] font-black uppercase bg-rose-500/15 text-rose-400 border border-rose-500/25 px-1.5 py-0.5 rounded animate-pulse" data-testid="pdv-cliente-defaulter-badge">
+                          Inadimplente
+                        </span>
+                      )}
+                    </div>
                     <span>{selectedCliente.doc || 'Sem documento'}</span>
                   </div>
                   <button className="rf-pdv__cliente-remove" type="button" onClick={() => setSelectedCliente(null)}>
@@ -997,10 +1004,17 @@ export function PdvPage() {
               <header className="rf-pdv__panel-head">
                 <div className="rf-pdv__title">Pagamento</div>
               </header>
+              {selectedCliente?.is_defaulter && (
+                <div className="text-[10px] font-bold text-rose-400 bg-rose-500/5 border border-rose-500/10 p-2.5 rounded-lg mb-3">
+                  Atenção: Este cliente possui restrições financeiras (Inadimplente). Venda a prazo (Fiado) está bloqueada.
+                </div>
+              )}
               <div className="rf-pdv__payments">
                 {PAYMENT_OPTIONS.map((option) => {
                   const isActive = paymentMethod === option.value;
-                  const isDisabled = option.disabledWithoutCliente && !selectedCliente;
+                  const isDisabled = 
+                    (option.disabledWithoutCliente && !selectedCliente) ||
+                    (option.value === 'fiado' && selectedCliente?.is_defaulter);
                   return (
                     <button
                       key={option.value}
@@ -1059,6 +1073,7 @@ export function PdvPage() {
         open={mixedModalOpen}
         total={totals.total}
         initialParts={mixedPayments}
+        cliente={selectedCliente}
         onClose={() => setMixedModalOpen(false)}
         onSave={(parts) => {
           setMixedPayments(parts);

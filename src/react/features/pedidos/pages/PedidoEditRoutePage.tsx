@@ -94,6 +94,7 @@ export function PedidoEditRoutePage() {
             form="pedido-form-element" 
             type="submit"
             loading={usePedidoMutations().save.isPending}
+            data-testid="pedido-form-submit"
           >
             Salvar alterações
           </Button>

@@ -40,6 +40,7 @@ export function PedidoCreateRoutePage() {
             form="pedido-form-element" 
             type="submit"
             loading={save.isPending}
+            data-testid="pedido-form-submit"
           >
             Salvar pedido
           </Button>
