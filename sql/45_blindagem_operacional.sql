@@ -25,8 +25,12 @@ declare
   v_descricao text;
   v_filial_id text;
   v_baixa_id text;
+  v_entidade_id text;
+  v_entidade_tipo text;
 begin
   v_baixa_id := null;
+  v_entidade_id := null;
+  v_entidade_tipo := null;
 
   -- A. Tratar PEDIDOS (Venda à Vista)
   if (TG_TABLE_NAME = 'pedidos') then
@@ -37,6 +41,8 @@ begin
         v_valor := new.total;
         v_descricao := 'Venda à Vista: Pedido #' || new.num || ' (' || new.cli || ')';
         v_filial_id := new.filial_id;
+        v_entidade_id := new.id;
+        v_entidade_tipo := 'venda';
       else
         return new;
       end if;
@@ -54,6 +60,8 @@ begin
       v_descricao := 'Recebimento: ' || (select cliente from public.contas_receber where id = new.conta_receber_id);
       v_filial_id := new.filial_id;
       v_baixa_id := new.id;
+      v_entidade_id := new.conta_receber_id;
+      v_entidade_tipo := 'recebimento';
     else
       return new;
     end if;
@@ -67,6 +75,8 @@ begin
       v_valor := new.valor;
       v_descricao := 'Pagamento: ' || new.fornecedor_nome || coalesce(' (' || new.obs || ')', '');
       v_filial_id := new.filial_id;
+      v_entidade_id := new.id;
+      v_entidade_tipo := 'compra';
     else
       return new;
     end if;
@@ -78,17 +88,7 @@ begin
       filial_id, tipo, valor, categoria_id, descricao, entidade_id, entidade_tipo, conta_receber_baixa_id
     ) values (
       v_filial_id, v_tipo, v_valor, v_categoria_id, v_descricao, 
-      case 
-        when TG_TABLE_NAME = 'pedidos' then new.id 
-        when TG_TABLE_NAME = 'contas_receber_baixas' then new.conta_receber_id
-        when TG_TABLE_NAME = 'contas_pagar' then new.id
-      end,
-      case 
-        when TG_TABLE_NAME = 'pedidos' then 'venda' 
-        when TG_TABLE_NAME = 'contas_receber_baixas' then 'recebimento'
-        when TG_TABLE_NAME = 'contas_pagar' then 'compra'
-      end,
-      v_baixa_id
+      v_entidade_id, v_entidade_tipo, v_baixa_id
     );
   end if;
 
