@@ -37,8 +37,8 @@ export function PedidoItemsSection({ itens, produtos, tipo, readOnly, custoFrete
         <div className="empty-inline">Nenhum item.</div>
       ) : (
         <>
-          <div className="rf-ui-data-table-wrap !bg-transparent border border-white/5 rounded-xl overflow-hidden">
-            <table className="rf-ui-data-table">
+          <div className="rf-ui-data-table !bg-transparent border border-white/5 rounded-xl overflow-hidden">
+            <table className="tbl">
               <thead>
                 <tr>
                   <th className="!bg-slate-900/50">Produto</th>

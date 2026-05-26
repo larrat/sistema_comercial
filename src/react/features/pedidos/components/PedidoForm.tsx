@@ -425,9 +425,9 @@ export function PedidoForm({
               open={showAdvanced}
               onToggle={(event) => setShowAdvanced(event.currentTarget.open)}
             >
-              <summary className="form-advanced-summary">
-                <span>Observações e detalhes extras</span>
-                <span className="table-cell-caption table-cell-muted">
+              <summary className="flex flex-col gap-1 cursor-pointer select-none p-4 rounded-xl hover:bg-white/5 border border-white/5 transition-all mb-2">
+                <span className="text-sm font-bold text-slate-200">Observações e detalhes extras</span>
+                <span className="text-xs text-slate-500 font-normal">
                   Use este espaço quando precisar orientar separação, entrega ou atendimento
                 </span>
               </summary>
