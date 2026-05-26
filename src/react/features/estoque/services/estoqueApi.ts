@@ -1,4 +1,5 @@
 import type { Filial, MovimentoEstoque } from '../../../../types/domain';
+import type { Avaria, AvariaInput } from '../types';
 
 export type EstoqueApiContext = {
   url: string;
@@ -155,4 +156,63 @@ export async function transferMovimentacao(
 
     throw new Error('Falha ao concluir a transferência. Operação revertida no destino.', { cause: error });
   }
+}
+
+export async function listAvarias(
+  context: EstoqueApiContext
+): Promise<Avaria[]> {
+  const url = `${context.url}/rest/v1/avarias?filial_id=eq.${encodeURIComponent(context.filialId)}&order=criado_em.desc`;
+  const res = await fetch(url, {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar avarias`);
+  return Array.isArray(body) ? (body as Avaria[]) : [];
+}
+
+export async function insertAvaria(
+  context: EstoqueApiContext,
+  input: AvariaInput
+): Promise<Avaria> {
+  const valor_custo_perda = input.quantidade * input.custo_unitario;
+  
+  const res = await fetch(`${context.url}/rest/v1/avarias`, {
+    method: 'POST',
+    headers: {
+      ...createHeaders(context.key, context.token),
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify({
+      ...input,
+      valor_custo_perda,
+      filial_id: context.filialId
+    }),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao salvar registro de avaria`);
+  
+  if (!Array.isArray(body) || !body[0]) {
+    throw new Error('Falha ao obter o registro de avaria inserido');
+  }
+  const avariaSalva = body[0] as Avaria;
+
+  try {
+    await insertMovimentacao(context, {
+      id: `MOV-AV-${avariaSalva.id}-${Date.now()}`,
+      filial_id: context.filialId,
+      prod_id: input.produto_id,
+      tipo: 'saida',
+      data: new Date().toISOString().split('T')[0],
+      qty: input.quantidade,
+      custo: input.custo_unitario,
+      obs: `Avaria: ${input.motivo} - Destino: ${input.destino}. Obs: ${input.observacoes || ''}`,
+      ts: Date.now()
+    });
+  } catch (err) {
+    console.warn('Erro ao realizar baixa automática de estoque para avaria:', err);
+  }
+
+  return avariaSalva;
 }

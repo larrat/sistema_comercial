@@ -60,3 +60,22 @@ export type EstoqueMovementDraft = {
   saldoReal: string;
   destinoFilialId: string;
 };
+
+export type AvariaMotivo = 'quebra' | 'defeito_fabrica' | 'vencido' | 'furto' | 'outro';
+export type AvariaDestino = 'descarte' | 'devolucao_fornecedor' | 'doacao';
+
+export type Avaria = {
+  id?: string;
+  filial_id: string;
+  produto_id: string;
+  quantidade: number;
+  custo_unitario: number;
+  valor_custo_perda: number;
+  motivo: AvariaMotivo;
+  destino: AvariaDestino;
+  observacoes?: string;
+  criado_por?: string | null;
+  criado_em?: string;
+};
+
+export type AvariaInput = Omit<Avaria, 'id' | 'criado_em' | 'valor_custo_perda'>;
