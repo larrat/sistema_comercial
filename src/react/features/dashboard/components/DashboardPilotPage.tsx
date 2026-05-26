@@ -29,12 +29,15 @@ import {
   HelpCircle,
   Zap,
   ShieldCheck,
+  ShieldAlert,
   FileText as FileIcon,
   PieChart as PieChartIcon
 } from 'lucide-react';
 import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { useFiliaisStore } from '../../filiais/store/useFiliaisStore';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -669,6 +672,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 function FiscalHubCard() {
   const { token } = useApiContext();
   const [isEmitting, setIsEmitting] = useState(false);
+  
+  const activeFilialId = useFilialStore((s) => s.filialId);
+  const activeFilial = useFiliaisStore((s) => s.filiais.find((f) => f.id === activeFilialId));
+  const isFiscal = activeFilial?.is_fiscal ?? false;
 
   const handleEmit = async () => {
     setIsEmitting(true);
@@ -683,6 +690,16 @@ function FiscalHubCard() {
       setIsEmitting(false);
     }
   };
+
+  if (!isFiscal) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6 bg-white/[0.01] border border-white/5 rounded-2xl text-center">
+        <ShieldAlert className="w-6 h-6 text-slate-500 mb-2" />
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Filial Não Fiscal</span>
+        <span className="text-[8px] text-slate-500 block mt-1">Faturamento e SEFAZ desativados nesta unidade.</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

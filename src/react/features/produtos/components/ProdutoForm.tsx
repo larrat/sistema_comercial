@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { Image, Upload, Trash2, Loader2, TrendingUp, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
 import type { Produto } from '../../../../types/domain';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { useFiliaisStore } from '../../filiais/store/useFiliaisStore';
 import { toast } from 'sonner';
 import {
   syncPriceFields,
@@ -124,6 +126,10 @@ function fmt(v: number): string {
 export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar }: Props) {
   const { resolve } = useApiContext();
   const context = resolve();
+  
+  const activeFilialId = useFilialStore((s) => s.filialId);
+  const activeFilial = useFiliaisStore((s) => s.filiais.find((f) => f.id === activeFilialId));
+  const isFiscal = activeFilial?.is_fiscal ?? false;
   
   const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
@@ -271,7 +277,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
             { id: 'comercial', label: 'Comercial', icon: <TrendingUp size={14} /> },
             ...(!watchedValues.produto_pai_id ? [{ id: 'grade', label: 'Grade', icon: <RefreshCw size={14} /> }] : []),
             { id: 'logistica', label: 'Logística', icon: <AlertCircle size={14} /> },
-            { id: 'fiscal', label: 'Fiscal', icon: <ShieldCheck size={14} /> }
+            ...(isFiscal ? [{ id: 'fiscal', label: 'Fiscal', icon: <ShieldCheck size={14} /> }] : [])
           ].map((tab: any) => (
             <button
               key={tab.id}

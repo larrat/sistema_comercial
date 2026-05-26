@@ -43,7 +43,8 @@ export function useFilialMutations() {
         estado: form.estado.trim() || undefined,
         endereco: form.endereco.trim() || undefined,
         cor: form.cor || '#163F80',
-        meta_mensal: form.meta_mensal ? parseFloat(form.meta_mensal) : undefined
+        meta_mensal: form.meta_mensal ? parseFloat(form.meta_mensal) : undefined,
+        is_fiscal: form.is_fiscal
       };
       const saved = await upsertFilial(getCtx(), filial);
       logAudit(getCtx().token, 'filiais', saved.id, modalEditId ? 'UPDATE' : 'INSERT', saved);

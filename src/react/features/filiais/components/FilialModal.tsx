@@ -96,6 +96,21 @@ export function FilialModal() {
             disabled={saving}
           />
         </div>
+
+        <div className="flex items-center gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+          <input
+            id="filial-is-fiscal"
+            type="checkbox"
+            className="w-5 h-5 rounded-lg border border-white/10 bg-slate-900 text-teal-500 focus:ring-teal-500/50 cursor-pointer"
+            checked={form.is_fiscal}
+            onChange={(e) => setForm({ is_fiscal: e.target.checked })}
+            disabled={saving}
+          />
+          <label htmlFor="filial-is-fiscal" className="cursor-pointer select-none flex-1">
+            <span className="text-[10px] font-black text-white uppercase tracking-widest block">Filial Emissora Fiscal (NF-e/NFC-e)</span>
+            <span className="text-[9px] text-slate-500 block mt-0.5">Se ativo, exige dados fiscais e habilita faturamento na SEFAZ.</span>
+          </label>
+        </div>
       </div>
     </Modal>
   );

@@ -75,6 +75,9 @@ export const fiscalService = {
       if (!filial) {
         throw new Error('Rejeição SEFAZ (Cód. 220): Filial emitente não identificada para este pedido');
       }
+      if (!filial.is_fiscal) {
+        throw new Error(`Operação Recusada: A filial '${filial.nome}' está configurada como NÃO FISCAL. Não é possível emitir nota para vendas desta unidade.`);
+      }
       if (!filial.cnpj || filial.cnpj.replace(/\D/g, '').length !== 14) {
         throw new Error(`Rejeição SEFAZ (Cód. 203): CNPJ do emitente (${filial.nome}) inválido ou não cadastrado no banco`);
       }

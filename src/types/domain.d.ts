@@ -33,6 +33,7 @@ export type Filial = {
   cor?: string;
   meta_mensal?: number;
   criado_em?: string;
+  is_fiscal?: boolean;
   cnpj?: string;
   inscricao_estadual?: string;
   inscricao_municipal?: string;

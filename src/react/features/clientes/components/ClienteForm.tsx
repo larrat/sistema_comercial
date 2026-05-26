@@ -17,6 +17,8 @@ import {
 import { useClienteMutations } from '../hooks/useClientesQuery';
 import { useRcas } from '../hooks/useRcas';
 import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { useFiliaisStore } from '../../filiais/store/useFiliaisStore';
 
 const clienteSchema = z.object({
   nome: z.string().min(1, 'Nome do cliente é obrigatório.'),
@@ -139,6 +141,10 @@ export function ClienteForm({
 }: Props) {
   const { save: saveMutation } = useClienteMutations();
   const rcas = useRcas();
+  
+  const activeFilialId = useFilialStore((s) => s.filialId);
+  const activeFilial = useFiliaisStore((s) => s.filiais.find((f) => f.id === activeFilialId));
+  const isFiscal = activeFilial?.is_fiscal ?? false;
 
   const {
     register,
@@ -328,30 +334,41 @@ export function ClienteForm({
       </FormSection>
 
       <FormSection
-        title="Dados Fiscais e Endereço"
-        description="Endereço de faturamento completo e códigos exigidos para a emissão de nota fiscal pela SEFAZ."
+        title={isFiscal ? "Dados Fiscais e Endereço" : "Endereço de Entrega"}
+        description={isFiscal ? "Endereço de faturamento completo e códigos exigidos para a emissão de nota fiscal pela SEFAZ." : "Endereço completo para entrega de mercadorias."}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input
-            label="Inscrição Estadual"
-            {...register('inscricao_estadual')}
-            placeholder="Isento ou número da IE"
-            data-testid="form-ie"
-          />
-          <Input
-            label="Código Município IBGE"
-            {...register('codigo_municipio')}
-            placeholder="Ex: 3550308"
-            helperText="Código de 7 dígitos do município"
-            data-testid="form-cod-mun"
-          />
-          <Input
-            label="CEP"
-            {...register('cep')}
-            placeholder="00000-000"
-            data-testid="form-cep"
-          />
-        </div>
+        {isFiscal ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Inscrição Estadual"
+              {...register('inscricao_estadual')}
+              placeholder="Isento ou número da IE"
+              data-testid="form-ie"
+            />
+            <Input
+              label="Código Município IBGE"
+              {...register('codigo_municipio')}
+              placeholder="Ex: 3550308"
+              helperText="Código de 7 dígitos do município"
+              data-testid="form-cod-mun"
+            />
+            <Input
+              label="CEP"
+              {...register('cep')}
+              placeholder="00000-000"
+              data-testid="form-cep"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="CEP"
+              {...register('cep')}
+              placeholder="00000-000"
+              data-testid="form-cep"
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
