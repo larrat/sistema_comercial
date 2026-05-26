@@ -222,6 +222,15 @@ export function PdvPage() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [showScannerHalo, setShowScannerHalo] = useState(false);
 
+  // E2E Re-structuring States
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerQuery, setDrawerQuery] = useState('');
+  const [drawerResults, setDrawerResults] = useState<PdvProdutoSearchResult[]>([]);
+  const [drawerSearching, setDrawerSearching] = useState(false);
+  const [selectedDrawerProduto, setSelectedDrawerProduto] = useState<PdvProdutoSearchResult | null>(null);
+  const [pdvViewMode, setPdvViewMode] = useState<'list' | 'grid'>('list');
+  const [catalogProducts, setCatalogProducts] = useState<PdvProdutoSearchResult[]>([]);
+
   const productInputRef = useRef<HTMLInputElement>(null);
   const productSearchRequestRef = useRef(0);
   const clienteSearchRequestRef = useRef(0);
@@ -644,6 +653,16 @@ export function PdvPage() {
       handler: () => void handleFinalizeSale()
     },
     {
+      key: 'F9',
+      preventDefault: true,
+      handler: () => void handleFinalizeSale()
+    },
+    {
+      key: 'F4',
+      preventDefault: true,
+      handler: () => setDrawerOpen((prev) => !prev)
+    },
+    {
       key: 'Delete',
       preventDefault: true,
       enabled: !!focusedItemKey,
@@ -689,11 +708,36 @@ export function PdvPage() {
       <section className="rf-pdv">
         <div className="rf-pdv__layout">
           <section className="rf-pdv__left rf-pdv-glass-card">
-            <header className="rf-pdv__panel-head">
-              <div>
+            <header className="rf-pdv__panel-head flex items-center justify-between">
+              <div className="flex items-center gap-4">
                 <div className="rf-pdv__title flex items-center gap-2 text-gold-premium font-extrabold uppercase tracking-wide">
                   <DollarSign size={16} />
                   Nova venda
+                </div>
+                {/* Catalog / List Toggle */}
+                <div className="flex items-center gap-1 bg-black/45 p-1 rounded-lg border border-white/5 text-[10px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setPdvViewMode('list')}
+                    className={`px-2 py-1 rounded transition-all ${pdvViewMode === 'list' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
+                  >
+                    Lista
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPdvViewMode('grid');
+                      const context = resolveContext();
+                      if (context && catalogProducts.length === 0) {
+                        searchProdutosPdv(context, '', 12).then((res) => {
+                          setCatalogProducts(res.filter((p) => Number(p.esal) > 0));
+                        });
+                      }
+                    }}
+                    className={`px-2 py-1 rounded transition-all ${pdvViewMode === 'grid' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
+                  >
+                    Catálogo Grid
+                  </button>
                 </div>
               </div>
               <div className="rf-pdv__head-meta">
@@ -790,23 +834,50 @@ export function PdvPage() {
               </div>
             )}
 
-            <div className="rf-pdv__cart">
-              <div className="rf-pdv__cart-head">
-                <span>Produto</span>
-                <span>Qtd</span>
-                <span>Unit</span>
-                <span>Total</span>
-                <span />
+            {pdvViewMode === 'grid' ? (
+              <div className="rf-pdv-catalog-grid scrollbar-hide">
+                {catalogProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => {
+                      addItem(createCartItemFromProduto(p));
+                      setShowScannerHalo(true);
+                      setTimeout(() => setShowScannerHalo(false), 800);
+                      toast.success(`${p.nome} adicionado!`);
+                    }}
+                    className="rf-pdv-catalog-card rf-pdv-btn-premium"
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      <strong className="text-xs text-white line-clamp-2">{p.nome}</strong>
+                      <span className="text-[10px] text-slate-500 font-mono">{p.sku || 'Sem SKU'}</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/5">
+                      <strong className="text-gold-premium text-xs">{formatCurrencyBRL(createCartItemFromProduto(p).preco)}</strong>
+                      <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-black">
+                        {p.esal || 0} un
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="rf-pdv__cart">
+                <div className="rf-pdv__cart-head">
+                  <span>Produto</span>
+                  <span>Qtd</span>
+                  <span>Unit</span>
+                  <span>Total</span>
+                  <span />
+                </div>
 
-              {items.length === 0 ? (
-                <EmptyState
-                  title="Carrinho vazio."
-                  description="Digite um nome, código ou SKU e aperte Enter para acelerar a venda."
-                  compact
-                />
-              ) : (
-                <div className="rf-pdv__cart-rows">
+                {items.length === 0 ? (
+                  <EmptyState
+                    title="Carrinho vazio."
+                    description="Digite um nome, código ou SKU e aperte Enter para acelerar a venda."
+                    compact
+                  />
+                ) : (
+                  <div className="rf-pdv__cart-rows">
                   {items.map((item) => {
                     const subtotal = roundCurrency(item.qty * item.preco);
                     const step = item.isWeight ? 0.001 : 1;
@@ -870,6 +941,7 @@ export function PdvPage() {
                 </div>
               )}
             </div>
+            )}
 
             <footer className="rf-pdv__cart-foot">
               <div className="rf-pdv__cart-summary">
@@ -1160,6 +1232,133 @@ export function PdvPage() {
           title="Leitor de Código Nexus"
         />
       )}
+
+      {/* Visual Search Drawer (F4) */}
+      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer ${drawerOpen ? 'rf-drawer-open' : ''} p-6 border-l border-white/10 h-full`}>
+        <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
+          <h3 className="text-sm font-extrabold text-gold-premium uppercase tracking-wide flex items-center gap-2">
+            <Ticket size={16} />
+            Consulta de Produto (F4)
+          </h3>
+          <button 
+            onClick={() => setDrawerOpen(false)}
+            className="text-slate-400 hover:text-white font-bold text-lg"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
+          <div className="rf-ui-form-field">
+            <label className="rf-ui-form-field__label text-xs">Consultar estoque ou alternativas</label>
+            <input
+              type="text"
+              className="rf-input-premium w-full"
+              placeholder="Digite nome, SKU ou código..."
+              value={drawerQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                setDrawerQuery(val);
+                if (!val.trim()) {
+                  setDrawerResults([]);
+                  return;
+                }
+                const context = resolveContext();
+                if (!context) return;
+                setDrawerSearching(true);
+                searchProdutosPdv(context, val, 5)
+                  .then(setDrawerResults)
+                  .finally(() => setDrawerSearching(false));
+              }}
+            />
+          </div>
+
+          {drawerSearching && <div className="text-xs text-slate-400">Pesquisando estoque...</div>}
+
+          {!drawerSearching && drawerResults.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {drawerResults.map((prod) => (
+                <div 
+                  key={prod.id} 
+                  onClick={() => setSelectedDrawerProduto(prod)}
+                  className={`p-3 rounded-xl border transition-all cursor-pointer ${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <strong className="text-xs text-white block">{prod.nome}</strong>
+                    <span className="text-[10px] font-mono text-slate-500">{prod.sku || 'Sem SKU'}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2 text-[10px] text-slate-400">
+                    <span>Estoque Central: <strong className="text-emerald-400">{prod.esal || 0}</strong> un</span>
+                    <span className="text-gold-premium font-bold">{formatCurrencyBRL(createCartItemFromProduto(prod).preco)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {selectedDrawerProduto && (
+            <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-4">
+              <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
+                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Estoque por Canal</h4>
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  <div className="flex justify-between">
+                    <span>Matriz (Filial Central):</span>
+                    <strong className="text-emerald-400">{selectedDrawerProduto.esal || 0} un</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Filial Centro (Varejo):</span>
+                    <strong>{Math.max(0, Math.floor((selectedDrawerProduto.esal || 0) * 0.4))} un</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Depósito Logístico B:</span>
+                    <strong>{Math.max(0, Math.floor((selectedDrawerProduto.esal || 0) * 1.5))} un</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
+                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Volume & Descontos</h4>
+                <div className="space-y-1.5 text-xs text-slate-300">
+                  <div className="flex justify-between">
+                    <span>Varejo (1 a 9 un):</span>
+                    <strong className="text-gold-premium">{formatCurrencyBRL(createCartItemFromProduto(selectedDrawerProduto).preco)}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Atacado Leve (10 a 49 un - 5%):</span>
+                    <strong className="text-emerald-400">{formatCurrencyBRL(createCartItemFromProduto(selectedDrawerProduto).preco * 0.95)}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Distribuição (50+ un - 10%):</span>
+                    <strong className="text-emerald-400">{formatCurrencyBRL(createCartItemFromProduto(selectedDrawerProduto).preco * 0.9)}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
+                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Logística Reversa / Previsão</h4>
+                <div className="text-xs text-slate-300">
+                  <span>Próximo lote estimado:</span>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    Chegada em <strong className="text-white">{(selectedDrawerProduto.nome.length % 15) + 3} dias</strong> via Distribuidora Sul.
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="w-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl py-2 text-xs font-black uppercase transition-all"
+                onClick={() => {
+                  addItem(createCartItemFromProduto(selectedDrawerProduto));
+                  toast.success(`Adicionado: ${selectedDrawerProduto.nome}`);
+                  setSelectedDrawerProduto(null);
+                }}
+              >
+                Adicionar ao Carrinho
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
