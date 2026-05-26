@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Image, Upload, Trash2, Loader2, TrendingUp, RefreshCw, AlertCircle } from 'lucide-react';
+import { Image, Upload, Trash2, Loader2, TrendingUp, RefreshCw, AlertCircle, ShieldCheck } from 'lucide-react';
 import type { Produto } from '../../../../types/domain';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { toast } from 'sonner';
@@ -46,6 +46,10 @@ const produtoSchema = z.object({
   genero: z.enum(['masculino', 'feminino']).nullable().optional(),
   tamanho: z.string().nullable().optional(),
   foto_url: z.string().nullable().optional(),
+  ncm: z.string().min(8, 'NCM deve ter exatamente 8 caracteres.').max(8, 'NCM deve ter exatamente 8 caracteres.').optional().or(z.literal('')),
+  cest: z.string().optional(),
+  origem: z.string().optional(),
+  cfop_padrao: z.string().optional()
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
@@ -84,6 +88,10 @@ function toFormValues(p: Produto | null): ProdutoFormValues {
     genero: p?.genero || null,
     tamanho: p?.tamanho || null,
     foto_url: p?.foto_url || null,
+    ncm: p?.ncm || '61091000',
+    cest: p?.cest || '',
+    origem: p?.origem?.toString() || '0',
+    cfop_padrao: p?.cfop_padrao || '5102',
   };
 }
 
@@ -126,7 +134,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
   const [coresInput, setCoresInput] = useState('');
-  const [activeTab, setActiveTab] = useState<'geral' | 'comercial' | 'grade' | 'logistica'>('geral');
+  const [activeTab, setActiveTab] = useState<'geral' | 'comercial' | 'grade' | 'logistica' | 'fiscal'>('geral');
   const [uploading, setUploading] = useState(false);
 
   const watchedValues = watch();
@@ -137,7 +145,11 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
 
   const onSubmit = (values: ProdutoFormValues) => {
     try {
-      onSalvar(values, gradeSelecionada, cores);
+      const finalValues = {
+        ...values,
+        origem: values.origem ? parseInt(values.origem, 10) : 0
+      };
+      onSalvar(finalValues as any, gradeSelecionada, cores);
     } catch (e) {
       console.error("Submit Error:", e);
       toast.error("Erro ao processar envio");
@@ -155,6 +167,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
     if (errorKeys.length > 0) {
       if (errors.nome || errors.sku || errors.un || errors.cat) setActiveTab("geral");
       else if (errors.custo || errors.precoVarejo || errors.markupVarejo) setActiveTab("comercial");
+      else if (errors.ncm || errors.cfop_padrao || errors.cest) setActiveTab("fiscal");
     }
   }, [errors]);
 
@@ -257,7 +270,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
             { id: 'geral', label: 'Geral', icon: <Image size={14} /> },
             { id: 'comercial', label: 'Comercial', icon: <TrendingUp size={14} /> },
             ...(!watchedValues.produto_pai_id ? [{ id: 'grade', label: 'Grade', icon: <RefreshCw size={14} /> }] : []),
-            { id: 'logistica', label: 'Logística', icon: <AlertCircle size={14} /> }
+            { id: 'logistica', label: 'Logística', icon: <AlertCircle size={14} /> },
+            { id: 'fiscal', label: 'Fiscal', icon: <ShieldCheck size={14} /> }
           ].map((tab: any) => (
             <button
               key={tab.id}
@@ -533,6 +547,64 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                   </div>
                 </div>
               )}
+            </motion.div>
+          )}
+
+          {activeTab === 'fiscal' && (
+            <motion.div
+              key="fiscal"
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-10"
+            >
+              <FormSection 
+                title="Dados Regulatórios e Fiscais" 
+                description="Classificação e alíquotas obrigatórias para emissão de NF-e pela SEFAZ."
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <Input 
+                      label="NCM (Nomenclatura Comum do Mercosul)" 
+                      required 
+                      maxLength={8}
+                      {...register('ncm')} 
+                      error={errors.ncm?.message} 
+                      placeholder="Ex: 61091000" 
+                      helperText="Exatamente 8 dígitos numéricos"
+                    />
+                    <Input 
+                      label="CFOP Padrão (Venda)" 
+                      maxLength={4}
+                      {...register('cfop_padrao')} 
+                      error={errors.cfop_padrao?.message} 
+                      placeholder="Ex: 5102" 
+                      helperText="Exatamente 4 dígitos numéricos"
+                    />
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <Select 
+                      label="Origem da Mercadoria" 
+                      {...register('origem')}
+                      options={[
+                        { value: '0', label: '0 - Nacional' },
+                        { value: '1', label: '1 - Estrangeira - Importação Direta' },
+                        { value: '2', label: '2 - Estrangeira - Adquirida no Mercado Interno' },
+                        { value: '3', label: '3 - Nacional, mercadoria ou bem com Conteúdo de Importação > 40%' }
+                      ]} 
+                    />
+                    <Input 
+                      label="CEST (Cód. Especificador de Substituição Tributária)" 
+                      maxLength={7}
+                      {...register('cest')} 
+                      error={errors.cest?.message} 
+                      placeholder="Ex: 2804200 (Opcional)" 
+                    />
+                  </div>
+                </div>
+              </FormSection>
             </motion.div>
           )}
         </AnimatePresence>

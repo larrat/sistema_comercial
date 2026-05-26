@@ -33,6 +33,15 @@ export type Filial = {
   cor?: string;
   meta_mensal?: number;
   criado_em?: string;
+  cnpj?: string;
+  inscricao_estadual?: string;
+  inscricao_municipal?: string;
+  regime_tributario?: number;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  codigo_municipio?: string;
 };
 
 export type Fornecedor = {
@@ -87,6 +96,10 @@ export type Produto = {
   genero?: 'masculino' | 'feminino' | null;
   tamanho?: string | null;
   foto_url?: string | null;
+  ncm?: string;
+  cest?: string;
+  origem?: number;
+  cfop_padrao?: string;
 };
 
 export type CotacaoLog = {
@@ -170,6 +183,12 @@ export type Cliente = {
   valor_total_gasto?: number;
   score_rfm?: { r: number; f: number; m: number };
   tags?: string[];
+  inscricao_estadual?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  codigo_municipio?: string;
 };
 
 export type PedidoItem = {

@@ -42,6 +42,12 @@ const clienteSchema = z.object({
   optin_email: z.boolean().default(false),
   optin_sms: z.boolean().default(false),
   obs: z.string().optional(),
+  inscricao_estadual: z.string().optional(),
+  cep: z.string().optional(),
+  logradouro: z.string().optional(),
+  numero: z.string().optional(),
+  bairro: z.string().optional(),
+  codigo_municipio: z.string().optional()
 }).refine((data) => {
   if (data.optin_email && !data.email) return false;
   return true;
@@ -89,7 +95,13 @@ function toFormValues(cliente?: Cliente | null): Partial<ClienteFormValues> {
     optin_marketing: !!cliente?.optin_marketing,
     optin_email: !!cliente?.optin_email,
     optin_sms: !!cliente?.optin_sms,
-    obs: cliente?.obs ?? ''
+    obs: cliente?.obs ?? '',
+    inscricao_estadual: cliente?.inscricao_estadual ?? '',
+    cep: cliente?.cep ?? '',
+    logradouro: cliente?.logradouro ?? '',
+    numero: cliente?.numero ?? '',
+    bairro: cliente?.bairro ?? '',
+    codigo_municipio: cliente?.codigo_municipio ?? ''
   };
 }
 
@@ -315,8 +327,56 @@ export function ClienteForm({
         </div>
       </FormSection>
 
-      <FormSection title="Localização e observações">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <FormSection
+        title="Dados Fiscais e Endereço"
+        description="Endereço de faturamento completo e códigos exigidos para a emissão de nota fiscal pela SEFAZ."
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="Inscrição Estadual"
+            {...register('inscricao_estadual')}
+            placeholder="Isento ou número da IE"
+            data-testid="form-ie"
+          />
+          <Input
+            label="Código Município IBGE"
+            {...register('codigo_municipio')}
+            placeholder="Ex: 3550308"
+            helperText="Código de 7 dígitos do município"
+            data-testid="form-cod-mun"
+          />
+          <Input
+            label="CEP"
+            {...register('cep')}
+            placeholder="00000-000"
+            data-testid="form-cep"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <Input
+              label="Logradouro"
+              {...register('logradouro')}
+              placeholder="Rua, Avenida, Travessa..."
+              data-testid="form-logradouro"
+            />
+          </div>
+          <Input
+            label="Número"
+            {...register('numero')}
+            placeholder="Ex: 123 ou S/N"
+            data-testid="form-numero"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="Bairro"
+            {...register('bairro')}
+            placeholder="Bairro"
+            data-testid="form-bairro"
+          />
           <Input
             label="Cidade"
             {...register('cidade')}
@@ -330,7 +390,9 @@ export function ClienteForm({
             data-testid="form-estado"
           />
         </div>
+      </FormSection>
 
+      <FormSection title="Outros Detalhes e Observações">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Data de aniversário"
