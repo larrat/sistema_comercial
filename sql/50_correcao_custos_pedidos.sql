@@ -18,8 +18,4 @@ commit;
 
 -- 3. Notificar o PostgREST para limpar e recarregar o cache do esquema imediatamente
 -- (Esta instrução roda fora do bloco de transação para efeito instantâneo)
-select dblink('dbname=' || current_database(), 'NOTIFY pgrst, ''reload schema''') 
-where false; -- Fallback seguro caso dblink não esteja ativo
-
--- Notificação direta padrão
 notify pgrst, 'reload schema';
