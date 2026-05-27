@@ -1,7 +1,7 @@
-import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { type ReactNode } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
 
-type ModalProps = {
+export type ModalProps = {
   open: boolean;
   title?: string;
   subtitle?: ReactNode | ReactNode[];
@@ -24,103 +24,51 @@ export function Modal({
   closeOnOverlay,
   closeOnOverlayClick
 }: ModalProps) {
-  const titleId = useId();
-  const modalRef = useRef<HTMLDivElement>(null);
-
   const shouldCloseOnOverlay = closeOnOverlay ?? closeOnOverlayClick ?? true;
 
-  // Scroll lock and Escape key listener
-  useEffect(() => {
-    if (!open) return;
-    
-    // Scroll lock
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
+  return (
+    <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200" />
+        <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
+          <Dialog.Content 
+            className={`pointer-events-auto w-full flex flex-col max-h-full bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200 rf-ui-modal--${size}`}
+            onPointerDownOutside={(e) => {
+              if (!shouldCloseOnOverlay) e.preventDefault();
+            }}
+            onEscapeKeyDown={(e) => {
+              if (!shouldCloseOnOverlay) e.preventDefault();
+            }}
+          >
+            {title ? (
+              <div className="flex-shrink-0 px-6 py-5 border-b border-white/5">
+                <Dialog.Title className="text-lg font-bold text-white tracking-tight">
+                  {title}
+                </Dialog.Title>
+                {subtitle ? (
+                  <div className="text-sm text-slate-400 mt-1.5">
+                    {Array.isArray(subtitle) 
+                      ? subtitle.map((line, i) => <div key={i}>{line}</div>) 
+                      : subtitle}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+               <Dialog.Title className="sr-only">Dialog</Dialog.Title>
+            )}
+            
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+              {children}
+            </div>
 
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && shouldCloseOnOverlay) onClose();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      document.body.style.overflow = originalStyle;
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [open, shouldCloseOnOverlay, onClose]);
-
-  // Focus trap
-  useEffect(() => {
-    if (!open || !modalRef.current) return;
-    
-    const focusableElements = modalRef.current.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    
-    if (focusableElements.length === 0) return;
-    
-    const firstElement = focusableElements[0] as HTMLElement;
-    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-    
-    // Auto focus first element
-    firstElement.focus();
-    
-    function handleTabKey(e: KeyboardEvent) {
-      if (e.key !== 'Tab') return;
-      
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          lastElement.focus();
-          e.preventDefault();
-        }
-      } else {
-        if (document.activeElement === lastElement) {
-          firstElement.focus();
-          e.preventDefault();
-        }
-      }
-    }
-    
-    document.addEventListener('keydown', handleTabKey);
-    return () => document.removeEventListener('keydown', handleTabKey);
-  }, [open]);
-
-  if (!open) return null;
-
-  function handleOverlayClick() {
-    if (!shouldCloseOnOverlay) return;
-    onClose();
-  }
-
-  function stopPropagation(event: MouseEvent<HTMLDivElement>) {
-    event.stopPropagation();
-  }
-
-  return createPortal(
-    <div className="modal-overlay rf-ui-modal-overlay" onClick={handleOverlayClick}>
-      <div
-        ref={modalRef}
-        className={`modal-box modal-panel rf-ui-modal rf-ui-modal--${size}`}
-        onClick={stopPropagation}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? titleId : undefined}
-      >
-        {title ? (
-          <div className="rf-ui-modal__header">
-            <h2 id={titleId} className="rf-ui-modal__title">{title}</h2>
-            {subtitle ? (
-              <div className="text-sm text-slate-400 mt-1">
-                {Array.isArray(subtitle) 
-                  ? subtitle.map((line, i) => <div key={i}>{line}</div>) 
-                  : subtitle}
+            {footer ? (
+              <div className="flex-shrink-0 px-6 py-4 border-t border-white/5 bg-slate-900/50 rounded-b-2xl">
+                {footer}
               </div>
             ) : null}
-          </div>
-        ) : null}
-        <div className="rf-ui-modal__body">{children}</div>
-        {footer ? <div className="rf-ui-modal__footer">{footer}</div> : null}
-      </div>
-    </div>,
-    document.body
+          </Dialog.Content>
+        </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
