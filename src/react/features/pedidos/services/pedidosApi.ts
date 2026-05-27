@@ -494,7 +494,7 @@ export async function savePedido(
 
   // Agregado legado mantido ate o dual-write do PDV na Fase 5.
   // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
-  const payload = { ...input, num, itens: JSON.stringify(input.itens) };
+  const payload = { ...input, num, itens: input.itens };
   try {
     const res = await fetch(`${context.url}/rest/v1/pedidos`, {
       method: 'POST',
