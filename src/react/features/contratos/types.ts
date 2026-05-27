@@ -111,3 +111,19 @@ export type ContratoAditivoDraft = Pick<ContratoAditivo, 'contrato_id' | 'titulo
 export type ContratoCronogramaDraft = Pick<ContratoCronograma, 'contrato_id' | 'titulo' | 'data_inicio' | 'data_fim' | 'percentual_conclusao' | 'precedente_id' | 'valor_faturamento'>;
 export type DiarioObraDraft = Pick<DiarioObra, 'contrato_id' | 'titulo' | 'relatorio' | 'fotos' | 'clima' | 'mao_de_obra_qtd'>;
 export type ContratoArquivoDraft = Pick<ContratoArquivo, 'contrato_id' | 'pedido_compra_id' | 'nome_arquivo' | 'url_arquivo' | 'tipo_documento'>;
+
+export type ContratoPagamentoEquipe = {
+  id: string;
+  filial_id: string;
+  os_id: string;
+  valor: number;
+  data_pagamento: string;
+  tipo: 'adiantamento' | 'vale' | 'quitacao' | 'premio';
+  forma_pagamento?: string;
+  comprovante_url?: string;
+  obs?: string;
+  criado_por?: string;
+  criado_em: string;
+};
+
+export type ContratoPagamentoEquipeDraft = Pick<ContratoPagamentoEquipe, 'os_id' | 'valor' | 'data_pagamento' | 'tipo' | 'forma_pagamento' | 'comprovante_url' | 'obs'>;

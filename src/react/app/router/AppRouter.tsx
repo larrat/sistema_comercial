@@ -11,6 +11,7 @@ const ContasReceberRoutePage = lazy(() => import('../../features/contas-receber/
 const DashboardRoutePage = lazy(() => import('../../features/dashboard/pages/DashboardRoutePage').then(m => ({ default: m.DashboardRoutePage })));
 const CotacaoRoutePage = lazy(() => import('../../features/cotacao/pages/CotacaoRoutePage').then(m => ({ default: m.CotacaoRoutePage })));
 const OrcamentosRoutePage = lazy(() => import('../../features/orcamentos/pages/OrcamentosRoutePage').then(m => ({ default: m.OrcamentosRoutePage })));
+const OrcamentoPrintRoutePage = lazy(() => import('../../features/orcamentos/pages/OrcamentoPrintRoutePage').then(m => ({ default: m.OrcamentoPrintRoutePage })));
 const EstoqueRoutePage = lazy(() => import('../../features/estoque/pages/EstoqueRoutePage').then(m => ({ default: m.EstoqueRoutePage })));
 const PedidoProfileRoutePage = lazy(() => import('../../features/pedidos/pages/PedidoProfileRoutePage').then(m => ({ default: m.PedidoProfileRoutePage })));
 const PedidoCreateRoutePage = lazy(() => import('../../features/pedidos/pages/PedidoCreateRoutePage').then(m => ({ default: m.PedidoCreateRoutePage })));
@@ -39,6 +40,7 @@ const LoginPage = lazy(() => import('../../features/auth/components/LoginPage').
 const SetupPage = lazy(() => import('../../features/setup/components/SetupPage').then(m => ({ default: m.SetupPage })));
 const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/PortalStorefrontPage').then(m => ({ default: m.PortalStorefrontPage })));
 const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObraPage').then(m => ({ default: m.PortalObraPage })));
+const PortalPropostaPage = lazy(() => import('../../features/portal/pages/PortalPropostaPage').then(m => ({ default: m.PortalPropostaPage })));
 
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
@@ -101,6 +103,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="agenda" element={<AgendaPage />} />
               <Route path="crm" element={<CrmPage />} />
               <Route path="orcamentos" element={<OrcamentosRoutePage />} />
+              <Route path="orcamentos/:id/imprimir" element={<OrcamentoPrintRoutePage />} />
               <Route path="contratos" element={<ContratosPage />} />
               <Route path="contratos/:id" element={<ContratoProfilePage />} />
             </Route>
@@ -130,6 +133,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
 
         <Route path="/portal" element={<PortalStorefrontPage />} />
         <Route path="/portal/obra/:obraId" element={<PortalObraPage />} />
+        <Route path="/portal/proposta/:orcamentoId" element={<PortalPropostaPage />} />
 
         <Route
           path="/"

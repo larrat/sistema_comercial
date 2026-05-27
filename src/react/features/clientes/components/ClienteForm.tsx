@@ -18,7 +18,7 @@ import { useClienteMutations } from '../hooks/useClientesQuery';
 import { useRcas } from '../hooks/useRcas';
 import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
 import { useFilialStore } from '../../../app/useFilialStore';
-import { useFiliaisStore } from '../../filiais/store/useFiliaisStore';
+import { useFiliaisData } from '../../filiais/hooks/useFiliaisData';
 
 const clienteSchema = z.object({
   nome: z.string().min(1, 'Nome do cliente é obrigatório.'),
@@ -143,7 +143,8 @@ export function ClienteForm({
   const rcas = useRcas();
   
   const activeFilialId = useFilialStore((s) => s.filialId);
-  const activeFilial = useFiliaisStore((s) => s.filiais.find((f) => f.id === activeFilialId));
+  const { data: filiais = [] } = useFiliaisData();
+  const activeFilial = filiais.find((f) => f.id === activeFilialId);
   const isFiscal = activeFilial?.is_fiscal ?? false;
 
   const {

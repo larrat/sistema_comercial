@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { useContratoDetail, useOrdensServicoData } from '../hooks/useContratosData';
 import { OrdemServicoModal } from './OrdemServicoModal';
 import { AnalisadorContratoModal } from './AnalisadorContratoModal';
+import { PagamentoEquipeModal } from './PagamentoEquipeModal';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
@@ -49,6 +50,7 @@ export function ContratoProfilePage() {
   const [activeTab, setActiveTab] = useState<'geral' | 'cronograma' | 'diario' | 'financeiro' | 'documentos'>('geral');
   const [isOsModalOpen, setIsOsModalOpen] = useState(false);
   const [isAnalisadorOpen, setIsAnalisadorOpen] = useState(false);
+  const [pagamentoOsSelected, setPagamentoOsSelected] = useState<{ id: string, titulo: string, valor: number } | null>(null);
 
   // Form states for new items
   const [newAditivoTitle, setNewAditivoTitle] = useState('');
@@ -200,6 +202,25 @@ export function ContratoProfilePage() {
     }
   });
 
+  const uploadRdoFotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const context = resolve();
+      if (!context || !id) throw new Error('API context not ready');
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${id}/rdo_${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      return contratosApi.uploadArquivoStorage(context, file, fileName);
+    },
+    onSuccess: (url) => {
+      setUploadedPhotos(prev => [...prev, url]);
+      toast.success('Foto anexada!');
+    },
+    onError: (err: any) => {
+      toast.error('Erro ao subir foto', { description: err.message });
+    }
+  });
+
   const createCronogramaMutation = useMutation({
     mutationFn: (draft: ContratoCronogramaDraft) => {
       const context = resolve();
@@ -324,29 +345,16 @@ export function ContratoProfilePage() {
     });
   };
 
-  const handleSimulatePhoto = () => {
-    // Premium renovation images from Unsplash
-    const options = [
-      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=400', // Pintura / Cimento
-      'https://images.unsplash.com/photo-1581094288338-2314dddb7ecc?auto=format&fit=crop&q=80&w=400', // Estrutura metálica
-      'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=400', // Drywall / Gesso
-      'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=400', // Tijolos / Alvenaria
-    ];
-    const pick = options[Math.floor(Math.random() * options.length)];
-    setUploadedPhotos([...uploadedPhotos, pick]);
-    toast.success('Imagem da obra anexada com sucesso!');
-  };
-
   const handleAddDiario = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newDiarioTitle || !newDiarioRelatorio) return toast.error('Preencha os campos do diário');
+    if (!newDiarioTitle || !newDiarioRelatorio) return;
     createDiarioMutation.mutate({
-      contrato_id: contrato.id,
+      contrato_id: id!,
       titulo: newDiarioTitle,
       relatorio: newDiarioRelatorio,
-      fotos: uploadedPhotos,
       clima: newDiarioClima,
-      mao_de_obra_qtd: newDiarioMaoDeObra
+      mao_de_obra_qtd: newDiarioMaoDeObra,
+      fotos: uploadedPhotos
     });
   };
 
@@ -487,17 +495,28 @@ export function ContratoProfilePage() {
                             <p className="text-xs text-slate-400 mt-1">{os.descricao}</p>
                           </div>
                           
-                          <div className="flex items-center gap-3 self-end sm:self-center">
-                            <select
-                              value={os.status}
-                              onChange={(e) => updateOSStatusMutation.mutate({ osId: os.id, status: e.target.value as any })}
-                              className="bg-black/40 border border-white/5 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:outline-none"
-                            >
-                              <option value="agendada">Agendada</option>
-                              <option value="em_andamento">Em Andamento</option>
-                              <option value="concluida">Concluída</option>
-                              <option value="cancelada">Cancelada</option>
-                            </select>
+                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 self-end sm:self-center">
+                            <div className="flex items-center gap-2">
+                              {os.valor_parceiro && os.valor_parceiro > 0 && (
+                                <button 
+                                  onClick={() => setPagamentoOsSelected({ id: os.id, titulo: os.titulo, valor: os.valor_parceiro! })}
+                                  className="text-[10px] font-black uppercase tracking-widest text-teal-400 border border-teal-500/30 px-2.5 py-1.5 rounded-lg hover:bg-teal-500/10 transition-colors"
+                                  title="Pagamentos / Adiantamentos da O.S."
+                                >
+                                  Financeiro da OS
+                                </button>
+                              )}
+                              <select
+                                value={os.status}
+                                onChange={(e) => updateOSStatusMutation.mutate({ osId: os.id, status: e.target.value as any })}
+                                className="bg-black/40 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none"
+                              >
+                                <option value="agendada">Agendada</option>
+                                <option value="em_andamento">Em Andamento</option>
+                                <option value="concluida">Concluída</option>
+                                <option value="cancelada">Cancelada</option>
+                              </select>
+                            </div>
 
                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
                               os.status === 'concluida' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
@@ -793,18 +812,48 @@ export function ContratoProfilePage() {
                           <img src={p} alt="upload" className="w-full h-full object-cover" />
                         </div>
                       ))}
-                      <button
-                        type="button"
-                        onClick={handleSimulatePhoto}
-                        className="w-12 h-12 rounded-lg border-2 border-dashed border-white/10 hover:border-teal-500/30 text-slate-600 hover:text-teal-400 flex items-center justify-center transition-all bg-white/[0.01]"
-                        title="Simular tirar foto da obra"
-                      >
-                        <Camera size={18} />
-                      </button>
+                      <div className="flex gap-2 relative">
+                        <button
+                          type="button"
+                          onClick={() => document.getElementById('rdo-real-upload')?.click()}
+                          className="w-12 h-12 rounded-lg border-2 border-dashed border-white/10 hover:border-teal-500/30 text-slate-600 hover:text-teal-400 flex flex-col items-center justify-center transition-all bg-white/[0.01]"
+                          title="Anexar Foto (Storage)"
+                          disabled={uploadRdoFotoMutation.isPending}
+                        >
+                          <Camera size={14} />
+                        </button>
+                        {uploadRdoFotoMutation.isPending && (
+                          <div className="absolute top-0 left-0 w-12 h-12 bg-black/50 rounded-lg flex items-center justify-center">
+                            <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                          </div>
+                        )}
+                        <input 
+                          id="rdo-real-upload"
+                          type="file" 
+                          accept="image/*" 
+                          multiple
+                          className="hidden" 
+                          onChange={(e) => {
+                            if (e.target.files) {
+                              Array.from(e.target.files).forEach(file => {
+                                uploadRdoFotoMutation.mutate(file);
+                              });
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <Button type="submit" variant="primary" className="w-full">Registrar Diário</Button>
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="w-full"
+                    disabled={createDiarioMutation.isPending || uploadRdoFotoMutation.isPending}
+                  >
+                    Registrar Diário
+                  </Button>
                 </form>
               </Card>
             </div>
@@ -1056,6 +1105,15 @@ export function ContratoProfilePage() {
         isOpen={isAnalisadorOpen}
         onClose={() => setIsAnalisadorOpen(false)}
       />
+
+      {pagamentoOsSelected && (
+        <PagamentoEquipeModal 
+          osId={pagamentoOsSelected.id}
+          osTitulo={pagamentoOsSelected.titulo}
+          valorParceiro={pagamentoOsSelected.valor}
+          onClose={() => setPagamentoOsSelected(null)}
+        />
+      )}
     </div>
   );
 }

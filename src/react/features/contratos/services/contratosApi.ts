@@ -10,7 +10,9 @@ import type {
   DiarioObra, 
   DiarioObraDraft,
   ContratoArquivo,
-  ContratoArquivoDraft
+  ContratoArquivoDraft,
+  ContratoPagamentoEquipe,
+  ContratoPagamentoEquipeDraft
 } from '../types';
 
 type ApiContext = {
@@ -408,5 +410,28 @@ export const contratosApi = {
         console.warn('Erro ao enfileirar notificação de faturamento:', err);
       }
     }
+  },
+
+  // Pagamentos de Equipe (Financeiro O.S.)
+  async getPagamentosEquipe(ctx: ApiContext, osId: string): Promise<ContratoPagamentoEquipe[]> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_pagamentos_equipe?os_id=eq.${osId}&filial_id=eq.${ctx.filialId}&order=data_pagamento.asc`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar pagamentos de equipe da OS');
+    return res.json();
+  },
+
+  async createPagamentoEquipe(ctx: ApiContext, draft: ContratoPagamentoEquipeDraft): Promise<ContratoPagamentoEquipe> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_pagamentos_equipe`, {
+      method: 'POST',
+      headers: { ...headers(ctx), 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        ...draft,
+        filial_id: ctx.filialId
+      })
+    });
+    if (!res.ok) throw new Error('Erro ao registrar pagamento para a equipe');
+    const data = await res.json();
+    return data[0];
   }
 };

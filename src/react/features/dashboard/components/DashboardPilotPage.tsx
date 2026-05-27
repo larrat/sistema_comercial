@@ -37,7 +37,6 @@ import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
-import { useFiliaisStore } from '../../filiais/store/useFiliaisStore';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -673,8 +672,7 @@ function FiscalHubCard() {
   const { token } = useApiContext();
   const [isEmitting, setIsEmitting] = useState(false);
   
-  const activeFilialId = useFilialStore((s) => s.filialId);
-  const activeFilial = useFiliaisStore((s) => s.filiais.find((f) => f.id === activeFilialId));
+  const activeFilial = useDashboardStore((s) => s.filial);
   const isFiscal = activeFilial?.is_fiscal ?? false;
 
   const handleEmit = async () => {

@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
 import { X, Save, Plus, Trash2, CheckCircle2, ChevronRight, Calculator, AlertCircle, User as UserIcon } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button, Card, Badge } from '../../../shared/ui';
 import { fmtBRL } from '../../../shared/lib/formatters';
-import type { OrcamentoObra, OrcamentoItem } from '../services/orcamentosApi';
+import { useAuthStore } from '../../../app/useAuthStore';
+import { orcamentosApi, type OrcamentoObra, type OrcamentoItem } from '../services/orcamentosApi';
 
 type Props = {
   onSave: (orcamento: Partial<OrcamentoObra>, itens: OrcamentoItem[]) => void;
@@ -29,6 +31,30 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
     });
     return Array.from(map.entries());
   }, [itens]);
+
+  const session = useAuthStore(s => s.session);
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['orcamento-templates', filialId],
+    queryFn: () => orcamentosApi.listTemplates(session!.access_token, filialId),
+    enabled: !!session?.access_token && !!filialId
+  });
+
+  const handleImportTemplate = async (templateId: string) => {
+    if (!templateId) return;
+    try {
+      const template = await orcamentosApi.getTemplate(session!.access_token, templateId);
+      if (template.itens) {
+        // Appends template items to current items
+        const newItens = template.itens.map(i => ({ ...i, ordem_apresentacao: itens.length }));
+        setItens([...itens, ...newItens]);
+        if (!titulo) setTitulo(template.titulo);
+        toast.success(`Template '${template.titulo}' importado com sucesso!`);
+      }
+    } catch (err: any) {
+      toast.error('Erro ao importar template', { description: err.message });
+    }
+  };
 
   const addAmbiente = () => {
     const nome = prompt('Qual o nome do novo ambiente? (Ex: Suíte Master, Cozinha)');
@@ -155,9 +181,24 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Escopo por Ambientes</h3>
-              <Button size="sm" variant="secondary" leftIcon={<Plus size={14} />} onClick={addAmbiente}>
-                Adicionar Ambiente
-              </Button>
+              <div className="flex items-center gap-3">
+                <select 
+                  onChange={(e) => {
+                    handleImportTemplate(e.target.value);
+                    e.target.value = ""; // reset
+                  }}
+                  className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-3 py-1.5 text-xs font-bold text-indigo-400 uppercase tracking-wider focus:outline-none"
+                >
+                  <option value="">+ Importar Combo/Template</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.titulo}</option>
+                  ))}
+                </select>
+
+                <Button size="sm" variant="secondary" leftIcon={<Plus size={14} />} onClick={addAmbiente}>
+                  Adicionar Ambiente
+                </Button>
+              </div>
             </div>
 
             {ambientes.length === 0 && (

@@ -40,6 +40,14 @@ export type OrcamentoObra = {
   cliente?: { nome: string };
 };
 
+export type OrcamentoTemplate = {
+  id: string;
+  filial_id: string;
+  titulo: string;
+  bdi_percentual: number;
+  itens?: OrcamentoItem[];
+};
+
 export const orcamentosApi = {
   async listOrcamentos(token: string, filialId: string): Promise<OrcamentoObra[]> {
     const { url, key } = getSupabaseConfig();
@@ -213,5 +221,42 @@ export const orcamentosApi = {
     }
 
     return savedOrcamento;
+  },
+
+  async listTemplates(token: string, filialId: string): Promise<OrcamentoTemplate[]> {
+    const { url, key } = getSupabaseConfig();
+    const res = await fetch(
+      `${url}/rest/v1/orcamento_templates?filial_id=eq.${filialId}&order=titulo.asc`,
+      { headers: { apikey: key, Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) throw new Error('Erro ao listar templates');
+    return res.json();
+  },
+
+  async getTemplate(token: string, id: string): Promise<OrcamentoTemplate> {
+    const { url, key } = getSupabaseConfig();
+    const res = await fetch(
+      `${url}/rest/v1/orcamento_templates?id=eq.${id}`,
+      { headers: { apikey: key, Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) throw new Error('Erro ao buscar template');
+    const data = await res.json();
+    if (data.length === 0) throw new Error('Template não encontrado');
+    const template = data[0];
+
+    const itensRes = await fetch(
+      `${url}/rest/v1/orcamento_template_itens?template_id=eq.${id}&order=ordem_apresentacao.asc`,
+      { headers: { apikey: key, Authorization: `Bearer ${token}` } }
+    );
+    template.itens = itensRes.ok ? await itensRes.json() : [];
+    
+    // Map properties back to standard format
+    template.itens = template.itens.map((i: any) => {
+      delete i.id;
+      delete i.template_id;
+      return i;
+    });
+
+    return template;
   }
 };

@@ -6,7 +6,7 @@ import { Image, Upload, Trash2, Loader2, TrendingUp, RefreshCw, AlertCircle, Shi
 import type { Produto } from '../../../../types/domain';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
-import { useFiliaisStore } from '../../filiais/store/useFiliaisStore';
+import { useFiliaisData } from '../../filiais/hooks/useFiliaisData';
 import { toast } from 'sonner';
 import {
   syncPriceFields,
@@ -128,7 +128,8 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   const context = resolve();
   
   const activeFilialId = useFilialStore((s) => s.filialId);
-  const activeFilial = useFiliaisStore((s) => s.filiais.find((f) => f.id === activeFilialId));
+  const { data: filiais = [] } = useFiliaisData();
+  const activeFilial = filiais.find((f) => f.id === activeFilialId);
   const isFiscal = activeFilial?.is_fiscal ?? false;
   
   const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm<ProdutoFormValues>({

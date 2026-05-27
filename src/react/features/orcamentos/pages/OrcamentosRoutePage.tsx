@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Search, FileText, CheckCircle, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, Search, FileText, CheckCircle, Clock, AlertTriangle, ArrowRight, Printer, Link as LinkIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button, Card, EmptyState, Badge } from '../../../shared/ui';
@@ -119,7 +119,31 @@ export function OrcamentosRoutePage() {
                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                     ORC-{orc.id.substring(0, 5)}
                   </div>
-                  {getStatusBadge(orc.status)}
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(orc.status)}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`/app/orcamentos/${orc.id}/imprimir`, '_blank');
+                      }}
+                      className="p-1.5 bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                      title="Gerar PDF"
+                    >
+                      <Printer size={14} />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = `${window.location.origin}/portal/proposta/${orc.id}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('Link da Proposta Digital copiado!');
+                      }}
+                      className="p-1.5 bg-teal-500/10 text-teal-400 hover:text-white hover:bg-teal-500/30 border border-teal-500/20 rounded-lg transition-colors"
+                      title="Copiar Link de Aceite Digital"
+                    >
+                      <LinkIcon size={14} />
+                    </button>
+                  </div>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-1 leading-tight group-hover:text-teal-400 transition-colors">{orc.titulo}</h3>
                 <p className="text-xs text-slate-400 font-medium">{orc.cliente_nome || orc.cliente?.nome || 'Sem cliente'}</p>
