@@ -4,6 +4,7 @@ import { GlobalLoadingOverlay } from '../ui/GlobalLoadingOverlay';
 import { GlobalToastHost } from '../ui/GlobalToastHost';
 import { AppSidebar } from './AppSidebar';
 import { AppTopbar } from './AppTopbar';
+import { CommandPalette } from '../components/CommandPalette';
 
 import { useUIStore } from '../useUIStore';
 import { useThemeSync } from '../hooks/useThemeSync';
@@ -23,6 +24,7 @@ export function AppShell() {
       </div>
       <GlobalLoadingOverlay />
       <GlobalToastHost />
+      <CommandPalette />
     </div>
   );
 }

@@ -41,6 +41,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
 import { LoadingState, ErrorState, EmptyState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
@@ -167,6 +168,17 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     status, error 
   } = useDashboardStore();
 
+  const [periodoUrl, setPeriodoUrl] = useQueryState('periodo', parseAsString.withDefault('30'));
+  const [visaoUrl, setVisaoUrl] = useQueryState('visao', parseAsString.withDefault('macro'));
+
+  useEffect(() => {
+    if (periodoUrl) setPeriodo(periodoUrl as Periodo);
+  }, [periodoUrl, setPeriodo]);
+
+  useEffect(() => {
+    if (visaoUrl) setVisao(visaoUrl as Visao);
+  }, [visaoUrl, setVisao]);
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hoveredSegment, setHoveredSegment] = useState<{ nome: string; receita: number; color: string } | null>(null);
   const { alerts } = useGlobalAlerts();
@@ -266,27 +278,28 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         actions={
           <div className="flex items-center gap-6">
             <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
-              <PillGroup
-                options={[
-                  { id: 'semana', label: 'Semana' },
-                  { id: 'mes', label: 'Mês' },
-                  { id: 'ano', label: 'Ano' },
-                  { id: 'tudo', label: 'Tudo' }
-                ]}
-                activeId={periodo}
-                onChange={(id) => setPeriodo(id as Periodo)}
-              />
+                <PillGroup
+                  options={[
+                    { id: '7', label: '7D' },
+                    { id: '30', label: '30D' },
+                    { id: '90', label: '90D' },
+                    { id: 'tudo', label: 'Tudo' }
+                  ]}
+                  activeId={periodoUrl}
+                  onChange={(id) => setPeriodoUrl(id)}
+                />
             </div>
 
             <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
               <PillGroup
                 options={[
-                  { id: 'operacional', label: 'Operacional' },
-                  { id: 'gerencial', label: 'Gerencial' },
-                  { id: 'analitico', label: 'Analítico' }
+                  { id: 'macro', label: 'Visão Macro' },
+                  { id: 'vendas', label: 'Vendas/CRM' },
+                  { id: 'produtos', label: 'Catálogo' },
+                  { id: 'clientes', label: 'Base de Clientes' }
                 ]}
-                activeId={visao}
-                onChange={(id) => setVisao(id as Visao)}
+                activeId={visaoUrl}
+                onChange={(id) => setVisaoUrl(id)}
               />
             </div>
 

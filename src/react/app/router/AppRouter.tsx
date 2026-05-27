@@ -1,6 +1,7 @@
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Navigate, Route, Routes } from 'react-router-dom';
 import { useMemo, lazy, Suspense } from 'react';
 import type { AppBootstrapState } from '../hooks/useAppBootstrap';
+import { NuqsAdapter } from 'nuqs/adapters/react-router';
 
 // Lazy loading for feature pages to reduce initial bundle size
 const ClienteCreateRoutePage = lazy(() => import('../../features/clientes/pages/ClienteCreateRoutePage').then(m => ({ default: m.ClienteCreateRoutePage })));
@@ -155,7 +156,9 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
 
   return (
     <Suspense fallback={<RouteLoader />}>
-      <RouterProvider router={router} />
+      <NuqsAdapter>
+        <RouterProvider router={router} />
+      </NuqsAdapter>
     </Suspense>
   );
 }
