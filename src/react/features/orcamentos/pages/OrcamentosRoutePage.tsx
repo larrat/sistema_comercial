@@ -61,10 +61,10 @@ export function OrcamentosRoutePage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'rascunho': return <Badge variant="slate" leftIcon={<Clock size={10} />}>Rascunho</Badge>;
-      case 'enviado': return <Badge variant="amber" leftIcon={<ArrowRight size={10} />}>Enviado ao Cliente</Badge>;
-      case 'aprovado': return <Badge variant="green" leftIcon={<CheckCircle size={10} />}>Aprovado (Contrato)</Badge>;
-      case 'rejeitado': return <Badge variant="red" leftIcon={<AlertTriangle size={10} />}>Declinado</Badge>;
+      case 'rascunho': return <Badge variant="slate" className="gap-1.5"><Clock size={10} />Rascunho</Badge>;
+      case 'enviado': return <Badge variant="yellow" className="gap-1.5"><ArrowRight size={10} />Enviado ao Cliente</Badge>;
+      case 'aprovado': return <Badge variant="green" className="gap-1.5"><CheckCircle size={10} />Aprovado (Contrato)</Badge>;
+      case 'rejeitado': return <Badge variant="red" className="gap-1.5"><AlertTriangle size={10} />Declinado</Badge>;
       default: return <Badge variant="slate">{status}</Badge>;
     }
   };

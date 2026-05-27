@@ -1018,7 +1018,7 @@ export function ContratoProfilePage() {
                     <Paperclip className="h-5 w-5 text-teal-400" />
                     Arquivos da Obra
                   </h2>
-                  <Badge variant="teal">{arquivos.length} arquivos anexados</Badge>
+                  <Badge variant="blue">{arquivos.length} arquivos anexados</Badge>
                 </div>
 
                 {arquivos.length === 0 ? (
@@ -1094,16 +1094,20 @@ export function ContratoProfilePage() {
 
       </div>
 
-      <OrdemServicoModal
-        isOpen={isOsModalOpen}
-        onClose={() => setIsOsModalOpen(false)}
-        contratoId={id!}
-        onSuccess={() => refetchOS()}
-      />
+      {isOsModalOpen && (
+        <OrdemServicoModal
+          contratoId={id!}
+          onClose={() => {
+            setIsOsModalOpen(false);
+            refetchOS();
+          }}
+        />
+      )}
 
       <AnalisadorContratoModal
         isOpen={isAnalisadorOpen}
         onClose={() => setIsAnalisadorOpen(false)}
+        contratoId={id!}
       />
 
       {pagamentoOsSelected && (
