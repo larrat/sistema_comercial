@@ -8,7 +8,9 @@ import type {
   ContratoCronograma, 
   ContratoCronogramaDraft, 
   DiarioObra, 
-  DiarioObraDraft 
+  DiarioObraDraft,
+  ContratoArquivo,
+  ContratoArquivoDraft
 } from '../types';
 
 type ApiContext = {
@@ -252,6 +254,49 @@ export const contratosApi = {
     if (!res.ok) throw new Error('Erro ao criar diário de obra');
     const data = await res.json();
     return data[0];
+  },
+
+  // Documentos e Anexos
+  async getContratoArquivos(ctx: ApiContext, contratoId: string): Promise<ContratoArquivo[]> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_arquivos?contrato_id=eq.${contratoId}&filial_id=eq.${ctx.filialId}&order=criado_em.desc`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar arquivos do contrato');
+    return res.json();
+  },
+
+  async createContratoArquivo(ctx: ApiContext, draft: ContratoArquivoDraft): Promise<ContratoArquivo> {
+    const res = await fetch(`${ctx.url}/rest/v1/contrato_arquivos`, {
+      method: 'POST',
+      headers: { ...headers(ctx), 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        ...draft,
+        filial_id: ctx.filialId
+      })
+    });
+    if (!res.ok) throw new Error('Erro ao criar registro do arquivo');
+    const data = await res.json();
+    return data[0];
+  },
+
+  async uploadArquivoStorage(ctx: ApiContext, file: File, nomePath: string): Promise<string> {
+    // Retorna a URL publica após o upload. 
+    const res = await fetch(`${ctx.url}/storage/v1/object/documentos_obras/${nomePath}`, {
+      method: 'POST',
+      headers: {
+        apikey: ctx.key,
+        Authorization: `Bearer ${ctx.token}`,
+        'Content-Type': file.type || 'application/octet-stream'
+      },
+      body: file
+    });
+    
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Erro no upload do arquivo');
+    }
+
+    return `${ctx.url}/storage/v1/object/public/documentos_obras/${nomePath}`;
   },
 
   async getFilialUsers(ctx: ApiContext): Promise<Array<{ user_id: string, user_nome: string, user_email: string }>> {

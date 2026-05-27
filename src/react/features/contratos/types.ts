@@ -93,8 +93,21 @@ export type DiarioObra = {
   criado_em: string;
 };
 
+export type ContratoArquivo = {
+  id: string;
+  filial_id: string;
+  contrato_id: string;
+  pedido_compra_id?: string | null;
+  nome_arquivo: string;
+  url_arquivo: string;
+  tipo_documento: 'contrato' | 'nf_fornecedor' | 'garantia' | 'termo_aceite' | 'foto_diario' | 'outro';
+  criado_por?: string;
+  criado_em: string;
+};
+
 export type ContratoDraft = Pick<Contrato, 'cliente_id' | 'oportunidade_id' | 'titulo' | 'valor_total' | 'data_inicio' | 'previsao_fim'>;
 export type OrdemServicoDraft = Pick<OrdemServico, 'contrato_id' | 'titulo' | 'descricao' | 'data_agendada' | 'responsavel_id' | 'terceirizado_id' | 'valor_parceiro' | 'is_garantia'>;
 export type ContratoAditivoDraft = Pick<ContratoAditivo, 'contrato_id' | 'titulo' | 'valor'>;
 export type ContratoCronogramaDraft = Pick<ContratoCronograma, 'contrato_id' | 'titulo' | 'data_inicio' | 'data_fim' | 'percentual_conclusao' | 'precedente_id' | 'valor_faturamento'>;
 export type DiarioObraDraft = Pick<DiarioObra, 'contrato_id' | 'titulo' | 'relatorio' | 'fotos' | 'clima' | 'mao_de_obra_qtd'>;
+export type ContratoArquivoDraft = Pick<ContratoArquivo, 'contrato_id' | 'pedido_compra_id' | 'nome_arquivo' | 'url_arquivo' | 'tipo_documento'>;
