@@ -7,6 +7,7 @@ export type PedidoCompraItem = {
   qty: number;
   custo_unitario: number;
   total_item: number;
+  contrato_id?: string | null;
 };
 
 export type PedidoCompra = {

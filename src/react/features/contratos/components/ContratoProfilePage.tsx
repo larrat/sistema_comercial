@@ -116,8 +116,19 @@ export function ContratoProfilePage() {
     enabled: !!id && !!filialId
   });
 
-  // 6. Fetch Purchases to appropriate costs
-  const { data: compras = [], refetch: refetchCompras } = useQuery({
+  // 6. Fetch Rentabilidade from View
+  const { data: rentabilidade } = useQuery({
+    queryKey: ['contrato-rentabilidade', id],
+    queryFn: () => {
+      const context = resolve();
+      if (!context || !id) throw new Error('API context not ready');
+      return contratosApi.getContratoRentabilidade(context, id);
+    },
+    enabled: !!id
+  });
+
+  // 6.5 Fetch Purchases to list on the table (macro level for now)
+  const { data: compras = [] } = useQuery({
     queryKey: ['pedidos-compra-list', filialId],
     queryFn: () => {
       if (!session?.access_token || !filialId) throw new Error('Auth not ready');
@@ -142,9 +153,7 @@ export function ContratoProfilePage() {
     return compras.filter(c => c.contrato_id === id && c.status === 'finalizado');
   }, [compras, id]);
 
-  const totalInsumos = useMemo(() => {
-    return despesasApropriadas.reduce((acc, c) => acc + c.total, 0);
-  }, [despesasApropriadas]);
+  const totalInsumos = rentabilidade?.custo_material || 0;
 
   const totalAditivos = useMemo(() => {
     return aditivos.reduce((acc, a) => acc + Number(a.valor), 0);

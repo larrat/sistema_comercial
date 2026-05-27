@@ -44,6 +44,15 @@ export const contratosApi = {
     return data[0];
   },
 
+  async getContratoRentabilidade(ctx: ApiContext, id: string): Promise<{ custo_material: number, margem_bruta: number, margem_percentual: number } | null> {
+    const res = await fetch(`${ctx.url}/rest/v1/vw_contratos_rentabilidade?contrato_id=eq.${id}`, {
+      headers: headers(ctx)
+    });
+    if (!res.ok) throw new Error('Erro ao buscar rentabilidade do contrato');
+    const data = await res.json();
+    return data[0] || null;
+  },
+
   async createContrato(ctx: ApiContext, draft: ContratoDraft): Promise<Contrato> {
     const res = await fetch(`${ctx.url}/rest/v1/contratos`, {
       method: 'POST',

@@ -440,11 +440,26 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                       className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white"
                     />
                   </div>
-                  <div className="w-32 space-y-1.5 self-start pt-1">
+                  <div className="w-28 space-y-1.5 self-start pt-1">
                     <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
                     <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-teal-400">
                       {fmtBRL(item.total_item || 0)}
                     </div>
+                  </div>
+                  <div className="w-40 space-y-1.5 self-start pt-1">
+                    <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Obra (Item)</label>
+                    <select 
+                      value={item.contrato_id || ''}
+                      onChange={(e) => updateItem(idx, 'contrato_id', e.target.value || null)}
+                      className="w-full bg-black/20 border border-white/5 rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-teal-500/50 appearance-none truncate"
+                    >
+                      <option value="">Da Nota Principal</option>
+                      {contratos.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.titulo}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="pb-1.5">
                     <button onClick={() => removeItem(idx)} className="p-2.5 text-slate-600 hover:text-rose-500 transition-colors">
