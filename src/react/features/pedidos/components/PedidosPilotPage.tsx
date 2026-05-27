@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
+import { PedidoKanbanView } from './PedidoKanbanView';
+import { SegmentedControl } from '../../../shared/ui/SegmentedControl';
+import { useQueryState, parseAsString } from 'nuqs';
 
 import type { Pedido } from '../../../../types/domain';
 import { motion, type Variants } from 'framer-motion';
@@ -48,6 +51,8 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   const [formOrigin, setFormOrigin] = useState<string>('unknown');
   const [prefillClienteId, setPrefillClienteId] = useState<string | null>(null);
 
+  const [viewMode, setViewMode] = useQueryState('viewMode', parseAsString.withDefault('list'));
+
   function openNewPedido(origin: string, clienteId?: string | null) {
     if (clienteId) {
       navigate(`/app/pedidos/novo?cliente=${clienteId}`);
@@ -82,14 +87,29 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={pageItem}>
-        <PedidoListView
-          onNovoPedido={() => openNewPedido('list_button')}
-          onDetalhe={(id) => {
-            setEditingId(null);
-            navigate(`/app/pedidos/${encodeURIComponent(id)}`);
-          }}
+      <motion.div variants={pageItem} className="flex items-center justify-end px-2">
+        <SegmentedControl
+          options={[
+            { id: 'list', label: 'Lista' },
+            { id: 'kanban', label: 'Kanban' }
+          ]}
+          activeId={viewMode}
+          onChange={(id) => setViewMode(id)}
         />
+      </motion.div>
+
+      <motion.div variants={pageItem}>
+        {viewMode === 'kanban' ? (
+          <PedidoKanbanView />
+        ) : (
+          <PedidoListView
+            onNovoPedido={() => openNewPedido('list_button')}
+            onDetalhe={(id) => {
+              setEditingId(null);
+              navigate(`/app/pedidos/${encodeURIComponent(id)}`);
+            }}
+          />
+        )}
       </motion.div>
 
 
