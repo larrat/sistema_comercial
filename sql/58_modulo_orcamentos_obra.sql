@@ -8,7 +8,7 @@ begin;
 create table if not exists public.orcamentos_obra (
     id uuid primary key default gen_random_uuid(),
     filial_id text not null references public.filiais(id),
-    cliente_id uuid references public.clientes(id) on delete set null,
+    cliente_id text references public.clientes(id) on delete set null,
     cliente_nome text, -- Para prospects rápidos que ainda não estão no cadastro
     titulo text not null,
     descricao_escopo text,
