@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { getSupabaseConfig } from '../../../../app/supabaseConfig';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { Camera, Calendar, CheckCircle2, Circle, HardHat, Building2, Clock, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

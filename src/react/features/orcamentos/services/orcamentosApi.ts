@@ -1,4 +1,4 @@
-import { getSupabaseConfig } from '../../../../app/supabaseConfig';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 export type OrcamentoItem = {
   id?: string;
@@ -34,6 +34,7 @@ export type OrcamentoObra = {
   status: 'rascunho' | 'enviado' | 'aprovado' | 'rejeitado';
   data_validade?: string;
   criado_em: string;
+  contrato_id?: string;
   itens?: OrcamentoItem[];
   calculos?: OrcamentoCalculado;
   cliente?: { nome: string };
@@ -120,6 +121,50 @@ export const orcamentosApi = {
     const endpoint = cabecalho.id 
       ? `${url}/rest/v1/orcamentos_obra?id=eq.${cabecalho.id}`
       : `${url}/rest/v1/orcamentos_obra`;
+
+    let finalClienteId = cabecalho.cliente_id;
+
+    // Se estiver aprovando e não tiver contrato ainda
+    if (cabecalho.status === 'aprovado' && !cabecalho.contrato_id) {
+      // 1. Garantir que temos um cliente válido (Cria um fake se não existir)
+      if (!finalClienteId) {
+        finalClienteId = crypto.randomUUID();
+        await fetch(`${url}/rest/v1/clientes`, {
+          method: 'POST',
+          headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: finalClienteId,
+            filial_id: filialId,
+            nome: cabecalho.cliente_nome || 'Cliente de Obra (Automático)',
+            tipo: 'PF'
+          })
+        });
+        cabecalho.cliente_id = finalClienteId;
+      }
+
+      // 2. Criar o Contrato
+      const contratoId = crypto.randomUUID();
+      const custoDiretoTotal = itens.reduce((acc, i) => acc + (i.custo_material_unitario + i.custo_mao_obra_unitario) * i.quantidade, 0);
+      const precoFinal = custoDiretoTotal * (1 + ((cabecalho.bdi_percentual || 30) / 100));
+
+      const contratoRes = await fetch(`${url}/rest/v1/contratos`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: contratoId,
+          filial_id: filialId,
+          cliente_id: finalClienteId,
+          titulo: cabecalho.titulo,
+          valor_total: precoFinal,
+          status: 'ativo',
+          data_inicio: new Date().toISOString().split('T')[0]
+        })
+      });
+
+      if (contratoRes.ok) {
+        cabecalho.contrato_id = contratoId;
+      }
+    }
 
     const res = await fetch(endpoint, {
       method,
