@@ -5,15 +5,9 @@ import { FilialModal } from './FilialModal';
 import { EmptyState, ErrorState, PageHeader, StatCard, Button } from '../../../shared/ui';
 
 export function FiliaisPage() {
-  useFiliaisData();
+  const { data: filiais = [], isLoading, error, refetch } = useFiliaisData();
 
-  const filiais = useFiliaisStore((s) => s.filiais);
-  const status = useFiliaisStore((s) => s.status);
-  const error = useFiliaisStore((s) => s.error);
-  const reload = useFiliaisStore((s) => s.reload);
   const openNew = useFiliaisStore((s) => s.openNew);
-
-  const loading = status === 'loading';
 
   return (
     <div className="w-full flex flex-col gap-8">
@@ -23,7 +17,7 @@ export function FiliaisPage() {
         description="Gerencie as filiais da empresa e suas configurações."
         actions={
           <>
-            <Button size="sm" onClick={reload} loading={loading}>
+            <Button size="sm" onClick={() => void refetch()} loading={isLoading}>
               Atualizar
             </Button>
             <Button variant="primary" size="sm" onClick={openNew}>
@@ -33,13 +27,13 @@ export function FiliaisPage() {
         }
       />
 
-      {error && <ErrorState title={error} compact />}
+      {error && <ErrorState title={error instanceof Error ? error.message : String(error)} compact />}
 
       <section className="rf-ui-stat-grid--2">
         <StatCard label="Filiais" value={filiais.length} />
       </section>
 
-      {filiais.length === 0 && !loading ? (
+      {filiais.length === 0 && !isLoading ? (
         <EmptyState
           title="Nenhuma filial cadastrada."
           action={

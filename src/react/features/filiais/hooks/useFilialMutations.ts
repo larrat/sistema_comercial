@@ -1,9 +1,12 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
 import { useAuthStore } from '../../../app/useAuthStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { useToastStore } from '../../../app/lib/useToastStore';
 import { useFiliaisStore } from '../store/useFiliaisStore';
 import { upsertFilial, deleteFilial } from '../services/filiaisApi';
 import { logAudit } from '../../../shared/services/auditService';
+import { FILIAIS_QUERY_KEY } from './useFiliaisData';
 
 function uid() {
   return crypto.randomUUID();
@@ -11,31 +14,30 @@ function uid() {
 
 export function useFilialMutations() {
   const session = useAuthStore((s) => s.session);
-  const { form, modalEditId, filiais, setSaving, closeModal, upsertLocal, removeLocal } =
-    useFiliaisStore();
+  const queryClient = useQueryClient();
+  const { form, modalEditId, setSaving, closeModal } = useFiliaisStore();
 
   function getCtx() {
     const cfg = getSupabaseConfig();
     return { url: cfg.url, key: cfg.key, token: session?.access_token ?? '' };
   }
 
-  async function salvar() {
-    const nome = form.nome.trim();
-    if (!nome) {
-      useToastStore.getState().addToast('Informe o nome da filial.', 'warning');
-      return;
-    }
+  const upsertMutation = useMutation({
+    mutationFn: async () => {
+      const nome = form.nome.trim();
+      if (!nome) {
+        throw new Error('Informe o nome da filial.');
+      }
 
-    const duplicado = filiais.find(
-      (f) => f.nome.trim().toLowerCase() === nome.toLowerCase() && f.id !== modalEditId
-    );
-    if (duplicado) {
-      useToastStore.getState().addToast(`Filial já existe: ${duplicado.nome}.`, 'warning');
-      return;
-    }
+      // Check for duplicates - Note: in a real app this should ideally be handled by the backend or by querying the cache, but since we have local state form validation we'll keep it simple for now, bypassing the duplicate check since we don't have the full list directly in this hook anymore unless we read the cache.
+      const filiais = queryClient.getQueryData<any[]>(FILIAIS_QUERY_KEY) || [];
+      const duplicado = filiais.find(
+        (f) => f.nome.trim().toLowerCase() === nome.toLowerCase() && f.id !== modalEditId
+      );
+      if (duplicado) {
+        throw new Error(`Filial já existe: ${duplicado.nome}.`);
+      }
 
-    setSaving(true);
-    try {
       const filial = {
         id: modalEditId ?? uid(),
         nome,
@@ -46,37 +48,39 @@ export function useFilialMutations() {
         meta_mensal: form.meta_mensal ? parseFloat(form.meta_mensal) : undefined,
         is_fiscal: form.is_fiscal
       };
+
       const saved = await upsertFilial(getCtx(), filial);
       logAudit(getCtx().token, 'filiais', saved.id, modalEditId ? 'UPDATE' : 'INSERT', saved);
-      upsertLocal(saved);
+      return saved;
+    },
+    onMutate: () => setSaving(true),
+    onSuccess: (saved) => {
+      void queryClient.invalidateQueries({ queryKey: FILIAIS_QUERY_KEY });
       closeModal();
-      useToastStore
-        .getState()
-        .addToast(`Filial ${modalEditId ? 'atualizada' : 'criada'}: ${saved.nome}.`, 'success');
-    } catch (e) {
-      useToastStore
-        .getState()
-        .addToast(e instanceof Error ? e.message : 'Erro ao salvar filial.', 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
+      toast.success(`Filial ${modalEditId ? 'atualizada' : 'criada'}: ${saved.nome}.`);
+    },
+    onError: (e) => {
+      toast.error(e instanceof Error ? e.message : 'Erro ao salvar filial.');
+    },
+    onSettled: () => setSaving(false),
+  });
 
-  async function remover(id: string) {
-    const filial = filiais.find((f) => f.id === id);
-    if (!filial) return;
-
-    try {
+  const removeMutation = useMutation({
+    mutationFn: async (id: string) => {
       await deleteFilial(getCtx(), id);
       logAudit(getCtx().token, 'filiais', id, 'SOFT_DELETE');
-      removeLocal(id);
-      useToastStore.getState().addToast('Filial removida.', 'success');
-    } catch (e) {
-      useToastStore
-        .getState()
-        .addToast(e instanceof Error ? e.message : 'Erro ao remover filial.', 'error');
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: FILIAIS_QUERY_KEY });
+      toast.success('Filial removida.');
+    },
+    onError: (e) => {
+      toast.error(e instanceof Error ? e.message : 'Erro ao remover filial.');
     }
-  }
+  });
 
-  return { salvar, remover };
+  return {
+    salvar: () => upsertMutation.mutateAsync(),
+    remover: (id: string) => removeMutation.mutateAsync(id)
+  };
 }
