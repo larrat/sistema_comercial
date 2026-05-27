@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { X, Save, Plus, Trash2, CheckCircle2, ChevronRight, Calculator, AlertCircle, User as UserIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button, Card, Badge } from '../../../../shared/ui';
-import { fmtBRL } from '../../../../shared/lib/formatters';
+import { Button, Card, Badge } from '../../../shared/ui';
+import { fmtBRL } from '../../../shared/lib/formatters';
 import type { OrcamentoObra, OrcamentoItem } from '../services/orcamentosApi';
 
 type Props = {

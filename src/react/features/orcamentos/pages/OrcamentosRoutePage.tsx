@@ -3,12 +3,12 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, FileText, CheckCircle, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button, Card, EmptyState, Badge } from '../../../../shared/ui';
-import { fmtBRL } from '../../../../shared/lib/formatters';
-import { useFilialStore } from '../../../../app/useFilialStore';
-import { useAuthStore } from '../../../../app/useAuthStore';
+import { Button, Card, EmptyState, Badge } from '../../../shared/ui';
+import { fmtBRL } from '../../../shared/lib/formatters';
+import { useFilialStore } from '../../../app/useFilialStore';
+import { useAuthStore } from '../../../app/useAuthStore';
 import { orcamentosApi, type OrcamentoObra } from '../services/orcamentosApi';
-import { OrcamentoForm } from './OrcamentoForm';
+import { OrcamentoForm } from '../components/OrcamentoForm';
 
 export function OrcamentosRoutePage() {
   const filialId = useFilialStore((s) => s.filialId);

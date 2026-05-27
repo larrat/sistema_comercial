@@ -38,6 +38,7 @@ const PedidoCompraCreateRoutePage = lazy(() => import('../../features/compras/pa
 const LoginPage = lazy(() => import('../../features/auth/components/LoginPage').then(m => ({ default: m.LoginPage })));
 const SetupPage = lazy(() => import('../../features/setup/components/SetupPage').then(m => ({ default: m.SetupPage })));
 const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/PortalStorefrontPage').then(m => ({ default: m.PortalStorefrontPage })));
+const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObraPage').then(m => ({ default: m.PortalObraPage })));
 
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
@@ -128,6 +129,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
         </Route>
 
         <Route path="/portal" element={<PortalStorefrontPage />} />
+        <Route path="/portal/obra/:obraId" element={<PortalObraPage />} />
 
         <Route
           path="/"
