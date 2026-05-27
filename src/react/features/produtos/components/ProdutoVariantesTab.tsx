@@ -6,9 +6,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  Cell,
   LabelList,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis
@@ -283,9 +281,8 @@ function StackedVariantChart({
         <EmptyChartState title={emptyTitle} />
       ) : (
         <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <defs>
+          <AreaChart responsive width="100%" height="100%" data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <defs>
                 {variantes.map((v, i) => (
                   <linearGradient key={`grad-${v.produto.id}`} id={`color-${v.produto.id}`} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={v.color} stopOpacity={0.3} />
@@ -327,7 +324,6 @@ function StackedVariantChart({
                 />
               ))}
             </AreaChart>
-          </ResponsiveContainer>
         </div>
       )}
     </ChartCard>
@@ -351,12 +347,13 @@ function SimpleVariantChart({
   suffix?: string;
   showSemVenda?: boolean;
 }) {
+  const chartData = data.map((row, i) => ({ ...row, fill: `url(#bar-color-${i})` }));
+
   return (
     <ChartCard title={title}>
       <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 24, right: 10, left: 0, bottom: 0 }}>
-            <defs>
+        <BarChart responsive width="100%" height="100%" data={chartData} margin={{ top: 24, right: 10, left: 0, bottom: 0 }}>
+          <defs>
               {data.map((row, i) => (
                 <linearGradient key={`bar-grad-${i}`} id={`bar-color-${i}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={row.color} stopOpacity={1} />
@@ -384,9 +381,6 @@ function SimpleVariantChart({
               wrapperStyle={{ outline: 'none' }}
             />
             <Bar dataKey={dataKey} radius={[6, 6, 0, 0]} animationDuration={1200}>
-              {data.map((row, i) => (
-                <Cell key={`cell-${i}`} fill={`url(#bar-color-${i})`} />
-              ))}
               {showSemVenda ? (
                 <LabelList
                   dataKey="semVenda"
@@ -396,8 +390,7 @@ function SimpleVariantChart({
                 />
               ) : null}
             </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        </BarChart>
       </div>
     </ChartCard>
   );

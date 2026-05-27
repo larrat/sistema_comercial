@@ -1,5 +1,5 @@
 import { fmtBRL } from '../../../shared/lib/formatters';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   AreaChart as RechartsAreaChart, 
@@ -7,11 +7,10 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
+  Tooltip,
   PieChart,
   Pie,
-  Cell
+  Sector
 } from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,6 +136,23 @@ type DashboardPilotPageProps = {
 export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotPageProps = {}) {
   const { reload } = useDashboardData();
   const navigate = useNavigate();
+  
+  const renderActiveShape = useCallback((props: any) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, index } = props;
+    const colors = ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'];
+    return (
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={colors[index % colors.length]}
+        className="transition-all duration-200 cursor-pointer origin-center hover:opacity-90"
+      />
+    );
+  }, []);
   
   const { 
     periodo, setPeriodo, 
@@ -352,9 +368,8 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       description="Não existem vendas registradas para o período selecionado." 
                     />
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsAreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
+                    <RechartsAreaChart responsive width="100%" height="100%" data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
                           <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.25}/>
                             <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
@@ -390,8 +405,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                         }} />
                         <Area type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFatAnt)" />
                         <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="#fbbf24" strokeWidth={2.5} fillOpacity={1} fill="url(#colorFat)" />
-                      </RechartsAreaChart>
-                    </ResponsiveContainer>
+                    </RechartsAreaChart>
                   )}
                 </div>
 
@@ -461,41 +475,32 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             ) : (
               <div className="flex flex-col gap-6">
                 <div className="h-32 relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie 
-                        data={topProducts} 
-                        cx="50%" 
-                        cy="50%" 
-                        innerRadius={42} 
-                        outerRadius={55} 
-                        paddingAngle={4} 
-                        dataKey="receita" 
-                        stroke="none"
-                        onMouseEnter={(_, index) => {
-                          if (typeof index === 'number' && topProducts[index]) {
-                            const colors = ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'];
-                            setHoveredSegment({ 
-                              nome: topProducts[index].nome, 
-                              receita: topProducts[index].receita,
-                              color: colors[index % colors.length]
-                            });
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          setHoveredSegment(null);
-                        }}
-                      >
-                        {topProducts.map((_, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'][index]}
-                            className="transition-all duration-200 cursor-pointer origin-center hover:opacity-90"
-                          />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <PieChart responsive width="100%" height="100%">
+                    <Pie 
+                      data={topProducts} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={42} 
+                      outerRadius={55} 
+                      paddingAngle={4} 
+                      dataKey="receita" 
+                      stroke="none"
+                      shape={renderActiveShape}
+                      onMouseEnter={(_, index) => {
+                        if (typeof index === 'number' && topProducts[index]) {
+                          const colors = ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'];
+                          setHoveredSegment({ 
+                            nome: topProducts[index].nome, 
+                            receita: topProducts[index].receita,
+                            color: colors[index % colors.length]
+                          });
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredSegment(null);
+                      }}
+                    />
+                  </PieChart>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
                      <span 
                        className="text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block"
