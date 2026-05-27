@@ -159,7 +159,7 @@ export function PortalObraPage() {
                       <div className="p-5 border-b border-white/5 flex items-start justify-between">
                         <div>
                           <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest block mb-1">
-                            {format(new Date(diario.data_registro), "EEEE, d 'de' MMMM", { locale: ptBR })}
+                            {diario.data_registro ? format(new Date(diario.data_registro), "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Data não informada'}
                           </span>
                           <h3 className="text-lg font-bold text-white">{diario.titulo}</h3>
                         </div>
