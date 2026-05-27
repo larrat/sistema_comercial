@@ -84,11 +84,11 @@
 [data-theme="dark"] {
   color-scheme: dark;
   
-  --color-teal-primary: #14b8a6; /* Teal Primary */
-  --color-emerald-vibrant: #10b981; 
-  --color-amber-vibrant: #f59e0b; 
-  --color-indigo-vibrant: #818cf8; 
-  --color-rose-vibrant: #f43f5e; 
+  --color-teal-primary: #00E5FF; /* Cyan Neon */
+  --color-emerald-vibrant: #00E599; /* Vibrant Green/Mint */
+  --color-amber-vibrant: #FFB020; /* Electric Gold */
+  --color-indigo-vibrant: #6366F1; /* Royal Purple/Indigo */
+  --color-rose-vibrant: #FF3366; /* Vibrant Coral */
 
   --rgb-white: 255, 255, 255;
   --rgb-black: 0, 0, 0;
@@ -1419,18 +1419,18 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   background: rgba(30, 41, 59, 0.4);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-xl);
   padding: 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .rf-dash-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  transform: translateY(-3px) scale(1.005);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
@@ -1464,12 +1464,14 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 }
 
 .rf-stat-value {
-  font-size: 28px;
-  font-weight: 800;
+  font-size: 32px;
+  font-weight: 900;
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
-  margin-bottom: 4px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
 }
 
 .rf-stat-label {

@@ -56,13 +56,13 @@ import DashboardWorker from '../workers/dashboard.worker?worker';
 const fmt = (v: number) => fmtBRL(v || 0);
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  orcamento: { label: 'Orçamento', color: '#94A3B8' },
-  em_andamento: { label: 'Em andamento', color: '#818cf8' },
-  em_separacao: { label: 'Em separação', color: '#f59e0b' },
-  entregue_aguardando_pagamento: { label: 'Aguardando Pagamento', color: '#14b8a6' },
-  pago_aguardando_entrega: { label: 'Aguardando Entrega', color: '#818cf8' },
-  concluido: { label: 'Concluído', color: '#10b981' },
-  cancelado: { label: 'Cancelado', color: '#f43f5e' }
+  orcamento: { label: 'Orçamento', color: 'var(--text-muted)' },
+  em_andamento: { label: 'Em andamento', color: 'var(--color-indigo-vibrant)' },
+  em_separacao: { label: 'Em separação', color: 'var(--color-amber-vibrant)' },
+  entregue_aguardando_pagamento: { label: 'Aguardando Pagamento', color: 'var(--color-teal-primary)' },
+  pago_aguardando_entrega: { label: 'Aguardando Entrega', color: 'var(--color-indigo-vibrant)' },
+  concluido: { label: 'Concluído', color: 'var(--color-emerald-vibrant)' },
+  cancelado: { label: 'Cancelado', color: 'var(--color-rose-vibrant)' }
 };
 
 function cn(...inputs: ClassValue[]) {
@@ -139,7 +139,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   
   const renderActiveShape = useCallback((props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, index } = props;
-    const colors = ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'];
+    const colors = [
+      'var(--color-teal-primary)', 
+      'var(--color-amber-vibrant)', 
+      'var(--color-emerald-vibrant)', 
+      'var(--color-indigo-vibrant)', 
+      'var(--color-rose-vibrant)'
+    ];
     return (
       <Sector
         cx={cx}
@@ -371,12 +377,14 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                     <RechartsAreaChart responsive width="100%" height="100%" data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                           <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#fbbf24" stopOpacity={0.25}/>
-                            <stop offset="95%" stopColor="#fbbf24" stopOpacity={0}/>
+                            <stop offset="0%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.4}/>
+                            <stop offset="50%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.1}/>
+                            <stop offset="100%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
                           </linearGradient>
                           <linearGradient id="colorFatAnt" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.08}/>
-                            <stop offset="95%" stopColor="#94a3b8" stopOpacity={0}/>
+                            <stop offset="0%" stopColor="#64748b" stopOpacity={0.3}/>
+                            <stop offset="50%" stopColor="#64748b" stopOpacity={0.05}/>
+                            <stop offset="100%" stopColor="#64748b" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
@@ -404,7 +412,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                           return null;
                         }} />
                         <Area type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFatAnt)" />
-                        <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="#fbbf24" strokeWidth={2.5} fillOpacity={1} fill="url(#colorFat)" />
+                        <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="var(--color-amber-vibrant)" strokeWidth={3} fillOpacity={1} fill="url(#colorFat)" />
                     </RechartsAreaChart>
                   )}
                 </div>
@@ -488,7 +496,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       shape={renderActiveShape}
                       onMouseEnter={(_, index) => {
                         if (typeof index === 'number' && topProducts[index]) {
-                          const colors = ['#22d3ee', '#fbbf24', '#10b981', '#818cf8', '#fb7185'];
+                          const colors = [
+                            'var(--color-teal-primary)', 
+                            'var(--color-amber-vibrant)', 
+                            'var(--color-emerald-vibrant)', 
+                            'var(--color-indigo-vibrant)', 
+                            'var(--color-rose-vibrant)'
+                          ];
                           setHoveredSegment({ 
                             nome: topProducts[index].nome, 
                             receita: topProducts[index].receita,
