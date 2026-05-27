@@ -6,9 +6,11 @@ import { AppSidebar } from './AppSidebar';
 import { AppTopbar } from './AppTopbar';
 
 import { useUIStore } from '../useUIStore';
+import { useThemeSync } from '../hooks/useThemeSync';
 
 export function AppShell() {
   const { sidebarCollapsed: collapsed } = useUIStore();
+  useThemeSync();
   
   return (
     <div className={`flex h-screen w-full bg-surface-page text-primary font-sans selection:bg-teal-500/30 selection:text-teal-200 overflow-hidden`}>

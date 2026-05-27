@@ -221,7 +221,7 @@ export function AppSidebar() {
       initial={false}
       animate={{ width: collapsed ? 80 : 280 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="flex flex-col bg-slate-950/80 backdrop-blur-3xl border-r border-white/[0.04] text-slate-300 z-40 relative shadow-[10px_0_40px_-10px_rgba(0,0,0,0.5)] h-screen overflow-hidden"
+      className="flex flex-col bg-surface-sidebar backdrop-blur-3xl border-r border-border-subtle text-text-secondary z-40 relative shadow-[10px_0_40px_-10px_rgba(0,0,0,0.05)] h-screen overflow-hidden"
       aria-label="Navegação principal"
     >
       {/* Header / Logo */}
@@ -238,8 +238,8 @@ export function AppSidebar() {
                 exit={{ opacity: 0 }}
                 className="flex flex-col min-w-0"
               >
-                <span className="font-extrabold text-lg text-white tracking-tight leading-none uppercase">Nexus</span>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1">Industrial</span>
+                <span className="font-extrabold text-lg text-text-primary tracking-tight leading-none uppercase">Nexus</span>
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mt-1">Industrial</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -247,7 +247,7 @@ export function AppSidebar() {
         {!collapsed && (
           <button
             type="button"
-            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-100 transition-all shrink-0"
+            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-active text-text-muted hover:text-text-primary transition-all shrink-0"
             onClick={toggleSidebar}
           >
             <ChevronLeft size={18} />
@@ -259,13 +259,13 @@ export function AppSidebar() {
       {!collapsed && (
         <div className="px-4 mb-4 mt-2">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={14} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors" size={14} />
             <input 
               type="text"
               placeholder="Buscar menu..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-black/30 border border-white/5 rounded-xl py-2.5 pl-11 pr-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all shadow-inner"
+              className="w-full bg-surface-hover border border-border-subtle rounded-xl py-2.5 pl-11 pr-4 text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all shadow-inner"
             />
           </div>
         </div>
@@ -275,7 +275,7 @@ export function AppSidebar() {
         <div className="flex justify-center pb-4 pt-2">
           <button
             type="button"
-            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.02] text-slate-400 hover:text-white transition-all shadow-sm"
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-surface-hover hover:bg-surface-active border border-border-subtle text-text-muted hover:text-text-primary transition-all shadow-sm"
             onClick={toggleSidebar}
           >
             <ChevronRight size={18} />
@@ -295,12 +295,12 @@ export function AppSidebar() {
           const isExpanded = !!expandedGroups[group.label] || collapsed;
 
           return (
-            <div key={group.label} className={`shrink-0 flex flex-col ${collapsed ? 'items-center w-full' : 'bg-white/[0.02] rounded-xl overflow-hidden border border-white/[0.02]'}`}>
+            <div key={group.label} className={`shrink-0 flex flex-col ${collapsed ? 'items-center w-full' : 'bg-surface-hover rounded-xl overflow-hidden border border-border-subtle'}`}>
               {/* Group Header (Accordion Toggle) */}
               {!collapsed && (
                 <button 
                   onClick={() => toggleGroup(group.label)}
-                  className="w-full flex items-center justify-between px-3 py-3 hover:bg-white/[0.02] transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-3 hover:bg-surface-active transition-colors"
                 >
                   <span 
                     className="text-[11px] font-bold uppercase tracking-wider"
@@ -310,13 +310,13 @@ export function AppSidebar() {
                   </span>
                   <ChevronDown 
                     size={14} 
-                    className={`text-slate-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`text-text-muted transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
                   />
                 </button>
               )}
               
               {/* Divider for Collapsed Mode */}
-              {collapsed && <div className="h-px bg-slate-800/50 w-8 mb-2 shrink-0" />}
+              {collapsed && <div className="h-px bg-border-bold w-8 mb-2 shrink-0" />}
 
               {/* Group Items */}
               <AnimatePresence initial={false}>
@@ -345,23 +345,23 @@ export function AppSidebar() {
       </nav>
 
       {/* Footer / User Profile */}
-      <div className={`flex-shrink-0 mt-auto border-t border-white/[0.04] bg-black/20 backdrop-blur-xl ${collapsed ? 'p-3' : 'p-4'}`}>
+      <div className={`flex-shrink-0 mt-auto border-t border-border-bold bg-surface-card/60 backdrop-blur-xl ${collapsed ? 'p-3' : 'p-4'}`}>
         <div className={`flex flex-col gap-4 ${collapsed ? 'items-center' : ''}`}>
           {!collapsed && (
             <div className="flex items-center gap-3 px-1">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-800 to-slate-700 flex items-center justify-center border border-white/10 shrink-0 shadow-inner">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center border border-border-subtle shrink-0 shadow-inner">
                 <span className="text-sm font-bold text-white drop-shadow-md">{userInitial}</span>
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-sm font-bold text-white truncate capitalize leading-none tracking-tight">{userName}</span>
-                <span className="text-[10px] font-medium text-slate-400 truncate mt-1.5">{(user?.email as string) || ''}</span>
+                <span className="text-sm font-bold text-text-primary truncate capitalize leading-none tracking-tight">{userName}</span>
+                <span className="text-[10px] font-medium text-text-tertiary truncate mt-1.5">{(user?.email as string) || ''}</span>
               </div>
             </div>
           )}
           
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-2 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2.5 justify-center'}`}
+            className={`flex items-center gap-2 rounded-xl text-xs font-bold text-text-muted hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/20 border border-transparent transition-all group ${collapsed ? 'w-10 h-10 justify-center' : 'w-full px-3 py-2.5 justify-center'}`}
             title={collapsed ? "Encerrar Sessão" : undefined}
           >
             <LogOut size={collapsed ? 18 : 16} strokeWidth={2.5} className="shrink-0" />

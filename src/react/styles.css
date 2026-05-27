@@ -1,46 +1,50 @@
 @import 'tailwindcss';
 
-:root {
-  color-scheme: dark;
-  /* --- NEXUS INDUSTRIAL: SEMANTIC DESIGN SYSTEM --- */
+:root, [data-theme="light"] {
+  color-scheme: light;
+  
   /* --- DESIGN TOKENS: COLORS (PALETTE) --- */
   --color-absolute-midnight: #030712;
   --color-deep-slate: #0a0f1a;
-  --color-teal-primary: #14b8a6; /* Teal Primary */
-  --color-emerald-vibrant: #10b981; /* Emerald-500 */
-  --color-amber-vibrant: #f59e0b; /* Amber-500 */
-  --color-indigo-vibrant: #818cf8; /* Indigo-400 */
-  --color-rose-vibrant: #f43f5e; /* Rose-500 */
+  
+  /* ACCENT FOR LIGHT MODE: Indigo/Purple Gradient */
+  --color-teal-primary: #4f46e5; /* Indigo-600 */
+  --color-emerald-vibrant: #10b981; 
+  --color-amber-vibrant: #f59e0b; 
+  --color-indigo-vibrant: #818cf8; 
+  --color-rose-vibrant: #f43f5e; 
 
-  /* RGB Channels for dynamic opacity */
-  --rgb-white: 255, 255, 255;
-  --rgb-black: 0, 0, 0;
+  /* RGB Channels */
+  --rgb-white: 0, 0, 0; /* Inverted for light mode background math */
+  --rgb-black: 255, 255, 255;
   --opacity-subtle: 0.04;
   --opacity-medium: 0.08;
   --opacity-heavy: 0.12;
 
   /* --- SEMANTIC TOKENS: SURFACES --- */
-  --surface-page: var(--color-absolute-midnight);
-  --surface-card: var(--color-deep-slate);
-  --surface-sidebar: var(--color-absolute-midnight);
-  --surface-hover: rgba(var(--rgb-white), 0.02);
-  --surface-active: rgba(var(--rgb-white), 0.04);
+  --surface-page: #f8fafc; /* slate-50 */
+  --surface-card: #ffffff; /* white */
+  --surface-sidebar: #ffffff; /* white */
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --surface-active: rgba(0, 0, 0, 0.08);
 
   /* --- SEMANTIC TOKENS: TEXT --- */
-  --text-primary: #f1f5f9; /* Slate-100 */
-  --text-secondary: #cbd5e1; /* Slate-300 */
-  --text-tertiary: #94a3b8; /* Slate-400 */
-  --text-muted: #64748b; /* Slate-500 */
+  --text-primary: #0f172a; /* slate-900 */
+  --text-secondary: #334155; /* slate-700 */
+  --text-tertiary: #64748b; /* slate-500 */
+  --text-muted: #94a3b8; /* slate-400 */
   --text-accent: var(--color-teal-primary);
 
   /* --- SEMANTIC TOKENS: BORDERS --- */
-  --border-subtle: rgba(var(--rgb-white), 0.04);
-  --border-bold: rgba(var(--rgb-white), 0.06);
-  --border-focus: rgba(20, 184, 166, 0.4);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-bold: rgba(0, 0, 0, 0.15);
+  --border-focus: rgba(79, 70, 229, 0.4); /* Indigo */
 
   /* --- SEMANTIC TOKENS: ACTIONS --- */
   --action-primary: var(--color-teal-primary);
   --action-success: var(--color-emerald-vibrant);
+  --action-warning: var(--color-amber-vibrant);
+  --action-danger: var(--color-rose-vibrant);
 
   /* --- COMPONENT TOKENS: CHARTS --- */
   --chart-primary: var(--color-teal-primary);
@@ -48,16 +52,12 @@
   --chart-tertiary: var(--color-emerald-vibrant);
   --chart-quaternary: var(--color-indigo-vibrant);
   --chart-quinary: var(--color-rose-vibrant);
-
   --chart-faturamento: #f59e0b;
   --chart-lucro: #10b981;
 
-  --action-warning: var(--color-amber-vibrant);
-  --action-danger: var(--color-rose-vibrant);
-
   /* --- LEGACY COMPATIBILITY --- */
   --color-background-primary: var(--surface-card);
-  --color-background-secondary: #1e293b;
+  --color-background-secondary: #f1f5f9;
   --color-background-tertiary: var(--surface-page);
   --color-sidebar-bg: var(--surface-sidebar);
   --color-text-primary: var(--text-primary);
@@ -76,6 +76,67 @@
   --font-sans: 'Satoshi', sans-serif;
   --radius-premium: 16px;
   --radius-xl: 20px;
+  --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  --gradient-premium: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --noise-pattern: none; /* No noise in light mode for cleaner look */
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  
+  --color-teal-primary: #14b8a6; /* Teal Primary */
+  --color-emerald-vibrant: #10b981; 
+  --color-amber-vibrant: #f59e0b; 
+  --color-indigo-vibrant: #818cf8; 
+  --color-rose-vibrant: #f43f5e; 
+
+  --rgb-white: 255, 255, 255;
+  --rgb-black: 0, 0, 0;
+
+  --surface-page: #030712;
+  --surface-card: #0a0f1a;
+  --surface-sidebar: #030712;
+  --surface-hover: rgba(255, 255, 255, 0.02);
+  --surface-active: rgba(255, 255, 255, 0.04);
+
+  --text-primary: #f1f5f9; 
+  --text-secondary: #cbd5e1; 
+  --text-tertiary: #94a3b8; 
+  --text-muted: #64748b; 
+  --text-accent: var(--color-teal-primary);
+
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-bold: rgba(255, 255, 255, 0.06);
+  --border-focus: rgba(20, 184, 166, 0.4);
+
+  --action-primary: var(--color-teal-primary);
+  --action-success: var(--color-emerald-vibrant);
+  --action-warning: var(--color-amber-vibrant);
+  --action-danger: var(--color-rose-vibrant);
+
+  --chart-primary: var(--color-teal-primary);
+  --chart-secondary: var(--color-amber-vibrant);
+  --chart-tertiary: var(--color-emerald-vibrant);
+  --chart-quaternary: var(--color-indigo-vibrant);
+  --chart-quinary: var(--color-rose-vibrant);
+  --chart-faturamento: #f59e0b;
+  --chart-lucro: #10b981;
+
+  --color-background-primary: var(--surface-card);
+  --color-background-secondary: #1e293b;
+  --color-background-tertiary: var(--surface-page);
+  --color-sidebar-bg: var(--surface-sidebar);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-border-primary: var(--border-subtle);
+  --color-border-tertiary: var(--border-subtle);
+  --color-action-blue: var(--action-primary);
+  --color-success: var(--action-success);
+  --color-warning: var(--action-warning);
+  --color-danger: var(--action-danger);
+
   --shadow-premium: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
   --gradient-premium: linear-gradient(135deg, #0891b2 0%, #10b981 50%, #22d3ee 100%);
   --noise-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
@@ -115,24 +176,24 @@
 
 /* Glassmorphism Variants */
 .rf-glass {
-  background: rgba(10, 15, 26, 0.6);
+  background: var(--surface-card);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-subtle);
 }
 
 .rf-glass-heavy {
-  background: rgba(10, 15, 26, 0.85); /* Keeping deep for contrast */
+  background: var(--surface-page);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border: 1px solid var(--border-bold);
 }
 
 .rf-glass-glow {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-hover);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 40px rgba(20, 184, 166, 0.05);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 0 40px var(--border-focus);
 }
 
 .produtos-filter-bar {
@@ -458,7 +519,7 @@ h1, h2, h3, h4, h5, h6, .rf-display {
 }
 
 .tbl th {
-  background: rgba(10, 15, 26, 0.4);
+  background: var(--surface-hover);
   color: var(--text-muted);
   font-family: 'Satoshi', sans-serif;
   font-size: 11px;
@@ -466,14 +527,14 @@ h1, h2, h3, h4, h5, h6, .rf-display {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-subtle);
   text-align: left;
   white-space: nowrap;
 }
 
 .tbl td {
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
   vertical-align: middle;
   transition: background 0.2s;
@@ -486,7 +547,7 @@ h1, h2, h3, h4, h5, h6, .rf-display {
 }
 
 .tbl tr:hover td {
-  background: rgba(255, 255, 255, 0.015);
+  background: var(--surface-hover);
 }
 
 .tbl tr:hover {
@@ -809,7 +870,7 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-color: rgba(3, 7, 18, 0.6);
+  background-color: rgba(var(--rgb-black), 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -2445,22 +2506,22 @@ th[aria-sort] .rf-ui-data-table__sort-icon {
 
 .rf-input-premium {
   width: 100%;
-  background: #0d1321;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface-card);
+  border: 1px solid var(--border-bold);
   border-radius: var(--radius-premium);
   padding: 12px 16px;
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .rf-input-premium:focus {
   border-color: var(--action-primary);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.15), 0 4px 12px rgba(0, 0, 0, 0.3);
-  background: #0a0f1a;
+  box-shadow: 0 0 0 4px var(--border-focus), 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--surface-page);
 }
 
 .rf-input-premium::placeholder {

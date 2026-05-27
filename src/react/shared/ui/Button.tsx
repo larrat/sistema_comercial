@@ -29,7 +29,7 @@ export function Button({
     primary: 'rf-btn-premium--primary',
     secondary: '', // default premium is secondary-like
     danger: '!bg-rose-500/10 !text-rose-500 !border-rose-500/20 hover:!bg-rose-500/20 hover:!border-rose-500/30',
-    ghost: '!bg-transparent !border-transparent !shadow-none hover:!bg-white/[0.04]'
+    ghost: '!bg-transparent !border-transparent !shadow-none hover:!bg-surface-hover'
   };
 
   const sizes: Record<ButtonSize, string> = {

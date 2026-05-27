@@ -29,9 +29,9 @@ export function ErrorState({
       role="alert"
     >
       <p className="text-sm font-semibold text-rose-400 m-0">{title}</p>
-      {description ? <p className="text-xs text-slate-400 mt-1.5 max-w-md">{description}</p> : null}
+      {description ? <p className="text-xs text-text-muted mt-1.5 max-w-md">{description}</p> : null}
       {technicalMessage ? (
-        <p className="text-[11px] text-slate-400/75 mt-1 font-mono">{technicalMessage}</p>
+        <p className="text-[11px] text-text-muted/75 mt-1 font-mono">{technicalMessage}</p>
       ) : null}
       {action ? <div className="mt-4">{action}</div> : null}
       {!action && onRetry ? (
