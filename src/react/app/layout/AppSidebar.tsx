@@ -40,6 +40,7 @@ const iconByPath: Record<string, LucideIcon> = {
   '/app/pdv': ShoppingCart,
   '/app/dashboard': LayoutDashboard,
   '/app/estoque': Package,
+  '/app/orcamentos': FileText,
   '/app/cotacao': FileText,
   '/app/relatorios': BarChart3,
   '/app/campanhas': Megaphone,

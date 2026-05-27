@@ -16,6 +16,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { id: 'pdv', label: 'PDV', path: '/app/pdv', group: 'Vendas & CRM', roles: ['admin', 'gerente', 'operador'] },
   { id: 'pedidos', label: 'Pedidos', path: '/app/pedidos', group: 'Vendas & CRM', roles: ['admin', 'gerente', 'operador'] },
   { id: 'crm', label: 'CRM Reformas', path: '/app/crm', group: 'Vendas & CRM', roles: ['admin', 'gerente', 'operador'] },
+  { id: 'orcamentos', label: 'Orçamentos', path: '/app/orcamentos', group: 'Vendas & CRM', roles: ['admin', 'gerente', 'operador'] },
   { id: 'cotacao', label: 'Cotação', path: '/app/cotacao', group: 'Vendas & CRM', roles: ['admin', 'gerente', 'operador'] },
   { id: 'contratos', label: 'Contratos e O.S.', path: '/app/contratos', group: 'Vendas & CRM', roles: ['admin', 'gerente', 'operador'] },
   

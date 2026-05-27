@@ -20,7 +20,8 @@ export type AppRouteId =
   | 'caixa'
   | 'crm'
   | 'contratos'
-  | 'agenda';
+  | 'agenda'
+  | 'orcamentos';
 
 export type AppRoute = {
   id: AppRouteId;
@@ -50,6 +51,7 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'caixa', path: '/app/caixa', label: 'Caixa' },
   { id: 'agenda', path: '/app/agenda', label: 'Agenda' },
   { id: 'crm', path: '/app/crm', label: 'CRM Reformas' },
+  { id: 'orcamentos', path: '/app/orcamentos', label: 'Orçamentos (Eng)' },
   { id: 'contratos', path: '/app/contratos', label: 'Contratos e O.S.' }
 ];
 
