@@ -386,12 +386,24 @@ export function ContratoProfilePage() {
             </div>
           </div>
 
-          <div className="text-left md:text-right bg-white/[0.02] border border-white/5 rounded-2xl p-4 min-w-[200px]">
-            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Valor Contratado Total</div>
-            <div className="text-xl font-black text-teal-400">{fmtBRL(valorContratadoTotal)}</div>
-            {totalAditivos > 0 && (
-              <div className="text-[10px] text-emerald-500 font-bold mt-1">Inclui R$ {totalAditivos.toLocaleString('pt-BR')} em Aditivos</div>
-            )}
+          <div className="flex flex-col items-end gap-3 text-left md:text-right bg-white/[0.02] border border-white/5 rounded-2xl p-4 min-w-[200px]">
+            <div className="w-full text-left md:text-right">
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Valor Contratado Total</div>
+              <div className="text-xl font-black text-teal-400">{fmtBRL(valorContratadoTotal)}</div>
+              {totalAditivos > 0 && (
+                <div className="text-[10px] text-emerald-500 font-bold mt-1">Inclui R$ {totalAditivos.toLocaleString('pt-BR')} em Aditivos</div>
+              )}
+            </div>
+            <button 
+              onClick={() => {
+                const url = `${window.location.origin}/portal/obra/${contrato.id}`;
+                navigator.clipboard.writeText(url);
+                toast.success('Link do Portal do Cliente copiado!');
+              }}
+              className="mt-2 flex items-center gap-2 rounded-xl bg-teal-500/10 border border-teal-500/20 px-4 py-2 text-xs font-bold text-teal-400 hover:bg-teal-500/20 active:scale-[0.98] transition-all"
+            >
+              Copiar Link do Portal Público
+            </button>
           </div>
         </div>
 
