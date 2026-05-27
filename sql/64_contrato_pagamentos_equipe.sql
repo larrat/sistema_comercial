@@ -5,7 +5,7 @@ begin;
 
 create table if not exists public.contrato_pagamentos_equipe (
   id uuid primary key default gen_random_uuid(),
-  filial_id uuid not null references public.filiais(id),
+  filial_id text not null references public.filiais(id),
   os_id uuid not null references public.ordens_servico(id) on delete cascade,
   valor numeric(10, 2) not null,
   data_pagamento date not null default current_date,
