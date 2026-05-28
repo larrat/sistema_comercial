@@ -387,11 +387,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       description="Não existem vendas registradas para o período selecionado." 
                     />
                   ) : (
-                    <RechartsAreaChart responsive width="100%" height="100%" data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <RechartsAreaChart responsive width="100%" height="100%" data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                           <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.4}/>
-                            <stop offset="50%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.1}/>
+                            <stop offset="0%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.5}/>
+                            <stop offset="60%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.1}/>
                             <stop offset="100%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
                           </linearGradient>
                           <linearGradient id="colorFatAnt" x1="0" y1="0" x2="0" y2="1">
@@ -399,20 +399,24 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                             <stop offset="50%" stopColor="#64748b" stopOpacity={0.05}/>
                             <stop offset="100%" stopColor="#64748b" stopOpacity={0}/>
                           </linearGradient>
+                          <filter id="areaGlow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="5" result="blur" />
+                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                          </filter>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} dy={10} />
                         <YAxis hide domain={['auto', 'auto']} />
-                        <Tooltip content={({ active, payload, label }) => {
+                        <Tooltip cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '3 3' }} content={({ active, payload, label }) => {
                           if (active && payload?.length) {
                             return (
-                              <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-2xl ring-1 ring-white/10 min-w-[180px]">
+                              <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.15)] ring-1 ring-white/10 min-w-[180px] animate-in zoom-in-95 duration-100">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
-                                <div className="space-y-2.5">
+                                <div className="space-y-3">
                                   {payload.map((entry: any, idx: number) => (
                                     <div key={idx} className="flex items-center justify-between gap-6">
                                       <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                                        <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: entry.color, color: entry.color }} />
                                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">{entry.name}</span>
                                       </div>
                                       <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
@@ -425,7 +429,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                           return null;
                         }} />
                         <Area type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFatAnt)" />
-                        <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="var(--color-amber-vibrant)" strokeWidth={3} fillOpacity={1} fill="url(#colorFat)" />
+                        <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="var(--color-amber-vibrant)" strokeWidth={4} fillOpacity={1} fill="url(#colorFat)" style={{ filter: 'url(#areaGlow)' }} activeDot={{ r: 6, fill: 'var(--color-amber-vibrant)', stroke: '#fff', strokeWidth: 2, filter: 'url(#areaGlow)' }} />
                     </RechartsAreaChart>
                   )}
                 </div>
