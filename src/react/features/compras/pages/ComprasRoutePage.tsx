@@ -26,7 +26,7 @@ export function ComprasRoutePage() {
 
   // Carregar produtos para poder fazer o matching prévio antes de renderizar o formulário
   const { data: produtos = [] } = useQuery({
-    queryKey: ['produtos-compras-route', filialId],
+    queryKey: ['produtos', 'compras-route', filialId],
     queryFn: async () => {
       const context = resolve();
       if (!context) throw new Error('API context not ready');

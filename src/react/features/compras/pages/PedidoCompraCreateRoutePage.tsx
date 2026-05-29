@@ -40,7 +40,7 @@ export function PedidoCompraCreateRoutePage() {
   const [isDragging, setIsDragging] = useState(false);
 
   const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
-    queryKey: ['produtos-compras', filialId],
+    queryKey: ['produtos', 'compras', filialId],
     queryFn: () => {
       const context = resolve();
       if (!context) throw new Error('API context not ready');
