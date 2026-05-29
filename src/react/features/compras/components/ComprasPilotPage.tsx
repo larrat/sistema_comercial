@@ -55,7 +55,63 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
   });
 
   const finalizarMutation = useMutation({
-    mutationFn: (p: any) => finalizarPedidoCompra(token!, p),
+    mutationFn: async (p: any) => {
+      // 1. Finaliza a transação do pedido no banco de dados (RPC)
+      await finalizarPedidoCompra(token!, p);
+
+      // 2. Fallback de Sincronização de Estoque via Frontend
+      // Caso a trigger de sincronização de estoque automático no banco não esteja instalada
+      // ou ativa na instância de produção, fazemos a atualização direta da tabela 'produtos'.
+      try {
+        const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
+        const config = getSupabaseConfig();
+        const itens = p.pedido_compra_itens || p.itens || [];
+
+        for (const item of itens) {
+          if (!item.produto_id || !(Number(item.qty) > 0)) continue;
+
+          // Busca o saldo e custo médio atuais do produto no banco
+          const resProd = await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}&select=esal,ecm,custo`, {
+            headers: {
+              apikey: config.key,
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (resProd.ok) {
+            const prods = await resProd.json();
+            const prod = prods[0];
+            if (prod) {
+              const currentSaldo = Number(prod.esal || 0);
+              const currentCm = Number(prod.ecm || prod.custo || 0);
+              const quantidade = Number(item.qty);
+              const custo = Number(item.custo_unitario || 0);
+
+              const newSaldo = currentSaldo + quantidade;
+              const newCm = newSaldo > 0 
+                ? (currentSaldo * currentCm + quantidade * custo) / newSaldo 
+                : custo;
+
+              // Atualiza o produto com o novo saldo e custo médio
+              await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}`, {
+                method: 'PATCH',
+                headers: {
+                  apikey: config.key,
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  esal: newSaldo,
+                  ecm: newCm
+                })
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Erro na sincronização de estoque via frontend fallback:', err);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
@@ -67,7 +123,61 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
   });
 
   const cancelarMutation = useMutation({
-    mutationFn: (pId: string) => cancelarPedidoCompra(token!, pId),
+    mutationFn: async (pId: string) => {
+      // Encontra o pedido correspondente localmente para obter os itens
+      const p = pedidos.find(item => item.id === pId);
+      
+      // 1. Cancela o pedido no banco de dados (RPC)
+      await cancelarPedidoCompra(token!, pId);
+
+      // 2. Fallback de Sincronização de Estoque via Frontend para Cancelamento
+      if (p) {
+        try {
+          const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
+          const config = getSupabaseConfig();
+          const itens = p.pedido_compra_itens || p.itens || [];
+
+          for (const item of itens) {
+            if (!item.produto_id || !(Number(item.qty) > 0)) continue;
+
+            // Busca o saldo e custo médio atuais do produto no banco
+            const resProd = await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}&select=esal,ecm,custo`, {
+              headers: {
+                apikey: config.key,
+                Authorization: `Bearer ${token}`
+              }
+            });
+
+            if (resProd.ok) {
+              const prods = await resProd.json();
+              const prod = prods[0];
+              if (prod) {
+                const currentSaldo = Number(prod.esal || 0);
+                const quantidade = Number(item.qty);
+
+                // Estorna a quantidade recebida anteriormente
+                const newSaldo = Math.max(0, currentSaldo - quantidade);
+
+                // Atualiza o produto com o novo saldo estornado
+                await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}`, {
+                  method: 'PATCH',
+                  headers: {
+                    apikey: config.key,
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    esal: newSaldo
+                  })
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error('Erro no estorno de estoque via frontend fallback:', err);
+        }
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
