@@ -63,6 +63,16 @@ export async function savePedidoCompra(
     headers: { apikey: key, Authorization: `Bearer ${token}` }
   });
 
+  const payloadItens = itens.map((i) => ({
+    pedido_compra_id: savedPedido.id,
+    produto_id: i.produto_id,
+    nome: i.nome,
+    qty: i.qty,
+    custo_unitario: i.custo_unitario,
+    total_item: i.total_item,
+    contrato_id: i.contrato_id || null
+  }));
+
   const resItens = await fetch(`${url}/rest/v1/pedido_compra_itens`, {
     method: 'POST',
     headers: {
@@ -70,7 +80,7 @@ export async function savePedidoCompra(
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(itens.map((i) => ({ ...i, pedido_compra_id: savedPedido.id })))
+    body: JSON.stringify(payloadItens)
   });
   if (!resItens.ok) throw new Error('Erro ao salvar itens do pedido de compra');
 
