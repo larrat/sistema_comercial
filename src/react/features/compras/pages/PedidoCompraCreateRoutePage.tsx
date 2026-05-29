@@ -409,7 +409,7 @@ export function PedidoCompraCreateRoutePage() {
 
                       {/* Dropdown */}
                       {activeItemIdx === idx && (
-                        <div className="absolute top-full left-0 right-0 z-[60] mt-1.5 bg-[#0a1628] border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto animate-in slide-in-from-top-2 duration-150">
+                        <div className="absolute top-full left-0 z-[60] mt-1.5 w-[300px] sm:w-[400px] md:w-[450px] bg-[#0a1628] border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto animate-in slide-in-from-top-2 duration-150">
                           {isLoadingProdutos ? (
                             <div className="p-4 space-y-2">
                               <Shimmer height={12} width="100%" />
@@ -440,8 +440,8 @@ export function PedidoCompraCreateRoutePage() {
                                       <span className="text-[9px] font-black text-teal-500 uppercase">{p.sku || 'S/SKU'}</span>
                                       {p.cat && <span className="text-[8px] text-slate-500 font-medium">· {p.cat}</span>}
                                     </div>
-                                    <div className="text-xs font-bold text-white truncate">{p.nome}</div>
-                                    <div className="flex items-center gap-2 mt-0.5">
+                                    <div className="text-xs font-bold text-white line-clamp-2 leading-snug">{p.nome}</div>
+                                    <div className="flex items-center gap-2 mt-1">
                                       <span className="text-[9px] text-emerald-400 font-bold">Custo: {fmtBRL(p.custo || 0)}</span>
                                       <span className="text-[9px] text-slate-600">· {p.un}</span>
                                     </div>
