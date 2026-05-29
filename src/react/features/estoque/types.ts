@@ -15,6 +15,7 @@ export type EstoquePositionRow = {
   nome: string;
   sku?: string;
   unidade?: string;
+  foto_url?: string | null;
   saldo: number;
   custoMedio: number;
   valorEstoque: number;

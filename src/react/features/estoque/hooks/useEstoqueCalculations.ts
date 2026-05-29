@@ -116,6 +116,7 @@ export function buildEstoquePositionRows(
         nome: produto.nome,
         sku: produto.sku || '',
         unidade: produto.unidade || produto.un || '',
+        foto_url: produto.foto_url || null,
         saldo: saldoReal, // Usa o saldo real da tabela produtos como fonte da verdade
         custoMedio: hist.cm,
         valorEstoque: saldoReal * hist.cm,
