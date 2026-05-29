@@ -32,9 +32,10 @@ export function Select({
   const selectId = id || `select-${Math.random().toString(36).slice(2, 9)}`;
 
   const handleValueChange = (val: string) => {
-    if (onValueChange) onValueChange(val);
+    const finalVal = val === '__empty__' ? '' : val;
+    if (onValueChange) onValueChange(finalVal);
     if (onChange) {
-      onChange({ target: { value: val, name: props.name } } as any);
+      onChange({ target: { value: finalVal, name: props.name } } as any);
     }
   };
 
@@ -49,7 +50,7 @@ export function Select({
       
       <div className="rf-ui-form-field__control">
         <SelectPrimitive.Root
-          value={value !== undefined ? String(value) : undefined}
+          value={value !== undefined ? (String(value) === '' ? '__empty__' : String(value)) : undefined}
           onValueChange={handleValueChange}
           disabled={props.disabled}
           name={props.name}
@@ -71,20 +72,23 @@ export function Select({
               sideOffset={4}
             >
               <SelectPrimitive.Viewport className="p-1">
-                {options.map((opt) => (
-                  <SelectPrimitive.Item
-                    key={opt.value}
-                    value={String(opt.value)}
-                    className="relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-slate-200 outline-none hover:bg-slate-800 focus:bg-slate-800 focus:text-teal-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors"
-                  >
-                    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-                      <SelectPrimitive.ItemIndicator>
-                        <Check className="h-4 w-4 text-teal-500" />
-                      </SelectPrimitive.ItemIndicator>
-                    </span>
-                    <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
-                  </SelectPrimitive.Item>
-                ))}
+                {options.map((opt) => {
+                  const itemValue = String(opt.value) === '' ? '__empty__' : String(opt.value);
+                  return (
+                    <SelectPrimitive.Item
+                      key={itemValue}
+                      value={itemValue}
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-slate-200 outline-none hover:bg-slate-800 focus:bg-slate-800 focus:text-teal-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors"
+                    >
+                      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+                        <SelectPrimitive.ItemIndicator>
+                          <Check className="h-4 w-4 text-teal-500" />
+                        </SelectPrimitive.ItemIndicator>
+                      </span>
+                      <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
+                    </SelectPrimitive.Item>
+                  );
+                })}
               </SelectPrimitive.Viewport>
             </SelectPrimitive.Content>
           </SelectPrimitive.Portal>
