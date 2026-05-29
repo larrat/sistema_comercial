@@ -1,7 +1,7 @@
 import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useMemo, useDeferredValue } from 'react';
 import { Plus, Trash2, Save, Search, Package, ArrowLeft, Info, Tag, Ruler, CheckCircle2, AlertTriangle, FileText, UploadCloud } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Card, Shimmer, Badge } from '../../../shared/ui';
 import type { PedidoCompraItem, PedidoCompra } from '../services/comprasApi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -9,7 +9,7 @@ import { listProdutos } from '../../produtos/services/produtosApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
-import { savePedidoCompra } from '../services/comprasApi';
+import { savePedidoCompra, vincularNotaImportada } from '../services/comprasApi';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Produto } from '../../../../types/domain';
@@ -24,12 +24,15 @@ interface FormItem extends PedidoCompraItem {
 
 export function PedidoCompraCreateRoutePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefillFromState = location.state?.prefillData;
+
   const { resolve, token } = useApiContext();
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
   
-  const [fornecedor, setFornecedor] = useState('');
-  const [itens, setItens] = useState<FormItem[]>([]);
+  const [fornecedor, setFornecedor] = useState(prefillFromState?.fornecedor || '');
+  const [itens, setItens] = useState<FormItem[]>(prefillFromState?.itens || []);
   const [formaPgto, setFormaPgto] = useState('Boleto');
   const [obs, setObs] = useState('');
   const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
@@ -51,9 +54,24 @@ export function PedidoCompraCreateRoutePage() {
 
   const saveMutation = useMutation({
     mutationFn: ({ pedido, itensPayload }: any) => savePedidoCompra(token!, pedido, itensPayload),
-    onSuccess: () => {
+    onSuccess: async (savedPedido) => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
-      toast.success('Pedido salvo com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      
+      // Se veio de uma nota destinada importada da SEFAZ, vinculamos a nota ao pedido
+      if (prefillFromState?.notaId) {
+        try {
+          await vincularNotaImportada(token!, prefillFromState.notaId, savedPedido.id);
+          queryClient.invalidateQueries({ queryKey: ['nfe-destinadas'] });
+          toast.success('Pedido cadastrado e Nota Fiscal vinculada na SEFAZ com sucesso!');
+        } catch (err) {
+          console.error(err);
+          toast.error('Pedido salvo, mas falhou ao vincular nota fiscal destinada.');
+        }
+      } else {
+        toast.success('Pedido salvo com sucesso!');
+      }
+
       navigate('/app/compras');
     },
     onError: () => {

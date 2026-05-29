@@ -162,10 +162,10 @@ export function EstoquePositionTable({
   const totalOk = rows.filter(r => r.status === 'ok').length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full overflow-hidden">
       {/* Compact summary bar */}
-      <div className="flex flex-wrap items-center gap-3 text-xs">
-        <div className="flex items-center gap-6 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-3 text-xs w-full">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-2.5 w-full sm:w-auto">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="text-slate-400">OK</span>
@@ -181,7 +181,7 @@ export function EstoquePositionTable({
             <span className="text-slate-400">Zerado</span>
             <span className="text-white font-bold">{totalZerados}</span>
           </div>
-          <div className="h-4 w-px bg-white/10" />
+          <div className="h-4 w-px bg-white/10 hidden sm:block" />
           <div className="flex items-center gap-2">
             <span className="text-slate-400">Valor total</span>
             <span className="text-white font-bold">{fmtCurrency(totalValor)}</span>
@@ -215,7 +215,7 @@ export function EstoquePositionTable({
       </div>
 
       {/* Sort controls */}
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
         <span>Ordenar:</span>
         {([
           ['status', 'Criticidade'],
@@ -243,14 +243,14 @@ export function EstoquePositionTable({
 
       {/* Content */}
       {viewMode === 'grouped' ? (
-        <div className="space-y-3">
+        <div className="space-y-3 w-full">
           {grouped.map(([cat, catRows]) => {
             const isCollapsed = collapsedCats.has(cat);
             const catValor = catRows.reduce((s, r) => s + r.valorEstoque, 0);
             const catAlerts = catRows.filter(r => r.status === 'zerado' || r.status === 'baixo').length;
 
             return (
-              <div key={cat} className="border border-white/[0.06] rounded-2xl overflow-hidden bg-white/[0.01]">
+              <div key={cat} className="border border-white/[0.06] rounded-2xl overflow-hidden bg-white/[0.01] w-full">
                 {/* Category header */}
                 <button
                   type="button"
@@ -274,10 +274,12 @@ export function EstoquePositionTable({
 
                 {/* Category rows */}
                 {!isCollapsed && (
-                  <div className="border-t border-white/[0.04]">
-                    {catRows.map((row, i) => (
-                      <ProductRow key={row.id} row={row} onMove={onMoveProduct} isLast={i === catRows.length - 1} />
-                    ))}
+                  <div className="border-t border-white/[0.04] overflow-x-auto scrollbar-hide w-full">
+                    <div className="min-w-[680px] md:min-w-0">
+                      {catRows.map((row, i) => (
+                        <ProductRow key={row.id} row={row} onMove={onMoveProduct} isLast={i === catRows.length - 1} />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -285,10 +287,12 @@ export function EstoquePositionTable({
           })}
         </div>
       ) : (
-        <div className="border border-white/[0.06] rounded-2xl overflow-hidden bg-white/[0.01]">
-          {sortedRows.map((row, i) => (
-            <ProductRow key={row.id} row={row} onMove={onMoveProduct} isLast={i === sortedRows.length - 1} showCategory />
-          ))}
+        <div className="border border-white/[0.06] rounded-2xl bg-white/[0.01] overflow-x-auto scrollbar-hide w-full">
+          <div className="min-w-[680px] md:min-w-0">
+            {sortedRows.map((row, i) => (
+              <ProductRow key={row.id} row={row} onMove={onMoveProduct} isLast={i === sortedRows.length - 1} showCategory />
+            ))}
+          </div>
         </div>
       )}
     </div>

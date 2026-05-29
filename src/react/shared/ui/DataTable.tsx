@@ -168,64 +168,66 @@ export function DataTable<Row>({
 
   return (
     <div className={containerClass}>
-      <table className="tbl">
-        <thead>
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => {
-                const meta = header.column.columnDef.meta as any;
-                const isSortable = meta?.sortable && Boolean(onSort);
-                return (
-                  <th
-                    key={header.id}
-                    style={{
-                      width: meta?.width,
-                      textAlign: meta?.align ?? 'left',
-                      cursor: isSortable ? 'pointer' : undefined,
-                      userSelect: isSortable ? 'none' : undefined
-                    }}
-                    onClick={isSortable ? () => {
-                      const nextDir = sortKey === header.id && sortDir === 'asc' ? 'desc' : 'asc';
-                      onSort?.(header.id, nextDir);
-                    } : undefined}
+      <div className="overflow-x-auto scrollbar-hide w-full">
+        <table className="tbl w-full min-w-[640px] md:min-w-0">
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map(header => {
+                  const meta = header.column.columnDef.meta as any;
+                  const isSortable = meta?.sortable && Boolean(onSort);
+                  return (
+                    <th
+                      key={header.id}
+                      style={{
+                        width: meta?.width,
+                        textAlign: meta?.align ?? 'left',
+                        cursor: isSortable ? 'pointer' : undefined,
+                        userSelect: isSortable ? 'none' : undefined
+                      }}
+                      onClick={isSortable ? () => {
+                        const nextDir = sortKey === header.id && sortDir === 'asc' ? 'desc' : 'asc';
+                        onSort?.(header.id, nextDir);
+                      } : undefined}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {isSortable && (
+                        <span className="rf-ui-data-table__sort-icon">
+                          {sortKey === header.id ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
+                        </span>
+                      )}
+                    </th>
+                  );
+                })}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map(row => (
+              <tr
+                key={row.id}
+                onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
+                className={getRowClassName ? getRowClassName(row.original, row.index) : undefined}
+                style={{ 
+                  ...(onRowClick ? { cursor: 'pointer' } : {}),
+                  contentVisibility: 'auto',
+                  containIntrinsicSize: '0 64px'
+                }}
+              >
+                {row.getVisibleCells().map(cell => (
+                  <td 
+                    key={cell.id} 
+                    style={{ textAlign: (cell.column.columnDef.meta as any)?.align ?? 'left' }}
+                    className={(cell.column.columnDef.meta as any)?.className}
                   >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {isSortable && (
-                      <span className="rf-ui-data-table__sort-icon">
-                        {sortKey === header.id ? (sortDir === 'asc' ? '▲' : '▼') : '⇅'}
-                      </span>
-                    )}
-                  </th>
-                );
-              })}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map(row => (
-            <tr
-              key={row.id}
-              onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
-              className={getRowClassName ? getRowClassName(row.original, row.index) : undefined}
-              style={{ 
-                ...(onRowClick ? { cursor: 'pointer' } : {}),
-                contentVisibility: 'auto',
-                containIntrinsicSize: '0 64px'
-              }}
-            >
-              {row.getVisibleCells().map(cell => (
-                <td 
-                  key={cell.id} 
-                  style={{ textAlign: (cell.column.columnDef.meta as any)?.align ?? 'left' }}
-                  className={(cell.column.columnDef.meta as any)?.className}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {hasPagination && (
         <div className="rf-ui-data-table__pagination">

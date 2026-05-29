@@ -48,10 +48,10 @@ export function EstoqueInlineFilters() {
   }
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 w-full">
       {/* Row 1: Tabs + Period selector */}
-      <div className="flex items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
-        <div className="flex items-center gap-1 overflow-x-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06] w-full">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide w-full sm:w-auto min-w-0">
           {VIEW_TABS.map(({ key, label }) => (
             <button
               key={key}
@@ -73,7 +73,7 @@ export function EstoqueInlineFilters() {
         <select
           className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs font-bold text-slate-300 
                      focus:outline-none focus:border-teal-500/40 transition-colors appearance-none cursor-pointer
-                     min-w-[140px]"
+                     w-full sm:w-auto sm:min-w-[140px]"
           value={periodo}
           onChange={(e) => setPeriodo(e.target.value as any)}
           aria-label="Filtrar por período"
@@ -86,9 +86,9 @@ export function EstoqueInlineFilters() {
       </div>
 
       {/* Row 2: Search + inline filter pills */}
-      <div className="flex items-center gap-3 pt-4 flex-wrap">
+      <div className="flex flex-col md:flex-row md:items-center gap-3 pt-4 w-full">
         {/* Search input */}
-        <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="relative w-full md:flex-1 md:max-w-md">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
@@ -110,7 +110,7 @@ export function EstoqueInlineFilters() {
         </div>
 
         {/* Filter pills */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <SlidersHorizontal size={12} className="text-slate-600" />
 
           {isPosition ? (

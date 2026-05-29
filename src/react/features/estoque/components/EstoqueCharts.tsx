@@ -68,7 +68,7 @@ export function EstoqueCharts() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-full overflow-hidden">
       <ChartCard title="Evolução do Valor Estimado" description="Saldo total do estoque em R$">
         <SystemAreaChart
           data={valueData}

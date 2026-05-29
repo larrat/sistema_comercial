@@ -67,7 +67,7 @@ export function EstoquePage() {
       ) : null}
 
       {/* Main content card — tabs, filters, and table all unified */}
-      <section className="rf-card-premium rf-ui-form-section">
+      <section className="rf-card-premium rf-ui-form-section w-full max-w-full overflow-hidden">
         {/* Integrated header: tabs + filters */}
         <EstoqueInlineFilters />
 

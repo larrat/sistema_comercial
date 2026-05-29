@@ -12,17 +12,11 @@ import { savePedidoCompra, vincularNotaImportada } from '../services/comprasApi'
 import { toast } from 'sonner';
 
 export function ComprasRoutePage() {
-  const { token, resolve } = useApiContext();
+  const { resolve } = useApiContext();
   const { filialId } = useFilialStore();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState<'pedidos' | 'radar'>('pedidos');
-  const [prefillData, setPrefillData] = useState<{ 
-    fornecedor: string; 
-    itens: any[]; 
-    notaId: string;
-  } | null>(null);
 
   // Carregar produtos para poder fazer o matching prévio antes de renderizar o formulário
   const { data: produtos = [] } = useQuery({
@@ -35,35 +29,6 @@ export function ComprasRoutePage() {
       return listProdutos(context);
     },
     enabled: !!filialId
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: ({ pedido, itens }: { pedido: any; itens: any[] }) => 
-      savePedidoCompra(token!, pedido, itens),
-    onSuccess: async (savedPedido) => {
-      queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
-      queryClient.invalidateQueries({ queryKey: ['produtos'] });
-      
-      // Se veio de uma nota destinada, vinculamos a nota ao pedido recém-criado
-      if (prefillData?.notaId) {
-        try {
-          await vincularNotaImportada(token!, prefillData.notaId, savedPedido.id);
-          queryClient.invalidateQueries({ queryKey: ['nfe-destinadas'] });
-          toast.success('Pedido cadastrado e Nota Fiscal vinculada na SEFAZ com sucesso!');
-        } catch (err) {
-          console.error(err);
-          toast.error('Pedido salvo, mas falhou ao vincular nota fiscal destinada.');
-        }
-      } else {
-        toast.success('Pedido de compra salvo com sucesso!');
-      }
-
-      setIsFormOpen(false);
-      setPrefillData(null);
-    },
-    onError: (err: any) => {
-      toast.error(err.message || 'Falha ao salvar pedido de compra');
-    }
   });
 
   const handleImportNota = (nota: any) => {
@@ -101,25 +66,24 @@ export function ComprasRoutePage() {
           custo_unitario: imported.vUnCom,
           total_item: imported.qCom * imported.vUnCom,
           isXmlMatched: !!matched,
-          xmlSku: imported.cProd
+          xmlSku: imported.cProd,
+          foto_url: matched?.foto_url || null,
+          un: matched?.un || ''
         };
       });
 
-      setPrefillData({
+      const prefill = {
         fornecedor: parsed.nomeEmitente,
         itens: matchedItens,
         notaId: nota.id
-      });
-      setIsFormOpen(true);
+      };
+
+      navigate('/app/compras/novo', { state: { prefillData: prefill } });
       toast.info('Dados da NF-e carregados! Revise e associe produtos não vinculados antes de salvar.');
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Erro ao decodificar a nota fiscal destinada.');
     }
-  };
-
-  const handleSavePedido = (pedido: any, itens: any[]) => {
-    saveMutation.mutate({ pedido, itens });
   };
 
   return (
