@@ -29,6 +29,9 @@ export function OrcamentoPrintRoutePage() {
   if (isLoading) return <div className="p-10 text-center font-bold">Carregando Proposta...</div>;
   if (!orcamento) return <div className="p-10 text-center text-red-500">Orçamento não encontrado.</div>;
 
+  const isAdmin = orcamento.modalidade === 'administracao';
+  const taxaAdmin = orcamento.taxa_administracao_percentual || 20;
+
   // Agrupa itens por ambiente
   const ambientesMap = new Map<string, any[]>();
   (orcamento.itens || []).forEach(i => {
@@ -52,7 +55,9 @@ export function OrcamentoPrintRoutePage() {
         <header className="border-b-2 border-black pb-6 mb-8 flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900">RSC Reformas</h1>
-            <p className="text-sm text-slate-500 uppercase tracking-widest mt-1">Proposta Comercial Chave na Mão</p>
+            <p className="text-sm text-slate-500 uppercase tracking-widest mt-1">
+              Proposta Comercial - {isAdmin ? 'Gestão de Obra' : 'Chave na Mão'}
+            </p>
           </div>
           <div className="text-right">
             <p className="font-bold text-lg">{orcamento.titulo}</p>
@@ -82,12 +87,14 @@ export function OrcamentoPrintRoutePage() {
         </div>
 
         {/* Resumo Financeiro */}
-        <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+        <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 mb-8">
           <h2 className="text-xl font-black uppercase mb-4 text-slate-800">Resumo do Investimento</h2>
           
           <div className="flex justify-between items-center py-3 border-b border-slate-200">
             <span className="text-slate-600 font-medium">Modelo de Execução</span>
-            <span className="font-bold uppercase text-teal-700">Empreitada Global (Chave na Mão)</span>
+            <span className="font-bold uppercase text-teal-700">
+              {isAdmin ? 'Obra por Administração (Preço de Custo)' : 'Empreitada Global (Preço Fechado)'}
+            </span>
           </div>
           
           <div className="flex justify-between items-center py-3 border-b border-slate-200">
@@ -96,14 +103,32 @@ export function OrcamentoPrintRoutePage() {
           </div>
 
           <div className="flex justify-between items-center py-4 mt-2">
-            <span className="text-xl font-black uppercase tracking-tight text-slate-900">Preço Final (Material + Mão de Obra)</span>
+            <span className="text-xl font-black uppercase tracking-tight text-slate-900">
+              {isAdmin ? 'Investimento Total Estimado' : 'Preço Final (Material + Mão de Obra)'}
+            </span>
             <span className="text-3xl font-black text-slate-900">{fmtBRL(orcamento.calculos?.preco_venda_final || 0)}</span>
           </div>
-          <p className="text-xs text-slate-500 text-right mt-1">* Os valores acima já incluem todos os impostos, taxas de administração e BDI.</p>
+          <p className="text-xs text-slate-500 text-right mt-1">
+            {isAdmin 
+              ? `* O valor acima contempla o custo estimado de materiais e execução somado à Taxa de Administração da RSC (${taxaAdmin}%).` 
+              : '* Os valores acima já incluem todos os impostos, materiais, mão de obra e BDI.'}
+          </p>
+        </div>
+
+        {/* Cláusulas Dinâmicas */}
+        <div className="mb-12">
+          <h2 className="text-lg font-black uppercase mb-3 text-slate-800 border-b pb-1">Termos e Condições Comerciais</h2>
+          <p className="text-sm text-slate-600 text-justify leading-relaxed">
+            {isAdmin ? (
+              <>Esta proposta foi elaborada na modalidade <strong>"Taxa de Administração"</strong>. Os valores apresentados acima referentes a materiais e mão de obra terceirizada são ESTIMATIVAS baseadas no projeto fornecido. O cliente pagará o preço de custo real diretamente aos fornecedores através de prestação de contas quinzenal. A RSC Reformas atuará como gestora técnica e logística da obra, recebendo uma taxa de administração de <strong>{taxaAdmin}%</strong> sobre o custo direto total executado.</>
+            ) : (
+              <>Esta proposta foi elaborada na modalidade <strong>"Empreitada Global"</strong>. Os valores apresentados constituem preço fechado e irreajustável para o escopo estritamente descrito nesta proposta. Quaisquer alterações de layout não previstas na modelagem original aprovada, ou adequações em estruturas não aparentes (vícios ocultos em tubulações ou alvenarias pré-existentes), não compõem este escopo e serão orçadas separadamente como aditivos contratuais.</>
+            )}
+          </p>
         </div>
 
         {/* Assinaturas */}
-        <div className="mt-24 pt-8 border-t border-slate-300 grid grid-cols-2 gap-12 text-center">
+        <div className="mt-16 pt-8 border-t border-slate-300 grid grid-cols-2 gap-12 text-center break-inside-avoid">
           <div>
             <div className="border-b border-black mb-2 mx-8"></div>
             <p className="font-bold text-slate-800">RSC Reformas</p>

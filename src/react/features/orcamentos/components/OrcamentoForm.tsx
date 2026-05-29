@@ -17,7 +17,9 @@ type Props = {
 export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props) {
   const [titulo, setTitulo] = useState(initialData?.titulo || '');
   const [clienteNome, setClienteNome] = useState(initialData?.cliente_nome || initialData?.cliente?.nome || '');
+  const [modalidade, setModalidade] = useState<'empreitada' | 'administracao'>(initialData?.modalidade || 'empreitada');
   const [bdi, setBdi] = useState(initialData?.bdi_percentual ?? 30.0);
+  const [taxaAdmin, setTaxaAdmin] = useState(initialData?.taxa_administracao_percentual ?? 20.0);
   const [status, setStatus] = useState(initialData?.status || 'rascunho');
   const [itens, setItens] = useState<OrcamentoItem[]>(initialData?.itens || []);
   
@@ -99,8 +101,14 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
   const totalMaterial = itens.reduce((acc, i) => acc + (i.custo_material_unitario * i.quantidade), 0);
   const totalMaoObra = itens.reduce((acc, i) => acc + (i.custo_mao_obra_unitario * i.quantidade), 0);
   const custoDiretoTotal = totalMaterial + totalMaoObra;
-  const precoVendaFinal = custoDiretoTotal * (1 + (bdi / 100));
-  const margemBruta = precoVendaFinal - custoDiretoTotal;
+  
+  const precoVendaFinal = modalidade === 'administracao'
+    ? custoDiretoTotal * (1 + (taxaAdmin / 100))
+    : custoDiretoTotal * (1 + (bdi / 100));
+
+  const margemBruta = modalidade === 'administracao'
+    ? custoDiretoTotal * (taxaAdmin / 100)
+    : custoDiretoTotal * (bdi / 100);
 
   const handleSave = () => {
     if (!titulo) return toast.error('Informe um título para a obra');
@@ -115,7 +123,9 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
       id: initialData?.id,
       titulo,
       cliente_nome: clienteNome,
+      modalidade,
       bdi_percentual: bdi,
+      taxa_administracao_percentual: taxaAdmin,
       status
     }, itens);
   };
@@ -165,12 +175,25 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
                 />
               </div>
             </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Modalidade</label>
+              <select
+                value={modalidade}
+                onChange={(e) => setModalidade(e.target.value as 'empreitada' | 'administracao')}
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-teal-500/50"
+              >
+                <option value="empreitada">Empreitada de Mão de Obra</option>
+                <option value="administracao">Obra por Administração (Preço de Custo)</option>
+              </select>
+            </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Taxa de BDI (%)</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                {modalidade === 'empreitada' ? 'Taxa de BDI (%)' : 'Taxa de Administração (%)'}
+              </label>
               <input 
                 type="number" 
-                value={bdi}
-                onChange={(e) => setBdi(Number(e.target.value))}
+                value={modalidade === 'empreitada' ? bdi : taxaAdmin}
+                onChange={(e) => modalidade === 'empreitada' ? setBdi(Number(e.target.value)) : setTaxaAdmin(Number(e.target.value))}
                 step="0.5"
                 className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-teal-500/50"
               />
@@ -298,7 +321,9 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
               <span className="text-lg font-black text-amber-400">{fmtBRL(custoDiretoTotal)}</span>
             </div>
             <div>
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1 flex items-center gap-1"><Plus size={10}/> BDI ({bdi}%)</span>
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1 flex items-center gap-1">
+                <Plus size={10}/> {modalidade === 'empreitada' ? `BDI (${bdi}%)` : `Taxa Admin (${taxaAdmin}%)`}
+              </span>
               <span className="text-lg font-black text-emerald-400">{fmtBRL(margemBruta)}</span>
             </div>
             <div className="hidden lg:block h-8 w-px bg-white/10" />

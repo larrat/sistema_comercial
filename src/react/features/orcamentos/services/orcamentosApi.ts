@@ -15,7 +15,9 @@ export type OrcamentoItem = {
 export type OrcamentoCalculado = {
   orcamento_id: string;
   filial_id: string;
+  modalidade: 'empreitada' | 'administracao';
   bdi_percentual: number;
+  taxa_administracao_percentual: number;
   custo_direto_total: number;
   custo_material_total: number;
   custo_mao_obra_total: number;
@@ -30,7 +32,9 @@ export type OrcamentoObra = {
   cliente_nome?: string;
   titulo: string;
   descricao_escopo?: string;
+  modalidade: 'empreitada' | 'administracao';
   bdi_percentual: number;
+  taxa_administracao_percentual: number;
   status: 'rascunho' | 'enviado' | 'aprovado' | 'rejeitado';
   data_validade?: string;
   criado_em: string;
