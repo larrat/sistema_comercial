@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { ComprasPilotPage } from '../components/ComprasPilotPage';
 import { NotasDestinadasPanel } from '../components/NotasDestinadasPanel';
-import { PedidoCompraForm } from '../components/PedidoCompraForm';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { PageHeader, Button } from '../../../shared/ui';
 import { ShoppingBag, ShieldCheck, Plus, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { parseNFXML } from '../lib/xmlInvoiceParser';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { savePedidoCompra, vincularNotaImportada } from '../services/comprasApi';
@@ -16,9 +15,9 @@ export function ComprasRoutePage() {
   const { token, resolve } = useApiContext();
   const { filialId } = useFilialStore();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState<'pedidos' | 'radar'>('pedidos');
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<{ 
     fornecedor: string; 
     itens: any[]; 
@@ -142,10 +141,7 @@ export function ComprasRoutePage() {
               variant="primary" 
               className="!rounded-xl" 
               leftIcon={<Plus className="w-4 h-4" />}
-              onClick={() => {
-                setPrefillData(null);
-                setIsFormOpen(true);
-              }}
+              onClick={() => navigate('/app/compras/novo')}
             >
               Novo pedido
             </Button>
@@ -188,18 +184,7 @@ export function ComprasRoutePage() {
         )}
       </div>
 
-      {/* Purchase Order Create/Edit Modal */}
-      {isFormOpen && (
-        <PedidoCompraForm
-          filialId={filialId!}
-          prefillData={prefillData || undefined}
-          onClose={() => {
-            setIsFormOpen(false);
-            setPrefillData(null);
-          }}
-          onSave={handleSavePedido}
-        />
-      )}
+
     </main>
   );
 }
