@@ -9,6 +9,7 @@ import { listProdutos } from '../../produtos/services/produtosApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { contratosApi } from '../../contratos/services/contratosApi';
 import { parseNFXML } from '../lib/xmlInvoiceParser';
+import { useUIStore } from '../../../app/useUIStore';
 
 type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
@@ -23,6 +24,7 @@ interface FormItem extends PedidoCompraItem {
 }
 
 export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Props) {
+  const { sidebarCollapsed: collapsed } = useUIStore();
   const { resolve } = useApiContext();
   const [fornecedor, setFornecedor] = useState(prefillData?.fornecedor || '');
   const [itens, setItens] = useState<FormItem[]>(prefillData?.itens || []);
@@ -219,7 +221,10 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div 
+      className="fixed bottom-0 right-0 top-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
+      style={{ left: collapsed ? '80px' : '280px' }}
+    >
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h2 className="text-xl font-black text-white uppercase tracking-tight">Novo Pedido de Compra</h2>

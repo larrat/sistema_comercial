@@ -17,6 +17,7 @@ import {
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import type { ClienteProfileTab } from '../../../app/router/wave1Navigation';
+import { useUIStore } from '../../../app/useUIStore';
 
 import type { Cliente } from '../../../../types/domain';
 import {
@@ -45,6 +46,7 @@ export function ClientesPilotPage({
   onNewCliente
 }: ClientesPilotPageProps) {
   const navigate = useNavigate();
+  const { sidebarCollapsed: collapsed } = useUIStore();
   const page = useClienteStore((s) => s.page);
   const pageSize = useClienteStore((s) => s.pageSize);
   const filtro = useClienteStore((s) => s.filtro);
@@ -421,7 +423,11 @@ export function ClientesPilotPage({
         />
       ) : null}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" data-testid="cliente-form-modal">
+        <div 
+          className="fixed bottom-0 right-0 top-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300"
+          style={{ left: collapsed ? '80px' : '280px' }}
+          data-testid="cliente-form-modal"
+        >
           <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl relative">
             <ClienteForm
               initialCliente={editingCliente}

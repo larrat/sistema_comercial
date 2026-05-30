@@ -21,6 +21,7 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
+import { useUIStore } from '../../../app/useUIStore';
 import { formValuesToProduto } from '../hooks/useProdutoCalculations';
 import { ErrorState, LoadingState, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
@@ -173,6 +174,7 @@ export function ProdutoProfilePage({
   onReload
 }: Props) {
   const navigate = useNavigate();
+  const { sidebarCollapsed: collapsed } = useUIStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingCadastro, setEditingCadastro] = useState(searchParams.get('edit') === '1');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -906,7 +908,8 @@ export function ProdutoProfilePage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[999] bg-slate-950/90 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-8"
+            className="fixed bottom-0 right-0 top-0 z-[999] bg-slate-950/90 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-8 transition-all duration-300"
+            style={{ left: collapsed ? '80px' : '280px' }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
