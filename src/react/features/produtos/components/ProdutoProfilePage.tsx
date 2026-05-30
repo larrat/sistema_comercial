@@ -908,8 +908,8 @@ export function ProdutoProfilePage({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed bottom-0 right-0 top-0 z-[999] bg-slate-950/90 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-8 transition-all duration-300"
-            style={{ left: collapsed ? '80px' : '280px' }}
+            className="fixed bottom-0 right-0 z-[999] bg-slate-950/90 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-8 transition-all duration-300"
+            style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}

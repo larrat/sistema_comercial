@@ -424,8 +424,8 @@ export function ClientesPilotPage({
       ) : null}
       {isFormOpen && (
         <div 
-          className="fixed bottom-0 right-0 top-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300"
-          style={{ left: collapsed ? '80px' : '280px' }}
+          className="fixed bottom-0 right-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300"
+          style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
           data-testid="cliente-form-modal"
         >
           <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl relative">
