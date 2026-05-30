@@ -18,7 +18,7 @@ export function AppShell() {
       <AppSidebar />
       <div className="flex flex-col flex-1 min-w-0 relative">
         <AppTopbar />
-        <main className="flex-1 overflow-auto px-4 sm:px-8 py-6 pb-24 relative z-0">
+        <main className="flex-1 overflow-auto px-4 sm:px-8 py-6 pb-24 relative">
           <Outlet />
         </main>
       </div>
