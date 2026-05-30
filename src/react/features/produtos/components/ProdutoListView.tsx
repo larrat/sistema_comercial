@@ -54,19 +54,33 @@ function buildOrdem(produtos: Produto[]): ItemOrdenado[] {
     .sort((a, b) => a.nome.localeCompare(b.nome));
 
   const result: ItemOrdenado[] = [];
+  const addedIds = new Set<string>();
 
   pais.forEach((p) => {
+    if (addedIds.has(p.id)) return;
     const temFilhos = (variantesMap[p.id]?.length ?? 0) > 0;
     result.push({ prod: p, isPai: temFilhos, isVariante: false });
+    addedIds.add(p.id);
+
     (variantesMap[p.id] ?? [])
       .filter((v) => filtradosIds.has(v.id))
       .sort((a, b) => a.nome.localeCompare(b.nome))
-      .forEach((v) => result.push({ prod: v, isPai: false, isVariante: true }));
+      .forEach((v) => {
+        if (!addedIds.has(v.id)) {
+          result.push({ prod: v, isPai: false, isVariante: true });
+          addedIds.add(v.id);
+        }
+      });
   });
 
   produtos
     .filter((p) => p.produto_pai_id && !paiIdsCarregados.has(p.produto_pai_id))
-    .forEach((p) => result.push({ prod: p, isPai: false, isVariante: true }));
+    .forEach((p) => {
+      if (!addedIds.has(p.id)) {
+        result.push({ prod: p, isPai: false, isVariante: true });
+        addedIds.add(p.id);
+      }
+    });
 
   return result;
 }
@@ -235,7 +249,7 @@ export function ProdutoListView({
                   </div>
 
                   {/* Popover flutuante no hover de luxo */}
-                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-slate-950/95 border border-white/10 backdrop-blur-md p-3.5 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
+                  <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-slate-950/95 border border-white/10 backdrop-blur-md p-3.5 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-white/5 pb-1 flex items-center justify-between">
                       <span>Estoque por Grade</span>
                       <span className="text-[9px] text-[#C5A059]">{row.prod.un}</span>
