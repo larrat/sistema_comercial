@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { useEstoqueStore } from '../store/useEstoqueStore';
-import { EstoquePage } from '../components/EstoquePage';
+import { EstoquePilotPage } from '../components/EstoquePage';
 import { useEstoqueData } from '../hooks/useEstoqueData';
 
 export function EstoqueRoutePage() {
@@ -17,5 +17,5 @@ export function EstoqueRoutePage() {
     openMovementModal(abrirMovProdutoId);
   }, [abrirMovProdutoId, openMovementModal]);
 
-  return <EstoquePage />;
+  return <EstoquePilotPage />;
 }

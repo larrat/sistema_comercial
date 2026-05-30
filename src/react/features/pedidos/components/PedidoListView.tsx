@@ -7,6 +7,7 @@ import {
   FilterBar,
   PageHeader,
   PillGroup,
+  SegmentedControl,
   StatusBadge,
   Button
 } from '../../../shared/ui';
@@ -121,9 +122,10 @@ type Props = {
   onNovoPedido: () => void;
   onDetalhe: (id: string) => void;
   onRetry?: () => void;
+  onSwitchToKanban?: () => void;
 };
 
-export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
+export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Props) {
   const activeTab = usePedidoStore((s) => s.activeTab);
   const setActiveTab = usePedidoStore((s) => s.setActiveTab);
   const filtro = usePedidoStore((s) => s.filtro);
@@ -296,15 +298,25 @@ export function PedidoListView({ onNovoPedido, onDetalhe }: Props) {
               >
                 CSV
               </Button>
-              <button
-                className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan !py-2 !px-4 !text-xs !rounded-xl"
+              <Button
+                variant="primary"
                 onClick={onNovoPedido}
                 data-testid="novo-pedido"
                 title="Novo Pedido (Cmd+N)"
               >
                 <span className="hidden sm:inline">Novo pedido</span>
                 <span className="sm:hidden">Novo</span>
-              </button>
+              </Button>
+              {onSwitchToKanban && (
+                <SegmentedControl
+                  options={[
+                    { id: 'list', label: 'Lista' },
+                    { id: 'kanban', label: 'Kanban' }
+                  ]}
+                  activeId="list"
+                  onChange={(id) => { if (id === 'kanban') onSwitchToKanban(); }}
+                />
+              )}
             </div>
           }
         />

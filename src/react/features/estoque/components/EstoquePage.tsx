@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { ErrorState, FormSection, LoadingState } from '../../../shared/ui';
+import { ErrorState, FormSection, LoadingState, PageHeader, Button } from '../../../shared/ui';
 import { useFilialContext } from '../../../app/filial/FilialProvider';
 import { useEstoqueFilters } from '../hooks/useEstoqueFilters';
 import { useEstoqueMutations } from '../hooks/useEstoqueMutations';
@@ -14,10 +14,9 @@ import { EstoqueIdleTable } from './EstoqueIdleTable';
 import { EstoqueMovementModal } from './EstoqueMovementModal';
 import { EstoqueMetrics } from './EstoqueMetrics';
 import { EstoqueCharts } from './EstoqueCharts';
-import { EstoquePageHeader } from './EstoquePageHeader';
 import { EstoquePositionTable } from './EstoquePositionTable';
 
-export function EstoquePage() {
+export function EstoquePilotPage() {
   const { filialId } = useFilialContext();
   const { view, positionRows, historyRows } = useEstoqueFilters();
   const { deleteMovement } = useEstoqueMutations();
@@ -47,9 +46,16 @@ export function EstoquePage() {
 
   return (
     <div className="w-full flex flex-col gap-8">
-      <EstoquePageHeader
-        onCreateMovement={() => openMovementModal()}
-        onReload={requestReload}
+      <PageHeader
+        kicker="Operação"
+        title="Estoque"
+        description="Acompanhe saldo, histórico e movimentos críticos por produto na filial ativa."
+        actions={
+          <div className="flex items-center gap-3">
+            <Button onClick={requestReload}>Atualizar</Button>
+            <Button variant="primary" onClick={() => openMovementModal()}>Nova movimentação</Button>
+          </div>
+        }
       />
       <EstoqueMetrics metrics={metrics} />
       

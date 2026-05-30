@@ -1,4 +1,4 @@
-import { EmptyState, ErrorState, PageHeader, SegmentedControl } from '../../../shared/ui';
+import { LoadingState, ErrorState, PageHeader, SegmentedControl } from '../../../shared/ui';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { OportunidadesTab } from './OportunidadesTab';
 import { PerformanceTab } from './PerformanceTab';
@@ -12,7 +12,7 @@ const TABS: { id: RelatoriosTab; label: string }[] = [
   { id: 'clientes', label: 'Base de clientes' }
 ];
 
-export function RelatoriosPage() {
+export function RelatoriosPilotPage() {
   const activeTab = useRelatoriosStore((s) => s.activeTab);
   const setActiveTab = useRelatoriosStore((s) => s.setActiveTab);
   const loading = useRelatoriosStore((s) => s.loading);
@@ -36,7 +36,7 @@ export function RelatoriosPage() {
         />
       </div>
 
-      {loading && <EmptyState title="Carregando dados..." compact />}
+      {loading && <LoadingState title="Carregando relatórios..." compact />}
 
       {!loading && activeTab === 'oportunidades' && <OportunidadesTab />}
       {!loading && activeTab === 'performance' && <PerformanceTab />}

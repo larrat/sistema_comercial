@@ -1,7 +1,7 @@
 import { useRelatoriosData } from '../hooks/useRelatoriosData';
-import { RelatoriosPage } from '../components/RelatoriosPage';
+import { RelatoriosPilotPage } from '../components/RelatoriosPage';
 
 export function RelatoriosRoutePage() {
   useRelatoriosData();
-  return <RelatoriosPage />;
+  return <RelatoriosPilotPage />;
 }

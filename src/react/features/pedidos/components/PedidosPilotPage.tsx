@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import { PedidoListView } from './PedidoListView';
 import { PedidoKanbanView } from './PedidoKanbanView';
-import { SegmentedControl } from '../../../shared/ui/SegmentedControl';
+import { PageHeader, Button, SegmentedControl } from '../../../shared/ui';
 import { useQueryState, parseAsString } from 'nuqs';
 
 import type { Pedido } from '../../../../types/domain';
@@ -47,10 +46,6 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   const navigate = useNavigate();
   const { trackEvent } = useAnalytics({ module: 'pedidos' });
 
-  const [editingId, setEditingId] = useState<string | null>(null); // 'new' | pedidoId | null
-  const [formOrigin, setFormOrigin] = useState<string>('unknown');
-  const [prefillClienteId, setPrefillClienteId] = useState<string | null>(null);
-
   const [viewMode, setViewMode] = useQueryState('viewMode', parseAsString.withDefault('list'));
 
   function openNewPedido(origin: string, clienteId?: string | null) {
@@ -87,16 +82,31 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
       initial="hidden"
       animate="visible"
     >
-      <motion.div variants={pageItem} className="flex items-center justify-end px-2">
-        <SegmentedControl
-          options={[
-            { id: 'list', label: 'Lista' },
-            { id: 'kanban', label: 'Kanban' }
-          ]}
-          activeId={viewMode}
-          onChange={(id) => setViewMode(id)}
-        />
-      </motion.div>
+      {/* Kanban tem header próprio aqui pois PedidoListView já tem o seu */}
+      {viewMode === 'kanban' && (
+        <motion.div variants={pageItem}>
+          <PageHeader
+            kicker="Vendas"
+            title="Pedidos — Kanban"
+            description="Visualize e mova pedidos entre status arrastando os cards."
+            actions={
+              <div className="flex items-center gap-3">
+                <Button variant="primary" onClick={() => openNewPedido('kanban_button')}>
+                  Novo pedido
+                </Button>
+                <SegmentedControl
+                  options={[
+                    { id: 'list', label: 'Lista' },
+                    { id: 'kanban', label: 'Kanban' }
+                  ]}
+                  activeId={viewMode}
+                  onChange={(id) => setViewMode(id)}
+                />
+              </div>
+            }
+          />
+        </motion.div>
+      )}
 
       <motion.div variants={pageItem}>
         {viewMode === 'kanban' ? (
@@ -104,10 +114,8 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
         ) : (
           <PedidoListView
             onNovoPedido={() => openNewPedido('list_button')}
-            onDetalhe={(id) => {
-              setEditingId(null);
-              navigate(`/app/pedidos/${encodeURIComponent(id)}`);
-            }}
+            onDetalhe={(id) => navigate(`/app/pedidos/${encodeURIComponent(id)}`)}
+            onSwitchToKanban={() => setViewMode('kanban')}
           />
         )}
       </motion.div>

@@ -17,5 +17,5 @@
     "allowArbitraryExtensions": true
   },
   "include": ["src/**/*.js", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "vite.config.ts"],
-  "exclude": ["node_modules", "test-results", "tests"]
+  "exclude": ["node_modules", "test-results", "tests", "src/react/shared/templates"]
 }
