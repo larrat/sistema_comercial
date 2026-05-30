@@ -1,4 +1,4 @@
-export { Button } from './Button';
+export { Button, cn } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
 export { Badge } from './Badge';
 export type { BadgeProps, BadgeVariant } from './Badge';
@@ -11,7 +11,7 @@ export { FilterBar } from './FilterBar';
 export { ActionMenu } from './ActionMenu';
 export { DataTable } from './DataTable';
 export { StatusBadge } from './StatusBadge';
-export type { StatusBadgeTone } from './StatusBadge';
+export type { StatusBadgeProps, StatusBadgeTone } from './StatusBadge';
 export { EmptyState } from './EmptyState';
 export { LoadingState } from './LoadingState';
 export { ErrorState } from './ErrorState';

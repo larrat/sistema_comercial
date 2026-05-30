@@ -1,48 +1,23 @@
-import { fmtBRL } from '../../../shared/lib/formatters';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ComposedChart,
-  Line,
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip
-} from 'recharts';
-import ReactCountUp from 'react-countup';
-import { motion, AnimatePresence } from 'framer-motion';
-
-// Fallback para garantir que CountUp seja um componente válido em produção (Vercel)
-const CountUp = (ReactCountUp as any).default || ReactCountUp;
+import { motion } from 'framer-motion';
 import {
-  AlertCircle,
   Activity,
-  ArrowUpRight,
-  CheckCircle2,
-  ChevronRight,
-  RefreshCw,
   TrendingUp,
-  HelpCircle,
   Zap,
   ShieldCheck,
   ShieldAlert,
-  FileText as FileIcon,
-  PieChart as PieChartIcon
+  HelpCircle
 } from 'lucide-react';
 import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
-import { useFilialStore } from '../../../app/useFilialStore';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
 import { useQueryState, parseAsString } from 'nuqs';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
-import { LoadingState, ErrorState, EmptyState, StatusBadge, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
+import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
+import { LoadingState, ErrorState, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import { FunnelChart } from './FunnelChart';
 import { RcaRankingChart } from './RcaRankingChart';
@@ -50,25 +25,13 @@ import { MetaGaugeChart } from './MetaGaugeChart';
 import { AgingChart } from './AgingChart';
 import { CashFlowProjection } from './CashFlowProjection';
 import { RfmSegmentation } from './RfmSegmentation';
-import DashboardWorker from '../workers/dashboard.worker?worker';
+import { MetricsGrid } from './MetricsGrid';
+import { SalesPerformanceChart } from './SalesPerformanceChart';
+import { SalesMixCard } from './SalesMixCard';
+import { RefreshCw } from 'lucide-react';
+import { cn } from '../../../shared/ui/index';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
-const fmt = (v: number) => fmtBRL(v || 0);
-
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  orcamento: { label: 'Orçamento', color: 'var(--text-muted)' },
-  em_andamento: { label: 'Em andamento', color: 'var(--color-indigo-vibrant)' },
-  em_separacao: { label: 'Em separação', color: 'var(--color-amber-vibrant)' },
-  entregue_aguardando_pagamento: { label: 'Aguardando Pagamento', color: 'var(--color-teal-primary)' },
-  pago_aguardando_entrega: { label: 'Aguardando Entrega', color: 'var(--color-indigo-vibrant)' },
-  concluido: { label: 'Concluído', color: 'var(--color-emerald-vibrant)' },
-  cancelado: { label: 'Cancelado', color: 'var(--color-rose-vibrant)' }
-};
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-// Shell único para padronizar TODOS os tooltips do sistema
 function TooltipShell({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={cn(
@@ -105,28 +68,6 @@ function PremiumTooltip({ children, content }: { children: React.ReactNode; cont
   );
 }
 
-// Componente BadgeDelta no Estilo Tremor UI
-function BadgeDelta({ value, isPositive, isNeutral }: { value: string; isPositive: boolean; isNeutral: boolean }) {
-  if (isNeutral) {
-    return (
-      <span className="text-[9px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 border bg-slate-500/10 text-slate-400 border-slate-500/20 uppercase tracking-wider">
-        {value}
-      </span>
-    );
-  }
-  return (
-    <span className={cn(
-      "text-[9px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 border uppercase tracking-wider",
-      isPositive 
-        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-        : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-    )}>
-      <ArrowUpRight size={10} className={isPositive ? "" : "rotate-90"} />
-      {value}
-    </span>
-  );
-}
-
 type DashboardPilotPageProps = {
   onNavigatePage?: (page: string) => void;
   onReload?: () => void;
@@ -139,7 +80,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   const { 
     periodo, setPeriodo, 
     visao, setVisao,
-    pedidos, produtos, clientes, contasReceber, filial,
+    filial,
     status, error 
   } = useDashboardStore();
 
@@ -156,6 +97,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { alerts } = useGlobalAlerts();
+  const { workerData } = useDashboardMetrics();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -163,85 +105,10 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
     setIsRefreshing(false);
   };
 
-  // --- Cálculos via Web Worker ---
-  const [workerData, setWorkerData] = useState<{
-    stats: any;
-    chartData: any;
-    periodoDatas: string;
-    topProducts: any;
-    statusDistribution: any;
-    healthMetrics: any;
-    rcaRanking: any;
-    funnelData: any;
-    agingData: any;
-    financeMetrics: any;
-    cashFlowData: any;
-    rfmData: any;
-  } | null>(null);
-
-  const workerRef = useRef<Worker | null>(null);
-
-  useEffect(() => {
-    workerRef.current = new DashboardWorker();
-    workerRef.current.onmessage = (e) => setWorkerData(e.data);
-    return () => workerRef.current?.terminate();
-  }, []);
-
-  useEffect(() => {
-    if (!workerRef.current) return;
-    workerRef.current.postMessage({
-      pedidos,
-      produtos,
-      clientes,
-      contasReceber,
-      periodo,
-      statusKeys: Object.keys(STATUS_CONFIG)
-    });
-  }, [pedidos, produtos, clientes, contasReceber, periodo]);
-
   if (status === 'error') return <ErrorState title="Falha ao carregar dashboard" description={error || ''} onRetry={reload} />;
   if (status === 'loading' || !workerData) return <LoadingState description="Consolidando indicadores comerciais..." />;
-  const { stats, chartData, periodoDatas, topProducts, statusDistribution } = workerData;
-
-  // Mapeamento dos cartões de métricas superiores (KPIs)
-  const metricCards = [
-    { 
-      label: 'Faturamento', val: stats?.faturamento || 0, prefix: 'R$ ', color: 'text-[#C5A059]', borderColor: '#C5A059', 
-      trend: typeof stats?.trends?.faturamento === 'number' ? `${stats.trends.faturamento > 0 ? '+' : ''}${stats.trends.faturamento.toFixed(1)}%` : '-', 
-      trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
-      trendUp: typeof stats?.trends?.faturamento === 'number' ? stats.trends.faturamento >= 0 : true,
-    },
-    { 
-      label: 'Lucro bruto', val: stats?.lucroTotal || 0, prefix: 'R$ ', color: 'text-emerald-400', borderColor: '#10b981', 
-      trend: typeof stats?.trends?.lucro === 'number' ? `${stats.trends.lucro > 0 ? '+' : ''}${stats.trends.lucro.toFixed(1)}%` : '-', 
-      trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
-      trendUp: typeof stats?.trends?.lucro === 'number' ? stats.trends.lucro >= 0 : true,
-    },
-    { 
-      label: 'Ticket médio', val: stats?.ticketMedio || 0, prefix: 'R$ ', color: 'text-cyan-400', borderColor: '#22d3ee', 
-      trend: typeof stats?.trends?.ticket === 'number' ? `${stats.trends.ticket > 0 ? '+' : ''}${stats.trends.ticket.toFixed(1)}%` : '-', 
-      trendLabel: periodo === 'tudo' ? '-' : `vs ${periodo} anterior`, 
-      trendUp: typeof stats?.trends?.ticket === 'number' ? stats.trends.ticket >= 0 : true,
-    },
-    { 
-      label: 'Contas em aberto', val: stats?.valorEmAberto || 0, prefix: 'R$ ', color: (stats?.valorEmAberto || 0) > 0 ? 'text-amber-400' : 'text-emerald-400', borderColor: '#f59e0b', 
-      trend: '-', 
-      trendLabel: 'Variação N/A', 
-      trendUp: (stats?.valorEmAberto || 0) === 0,
-    },
-    { 
-      label: 'Inadimplência', val: workerData?.financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (workerData?.financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', borderColor: '#f43f5e', 
-      trend: '-', 
-      trendLabel: 'Variação N/A', 
-      trendUp: (workerData?.financeMetrics?.inadimplencia || 0) <= 5,
-    },
-    { 
-      label: 'DSO (Prazo)', val: workerData?.financeMetrics?.dso || 0, prefix: '', suffix: ' dias', color: 'text-indigo-400', borderColor: '#818cf8', 
-      trend: '-', 
-      trendLabel: 'Variação N/A', 
-      trendUp: true,
-    }
-  ];
+  
+  const { stats, chartData, periodoDatas, topProducts, financeMetrics } = workerData;
 
   return (
     <div className="flex-1 w-full flex flex-col gap-8 animate-in fade-in duration-500">
@@ -291,135 +158,13 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
       />
 
       {/* Linha 1: Grade Uniforme de KPIs */}
-      <motion.section 
-        initial="hidden" animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-6"
-      >
-        {metricCards.map((stat, i) => (
-          <motion.article 
-            key={i}
-            variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
-          >
-            <Card 
-              className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between h-full min-h-[140px] relative border-t-2! group" 
-              style={{ borderTopColor: stat.borderColor }}
-              variant="glass"
-              padding="sm"
-            >
-              {/* Efeito glow no hover */}
-              <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              
-              <div className="flex items-start justify-between gap-2 relative z-10">
-                <Typography variant="label" color="muted" className="text-[10px] font-black uppercase tracking-wider">{stat.label}</Typography>
-                <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />
-              </div>
-              <div className="mt-4 mb-2 relative z-10">
-                <span className={cn("text-xl lg:text-2xl 2xl:text-3xl font-black font-display tracking-tight truncate whitespace-nowrap block tabular-nums", stat.color)}>
-                  <CountUp 
-                    end={stat.val || 0} 
-                    decimals={stat.suffix === ' dias' ? 0 : 2} 
-                    decimal="," 
-                    prefix={stat.prefix} 
-                    suffix={stat.suffix} 
-                    duration={1.5} 
-                    separator="." 
-                  />
-                </span>
-              </div>
-              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block mt-1 relative z-10">{stat.trendLabel}</span>
-            </Card>
-          </motion.article>
-        ))}
-      </motion.section>
+      <MetricsGrid stats={stats} financeMetrics={financeMetrics} periodo={periodo} />
 
       {/* Linha Principal: Desempenho Comercial & Meta */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {visao !== 'operacional' && (
           <div className="lg:col-span-2">
-            <Card padding="none" variant="glass" className="h-full flex flex-col justify-between transition-all duration-300 hover:shadow-2xl">
-              <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-                <div className="space-y-0.5">
-                  <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Desempenho Comercial</Typography>
-                  <Typography variant="caption" color="muted">Faturamento vs Lucro Bruto</Typography>
-                </div>
-                <div className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold uppercase tracking-widest">
-                  {periodoDatas}
-                </div>
-              </div>
-              
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div 
-                  className="h-72 w-full mt-2" 
-                  role="figure" 
-                  aria-label={`Gráfico de área exibindo o faturamento e lucro ao longo do período: ${periodoDatas}`}
-                >
-                  {chartData.length === 0 ? (
-                    <EmptyState 
-                      icon={<TrendingUp size={32} className="text-slate-500" />} 
-                      title="Nenhum registro comercial" 
-                      description="Não existem vendas registradas para o período selecionado." 
-                    />
-                  ) : (
-                    <ComposedChart responsive width="100%" height="100%" data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }} onClick={(data: any) => { if (data && data.activePayload) navigate('/app/pedidos'); }}>
-                      <defs>
-                          <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.5}/>
-                            <stop offset="60%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.1}/>
-                            <stop offset="100%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
-                          </linearGradient>
-                          <filter id="areaGlow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="5" result="blur" />
-                            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                          </filter>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} dy={10} />
-                        <YAxis hide domain={['auto', 'auto']} />
-                        <Tooltip cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '3 3' }} content={({ active, payload, label }) => {
-                          if (active && payload?.length) {
-                            return (
-                              <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.15)] ring-1 ring-white/10 min-w-[180px] animate-in zoom-in-95 duration-100">
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
-                                <div className="space-y-3">
-                                  {payload.map((entry: any, idx: number) => (
-                                    <div key={idx} className="flex items-center justify-between gap-6">
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: entry.color, color: entry.color }} />
-                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">{entry.name}</span>
-                                      </div>
-                                      <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }} />
-                        <Line type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} />
-                        <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="var(--color-amber-vibrant)" strokeWidth={4} fillOpacity={1} fill="url(#colorFat)" style={{ filter: 'url(#areaGlow)' }} activeDot={{ r: 6, fill: 'var(--color-amber-vibrant)', stroke: '#fff', strokeWidth: 2, filter: 'url(#areaGlow)' }} />
-                    </ComposedChart>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6 pt-6 border-t border-white/5">
-                  {[
-                    { label: 'Melhor Dia', val: Math.max(...chartData.map((d: any) => d.faturamento), 0) },
-                    { label: 'Média Diária', val: chartData.length > 0 ? chartData.reduce((acc: any, d: any) => acc + d.faturamento, 0) / chartData.length : 0 },
-                    { label: 'Total Período', val: chartData.reduce((acc: any, d: any) => acc + d.faturamento, 0) },
-                    { label: 'Margem Bruta', val: stats.margem, suffix: '%' }
-                  ].map((m, i) => (
-                    <div key={i}>
-                      <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{m.label}</span>
-                      <span className="block text-lg font-black text-white">
-                        {m.suffix ? `${m.val.toFixed(1)}%` : fmt(m.val)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
+            <SalesPerformanceChart chartData={chartData} stats={stats} periodoDatas={periodoDatas} />
           </div>
         )}
 
@@ -454,57 +199,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
         </Card>
 
         {/* Mix de Vendas */}
-        <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-cyan-400">
-          <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
-            <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Mix de Vendas</Typography>
-            <Typography variant="caption" color="muted">Top Categorias mais vendidas</Typography>
-          </div>
-          <div className="p-6 flex-1 flex flex-col justify-center">
-            {topProducts.length === 0 ? (
-              <EmptyState 
-                icon={<PieChartIcon size={32} className="text-slate-500" />} 
-                title="Mix vazio" 
-                description="Sem movimentação de produtos no período." 
-              />
-            ) : (
-              <div className="flex flex-col h-full gap-4 pt-2">
-                 {topProducts.slice(0, 5).map((p: any, i: number) => {
-                   const maxReceita = Math.max(...topProducts.map((tp: any) => tp.receita));
-                   const width = (p.receita / maxReceita) * 100;
-                   const colors = [
-                     'var(--color-teal-primary)', 
-                     'var(--color-amber-vibrant)', 
-                     'var(--color-emerald-vibrant)', 
-                     'var(--color-indigo-vibrant)', 
-                     'var(--color-rose-vibrant)'
-                   ];
-                   const color = colors[i % colors.length];
-
-                   return (
-                     <div key={i} className="flex flex-col gap-1.5 cursor-pointer hover:bg-white/[0.04] p-2 -mx-2 rounded-xl transition-all group" onClick={() => navigate('/app/produtos')}>
-                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
-                         <span className="text-slate-300 truncate max-w-[180px] group-hover:text-white transition-colors">{p.nome}</span>
-                         <div className="text-right">
-                           <span className="text-white block tabular-nums">{fmt(p.receita)}</span>
-                         </div>
-                       </div>
-                       <div className="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden">
-                         <div className="h-full rounded-full transition-all duration-1000 group-hover:brightness-110" style={{ width: `${Math.max(width, 2)}%`, backgroundColor: color, boxShadow: `0 0 10px ${color}40` }} />
-                       </div>
-                     </div>
-                   );
-                 })}
-                 {topProducts.length > 5 && (
-                   <div className="mt-2 text-center">
-                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest cursor-pointer hover:text-white transition-colors" onClick={() => navigate('/app/produtos')}>
-                       + {topProducts.length - 5} outros produtos
-                     </span>
-                   </div>
-                 )}
-              </div>
-            )}
-          </div>
-        </Card>
+        <SalesMixCard topProducts={topProducts} />
 
         {/* Aging Contas a Receber */}
         <Card padding="none" variant="glass" className="flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:shadow-xl border-t-2! border-t-emerald-400">

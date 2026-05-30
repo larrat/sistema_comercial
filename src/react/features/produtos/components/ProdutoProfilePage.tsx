@@ -421,7 +421,10 @@ export function ProdutoProfilePage({
       {error ? <ErrorState title={error} compact onRetry={onReload} /> : null}
 
       <section className="flex items-center gap-8">
-        <div className="w-28 h-28 rounded-3xl bg-slate-900 shadow-2xl border border-white/5 flex items-center justify-center relative overflow-hidden group cursor-pointer">
+        <div 
+          className="w-28 h-28 rounded-3xl bg-slate-900 shadow-2xl border border-white/5 flex items-center justify-center relative overflow-hidden group cursor-pointer"
+          style={{ viewTransitionName: `product-thumb-${produto.id}` }}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-blue-600 opacity-0 group-hover:opacity-90 transition-all duration-500 flex flex-col items-center justify-center text-white gap-2">
             <Camera className="w-6 h-6 translate-y-4 group-hover:translate-y-0 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Trocar Foto</span>

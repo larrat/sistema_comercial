@@ -1,51 +1,59 @@
 import type { ReactNode, CSSProperties } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from './index';
 
-type CardProps = {
+const cardVariants = cva(
+  'rounded-2xl border transition-colors duration-300 overflow-hidden',
+  {
+    variants: {
+      variant: {
+        solid: 'bg-slate-900 border-white/5 shadow-sm',
+        glass: 'bg-slate-900/40 backdrop-blur-md border-white/10 shadow-xl',
+        'glass-heavy': 'bg-slate-900/60 backdrop-blur-xl border-white/20 shadow-2xl',
+      },
+      padding: {
+        none: 'p-0',
+        sm: 'p-4',
+        md: 'p-6',
+        lg: 'p-8',
+      },
+      isInteractive: {
+        true: 'cursor-pointer hover:border-white/20 hover:-translate-y-[2px] active:scale-[0.98]',
+        false: '',
+      }
+    },
+    defaultVariants: {
+      variant: 'solid',
+      padding: 'md',
+      isInteractive: false,
+    },
+  }
+);
+
+export interface CardProps extends VariantProps<typeof cardVariants> {
   children: ReactNode;
   className?: string;
-  variant?: 'solid' | 'glass' | 'glass-heavy';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
   id?: string;
   onClick?: () => void;
   style?: CSSProperties;
-};
+}
 
 export function Card({ 
   children, 
-  className = '', 
-  variant = 'solid', 
-  padding = 'md',
+  className, 
+  variant, 
+  padding,
   id,
   onClick,
   style
 }: CardProps) {
-  const paddings = {
-    none: 'p-0',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8'
-  };
-
-  const variants = {
-    solid: 'bg-surface-card border-border-subtle shadow-sm',
-    glass: 'rf-glass shadow-xl',
-    'glass-heavy': 'rf-glass-heavy shadow-2xl'
-  };
-
-  const baseClasses = `
-    rounded-2xl 
-    border 
-    transition-colors 
-    duration-300 
-    overflow-hidden
-    ${variants[variant]}
-    ${paddings[padding]}
-    ${onClick ? 'cursor-pointer hover:border-border-bold hover:translate-y-[-2px]' : ''}
-    ${className}
-  `.replace(/\s+/g, ' ').trim();
-
   return (
-    <div id={id} className={baseClasses} onClick={onClick} style={style}>
+    <div 
+      id={id} 
+      className={cn(cardVariants({ variant, padding, isInteractive: !!onClick, className }))} 
+      onClick={onClick} 
+      style={style}
+    >
       {children}
     </div>
   );

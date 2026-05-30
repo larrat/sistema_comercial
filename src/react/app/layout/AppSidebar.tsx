@@ -84,6 +84,7 @@ function SidebarNavItem({
   return (
     <NavLink
       to={item.path}
+      viewTransition
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={({ isActive }) =>

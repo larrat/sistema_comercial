@@ -167,7 +167,10 @@ export function ProdutoListView({
                   ↳
                 </span>
               ) : null}
-              <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
+              <div 
+                className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center"
+                style={{ viewTransitionName: `product-thumb-${row.prod.id}` }}
+              >
                  {row.prod.foto_url ? (
                    <img src={row.prod.foto_url} alt={row.prod.nome} className="w-full h-full object-cover" />
                  ) : (
@@ -402,7 +405,10 @@ export function ProdutoListMobile({
             </div>
             <div className="mobile-card-head">
               <div className="flex items-center gap-3" style={{ minWidth: 0 }}>
-                <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-lg">
+                <div 
+                  className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center shadow-lg"
+                  style={{ viewTransitionName: `product-thumb-${p.id}` }}
+                >
                    {p.foto_url ? (
                      <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
                    ) : (

@@ -107,7 +107,7 @@ export function AppTopbar() {
                     <button
                       key={p.id}
                       onClick={() => {
-                        navigate(`/app/produtos?id=${p.id}`);
+                        navigate(`/app/produtos?id=${p.id}`, { viewTransition: true });
                         setShowResults(false);
                         setQuery('');
                       }}

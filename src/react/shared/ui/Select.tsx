@@ -2,6 +2,23 @@ import React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { ChevronDown, Check } from 'lucide-react';
 import type { SelectHTMLAttributes } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from './index';
+
+const selectTriggerVariants = cva(
+  'flex items-center justify-between w-full bg-slate-900/50 border rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:ring-2 transition-all shadow-inner data-[placeholder]:text-slate-600',
+  {
+    variants: {
+      hasError: {
+        true: 'border-rose-500/50 focus:ring-rose-500/20 focus:border-rose-500',
+        false: 'border-slate-700/50 focus:ring-emerald-500/30 focus:border-emerald-500/50 hover:border-slate-600/50',
+      },
+    },
+    defaultVariants: {
+      hasError: false,
+    },
+  }
+);
 
 export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value'> {
   label?: string;
@@ -18,8 +35,8 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
 export function Select({
   label,
   error,
-  containerClassName = '',
-  className = '',
+  containerClassName,
+  className,
   id,
   options = [],
   helperText,
@@ -27,9 +44,17 @@ export function Select({
   onChange,
   onValueChange,
   placeholder = 'Selecione uma opção',
+  required,
   ...props
 }: SelectProps) {
-  const selectId = id || `select-${Math.random().toString(36).slice(2, 9)}`;
+  const generatedId = id || `select-${Math.random().toString(36).slice(2, 9)}`;
+  const errorId = `${generatedId}-error`;
+  const helperId = `${generatedId}-helper`;
+
+  const describedBy = [
+    error ? errorId : undefined,
+    helperText && !error ? helperId : undefined,
+  ].filter(Boolean).join(' ') || undefined;
 
   const handleValueChange = (val: string) => {
     const finalVal = val === '__empty__' ? '' : val;
@@ -40,15 +65,15 @@ export function Select({
   };
 
   return (
-    <div className={`rf-ui-form-field ${containerClassName}`}>
+    <div className={cn("w-full flex flex-col gap-1.5", containerClassName)}>
       {label && (
-        <label htmlFor={selectId} className="rf-ui-form-field__label text-xs font-bold text-slate-300 uppercase tracking-widest mb-2 block">
+        <label htmlFor={generatedId} className="text-xs font-semibold text-slate-300 ml-1 flex items-center">
           {label}
-          {props.required && <span className="text-rose-500 ml-1">*</span>}
+          {required && <span className="text-rose-500 ml-1" aria-hidden="true">*</span>}
         </label>
       )}
       
-      <div className="rf-ui-form-field__control">
+      <div className="relative">
         <SelectPrimitive.Root
           value={value !== undefined ? (String(value) === '' ? '__empty__' : String(value)) : undefined}
           onValueChange={handleValueChange}
@@ -56,8 +81,10 @@ export function Select({
           name={props.name}
         >
           <SelectPrimitive.Trigger
-            id={selectId}
-            className={`flex items-center justify-between w-full rf-input-premium bg-slate-900/50 backdrop-blur-sm border border-white/10 px-4 py-2.5 rounded-xl text-sm text-slate-200 outline-none focus:ring-2 focus:ring-teal-500/50 data-[placeholder]:text-slate-500 transition-all ${error ? '!border-rose-500 !ring-rose-500/20' : ''} ${className}`}
+            id={generatedId}
+            aria-invalid={!!error}
+            aria-describedby={describedBy}
+            className={cn(selectTriggerVariants({ hasError: !!error }), className)}
           >
             <SelectPrimitive.Value placeholder={placeholder} />
             <SelectPrimitive.Icon>
@@ -67,7 +94,7 @@ export function Select({
 
           <SelectPrimitive.Portal>
             <SelectPrimitive.Content
-              className="z-[999] overflow-hidden bg-slate-900 border border-white/10 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] animate-in fade-in-80 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2"
+              className="z-[999] overflow-hidden bg-slate-900 border border-slate-700/50 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] animate-in fade-in-80 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2"
               position="popper"
               sideOffset={4}
             >
@@ -78,11 +105,11 @@ export function Select({
                     <SelectPrimitive.Item
                       key={itemValue}
                       value={itemValue}
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-slate-200 outline-none hover:bg-slate-800 focus:bg-slate-800 focus:text-teal-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors"
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm text-slate-200 outline-none hover:bg-slate-800 focus:bg-slate-800 focus:text-emerald-400 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors"
                     >
                       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
                         <SelectPrimitive.ItemIndicator>
-                          <Check className="h-4 w-4 text-teal-500" />
+                          <Check className="h-4 w-4 text-emerald-500" />
                         </SelectPrimitive.ItemIndicator>
                       </span>
                       <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
@@ -96,11 +123,15 @@ export function Select({
       </div>
 
       {helperText && !error && (
-        <p className="text-[10px] text-slate-400 mt-1 italic">{helperText}</p>
+        <p id={helperId} className="text-[11px] text-slate-400 mt-0.5 ml-1 italic">
+          {helperText}
+        </p>
       )}
 
       {error && (
-        <p className="rf-ui-form-field__error text-[10px] text-rose-500 mt-1 font-bold">{error}</p>
+        <p id={errorId} className="text-[11px] text-rose-400 mt-0.5 ml-1 font-medium" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );
