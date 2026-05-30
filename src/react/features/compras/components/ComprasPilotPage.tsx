@@ -59,12 +59,13 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
       // 1. Finaliza a transação do pedido no banco de dados (RPC)
       await finalizarPedidoCompra(token!, p);
 
+      const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
+      const config = getSupabaseConfig();
+
       // 2. Fallback de Sincronização de Estoque via Frontend
       // Caso a trigger de sincronização de estoque automático no banco não esteja instalada
       // ou ativa na instância de produção, fazemos a atualização direta da tabela 'produtos'.
       try {
-        const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
-        const config = getSupabaseConfig();
         const itens = p.pedido_compra_itens || p.itens || [];
 
         for (const item of itens) {
@@ -111,10 +112,49 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
       } catch (err) {
         console.error('Erro na sincronização de estoque via frontend fallback:', err);
       }
+
+      // 3. Fallback/Forçamento de Registro no Caixa
+      // Garante que o caixa registre a saída referente a esta compra de forma imediata,
+      // permitindo que o saldo fique negativo e reflita a saída do caixa.
+      try {
+        // Verifica se já existe um lançamento para este pedido de compra no caixa para evitar duplicidade
+        const resCheck = await fetch(`${config.url}/rest/v1/caixa_transacoes?entidade_id=eq.${p.id}&select=id`, {
+          headers: {
+            apikey: config.key,
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const existingTrans = resCheck.ok ? await resCheck.json() : [];
+
+        if (existingTrans.length === 0) {
+          // Se não existir, faz a inserção direta da saída no caixa
+          await fetch(`${config.url}/rest/v1/caixa_transacoes`, {
+            method: 'POST',
+            headers: {
+              apikey: config.key,
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              filial_id: p.filial_id,
+              tipo: 'saida',
+              valor: Number(p.total),
+              categoria_id: 'compra',
+              descricao: `Compra: ${p.fornecedor_nome} — Pedido ${p.id.substring(0, 8)}`,
+              entidade_id: p.id,
+              entidade_tipo: 'fornecedor'
+            })
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao registrar fluxo de caixa fallback:', err);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
+      queryClient.invalidateQueries({ queryKey: ['caixa-transacoes'] }); // Refresh cash balance
       toast.success('Pedido finalizado e entrada registrada no estoque!');
     },
     onError: (err: any) => {
@@ -130,11 +170,12 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
       // 1. Cancela o pedido no banco de dados (RPC)
       await cancelarPedidoCompra(token!, pId);
 
+      const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
+      const config = getSupabaseConfig();
+
       // 2. Fallback de Sincronização de Estoque via Frontend para Cancelamento
       if (p) {
         try {
-          const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
-          const config = getSupabaseConfig();
           const itens = p.pedido_compra_itens || p.itens || [];
 
           for (const item of itens) {
@@ -176,11 +217,26 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
         } catch (err) {
           console.error('Erro no estorno de estoque via frontend fallback:', err);
         }
+
+        // 3. Fallback de Estorno no Caixa para Cancelamento
+        try {
+          // Exclui a transação de caixa correspondente a este pedido caso tenha sido estornado
+          await fetch(`${config.url}/rest/v1/caixa_transacoes?entidade_id=eq.${pId}`, {
+            method: 'DELETE',
+            headers: {
+              apikey: config.key,
+              Authorization: `Bearer ${token}`
+            }
+          });
+        } catch (err) {
+          console.error('Erro ao estornar fluxo de caixa fallback:', err);
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
+      queryClient.invalidateQueries({ queryKey: ['caixa-transacoes'] }); // Refresh cash balance
       toast.success('Pedido de compra cancelado com sucesso!');
     },
     onError: (err: any) => {
