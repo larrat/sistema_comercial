@@ -277,55 +277,7 @@
   animation: rf-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* --- GLOBAL BUTTON STANDARDIZATION (OVERRIDING LEGACY) --- */
-.btn {
-  border-radius: var(--radius-premium) !important;
-  font-weight: 600 !important;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  box-shadow: var(--shadow-premium) !important;
-  font-family: var(--font-sans) !important;
-}
-
-.btn-p,
-
-.btn-p:hover,
-
-/* --- PREMIUM BUTTON COMPONENTS --- */
-.rf-btn-premium {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 20px;
-  border-radius: var(--radius-premium);
-  font-weight: 700;
-  font-size: 14px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid var(--color-border-primary);
-  background: var(--color-background-secondary);
-  color: var(--color-text-primary);
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: var(--shadow-premium);
-}
-
-.rf-btn-premium:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  background: #2d3748;
-}
-
-.rf-btn-premium--primary {
-  background: var(--gradient-premium);
-  color: white;
-  border: none;
-  box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
-}
-
-.rf-btn-premium--primary:hover {
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
-  transform: translateY(-2px) scale(1.02);
-}
-
+/* --- UTILS & FORMS (CLEANED) --- */
 select option {
   background-color: var(--color-deep-slate);
   color: var(--text-primary);

@@ -3,6 +3,7 @@ import { CrmKanban } from './CrmKanban';
 import { OportunidadeModal } from './OportunidadeModal';
 import { LucidePlus, LucideBuilding2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Button } from '../../../shared/ui';
 
 export function CrmPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,13 +26,13 @@ export function CrmPage() {
           </div>
         </div>
 
-        <button
+        <Button
           onClick={() => setIsModalOpen(true)}
-          className="rf-btn-premium rf-btn-premium--primary"
+          variant="primary"
+          leftIcon={<LucidePlus className="h-4 w-4" />}
         >
-          <LucidePlus className="h-4 w-4" />
           Nova Oportunidade
-        </button>
+        </Button>
       </header>
 
       {/* Kanban Workspace */}

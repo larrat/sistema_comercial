@@ -354,14 +354,16 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
               </Button>
             )}
             
-            <button
-              className="rf-btn-premium rf-btn-premium--primary rf-glow-cyan !py-2 !px-4 !text-xs !rounded-xl"
+            <Button
+              variant="primary"
+              size="sm"
+              className="rf-glow-cyan !rounded-xl"
               onClick={() => navigate('/app/produtos/novo')}
+              leftIcon={<Zap size={14} />}
             >
-              <Zap size={14} />
               <span className="hidden sm:inline">Novo produto</span>
               <span className="sm:hidden">Novo</span>
-            </button>
+            </Button>
           </div>
         </div>
       }
