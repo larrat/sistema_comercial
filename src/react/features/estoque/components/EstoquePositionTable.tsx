@@ -41,7 +41,7 @@ function StockLevelBar({ saldo, minimo, status }: { saldo: number; minimo: numbe
     return (
       <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden mt-1.5">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          className={`h-full rounded-full transition-all duration-500${barColor}`}
           style={{ width: saldo <= 0 ? '3%' : '100%' }}
         />
       </div>
@@ -64,7 +64,7 @@ function StockLevelBar({ saldo, minimo, status }: { saldo: number; minimo: numbe
         {/* Minimum threshold marker */}
         <div className="absolute top-0 bottom-0 left-[50%] w-px bg-white/20 z-10" title="Estoque mínimo" />
         <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          className={`h-full rounded-full transition-all duration-500${barColor}`}
           style={{ width: `${displayPct / 2}%` }}
         />
       </div>
@@ -192,22 +192,14 @@ export function EstoquePositionTable({
           <button
             type="button"
             onClick={() => setViewMode('grouped')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
-              viewMode === 'grouped'
-                ? 'bg-teal-500/15 text-teal-400 border border-teal-500/30'
-                : 'bg-white/5 text-slate-500 border border-white/5 hover:text-slate-300'
-            }`}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${ viewMode === 'grouped' ? 'bg-teal-500/15 border border-teal-500/30' : 'bg-white/5 border-white/5 hover:text-slate-300' } text-sm font-medium text-slate-400`}
           >
             Por Categoria
           </button>
           <button
             type="button"
             onClick={() => setViewMode('flat')}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors ${
-              viewMode === 'flat'
-                ? 'bg-teal-500/15 text-teal-400 border border-teal-500/30'
-                : 'bg-white/5 text-slate-500 border border-white/5 hover:text-slate-300'
-            }`}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${ viewMode === 'flat' ? 'bg-teal-500/15 border border-teal-500/30' : 'bg-white/5 border-white/5 hover:text-slate-300' } text-sm font-medium text-slate-400`}
           >
             Lista
           </button>
@@ -215,7 +207,7 @@ export function EstoquePositionTable({
       </div>
 
       {/* Sort controls */}
-      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+      <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium text-slate-400">
         <span>Ordenar:</span>
         {([
           ['status', 'Criticidade'],
@@ -227,11 +219,7 @@ export function EstoquePositionTable({
             key={key}
             type="button"
             onClick={() => toggleSort(key)}
-            className={`px-2 py-1 rounded-md transition-colors ${
-              sortKey === key
-                ? 'bg-white/10 text-white'
-                : 'hover:bg-white/5 text-slate-500 hover:text-slate-300'
-            }`}
+            className={`px-2 py-1 rounded-md transition-colors ${ sortKey === key ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-slate-500 hover:text-slate-300' }`}
           >
             {label}
             {sortKey === key && (
@@ -322,9 +310,7 @@ function ProductRow({
 
   return (
     <div
-      className={`flex items-center gap-4 px-5 py-3 border-l-2 ${cfg.border} hover:bg-white/[0.03] transition-colors ${
-        !isLast ? 'border-b border-b-white/[0.04]' : ''
-      }`}
+      className={`flex items-center gap-4 px-5 py-3 border-l-2${cfg.border}hover:bg-white/[0.03] transition-colors ${ !isLast ? 'border-b border-b-white/[0.04]' : '' }`}
     >
       {/* Product thumbnail */}
       <div className="w-10 h-10 rounded-lg bg-slate-800/80 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
@@ -353,7 +339,7 @@ function ProductRow({
 
       {/* Saldo */}
       <div className="text-right flex-shrink-0 w-20">
-        <div className={`text-sm font-black ${row.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
+        <div className={`text-sm font-black${row.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
           {fmtQuantity(row.saldo)} <span className="text-[10px] text-slate-500 font-medium">{row.unidade}</span>
         </div>
         <div className="text-[10px] text-slate-500">
@@ -375,7 +361,7 @@ function ProductRow({
 
       {/* Status badge */}
       <div className="flex-shrink-0 w-20 flex justify-center">
-        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${cfg.bg} ${cfg.text}`}>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-sm font-medium text-slate-400${cfg.bg}${cfg.text}`}>
           {cfg.icon}
           {cfg.label}
         </span>

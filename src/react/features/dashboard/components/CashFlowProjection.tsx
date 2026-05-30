@@ -36,11 +36,11 @@ export function CashFlowProjection({ data }: CashFlowProjectionProps) {
               if (active && payload?.length) {
                 return (
                   <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-[0_0_30px_rgba(45,212,191,0.15)] ring-1 ring-white/10 min-w-[160px] animate-in zoom-in-95 duration-100">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
+                    <p className="mb-3 border-b border-white/5 pb-2 text-sm font-medium text-slate-400">{label}</p>
                     <div className="flex items-center justify-between gap-6">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]" />
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">A Receber</span>
+                        <span className="text-sm font-medium text-slate-400">A Receber</span>
                       </div>
                       <span className="text-xs font-black text-white">{fmtBRL(payload[0].value as number)}</span>
                     </div>

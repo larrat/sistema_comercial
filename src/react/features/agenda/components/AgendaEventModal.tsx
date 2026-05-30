@@ -137,7 +137,7 @@ export function AgendaEventModal({ isOpen, onClose, selectedDate }: AgendaEventM
               value={descricao}
               onChange={e => setDescricao(e.target.value)}
               className="w-full min-h-[100px] rounded-lg border border-slate-800 bg-slate-900/50 p-2.5 text-white outline-none focus:border-indigo-500"
-              placeholder="Detalhes adicionais..."
+              placeholder="Detalhes adicionais…"
             />
           </div>
         </div>

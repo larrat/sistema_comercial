@@ -119,12 +119,12 @@ export function CaixaPilotPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="relative overflow-hidden border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-teal-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Saldo Atual</span>
+            <span className="text-sm font-medium text-slate-400">Saldo Atual</span>
             <div className="p-2 rounded-lg bg-teal-500/10 text-teal-500">
               <Wallet size={20} />
             </div>
           </div>
-          <h2 className={`text-3xl font-black ${saldo >= 0 ? 'text-white' : 'text-rose-500'}`}>
+          <h2 className={`text-3xl font-black${saldo >= 0 ? 'text-white' : 'text-rose-500'}`}>
             {fmt(saldo)}
           </h2>
           <div className="mt-4 flex items-center gap-2">
@@ -136,7 +136,7 @@ export function CaixaPilotPage() {
 
         <Card className="border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-emerald-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Entradas (Total)</span>
+            <span className="text-sm font-medium text-slate-400">Entradas (Total)</span>
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
               <TrendingUp size={20} />
             </div>
@@ -149,7 +149,7 @@ export function CaixaPilotPage() {
 
         <Card className="border-white/5 bg-surface-card/40 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-rose-500/5 active:scale-[0.99]">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Saídas (Total)</span>
+            <span className="text-sm font-medium text-slate-400">Saídas (Total)</span>
             <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
               <TrendingDown size={20} />
             </div>
@@ -186,7 +186,7 @@ export function CaixaPilotPage() {
               label: 'Data',
               render: (t) => (
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${t.tipo === 'entrada' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                  <div className={`p-2 rounded-lg${t.tipo === 'entrada' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
                     {t.tipo === 'entrada' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                   </div>
                   <span className="text-xs font-bold text-slate-300">
@@ -201,7 +201,7 @@ export function CaixaPilotPage() {
               render: (t) => (
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-white">{t.descricao}</span>
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{t.caixa_categorias?.nome}</span>
+                  <span className="font-medium text-sm text-slate-400">{t.caixa_categorias?.nome}</span>
                 </div>
               )
             },
@@ -209,7 +209,7 @@ export function CaixaPilotPage() {
               key: 'valor',
               label: 'Valor',
               render: (t) => (
-                <span className={`text-sm font-black ${t.tipo === 'entrada' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                <span className={`text-sm font-black${t.tipo === 'entrada' ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {t.tipo === 'entrada' ? '+' : '-'} {fmt(t.valor)}
                 </span>
               )

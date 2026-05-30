@@ -24,7 +24,7 @@ export function FilialCard({ filial }: Props) {
         <div className="w-12 h-12 rounded-2xl shadow-lg flex-shrink-0" style={{ background: cor }} />
         <div className="flex-1 min-w-0">
           <div className="text-lg font-black text-slate-900 truncate">{filial.nome}</div>
-          {localidade && <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">{localidade}</div>}
+          {localidade && <div className="text-sm font-medium text-slate-400">{localidade}</div>}
         </div>
       </div>
       

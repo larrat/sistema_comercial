@@ -376,7 +376,7 @@ export function ClienteForm({
             <Input
               label="Logradouro"
               {...register('logradouro')}
-              placeholder="Rua, Avenida, Travessa..."
+              placeholder="Rua, Avenida, Travessa…"
               data-testid="form-logradouro"
             />
           </div>

@@ -27,12 +27,12 @@ export function RfmSegmentation({ data }: RfmSegmentationProps) {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                <span className="text-[11px] font-black text-slate-200 uppercase tracking-widest group-hover:text-white transition-colors">
+                <span className="group-hover:text-white transition-colors text-sm font-medium text-slate-400">
                   {item.name}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                <span className="text-sm font-medium text-slate-400">
                   {item.size} {item.size === 1 ? 'cliente' : 'clientes'} ({percent.toFixed(0)}%)
                 </span>
                 <span className="text-xs font-black text-white">{fmtBRL(item.value)}</span>

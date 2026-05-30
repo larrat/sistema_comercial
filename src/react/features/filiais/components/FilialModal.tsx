@@ -107,7 +107,7 @@ export function FilialModal() {
             disabled={saving}
           />
           <label htmlFor="filial-is-fiscal" className="cursor-pointer select-none flex-1">
-            <span className="text-[10px] font-black text-white uppercase tracking-widest block">Filial Emissora Fiscal (NF-e/NFC-e)</span>
+            <span className="text-white block text-sm font-medium text-slate-400">Filial Emissora Fiscal (NF-e/NFC-e)</span>
             <span className="text-[9px] text-slate-500 block mt-0.5">Se ativo, exige dados fiscais e habilita faturamento na SEFAZ.</span>
           </label>
         </div>

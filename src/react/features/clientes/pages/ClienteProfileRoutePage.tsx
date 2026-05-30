@@ -60,7 +60,7 @@ export function ClienteProfileRoutePage() {
     return (
       <div className="w-full flex flex-col gap-8">
         <LoadingState
-          title="Carregando cliente..."
+          title="Carregando cliente…"
           description="Estamos recuperando as informações detalhadas e o histórico deste cliente."
         />
       </div>

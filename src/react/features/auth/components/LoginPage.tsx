@@ -63,7 +63,7 @@ export function LoginPage() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-white tracking-tight leading-none uppercase font-['Plus_Jakarta_Sans']">Nexus</h1>
-              <p className="text-xs font-bold text-teal-500 uppercase tracking-[0.2em] mt-1">Industrial</p>
+              <p className="mt-1 text-sm font-medium text-slate-400">Industrial</p>
             </div>
           </div>
 
@@ -98,7 +98,7 @@ export function LoginPage() {
             </div>
             <div>
               <h1 className="text-xl font-black text-white tracking-tight uppercase font-['Plus_Jakarta_Sans']">Nexus</h1>
-              <p className="text-[10px] font-bold text-teal-500 uppercase tracking-[0.2em]">Industrial</p>
+              <p className="text-sm font-medium text-slate-400">Industrial</p>
             </div>
           </div>
 

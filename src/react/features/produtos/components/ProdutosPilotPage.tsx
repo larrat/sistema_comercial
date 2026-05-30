@@ -320,7 +320,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
-              leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />}
+              leftIcon={<RefreshCw className={`w-4 h-4${isRefreshing ? 'animate-spin' : ''}`} />}
               onClick={handleRefresh}
               loading={isRefreshing}
               className="!rounded-xl"
@@ -340,7 +340,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
             {sanitizing ? (
               <div className="flex items-center gap-2 bg-slate-50/5 px-3 py-1.5 rounded-xl border border-white/5 animate-pulse">
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-400" />
-                <span className="text-[10px] font-black text-slate-300 uppercase tracking-tight">{sanitizingProgress}%</span>
+                <span className="text-sm font-medium text-slate-400">{sanitizingProgress}%</span>
               </div>
             ) : (
               <Button
@@ -418,7 +418,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
           search={{
             value: filtro.q,
             onChange: (value) => setFiltro({ q: value }),
-            placeholder: 'Buscar por nome ou SKU...',
+            placeholder: 'Buscar por nome ou SKU…',
             ariaLabel: 'Buscar produtos'
           }}
           filters={[

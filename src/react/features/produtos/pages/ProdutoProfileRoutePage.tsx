@@ -69,7 +69,7 @@ export function ProdutoProfileRoutePage() {
     return (
       <div className="w-full flex flex-col gap-8">
         <LoadingState
-          title="Carregando produto..."
+          title="Carregando produto…"
           description="Estamos recuperando as informações detalhadas e o estoque deste produto."
         />
       </div>

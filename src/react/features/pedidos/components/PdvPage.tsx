@@ -719,7 +719,7 @@ export function PdvPage() {
                   <button
                     type="button"
                     onClick={() => setPdvViewMode('list')}
-                    className={`px-2 py-1 rounded transition-all ${pdvViewMode === 'list' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
+                    className={`px-2 py-1 rounded transition-all${pdvViewMode === 'list' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
                   >
                     Lista
                   </button>
@@ -734,7 +734,7 @@ export function PdvPage() {
                         });
                       }
                     }}
-                    className={`px-2 py-1 rounded transition-all ${pdvViewMode === 'grid' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
+                    className={`px-2 py-1 rounded transition-all${pdvViewMode === 'grid' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
                   >
                     Catálogo Grid
                   </button>
@@ -751,7 +751,7 @@ export function PdvPage() {
               </div>
             </header>
 
-            <div className={`rf-pdv__search ${showScannerHalo ? 'rf-scanner-success-halo' : ''} transition-all duration-300`}>
+            <div className={`rf-pdv__search${showScannerHalo ? 'rf-scanner-success-halo' : ''}transition-all duration-300`}>
               <span className="rf-pdv__search-icon hover:scale-110 active:scale-95 transition-all text-emerald-400 cursor-pointer" aria-hidden="true" onClick={() => setIsScannerOpen(true)} title="Scanner de câmera">
                 <Camera size={18} strokeWidth={2.5} />
               </span>
@@ -759,7 +759,7 @@ export function PdvPage() {
                 ref={productInputRef}
                 className="rf-pdv__search-input focus:border-emerald-500/40"
                 type="search"
-                placeholder="Buscar produto por nome ou código..."
+                placeholder="Buscar produto por nome ou código…"
                 value={productQuery}
                 onChange={(event) => setProductQuery(event.target.value)}
                 onKeyDown={(event) => {
@@ -807,7 +807,7 @@ export function PdvPage() {
                         <button
                           key={produto.id}
                           type="button"
-                          className={`rf-pdv__suggestion ${isActive ? 'is-active' : ''}`}
+                          className={`rf-pdv__suggestion${isActive ? 'is-active' : ''}`}
                           onMouseEnter={() => setActiveSuggestionIndex(index)}
                           onClick={() => handleSelectProduto(produto)}
                         >
@@ -885,7 +885,7 @@ export function PdvPage() {
                     return (
                       <div
                         key={item.key}
-                        className={`rf-pdv__cart-row ${isFocused ? 'is-focused' : ''}`}
+                        className={`rf-pdv__cart-row${isFocused ? 'is-focused' : ''}`}
                         tabIndex={0}
                         onFocus={() => setFocusedItemKey(item.key)}
                         onKeyDown={(event) => {
@@ -1017,7 +1017,7 @@ export function PdvPage() {
                 {appliedVale && (
                   <button 
                     onClick={() => setAppliedVale(null)}
-                    className="text-[9px] font-black uppercase tracking-wider text-rose-400 hover:text-rose-300"
+                    className="hover:text-rose-300 text-sm font-medium text-slate-400"
                   >
                     Remover
                   </button>
@@ -1040,7 +1040,7 @@ export function PdvPage() {
                       placeholder="VALE-XXXXXX"
                       value={valeCodigoInput}
                       onChange={(e) => setValeCodigoInput(e.target.value.toUpperCase())}
-                      className="flex-1 bg-black/40 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-white uppercase font-mono tracking-wider focus:border-teal-500 focus:outline-none placeholder-slate-600"
+                      className="flex-1 bg-black/40 border border-white/5 rounded-lg px-2.5 py-1.5 text-white font-mono focus:border-teal-500 focus:outline-none placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-teal-500/50 text-sm font-medium text-slate-400"
                     />
                     <button
                       type="button"
@@ -1097,7 +1097,7 @@ export function PdvPage() {
                   return (
                     <button
                       key={option.value}
-                      className={`rf-pdv__payment-btn rf-pdv-btn-premium ${isActive ? 'is-active bg-emerald-500/10 border-emerald-500/30' : ''}`}
+                      className={`rf-pdv__payment-btn rf-pdv-btn-premium${isActive ? 'is-active bg-emerald-500/10 border-emerald-500/30' : ''}`}
                       type="button"
                       disabled={isDisabled}
                       onClick={() => setPaymentMethod(option.value)}
@@ -1234,7 +1234,7 @@ export function PdvPage() {
       )}
 
       {/* Visual Search Drawer (F4) */}
-      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer ${drawerOpen ? 'rf-drawer-open' : ''} p-6 border-l border-white/10 h-full`}>
+      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer${drawerOpen ? 'rf-drawer-open' : ''}p-6 border-l border-white/10 h-full`}>
         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
           <h3 className="text-sm font-extrabold text-gold-premium uppercase tracking-wide flex items-center gap-2">
             <Ticket size={16} />
@@ -1254,7 +1254,7 @@ export function PdvPage() {
             <input
               type="text"
               className="rf-input-premium w-full"
-              placeholder="Digite nome, SKU ou código..."
+              placeholder="Digite nome, SKU ou código…"
               value={drawerQuery}
               onChange={(e) => {
                 const val = e.target.value;
@@ -1281,7 +1281,7 @@ export function PdvPage() {
                 <div 
                   key={prod.id} 
                   onClick={() => setSelectedDrawerProduto(prod)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer ${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
+                  className={`p-3 rounded-xl border transition-all cursor-pointer${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
                 >
                   <div className="flex justify-between items-start">
                     <strong className="text-xs text-white block">{prod.nome}</strong>
@@ -1299,7 +1299,7 @@ export function PdvPage() {
           {selectedDrawerProduto && (
             <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-4">
               <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Estoque por Canal</h4>
+                <h4 className="text-sm font-medium text-slate-400">Estoque por Canal</h4>
                 <div className="space-y-1.5 text-xs text-slate-300">
                   <div className="flex justify-between">
                     <span>Matriz (Filial Central):</span>
@@ -1317,7 +1317,7 @@ export function PdvPage() {
               </div>
 
               <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Volume & Descontos</h4>
+                <h4 className="text-sm font-medium text-slate-400">Volume & Descontos</h4>
                 <div className="space-y-1.5 text-xs text-slate-300">
                   <div className="flex justify-between">
                     <span>Varejo (1 a 9 un):</span>
@@ -1335,7 +1335,7 @@ export function PdvPage() {
               </div>
 
               <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Logística Reversa / Previsão</h4>
+                <h4 className="text-sm font-medium text-slate-400">Logística Reversa / Previsão</h4>
                 <div className="text-xs text-slate-300">
                   <span>Próximo lote estimado:</span>
                   <div className="text-[10px] text-slate-400 mt-1">

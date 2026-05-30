@@ -125,7 +125,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
       }}
     >
       {error && (
-        <div className="text-xs font-bold text-rose-500 uppercase tracking-widest bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
+        <div className="bg-rose-500/10 p-2 rounded-lg border border-rose-500/20 text-sm font-medium text-slate-400">
           {error}
         </div>
       )}
@@ -241,7 +241,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
       </div>
 
       {/* Visual Search Drawer (F4) */}
-      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer ${drawerOpen ? 'rf-drawer-open' : ''} p-6 border-l border-white/10 h-full`}>
+      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer${drawerOpen ? 'rf-drawer-open' : ''}p-6 border-l border-white/10 h-full`}>
         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
           <h3 className="text-sm font-extrabold text-gold-premium uppercase tracking-wide flex items-center gap-2">
             🔎 Consulta Rápida (F4)
@@ -261,7 +261,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
             <input
               type="text"
               className="rf-input-premium w-full"
-              placeholder="Digite o nome do produto..."
+              placeholder="Digite o nome do produto…"
               value={drawerQuery}
               onChange={(e) => {
                 const val = e.target.value;
@@ -285,7 +285,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
                 <div 
                   key={prod.id} 
                   onClick={() => setSelectedDrawerProduto(prod)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer ${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
+                  className={`p-3 rounded-xl border transition-all cursor-pointer${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
                 >
                   <div className="flex justify-between items-start">
                     <strong className="text-xs text-white block">{prod.nome}</strong>
@@ -303,7 +303,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
           {selectedDrawerProduto && (
             <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-4">
               <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Estoque por Canal</h4>
+                <h4 className="text-sm font-medium text-slate-400">Estoque por Canal</h4>
                 <div className="space-y-1.5 text-xs text-slate-300">
                   <div className="flex justify-between">
                     <span>Matriz (Filial Central):</span>
@@ -321,7 +321,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
               </div>
 
               <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Volume & Descontos</h4>
+                <h4 className="text-sm font-medium text-slate-400">Volume & Descontos</h4>
                 <div className="space-y-1.5 text-xs text-slate-300">
                   <div className="flex justify-between">
                     <span>Varejo (1 a 9 un):</span>
@@ -339,7 +339,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
               </div>
 
               <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider">Logística Reversa / Previsão</h4>
+                <h4 className="text-sm font-medium text-slate-400">Logística Reversa / Previsão</h4>
                 <div className="text-xs text-slate-300">
                   <span>Próximo lote estimado:</span>
                   <div className="text-[10px] text-slate-400 mt-1">

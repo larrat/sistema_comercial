@@ -58,7 +58,7 @@ function PremiumTooltip({ children, content }: { children: React.ReactNode; cont
             className="z-[9999]"
           >
             <TooltipShell className="p-3 rounded-xl min-w-[120px]">
-              <p className="text-[10px] font-black text-white uppercase tracking-tight text-center">{content}</p>
+              <p className="text-white text-center text-sm font-medium text-slate-400">{content}</p>
               <TooltipPrimitive.Arrow className="fill-slate-900/90" />
             </TooltipShell>
           </TooltipPrimitive.Content>
@@ -256,7 +256,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-2">
                <Activity size={16} className="text-teal-400" />
-               <span className="text-[10px] font-black text-white uppercase tracking-widest">Saúde Operacional</span>
+               <span className="text-white text-sm font-medium text-slate-400">Saúde Operacional</span>
             </div>
             <div className="grid grid-cols-3 gap-4">
               {[
@@ -268,11 +268,11 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                   <div className="relative w-12 h-12 rounded-full flex items-center justify-center border border-white/10 bg-slate-900/50">
                     <svg className="absolute inset-0 w-full h-full -rotate-90">
                       <circle cx="24" cy="24" r="21" stroke="#1e293b" strokeWidth="2.5" fill="none" />
-                      <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="2.5" fill="none" strokeDasharray="131.9" strokeDashoffset={131.9 - (131.9 * m.val) / 100} className={`${m.color} transition-all duration-1000`} />
+                      <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="2.5" fill="none" strokeDasharray="131.9" strokeDashoffset={131.9 - (131.9 * m.val) / 100} className={`${m.color}transition-all duration-1000`} />
                     </svg>
                     <span className="text-[9px] font-black text-white">{Math.round(m.val)}%</span>
                   </div>
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">{m.label}</span>
+                  <span className="text-sm font-medium text-slate-400">{m.label}</span>
                 </div>
               ))}
             </div>
@@ -310,7 +310,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
           <div className="p-6 flex-1 flex flex-col justify-between gap-4">
             <div className="space-y-3.5">
               {alerts.length === 0 ? (
-                <div className="py-8 text-center text-slate-500 font-bold text-xs uppercase tracking-wider">
+                <div className="py-8 text-center text-sm font-medium text-slate-400">
                   Nenhum alerta crítico ativo
                 </div>
               ) : (
@@ -320,7 +320,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       <Zap size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="block text-[11px] font-black text-white truncate uppercase tracking-wider">{a.title}</span>
+                      <span className="block text-white truncate text-sm font-medium text-slate-400">{a.title}</span>
                       <p className="text-[10px] text-slate-400 truncate mt-0.5">{a.desc}</p>
                     </div>
                   </div>
@@ -330,7 +330,7 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
             
             <div className="pt-4 border-t border-white/5">
               <div className="flex items-center justify-between mb-3.5">
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ação CRM Automatizada</span>
+                 <span className="text-sm font-medium text-slate-400">Ação CRM Automatizada</span>
                  <TrendingUp size={12} className="text-indigo-400" />
               </div>
               <Button size="sm" variant="secondary" className="w-full !rounded-xl !text-[10px] font-black uppercase py-2.5">Ativar Campanha Comercial</Button>
@@ -367,7 +367,7 @@ function FiscalHubCard() {
     return (
       <div className="flex flex-col items-center justify-center p-6 bg-white/[0.01] border border-white/5 rounded-2xl text-center">
         <ShieldAlert className="w-6 h-6 text-slate-500 mb-2" />
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Filial Não Fiscal</span>
+        <span className="block text-sm font-medium text-slate-400">Filial Não Fiscal</span>
         <span className="text-[8px] text-slate-500 block mt-1">Faturamento e SEFAZ desativados nesta unidade.</span>
       </div>
     );
@@ -378,7 +378,7 @@ function FiscalHubCard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-           <span className="text-[10px] font-black text-white uppercase tracking-widest">Fiscal Hub</span>
+           <span className="text-white text-sm font-medium text-slate-400">Fiscal Hub</span>
         </div>
         <Badge variant="green" className="!py-0 !text-[8px]">EMISSÃO AUTOMÁTICA</Badge>
       </div>

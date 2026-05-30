@@ -64,7 +64,7 @@ export function ValidacaoModal() {
         <>
           <div className="flex flex-col gap-6">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Contexto da oportunidade</span>
+              <span className="block mb-2 text-sm font-medium text-slate-400">Contexto da oportunidade</span>
               <div className="text-sm font-bold text-slate-900">{item.cliente} • {item.time}</div>
               <div className="text-xs text-slate-500 mt-1">
                 {item.jogo_titulo || '-'} • {fmtDataHora(item.jogo_data_hora)}

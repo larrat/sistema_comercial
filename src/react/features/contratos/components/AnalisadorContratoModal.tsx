@@ -191,7 +191,7 @@ export function AnalisadorContratoModal({ isOpen, onClose, contratoId }: Props) 
                   disabled={isExtracting}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-wait" 
                 />
-                <div className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-white/5 p-10 text-center transition-all group-hover:border-indigo-500/50 group-hover:bg-indigo-500/5 ${isExtracting ? 'opacity-50' : ''}`}>
+                <div className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/10 bg-white/5 p-10 text-center transition-all group-hover:border-indigo-500/50 group-hover:bg-indigo-500/5${isExtracting ? 'opacity-50' : ''}`}>
                   {isExtracting ? (
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500 mb-4" />
                   ) : (
@@ -222,10 +222,10 @@ export function AnalisadorContratoModal({ isOpen, onClose, contratoId }: Props) 
               ) : (
                 <div className="space-y-3">
                   {events.map((evt) => (
-                    <div key={evt.id} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors ${evt.selected ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-slate-900'}`}>
+                    <div key={evt.id} className={`flex items-start gap-4 p-4 rounded-xl border transition-colors${evt.selected ? 'border-indigo-500/50 bg-indigo-500/10' : 'border-white/5 bg-slate-900'}`}>
                       <button 
                         onClick={() => toggleEventSelection(evt.id)}
-                        className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border ${evt.selected ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-white/20 bg-white/5'}`}
+                        className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border${evt.selected ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-white/20 bg-white/5'}`}
                       >
                         {evt.selected && <LucideCheck className="h-4 w-4" />}
                       </button>
@@ -233,19 +233,19 @@ export function AnalisadorContratoModal({ isOpen, onClose, contratoId }: Props) 
                       <div className="flex-1 space-y-2">
                         <div className="flex gap-4">
                           <div className="w-1/3">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">Data Base (Encontrada)</label>
+                            <label className="mb-1 block text-sm font-medium text-slate-400">Data Base (Encontrada)</label>
                             <div className="flex items-center gap-2 text-slate-200 font-medium">
                               <LucideCalendar className="h-4 w-4 text-indigo-400" />
                               {format(evt.date, 'dd/MM/yyyy')}
                             </div>
                           </div>
                           <div className="flex-1">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 block">Título do Evento</label>
+                            <label className="mb-1 block text-sm font-medium text-slate-400">Título do Evento</label>
                             <input 
                               type="text" 
                               value={evt.title}
                               onChange={(e) => handleTitleChange(evt.id, e.target.value)}
-                              className="w-full rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                              className="w-full rounded border border-white/10 bg-black/20 px-3 py-1.5 text-sm text-white focus:border-indigo-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50"
                             />
                           </div>
                         </div>

@@ -89,7 +89,7 @@ export function OrcamentosRoutePage() {
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
         <input 
           type="text" 
-          placeholder="Buscar por cliente ou título da obra..." 
+          placeholder="Buscar por cliente ou título da obra…" 
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           className="w-full bg-slate-900/50 border border-white/5 rounded-2xl pl-12 pr-4 py-4 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all shadow-inner"
@@ -116,7 +116,7 @@ export function OrcamentosRoutePage() {
             >
               <div>
                 <div className="flex items-start justify-between mb-3">
-                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                  <div className="text-sm font-medium text-slate-400">
                     ORC-{orc.id.substring(0, 5)}
                   </div>
                   <div className="flex items-center gap-2">
@@ -151,11 +151,11 @@ export function OrcamentosRoutePage() {
 
               <div className="mt-6 pt-4 border-t border-white/5 grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Custo Direto (Obra)</div>
+                  <div className="mb-0.5 text-sm font-medium text-slate-400">Custo Direto (Obra)</div>
                   <div className="text-sm font-bold text-amber-400">{fmtBRL(orc.calculos?.custo_direto_total || 0)}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Venda (BDI {orc.bdi_percentual}%)</div>
+                  <div className="mb-0.5 text-sm font-medium text-slate-400">Venda (BDI {orc.bdi_percentual}%)</div>
                   <div className="text-base font-black text-emerald-400">{fmtBRL(orc.calculos?.preco_venda_final || 0)}</div>
                 </div>
               </div>

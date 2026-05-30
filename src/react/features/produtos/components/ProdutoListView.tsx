@@ -161,7 +161,7 @@ export function ProdutoListView({
           label: 'Produto',
           sortable: true,
           render: (row) => (
-            <div className={`flex items-center gap-3 ${row.isPai ? 'font-black' : 'font-medium'}`}>
+            <div className={`flex items-center gap-3${row.isPai ? 'font-black' : 'font-medium'}`}>
               {row.isVariante ? (
                 <span className="text-slate-600 select-none text-xs" aria-hidden="true">
                   ↳
@@ -177,9 +177,9 @@ export function ProdutoListView({
                    <Package size={14} className="text-slate-600" />
                  )}
               </div>
-              <span className={`truncate ${row.isPai ? 'text-white' : 'text-slate-200'}`}>{row.prod.nome}</span>
+              <span className={`truncate${row.isPai ? 'text-white' : 'text-slate-200'}`}>{row.prod.nome}</span>
               {row.isPai ? (
-                <Badge variant="slate" className="text-[9px] font-black uppercase tracking-widest bg-white/5 border-white/10">
+                <Badge variant="slate" className="bg-white/5 border-white/10 text-sm font-medium text-slate-400">
                   Família
                 </Badge>
               ) : null}
@@ -214,7 +214,7 @@ export function ProdutoListView({
                 <div className="text-[15px] font-black text-white font-display tracking-tight">
                   {varejo > 0 ? fmt(varejo) : '—'}
                 </div>
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <div className="text-sm font-medium text-slate-400">
                   Atacado: {atacado > 0 ? fmt(atacado) : '—'}
                 </div>
               </div>
@@ -243,17 +243,17 @@ export function ProdutoListView({
                 <div className="flex flex-col gap-0.5 relative group cursor-help">
                   <div className="text-sm font-bold text-slate-100 flex items-center gap-1.5 hover:text-[#C5A059] transition-colors">
                     {fmtQ(saldo)} <span className="text-xs font-normal text-slate-500">{row.prod.un}</span>
-                    <span className="text-[9px] bg-slate-800 text-[#C5A059] px-1.5 py-0.5 rounded-md border border-[#C5A059]/20 font-black uppercase tracking-wider">
+                    <span className="bg-slate-800 px-1.5 py-0.5 rounded-md border border-[#C5A059]/20 text-sm font-medium text-slate-400">
                       {activeVariants.length} vars
                     </span>
                   </div>
-                  <div className="text-[11px] text-[#C5A059]/80 font-bold uppercase tracking-wider text-[9px] flex items-center gap-1">
+                  <div className="flex items-center gap-1 text-sm font-medium text-slate-400">
                     <span>Grade Total</span>
                   </div>
 
                   {/* Popover flutuante no hover de luxo */}
                   <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-slate-950/95 border border-white/10 backdrop-blur-md p-3.5 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-white/5 pb-1 flex items-center justify-between">
+                    <div className="mb-2 border-b border-white/5 pb-1 flex items-center justify-between text-sm font-medium text-slate-400">
                       <span>Estoque por Grade</span>
                       <span className="text-[9px] text-[#C5A059]">{row.prod.un}</span>
                     </div>
@@ -266,7 +266,7 @@ export function ProdutoListView({
                               {v.nome.replace(row.prod.nome, '').replace(/^\s*[-–—]\s*/, '').trim() || v.nome}
                             </span>
                           </div>
-                          <span className={`font-bold font-mono ${v.esal <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                          <span className={`font-bold font-mono${v.esal <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                             {fmtQ(v.esal)}
                           </span>
                         </div>
@@ -461,7 +461,7 @@ export function ProdutoListMobile({
               </div>
               <div className="flex flex-col">
                 <Typography variant="label" color="muted">{hasVariants ? 'Saldo (Grade)' : 'Saldo'}</Typography>
-                <span className={`text-sm font-black font-display ${saldo <= 0 ? 'text-rose-400' : emin > 0 && saldo < emin ? 'text-amber-400' : 'text-emerald-400'}`}>
+                <span className={`text-sm font-black font-display${saldo <= 0 ? 'text-rose-400' : emin > 0 && saldo < emin ? 'text-amber-400' : 'text-emerald-400'}`}>
                   {fmtQ(saldo)} <span className="text-[10px] font-normal opacity-60">{p.un}</span>
                 </span>
               </div>

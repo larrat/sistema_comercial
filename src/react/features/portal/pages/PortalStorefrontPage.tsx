@@ -381,7 +381,7 @@ export function PortalStorefrontPage() {
       <header className="sticky top-0 z-40 bg-[#0A0A0B]/80 backdrop-blur-2xl border-b border-white/5 pt-12 pb-4 px-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-black tracking-tighter text-white">NEXUS</h1>
-          <p className="text-[10px] text-teal-500 font-bold tracking-widest uppercase">B2B Portal</p>
+          <p className="text-sm font-medium text-slate-400">B2B Portal</p>
         </div>
         <button 
           onClick={() => setIsCartOpen(true)}
@@ -416,7 +416,7 @@ export function PortalStorefrontPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input 
               type="text" 
-              placeholder="Buscar produtos..." 
+              placeholder="Buscar produtos…" 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
@@ -428,7 +428,7 @@ export function PortalStorefrontPage() {
         </div>
         <div className="flex gap-2 overflow-x-auto mt-4 pb-2 custom-scrollbar hide-scrollbar">
           {['Tudo', 'Workwear', 'Calçados', 'Acessórios', 'EPIs'].map((cat, i) => (
-            <button key={cat} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${i === 0 ? 'bg-teal-500 text-black' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white'}`}>
+            <button key={cat} className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-bold transition-colors${i === 0 ? 'bg-teal-500 text-black' : 'bg-white/5 border border-white/10 text-slate-400 hover:text-white'}`}>
               {cat}
             </button>
           ))}
@@ -469,7 +469,7 @@ export function PortalStorefrontPage() {
                 </div>
 
                 <div className="p-4 flex flex-col flex-1">
-                  <span className="text-[10px] font-bold text-teal-500 uppercase tracking-wider mb-1">{p.cat || 'Geral'}</span>
+                  <span className="mb-1 text-sm font-medium text-slate-400">{p.cat || 'Geral'}</span>
                   <h3 className="text-sm font-bold text-white leading-tight line-clamp-2 flex-1 mb-2">
                     {p.nome}
                   </h3>
@@ -532,7 +532,7 @@ export function PortalStorefrontPage() {
 
               <div className="flex-1 space-y-4">
                 <div>
-                  <span className="text-xs font-bold text-teal-500 uppercase tracking-widest">{selectedProduct.cat || 'Geral'}</span>
+                  <span className="text-sm font-medium text-slate-400">{selectedProduct.cat || 'Geral'}</span>
                   <h2 className="text-2xl font-black mt-1 leading-tight">{selectedProduct.nome}</h2>
                   {selectedProduct.sku && <span className="text-xs text-slate-500 block mt-1">SKU: {selectedProduct.sku}</span>}
                 </div>
@@ -558,7 +558,7 @@ export function PortalStorefrontPage() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-teal-400">
                       <Sparkles size={16} />
-                      <span className="text-xs font-black uppercase tracking-wider">Provador Virtual IA</span>
+                      <span className="text-sm font-medium text-slate-400">Provador Virtual IA</span>
                     </div>
                     <p className="text-[10px] text-slate-400 leading-normal">Veja como o caimento desta peça fica no seu corpo antes de fechar a compra.</p>
                   </div>
@@ -648,14 +648,14 @@ export function PortalStorefrontPage() {
                 >
                   <div className="flex items-center gap-2 text-teal-400">
                     <Settings size={14} />
-                    <span className="text-xs font-black uppercase tracking-wider">Configurar Chave Fal.ai</span>
+                    <span className="text-sm font-medium text-slate-400">Configurar Chave Fal.ai</span>
                   </div>
                   <p className="text-[10px] text-slate-400 leading-relaxed">
                     Insira sua API Key da fal.ai para habilitar prova de roupa real com IA. Os dados são salvos localmente no seu navegador de forma segura.
                   </p>
                   <input 
                     type="password"
-                    placeholder="fal_key_..."
+                    placeholder="fal_key_…"
                     value={apiKeyInput}
                     onChange={(e) => setApiKeyInput(e.target.value)}
                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50"
@@ -697,7 +697,7 @@ export function PortalStorefrontPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Opção A: Escolher modelo de referência</span>
+                    <span className="block text-sm font-medium text-slate-400">Opção A: Escolher modelo de referência</span>
                     <div className="grid grid-cols-2 gap-3">
                       {PRESET_MODELS.map(model => (
                         <button 
@@ -706,7 +706,7 @@ export function PortalStorefrontPage() {
                             setSelectedModel(model);
                             setUploadedPhoto(null);
                           }}
-                          className={`flex flex-col bg-white/5 border rounded-2xl overflow-hidden p-2 text-left transition-all ${selectedModel?.id === model.id ? 'border-teal-500 bg-teal-500/5' : 'border-white/10 hover:bg-white/10'}`}
+                          className={`flex flex-col bg-white/5 border rounded-2xl overflow-hidden p-2 text-left transition-all${selectedModel?.id === model.id ? 'border-teal-500 bg-teal-500/5' : 'border-white/10 hover:bg-white/10'}`}
                         >
                           <img src={model.img} alt={model.name} className="aspect-square w-full object-cover rounded-xl mb-2" />
                           <span className="text-[10px] font-bold text-white truncate block">{model.name}</span>
@@ -716,7 +716,7 @@ export function PortalStorefrontPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Opção B: Enviar sua própria foto de corpo</span>
+                    <span className="block text-sm font-medium text-slate-400">Opção B: Enviar sua própria foto de corpo</span>
                     <div className="border border-dashed border-white/15 rounded-2xl p-6 text-center hover:bg-white/5 hover:border-teal-500/50 transition-colors cursor-pointer relative">
                       <input 
                         type="file" 
@@ -753,7 +753,7 @@ export function PortalStorefrontPage() {
                   <button 
                     onClick={startTryOnProcess}
                     disabled={!selectedModel && !uploadedPhoto}
-                    className="w-full bg-teal-500 hover:bg-teal-400 disabled:bg-white/10 disabled:text-slate-500 text-black font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 transition-all text-xs uppercase tracking-wider"
+                    className="w-full bg-teal-500 hover:bg-teal-400 disabled:bg-white/10 disabled:text-slate-500 text-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:scale-[1.02] disabled:scale-100 transition-all text-sm font-medium text-slate-400"
                   >
                     Gerar Prova Virtual <ArrowRight size={14} />
                   </button>
@@ -790,7 +790,7 @@ export function PortalStorefrontPage() {
                         <img src={resultImage} className="w-full h-full object-cover" alt="Resultado da Prova Virtual" />
                         <div className="absolute inset-0 bg-teal-500/5 mix-blend-overlay" />
                         <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Peça: {selectedProduct.nome}</span>
+                          <span className="text-white block truncate max-w-[180px] text-sm font-medium text-slate-400">Peça: {selectedProduct.nome}</span>
                           <span className="text-xs font-black text-teal-400 flex items-center gap-1">
                             <Sparkles size={12} className="animate-pulse" /> IA Real
                           </span>
@@ -803,7 +803,7 @@ export function PortalStorefrontPage() {
                             <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-teal-500/10 mix-blend-overlay" />
                             <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                              <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Camisa: {selectedProduct.nome}</span>
+                              <span className="text-white block truncate max-w-[180px] text-sm font-medium text-slate-400">Camisa: {selectedProduct.nome}</span>
                               <span className="text-xs font-black text-teal-400">Excelente Caimento</span>
                             </div>
                           </div>
@@ -814,7 +814,7 @@ export function PortalStorefrontPage() {
                             <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600" className="w-full h-full object-cover" />
                             <div className="absolute inset-0 bg-teal-500/10 mix-blend-overlay" />
                             <div className="absolute bottom-4 left-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex items-center justify-between">
-                              <span className="text-[10px] font-bold text-white uppercase tracking-wider block truncate max-w-[180px]">Peça: {selectedProduct.nome}</span>
+                              <span className="text-white block truncate max-w-[180px] text-sm font-medium text-slate-400">Peça: {selectedProduct.nome}</span>
                               <span className="text-xs font-black text-teal-400">Excelente Caimento</span>
                             </div>
                           </div>
@@ -947,7 +947,7 @@ export function PortalStorefrontPage() {
 
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">Seu Nome *</label>
+                      <label className="block mb-1 text-sm font-medium text-slate-400">Seu Nome *</label>
                       <input 
                         type="text" 
                         required
@@ -958,7 +958,7 @@ export function PortalStorefrontPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">WhatsApp / Telefone *</label>
+                      <label className="block mb-1 text-sm font-medium text-slate-400">WhatsApp / Telefone *</label>
                       <input 
                         type="tel" 
                         required
@@ -969,7 +969,7 @@ export function PortalStorefrontPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider block mb-1">Endereço de Entrega (Opcional)</label>
+                      <label className="block mb-1 text-sm font-medium text-slate-400">Endereço de Entrega (Opcional)</label>
                       <textarea 
                         value={cliAddress}
                         onChange={e => setCliAddress(e.target.value)}

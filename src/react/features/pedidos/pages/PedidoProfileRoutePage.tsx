@@ -62,7 +62,7 @@ export function PedidoProfileRoutePage() {
     return (
       <div className="w-full flex flex-col gap-8">
         <LoadingState
-          title="Carregando pedido..."
+          title="Carregando pedido…"
           description="Estamos recuperando as informações detalhadas e o financeiro deste pedido."
         />
       </div>

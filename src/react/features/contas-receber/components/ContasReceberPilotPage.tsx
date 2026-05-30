@@ -131,7 +131,7 @@ function BaixaHistorico({ baixas, contaId, onEstornar }: BaixaHistoricoProps) {
       <details className="cr-baixas-details bg-white/5 border border-white/5 rounded-lg overflow-hidden transition-all">
         <summary className="px-4 py-3 cursor-pointer select-none flex items-center justify-between hover:bg-white/5" onClick={() => setOpen(!open)}>
           <span className="text-sm font-bold text-slate-300">Ver histórico de baixas</span>
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Expandir</span>
+          <span className="text-sm font-medium text-slate-400">Expandir</span>
         </summary>
         <div className="px-4 py-4 border-t border-white/5">
           <div className="text-xs text-slate-500 italic">Sem baixas registradas para esta conta.</div>
@@ -280,13 +280,13 @@ function CrmAutomationCard() {
           </div>
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight">Régua de Cobrança Automática</h3>
-            <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-0.5">Nexus CRM</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-400">Nexus CRM</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold text-slate-500 uppercase">Status</span>
-            <div className={`w-2 h-2 rounded-full ${active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} />
+            <div className={`w-2 h-2 rounded-full${active ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} />
           </div>
           <Button size="sm" variant="secondary" className="!p-2 rounded-xl">
             <Settings size={14} />
@@ -441,7 +441,7 @@ function BaixaParcialModal({
       <div className="mt-4">
         <Input
           label="Observação (opcional)"
-          placeholder="Ex: Pix, transferência..."
+          placeholder="Ex: Pix, transferência…"
           value={obs}
           onChange={(e) => setObs(e.target.value)}
         />
@@ -663,7 +663,7 @@ function ContasList({
           render: (conta) => {
             const aberto = getValorEmAberto(conta);
             return (
-              <span className={`table-cell-strong ${aberto > 0 ? 'tone-warning' : 'tone-success'}`}>
+              <span className={`table-cell-strong${aberto > 0 ? 'tone-warning' : 'tone-success'}`}>
                 {fmt(aberto)}
               </span>
             );
@@ -875,7 +875,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           </div>
         </div>
         <LoadingState
-          title="Carregando contas a receber..."
+          title="Carregando contas a receber…"
           description="Estamos reunindo títulos, baixas e indicadores financeiros da filial."
         />
       </div>
@@ -954,7 +954,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         search={{
           value: searchQuery,
           onChange: setSearchQuery,
-          placeholder: 'Buscar por cliente, pedido ou status...',
+          placeholder: 'Buscar por cliente, pedido ou status…',
           ariaLabel: 'Buscar contas a receber'
         }}
         activeFilterCount={searchQuery ? 1 : 0}

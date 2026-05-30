@@ -205,7 +205,7 @@ export function PedidoForm({
     <div className="rf-ui-stack" data-testid="pedido-form">
       {formLoading && (
         <LoadingState
-          title="Carregando dados do formulário..."
+          title="Carregando dados do formulário…"
           description="Produtos, clientes e vendedores estão sendo preparados."
           compact
         />

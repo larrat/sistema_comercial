@@ -62,7 +62,7 @@ export function SugestaoComprasPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-8">
-        <PageHeader title="Stock AI: Sugestões de Compra" description="Calculando inteligência de reposição..." />
+        <PageHeader title="Stock AI: Sugestões de Compra" description="Calculando inteligência de reposição…" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Shimmer height={120} rounded="2xl" />
           <Shimmer height={120} rounded="2xl" />

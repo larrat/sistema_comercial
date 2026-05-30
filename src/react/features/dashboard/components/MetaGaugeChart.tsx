@@ -40,7 +40,7 @@ export function MetaGaugeChart({ faturamento, meta }: MetaGaugeChartProps) {
   ];
 
   return (
-    <div className={`flex flex-col items-center relative ${glowClass}`}>
+    <div className={`flex flex-col items-center relative${glowClass}`}>
       <div className="h-36 w-full mt-2 relative">
         {/* Glow de Fundo (Ambient Light) */}
         <div 
@@ -98,7 +98,7 @@ export function MetaGaugeChart({ faturamento, meta }: MetaGaugeChartProps) {
         </PieChart>
       </div>
       <div className="absolute bottom-1 flex flex-col items-center">
-        <Typography variant="h3" weight="black" className={`!text-4xl tracking-tighter ${textClass} drop-shadow-md`}>
+        <Typography variant="h3" weight="black" className={`!text-4xl tracking-tighter${textClass}drop-shadow-md`}>
           {percent.toFixed(1)}<span className="text-xl opacity-70">%</span>
         </Typography>
         <Typography variant="label" color="muted" className="!text-[10px] uppercase tracking-widest mt-1 opacity-70">

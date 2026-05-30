@@ -49,9 +49,7 @@ function KanbanCard({ pedido, isOverlay }: { pedido: Pedido; isOverlay?: boolean
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-slate-900 border border-white/10 p-3 rounded-xl mb-3 shadow-sm hover:border-teal-500/50 transition-colors ${
-        isOverlay ? 'shadow-2xl ring-2 ring-teal-500 rotate-2' : ''
-      }`}
+      className={`bg-slate-900 border border-white/10 p-3 rounded-xl mb-3 shadow-sm hover:border-teal-500/50 transition-colors ${ isOverlay ? 'shadow-2xl ring-2 ring-teal-500 rotate-2' : '' }`}
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-xs font-black text-slate-300">#{pedido.num}</span>
@@ -77,16 +75,14 @@ function KanbanColumn({ id, title, pedidos }: { id: string; title: string; pedid
   return (
     <div className="flex flex-col flex-shrink-0 w-72 bg-slate-900/40 rounded-2xl border border-white/5 overflow-hidden h-[calc(100vh-280px)]">
       <div className="p-4 border-b border-white/5 bg-slate-900/60 sticky top-0 flex items-center justify-between z-10">
-        <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest">{title}</h3>
+        <h3 className="text-sm font-medium text-slate-400">{title}</h3>
         <span className="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
           {pedidos.length}
         </span>
       </div>
       <div
         ref={setNodeRef}
-        className={`flex-1 p-3 overflow-y-auto scrollbar-hide transition-colors ${
-          isOver ? 'bg-teal-500/10' : ''
-        }`}
+        className={`flex-1 p-3 overflow-y-auto scrollbar-hide transition-colors ${ isOver ? 'bg-teal-500/10' : '' }`}
       >
         {pedidos.map((p) => (
           <KanbanCard key={p.id} pedido={p} />

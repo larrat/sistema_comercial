@@ -21,7 +21,7 @@ export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
     <tr data-testid={`pedido-item-row-${index}`}>
       <td className="!py-4">
         <div className="font-bold text-white">{item.nome}</div>
-        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.sku || 'SEM SKU'}</div>
+        <div className="text-sm font-medium text-slate-400">{item.sku || 'SEM SKU'}</div>
       </td>
       <td>
         <Badge variant={item.orig === 'estoque' ? 'green' : 'cyan'}>
@@ -35,7 +35,7 @@ export function PedidoItemRow({ item, index, readOnly, onRemove }: Props) {
       <td className="text-slate-300 font-medium">{formatPedidoCurrency(item.preco)}</td>
       <td className="text-right font-black text-white">{formatPedidoCurrency(subtotal)}</td>
       <td
-        className={`text-right font-bold ${lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}
+        className={`text-right font-bold${lucro >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}
       >
         {formatPedidoCurrency(lucro)}
       </td>

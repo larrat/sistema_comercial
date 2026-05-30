@@ -313,11 +313,11 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
               <FormSection 
                 title="Essencial" 
                 description="Dados de identificação e classificação do item."
-                aside={<span className="px-2 py-1 bg-teal-500/10 text-teal-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-teal-500/20">Obrigatório</span>}
+                aside={<span className="px-2 py-1 bg-teal-500/10 rounded-full border border-teal-500/20 text-sm font-medium text-slate-400">Obrigatório</span>}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   <div className="flex flex-col gap-4">
-                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-2">Imagem de Capa</label>
+                     <label className="block mb-2 text-sm font-medium text-slate-400">Imagem de Capa</label>
                      <div className="relative group">
                         <div className="aspect-square w-full rounded-[2rem] bg-slate-900/50 border-2 border-dashed border-white/10 overflow-hidden flex items-center justify-center transition-all group-hover:border-teal-500/50">
                            {watchedValues.foto_url ? (
@@ -334,7 +334,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                            ) : (
                              <div className="flex flex-col items-center gap-3 text-slate-500 group-hover:text-teal-500 transition-colors">
                                 {uploading ? <Loader2 size={32} className="animate-spin" /> : <Image size={32} strokeWidth={1} />}
-                                <span className="text-[10px] font-black uppercase tracking-widest">Upload Foto</span>
+                                <span className="text-sm font-medium text-slate-400">Upload Foto</span>
                              </div>
                            )}
                         </div>
@@ -373,7 +373,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                 {watchedValues.produto_pai_id && (
                   <div className="mt-8 p-6 bg-white/[0.02] rounded-3xl border border-white/5 space-y-6">
                     <div className="flex flex-col gap-4">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Atributos da Variante</label>
+                      <label className="text-sm font-medium text-slate-400">Atributos da Variante</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                         <div className="space-y-3">
                            <span className="text-[9px] font-bold text-slate-600 uppercase">Gênero</span>
@@ -419,7 +419,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                    <Input label="Custo de Entrada (R$)" required className="!text-xl font-black text-white" type="number" min="0" step="0.01" value={watchedValues.custo} onChange={(e) => handleCusto(e.target.value)} error={errors.custo?.message} />
                    <div className="mt-4 flex items-center gap-2">
                      <input type="checkbox" {...register('is_sample')} className="w-4 h-4 rounded bg-slate-900 border-white/10 text-teal-500" />
-                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Produto de Mostruário (Auditável)</span>
+                     <span className="text-sm font-medium text-slate-400">Produto de Mostruário (Auditável)</span>
                    </div>
                 </div>
 
@@ -427,7 +427,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-6 bg-teal-500 rounded-full" />
-                      <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Venda Varejo</h4>
+                      <h4 className="text-white text-sm font-medium text-slate-400">Venda Varejo</h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       <Input label="Preço Sugerido" className="font-black text-teal-400" type="number" value={watchedValues.precoVarejo} onChange={(e) => handleVariavelVarejo('preco', e.target.value)} />
@@ -439,7 +439,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                   <div className="space-y-6 pt-10 border-t border-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                      <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Venda Atacado</h4>
+                      <h4 className="text-white text-sm font-medium text-slate-400">Venda Atacado</h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       <Input label="Preço Sugerido" className="font-black text-emerald-400" type="number" value={watchedValues.precoFixoAtacado} onChange={(e) => handleVariavelAtacado('preco', e.target.value)} />

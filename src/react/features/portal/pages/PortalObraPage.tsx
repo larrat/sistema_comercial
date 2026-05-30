@@ -57,7 +57,7 @@ export function PortalObraPage() {
       <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-teal-500/20 border-t-teal-500 rounded-full animate-spin" />
-          <p className="text-teal-500 font-black tracking-widest uppercase text-xs animate-pulse">Carregando Portal...</p>
+          <p className="animate-pulse text-sm font-medium text-slate-400">Carregando Portal...</p>
         </div>
       </div>
     );
@@ -96,7 +96,7 @@ export function PortalObraPage() {
           
           <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
             <div className="flex justify-between items-end mb-2">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Progresso da Obra</span>
+              <span className="text-sm font-medium text-slate-400">Progresso da Obra</span>
               <span className="text-2xl font-black text-teal-400">{progressoTotal}%</span>
             </div>
             <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
@@ -114,14 +114,14 @@ export function PortalObraPage() {
         <div className="max-w-3xl mx-auto px-6 flex gap-6 border-b border-white/5">
           <button 
             onClick={() => setActiveTab('rdo')}
-            className={`pb-4 text-xs font-black uppercase tracking-wider transition-colors relative ${activeTab === 'rdo' ? 'text-teal-400' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`pb-4 transition-colors relative text-sm font-medium text-slate-400${activeTab === 'rdo' ? 'text-teal-400' : 'text-slate-500 hover:text-slate-300'}`}
           >
             Diário de Obra
             {activeTab === 'rdo' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-400" />}
           </button>
           <button 
             onClick={() => setActiveTab('gantt')}
-            className={`pb-4 text-xs font-black uppercase tracking-wider transition-colors relative ${activeTab === 'gantt' ? 'text-teal-400' : 'text-slate-500 hover:text-slate-300'}`}
+            className={`pb-4 transition-colors relative text-sm font-medium text-slate-400${activeTab === 'gantt' ? 'text-teal-400' : 'text-slate-500 hover:text-slate-300'}`}
           >
             Cronograma
             {activeTab === 'gantt' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-400" />}
@@ -158,7 +158,7 @@ export function PortalObraPage() {
                     <div className="bg-slate-900/40 border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-colors">
                       <div className="p-5 border-b border-white/5 flex items-start justify-between">
                         <div>
-                          <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest block mb-1">
+                          <span className="block mb-1 text-sm font-medium text-slate-400">
                             {diario.data_registro ? format(new Date(diario.data_registro), "EEEE, d 'de' MMMM", { locale: ptBR }) : 'Data não informada'}
                           </span>
                           <h3 className="text-lg font-bold text-white">{diario.titulo}</h3>
@@ -196,7 +196,7 @@ export function PortalObraPage() {
               className="space-y-4"
             >
               <div className="bg-slate-900/30 border border-white/5 rounded-3xl p-6 mb-6">
-                <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Acompanhamento de Etapas</h3>
+                <h3 className="mb-4 text-sm font-medium text-slate-400">Acompanhamento de Etapas</h3>
                 <p className="text-sm text-slate-400 leading-relaxed">
                   Aqui você acompanha o avanço das fases da sua obra. As fases podem acontecer em paralelo ou dependerem umas das outras.
                 </p>
@@ -227,7 +227,7 @@ export function PortalObraPage() {
                         )}
                         <div>
                           <h4 className="text-sm font-bold text-white mb-0.5">{etapa.titulo}</h4>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                          <span className="text-sm font-medium text-slate-400">
                             {etapa.data_inicio ? format(new Date(etapa.data_inicio), 'dd/MM/yyyy') : 'A definir'} - {etapa.data_fim ? format(new Date(etapa.data_fim), 'dd/MM/yyyy') : 'A definir'}
                           </span>
                         </div>
@@ -237,7 +237,7 @@ export function PortalObraPage() {
                         <span className="text-xl font-black font-mono text-white">{etapa.percentual_conclusao}%</span>
                         <div className="w-24 h-1.5 bg-black/50 rounded-full mt-1 overflow-hidden">
                           <div 
-                            className={`h-full rounded-full ${etapa.percentual_conclusao === 100 ? 'bg-emerald-500' : 'bg-amber-400'}`}
+                            className={`h-full rounded-full${etapa.percentual_conclusao === 100 ? 'bg-emerald-500' : 'bg-amber-400'}`}
                             style={{ width: `${etapa.percentual_conclusao}%` }}
                           />
                         </div>

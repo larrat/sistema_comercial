@@ -134,7 +134,7 @@ export function NotasDestinadasPanel({ onImport }: Props) {
             <ShieldCheck size={24} />
           </div>
           <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+            <h4 className="text-white flex items-center gap-2 text-sm font-medium text-slate-400">
               Radar de Notas Fiscais Recebidas (SEFAZ)
               <Badge variant="blue" className="!py-0 !px-1.5 !text-[8px]">Shield</Badge>
             </h4>
@@ -159,7 +159,7 @@ export function NotasDestinadasPanel({ onImport }: Props) {
         search={{
           value: searchTerm,
           onChange: (v) => setSearchTerm(v),
-          placeholder: "Buscar por Emitente, CNPJ ou Chave..."
+          placeholder: "Buscar por Emitente, CNPJ ou Chave…"
         }}
       />
 
@@ -176,7 +176,7 @@ export function NotasDestinadasPanel({ onImport }: Props) {
                   <span className="text-xs font-bold text-slate-200">
                     {new Intl.DateTimeFormat('pt-BR').format(new Date(n.data_emissao))}
                   </span>
-                  <span className="text-[9px] text-slate-500 uppercase tracking-tight">
+                  <span className="text-sm font-medium text-slate-400">
                     {new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(n.data_emissao))}
                   </span>
                 </div>

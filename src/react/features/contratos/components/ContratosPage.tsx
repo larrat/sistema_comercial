@@ -42,8 +42,8 @@ export function ContratosPage() {
           <div className="relative flex-1 max-w-md">
             <LucideSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 h-4 w-4" />
             <input 
-              placeholder="Buscar contrato ou cliente..."
-              className="w-full bg-black/20 border border-white/5 rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50"
+              placeholder="Buscar contrato ou cliente…"
+              className="w-full bg-black/20 border border-white/5 rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50"
             />
           </div>
         </div>
@@ -80,7 +80,7 @@ export function ContratosPage() {
                     {formatCurrency(Number(c.valor_total))}
                   </td>
                   <td className="px-4 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(c.status)}`}>
+                    <span className={`px-2.5 py-1 rounded-full border text-sm font-medium text-slate-400${getStatusColor(c.status)}`}>
                       {c.status}
                     </span>
                   </td>

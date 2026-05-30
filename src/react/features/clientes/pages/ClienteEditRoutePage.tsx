@@ -62,7 +62,7 @@ export function ClienteEditRoutePage() {
     return (
       <div className="w-full flex flex-col gap-8">
         <LoadingState
-          title="Carregando cliente..."
+          title="Carregando cliente…"
           description="Estamos recuperando as informações para edição."
         />
       </div>

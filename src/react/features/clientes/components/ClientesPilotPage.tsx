@@ -336,7 +336,7 @@ export function ClientesPilotPage({
                     sortable: true,
                     render: (cliente) => (
                       <div className="flex items-center gap-3" data-testid="cliente-card">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[10px] font-black text-teal-400 uppercase tracking-tighter shadow-inner">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 shadow-inner text-sm font-medium text-slate-400">
                           {getInitials(cliente.nome || '')}
                         </div>
                         <div className="min-w-0">

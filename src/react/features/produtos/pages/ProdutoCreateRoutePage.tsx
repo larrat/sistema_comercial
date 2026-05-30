@@ -86,7 +86,7 @@ export function ProdutoCreateRoutePage() {
     }
   };
 
-  if (loadingPais) return <LoadingState title="Carregando base de produtos..." />;
+  if (loadingPais) return <LoadingState title="Carregando base de produtos…" />;
   if (errorPais) return <ErrorState title="Erro ao carregar dependências do catálogo" />;
 
   return (

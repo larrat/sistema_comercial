@@ -37,7 +37,7 @@ export function SalesMixCard({ topProducts }: { topProducts: any[] }) {
 
                return (
                  <div key={i} className="flex flex-col gap-1.5 cursor-pointer hover:bg-white/[0.04] p-2 -mx-2 rounded-xl transition-all group" onClick={() => navigate('/app/produtos')}>
-                   <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
+                   <div className="flex justify-between items-center text-sm font-medium text-slate-400">
                      <span className="text-slate-300 truncate max-w-[180px] group-hover:text-white transition-colors">{p.nome}</span>
                      <div className="text-right">
                        <span className="text-white block tabular-nums">{fmt(p.receita)}</span>
@@ -51,7 +51,7 @@ export function SalesMixCard({ topProducts }: { topProducts: any[] }) {
              })}
              {topProducts.length > 5 && (
                <div className="mt-2 text-center">
-                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest cursor-pointer hover:text-white transition-colors" onClick={() => navigate('/app/produtos')}>
+                 <span className="cursor-pointer hover:text-white transition-colors text-sm font-medium text-slate-400" onClick={() => navigate('/app/produtos')}>
                    + {topProducts.length - 5} outros produtos
                  </span>
                </div>

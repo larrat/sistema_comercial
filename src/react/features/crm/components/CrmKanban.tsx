@@ -84,7 +84,7 @@ export function CrmKanban() {
             onDrop={(e) => handleDrop(e, col.id)}
           >
             {/* Column Header */}
-            <div className={`mb-4 border-b-2 pb-2 ${col.color}`}>
+            <div className={`mb-4 border-b-2 pb-2${col.color}`}>
               <div className="flex items-center justify-between">
                 <h3 className="font-display font-semibold text-slate-200">{col.label}</h3>
                 <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs font-bold text-slate-400">

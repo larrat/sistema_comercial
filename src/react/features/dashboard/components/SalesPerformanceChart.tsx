@@ -24,7 +24,7 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
           <Typography variant="h3" weight="black" className="uppercase !text-sm tracking-tight text-white">Desempenho Comercial</Typography>
           <Typography variant="caption" color="muted">Faturamento vs Lucro Bruto</Typography>
         </div>
-        <div className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-bold uppercase tracking-widest">
+        <div className="px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-sm font-medium text-slate-400">
           {periodoDatas}
         </div>
       </div>
@@ -61,13 +61,13 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
                   if (active && payload?.length) {
                     return (
                       <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.15)] ring-1 ring-white/10 min-w-[180px] animate-in zoom-in-95 duration-100">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">{label}</p>
+                        <p className="mb-3 border-b border-white/5 pb-2 text-sm font-medium text-slate-400">{label}</p>
                         <div className="space-y-3">
                           {payload.map((entry: any, idx: number) => (
                             <div key={idx} className="flex items-center justify-between gap-6">
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: entry.color, color: entry.color }} />
-                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">{entry.name}</span>
+                                <span className="text-sm font-medium text-slate-400">{entry.name}</span>
                               </div>
                               <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
                             </div>
@@ -92,7 +92,7 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
             { label: 'Margem Bruta', val: stats.margem, suffix: '%' }
           ].map((m, i) => (
             <div key={i}>
-              <span className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{m.label}</span>
+              <span className="block mb-1 text-sm font-medium text-slate-400">{m.label}</span>
               <span className="block text-lg font-black text-white">
                 {m.suffix ? `${m.val.toFixed(1)}%` : fmt(m.val)}
               </span>

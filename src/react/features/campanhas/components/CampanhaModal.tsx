@@ -178,7 +178,7 @@ export function CampanhaModal() {
 
         {preview && (
           <div className="p-6 bg-slate-900 rounded-2xl shadow-xl border border-slate-800">
-            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Preview da Mensagem</div>
+            <div className="mb-4 text-sm font-medium text-slate-400">Preview da Mensagem</div>
             <div className="text-emerald-400 font-mono text-sm whitespace-pre-wrap leading-relaxed">{preview}</div>
           </div>
         )}

@@ -306,9 +306,9 @@ function ClienteInfoTable({
   return (
     <div className="flex flex-col">
       {rows.map((row, i) => (
-        <div key={row.label} className={`flex items-center justify-between py-3 ${i !== rows.length - 1 ? 'border-b border-white/5' : ''}`}>
+        <div key={row.label} className={`flex items-center justify-between py-3${i !== rows.length - 1 ? 'border-b border-white/5' : ''}`}>
           <span className="text-sm font-medium text-slate-400">{row.label}</span>
-          <span className={`text-sm font-semibold text-right ${row.value ? 'text-slate-100' : 'text-slate-500 italic'}`}>
+          <span className={`text-sm font-semibold text-right${row.value ? 'text-slate-100' : 'text-slate-500 italic'}`}>
             {row.value || 'Não informado'}
           </span>
         </div>
@@ -401,7 +401,7 @@ function PedidosTable({
               <td className="px-4 py-3 text-sm text-slate-400">{pedido.tipo === 'atacado' ? 'Atacado' : 'Pedido comercial'}</td>
               <td className="px-4 py-3 text-sm font-semibold text-white">{formatCurrency(Number(pedido.total || 0))}</td>
               <td className="px-4 py-3">
-                <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${PILL_COLORS[getPedidoStatusPill(pedido.status)] || PILL_COLORS.neutral}`}>
+                <span className={`px-2.5 py-1 text-xs font-bold rounded-md${PILL_COLORS[getPedidoStatusPill(pedido.status)] || PILL_COLORS.neutral}`}>
                   {pedido.status || 'Em andamento'}
                 </span>
               </td>
@@ -448,7 +448,7 @@ function FinanceiroTable({
             const status = getContaStatus(conta);
             return (
               <tr key={conta.id} className="hover:bg-white/5 transition-colors">
-                <td className={`px-4 py-3 text-sm font-medium ${status === 'vencida' ? 'text-rose-400' : 'text-slate-400'}`}>
+                <td className={`px-4 py-3 text-sm font-medium${status === 'vencida' ? 'text-rose-400' : 'text-slate-400'}`}>
                   {formatCompactDate(conta.vencimento)}
                 </td>
                 <td className="px-4 py-3">
@@ -458,7 +458,7 @@ function FinanceiroTable({
                 </td>
                 <td className="px-4 py-3 text-sm font-semibold text-white">{formatCurrency(getContaValorEmAberto(conta))}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${STATUS_COLORS[status]}`}>
+                  <span className={`px-2.5 py-1 text-xs font-bold rounded-md${STATUS_COLORS[status]}`}>
                     {status === 'vencida' ? 'Vencida' : status === 'a_vencer' ? 'A vencer' : 'Recebida'}
                   </span>
                 </td>
@@ -552,7 +552,7 @@ export function ClienteProfilePage({
     return (
       <main className="max-w-7xl mx-auto flex flex-col gap-6 w-full px-4 sm:px-6 lg:px-8 py-8">
         <LoadingState
-          title="Carregando cliente..."
+          title="Carregando cliente…"
           description="Estamos reunindo cadastro, pedidos, financeiro e notas para abrir a visão completa."
         />
       </main>
@@ -602,7 +602,7 @@ export function ClienteProfilePage({
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-black text-white tracking-tight">{cliente.nome}</h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cliente.status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold${cliente.status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}`}>
                 {cliente.status === 'inativo' ? 'Inativo' : 'Ativo'}
               </span>
               {cliente.optin_marketing ? (
@@ -673,11 +673,11 @@ export function ClienteProfilePage({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`rf-dash-card ${toneClass}`}
+              className={`rf-dash-card${toneClass}`}
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm ${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-500'}`}>
+                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-500'}`}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
               </div>
@@ -701,7 +701,7 @@ export function ClienteProfilePage({
                 )}
               </div>
 
-              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
+              <span className={`rf-stat-sub${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'}font-bold`}>
                 {card.subtitle}
               </span>
             </motion.article>
@@ -714,7 +714,7 @@ export function ClienteProfilePage({
           <button
             key={tab.id}
             onClick={() => setTab(tab.id)}
-            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
+            className={`rf-tab-item${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
             {activeTab === tab.id && (
@@ -746,7 +746,7 @@ export function ClienteProfilePage({
                 </Button>
               </div>
               {pedidosLoading ? (
-                <LoadingState title="Carregando pedidos..." compact />
+                <LoadingState title="Carregando pedidos…" compact />
               ) : pedidosError ? (
                 <ErrorState title={pedidosError} compact />
               ) : (
@@ -767,7 +767,7 @@ export function ClienteProfilePage({
                 </p>
               </div>
               {contasLoading ? (
-                <LoadingState title="Carregando contas..." compact />
+                <LoadingState title="Carregando contas…" compact />
               ) : contasError ? (
                 <ErrorState title={contasError} compact />
               ) : (
@@ -823,7 +823,7 @@ export function ClienteProfilePage({
               </div>
               <div className="flex flex-col gap-4">
                 <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Score RFM</span>
+                  <span className="text-sm font-medium text-slate-400">Score RFM</span>
                   <div className="flex items-center justify-between mt-1">
                     <span className="text-sm font-bold text-white">{getRfmLabel(cliente.score_rfm).label}</span>
                     <Badge variant={getRfmLabel(cliente.score_rfm).tone}>
@@ -832,7 +832,7 @@ export function ClienteProfilePage({
                   </div>
                 </div>
                 <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Probabilidade de Compra</span>
+                  <span className="text-sm font-medium text-slate-400">Probabilidade de Compra</span>
                   <div className="mt-2 h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
@@ -851,12 +851,12 @@ export function ClienteProfilePage({
                 <h3 className="text-lg font-bold text-white tracking-tight">Última nota</h3>
               </div>
               {notasLoading ? (
-                <LoadingState title="Carregando nota..." compact />
+                <LoadingState title="Carregando nota…" compact />
               ) : notasError ? (
                 <ErrorState title={notasError} compact />
               ) : ultimaNota ? (
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-                  <div className="text-xs font-semibold text-amber-500/60 uppercase tracking-widest mb-2">
+                  <div className="mb-2 text-sm font-medium text-slate-400">
                     {formatDateLong(ultimaNota.data)}
                   </div>
                   <p className="text-sm font-medium text-amber-200/80 leading-relaxed">{ultimaNota.texto}</p>
@@ -895,17 +895,17 @@ export function ClienteProfilePage({
             </h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="flex flex-col items-center p-4 bg-white/5 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recência</span>
+                <span className="text-sm font-medium text-slate-400">Recência</span>
                 <span className="text-2xl font-black text-white mt-2">{cliente.score_rfm?.r || 0}</span>
                 <span className="text-[10px] text-slate-500 mt-1">/ 5</span>
               </div>
               <div className="flex flex-col items-center p-4 bg-white/5 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Frequência</span>
+                <span className="text-sm font-medium text-slate-400">Frequência</span>
                 <span className="text-2xl font-black text-white mt-2">{cliente.score_rfm?.f || 0}</span>
                 <span className="text-[10px] text-slate-500 mt-1">/ 5</span>
               </div>
               <div className="flex flex-col items-center p-4 bg-white/5 rounded-xl border border-white/5">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Monetário</span>
+                <span className="text-sm font-medium text-slate-400">Monetário</span>
                 <span className="text-2xl font-black text-white mt-2">{cliente.score_rfm?.m || 0}</span>
                 <span className="text-[10px] text-slate-500 mt-1">/ 5</span>
               </div>
@@ -922,7 +922,7 @@ export function ClienteProfilePage({
       {activeTab === 'pedidos' ? (
         <section className="flex flex-col gap-6">
           {pedidosLoading ? (
-            <LoadingState title="Carregando pedidos..." />
+            <LoadingState title="Carregando pedidos…" />
           ) : pedidosError ? (
             <ErrorState title={pedidosError} />
           ) : (
@@ -955,7 +955,7 @@ export function ClienteProfilePage({
       {activeTab === 'financeiro' ? (
         <section className="flex flex-col gap-6">
           {contasLoading ? (
-            <LoadingState title="Carregando financeiro..." />
+            <LoadingState title="Carregando financeiro…" />
           ) : contasError ? (
             <ErrorState title={contasError} />
           ) : (
@@ -983,7 +983,7 @@ export function ClienteProfilePage({
               <textarea
                 className="w-full bg-slate-950 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 p-4 outline-none resize-y transition-all"
                 rows={4}
-                placeholder="Registrar observação comercial..."
+                placeholder="Registrar observação comercial…"
                 value={notaDraft}
                 onChange={(event) => setNotaDraft(event.target.value)}
               />
@@ -1000,12 +1000,12 @@ export function ClienteProfilePage({
               </div>
             </div>
             {notasLoading ? (
-              <LoadingState title="Carregando notas..." compact />
+              <LoadingState title="Carregando notas…" compact />
             ) : notasOrdenadas.length ? (
               <div className="flex flex-col gap-4">
                 {notasOrdenadas.map((nota, index) => (
                   <article key={`${nota.data}-${index}`} className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-                    <div className="text-xs font-semibold text-amber-500/60 uppercase tracking-widest mb-2">{formatDateLong(nota.data)}</div>
+                    <div className="mb-2 text-sm font-medium text-slate-400">{formatDateLong(nota.data)}</div>
                     <p className="text-sm font-medium text-amber-200/80 leading-relaxed">{nota.texto}</p>
                   </article>
                 ))}

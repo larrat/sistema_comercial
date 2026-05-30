@@ -74,7 +74,7 @@ export function PedidoCancelConfirmModal({ pedido, open, submitting, onClose, on
                 className="rounded border-rose-500/30 bg-black/40 text-rose-500 focus:ring-0 focus:ring-offset-0 h-4 w-4 mt-0.5"
               />
               <div className="flex-1">
-                <div className="text-[10px] font-black text-rose-400 uppercase tracking-wider">Recusa por Avaria no Transporte</div>
+                <div className="text-sm font-medium text-slate-400">Recusa por Avaria no Transporte</div>
                 <div className="text-[9px] text-slate-400 mt-0.5 leading-normal">
                   Selecione esta opção se o cliente recusou a entrega porque os produtos foram danificados no transporte. Isso registrará automaticamente as perdas físicas.
                 </div>

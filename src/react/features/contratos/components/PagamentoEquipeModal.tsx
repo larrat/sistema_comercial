@@ -67,7 +67,7 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
         {/* Painel Esquerdo: Resumo Financeiro da OS */}
         <div className="md:w-1/2 p-6 bg-slate-950 border-r border-white/5 flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-4 text-teal-400 font-black uppercase tracking-widest text-xs">
+            <div className="flex items-center gap-2 mb-4 text-sm font-medium text-slate-400">
               <Wallet size={16} /> Acerto Financeiro
             </div>
             <h2 className="text-xl font-black text-white leading-tight mb-2">{osTitulo}</h2>
@@ -75,17 +75,17 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
 
             <div className="space-y-4">
               <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Repasse Acordado</p>
+                <p className="mb-1 text-sm font-medium text-slate-400">Repasse Acordado</p>
                 <p className="text-xl font-black text-white">{fmtBRL(valorParceiro)}</p>
               </div>
 
               <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500/70 mb-1">Total Já Pago</p>
+                <p className="mb-1 text-sm font-medium text-slate-400">Total Já Pago</p>
                 <p className="text-xl font-black text-emerald-400">{fmtBRL(totalPago)}</p>
               </div>
 
               <div className="bg-rose-500/5 border border-rose-500/10 rounded-xl p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-rose-500/70 mb-1">Saldo Devedor / A Pagar</p>
+                <p className="mb-1 text-sm font-medium text-slate-400">Saldo Devedor / A Pagar</p>
                 <p className="text-xl font-black text-rose-400">{fmtBRL(Math.max(0, saldoDevedor))}</p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
         {/* Painel Direito: Novo Lançamento e Histórico */}
         <div className="md:w-1/2 p-6 bg-slate-900/40 flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+            <h3 className="flex items-center gap-2 text-sm font-medium text-slate-400">
               <DollarSign size={14} /> Novo Pagamento
             </h3>
             <button onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-white transition-colors">
@@ -109,11 +109,11 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
           >
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Tipo</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-400">Tipo</label>
                 <select 
                   value={tipo}
                   onChange={e => setTipo(e.target.value as any)}
-                  className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                  className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                 >
                   <option value="adiantamento">Adiantamento</option>
                   <option value="vale">Vale Transporte/Refeição</option>
@@ -122,25 +122,25 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Valor (R$)</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-400">Valor (R$)</label>
                 <input 
                   type="number" 
                   step="0.01"
                   value={valor || ''}
                   onChange={e => setValor(Number(e.target.value))}
-                  className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 placeholder-slate-600"
+                  className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                   placeholder="0.00"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block">Observações (Opcional)</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-400">Observações (Opcional)</label>
               <input 
                 type="text" 
                 value={obs}
                 onChange={e => setObs(e.target.value)}
-                className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 placeholder-slate-600"
+                className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                 placeholder="Ex: Pix na conta da esposa"
               />
             </div>
@@ -148,7 +148,7 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
             <button 
               type="submit"
               disabled={criarPagamento.isPending || valor <= 0}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:shadow-teal-500/20 active:scale-[0.98] disabled:opacity-50 transition-all"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 px-4 py-2.5 text-white shadow-lg hover:shadow-teal-500/20 active:scale-[0.98] disabled:opacity-50 transition-all text-sm font-medium text-slate-400"
             >
               <LucideSave size={14} /> Confirmar Lançamento
             </button>
@@ -156,14 +156,14 @@ export function PagamentoEquipeModal({ osId, osTitulo, valorParceiro, onClose }:
 
           {/* Histórico */}
           <div className="flex-1 overflow-y-auto pr-2">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2 mb-3">
+            <h3 className="flex items-center gap-2 mb-3 text-sm font-medium text-slate-400">
               <History size={12} /> Histórico desta O.S.
             </h3>
             
             {isLoading ? (
               <div className="text-center py-4 text-xs text-slate-500">Carregando...</div>
             ) : pagamentos.length === 0 ? (
-              <div className="text-center py-4 text-[10px] uppercase tracking-widest text-slate-600 font-bold border border-dashed border-white/5 rounded-xl bg-white/[0.01]">
+              <div className="text-center py-4 border border-dashed border-white/5 rounded-xl bg-white/[0.01] text-sm font-medium text-slate-400">
                 Nenhum pagamento lançado
               </div>
             ) : (

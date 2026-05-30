@@ -81,7 +81,7 @@ export function AnalyticsPage() {
         </Card>
         <Card className="flex flex-col gap-2">
           <Typography variant="label" color="muted" className="uppercase tracking-tighter">Falhas (Erros)</Typography>
-          <Typography variant="h2" className={`!font-black ${kpis.errors > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{kpis.errors}</Typography>
+          <Typography variant="h2" className={`!font-black${kpis.errors > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>{kpis.errors}</Typography>
         </Card>
       </div>
 

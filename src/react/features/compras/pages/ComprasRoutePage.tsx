@@ -117,22 +117,14 @@ export function ComprasRoutePage() {
       <div className="flex border-b border-white/5 p-1 bg-white/[0.01] rounded-2xl max-w-md">
         <button
           onClick={() => setActiveTab('pedidos')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
-            activeTab === 'pedidos'
-              ? 'bg-[#0f172a] border border-white/10 text-white shadow-lg'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
-          }`}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all duration-300 ${ activeTab === 'pedidos' ? 'bg-[#0f172a] border border-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5' } text-sm font-medium text-slate-400`}
         >
           <ShoppingBag size={14} />
           Pedidos de Compra
         </button>
         <button
           onClick={() => setActiveTab('radar')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
-            activeTab === 'radar'
-              ? 'bg-[#0f172a] border border-white/10 text-white shadow-lg'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
-          }`}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all duration-300 ${ activeTab === 'radar' ? 'bg-[#0f172a] border border-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5' } text-sm font-medium text-slate-400`}
         >
           <ShieldCheck size={14} className="text-teal-400" />
           Radar SEFAZ

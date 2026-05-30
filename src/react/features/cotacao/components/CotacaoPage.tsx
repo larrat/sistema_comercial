@@ -28,7 +28,7 @@ export function CotacaoPage({ activeTab }: Props) {
       <CotacaoTabs activeTab={activeTab} />
 
       {status === 'loading' ? (
-        <EmptyState title="Carregando módulo de compras..." compact />
+        <EmptyState title="Carregando módulo de compras…" compact />
       ) : null}
 
       {status === 'error' && error ? <EmptyState title={error} compact /> : null}

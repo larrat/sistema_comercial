@@ -36,7 +36,7 @@ export function PdvClienteModal({
       <div className="mb-4">
         <Input
           type="search"
-          placeholder="Buscar por nome ou WhatsApp..."
+          placeholder="Buscar por nome ou WhatsApp…"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           autoFocus
@@ -44,7 +44,7 @@ export function PdvClienteModal({
         />
       </div>
 
-      {loading ? <LoadingState title="Buscando clientes..." compact /> : null}
+      {loading ? <LoadingState title="Buscando clientes…" compact /> : null}
       {!loading && error ? <ErrorState title={error} compact /> : null}
 
       {!loading && !error && !query.trim() ? (

@@ -282,7 +282,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
         <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-teal-500/5 active:scale-[0.99]">
            <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-teal-500/10 text-teal-500"><ShoppingBag size={16} /></div>
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Aberto</span>
+              <span className="text-sm font-medium text-slate-400">Total Aberto</span>
            </div>
            <h3 className="text-2xl font-black text-white">
              {pedidos.filter(p => p.status === 'aberto').length}
@@ -291,7 +291,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
         <div className="rf-card-premium border-white/5 bg-surface-card/40 backdrop-blur-xl p-5 transition-all duration-300 hover:scale-[1.02] hover:border-white/10 hover:shadow-emerald-500/5 active:scale-[0.99]">
            <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><Truck size={16} /></div>
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Recebidos</span>
+              <span className="text-sm font-medium text-slate-400">Recebidos</span>
            </div>
            <h3 className="text-2xl font-black text-white">
              {pedidos.filter(p => p.status === 'finalizado').length}
@@ -304,7 +304,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
         search={{
           value: searchTerm,
           onChange: (v) => setSearchTerm(v),
-          placeholder: "Buscar por fornecedor ou ID do pedido..."
+          placeholder: "Buscar por fornecedor ou ID do pedido…"
         }}
       />
 
@@ -318,7 +318,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
               label: 'Pedido',
               render: (p) => (
                 <div className="flex flex-col">
-                  <span className="text-xs font-black text-white uppercase tracking-tighter">{p.id}</span>
+                  <span className="text-white text-sm font-medium text-slate-400">{p.id}</span>
                   <span className="text-[10px] text-slate-500">{new Intl.DateTimeFormat('pt-BR').format(new Date(p.criado_em))}</span>
                 </div>
               )
@@ -410,21 +410,21 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
             {/* Cabecalho de Infos Gerais */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Fornecedor</span>
+                <span className="flex items-center gap-1 text-sm font-medium text-slate-400">Fornecedor</span>
                 <span className="text-sm font-bold text-slate-200 truncate">{selectedPedido.fornecedor_nome}</span>
               </div>
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Data de Emissão</span>
+                <span className="flex items-center gap-1 text-sm font-medium text-slate-400">Data de Emissão</span>
                 <span className="text-sm font-bold text-slate-200">
                   {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(selectedPedido.criado_em))}
                 </span>
               </div>
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Forma de Pagamento</span>
+                <span className="flex items-center gap-1 text-sm font-medium text-slate-400">Forma de Pagamento</span>
                 <span className="text-sm font-bold text-slate-200">{selectedPedido.forma_pagamento || 'Não informada'}</span>
               </div>
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">Status do Pedido</span>
+                <span className="flex items-center gap-1 text-sm font-medium text-slate-400">Status do Pedido</span>
                 <div className="mt-1">
                   <StatusBadge tone={selectedPedido.status === 'finalizado' ? 'success' : selectedPedido.status === 'aberto' ? 'warning' : 'neutral'}>
                     {selectedPedido.status.toUpperCase()}
@@ -436,22 +436,22 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
             {/* Observações */}
             {selectedPedido.obs && (
               <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-1">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Observações</span>
+                <span className="block text-sm font-medium text-slate-400">Observações</span>
                 <p className="text-xs text-slate-400 whitespace-pre-wrap leading-relaxed">{selectedPedido.obs}</p>
               </div>
             )}
 
             {/* Tabela de Itens */}
             <div className="space-y-3">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Itens da Compra</span>
+              <span className="block text-sm font-medium text-slate-400">Itens da Compra</span>
               <div className="overflow-hidden border border-white/5 rounded-2xl bg-black/20">
                 <table className="w-full border-collapse text-left">
                   <thead>
                     <tr className="border-b border-white/5 bg-white/[0.01]">
-                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider">Produto</th>
-                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Qtd</th>
-                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Custo Unitário</th>
-                      <th className="p-4 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Total</th>
+                      <th className="p-4 text-sm font-medium text-slate-400">Produto</th>
+                      <th className="p-4 text-right text-sm font-medium text-slate-400">Qtd</th>
+                      <th className="p-4 text-right text-sm font-medium text-slate-400">Custo Unitário</th>
+                      <th className="p-4 text-right text-sm font-medium text-slate-400">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -473,7 +473,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
                     ))}
                     {(!selectedPedido.pedido_compra_itens || selectedPedido.pedido_compra_itens.length === 0) && (
                       <tr>
-                        <td colSpan={4} className="p-8 text-center text-xs text-slate-500 font-bold uppercase tracking-wider">
+                        <td colSpan={4} className="p-8 text-center text-sm font-medium text-slate-400">
                           Nenhum item cadastrado neste pedido de compra.
                         </td>
                       </tr>
@@ -485,7 +485,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
 
             {/* Total do Pedido */}
             <div className="flex justify-between items-center p-5 rounded-2xl bg-white/[0.02] border border-white/5">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Valor Total da Ordem</span>
+              <span className="text-sm font-medium text-slate-400">Valor Total da Ordem</span>
               <span className="text-2xl font-black text-[#C5A059] tracking-tight">{fmt(selectedPedido.total)}</span>
             </div>
             

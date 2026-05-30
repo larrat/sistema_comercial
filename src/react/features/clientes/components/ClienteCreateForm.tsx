@@ -272,10 +272,10 @@ export function ClienteCreateForm() {
               return (
                 <button
                   key={section.id}
-                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors text-left ${activeSection === section.id ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300'}`}
+                  className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors text-left${activeSection === section.id ? 'bg-white/10 text-white font-bold' : 'text-slate-400 hover:bg-white/5 hover:text-slate-300'}`}
                   onClick={() => scrollToSection(section.id)}
                 >
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-colors ${isFilled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (activeSection === section.id ? 'bg-teal-500 text-white' : 'bg-white/5 border border-white/10')}`}>
+                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black transition-colors${isFilled ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (activeSection === section.id ? 'bg-teal-500 text-white' : 'bg-white/5 border border-white/10')}`}>
                     {isFilled ? '✓' : section.number}
                   </span>
                   <span className="flex-1 text-sm tracking-wide">{section.label}</span>
@@ -285,7 +285,7 @@ export function ClienteCreateForm() {
           </nav>
 
           <div className="mt-auto pt-8">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">
+            <div className="flex justify-between mb-3 text-sm font-medium text-slate-400">
               <span>Progresso</span>
               <span>{Math.round(progress / 25)} de 4</span>
             </div>
@@ -305,12 +305,12 @@ export function ClienteCreateForm() {
             <section 
               id="essencial" 
               ref={sectionRefs.essencial}
-              className={`transition-opacity duration-300 ${activeSection === 'essencial' ? 'opacity-100' : 'opacity-50'}`}
+              className={`transition-opacity duration-300${activeSection === 'essencial' ? 'opacity-100' : 'opacity-50'}`}
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
                 <div>
                   <h2 className="text-xl font-black text-white uppercase tracking-wider">Essencial</h2>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest">Identificação básica e contatos principais</p>
+                  <p className="text-sm font-medium text-slate-400">Identificação básica e contatos principais</p>
                 </div>
                 <StatusBadge tone={values.nome.trim() ? 'success' : 'warning'}>
                   {values.nome.trim() ? 'Preenchido' : 'Obrigatório'}
@@ -401,12 +401,12 @@ export function ClienteCreateForm() {
             <section 
               id="comercial" 
               ref={sectionRefs.comercial}
-              className={`transition-opacity duration-300 ${activeSection === 'comercial' ? 'opacity-100' : 'opacity-50'}`}
+              className={`transition-opacity duration-300${activeSection === 'comercial' ? 'opacity-100' : 'opacity-50'}`}
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
                 <div>
                   <h2 className="text-xl font-black text-white uppercase tracking-wider">Comercial</h2>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest">Definições de venda e atendimento</p>
+                  <p className="text-sm font-medium text-slate-400">Definições de venda e atendimento</p>
                 </div>
                 <StatusBadge tone="info">Opcional</StatusBadge>
               </div>
@@ -453,7 +453,7 @@ export function ClienteCreateForm() {
                 </div>
 
                 <div className="pt-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Segmento</label>
+                  <label className="block mb-3 text-sm font-medium text-slate-400">Segmento</label>
                   <div className="flex flex-wrap gap-2">
                     {['Varejo', 'Atacado', 'Salão', 'Academia', 'Revendedor'].map(tag => (
                       <Button
@@ -489,12 +489,12 @@ export function ClienteCreateForm() {
             <section 
               id="endereco" 
               ref={sectionRefs.endereco}
-              className={`transition-opacity duration-300 ${activeSection === 'endereco' ? 'opacity-100' : 'opacity-50'}`}
+              className={`transition-opacity duration-300${activeSection === 'endereco' ? 'opacity-100' : 'opacity-50'}`}
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
                 <div>
                   <h2 className="text-xl font-black text-white uppercase tracking-wider">Endereço</h2>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest">Localização física do cliente</p>
+                  <p className="text-sm font-medium text-slate-400">Localização física do cliente</p>
                 </div>
                 <StatusBadge tone="info">Opcional</StatusBadge>
               </div>
@@ -521,10 +521,10 @@ export function ClienteCreateForm() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6 opacity-60">
-                  <Input label="Logradouro" disabled placeholder="Rua, Av..." />
+                  <Input label="Logradouro" disabled placeholder="Rua, Av…" />
                   <Input label="Número / Complemento" disabled placeholder="123, Bloco A" />
                 </div>
-                <p className="text-[10px] font-bold text-amber-500/70 uppercase tracking-widest mt-2">* Detalhamento de endereço em implantação</p>
+                <p className="mt-2 text-sm font-medium text-slate-400">* Detalhamento de endereço em implantação</p>
               </div>
             </section>
 
@@ -532,12 +532,12 @@ export function ClienteCreateForm() {
             <section 
               id="preferencias" 
               ref={sectionRefs.preferencias}
-              className={`transition-opacity duration-300 ${activeSection === 'preferencias' ? 'opacity-100' : 'opacity-50'}`}
+              className={`transition-opacity duration-300${activeSection === 'preferencias' ? 'opacity-100' : 'opacity-50'}`}
             >
               <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-8">
                 <div>
                   <h2 className="text-xl font-black text-white uppercase tracking-wider">Preferências</h2>
-                  <p className="text-xs text-slate-400 uppercase tracking-widest">Permissões de comunicação e notas</p>
+                  <p className="text-sm font-medium text-slate-400">Permissões de comunicação e notas</p>
                 </div>
                 <StatusBadge tone="info">Opcional</StatusBadge>
               </div>
@@ -586,7 +586,7 @@ export function ClienteCreateForm() {
                     className="h-24 resize-none"
                     value={values.obs}
                     onChange={e => update('obs', e.target.value)}
-                    placeholder="Anotações confidenciais para a equipe..."
+                    placeholder="Anotações confidenciais para a equipe…"
                   />
                 </div>
               </div>

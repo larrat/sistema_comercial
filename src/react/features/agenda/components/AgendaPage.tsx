@@ -133,7 +133,7 @@ export function AgendaPage() {
         {/* Week Headers */}
         <div className="grid grid-cols-7 border-b border-white/5 bg-white/[0.02]">
           {weekDays.map(day => (
-            <div key={day} className="py-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <div key={day} className="py-2 text-center text-sm font-medium text-slate-400">
               {day}
             </div>
           ))}
@@ -149,11 +149,9 @@ export function AgendaPage() {
             return (
               <div 
                 key={day.toISOString()} 
-                className={`relative bg-[#0f172a] p-2 transition-colors hover:bg-white/[0.02] ${!isCurrentMonth ? 'opacity-50' : ''}`}
+                className={`relative bg-[#0f172a] p-2 transition-colors hover:bg-white/[0.02]${!isCurrentMonth ? 'opacity-50' : ''}`}
               >
-                <div className={`mb-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
-                  isDayToday ? 'bg-indigo-500 text-white' : 'text-slate-400'
-                }`}>
+                <div className={`mb-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${ isDayToday ? 'bg-indigo-500 text-white' : 'text-slate-400' }`}>
                   {format(day, 'd')}
                 </div>
                 
@@ -161,7 +159,7 @@ export function AgendaPage() {
                   {dayEvents.map(evt => (
                     <div 
                       key={evt.id} 
-                      className={`truncate rounded px-1.5 py-1 text-[10px] font-semibold border ${evt.color}`}
+                      className={`truncate rounded px-1.5 py-1 text-[10px] font-semibold border${evt.color}`}
                       title={`${format(evt.start, 'HH:mm')} - ${evt.title}`}
                     >
                       {!evt.allDay && <span className="opacity-75 mr-1">{format(evt.start, 'HH:mm')}</span>}

@@ -11,12 +11,12 @@ export function CotacaoLockBanner({ onToggleLock, saving = false }: Props) {
   const locked = !!config?.locked;
 
   return (
-    <div className={`p-4 rounded-xl border flex items-center justify-between transition-colors shadow-sm ${locked ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100'}`}>
+    <div className={`p-4 rounded-xl border flex items-center justify-between transition-colors shadow-sm${locked ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100'}`}>
       <div className="flex items-center gap-4">
         <StatusBadge tone={locked ? 'warning' : 'success'}>
           {locked ? 'Travada' : 'Liberada'}
         </StatusBadge>
-        <span className={`text-sm font-medium ${locked ? 'text-amber-700' : 'text-emerald-700'}`}>
+        <span className={`text-sm font-medium${locked ? 'text-amber-700' : 'text-emerald-700'}`}>
           {locked
             ? 'A cotação está protegida contra edição.'
             : 'A cotação está liberada. Alterações são salvas automaticamente.'}

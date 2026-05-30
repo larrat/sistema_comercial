@@ -219,7 +219,7 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
                     handleImportTemplate(e.target.value);
                     e.target.value = ""; // reset
                   }}
-                  className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-3 py-1.5 text-xs font-bold text-indigo-400 uppercase tracking-wider focus:outline-none"
+                  className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-3 py-1.5 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 text-sm font-medium text-slate-400"
                 >
                   <option value="">+ Importar Combo/Template</option>
                   {templates.map(t => (
@@ -246,7 +246,7 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
                     <ChevronRight size={18} className="text-teal-400" />
                     {amb}
                   </h4>
-                  <button onClick={() => addItemToAmbiente(amb)} className="text-[10px] font-black uppercase tracking-widest text-teal-400 hover:text-teal-300">
+                  <button onClick={() => addItemToAmbiente(amb)} className="hover:text-teal-300 text-sm font-medium text-slate-400">
                     + Novo Serviço
                   </button>
                 </div>
@@ -351,7 +351,7 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              className="bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-xs font-bold text-white uppercase tracking-wider focus:outline-none"
+              className="bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 text-sm font-medium text-slate-400"
             >
               <option value="rascunho">Rascunho</option>
               <option value="enviado">Enviado</option>

@@ -335,10 +335,10 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
         </motion.article>
         <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
           <span className="rf-kpi-label">Aguardando</span>
-          <span className={`rf-kpi-value ${summary.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
+          <span className={`rf-kpi-value${summary.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
             {summary.emAbertoCount}
           </span>
-          <span className={`rf-kpi-sub ${summary.emAbertoCount > 0 ? 'warning' : 'success'}`}>
+          <span className={`rf-kpi-sub${summary.emAbertoCount > 0 ? 'warning' : 'success'}`}>
             {fmtCurrency(summary.valorEmAberto)} em aberto
           </span>
         </motion.article>

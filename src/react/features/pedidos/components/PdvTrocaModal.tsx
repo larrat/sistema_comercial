@@ -125,7 +125,7 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
               <RefreshCw size={18} className="text-teal-400 animate-spin-slow" />
               Troca & Devolução de Mercadorias
             </h2>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+            <p className="mt-0.5 text-sm font-medium text-slate-400">
               Ref: Pedido #{pedido.num || pedido.id.substring(0, 8)}
             </p>
           </div>
@@ -158,17 +158,17 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
                 <Ticket size={120} className="text-teal-400" />
               </div>
               <div className="relative z-10 space-y-4">
-                <div className="text-[9px] font-black uppercase tracking-widest text-teal-400 bg-teal-500/10 border border-teal-500/25 px-2.5 py-1 rounded-full w-max mx-auto">
+                <div className="bg-teal-500/10 border border-teal-500/25 px-2.5 py-1 rounded-full w-max mx-auto text-sm font-medium text-slate-400">
                   CUPOM CRÉDITO LOJA
                 </div>
                 <div className="space-y-1">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Código de Resgate</div>
+                  <div className="text-sm font-medium text-slate-400">Código de Resgate</div>
                   <div className="font-mono text-2xl font-black text-white tracking-widest select-all uppercase">
                     {valeGerado.codigo}
                   </div>
                 </div>
                 <div className="border-t border-white/5 pt-3">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Valor do Crédito</div>
+                  <div className="text-sm font-medium text-slate-400">Valor do Crédito</div>
                   <div className="text-2xl font-black text-teal-400">{fmtCurrency(valeGerado.valor)}</div>
                 </div>
                 <button
@@ -184,7 +184,7 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
             <div className="pt-4 border-t border-white/5">
               <button
                 onClick={onClose}
-                className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 py-3 text-xs font-black uppercase tracking-wider text-white transition-all active:scale-[0.98]"
+                className="w-full rounded-xl bg-slate-800 hover:bg-slate-700 py-3 text-white transition-all active:scale-[0.98] text-sm font-medium text-slate-400"
               >
                 Fechar Painel
               </button>
@@ -205,11 +205,7 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
                 return (
                   <div 
                     key={item.item_id || item.prodId} 
-                    className={`flex items-center justify-between gap-4 p-4 rounded-xl border transition-all ${
-                      selectedQty > 0 
-                        ? 'border-teal-500/40 bg-teal-500/[0.02]' 
-                        : 'border-white/5 bg-white/[0.01]'
-                    }`}
+                    className={`flex items-center justify-between gap-4 p-4 rounded-xl border transition-all ${ selectedQty > 0 ? 'border-teal-500/40 bg-teal-500/[0.02]' : 'border-white/5 bg-white/[0.01]' }`}
                   >
                     <div className="min-w-0 flex-1">
                       <div className="text-[10px] font-black text-slate-500 uppercase">REF: #{item.prodId.substring(0, 8)}</div>
@@ -239,7 +235,7 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
                       >
                         -
                       </button>
-                      <span className={`w-6 text-center text-xs font-black ${selectedQty > 0 ? 'text-teal-400' : 'text-slate-500'}`}>
+                      <span className={`w-6 text-center text-xs font-black${selectedQty > 0 ? 'text-teal-400' : 'text-slate-500'}`}>
                         {selectedQty}
                       </span>
                       <button
@@ -259,11 +255,11 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
             {/* Financial Summary */}
             <div className="rounded-xl border border-white/5 bg-white/[0.01] p-4 flex items-center justify-between text-xs font-bold">
               <div>
-                <div className="text-slate-500 uppercase tracking-wider text-[10px]">Total Devolvido</div>
+                <div className="text-sm font-medium text-slate-400">Total Devolvido</div>
                 <div className="text-white text-sm font-black mt-0.5">{totalItemsCount} peças selecionadas</div>
               </div>
               <div className="text-right">
-                <div className="text-slate-500 uppercase tracking-wider text-[10px]">Crédito a Emitir</div>
+                <div className="text-sm font-medium text-slate-400">Crédito a Emitir</div>
                 <div className="text-teal-400 text-base font-black mt-0.5">{fmtCurrency(selectedTotal)}</div>
               </div>
             </div>
@@ -274,7 +270,7 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                className="rounded-xl px-5 py-2.5 hover:text-white hover:bg-white/5 transition-all text-sm font-medium text-slate-400"
               >
                 Cancelar
               </button>
@@ -282,7 +278,7 @@ export function PdvTrocaModal({ open, onClose, pedido }: Props) {
                 type="button"
                 onClick={handleConfirm}
                 disabled={loading || totalItemsCount === 0}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 active:scale-[0.98] disabled:opacity-40 transition-all"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 px-6 py-2.5 text-white shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 active:scale-[0.98] disabled:opacity-40 transition-all text-sm font-medium text-slate-400"
               >
                 <LucideSave className="h-4 w-4" />
                 {loading ? 'Confirmando...' : 'Confirmar Devolução'}

@@ -136,7 +136,7 @@ export function PortalPropostaPage() {
           <div className="border-t border-white/10 pt-6">
             <div className="flex justify-between items-end bg-teal-500/10 border border-teal-500/20 p-6 rounded-2xl">
               <div>
-                <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest block mb-1">Investimento Final Estimado</span>
+                <span className="block mb-1 text-sm font-medium text-slate-400">Investimento Final Estimado</span>
                 <span className="text-xs text-teal-400/70 font-medium">Material + Mão de Obra Inclusos</span>
               </div>
               <span className="text-3xl font-black text-teal-400">{fmtBRL(orcamento.calculos?.preco_venda_final || 0)}</span>
@@ -153,7 +153,7 @@ export function PortalPropostaPage() {
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Nome Completo</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-400">Nome Completo</label>
               <div className="relative">
                 <UserIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input 
@@ -166,7 +166,7 @@ export function PortalPropostaPage() {
               </div>
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">CPF ou CNPJ</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-400">CPF ou CNPJ</label>
               <input 
                 type="text" 
                 value={cpf}

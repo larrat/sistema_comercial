@@ -184,30 +184,30 @@ export function PedidoDetailPanel({ pedido }: Props) {
     <div data-testid="pedido-detail-panel">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div>
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cliente</div>
+          <div className="mb-1 text-sm font-medium text-slate-400">Cliente</div>
           <div className="text-sm font-semibold text-white">{pedido.cli || '—'}</div>
         </div>
         {pedido.rca_nome && (
           <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Vendedor</div>
+            <div className="mb-1 text-sm font-medium text-slate-400">Vendedor</div>
             <div className="text-sm font-semibold text-white">{pedido.rca_nome}</div>
           </div>
         )}
         <div>
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tipo</div>
+          <div className="mb-1 text-sm font-medium text-slate-400">Tipo</div>
           <div className="text-sm font-semibold text-white">{pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}</div>
         </div>
         <div>
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Pagamento</div>
+          <div className="mb-1 text-sm font-medium text-slate-400">Pagamento</div>
           <div className="text-sm font-semibold text-white">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
         </div>
         <div>
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prazo</div>
+          <div className="mb-1 text-sm font-medium text-slate-400">Prazo</div>
           <div className="text-sm font-semibold text-white">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
         </div>
         {pedido.obs && (
           <div className="sm:col-span-2 lg:col-span-3">
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Obs.</div>
+            <div className="mb-1 text-sm font-medium text-slate-400">Obs.</div>
             <div className="text-sm text-slate-300 bg-white/5 p-3 rounded-lg border border-white/5">{pedido.obs}</div>
           </div>
         )}
@@ -239,17 +239,17 @@ export function PedidoDetailPanel({ pedido }: Props) {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 bg-white/5 p-4 rounded-xl border border-white/5">
               <div>
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5">Recebido</div>
+                <div className="mb-0.5 text-sm font-medium text-slate-400">Recebido</div>
                 <div className="text-sm font-bold text-emerald-400">{fmtCurrency(valorRecebido)}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5">Em aberto</div>
-                <div className={`text-sm font-bold ${valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                <div className="mb-0.5 text-sm font-medium text-slate-400">Em aberto</div>
+                <div className={`text-sm font-bold${valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
                   {fmtCurrency(valorEmAberto)}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tight mb-0.5">Última baixa</div>
+                <div className="mb-0.5 text-sm font-medium text-slate-400">Última baixa</div>
                 <div className="text-sm font-semibold text-slate-300">
                   {formatDateTimeLabel(conta.ultimo_recebimento_em || conta.recebido_em)}
                 </div>
@@ -284,7 +284,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
             )}
 
             <div className="mt-8">
-              <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-4">Últimas baixas</div>
+              <div className="mb-4 text-sm font-medium text-slate-400">Últimas baixas</div>
               {baixas.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                   {baixas.slice(0, 4).map((baixa) => (

@@ -74,12 +74,12 @@ const CotacaoPriceCell = memo(function CotacaoPriceCell({
 
   return (
     <td
-      className={`px-4 py-3 text-right transition-colors ${isBest ? 'bg-emerald-500/10' : isWorst ? 'bg-rose-500/10' : ''}`}
+      className={`px-4 py-3 text-right transition-colors${isBest ? 'bg-emerald-500/10' : isWorst ? 'bg-rose-500/10' : ''}`}
       title={error || undefined}
     >
       {locked ? (
         value !== null && value > 0 ? (
-          <span className={`font-medium ${isBest ? 'text-emerald-400' : isWorst ? 'text-rose-400' : 'text-white'}`}>
+          <span className={`font-medium${isBest ? 'text-emerald-400' : isWorst ? 'text-rose-400' : 'text-white'}`}>
             {fmt(value)}
           </span>
         ) : (
@@ -87,7 +87,7 @@ const CotacaoPriceCell = memo(function CotacaoPriceCell({
         )
       ) : (
         <input
-          className={`rf-input-premium !py-1 !px-2 !text-xs !h-7 !text-right ${saving ? 'opacity-50' : ''} ${error ? '!border-rose-500 !ring-rose-500' : ''} ${isBest ? '!bg-emerald-500/10' : ''}`}
+          className={`rf-input-premium !py-1 !px-2 !text-xs !h-7 !text-right${saving ? 'opacity-50' : ''}${error ? '!border-rose-500 !ring-rose-500' : ''}${isBest ? '!bg-emerald-500/10' : ''}`}
           type="number"
           value={draft}
           placeholder="0,00"
@@ -212,7 +212,7 @@ export function CotacaoTable({
               );
             })}
             <tr className="bg-white/5 font-bold border-t border-white/5">
-              <td colSpan={2} className="px-4 py-4 text-slate-500 uppercase tracking-wider text-[10px]">
+              <td colSpan={2} className="px-4 py-4 text-sm font-medium text-slate-400">
                 Total Geral
               </td>
               {fornTotals.map((ft) => {
@@ -221,7 +221,7 @@ export function CotacaoTable({
                 return (
                   <td
                     key={ft.id}
-                    className={`px-4 py-4 text-right ${isBest ? 'text-emerald-400' : 'text-white'}`}
+                    className={`px-4 py-4 text-right${isBest ? 'text-emerald-400' : 'text-white'}`}
                   >
                     {ft.total > 0 ? fmt(ft.total) : <span className="text-slate-500">—</span>}
                   </td>

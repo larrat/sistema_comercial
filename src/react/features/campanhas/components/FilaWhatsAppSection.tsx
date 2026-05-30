@@ -121,7 +121,7 @@ export function FilaWhatsAppSection() {
         <div className="overflow-x-auto border border-white/5 rounded-xl bg-slate-900 shadow-sm">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+              <tr className="bg-white/5 border-b border-white/5 text-sm font-medium text-slate-400">
                 <th className="px-4 py-3 text-left w-10">
                   <input
                     type="checkbox"
@@ -139,7 +139,7 @@ export function FilaWhatsAppSection() {
             </thead>
             <tbody className="divide-y divide-white/5">
               {exibidos.map((envio) => (
-                <tr key={envio.id} className={`hover:bg-white/5 transition-colors ${selecionados.has(envio.id) ? 'bg-blue-500/10' : ''}`}>
+                <tr key={envio.id} className={`hover:bg-white/5 transition-colors${selecionados.has(envio.id) ? 'bg-blue-500/10' : ''}`}>
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"

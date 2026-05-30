@@ -55,7 +55,7 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
         <div className="flex items-center justify-between border-b border-white/5 p-5 bg-white/[0.02]">
           <div>
             <h2 className="text-base font-black text-white uppercase tracking-wider">Nova Ordem de Serviço</h2>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Vincular etapa de execução da reforma</p>
+            <p className="mt-0.5 text-sm font-medium text-slate-400">Vincular etapa de execução da reforma</p>
           </div>
           <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-white transition-colors">
             <LucideX className="h-5 w-5" />
@@ -65,32 +65,32 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">Título da O.S.</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-400">Título da O.S.</label>
               <input
                 {...register('titulo', { required: true })}
-                className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all placeholder-slate-600"
+                className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                 placeholder="Ex: Demolição da Parede do Banheiro"
               />
             </div>
             
             <div>
-              <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400">Descrição / Instruções</label>
+              <label className="mb-1.5 block text-sm font-medium text-slate-400">Descrição / Instruções</label>
               <textarea
                 {...register('descricao')}
                 rows={3}
-                className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all placeholder-slate-600"
-                placeholder="Detalhes sobre a execução física e especificações técnicas..."
+                className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-teal-500/50"
+                placeholder="Detalhes sobre a execução física e especificações técnicas…"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                <label className="mb-1.5 block flex items-center gap-1 text-sm font-medium text-slate-400">
                   <User size={12} className="text-slate-500" /> Parceiro Terceirizado
                 </label>
                 <select
                   {...register('terceirizado_id')}
-                  className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all appearance-none"
+                  className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all appearance-none focus-visible:ring-1 focus-visible:ring-teal-500/50"
                 >
                   <option value="">Nenhum (Equipe Interna)</option>
                   {users.map(u => (
@@ -102,14 +102,14 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
               </div>
 
               <div>
-                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                <label className="mb-1.5 block flex items-center gap-1 text-sm font-medium text-slate-400">
                   <DollarSign size={12} className="text-slate-500" /> Repasse / Medição (R$)
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   {...register('valor_parceiro')}
-                  className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all placeholder-slate-600"
+                  className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-xs text-white focus:border-teal-500 focus:outline-none transition-all placeholder-slate-600 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                   placeholder="0.00"
                 />
               </div>
@@ -122,7 +122,7 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
                 className="rounded border-rose-500/30 bg-black/40 text-rose-500 focus:ring-0 focus:ring-offset-0 h-4 w-4"
               />
               <div className="flex-1">
-                <div className="text-[10px] font-black text-rose-400 uppercase tracking-wider">O.S. de Garantia / Assistência</div>
+                <div className="text-sm font-medium text-slate-400">O.S. de Garantia / Assistência</div>
                 <div className="text-[9px] text-slate-400 mt-0.5 leading-normal">
                   Esta ordem de serviço é corretiva e está sob regime de garantia pós-obra do contrato.
                 </div>
@@ -134,14 +134,14 @@ export function OrdemServicoModal({ contratoId, onClose }: { contratoId: string,
             <button 
               type="button" 
               onClick={onClose} 
-              className="rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              className="rounded-xl px-5 py-2.5 hover:text-white hover:bg-white/5 transition-all text-sm font-medium text-slate-400"
             >
               Cancelar
             </button>
             <button 
               type="submit" 
               disabled={isCreatingOs} 
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 active:scale-[0.98] disabled:opacity-50 transition-all"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 px-6 py-2.5 text-white shadow-lg shadow-teal-500/10 hover:shadow-teal-500/20 active:scale-[0.98] disabled:opacity-50 transition-all text-sm font-medium text-slate-400"
             >
               <LucideSave className="h-4 w-4" />
               Criar O.S.

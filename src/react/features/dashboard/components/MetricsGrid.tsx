@@ -9,7 +9,7 @@ const CountUp = (ReactCountUp as any).default || ReactCountUp;
 function BadgeDelta({ value, isPositive, isNeutral }: { value: string; isPositive: boolean; isNeutral: boolean }) {
   if (isNeutral) {
     return (
-      <span className="text-[9px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 border bg-slate-500/10 text-slate-400 border-slate-500/20 uppercase tracking-wider">
+      <span className="px-2 py-0.5 rounded-lg flex items-center gap-0.5 border bg-slate-500/10 border-slate-500/20 text-sm font-medium text-slate-400">
         {value}
       </span>
     );
@@ -87,7 +87,7 @@ export function MetricsGrid({ stats, financeMetrics, periodo }: { stats: any, fi
             <div className="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             
             <div className="flex items-start justify-between gap-2 relative z-10">
-              <Typography variant="label" color="muted" className="text-[10px] font-black uppercase tracking-wider">{stat.label}</Typography>
+              <Typography variant="label" color="muted" className="text-sm font-medium text-slate-400">{stat.label}</Typography>
               <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />
             </div>
             <div className="mt-4 mb-2 relative z-10">
@@ -103,7 +103,7 @@ export function MetricsGrid({ stats, financeMetrics, periodo }: { stats: any, fi
                 />
               </span>
             </div>
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block mt-1 relative z-10">{stat.trendLabel}</span>
+            <span className="block mt-1 relative z-10 text-sm font-medium text-slate-400">{stat.trendLabel}</span>
           </Card>
         </motion.article>
       ))}

@@ -243,26 +243,18 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`relative p-6 border-2 border-dashed rounded-3xl transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden ${
-              isDragging 
-                ? 'border-teal-400 bg-teal-950/20 shadow-lg shadow-teal-500/10 scale-[1.01]' 
-                : 'border-white/10 hover:border-teal-500/30 bg-white/[0.01] hover:bg-white/[0.02]'
-            }`}
+            className={`relative p-6 border-2 border-dashed rounded-3xl transition-all duration-300 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden ${ isDragging ? 'border-teal-400 bg-teal-950/20 shadow-lg shadow-teal-500/10 scale-[1.01]' : 'border-white/10 hover:border-teal-500/30 bg-white/[0.01] hover:bg-white/[0.02]' }`}
           >
             {isDragging && (
               <div className="absolute inset-0 bg-teal-500/5 animate-pulse pointer-events-none" />
             )}
 
             <div className="flex items-center gap-4 text-left">
-              <div className={`p-4 rounded-2xl transition-all duration-300 ${
-                isDragging 
-                  ? 'bg-teal-500/20 text-teal-300 scale-110' 
-                  : 'bg-white/5 text-slate-400 group-hover:text-teal-400 group-hover:bg-teal-500/10'
-              }`}>
+              <div className={`p-4 rounded-2xl transition-all duration-300 ${ isDragging ? 'bg-teal-500/20 text-teal-300 scale-110' : 'bg-white/5 text-slate-400 group-hover:text-teal-400 group-hover:bg-teal-500/10' }`}>
                 {isDragging ? <UploadCloud size={28} className="animate-bounce" /> : <FileText size={28} />}
               </div>
               <div>
-                <h4 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                <h4 className="text-white flex items-center gap-2 text-sm font-medium text-slate-400">
                   Importador Inteligente de Nota Fiscal (XML)
                   <Badge variant="green" className="!py-0 !px-1.5 !text-[8px]">Novo</Badge>
                 </h4>
@@ -282,7 +274,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                 }} 
                 className="hidden" 
               />
-              <span className="inline-flex items-center gap-2 px-5 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all hover:shadow-lg hover:shadow-teal-500/20 active:scale-95">
+              <span className="inline-flex items-center gap-2 px-5 py-3 bg-teal-500 hover:bg-teal-400 rounded-xl transition-all hover:shadow-lg hover:shadow-teal-500/20 active:scale-95 text-sm font-medium text-slate-400">
                 Selecionar Arquivo
               </span>
             </label>
@@ -366,14 +358,10 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
               {itens.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className={`rounded-2xl border transition-all duration-300 ${
-                    item.isXmlMatched === false 
-                      ? 'bg-rose-950/10 border-rose-500/20' 
-                      : 'bg-white/[0.02] border-white/5'
-                  }`}
+                  className={`rounded-2xl border transition-all duration-300 ${ item.isXmlMatched === false ? 'bg-rose-950/10 border-rose-500/20' : 'bg-white/[0.02] border-white/5' }`}
                 >
                   {item.isXmlMatched === false && (
-                    <div className="px-4 py-1.5 text-[10px] font-black text-rose-400 uppercase tracking-widest border-b border-rose-500/20 flex items-center gap-2">
+                    <div className="px-4 py-1.5 border-b border-rose-500/20 flex items-center gap-2 text-sm font-medium text-slate-400">
                       <AlertCircle size={10} />
                       Não Vinculado ({item.xmlSku || 'S/SKU'}) — Associe um produto abaixo
                     </div>
@@ -393,7 +381,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                           setActiveItemIdx(idx);
                           setSearchTerm(item.nome);
                         }}
-                        placeholder="Buscar produto no catálogo..."
+                        placeholder="Buscar produto no catálogo…"
                         className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 pl-10 text-xs text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                       />
 

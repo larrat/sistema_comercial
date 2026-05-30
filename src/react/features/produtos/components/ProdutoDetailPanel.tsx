@@ -58,36 +58,36 @@ export function ProdutoDetailPanel({ produto: p, saldo: s, onFechar, onEditar, o
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Custo</div>
+          <div className="text-sm font-medium text-slate-400">Custo</div>
           <div className="text-lg font-extrabold text-white leading-none">{fmt(custo)}</div>
         </div>
         <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Varejo</div>
+          <div className="text-sm font-medium text-slate-400">Varejo</div>
           <div className="text-lg font-extrabold text-emerald-400 leading-none">{varejo > 0 ? fmt(varejo) : '-'}</div>
           <div className="text-[11px] font-medium text-emerald-400/70">
             {margemV > 0 ? `${margemV.toFixed(1)}% margem` : 'Sem regra'}
           </div>
         </div>
         <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Atacado</div>
+          <div className="text-sm font-medium text-slate-400">Atacado</div>
           <div className="text-lg font-extrabold text-blue-400 leading-none">{atacado > 0 ? fmt(atacado) : '-'}</div>
           <div className="text-[11px] font-medium text-blue-400/70">
             {margemA > 0 ? `${margemA.toFixed(1)}% margem` : 'Sem regra'}
           </div>
         </div>
         <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Saldo em estoque</div>
+          <div className="text-sm font-medium text-slate-400">Saldo em estoque</div>
           <div className="text-lg font-extrabold text-white leading-none">{fmtQ(s.saldo)} {p.un}</div>
           <div className="text-[11px] font-medium text-slate-400">
             {emin > 0 ? `Estoque mín: ${fmtQ(emin)}` : 'Sem mínimo'}
           </div>
         </div>
         <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Custo médio</div>
+          <div className="text-sm font-medium text-slate-400">Custo médio</div>
           <div className="text-lg font-extrabold text-white leading-none">{fmt(s.cm || p.ecm || custo)}</div>
         </div>
         <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-sm">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Comercial</div>
+          <div className="text-sm font-medium text-slate-400">Comercial</div>
           <div className="text-lg font-extrabold text-white leading-none">
             {(p.qtmin ?? 0) > 0 ? `${fmtQ(p.qtmin!)} un` : '-'}
           </div>
@@ -106,7 +106,7 @@ export function ProdutoDetailPanel({ produto: p, saldo: s, onFechar, onEditar, o
           <div className="overflow-hidden border border-white/5 rounded-xl">
             <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-white/5 border-b border-white/5 text-slate-400 font-bold uppercase tracking-widest text-[9px]">
+                <tr className="bg-white/5 border-b border-white/5 text-sm font-medium text-slate-400">
                   <th className="px-4 py-3 text-left">Mês</th>
                   <th className="px-4 py-3 text-left">Fornecedor</th>
                   <th className="px-4 py-3 text-right">Preço</th>

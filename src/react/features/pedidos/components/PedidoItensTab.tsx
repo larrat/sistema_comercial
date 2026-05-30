@@ -182,7 +182,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
       <div className="flex items-center justify-between p-6">
         <h3 className="text-base font-bold text-white m-0">Itens do pedido</h3>
         {!canEdit && (
-          <span className="bg-white/5 text-slate-400 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-white/10">
+          <span className="bg-white/5 px-2 py-1 rounded-md border border-white/10 text-sm font-medium text-slate-400">
             Somente leitura
           </span>
         )}
@@ -196,14 +196,14 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-y border-white/5 bg-white/5">
-                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Produto</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Origem</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Qtd</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Custo</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Preço</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Subtotal</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lucro</th>
-                  <th className="px-6 py-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider">Margem</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-400">Produto</th>
+                  <th className="px-3 py-3 text-left text-sm font-medium text-slate-400">Origem</th>
+                  <th className="px-3 py-3 text-left text-sm font-medium text-slate-400">Qtd</th>
+                  <th className="px-3 py-3 text-left text-sm font-medium text-slate-400">Custo</th>
+                  <th className="px-3 py-3 text-left text-sm font-medium text-slate-400">Preço</th>
+                  <th className="px-3 py-3 text-left text-sm font-medium text-slate-400">Subtotal</th>
+                  <th className="px-3 py-3 text-left text-sm font-medium text-slate-400">Lucro</th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-slate-400">Margem</th>
                   {canEdit ? <th className="px-3 py-3" /> : null}
                 </tr>
               </thead>
@@ -219,7 +219,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
                     <tr key={itemId} className="border-b border-white/5 hover:bg-white/5 transition-colors" data-testid={`pedido-profile-item-${index}`}>
                       <td className="px-6 py-4 text-sm font-semibold text-white">{item.nome}</td>
                       <td className="px-3 py-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.orig === 'estoque' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold${item.orig === 'estoque' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
                           {item.orig === 'estoque' ? 'Estoque' : 'Fornecedor'}
                         </span>
                       </td>
@@ -227,7 +227,7 @@ export function PedidoItensTab({ pedido, itens, canEdit, onPedidoChanged }: Prop
                       <td className="px-3 py-4 text-sm text-slate-500">{formatPedidoCurrency(item.custo)}</td>
                       <td className="px-3 py-4 text-sm text-slate-300 font-medium">{renderEditableCell(item, index, 'preco')}</td>
                       <td className="px-3 py-4 text-sm font-semibold text-white">{formatPedidoCurrency(subtotal)}</td>
-                      <td className={`px-3 py-4 text-sm font-semibold ${lucro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      <td className={`px-3 py-4 text-sm font-semibold${lucro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {formatPedidoCurrency(lucro)}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-400">{margem.toFixed(1)}%</td>

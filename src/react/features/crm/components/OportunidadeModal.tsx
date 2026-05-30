@@ -93,7 +93,7 @@ export function OportunidadeModal({ onClose }: { onClose: () => void }) {
                 {...register('endereco_obra')}
                 rows={2}
                 className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                placeholder="Rua, Número, Bairro, Apartamento..."
+                placeholder="Rua, Número, Bairro, Apartamento…"
               />
               {errors.endereco_obra && <span className="mt-1 text-xs text-rose-500">{errors.endereco_obra.message as string}</span>}
             </div>

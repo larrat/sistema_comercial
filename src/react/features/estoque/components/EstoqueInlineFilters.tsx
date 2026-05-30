@@ -57,13 +57,7 @@ export function EstoqueInlineFilters() {
               key={key}
               type="button"
               onClick={() => setView(key)}
-              className={`
-                px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all duration-200
-                ${view === key
-                  ? 'bg-teal-500/15 text-teal-400 border border-teal-500/30 shadow-sm shadow-teal-500/10'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 border border-transparent'
-                }
-              `}
+              className={`px-4 py-2 rounded-xl whitespace-nowrap transition-all duration-200 ${view === key ? 'bg-teal-500/15 border border-teal-500/30 shadow-sm shadow-teal-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 border-transparent' } text-sm font-medium text-slate-400`}
             >
               {label}
             </button>
@@ -94,7 +88,7 @@ export function EstoqueInlineFilters() {
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder={isPosition ? 'Buscar produto ou SKU...' : 'Buscar no histórico...'}
+            placeholder={isPosition ? 'Buscar produto ou SKU…' : 'Buscar no histórico…'}
             className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-8 py-2.5 text-xs text-white 
                        placeholder:text-slate-600 focus:outline-none focus:border-teal-500/40 focus:bg-white/[0.06] transition-all"
           />
@@ -120,14 +114,7 @@ export function EstoqueInlineFilters() {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 aria-label="Filtrar por status"
-                className={`
-                  bg-white/[0.04] border rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer
-                  focus:outline-none appearance-none
-                  ${statusFilter
-                    ? 'border-teal-500/30 text-teal-400 bg-teal-500/10'
-                    : 'border-white/[0.08] text-slate-400 hover:border-white/[0.15]'
-                  }
-                `}
+                className={`bg-white/[0.04] border rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer focus:outline-none appearance-none ${statusFilter ? 'border-teal-500/30 text-teal-400 bg-teal-500/10' : 'border-white/[0.08] text-slate-400 hover:border-white/[0.15]' } focus-visible:ring-1 focus-visible:ring-teal-500/50`}
               >
                 <option value="">Status</option>
                 <option value="ok">OK</option>
@@ -140,14 +127,7 @@ export function EstoqueInlineFilters() {
                 value={categoriaFilter}
                 onChange={(e) => setCategoriaFilter(e.target.value)}
                 aria-label="Filtrar por categoria"
-                className={`
-                  bg-white/[0.04] border rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer
-                  focus:outline-none appearance-none max-w-[180px]
-                  ${categoriaFilter
-                    ? 'border-teal-500/30 text-teal-400 bg-teal-500/10'
-                    : 'border-white/[0.08] text-slate-400 hover:border-white/[0.15]'
-                  }
-                `}
+                className={`bg-white/[0.04] border rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer focus:outline-none appearance-none max-w-[180px] ${categoriaFilter ? 'border-teal-500/30 text-teal-400 bg-teal-500/10' : 'border-white/[0.08] text-slate-400 hover:border-white/[0.15]' } focus-visible:ring-1 focus-visible:ring-teal-500/50`}
               >
                 <option value="">Categoria</option>
                 {categorias.map((c) => (
@@ -161,14 +141,7 @@ export function EstoqueInlineFilters() {
               value={tipoHistorico}
               onChange={(e) => setTipoHistorico(e.target.value as any)}
               aria-label="Filtrar por tipo"
-              className={`
-                bg-white/[0.04] border rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer
-                focus:outline-none appearance-none
-                ${tipoHistorico
-                  ? 'border-teal-500/30 text-teal-400 bg-teal-500/10'
-                  : 'border-white/[0.08] text-slate-400 hover:border-white/[0.15]'
-                }
-              `}
+              className={`bg-white/[0.04] border rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer focus:outline-none appearance-none ${tipoHistorico ? 'border-teal-500/30 text-teal-400 bg-teal-500/10' : 'border-white/[0.08] text-slate-400 hover:border-white/[0.15]' } focus-visible:ring-1 focus-visible:ring-teal-500/50`}
             >
               <option value="">Tipo</option>
               <option value="entrada">Entrada</option>

@@ -47,7 +47,7 @@ export function AgingChart({ data }: AgingChartProps) {
             <div key={bucket.id} className="flex items-center justify-between border-b border-white/[0.02] pb-2 last:border-b-0">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: bucket.color }} />
-                <span className="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider">
+                <span className="font-extrabold text-sm font-medium text-slate-400">
                   {bucket.label}
                 </span>
               </div>

@@ -32,7 +32,7 @@ export function CotacaoTabelaPage() {
     >
       {status === 'loading' ? (
         <EmptyState
-          title="Carregando comparação de compras..."
+          title="Carregando comparação de compras…"
           description="Estamos reunindo produtos, fornecedores, preços atuais e configuração mínima da cotação."
           compact
         />

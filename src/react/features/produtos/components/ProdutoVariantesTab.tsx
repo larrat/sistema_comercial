@@ -16,7 +16,7 @@ function PremiumChartTooltip({ active, payload, label, formatter }: any) {
   if (!active || !payload || !payload.length) return null;
   return (
     <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 p-4 rounded-xl shadow-2xl z-[1000]">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 border-b border-slate-700/50 pb-2">{label}</p>
+      <p className="mb-3 border-b border-slate-700/50 pb-2 text-sm font-medium text-slate-400">{label}</p>
       <div className="flex flex-col gap-2.5">
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center justify-between gap-8">
@@ -508,7 +508,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
   }, [metrics]);
 
   if (loadingVariantes) {
-    return <LoadingState title="Carregando variantes..." />;
+    return <LoadingState title="Carregando variantes…" />;
   }
 
   if (errorVariantes) return <ErrorState title={errorVariantes instanceof Error ? errorVariantes.message : 'Erro ao carregar variantes'} compact />;
@@ -612,10 +612,10 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           </span>
         </article>
 
-        <article className={`rf-dash-card ${giroMedio === null ? 'is-warning' : ''}`}>
+        <article className={`rf-dash-card${giroMedio === null ? 'is-warning' : ''}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="rf-stat-label !mb-0">Giro Médio</span>
-            <div className={`p-2 rounded-lg ${giroMedio === null ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-800 text-slate-300 border-white/5'} shadow-sm`}>
+            <div className={`p-2 rounded-lg${giroMedio === null ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-800 text-slate-300 border-white/5'}shadow-sm`}>
               <Calendar size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -628,7 +628,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
             />
             <span className="text-sm font-bold text-slate-400 ml-1.5">dias</span>
           </div>
-          <span className={`rf-stat-sub ${giroMedio === null ? 'warning' : 'muted'} font-bold`}>
+          <span className={`rf-stat-sub${giroMedio === null ? 'warning' : 'muted'}font-bold`}>
             Cobertura de estoque
           </span>
         </article>
@@ -646,15 +646,15 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/5">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Variante</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Saldo</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Varejo</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vendido</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Receita</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Margem</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Variante</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">SKU</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Saldo</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Varejo</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Status</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Vendido</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Receita</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400">Margem</th>
+                <th className="px-6 py-4 text-right text-sm font-medium text-slate-400">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -689,7 +689,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                     <td className="px-6 py-4 text-sm font-bold text-white">{fmtQ(row.vendido)}</td>
                     <td className="px-6 py-4 text-sm font-bold text-white">{fmtCurrency(row.receita)}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs font-black ${row.margem && row.margem > 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      <span className={`text-xs font-black${row.margem && row.margem > 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
                         {fmtPercent(row.margem)}
                       </span>
                     </td>
@@ -785,12 +785,12 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
         {metrics.map((row) => (
           <div key={row.produto.id} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: row.color }} />
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{row.produto.nome}</span>
+            <span className="text-sm font-medium text-slate-400">{row.produto.nome}</span>
           </div>
         ))}
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full" style={{ background: PAI_COLOR }} />
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider italic">Produto Pai</span>
+          <span className="italic text-sm font-medium text-slate-400">Produto Pai</span>
         </div>
       </div>
     </motion.div>

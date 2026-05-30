@@ -83,27 +83,27 @@ export function PedidoEntregaConfirmModal({
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</div>
+              <div className="text-sm font-medium text-slate-400">Cliente</div>
               <div className="font-bold text-slate-900">{pedido.cli || '—'}</div>
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pedido</div>
+              <div className="text-sm font-medium text-slate-400">Pedido</div>
               <div className="font-bold text-slate-900">#{pedido.num}</div>
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Valor total</div>
+              <div className="text-sm font-medium text-slate-400">Valor total</div>
               <div className="font-bold text-slate-900">{formatCurrency(pedido.total)}</div>
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pagamento</div>
+              <div className="text-sm font-medium text-slate-400">Pagamento</div>
               <div className="font-bold text-slate-900">{PGTO_LABEL[pedido.pgto ?? ''] ?? pedido.pgto ?? '—'}</div>
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Prazo</div>
+              <div className="text-sm font-medium text-slate-400">Prazo</div>
               <div className="font-bold text-slate-900">{PRAZO_LABEL[pedido.prazo ?? ''] ?? pedido.prazo ?? '—'}</div>
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Status atual</div>
+              <div className="text-sm font-medium text-slate-400">Status atual</div>
               <StatusBadge tone="neutral">
                 {PEDIDO_STATUS_LABEL[status] ?? status ?? '—'}
               </StatusBadge>

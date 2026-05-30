@@ -54,7 +54,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
               <button
                 key={t}
                 onClick={() => { setTipo(t); setCategoriaId(''); }}
-                className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${tipo === t ? (t === 'entrada' ? 'bg-emerald-500' : 'bg-rose-500') + ' text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-2 rounded-lg transition-all text-sm font-medium text-slate-400${tipo === t ? (t === 'entrada' ? 'bg-emerald-500' : 'bg-rose-500') + ' text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
               >
                 {t === 'entrada' ? 'Entrada' : 'Saída'}
               </button>
@@ -62,7 +62,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor</label>
+            <label className="text-sm font-medium text-slate-400">Valor</label>
             <input 
               name="valor_transacao"
               type="number" 
@@ -74,7 +74,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Categoria</label>
+            <label className="text-sm font-medium text-slate-400">Categoria</label>
             <select 
               name="categoria_transacao"
               value={categoriaId}
@@ -89,7 +89,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Descrição</label>
+            <label className="text-sm font-medium text-slate-400">Descrição</label>
             <textarea 
               name="descricao_transacao"
               spellCheck={false}

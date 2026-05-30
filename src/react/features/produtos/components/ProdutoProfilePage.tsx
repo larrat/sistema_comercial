@@ -428,7 +428,7 @@ export function ProdutoProfilePage({
         >
           <div className="absolute inset-0 bg-gradient-to-br from-[#0F172A] to-blue-600 opacity-0 group-hover:opacity-90 transition-all duration-500 flex flex-col items-center justify-center text-white gap-2">
             <Camera className="w-6 h-6 translate-y-4 group-hover:translate-y-0 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Trocar Foto</span>
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium text-slate-400">Trocar Foto</span>
           </div>
           <Package className="w-12 h-12 text-slate-700 group-hover:scale-110 transition-transform duration-500" />
           
@@ -500,11 +500,11 @@ export function ProdutoProfilePage({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`rf-dash-card ${toneClass}`}
+              className={`rf-dash-card${toneClass}`}
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm ${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-400'}`}>
+                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-400'}`}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
               </div>
@@ -531,7 +531,7 @@ export function ProdutoProfilePage({
                 {!isCurrency && <span className="text-sm font-bold text-slate-500 ml-1.5">{card.value.split(' ')[1]}</span>}
               </div>
 
-              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
+              <span className={`rf-stat-sub${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'}font-bold`}>
                 {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
                 {card.subtitle}
               </span>
@@ -545,7 +545,7 @@ export function ProdutoProfilePage({
           <button
             key={tab.id}
             onClick={() => setTab(tab.id)}
-            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
+            className={`rf-tab-item${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
             {activeTab === tab.id && (
@@ -687,7 +687,7 @@ export function ProdutoProfilePage({
                           {
                             label: 'Saldo em Mão',
                             value: (
-                              <span className={`font-bold ${calculatedSaldo.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
+                              <span className={`font-bold${calculatedSaldo.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
                                 {formatQuantity(calculatedSaldo.saldo)} {produto.un}
                               </span>
                             )
@@ -803,7 +803,7 @@ export function ProdutoProfilePage({
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-[11px] border-collapse">
                         <thead>
-                          <tr className="border-b border-white/5 text-slate-400 uppercase tracking-wider text-[10px] font-bold">
+                          <tr className="border-b border-white/5 text-sm font-medium text-slate-400">
                             <th className="px-6 py-4">Data</th>
                             <th className="px-6 py-4">Operação</th>
                             <th className="px-6 py-4 text-right">Qtd / Saldo</th>
@@ -823,11 +823,11 @@ export function ProdutoProfilePage({
                                   {mov.data ? mov.data.split('-').reverse().join('/') : '—'}
                                 </td>
                                 <td className="px-6 py-4">
-                                  <span className={`px-2 py-1 rounded-md border text-[9px] font-black uppercase ${badgeColor}`}>
+                                  <span className={`px-2 py-1 rounded-md border text-[9px] font-black uppercase${badgeColor}`}>
                                     {mov.tipo}
                                   </span>
                                 </td>
-                                <td className={`px-6 py-4 text-right font-black ${isEntrada ? 'text-emerald-400' : isSaida ? 'text-rose-400' : 'text-white'}`}>
+                                <td className={`px-6 py-4 text-right font-black${isEntrada ? 'text-emerald-400' : isSaida ? 'text-rose-400' : 'text-white'}`}>
                                   {isEntrada ? '+' : isSaida ? '-' : ''}
                                   {mov.tipo === 'ajuste' ? `Ajuste: ${mov.saldo_real ?? mov.saldoReal}` : mov.qty}
                                 </td>
@@ -932,7 +932,7 @@ function ProdutoInfoTable({ rows }: { rows: Array<{ label: React.ReactNode; valu
     <div className="flex flex-col gap-1.5">
       {rows.map((row, idx) => (
         <div key={idx} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{row.label}</span>
+          <span className="text-sm font-medium text-slate-400">{row.label}</span>
           <div className="text-[13px] font-bold text-white">{row.value || '—'}</div>
         </div>
       ))}

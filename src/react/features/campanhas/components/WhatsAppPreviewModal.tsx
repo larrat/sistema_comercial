@@ -78,7 +78,7 @@ export function WhatsAppPreviewModal() {
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Para:</span>
+            <span className="text-sm font-medium text-slate-400">Para:</span>
             <strong className="text-lg text-white">{fmtNum(envio.destino)}</strong>
           </div>
           <Button variant="secondary" size="sm" onClick={copiarNumero}>

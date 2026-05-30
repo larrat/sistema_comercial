@@ -47,7 +47,7 @@ export function ClientesTab() {
               {statusEntries.map(([status, qtd]) => (
                 <div key={status} className="flex flex-col gap-2">
                   <div className="flex justify-between items-end">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">{status.replace(/_/g, ' ')}</span>
+                    <span className="text-sm font-medium text-slate-400">{status.replace(/_/g, ' ')}</span>
                     <span className="text-sm font-extrabold text-white">{qtd}</span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">

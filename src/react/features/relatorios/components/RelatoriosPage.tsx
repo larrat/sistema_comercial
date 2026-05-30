@@ -36,7 +36,7 @@ export function RelatoriosPilotPage() {
         />
       </div>
 
-      {loading && <LoadingState title="Carregando relatórios..." compact />}
+      {loading && <LoadingState title="Carregando relatórios…" compact />}
 
       {!loading && activeTab === 'oportunidades' && <OportunidadesTab />}
       {!loading && activeTab === 'performance' && <PerformanceTab />}

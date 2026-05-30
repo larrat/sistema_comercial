@@ -52,7 +52,7 @@ export function ClienteSegmentView({ clientes, loading, error, onRetry, onDetalh
   }, [clientes]);
 
   if (loading) {
-    return <LoadingState title="Carregando agrupamento por segmento..." compact />;
+    return <LoadingState title="Carregando agrupamento por segmento…" compact />;
   }
 
   if (error) {
