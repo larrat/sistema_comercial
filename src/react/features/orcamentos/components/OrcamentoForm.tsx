@@ -145,10 +145,10 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
             </div>
             <div>
               <h2 className="text-xl font-black text-white uppercase tracking-tight">Planilha Mestra de Orçamento</h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Formação de Preço e BDI</p>
+              <p className="text-sm font-medium text-slate-400 mt-0.5">Formação de Preço e BDI</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+          <button onClick={onClose} aria-label="Fechar orçamento" className="text-slate-500 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -158,49 +158,53 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
           {/* Header Params */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-5 rounded-2xl border border-white/5 bg-white/[0.01]">
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nome da Obra / Projeto</label>
+              <label className="text-sm font-medium text-slate-400">Nome da Obra / Projeto</label>
               <input 
+                name="titulo_obra"
                 type="text" 
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ex: Reforma Apartamento 402 - Chave na Mão"
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-teal-500/50"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cliente</label>
+              <label className="text-sm font-medium text-slate-400">Cliente</label>
               <div className="relative">
                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                 <input 
+                  name="cliente_nome"
                   type="text" 
                   value={clienteNome}
                   onChange={(e) => setClienteNome(e.target.value)}
                   placeholder="Nome do cliente"
-                  className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 pl-9 text-white focus:border-teal-500/50"
+                  className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 pl-9 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all"
                 />
               </div>
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Modalidade</label>
+              <label className="text-sm font-medium text-slate-400">Modalidade</label>
               <select
+                name="modalidade"
                 value={modalidade}
                 onChange={(e) => setModalidade(e.target.value as 'empreitada' | 'administracao')}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-teal-500/50"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all appearance-none"
               >
                 <option value="empreitada">Empreitada de Mão de Obra</option>
                 <option value="administracao">Obra por Administração (Preço de Custo)</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              <label className="text-sm font-medium text-slate-400">
                 {modalidade === 'empreitada' ? 'Taxa de BDI (%)' : 'Taxa de Administração (%)'}
               </label>
               <input 
+                name="taxa_bdi"
                 type="number" 
                 value={modalidade === 'empreitada' ? bdi : taxaAdmin}
                 onChange={(e) => modalidade === 'empreitada' ? setBdi(Number(e.target.value)) : setTaxaAdmin(Number(e.target.value))}
                 step="0.5"
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-teal-500/50"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all"
               />
             </div>
           </div>
@@ -208,7 +212,7 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
           {/* Builder de Ambientes */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Escopo por Ambientes</h3>
+              <h3 className="text-sm font-medium text-slate-400">Escopo por Ambientes</h3>
               <div className="flex items-center gap-3">
                 <select 
                   onChange={(e) => {
@@ -247,7 +251,7 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
                   </button>
                 </div>
                 <div className="p-4 space-y-2">
-                  <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-xs font-medium text-slate-500">
                     <div className="col-span-4">Descrição do Serviço</div>
                     <div className="col-span-1 text-center">Un.</div>
                     <div className="col-span-1 text-center">Qtd</div>
@@ -262,50 +266,55 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
                       <div key={originalIdx} className="grid grid-cols-12 gap-4 items-center bg-black/20 p-2 rounded-xl border border-white/5 hover:border-white/10 transition-colors group">
                         <div className="col-span-4">
                           <input 
+                            name={`desc_${originalIdx}`}
                             type="text" 
                             value={item.descricao_servico}
                             onChange={(e) => updateItem(originalIdx, 'descricao_servico', e.target.value)}
-                            placeholder="Ex: Assentamento de porcelanato..."
-                            className="w-full bg-transparent border-none text-xs text-white focus:outline-none focus:ring-1 focus:ring-teal-500/50 rounded p-1"
+                            placeholder="Ex: Assentamento de porcelanato…"
+                            className="w-full bg-transparent border border-transparent text-xs text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 focus-visible:border-teal-500/50 rounded p-1"
                           />
                         </div>
                         <div className="col-span-1">
                           <input 
+                            name={`unidade_${originalIdx}`}
                             type="text" 
                             value={item.unidade}
                             onChange={(e) => updateItem(originalIdx, 'unidade', e.target.value)}
-                            className="w-full bg-white/5 border-none text-xs text-center text-white focus:outline-none rounded p-1"
+                            className="w-full bg-white/5 border border-transparent text-xs text-center text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 focus-visible:border-teal-500/50 rounded p-1"
                           />
                         </div>
                         <div className="col-span-1">
                           <input 
+                            name={`qtd_${originalIdx}`}
                             type="number" 
                             value={item.quantidade}
                             onChange={(e) => updateItem(originalIdx, 'quantidade', Number(e.target.value))}
-                            className="w-full bg-white/5 border-none text-xs text-center text-white focus:outline-none rounded p-1"
+                            className="w-full bg-white/5 border border-transparent text-xs text-center text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 focus-visible:border-teal-500/50 rounded p-1"
                           />
                         </div>
                         <div className="col-span-2">
                           <input 
+                            name={`custo_mat_${originalIdx}`}
                             type="number" 
                             value={item.custo_material_unitario}
                             onChange={(e) => updateItem(originalIdx, 'custo_material_unitario', Number(e.target.value))}
-                            className="w-full bg-white/5 border-none text-xs text-right text-slate-300 focus:outline-none rounded p-1"
+                            className="w-full bg-white/5 border border-transparent text-xs text-right text-slate-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 focus-visible:border-teal-500/50 rounded p-1"
                           />
                         </div>
                         <div className="col-span-2">
                           <input 
+                            name={`custo_mo_${originalIdx}`}
                             type="number" 
                             value={item.custo_mao_obra_unitario}
                             onChange={(e) => updateItem(originalIdx, 'custo_mao_obra_unitario', Number(e.target.value))}
-                            className="w-full bg-white/5 border-none text-xs text-right text-slate-300 focus:outline-none rounded p-1"
+                            className="w-full bg-white/5 border border-transparent text-xs text-right text-slate-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50 focus-visible:border-teal-500/50 rounded p-1"
                           />
                         </div>
                         <div className="col-span-2 flex items-center justify-end gap-3">
                           <span className="text-xs font-bold text-amber-400/90">
                             {fmtBRL((item.custo_material_unitario + item.custo_mao_obra_unitario) * item.quantidade)}
                           </span>
-                          <button onClick={() => removeItem(originalIdx)} className="text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => removeItem(originalIdx)} aria-label="Remover item" className="text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -322,18 +331,18 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
         <div className="p-6 border-t border-white/5 bg-slate-900 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-8 w-full md:w-auto">
             <div>
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Custo Direto (Obra)</span>
+              <span className="text-xs font-medium text-slate-500 block mb-1">Custo Direto (Obra)</span>
               <span className="text-lg font-black text-amber-400">{fmtBRL(custoDiretoTotal)}</span>
             </div>
             <div>
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1 flex items-center gap-1">
+              <span className="text-xs font-medium text-slate-500 block mb-1 flex items-center gap-1">
                 <Plus size={10}/> {modalidade === 'empreitada' ? `BDI (${bdi}%)` : `Taxa Admin (${taxaAdmin}%)`}
               </span>
               <span className="text-lg font-black text-emerald-400">{fmtBRL(margemBruta)}</span>
             </div>
             <div className="hidden lg:block h-8 w-px bg-white/10" />
             <div>
-              <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest block mb-1">Preço Venda (Cliente)</span>
+              <span className="text-xs font-medium text-teal-500 block mb-1">Preço Venda (Cliente)</span>
               <span className="text-2xl font-black text-white shadow-teal-500/20">{fmtBRL(precoVendaFinal)}</span>
             </div>
           </div>

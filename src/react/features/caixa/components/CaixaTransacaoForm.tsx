@@ -43,7 +43,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
       <Card className="w-full max-w-md overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h2 className="text-lg font-black text-white uppercase tracking-tight">Novo Lançamento</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+          <button onClick={onClose} aria-label="Fechar lançamento" className="text-slate-500 hover:text-white transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -64,6 +64,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor</label>
             <input 
+              name="valor_transacao"
               type="number" 
               step="0.01"
               value={valor}
@@ -75,6 +76,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Categoria</label>
             <select 
+              name="categoria_transacao"
               value={categoriaId}
               onChange={(e) => setCategoriaId(e.target.value)}
               className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all appearance-none"
@@ -89,6 +91,8 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Descrição</label>
             <textarea 
+              name="descricao_transacao"
+              spellCheck={false}
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               placeholder="Ex: Pagamento Internet Abril"

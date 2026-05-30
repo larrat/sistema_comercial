@@ -360,7 +360,7 @@ export function ProdutoProfilePage({
   if (loadingProduto) {
     return (
       <div className="w-full">
-        <LoadingState title="Carregando detalhes do produto..." />
+        <LoadingState title="Carregando detalhes do produto…" />
       </div>
     );
   }
@@ -389,10 +389,10 @@ export function ProdutoProfilePage({
         
         <div className="flex items-center gap-3">
           <div className="hidden md:flex flex-col items-end mr-2">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Status do Sistema</span>
+            <span className="text-sm font-medium text-slate-500">Status do Sistema</span>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-bold text-slate-400">Sincronizado</span>
+              <span className="text-xs font-medium text-slate-400">Sincronizado</span>
             </div>
           </div>
 
@@ -409,6 +409,7 @@ export function ProdutoProfilePage({
             size="sm"
             className="!p-2 rounded-xl"
             onClick={() => {}}
+            aria-label="Compartilhar"
             leftIcon={<Share2 className="w-4 h-4" />}
           />
         </div>
@@ -454,7 +455,7 @@ export function ProdutoProfilePage({
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <Clock className="w-3.5 h-3.5 text-slate-500" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Atualizado em {new Date().toLocaleDateString()}</span>
+                <span className="text-sm font-medium text-slate-500">Atualizado em {new Date().toLocaleDateString()}</span>
               </div>
             </div>
             
@@ -572,7 +573,6 @@ export function ProdutoProfilePage({
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-indigo-500 font-black">Performance</span>
                         <h2 className="rf-dash-card__title text-base">Resumo Comercial</h2>
                       </div>
                       <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
@@ -617,10 +617,9 @@ export function ProdutoProfilePage({
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-rose-500 font-black">Análise</span>
                         <h2 className="rf-dash-card__title text-base">Formação de Preço</h2>
                       </div>
-                      <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400 border border-rose-500/10">
+                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
                         <DollarSign size={14} />
                       </div>
                     </div>
@@ -676,10 +675,9 @@ export function ProdutoProfilePage({
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-emerald-500 font-black">Logística</span>
                         <h2 className="rf-dash-card__title text-base">Gestão de Estoque</h2>
                       </div>
-                      <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 border border-emerald-500/10">
+                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
                         <Layers size={14} />
                       </div>
                     </div>
@@ -704,7 +702,6 @@ export function ProdutoProfilePage({
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-slate-500 font-black">Dados Mestre</span>
                         <h2 className="rf-dash-card__title text-base">Cadastro Base</h2>
                       </div>
                       <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
@@ -728,32 +725,17 @@ export function ProdutoProfilePage({
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-blue-500 font-black">Nexus AI</span>
                         <h2 className="rf-dash-card__title text-base">Giro e Saúde</h2>
                       </div>
-                      <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 border border-blue-500/10">
+                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
                         <Zap size={14} />
                       </div>
                     </div>
                     
                     <div className="flex flex-col gap-5 mt-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Última Venda</span>
-                        <span className="text-xs font-bold text-slate-400">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                           <span>Eficiência de Giro</span>
-                           <span className="text-blue-400">65%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: '65%' }}
-                            transition={{ duration: 1.5, ease: "easeOut" }}
-                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-400" 
-                          />
-                        </div>
+                        <span className="text-sm font-medium text-slate-500">Última Venda</span>
+                        <span className="text-sm font-medium text-slate-400">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
                       </div>
                       <div className="p-3 bg-white/5 rounded-xl border border-white/5">
                         <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
@@ -766,10 +748,9 @@ export function ProdutoProfilePage({
                   <article className="rf-dash-card h-fit">
                     <div className="rf-dash-card__header flex-row items-center !mb-6">
                       <div className="flex-1">
-                        <span className="rf-stat-label !mb-1 text-amber-500 font-black">Mercado</span>
                         <h2 className="rf-dash-card__title text-base">Histórico de Custo</h2>
                       </div>
-                      <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500 border border-amber-500/10">
+                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
                         <History size={14} />
                       </div>
                     </div>

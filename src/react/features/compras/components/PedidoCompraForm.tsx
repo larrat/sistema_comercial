@@ -29,6 +29,7 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
   const [fornecedor, setFornecedor] = useState(prefillData?.fornecedor || '');
   const [itens, setItens] = useState<FormItem[]>(prefillData?.itens || []);
   const [formaPgto, setFormaPgto] = useState('Boleto');
+  const [tipo, setTipo] = useState<'material_obra' | 'estoque'>('material_obra');
   const [obs, setObs] = useState('');
   const [contratoId, setContratoId] = useState<string | null>(null);
   const [activeItemIdx, setActiveItemIdx] = useState<number | null>(null);
@@ -227,15 +228,17 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
     >
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <h2 className="text-xl font-black text-white uppercase tracking-tight">Novo Pedido de Compra</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
+          <div>
+            <h2 className="text-xl font-black text-white uppercase tracking-tight">Pedido de Compra</h2>
+            <p className="text-sm font-medium text-slate-400 mt-0.5">Suprimentos e Aquisições</p>
+          </div>
+          <button onClick={onClose} aria-label="Fechar pedido" className="text-slate-500 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8">
           
-          {/* Smart XML Importer Drag & Drop Zone */}
           <div 
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -285,9 +288,22 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
             </label>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Fornecedor</label>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-5 rounded-2xl border border-white/5 bg-white/[0.01]">
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-sm font-medium text-slate-400">Tipo de Aquisição</label>
+              <select
+                name="tipo_compra"
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value as 'material_obra' | 'estoque')}
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all appearance-none"
+              >
+                <option value="material_obra">Material para Obra</option>
+                <option value="estoque">Reposição de Estoque</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-sm font-medium text-slate-400">Fornecedor</label>
               <input 
                 type="text" 
                 value={fornecedor}
@@ -296,12 +312,13 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                 className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Forma de Pagamento</label>
+            
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="text-sm font-medium text-slate-400">Forma de Pagamento</label>
               <select 
                 value={formaPgto}
                 onChange={(e) => setFormaPgto(e.target.value)}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all appearance-none"
+                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all appearance-none"
               >
                 <option value="Boleto">Boleto Bancário</option>
                 <option value="PIX">PIX</option>
@@ -310,52 +327,61 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                 <option value="Dinheiro">Dinheiro</option>
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Apropriar para Obra / Contrato</label>
-              <select 
-                value={contratoId || ''}
-                onChange={(e) => setContratoId(e.target.value || null)}
-                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all appearance-none"
-              >
-                <option value="">Nenhuma obra (Despesa Geral)</option>
-                {contratos.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.titulo} ({c.cliente?.nome || 'Sem nome'})
-                  </option>
-                ))}
-              </select>
-            </div>
+
+            {tipo === 'material_obra' && (
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-sm font-medium text-slate-400">Destinação (Obra/Contrato)</label>
+                <select 
+                  value={contratoId || ''}
+                  onChange={(e) => setContratoId(e.target.value || null)}
+                  className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50 transition-all appearance-none"
+                >
+                  <option value="">Selecione o contrato...</option>
+                  {contratos.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.titulo} ({c.cliente?.nome || 'Sem nome'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Itens do Pedido</h3>
+              <h3 className="text-sm font-medium text-slate-400">Itens do Pedido</h3>
               <Button size="sm" variant="secondary" leftIcon={<Plus size={14} />} onClick={addItem}>
                 Adicionar Item
               </Button>
             </div>
 
             <div className="space-y-3">
+              <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-xs font-medium text-slate-500">
+                <div className="col-span-5">Produto</div>
+                <div className="col-span-2 text-center">Qtd</div>
+                <div className="col-span-2 text-right">Custo Un.</div>
+                <div className="col-span-3 text-right">Total</div>
+              </div>
+
               {itens.map((item, idx) => (
                 <div 
                   key={idx} 
-                  className={`relative flex gap-4 items-end p-4 rounded-2xl border transition-all duration-300 rf-animate-fade ${
+                  className={`rounded-2xl border transition-all duration-300 ${
                     item.isXmlMatched === false 
-                      ? 'bg-rose-950/10 border-rose-500/20 shadow-inner' 
+                      ? 'bg-rose-950/10 border-rose-500/20' 
                       : 'bg-white/[0.02] border-white/5'
                   }`}
                 >
                   {item.isXmlMatched === false && (
-                    <div className="absolute -top-2.5 left-4 flex items-center gap-1.5 bg-[#0f172a] text-rose-400 px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border border-rose-500/30">
+                    <div className="px-4 py-1.5 text-[10px] font-black text-rose-400 uppercase tracking-widest border-b border-rose-500/20 flex items-center gap-2">
                       <AlertCircle size={10} />
-                      Não Vinculado ({item.xmlSku || 'S/SKU'}) — Associe um produto
+                      Não Vinculado ({item.xmlSku || 'S/SKU'}) — Associe um produto abaixo
                     </div>
                   )}
 
-                  <div className="flex-1 space-y-1.5 relative">
-                    <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Produto</label>
-                    
+                  <div className="p-4 space-y-3">
                     <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                       <input 
                         type="text" 
                         value={activeItemIdx === idx ? searchTerm : item.nome}
@@ -367,109 +393,61 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                           setActiveItemIdx(idx);
                           setSearchTerm(item.nome);
                         }}
-                        placeholder="Buscar produto..."
-                        className={`w-full bg-black/20 border rounded-lg px-3 py-2 text-xs text-white pr-8 focus:outline-none transition-colors ${
-                          item.isXmlMatched === false 
-                            ? 'border-rose-500/30 focus:border-rose-500/60' 
-                            : 'border-white/5 focus:border-teal-500/50'
-                        }`}
+                        placeholder="Buscar produto no catálogo..."
+                        className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 pl-10 text-xs text-white focus:outline-none focus-visible:border-teal-500/50 focus-visible:ring-1 focus-visible:ring-teal-500/50"
                       />
-                      <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
+
+                      {activeItemIdx === idx && (
+                        <div className="absolute top-full left-0 right-0 z-[60] mt-1 bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
+                          {isLoadingProdutos ? (
+                            <div className="p-4 space-y-2"><Shimmer height={12} width="100%" /></div>
+                          ) : filteredProdutos.length > 0 ? (
+                            filteredProdutos.map(p => (
+                              <button
+                                key={p.id}
+                                onClick={() => selectProduto(idx, p)}
+                                className="w-full flex items-center gap-4 p-3 hover:bg-white/5 border-b border-white/5 text-left"
+                              >
+                                <div className="text-xs font-bold text-white">{p.nome}</div>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="p-4 text-center text-[10px] text-slate-500">Nenhum produto encontrado.</div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {activeItemIdx === idx && (
-                      <div className="absolute top-full left-0 right-0 z-[60] mt-1 bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto animate-in slide-in-from-top-2 duration-200">
-                        {isLoadingProdutos ? (
-                          <div className="p-4 space-y-2">
-                            <Shimmer height={12} width="100%" />
-                            <Shimmer height={12} width="80%" />
-                          </div>
-                        ) : filteredProdutos.length > 0 ? (
-                          filteredProdutos.map(p => (
-                            <button
-                              key={p.id}
-                              onClick={() => selectProduto(idx, p)}
-                              className="w-full flex items-center gap-4 p-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group text-left"
-                            >
-                              <div className="w-12 h-12 rounded-xl bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:border-teal-500/30 transition-colors">
-                                 {p.foto_url ? (
-                                   <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
-                                 ) : (
-                                   <Package size={18} className="text-slate-600" />
-                                 )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 w-full mb-0.5">
-                                  <span className="text-[10px] font-black text-teal-500 uppercase">{p.sku || 'S/SKU'}</span>
-                                  {p.produto_pai_id ? (
-                                    <Badge variant="slate" className="!text-[8px] !py-0">Variante</Badge>
-                                  ) : (
-                                    <Badge variant="green" className="!text-[8px] !py-0">Único</Badge>
-                                  )}
-                                  {p.genero && <span className="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">/ {p.genero}</span>}
-                                  {p.tamanho && <span className="text-[8px] font-black text-amber-400 uppercase tracking-tighter">/ TAM: {p.tamanho}</span>}
-                                </div>
-                                <div className="text-xs font-bold text-white truncate">{p.nome}</div>
-                                <div className="text-[10px] text-slate-500 mt-0.5 font-bold tracking-tight">Custo: {fmtBRL(p.custo || 0)}</div>
-                              </div>
-                            </button>
-                          ))
-                        ) : (
-                          <div className="p-4 text-center">
-                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                              {searchTerm ? `Nenhum produto para "${searchTerm}"` : 'Nenhum produto encontrado'}
-                            </p>
-                            {!produtos.length && !isLoadingProdutos && (
-                              <p className="text-[8px] text-rose-400 mt-2 font-black uppercase tracking-tighter">Erro na conexão ou banco vazio</p>
-                            )}
-                          </div>
-                        )}
+                    <div className="grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-5 text-[10px] text-slate-400 truncate">
+                        {item.produto_id ? 'Vínculo: OK' : 'Sem vínculo no catálogo'}
                       </div>
-                    )}
-                  </div>
-                  <div className="w-24 space-y-1.5 self-start pt-1">
-                    <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Qtd</label>
-                    <input 
-                      type="number" 
-                      value={item.qty}
-                      onChange={(e) => updateItem(idx, 'qty', Number(e.target.value))}
-                      className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white"
-                    />
-                  </div>
-                  <div className="w-32 space-y-1.5 self-start pt-1">
-                    <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Custo Un.</label>
-                    <input 
-                      type="number" 
-                      value={item.custo_unitario}
-                      onChange={(e) => updateItem(idx, 'custo_unitario', Number(e.target.value))}
-                      className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white"
-                    />
-                  </div>
-                  <div className="w-28 space-y-1.5 self-start pt-1">
-                    <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Total</label>
-                    <div className="w-full bg-white/5 border border-transparent rounded-lg px-3 py-2 text-xs font-bold text-teal-400">
-                      {fmtBRL(item.total_item || 0)}
+                      <div className="col-span-2">
+                        <input 
+                          type="number" 
+                          value={item.qty}
+                          onChange={(e) => updateItem(idx, 'qty', Number(e.target.value))}
+                          className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={item.custo_unitario}
+                          onChange={(e) => updateItem(idx, 'custo_unitario', Number(e.target.value))}
+                          className="w-full bg-black/20 border border-white/5 rounded-lg px-3 py-2 text-xs text-right text-slate-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-teal-500/50"
+                        />
+                      </div>
+                      <div className="col-span-3 flex items-center justify-end gap-3">
+                        <span className="text-xs font-medium text-white">
+                          {fmtBRL(item.total_item || 0)}
+                        </span>
+                        <button onClick={() => removeItem(idx)} aria-label="Remover item" className="text-slate-600 hover:text-rose-500 transition-colors">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-40 space-y-1.5 self-start pt-1">
-                    <label className="text-[9px] font-bold text-slate-600 uppercase tracking-wider">Obra (Item)</label>
-                    <select 
-                      value={item.contrato_id || ''}
-                      onChange={(e) => updateItem(idx, 'contrato_id', e.target.value || null)}
-                      className="w-full bg-black/20 border border-white/5 rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-teal-500/50 appearance-none truncate"
-                    >
-                      <option value="">Da Nota Principal</option>
-                      {contratos.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.titulo}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="pb-1.5">
-                    <button onClick={() => removeItem(idx)} className="p-2.5 text-slate-600 hover:text-rose-500 transition-colors">
-                      <Trash2 size={18} />
-                    </button>
                   </div>
                 </div>
               ))}
@@ -483,11 +461,16 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
         </div>
 
         <div className="p-6 border-t border-white/5 bg-black/20 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Total do Pedido</span>
-            <span className="text-2xl font-black text-white">
-              {fmtBRL(total)}
-            </span>
+          <div className="flex items-center gap-8 w-full md:w-auto">
+            <div>
+              <span className="text-xs font-medium text-slate-500 block mb-1">Total de Itens</span>
+              <span className="text-lg font-black text-slate-300">{itens.reduce((acc, item) => acc + item.qty, 0)} un</span>
+            </div>
+            <div className="hidden lg:block h-8 w-px bg-white/10" />
+            <div>
+              <span className="text-xs font-medium text-teal-500 block mb-1">Total Previsto</span>
+              <span className="text-2xl font-black text-white">{fmtBRL(total)}</span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="secondary" onClick={onClose}>Cancelar</Button>

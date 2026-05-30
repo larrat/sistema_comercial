@@ -262,7 +262,7 @@ export function ClientesPilotPage({
                 search={{
                   value: filtro.q ?? '',
                   onChange: (value) => setFiltro({ q: value }),
-                  placeholder: 'Buscar cliente...',
+                  placeholder: 'Buscar cliente…',
                   ariaLabel: 'Buscar clientes',
                   testId: 'busca-input'
                 }}
