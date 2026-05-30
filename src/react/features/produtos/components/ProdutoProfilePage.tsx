@@ -917,7 +917,7 @@ export function ProdutoProfilePage({
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="w-full max-w-[1600px] h-full bg-slate-900/60 rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col"
             >
-              <div className="flex-1 overflow-hidden p-8">
+              <div className="flex-1 overflow-hidden flex flex-col">
                 <ProdutoForm
                   produto={produto}
                   pais={pais}

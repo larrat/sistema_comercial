@@ -269,7 +269,7 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
   }
 
   return (
-    <form onSubmit={handleCustomSubmit} className="flex flex-col h-full overflow-hidden -mx-8 -mt-8" data-testid="produto-form">
+    <form onSubmit={handleCustomSubmit} className="flex flex-col h-full overflow-hidden" data-testid="produto-form">
       {/* High-Tech Tab Navigation */}
       <div className="px-8 pt-8 pb-4 bg-slate-950/20 border-b border-white/5 sticky top-0 z-20 backdrop-blur-3xl">
         <div className="flex items-center p-1.5 bg-white/[0.03] border border-white/5 rounded-[1.25rem] shadow-inner">
