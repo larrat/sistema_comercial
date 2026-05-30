@@ -2,15 +2,13 @@ import { fmtBRL } from '../../../shared/lib/formatters';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  AreaChart as RechartsAreaChart, 
+  ComposedChart,
+  Line,
   Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip,
-  PieChart,
-  Pie,
-  Sector
+  Tooltip
 } from 'recharts';
 import ReactCountUp from 'react-countup';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -138,29 +136,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   const { reload } = useDashboardData();
   const navigate = useNavigate();
   
-  const renderActiveShape = useCallback((props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, index } = props;
-    const colors = [
-      'var(--color-teal-primary)', 
-      'var(--color-amber-vibrant)', 
-      'var(--color-emerald-vibrant)', 
-      'var(--color-indigo-vibrant)', 
-      'var(--color-rose-vibrant)'
-    ];
-    return (
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={colors[index % colors.length]}
-        className="transition-all duration-200 cursor-pointer origin-center hover:opacity-90"
-      />
-    );
-  }, []);
-  
   const { 
     periodo, setPeriodo, 
     visao, setVisao,
@@ -180,7 +155,6 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
   }, [visaoUrl, setVisao]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hoveredSegment, setHoveredSegment] = useState<{ nome: string; receita: number; color: string } | null>(null);
   const { alerts } = useGlobalAlerts();
 
   const handleRefresh = async () => {
@@ -387,17 +361,12 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                       description="Não existem vendas registradas para o período selecionado." 
                     />
                   ) : (
-                    <RechartsAreaChart responsive width="100%" height="100%" data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }}>
+                    <ComposedChart responsive width="100%" height="100%" data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }} onClick={(data: any) => { if (data && data.activePayload) navigate('/app/pedidos'); }}>
                       <defs>
                           <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.5}/>
                             <stop offset="60%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.1}/>
                             <stop offset="100%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorFatAnt" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#64748b" stopOpacity={0.3}/>
-                            <stop offset="50%" stopColor="#64748b" stopOpacity={0.05}/>
-                            <stop offset="100%" stopColor="#64748b" stopOpacity={0}/>
                           </linearGradient>
                           <filter id="areaGlow" x="-20%" y="-20%" width="140%" height="140%">
                             <feGaussianBlur stdDeviation="5" result="blur" />
@@ -428,9 +397,9 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                           }
                           return null;
                         }} />
-                        <Area type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" fillOpacity={1} fill="url(#colorFatAnt)" />
+                        <Line type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} />
                         <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="var(--color-amber-vibrant)" strokeWidth={4} fillOpacity={1} fill="url(#colorFat)" style={{ filter: 'url(#areaGlow)' }} activeDot={{ r: 6, fill: 'var(--color-amber-vibrant)', stroke: '#fff', strokeWidth: 2, filter: 'url(#areaGlow)' }} />
-                    </RechartsAreaChart>
+                    </ComposedChart>
                   )}
                 </div>
 
@@ -498,66 +467,40 @@ export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotP
                 description="Sem movimentação de produtos no período." 
               />
             ) : (
-              <div className="flex flex-col gap-6">
-                <div className="h-32 relative">
-                  <PieChart responsive width="100%" height="100%">
-                    <Pie 
-                      data={topProducts} 
-                      cx="50%" 
-                      cy="50%" 
-                      innerRadius={42} 
-                      outerRadius={55} 
-                      paddingAngle={4} 
-                      dataKey="receita" 
-                      stroke="none"
-                      shape={renderActiveShape}
-                      onMouseEnter={(_, index) => {
-                        if (typeof index === 'number' && topProducts[index]) {
-                          const colors = [
-                            'var(--color-teal-primary)', 
-                            'var(--color-amber-vibrant)', 
-                            'var(--color-emerald-vibrant)', 
-                            'var(--color-indigo-vibrant)', 
-                            'var(--color-rose-vibrant)'
-                          ];
-                          setHoveredSegment({ 
-                            nome: topProducts[index].nome, 
-                            receita: topProducts[index].receita,
-                            color: colors[index % colors.length]
-                          });
-                        }
-                      }}
-                      onMouseLeave={() => {
-                        setHoveredSegment(null);
-                      }}
-                    />
-                  </PieChart>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
-                     <span 
-                       className="text-[8px] uppercase tracking-widest font-black truncate max-w-[80px] text-center transition-all duration-150 block"
-                       style={{ color: hoveredSegment ? hoveredSegment.color : '#94a3b8' }}
-                     >
-                       {hoveredSegment ? hoveredSegment.nome : "Total"}
-                     </span>
-                     <span className="text-xs lg:text-sm font-black text-white font-display transition-all duration-150">
-                       {fmt(hoveredSegment ? hoveredSegment.receita : topProducts.reduce((acc: any, p: any) => acc + p.receita, 0))}
-                     </span>
-                  </div>
-                </div>
+              <div className="flex flex-col h-full gap-4 pt-2">
+                 {topProducts.slice(0, 5).map((p: any, i: number) => {
+                   const maxReceita = Math.max(...topProducts.map((tp: any) => tp.receita));
+                   const width = (p.receita / maxReceita) * 100;
+                   const colors = [
+                     'var(--color-teal-primary)', 
+                     'var(--color-amber-vibrant)', 
+                     'var(--color-emerald-vibrant)', 
+                     'var(--color-indigo-vibrant)', 
+                     'var(--color-rose-vibrant)'
+                   ];
+                   const color = colors[i % colors.length];
 
-                <div className="flex flex-col gap-2">
-                  {topProducts.slice(0, 3).map((p: any, i: number) => (
-                    <div key={i} className="space-y-1">
-                      <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-wider">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: ['#22d3ee', '#fbbf24', '#10b981'][i] }} />
-                          <span className="text-slate-300 truncate max-w-[120px]">{p.nome}</span>
-                        </div>
-                        <span className="text-white pl-2">{p.percent.toFixed(1)}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                   return (
+                     <div key={i} className="flex flex-col gap-1.5 cursor-pointer hover:bg-white/[0.04] p-2 -mx-2 rounded-xl transition-all group" onClick={() => navigate('/app/produtos')}>
+                       <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider">
+                         <span className="text-slate-300 truncate max-w-[180px] group-hover:text-white transition-colors">{p.nome}</span>
+                         <div className="text-right">
+                           <span className="text-white block tabular-nums">{fmt(p.receita)}</span>
+                         </div>
+                       </div>
+                       <div className="w-full h-1.5 bg-slate-800/50 rounded-full overflow-hidden">
+                         <div className="h-full rounded-full transition-all duration-1000 group-hover:brightness-110" style={{ width: `${Math.max(width, 2)}%`, backgroundColor: color, boxShadow: `0 0 10px ${color}40` }} />
+                       </div>
+                     </div>
+                   );
+                 })}
+                 {topProducts.length > 5 && (
+                   <div className="mt-2 text-center">
+                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest cursor-pointer hover:text-white transition-colors" onClick={() => navigate('/app/produtos')}>
+                       + {topProducts.length - 5} outros produtos
+                     </span>
+                   </div>
+                 )}
               </div>
             )}
           </div>
