@@ -206,6 +206,8 @@ export function ClienteCreateForm() {
     try {
       const saved = await submitCliente({
         ...values,
+        rca_id: values.rca_id || null,
+        rca_nome: values.rca_nome || null,
         seg: values.seg.join(', ')
       }, {
         eventName: 'cliente_criado',
@@ -589,6 +591,25 @@ export function ClienteCreateForm() {
                 </div>
               </div>
             </section>
+
+            {/* BOTÕES DE AÇÃO NO RODAPÉ DO FORMULÁRIO */}
+            <div className="flex items-center justify-end gap-4 pt-8 border-t border-white/5">
+              <Button 
+                variant="secondary" 
+                className="!py-3 !px-6 !rounded-2xl" 
+                onClick={handleCancel}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="primary" 
+                className="!py-3 !px-8 !rounded-2xl"
+                onClick={handleSave}
+                loading={saving}
+              >
+                Salvar cliente
+              </Button>
+            </div>
           </div>
         </main>
       </div>
