@@ -202,7 +202,7 @@ begin
 
   -- ── 3. VENDA À VISTA CONCLUÍDA → BAIXA AUTOMÁTICA NO CAIXA ──
   if new.status in ('concluido', 'entregue_pago') and
-     new.pgto in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista', 'a_vista') then
+     lower(coalesce(new.pgto, '')) in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista', 'a_vista', 'cartao', 'cartao_credito', 'credito', 'misto') then
 
     v_conta_id   := 'REC-' || new.id;
     v_vencimento := coalesce(new.data::date, now()::date);

@@ -70,7 +70,7 @@ begin
     select p.*
     from public.pedidos p
     where p.status = 'concluido'
-      and lower(coalesce(p.pgto,'')) in ('a_vista','avista','pix','cartao','cartao_credito','cartao_debito','dinheiro')
+      and lower(coalesce(p.pgto,'')) in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista', 'a_vista', 'cartao', 'cartao_credito', 'credito', 'misto')
       and lower(coalesce(p.prazo,'')) in ('','imediato','a_vista','avista','na_entrega')
       and exists (
         -- tem conta a receber com saldo em aberto

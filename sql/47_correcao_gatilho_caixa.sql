@@ -23,7 +23,7 @@ begin
   -- A. Tratar PEDIDOS (Venda à Vista)
   if (TG_TABLE_NAME = 'pedidos') then
     if (new.status in ('concluido', 'entregue_pago') and old.status <> new.status) then
-      if (new.pgto in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista')) then
+      if (lower(coalesce(new.pgto, '')) in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista', 'a_vista', 'cartao', 'cartao_credito', 'credito', 'misto')) then
         v_tipo := 'entrada';
         v_categoria_id := 'venda';
         v_valor := new.total;

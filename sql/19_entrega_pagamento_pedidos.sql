@@ -71,7 +71,7 @@ language sql
 stable
 as $$
   select
-    lower(coalesce(p_pgto, '')) in ('a_vista', 'avista', 'pix', 'cartao', 'cartao_credito', 'cartao_debito', 'dinheiro')
+    lower(coalesce(p_pgto, '')) in ('a_vista', 'avista', 'pix', 'cartao', 'cartao_credito', 'cartao_debito', 'dinheiro', 'credito', 'debito', 'misto')
     and lower(coalesce(p_prazo, '')) in ('', 'imediato', 'a_vista', 'avista', 'na_entrega');
 $$;
 

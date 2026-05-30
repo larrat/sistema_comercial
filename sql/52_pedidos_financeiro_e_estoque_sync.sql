@@ -34,7 +34,7 @@ begin
   -- A. Tratar PEDIDOS (Venda à Vista)
   if (TG_TABLE_NAME = 'pedidos') then
     if (new.status in ('concluido', 'entregue_pago') and old.status <> new.status) then
-      if (new.pgto in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista')) then
+      if (lower(coalesce(new.pgto, '')) in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista', 'a_vista', 'cartao', 'cartao_credito', 'credito', 'misto')) then
         -- Evita duplo lançamento se já existir ou se for criada uma conta/baixa vinculada
         if exists (select 1 from public.contas_receber where pedido_id = new.id) then
           return new;
@@ -345,7 +345,7 @@ begin
 
   -- ── 3. SE FOR VENDAS À VISTA CONCLUÍDAS/ENTREGUES (BAIXA AUTOMÁTICA) ──
   if new.status in ('concluido', 'entregue_pago') and 
-     new.pgto in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista') then
+     lower(coalesce(new.pgto, '')) in ('dinheiro', 'pix', 'cartao_debito', 'debito', 'avista', 'a_vista', 'cartao', 'cartao_credito', 'credito', 'misto') then
      
     v_conta_id := 'REC-' || new.id;
     
