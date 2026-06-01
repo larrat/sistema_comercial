@@ -115,6 +115,8 @@ function buildReceiptHtml(args: {
   total: number;
   itemCount: number;
   paymentMethod: string;
+  isContingency?: boolean;
+  qrCodeUrl?: string;
 }): string {
   return `
     <html lang="pt-BR">
@@ -123,18 +125,22 @@ function buildReceiptHtml(args: {
         <title>Comprovante PDV</title>
         <style>
           body { font-family: sans-serif; padding: 16px; color: #111827; }
-          h1 { font-size: 18px; margin-bottom: 12px; }
+          h1 { font-size: 18px; margin-bottom: 12px; text-align: center; }
+          .contingency-badge { border: 2px dashed #000; padding: 8px; font-weight: bold; text-align: center; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; }
           p { margin: 0 0 8px; font-size: 13px; }
+          .qr-code { text-align: center; margin-top: 16px; font-size: 11px; word-break: break-all; }
         </style>
       </head>
       <body>
         <h1>Comprovante da venda</h1>
+        ${args.isContingency ? '<div class="contingency-badge">Emitida em Contingência<br/><small>Pendente de autorização</small></div>' : ''}
         <p>Venda #${args.numero}</p>
         <p>Data: ${args.createdAt}</p>
         <p>Cliente: ${args.cliente?.nome || 'Consumidor final'}</p>
         <p>Itens: ${args.itemCount}</p>
         <p>Pagamento: ${args.paymentMethod}</p>
         <p>Total: ${formatCurrencyBRL(args.total)}</p>
+        ${args.qrCodeUrl ? `<div class="qr-code"><p>Consulta QR Code:</p><p>${args.qrCodeUrl}</p></div>` : ''}
       </body>
     </html>
   `;
@@ -218,6 +224,8 @@ export function PdvPage() {
     paymentMethod: string;
     cliente: ClienteLight | null;
     createdAt: string;
+    isContingency?: boolean;
+    qrCodeUrl?: string;
   } | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [showScannerHalo, setShowScannerHalo] = useState(false);
@@ -567,6 +575,19 @@ export function PdvPage() {
         }
       }
 
+      // Generate NFC-e automatically on successful local sale
+      const ctx = resolveContext();
+      let nfceResult: any = null;
+      if (ctx) {
+        // We do a dynamic import so we don't break the whole app if there's an error during typing
+        import('../pdv/nfceContingencyService').then(async ({ processNfce }) => {
+           nfceResult = await processNfce(payload as any, ctx.token);
+           if (nfceResult.isContingency) {
+              toast.info('NFC-e gerada em Contingência e salva na fila local.');
+           }
+        }).catch(err => console.error('Erro na NFCe:', err));
+      }
+
       toast.success('Venda finalizada. O PDV já está pronto para a próxima.');
       setLastCompletedSale({
         numero: payload.num,
@@ -574,7 +595,9 @@ export function PdvPage() {
         itemCount: items.length,
         paymentMethod: paymentLabel,
         cliente: selectedCliente,
-        createdAt: formatDateTime(new Date())
+        createdAt: formatDateTime(new Date()),
+        isContingency: nfceResult?.isContingency,
+        qrCodeUrl: nfceResult?.qrCodeUrl
       });
       setReceiptOpen(true);
       resetCurrentSale();
@@ -588,13 +611,25 @@ export function PdvPage() {
         });
         setPendingQueueCount(countPdvQueue(filialId));
         toast.warning('Venda guardada na fila local. Vamos reenviar quando a rede voltar.');
+        
+        let qrCodeUrl;
+        import('../pdv/nfceContingencyService').then(async ({ processNfce }) => {
+           const ctx = resolveContext();
+           if (ctx) {
+             const nfceResult = await processNfce(payload as any, ctx.token, true); // Force contingency
+             qrCodeUrl = nfceResult?.qrCodeUrl;
+           }
+        }).catch(err => console.error(err));
+
         setLastCompletedSale({
           numero: payload.num,
           total: payload.total,
           itemCount: items.length,
           paymentMethod: paymentLabel,
           cliente: selectedCliente,
-          createdAt: formatDateTime(new Date())
+          createdAt: formatDateTime(new Date()),
+          isContingency: true,
+          qrCodeUrl: qrCodeUrl
         });
         setReceiptOpen(true);
         resetCurrentSale();
@@ -615,7 +650,9 @@ export function PdvPage() {
         cliente: lastCompletedSale.cliente,
         total: lastCompletedSale.total,
         itemCount: lastCompletedSale.itemCount,
-        paymentMethod: lastCompletedSale.paymentMethod
+        paymentMethod: lastCompletedSale.paymentMethod,
+        isContingency: lastCompletedSale.isContingency,
+        qrCodeUrl: lastCompletedSale.qrCodeUrl
       })
     );
     popup.document.close();
