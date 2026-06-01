@@ -355,7 +355,7 @@ export function PedidoDetailPanel({ pedido }: Props) {
             {isInFlight ? 'Aguarde…' : acaoLabel}
           </Button>
         )}
-        {status !== 'cancelado' && status !== 'concluido' && (
+        {status !== 'cancelado' && (
           <Button
             variant="danger"
             disabled={isInFlight}
