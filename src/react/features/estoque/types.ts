@@ -1,6 +1,6 @@
 import type { MovimentoEstoque, Produto } from '../../../types/domain';
 
-export type EstoqueView = 'posicao' | 'historico' | 'cobertura' | 'sem_movimento';
+export type EstoqueView = 'posicao' | 'historico' | 'cobertura' | 'sem_movimento' | 'avarias';
 
 export type EstoquePeriodoFilter = 'semana' | 'mes' | 'ano' | 'tudo';
 

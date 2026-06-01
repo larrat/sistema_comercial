@@ -7,6 +7,7 @@ const VIEW_TABS: { key: EstoqueView; label: string }[] = [
   { key: 'historico', label: 'Histórico' },
   { key: 'cobertura', label: 'Cobertura' },
   { key: 'sem_movimento', label: 'Sem Movimento' },
+  { key: 'avarias', label: 'Avarias' }
 ];
 
 export function EstoqueInlineFilters() {
@@ -28,7 +29,7 @@ export function EstoqueInlineFilters() {
     setTipoHistorico
   } = useEstoqueFilters();
 
-  const isPosition = view !== 'historico';
+  const isPosition = view !== 'historico' && view !== 'avarias';
   const searchValue = isPosition ? buscaPosicao : buscaHistorico;
   const setSearchValue = isPosition ? setBuscaPosicao : setBuscaHistorico;
 
@@ -88,7 +89,13 @@ export function EstoqueInlineFilters() {
             type="text"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            placeholder={isPosition ? 'Buscar produto ou SKU…' : 'Buscar no histórico…'}
+            placeholder={
+              view === 'avarias'
+                ? 'Buscar no registro de avarias…'
+                : isPosition
+                  ? 'Buscar produto ou SKU…'
+                  : 'Buscar no histórico…'
+            }
             className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-9 pr-8 py-2.5 text-xs text-white 
                        placeholder:text-slate-600 focus:outline-none focus:border-teal-500/40 focus:bg-white/[0.06] transition-all"
           />

@@ -9,7 +9,7 @@ import {
   buildEstoqueMetrics,
   buildEstoquePositionRows
 } from './useEstoqueCalculations';
-import { listMovimentacoes } from '../services/estoqueApi';
+import { listMovimentacoes, listAvarias } from '../services/estoqueApi';
 import { useEstoqueStore } from '../store/useEstoqueStore';
 
 export function useEstoqueData() {
@@ -47,9 +47,10 @@ export function useEstoqueData() {
           filialId: activeFilialId
         };
 
-        const [produtos, movimentacoes] = await Promise.all([
+        const [produtos, movimentacoes, avarias] = await Promise.all([
           listProdutos(context),
-          listMovimentacoes(context)
+          listMovimentacoes(context),
+          listAvarias(context)
         ]);
 
         if (cancelled) return;
@@ -62,7 +63,8 @@ export function useEstoqueData() {
           snapshot: { produtos, movimentacoes },
           metrics,
           positionRows,
-          historyRows
+          historyRows,
+          avarias
         });
       } catch (error) {
         if (cancelled) return;

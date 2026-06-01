@@ -15,15 +15,18 @@ import { EstoqueMovementModal } from './EstoqueMovementModal';
 import { EstoqueMetrics } from './EstoqueMetrics';
 import { EstoqueCharts } from './EstoqueCharts';
 import { EstoquePositionTable } from './EstoquePositionTable';
+import { EstoqueAvariasTable } from './EstoqueAvariasTable';
+import { EstoqueAvariaModal } from './EstoqueAvariaModal';
 
 export function EstoquePilotPage() {
   const { filialId } = useFilialContext();
-  const { view, positionRows, historyRows } = useEstoqueFilters();
+  const { view, positionRows, historyRows, avarias } = useEstoqueFilters();
   const { deleteMovement } = useEstoqueMutations();
   const metrics = useEstoqueStore((s) => s.metrics);
   const status = useEstoqueStore((s) => s.status);
   const error = useEstoqueStore((s) => s.error);
   const openMovementModal = useEstoqueStore((s) => s.openMovementModal);
+  const openAvariaModal = useEstoqueStore((s) => s.openAvariaModal);
   const requestReload = useEstoqueStore((s) => s.requestReload);
   const [deletingRow, setDeletingRow] = useState<EstoqueHistoryRow | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -42,6 +45,7 @@ export function EstoquePilotPage() {
     view === 'posicao' ? 'Posição de estoque' :
     view === 'historico' ? 'Histórico de movimentações' :
     view === 'cobertura' ? 'Cobertura de estoque' :
+    view === 'avarias' ? 'Registro de avarias e quebras' :
     'Produtos sem movimento';
 
   return (
@@ -53,6 +57,9 @@ export function EstoquePilotPage() {
         actions={
           <div className="flex items-center gap-3">
             <Button onClick={requestReload}>Atualizar</Button>
+            <Button variant="secondary" className="gap-2" onClick={openAvariaModal}>
+              Registrar avaria
+            </Button>
             <Button variant="primary" onClick={() => openMovementModal()}>Nova movimentação</Button>
           </div>
         }
@@ -60,7 +67,7 @@ export function EstoquePilotPage() {
       <EstoqueMetrics metrics={metrics} />
       
       {status !== 'loading' && positionRows.length > 0 ? (
-        <EstoqueCharts />
+         <EstoqueCharts />
       ) : null}
 
       {status === 'error' && error ? (
@@ -81,11 +88,17 @@ export function EstoquePilotPage() {
         <div className="rf-ui-form-section__body mt-2">
           {status === 'loading' ? (
             <LoadingState
-              title={view === 'posicao' ? 'Carregando posição de estoque...' : 'Carregando histórico...'}
+              title={
+                view === 'posicao' ? 'Carregando posição de estoque...' :
+                view === 'avarias' ? 'Carregando registro de avarias...' :
+                'Carregando histórico...'
+              }
               description={
                 view === 'posicao'
                   ? 'Estamos atualizando os saldos e o valor estimado da filial.'
-                  : 'Estamos reunindo as últimas movimentações registradas.'
+                  : view === 'avarias'
+                    ? 'Estamos reunindo as últimas ocorrências de avarias registradas.'
+                    : 'Estamos reunindo as últimas movimentações registradas.'
               }
               compact
             />
@@ -114,10 +127,15 @@ export function EstoquePilotPage() {
           {status !== 'loading' && view === 'sem_movimento' ? (
             <EstoqueIdleTable rows={positionRows} />
           ) : null}
+
+          {status !== 'loading' && view === 'avarias' ? (
+            <EstoqueAvariasTable avarias={avarias} />
+          ) : null}
         </div>
       </section>
 
       <EstoqueMovementModal />
+      <EstoqueAvariaModal />
       <EstoqueDeleteConfirmModal
         open={Boolean(deletingRow)}
         target={deletingRow}

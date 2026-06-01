@@ -11,6 +11,7 @@ export function useEstoqueFilters() {
   const tipoHistorico = useEstoqueStore((s) => s.tipoHistorico);
   const positionRows = useEstoqueStore((s) => s.positionRows);
   const historyRows = useEstoqueStore((s) => s.historyRows);
+  const avarias = useEstoqueStore((s) => s.avarias);
   const snapshot = useEstoqueStore((s) => s.snapshot);
 
   const categorias = snapshot?.produtos
@@ -25,6 +26,17 @@ export function useEstoqueFilters() {
   const setBuscaHistorico = useEstoqueStore((s) => s.setBuscaHistorico);
   const setTipoHistorico = useEstoqueStore((s) => s.setTipoHistorico);
 
+  const filteredAvarias = avarias.filter((avaria) => {
+    const produto = snapshot?.produtos.find(p => p.id === avaria.produto_id);
+    const query = buscaHistorico.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      (produto?.nome || '').toLowerCase().includes(query) ||
+      (avaria.observacoes || '').toLowerCase().includes(query) ||
+      (avaria.motivo || '').toLowerCase().includes(query)
+    );
+  });
+
   return {
     view,
     periodo,
@@ -35,6 +47,7 @@ export function useEstoqueFilters() {
     tipoHistorico,
     positionRows: filterEstoquePositionRows(positionRows, buscaPosicao, statusFilter, categoriaFilter),
     historyRows: filterEstoqueHistoryRows(historyRows, buscaHistorico, tipoHistorico),
+    avarias: filteredAvarias,
     categorias,
     setView,
     setPeriodo,

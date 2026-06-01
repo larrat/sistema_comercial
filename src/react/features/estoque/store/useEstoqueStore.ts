@@ -10,7 +10,8 @@ import type {
   EstoquePositionRow,
   EstoqueStatusFilter,
   EstoqueView,
-  EstoquePeriodoFilter
+  EstoquePeriodoFilter,
+  Avaria
 } from '../types';
 
 type EstoqueStoreState = {
@@ -25,7 +26,9 @@ type EstoqueStoreState = {
   snapshot: EstoquePositionSnapshot | null;
   positionRows: EstoquePositionRow[];
   historyRows: EstoqueHistoryRow[];
+  avarias: Avaria[];
   movementModalOpen: boolean;
+  avariaModalOpen: boolean;
   movementDraft: EstoqueMovementDraft;
   reloadVersion: number;
   status: 'idle' | 'loading' | 'ready' | 'error';
@@ -45,9 +48,12 @@ type EstoqueStoreActions = {
     metrics: EstoqueMetrics;
     positionRows: EstoquePositionRow[];
     historyRows: EstoqueHistoryRow[];
+    avarias?: Avaria[];
   }) => void;
   openMovementModal: (produtoId?: string, tipo?: EstoqueMovementMode) => void;
   closeMovementModal: () => void;
+  openAvariaModal: () => void;
+  closeAvariaModal: () => void;
   updateMovementDraft: (patch: Partial<EstoqueMovementDraft>) => void;
   requestReload: () => void;
   setStatus: (status: EstoqueStoreState['status'], error?: string | null) => void;
@@ -91,7 +97,9 @@ export const useEstoqueStore = create<EstoqueStoreState & EstoqueStoreActions>((
   snapshot: null,
   positionRows: [],
   historyRows: [],
+  avarias: [],
   movementModalOpen: false,
+  avariaModalOpen: false,
   movementDraft: createMovementDraft(),
   reloadVersion: 0,
   status: 'idle',
@@ -104,12 +112,13 @@ export const useEstoqueStore = create<EstoqueStoreState & EstoqueStoreActions>((
   setCategoriaFilter: (categoriaFilter) => set({ categoriaFilter }),
   setBuscaHistorico: (buscaHistorico) => set({ buscaHistorico }),
   setTipoHistorico: (tipoHistorico) => set({ tipoHistorico }),
-  setData: ({ snapshot = null, metrics, positionRows, historyRows }) =>
+  setData: ({ snapshot = null, metrics, positionRows, historyRows, avarias = [] }) =>
     set({
       snapshot,
       metrics,
       positionRows,
       historyRows,
+      avarias,
       status: 'ready',
       error: null
     }),
@@ -123,6 +132,8 @@ export const useEstoqueStore = create<EstoqueStoreState & EstoqueStoreActions>((
       movementModalOpen: false,
       movementDraft: createMovementDraft()
     }),
+  openAvariaModal: () => set({ avariaModalOpen: true }),
+  closeAvariaModal: () => set({ avariaModalOpen: false }),
   updateMovementDraft: (patch) =>
     set((state) => ({
       movementDraft: {
