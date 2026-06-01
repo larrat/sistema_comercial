@@ -209,3 +209,22 @@ Títulos no Sistema (Vencimento, Valor, Cliente/Fornecedor)
 2.  **Execução em Lote**:
     *   *Fase 1 (PDV Resiliente e Tributação)*: Criação das migrations das tabelas matrizes de impostos, triggers de cálculo temporal, suporte offline IndexedDB no frontend e contingência local NFC-e.
     *   *Fase 2 (Automação RPA)*: Implementação de parsing de XML detalhado, CFOP mapping, geração automática de contas a pagar/receber e o motor heurístico de conciliação bancária OFX.
+
+### Fase 3: Interfaces Operacionais e Governança Fiscal
+
+#### 3.1 Dashboard de Conciliação Bancária
+**Objetivo**: Integrar a Engine Heurística do OFX à interface do usuário.
+*   Conectar `ofxService.correlateTransactions` no componente `ConciliacaoBancaria.tsx`.
+*   Buscar contas a pagar e receber pendentes para alimentar a engine.
+*   Exibir badges visuais de Score (Match Perfeito, Sugerido e Pendente).
+
+#### 3.2 Fechamento Transacional de XML de Compra
+**Objetivo**: Substituir o salvamento comum pela nova arquitetura transacional.
+*   Atualizar `PedidoCompraCreateRoutePage.tsx`.
+*   Chamar a RPC `compra_importar_xml_estoque` para movimentar o Kardex.
+*   Chamar a RPC `compra_importar_xml_financeiro` para provisionar o Contas a Pagar/Caixa.
+
+#### 3.3 Configuração do Motor Tributário Centralizado
+**Objetivo**: Interface para a equipe contábil configurar regras e exceções.
+*   Criar UI de governança fiscal (CRUD da tabela `fiscal_regras_tributacao`).
+*   Permitir a gestão da vigência (`data_inicio_vigencia`), preparando para a Reforma Tributária.

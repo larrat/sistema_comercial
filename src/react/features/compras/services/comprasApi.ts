@@ -170,6 +170,62 @@ export async function vincularNotaImportada(
   if (!res.ok) throw new Error('Falha ao associar a nota destinada ao pedido de compra');
 }
 
+export async function importarXMLCompra(
+  token: string,
+  filialId: string,
+  pedidoId: string,
+  fornecedorNome: string,
+  itens: any[],
+  duplicatas: any[],
+  formaPagAvista: boolean
+) {
+  const { url, key } = getSupabaseConfig();
+
+  // 1. Chamar RPC do Estoque / Kardex
+  const resEstoque = await fetch(`${url}/rest/v1/rpc/compra_importar_xml_estoque`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      p_pedido_compra_id: pedidoId,
+      p_filial_id: filialId,
+      p_itens: itens
+    })
+  });
+  
+  if (!resEstoque.ok) {
+    const errorBody = await resEstoque.json().catch(() => ({}));
+    throw new Error(errorBody.message || 'Falha ao importar itens para o estoque (Kardex).');
+  }
+
+  // 2. Chamar RPC do Financeiro
+  const resFinanceiro = await fetch(`${url}/rest/v1/rpc/compra_importar_xml_financeiro`, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      p_pedido_compra_id: pedidoId,
+      p_filial_id: filialId,
+      p_fornecedor_nome: fornecedorNome,
+      p_duplicatas: duplicatas,
+      p_forma_pag_avista: formaPagAvista
+    })
+  });
+
+  if (!resFinanceiro.ok) {
+    const errorBody = await resFinanceiro.json().catch(() => ({}));
+    throw new Error(errorBody.message || 'Falha ao importar dados financeiros da nota.');
+  }
+  
+  return true;
+}
+
 export async function cancelarPedidoCompra(
   token: string,
   pedidoId: string,
@@ -193,4 +249,3 @@ export async function cancelarPedidoCompra(
     throw new Error(body.message || 'Falha ao cancelar o pedido de compra de forma segura');
   }
 }
-

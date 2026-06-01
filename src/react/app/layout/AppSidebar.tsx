@@ -57,6 +57,7 @@ const iconByPath: Record<string, LucideIcon> = {
   '/app/acessos': Shield,
   '/app/caixa': DollarSign,
   '/app/compras': ShoppingBag,
+  '/app/fiscal': FileText,
 };
 
 const groupColors: Record<string, string> = {

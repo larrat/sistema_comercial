@@ -21,7 +21,8 @@ export type AppRouteId =
   | 'crm'
   | 'contratos'
   | 'agenda'
-  | 'orcamentos';
+  | 'orcamentos'
+  | 'fiscal';
 
 export type AppRoute = {
   id: AppRouteId;
@@ -52,7 +53,8 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'agenda', path: '/app/agenda', label: 'Agenda' },
   { id: 'crm', path: '/app/crm', label: 'CRM Reformas' },
   { id: 'orcamentos', path: '/app/orcamentos', label: 'Orçamentos (Eng)' },
-  { id: 'contratos', path: '/app/contratos', label: 'Contratos e O.S.' }
+  { id: 'contratos', path: '/app/contratos', label: 'Contratos e O.S.' },
+  { id: 'fiscal', path: '/app/fiscal', label: 'Tributação (NCM/IVA)' }
 ];
 
 export const APP_ROUTE_BY_ID: Record<AppRouteId, AppRoute> = APP_ROUTES.reduce(

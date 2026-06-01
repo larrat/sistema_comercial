@@ -9,17 +9,20 @@ import { listProdutos } from '../../produtos/services/produtosApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
-import { savePedidoCompra, vincularNotaImportada } from '../services/comprasApi';
+import { savePedidoCompra, vincularNotaImportada, importarXMLCompra } from '../services/comprasApi';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Produto } from '../../../../types/domain';
-import { parseNFXML } from '../lib/xmlInvoiceParser';
+import { parseNFXML, type ParsedDuplicata } from '../lib/xmlInvoiceParser';
 
 interface FormItem extends PedidoCompraItem {
   isXmlMatched?: boolean;
   xmlSku?: string;
   foto_url?: string | null;
   un?: string;
+  ipi?: number;
+  impostos_recuperaveis?: number;
+  frete?: number;
 }
 
 export function PedidoCompraCreateRoutePage() {
@@ -42,6 +45,10 @@ export function PedidoCompraCreateRoutePage() {
   const [selectedProductPreview, setSelectedProductPreview] = useState<Produto | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // New states for phase 2.2 ingestion
+  const [parsedDuplicatas, setParsedDuplicatas] = useState<ParsedDuplicata[]>([]);
+  const [isXmlImport, setIsXmlImport] = useState(false);
+
   const { data: produtos = [], isLoading: isLoadingProdutos } = useQuery({
     queryKey: ['produtos', 'compras', filialId],
     queryFn: () => {
@@ -53,7 +60,37 @@ export function PedidoCompraCreateRoutePage() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: ({ pedido, itensPayload }: any) => savePedidoCompra(token!, pedido, itensPayload),
+    mutationFn: async ({ pedido, itensPayload }: any) => {
+      // 1. Save standard header & items
+      const savedPedido = await savePedidoCompra(token!, pedido, itensPayload);
+      
+      // 2. If it is an XML import, trigger backend transational RPCs (Kardex and AP Provisioning)
+      if (isXmlImport && filialId) {
+        const isAVista = ['dinheiro', 'pix', 'debito'].includes(formaPgto.toLowerCase());
+        
+        // Prepare mapped items for backend format
+        const mappedItens = itensPayload.map((i: FormItem) => ({
+          produto_id: i.produto_id,
+          qty: i.qty,
+          custo_unitario: i.custo_unitario,
+          ipi: i.ipi || 0,
+          frete: i.frete || 0,
+          impostos_recuperaveis: i.impostos_recuperaveis || 0
+        }));
+
+        await importarXMLCompra(
+          token!,
+          filialId,
+          savedPedido.id,
+          fornecedor,
+          mappedItens,
+          parsedDuplicatas,
+          isAVista
+        );
+      }
+
+      return savedPedido;
+    },
     onSuccess: async (savedPedido) => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
@@ -63,19 +100,19 @@ export function PedidoCompraCreateRoutePage() {
         try {
           await vincularNotaImportada(token!, prefillFromState.notaId, savedPedido.id);
           queryClient.invalidateQueries({ queryKey: ['nfe-destinadas'] });
-          toast.success('Pedido cadastrado e Nota Fiscal vinculada na SEFAZ com sucesso!');
+          toast.success('Pedido, Financeiro e Estoque cadastrados com sucesso!');
         } catch (err) {
           console.error(err);
           toast.error('Pedido salvo, mas falhou ao vincular nota fiscal destinada.');
         }
       } else {
-        toast.success('Pedido salvo com sucesso!');
+        toast.success('Integração transacional concluída. Estoque e financeiro atualizados!');
       }
 
       navigate('/app/compras');
     },
-    onError: () => {
-      toast.error('Erro ao salvar pedido.');
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao salvar pedido transacionalmente.');
     }
   });
 
@@ -117,7 +154,7 @@ export function PedidoCompraCreateRoutePage() {
       total,
       forma_pagamento: formaPgto,
       obs,
-      status: 'aberto'
+      status: 'aberto' // O RPC do backend não se importa com isso, mas para registro
     };
     saveMutation.mutate({ pedido, itensPayload: itens });
   };
@@ -181,6 +218,9 @@ export function PedidoCompraCreateRoutePage() {
         const xmlText = e.target?.result as string;
         const parsed = parseNFXML(xmlText);
         setFornecedor(parsed.nomeEmitente);
+        setParsedDuplicatas(parsed.duplicatas || []);
+        setIsXmlImport(true);
+
         const newItens: FormItem[] = parsed.itens.map(imported => {
           const matched = matchProduct(imported.cProd, imported.xProd, imported.cEAN);
           return {
@@ -192,7 +232,10 @@ export function PedidoCompraCreateRoutePage() {
             isXmlMatched: !!matched,
             xmlSku: imported.cProd,
             foto_url: matched?.foto_url,
-            un: matched?.un
+            un: matched?.un,
+            ipi: imported.vIPI || 0,
+            frete: 0,
+            impostos_recuperaveis: 0
           };
         });
         setItens(newItens);

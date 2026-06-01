@@ -8,41 +8,44 @@ import {
   Shimmer,
   StatCard
 } from '../../../shared/ui';
-import { Upload, CheckCircle, XCircle, RefreshCw, FileText, Banknote, AlertCircle } from 'lucide-react';
-import { ofxService, type OfxTransaction } from '../services/ofxService';
+import { Upload, CheckCircle, RefreshCw, AlertCircle } from 'lucide-react';
+import { ofxService, type MatchedTransaction } from '../services/ofxService';
+import { listTitulosPendentes } from '../services/ofxIntegrationApi';
 import { useToastStore } from '../../../app/lib/useToastStore';
-
-type ExtendedOfxTransaction = OfxTransaction & {
-  status: 'match' | 'no_match' | 'duplicate';
-  vinculo_id?: string;
-};
+import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { useFilialStore } from '../../../app/useFilialStore';
 
 export function ConciliacaoBancaria() {
   const [isUploading, setIsUploading] = useState(false);
-  const [transacoes, setTransacoes] = useState<ExtendedOfxTransaction[]>([]);
+  const [transacoes, setTransacoes] = useState<MatchedTransaction[]>([]);
+  const { token } = useApiContext();
+  const { filialId } = useFilialStore();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !token || !filialId) return;
 
     setIsUploading(true);
     const reader = new FileReader();
+    
     reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
-        const parsed = await ofxService.parse(content);
+        const parsedOfx = await ofxService.parse(content);
         
-        // Match simulation
-        const withStatus = parsed.map(t => ({
-          ...t,
-          status: (t.valor > 0 ? 'match' : 'no_match') as 'match' | 'no_match',
-          vinculo_id: t.valor > 0 ? `PED-${Math.floor(Math.random() * 500)}` : undefined
-        }));
+        useToastStore.getState().addToast('Arquivo OFX lido. Buscando títulos abertos...', 'info');
+        
+        // 1. Fetch open titles
+        const titulos = await listTitulosPendentes(token, filialId);
+        
+        // 2. Correlate with heuristic engine
+        const correlated = ofxService.correlateTransactions(parsedOfx, titulos);
 
-        setTransacoes(withStatus);
-        useToastStore.getState().addToast(`${parsed.length} transações processadas com sucesso.`, 'success');
+        setTransacoes(correlated);
+        useToastStore.getState().addToast(`${parsedOfx.length} transações correlacionadas com sucesso!`, 'success');
       } catch (err) {
-        useToastStore.getState().addToast('Erro ao processar arquivo OFX.', 'error');
+        console.error(err);
+        useToastStore.getState().addToast('Erro ao processar arquivo OFX e correlacionar.', 'error');
       } finally {
         setIsUploading(false);
       }
@@ -50,12 +53,37 @@ export function ConciliacaoBancaria() {
     reader.readAsText(file);
   };
 
+  const getStatusBadge = (score: number, match?: any) => {
+    if (score >= 80) {
+      return (
+        <Badge variant="green" className="gap-1 px-2.5 py-1">
+          <CheckCircle size={12} />
+          MATCH: {match?.nome} ({score} pts)
+        </Badge>
+      );
+    }
+    if (score >= 50) {
+      return (
+        <Badge variant="yellow" className="gap-1 px-2.5 py-1">
+          <RefreshCw size={12} />
+          SUGERIDO: {match?.nome} ({score} pts)
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="slate" className="gap-1 px-2.5 py-1">
+        <AlertCircle size={12} />
+        NÃO IDENTIFICADO
+      </Badge>
+    );
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
         kicker="Financeiro"
         title="Conciliação Bancária"
-        description="Importe arquivos OFX/CNAB para conciliar seu extrato com o fluxo de caixa do sistema."
+        description="Importe arquivos OFX/CNAB. O nosso Algoritmo Heurístico encontrará os Contas a Pagar/Receber correspondentes."
         actions={
           <div className="flex gap-3">
             <Button variant="secondary" leftIcon={<RefreshCw className="w-4 h-4" />}>
@@ -79,8 +107,8 @@ export function ConciliacaoBancaria() {
       {transacoes.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatCard label="Total Importado" value={transacoes.length} />
-          <StatCard label="Conciliados (Match)" value={transacoes.filter(t => t.status === 'match').length} tone="success" />
-          <StatCard label="Pendentes" value={transacoes.filter(t => t.status === 'no_match').length} tone="warning" />
+          <StatCard label="Match Perfeito (>= 80pts)" value={transacoes.filter(t => t.score >= 80).length} tone="success" />
+          <StatCard label="Sugestões / Pendentes" value={transacoes.filter(t => t.score < 80).length} tone="warning" />
         </div>
       )}
 
@@ -88,7 +116,7 @@ export function ConciliacaoBancaria() {
         {transacoes.length === 0 ? (
           <EmptyState
             title="Nenhum arquivo importado"
-            description="Suba seu extrato bancário (OFX ou CNAB) para começar a conciliação automática."
+            description="Suba seu extrato bancário (OFX ou CNAB) para a engine sugerir as liquidações."
             action={
               <div className="relative">
                 <Button variant="primary">Selecionar Arquivo</Button>
@@ -107,54 +135,51 @@ export function ConciliacaoBancaria() {
             columns={[
               {
                 key: 'data',
-                header: 'Data',
-                render: (row) => new Date(row.data).toLocaleDateString()
+                header: 'Data OFX',
+                render: (row) => new Date(row.ofx.data).toLocaleDateString()
               },
               {
                 key: 'descricao',
-                header: 'Descrição no Extrato',
+                header: 'Extrato Banco',
                 render: (row) => (
                   <div className="flex flex-col">
-                    <span className="font-bold text-white uppercase text-xs">{row.descricao}</span>
-                    <span className="text-[10px] text-slate-500">ID: {row.id}</span>
+                    <span className="font-bold text-white uppercase text-xs">{row.ofx.descricao}</span>
+                    <span className="text-[10px] text-slate-500">FITID: {row.ofx.id}</span>
                   </div>
                 )
               },
               {
                 key: 'valor',
-                header: 'Valor',
+                header: 'Valor Extrato',
                 render: (row) => (
-                  <span className={row.valor > 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                    {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(row.valor)}
+                  <span className={row.ofx.valor > 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                    {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(row.ofx.valor)}
                   </span>
                 )
               },
               {
-                key: 'status',
-                header: 'Status / Vínculo',
-                render: (row) => (
-                  <div className="flex items-center gap-2">
-                    {row.status === 'match' ? (
-                      <Badge variant="green" className="gap-1">
-                        <CheckCircle size={10} />
-                        MATCH: {row.vinculo_id}
-                      </Badge>
-                    ) : (
-                      <Badge variant="yellow" className="gap-1">
-                        <RefreshCw size={10} />
-                        PENDENTE
-                      </Badge>
-                    )}
-                  </div>
-                )
+                key: 'match',
+                header: 'Sistema Heurístico',
+                render: (row) => getStatusBadge(row.score, row.match)
               },
               {
                 key: 'actions',
                 header: 'Ações',
                 render: (row) => (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="secondary">Vincular</Button>
-                    {row.status === 'match' && <Button size="sm" variant="primary">Confirmar</Button>}
+                    {row.score >= 80 ? (
+                      <Button size="sm" variant="primary">Confirmar Baixa</Button>
+                    ) : row.score >= 50 ? (
+                      <>
+                        <Button size="sm" variant="primary">Confirmar</Button>
+                        <Button size="sm" variant="secondary">Buscar Outro</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button size="sm" variant="secondary">Lançar Direto</Button>
+                        <Button size="sm" variant="secondary">Buscar Título</Button>
+                      </>
+                    )}
                   </div>
                 )
               }

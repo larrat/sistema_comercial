@@ -42,5 +42,6 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   
   // Configurações
   { id: 'filiais', label: 'Filiais', path: '/app/filiais', group: 'Configurações', roles: ['admin'] },
-  { id: 'acessos', label: 'Acessos', path: '/app/acessos', group: 'Configurações', roles: ['admin'] }
+  { id: 'acessos', label: 'Acessos', path: '/app/acessos', group: 'Configurações', roles: ['admin'] },
+  { id: 'fiscal', label: 'Tributação (NCM/IVA)', path: '/app/fiscal', group: 'Configurações', roles: ['admin', 'gerente'] }
 ];

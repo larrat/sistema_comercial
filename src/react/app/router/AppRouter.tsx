@@ -42,6 +42,7 @@ const SetupPage = lazy(() => import('../../features/setup/components/SetupPage')
 const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/PortalStorefrontPage').then(m => ({ default: m.PortalStorefrontPage })));
 const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObraPage').then(m => ({ default: m.PortalObraPage })));
 const PortalPropostaPage = lazy(() => import('../../features/portal/pages/PortalPropostaPage').then(m => ({ default: m.PortalPropostaPage })));
+const FiscalSetupRoutePage = lazy(() => import('../../features/setup/pages/FiscalSetupRoutePage').then(m => ({ default: m.FiscalSetupRoutePage })));
 
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
@@ -128,6 +129,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
             <Route element={<RoleProtectedRoute allowedRoles={['admin']} />}>
               <Route path="filiais" element={<FiliaisRoutePage />} />
               <Route path="acessos" element={<AcessosRoutePage />} />
+              <Route path="fiscal" element={<FiscalSetupRoutePage />} />
             </Route>
           </Route>
         </Route>
