@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, ViewTransition, startTransition, addTransitionType } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   LucideArrowLeft, 
@@ -31,6 +31,11 @@ import { useContratoDetail, useOrdensServicoData } from '../hooks/useContratosDa
 import { OrdemServicoModal } from './OrdemServicoModal';
 import { AnalisadorContratoModal } from './AnalisadorContratoModal';
 import { PagamentoEquipeModal } from './PagamentoEquipeModal';
+import { ContratoAbaGeral } from './tabs/ContratoAbaGeral';
+import { ContratoAbaCronograma } from './tabs/ContratoAbaCronograma';
+import { ContratoAbaDiario } from './tabs/ContratoAbaDiario';
+import { ContratoAbaFinanceiro } from './tabs/ContratoAbaFinanceiro';
+import { ContratoAbaDocumentos } from './tabs/ContratoAbaDocumentos';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
@@ -359,11 +364,21 @@ export function ContratoProfilePage() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      default="none"
+    >
+      <div className="flex h-full flex-col overflow-y-auto">
       {/* Header Executivo Obra */}
       <div className="border-b border-white/5 bg-slate-900/40 px-6 py-6 pt-8 backdrop-blur-md">
         <button 
-          onClick={() => navigate('/app/contratos')}
+          onClick={() => {
+            startTransition(() => {
+              if (typeof addTransitionType === 'function') addTransitionType('nav-back');
+              navigate('/app/contratos');
+            });
+          }}
           className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-teal-400 transition-colors"
         >
           <LucideArrowLeft className="h-4 w-4" />
@@ -380,9 +395,11 @@ export function ContratoProfilePage() {
                 {contrato.status}
               </span>
             </div>
-            <h1 className="font-display text-2xl font-black tracking-tight text-white mb-2">
-              {contrato.titulo}
-            </h1>
+            <ViewTransition name={`contrato-hero-${contrato.id}`} share="morph">
+              <h1 className="font-display text-2xl font-black tracking-tight text-white mb-2 inline-block">
+                {contrato.titulo}
+              </h1>
+            </ViewTransition>
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 font-medium">
               <span className="flex items-center gap-1.5"><User className="h-4 w-4 text-slate-500" /> {contrato.cliente?.nome}</span>
               <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4 text-slate-500" /> 
@@ -449,647 +466,84 @@ export function ContratoProfilePage() {
         
         {/* TAB 1: GERAL & OS */}
         {activeTab === 'geral' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-2xl border border-white/10 bg-slate-900/40 overflow-hidden shadow-xl">
-                <div className="flex items-center justify-between border-b border-white/5 bg-white/[0.02] p-5">
-                  <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                    <Hammer className="h-5 w-5 text-teal-400" />
-                    Cronograma de Execução Física (O.S.)
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setIsAnalisadorOpen(true)}
-                      className="flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-2 text-xs font-bold text-indigo-400 hover:bg-indigo-500/20 active:scale-[0.98] transition-all"
-                    >
-                      <Bot className="h-4 w-4" />
-                      Analisar Contrato (NLP)
-                    </button>
-                    <button 
-                      onClick={() => setIsOsModalOpen(true)}
-                      className="flex items-center gap-1.5 rounded-xl bg-teal-500/10 border border-teal-500/20 px-3.5 py-2 text-xs font-bold text-teal-400 hover:bg-teal-500/20 active:scale-[0.98] transition-all"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Nova O.S.
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-5">
-                  {ordensServico.length === 0 ? (
-                    <EmptyState title="Nenhuma O.S. vinculada a este contrato ainda." compact />
-                  ) : (
-                    <div className="grid gap-4">
-                      {ordensServico.map(os => (
-                        <div key={os.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/5 bg-white/[0.01] p-5 hover:border-white/10 transition-all hover:bg-white/[0.02]">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[9px] font-black text-slate-500 uppercase">OS-{os.id.substring(0, 5)}</span>
-                              {os.valor_parceiro && os.valor_parceiro > 0 ? (
-                                <Badge variant="green">Parceiro: {fmtBRL(os.valor_parceiro)}</Badge>
-                              ) : (
-                                <Badge variant="slate">Sem repasse</Badge>
-                              )}
-                            </div>
-                            <h4 className="font-bold text-white text-sm">{os.titulo}</h4>
-                            <p className="text-xs text-slate-400 mt-1">{os.descricao}</p>
-                          </div>
-                          
-                          <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 self-end sm:self-center">
-                            <div className="flex items-center gap-2">
-                              {os.valor_parceiro && os.valor_parceiro > 0 && (
-                                <button 
-                                  onClick={() => setPagamentoOsSelected({ id: os.id, titulo: os.titulo, valor: os.valor_parceiro! })}
-                                  className="text-[10px] font-black uppercase tracking-widest text-teal-400 border border-teal-500/30 px-2.5 py-1.5 rounded-lg hover:bg-teal-500/10 transition-colors"
-                                  title="Pagamentos / Adiantamentos da O.S."
-                                >
-                                  Financeiro da OS
-                                </button>
-                              )}
-                              <select
-                                value={os.status}
-                                onChange={(e) => updateOSStatusMutation.mutate({ osId: os.id, status: e.target.value as any })}
-                                className="bg-black/40 border border-white/5 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none"
-                              >
-                                <option value="agendada">Agendada</option>
-                                <option value="em_andamento">Em Andamento</option>
-                                <option value="concluida">Concluída</option>
-                                <option value="cancelada">Cancelada</option>
-                              </select>
-                            </div>
-
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
-                              os.status === 'concluida' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                              os.status === 'em_andamento' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                              'bg-slate-500/10 text-slate-400 border-slate-400/20'
-                            }`}>
-                              {os.status.replace('_', ' ')}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-5 bg-slate-900/40 border-white/10 shadow-lg">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4">Informações Gerais</h3>
-                <div className="space-y-4 text-xs font-bold">
-                  <div className="flex justify-between border-b border-white/5 pb-2.5">
-                    <span className="text-slate-500 uppercase tracking-tight">Status do Contrato</span>
-                    <span className="text-white capitalize">{contrato.status}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2.5">
-                    <span className="text-slate-500 uppercase tracking-tight">Previsão Conclusão</span>
-                    <span className="text-white">
-                      {contrato.previsao_fim ? format(new Date(contrato.previsao_fim), 'dd/MM/yyyy') : '-'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-white/5 pb-2.5">
-                    <span className="text-slate-500 uppercase tracking-tight">Qtd Ordens Serviço</span>
-                    <span className="text-teal-400">{ordensServico.length} OS</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 uppercase tracking-tight">Total Diários Registrados</span>
-                    <span className="text-indigo-400">{diarios.length} relatórios</span>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          </div>
+          <ContratoAbaGeral 
+            contrato={contrato}
+            ordensServico={ordensServico}
+            diarios={diarios}
+            setIsAnalisadorOpen={setIsAnalisadorOpen}
+            setIsOsModalOpen={setIsOsModalOpen}
+            setPagamentoOsSelected={setPagamentoOsSelected}
+            updateOSStatusMutation={updateOSStatusMutation}
+          />
         )}
 
         {/* TAB 2: CRONOGRAMA & GANTT */}
         {activeTab === 'cronograma' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-xl">
-                <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 mb-6">
-                  <Calendar className="h-5 w-5 text-teal-400" />
-                  Visualizador Físico do Cronograma (Fases da Obra)
-                </h2>
-
-                {cronograma.length === 0 ? (
-                  <EmptyState title="Nenhuma fase ou marco físico lançado no cronograma." compact />
-                ) : (
-                  <div className="space-y-5">
-                    {cronograma.map(fase => (
-                      <div key={fase.id} className="p-4 rounded-xl border border-white/5 bg-white/[0.01]">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold text-white uppercase tracking-tight">{fase.titulo}</span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs font-black text-teal-400">{fase.percentual_conclusao}% concluído</span>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              value={fase.percentual_conclusao}
-                              onChange={(e) => updateCronogramaProgressMutation.mutate({ phaseId: fase.id, progress: Number(e.target.value) })}
-                              className="w-24 accent-teal-400"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Visual Gantt Bar */}
-                        <div className="h-2.5 bg-black/40 rounded-full overflow-hidden relative">
-                          <div 
-                            className="h-full bg-gradient-to-r from-teal-500 to-indigo-500 rounded-full transition-all duration-300"
-                            style={{ width: `${fase.percentual_conclusao}%` }}
-                          />
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-between gap-4 mt-2 border-t border-white/5 pt-2">
-                          <div className="flex items-center gap-4 text-[10px] text-slate-500 font-bold">
-                            <span>Início: {fase.data_inicio ? format(new Date(fase.data_inicio), 'dd/MM/yyyy') : '-'}</span>
-                            <span>Fim: {fase.data_fim ? format(new Date(fase.data_fim), 'dd/MM/yyyy') : '-'}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {fase.valor_faturamento > 0 && (
-                              <span className="text-[9px] bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-black uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1">
-                                <DollarSign size={10} />
-                                Faturamento: {fmtBRL(Number(fase.valor_faturamento))}
-                              </span>
-                            )}
-                            {fase.percentual_conclusao === 100 && fase.valor_faturamento > 0 && (
-                              <>
-                                {faturamentos.find((f: any) => f.cronograma_id === fase.id) ? (
-                                  <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md">
-                                    <Check size={10} /> Faturado ✓
-                                  </span>
-                                ) : (
-                                  <button
-                                    onClick={() => faturarMarcoMutation.mutate({
-                                      cronogramaId: fase.id,
-                                      valor: Number(fase.valor_faturamento),
-                                      tituloFase: fase.titulo
-                                    })}
-                                    disabled={faturarMarcoMutation.isPending}
-                                    className="flex items-center gap-1 rounded-md bg-gradient-to-r from-teal-500 to-indigo-600 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
-                                  >
-                                    {faturarMarcoMutation.isPending ? '...' : 'Faturar Marco'}
-                                  </button>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-5 bg-slate-900/40 border-white/10 shadow-lg">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4">Adicionar Nova Fase</h3>
-                <form onSubmit={handleAddPhase} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nome da Fase</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Demolição, Pintura, Reboco"
-                      value={newPhaseTitle}
-                      onChange={(e) => setNewPhaseTitle(e.target.value)}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Início</label>
-                      <input 
-                        type="date" 
-                        value={newPhaseStart}
-                        onChange={(e) => setNewPhaseStart(e.target.value)}
-                        className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Previsão Fim</label>
-                      <input 
-                        type="date" 
-                        value={newPhaseEnd}
-                        onChange={(e) => setNewPhaseEnd(e.target.value)}
-                        className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Precedente (Depende de)</label>
-                    <select
-                      value={newPhasePrecedente}
-                      onChange={(e) => setNewPhasePrecedente(e.target.value)}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white appearance-none"
-                    >
-                      <option value="">Nenhuma fase anterior</option>
-                      {cronograma.map(c => (
-                        <option key={c.id} value={c.id}>{c.titulo}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                      <DollarSign size={12} className="text-slate-500" /> Valor do Faturamento (R$)
-                    </label>
-                    <input 
-                      type="number" 
-                      placeholder="Ex: 5000"
-                      value={newPhaseValorFaturamento || ''}
-                      onChange={(e) => setNewPhaseValorFaturamento(Number(e.target.value))}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-                  <Button type="submit" variant="primary" className="w-full">Lançar Fase</Button>
-                </form>
-              </Card>
-            </div>
-          </div>
+          <ContratoAbaCronograma 
+            cronograma={cronograma}
+            faturamentos={faturamentos}
+            newPhaseTitle={newPhaseTitle}
+            setNewPhaseTitle={setNewPhaseTitle}
+            newPhaseStart={newPhaseStart}
+            setNewPhaseStart={setNewPhaseStart}
+            newPhaseEnd={newPhaseEnd}
+            setNewPhaseEnd={setNewPhaseEnd}
+            newPhasePrecedente={newPhasePrecedente}
+            setNewPhasePrecedente={setNewPhasePrecedente}
+            newPhaseValorFaturamento={newPhaseValorFaturamento}
+            setNewPhaseValorFaturamento={setNewPhaseValorFaturamento}
+            handleAddPhase={handleAddPhase}
+            updateCronogramaProgressMutation={updateCronogramaProgressMutation}
+            faturarMarcoMutation={faturarMarcoMutation}
+          />
         )}
 
         {/* TAB 3: DIÁRIO DE OBRA */}
         {activeTab === 'diario' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="space-y-5">
-                {diarios.length === 0 ? (
-                  <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-10 text-center shadow-xl">
-                    <EmptyState title="Nenhum Diário de Obra (RDO) lançado para este projeto." compact />
-                  </div>
-                ) : (
-                  diarios.map(rdo => (
-                    <div key={rdo.id} className="rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-lg space-y-4">
-                      <div className="flex items-start justify-between border-b border-white/5 pb-3">
-                        <div>
-                          <span className="text-[9px] font-black text-slate-500 uppercase">Diário de Obra — {format(new Date(rdo.criado_em), 'dd/MM/yyyy HH:mm')}</span>
-                          <h4 className="font-bold text-white text-sm mt-0.5">{rdo.titulo}</h4>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1 text-[10px] text-indigo-400 font-bold uppercase">
-                            <UserCheck size={12} /> {rdo.mao_de_obra_qtd || 0} operários
-                          </span>
-                          <span className="flex items-center gap-1 text-[10px] text-amber-400 font-bold uppercase">
-                            {rdo.clima === 'ensolarado' && <Sun size={12} />}
-                            {rdo.clima === 'chuvoso' && <CloudRain size={12} />}
-                            {rdo.clima === 'nublado' && <Cloud size={12} />}
-                            Clima: {rdo.clima}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-slate-300 leading-relaxed font-medium whitespace-pre-line">{rdo.relatorio}</p>
-
-                      {rdo.fotos && rdo.fotos.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                          {rdo.fotos.map((foto, fIdx) => (
-                            <div key={fIdx} className="aspect-video rounded-xl bg-slate-950 overflow-hidden border border-white/5 shadow-md">
-                              <img src={foto} alt={`Obra-${fIdx}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-5 bg-slate-900/40 border-white/10 shadow-lg">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4">Adicionar Entrada (RDO)</h3>
-                <form onSubmit={handleAddDiario} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Resumo do Dia</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Conclusão do Reboco do Banheiro"
-                      value={newDiarioTitle}
-                      onChange={(e) => setNewDiarioTitle(e.target.value)}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Clima Observado</label>
-                    <select
-                      value={newDiarioClima}
-                      onChange={(e) => setNewDiarioClima(e.target.value as any)}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    >
-                      <option value="ensolarado">☀️ Ensolarado</option>
-                      <option value="nublado">☁️ Nublado</option>
-                      <option value="chuvoso">🌧️ Chuvoso</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Mão de Obra Presente</label>
-                    <input 
-                      type="number" 
-                      min="1"
-                      value={newDiarioMaoDeObra}
-                      onChange={(e) => setNewDiarioMaoDeObra(Number(e.target.value))}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Relatório Técnico / Ocorrências</label>
-                    <textarea 
-                      rows={4}
-                      placeholder="Descreva o que foi realizado, entregas recebidas e ocorrências..."
-                      value={newDiarioRelatorio}
-                      onChange={(e) => setNewDiarioRelatorio(e.target.value)}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Registros Fotográficos</label>
-                    <div className="flex flex-wrap gap-2">
-                      {uploadedPhotos.map((p, pIdx) => (
-                        <div key={pIdx} className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 bg-slate-950">
-                          <img src={p} alt="upload" className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                      <div className="flex gap-2 relative">
-                        <button
-                          type="button"
-                          onClick={() => document.getElementById('rdo-real-upload')?.click()}
-                          className="w-12 h-12 rounded-lg border-2 border-dashed border-white/10 hover:border-teal-500/30 text-slate-600 hover:text-teal-400 flex flex-col items-center justify-center transition-all bg-white/[0.01]"
-                          title="Anexar Foto (Storage)"
-                          disabled={uploadRdoFotoMutation.isPending}
-                        >
-                          <Camera size={14} />
-                        </button>
-                        {uploadRdoFotoMutation.isPending && (
-                          <div className="absolute top-0 left-0 w-12 h-12 bg-black/50 rounded-lg flex items-center justify-center">
-                            <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
-                          </div>
-                        )}
-                        <input 
-                          id="rdo-real-upload"
-                          type="file" 
-                          accept="image/*" 
-                          multiple
-                          className="hidden" 
-                          onChange={(e) => {
-                            if (e.target.files) {
-                              Array.from(e.target.files).forEach(file => {
-                                uploadRdoFotoMutation.mutate(file);
-                              });
-                            }
-                            e.target.value = '';
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    variant="primary" 
-                    className="w-full"
-                    disabled={createDiarioMutation.isPending || uploadRdoFotoMutation.isPending}
-                  >
-                    Registrar Diário
-                  </Button>
-                </form>
-              </Card>
-            </div>
-          </div>
+          <ContratoAbaDiario 
+            diarios={diarios}
+            newDiarioTitle={newDiarioTitle}
+            setNewDiarioTitle={setNewDiarioTitle}
+            newDiarioClima={newDiarioClima}
+            setNewDiarioClima={setNewDiarioClima}
+            newDiarioMaoDeObra={newDiarioMaoDeObra}
+            setNewDiarioMaoDeObra={setNewDiarioMaoDeObra}
+            newDiarioRelatorio={newDiarioRelatorio}
+            setNewDiarioRelatorio={setNewDiarioRelatorio}
+            uploadedPhotos={uploadedPhotos}
+            handleAddDiario={handleAddDiario}
+            uploadRdoFotoMutation={uploadRdoFotoMutation}
+            createDiarioMutation={createDiarioMutation}
+          />
         )}
 
         {/* TAB 4: FINANCEIRO & ADITIVOS */}
         {activeTab === 'financeiro' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <div className="lg:col-span-2 space-y-6">
-              
-              {/* Executive Physical-Financial Dashboard */}
-              <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-6 shadow-xl space-y-6">
-                <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2 border-b border-white/5 pb-3.5">
-                  <BarChart3 className="h-5 w-5 text-teal-400" />
-                  Painel Físico-Financeiro Executivo
-                </h2>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight block">Valor Inicial</span>
-                    <span className="text-base font-extrabold text-white">{fmtBRL(contrato.valor_total)}</span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight block">Receita Total</span>
-                    <span className="text-base font-extrabold text-white">{fmtBRL(valorContratadoTotal)}</span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight block">Custos Totais</span>
-                    <span className="text-base font-extrabold text-rose-400">{fmtBRL(totalCustosReal)}</span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                    <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-tight block">Margem Estimada</span>
-                    <span className="text-base font-black text-emerald-400">{fmtBRL(margemRealEst)}</span>
-                  </div>
-                </div>
-
-                {/* Progress costs pacing */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-slate-400 uppercase">Pacing de Custo sobre Receita</span>
-                    <span className={`${pacingPercentual > 75 ? 'text-rose-400' : 'text-teal-400'}`}>{pacingPercentual.toFixed(1)}% consumido</span>
-                  </div>
-                  <div className="h-3 bg-black/40 rounded-full overflow-hidden relative">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        pacingPercentual > 75 ? 'bg-gradient-to-r from-rose-500 to-red-600' : 'bg-gradient-to-r from-teal-500 to-emerald-500'
-                      }`}
-                      style={{ width: `${Math.min(100, pacingPercentual)}%` }}
-                    />
-                  </div>
-                  {pacingPercentual > 75 && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-rose-400 font-bold uppercase mt-1">
-                      <AlertTriangle size={12} /> Alerta: Custos físicos excederam 75% da receita orçada!
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* List of Appropriated Costs */}
-              <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-xl space-y-4">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-2">
-                  <ClipboardList className="h-4.5 w-4.5 text-slate-500" />
-                  Custos e Insumos Apropriados a esta Obra
-                </h3>
-
-                {despesasApropriadas.length === 0 && totalMaoDeObraTerceiros === 0 ? (
-                  <EmptyState title="Nenhuma despesa ou repasse carimbado nesta obra." compact />
-                ) : (
-                  <div className="space-y-3">
-                    {/* Material Purchases */}
-                    {despesasApropriadas.map(c => (
-                      <div key={c.id} className="flex justify-between items-center p-3 rounded-xl border border-white/5 bg-white/[0.01] text-xs">
-                        <div>
-                          <span className="text-[9px] font-black text-rose-400 uppercase tracking-wider">COMPRA INSUMOS</span>
-                          <div className="font-bold text-white mt-0.5">{c.fornecedor_nome}</div>
-                          <div className="text-[10px] text-slate-500 font-semibold mt-1">Ref: #{c.id} • {format(new Date(c.criado_em), 'dd/MM/yyyy')}</div>
-                        </div>
-                        <span className="font-black text-rose-400">{fmtBRL(c.total)}</span>
-                      </div>
-                    ))}
-
-                    {/* Subcontractor repasses */}
-                    {ordensServico.filter(os => os.status === 'concluida' && os.valor_parceiro && os.valor_parceiro > 0).map(os => (
-                      <div key={os.id} className="flex justify-between items-center p-3 rounded-xl border border-white/5 bg-white/[0.01] text-xs">
-                        <div>
-                          <span className={`text-[9px] font-black uppercase tracking-wider ${os.is_garantia ? 'text-rose-400' : 'text-indigo-400'}`}>
-                            {os.is_garantia ? 'MÃO DE OBRA (ASSISTÊNCIA / GARANTIA)' : 'MÃO DE OBRA TERCEIRIZADA'}
-                          </span>
-                          <div className="font-bold text-white mt-0.5">Repasse: OS-{os.titulo}</div>
-                          <div className="text-[10px] text-slate-500 font-semibold mt-1">
-                            {os.is_garantia ? 'OS de Garantia pós-obra concluída' : 'OS concluída • Medição aprovada'}
-                          </div>
-                        </div>
-                        <span className="font-black text-rose-400">{fmtBRL(os.valor_parceiro || 0)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Sidebar aditivos form */}
-            <div className="space-y-6">
-              <Card className="p-5 bg-slate-900/40 border-white/10 shadow-lg">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4">Lançar Termo Aditivo</h3>
-                <form onSubmit={handleAddAditivo} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Descrição da Alteração</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Instalação de Revestimento 3D Adicional"
-                      value={newAditivoTitle}
-                      onChange={(e) => setNewAditivoTitle(e.target.value)}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor do Aditivo (R$)</label>
-                    <input 
-                      type="number" 
-                      placeholder="2500"
-                      value={newAditivoValue}
-                      onChange={(e) => setNewAditivoValue(Number(e.target.value))}
-                      className="w-full bg-black/30 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white"
-                    />
-                  </div>
-                  <Button type="submit" variant="primary" className="w-full">Lançar Aditivo</Button>
-                </form>
-              </Card>
-
-              {/* List of active aditivos */}
-              <Card className="p-5 bg-slate-900/40 border-white/10 shadow-lg">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3">Histórico de Aditivos</h3>
-                {aditivos.length === 0 ? (
-                  <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider py-4 text-center">Nenhum termo aditivo lançado.</div>
-                ) : (
-                  <div className="space-y-2">
-                    {aditivos.map(a => (
-                      <div key={a.id} className="flex justify-between items-center text-xs p-2 rounded bg-black/20 border border-white/5">
-                        <div className="min-w-0 flex-1 pr-2">
-                          <div className="font-bold text-slate-300 truncate">{a.titulo}</div>
-                          <div className="text-[9px] text-slate-500 font-bold uppercase mt-0.5">{format(new Date(a.criado_em), 'dd/MM/yyyy')}</div>
-                        </div>
-                        <span className="font-extrabold text-emerald-400">+{fmtBRL(Number(a.valor))}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            </div>
-          </div>
+          <ContratoAbaFinanceiro 
+            contrato={contrato}
+            valorContratadoTotal={valorContratadoTotal}
+            totalCustosReal={totalCustosReal}
+            margemRealEst={margemRealEst}
+            pacingPercentual={pacingPercentual}
+            despesasApropriadas={despesasApropriadas}
+            totalMaoDeObraTerceiros={totalMaoDeObraTerceiros}
+            ordensServico={ordensServico}
+            newAditivoTitle={newAditivoTitle}
+            setNewAditivoTitle={setNewAditivoTitle}
+            newAditivoValue={newAditivoValue}
+            setNewAditivoValue={setNewAditivoValue}
+            handleAddAditivo={handleAddAditivo}
+            aditivos={aditivos}
+          />
         )}
 
         {/* TAB 5: DOCUMENTOS E ANEXOS */}
         {activeTab === 'documentos' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5 shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-                    <Paperclip className="h-5 w-5 text-teal-400" />
-                    Arquivos da Obra
-                  </h2>
-                  <Badge variant="blue">{arquivos.length} arquivos anexados</Badge>
-                </div>
-
-                {arquivos.length === 0 ? (
-                  <EmptyState title="Nenhum arquivo anexado a esta obra." compact />
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {arquivos.map((arq) => (
-                      <div key={arq.id} className="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-colors group">
-                        <div className="w-12 h-12 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center justify-center flex-shrink-0">
-                          {arq.tipo_documento === 'contrato' || arq.nome_arquivo.endsWith('.pdf') ? (
-                            <FileText size={20} />
-                          ) : (
-                            <Camera size={20} />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-white truncate" title={arq.nome_arquivo}>{arq.nome_arquivo}</p>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">
-                            Enviado em {format(new Date(arq.criado_em), 'dd/MM/yyyy')}
-                          </p>
-                        </div>
-                        <a 
-                          href={arq.url_arquivo} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors flex-shrink-0"
-                        >
-                          <Download size={16} />
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-5 bg-slate-900/40 border-white/10 shadow-lg">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-4">Adicionar Novo Arquivo</h3>
-                
-                <div className="relative border-2 border-dashed border-white/10 rounded-2xl p-8 hover:border-teal-500/50 hover:bg-teal-500/5 transition-all text-center flex flex-col items-center justify-center min-h-[200px] overflow-hidden group">
-                  {isUploading ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <Loader2 className="h-8 w-8 text-teal-400 animate-spin" />
-                      <p className="text-xs font-bold text-teal-400 animate-pulse">Enviando arquivo...</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-16 h-16 rounded-full bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 mb-4 group-hover:text-teal-400 group-hover:scale-110 transition-all">
-                        <UploadCloud size={28} />
-                      </div>
-                      <p className="text-xs font-bold text-white mb-1">Clique ou arraste um arquivo</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">PDF, Imagens (Máx 10MB)</p>
-                      
-                      <input 
-                        type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        disabled={isUploading}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            uploadArquivoMutation.mutate(file);
-                          }
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
-              </Card>
-            </div>
-          </div>
+          <ContratoAbaDocumentos 
+            arquivos={arquivos}
+            isUploading={isUploading}
+            uploadArquivoMutation={uploadArquivoMutation}
+          />
         )}
 
       </div>
@@ -1119,5 +573,6 @@ export function ContratoProfilePage() {
         />
       )}
     </div>
+    </ViewTransition>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, startTransition, addTransitionType, ViewTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { buildClienteRoute, type ClienteProfileTab } from '../../../app/router/wave1Navigation';
@@ -11,19 +11,31 @@ export function ClientesRoutePage() {
 
   const handleOpenCliente = useCallback(
     (clienteId: string, options?: { tab?: ClienteProfileTab; origin?: string }) => {
-      navigate(buildClienteRoute(clienteId, { tab: options?.tab ?? null }));
+      startTransition(() => {
+        if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+        navigate(buildClienteRoute(clienteId, { tab: options?.tab ?? null }));
+      });
     },
     [navigate]
   );
 
   const handleNewCliente = useCallback(() => {
-    navigate('/app/clientes/novo');
+    startTransition(() => {
+      if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+      navigate('/app/clientes/novo');
+    });
   }, [navigate]);
 
   return (
-    <ClientesPilotPage
-      onOpenCliente={handleOpenCliente}
-      onNewCliente={handleNewCliente}
-    />
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      default="none"
+    >
+      <ClientesPilotPage
+        onOpenCliente={handleOpenCliente}
+        onNewCliente={handleNewCliente}
+      />
+    </ViewTransition>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, ViewTransition } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 import type { ContaReceber, Pedido, PedidoItem } from '../../../../types/domain';
@@ -274,27 +274,29 @@ export function PedidoProfilePage({
       </div>
 
       {/* Header */}
-      <section className="flex items-center gap-4">
-        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm${getAvatarColor(pedido.cli)}`}>
-          {getInitials(pedido.cli)}
-        </div>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-white m-0">Pedido #{pedido.num}</h1>
-            <StatusBadge tone={statusTone}>
-              {PEDIDO_STATUS_LABEL[status] || status}
-            </StatusBadge>
-            {pedido.tipo && (
-              <StatusBadge tone="neutral">
-                {pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}
+      <ViewTransition name={`pedido-hero-${pedido.id}`} share="morph">
+        <section className="flex items-center gap-4">
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shadow-sm${getAvatarColor(pedido.cli)}`}>
+            {getInitials(pedido.cli)}
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-xl font-bold text-white m-0">Pedido #{pedido.num}</h1>
+              <StatusBadge tone={statusTone}>
+                {PEDIDO_STATUS_LABEL[status] || status}
               </StatusBadge>
-            )}
+              {pedido.tipo && (
+                <StatusBadge tone="neutral">
+                  {pedido.tipo === 'atacado' ? 'Atacado' : 'Varejo'}
+                </StatusBadge>
+              )}
+            </div>
+            <div className="text-sm text-slate-400 font-medium">
+              {pedido.cli} · {formatDate(pedido.data)} · {pedido.rca_nome || 'Sem vendedor'}
+            </div>
           </div>
-          <div className="text-sm text-slate-400 font-medium">
-            {pedido.cli} · {formatDate(pedido.data)} · {pedido.rca_nome || 'Sem vendedor'}
-          </div>
-        </div>
-      </section>
+        </section>
+      </ViewTransition>
 
       {/* Stat Cards */}
       <section className="rf-kpi-grid">

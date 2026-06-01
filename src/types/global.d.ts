@@ -58,3 +58,20 @@ declare global {
 
   const XLSX: NonNullable<Window['XLSX']>;
 }
+
+declare module 'react' {
+  import * as React from 'react';
+
+  export interface ViewTransitionProps {
+    name?: string;
+    enter?: string | Record<string, string>;
+    exit?: string | Record<string, string>;
+    share?: string | Record<string, string>;
+    default?: string;
+    children?: React.ReactNode;
+  }
+
+  export const ViewTransition: React.ComponentType<ViewTransitionProps>;
+  export function addTransitionType(type: string): void;
+}
+

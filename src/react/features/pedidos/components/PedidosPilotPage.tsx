@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, startTransition, addTransitionType } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -49,11 +49,14 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
   const [viewMode, setViewMode] = useQueryState('viewMode', parseAsString.withDefault('list'));
 
   function openNewPedido(origin: string, clienteId?: string | null) {
-    if (clienteId) {
-      navigate(`/app/pedidos/novo?cliente=${clienteId}`);
-    } else {
-      navigate('/app/pedidos/novo');
-    }
+    startTransition(() => {
+      if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+      if (clienteId) {
+        navigate(`/app/pedidos/novo?cliente=${clienteId}`);
+      } else {
+        navigate('/app/pedidos/novo');
+      }
+    });
   }
 
   useEffect(() => {
@@ -67,11 +70,17 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
     if (!routeIntent.pedidoId) return;
 
     if (routeIntent.view === 'edit') {
-      navigate(`/app/pedidos/${routeIntent.pedidoId}/editar`);
+      startTransition(() => {
+        if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+        navigate(`/app/pedidos/${routeIntent.pedidoId}/editar`);
+      });
       return;
     }
 
-    navigate(`/app/pedidos/${encodeURIComponent(routeIntent.pedidoId)}`);
+    startTransition(() => {
+      if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+      navigate(`/app/pedidos/${encodeURIComponent(routeIntent.pedidoId!)}`);
+    });
   }, [navigate, routeIntent]);
 
   return (
@@ -114,7 +123,12 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
         ) : (
           <PedidoListView
             onNovoPedido={() => openNewPedido('list_button')}
-            onDetalhe={(id) => navigate(`/app/pedidos/${encodeURIComponent(id)}`)}
+            onDetalhe={(id) => {
+              startTransition(() => {
+                if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+                navigate(`/app/pedidos/${encodeURIComponent(id)}`);
+              });
+            }}
             onSwitchToKanban={() => setViewMode('kanban')}
           />
         )}

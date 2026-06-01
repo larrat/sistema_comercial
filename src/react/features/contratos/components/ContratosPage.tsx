@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { ViewTransition, startTransition, addTransitionType } from 'react';
 import { useContratosData } from '../hooks/useContratosData';
 import { LucideFileSignature, LucidePlus, LucideSearch } from 'lucide-react';
 import { format } from 'date-fns';
@@ -22,7 +23,12 @@ export function ContratosPage() {
   };
 
   return (
-    <div className="flex h-full flex-col p-6 overflow-y-auto">
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      default="none"
+    >
+      <div className="flex h-full flex-col p-6 overflow-y-auto">
       <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -68,10 +74,19 @@ export function ContratosPage() {
               {contratos.map(c => (
                 <tr 
                   key={c.id} 
-                  onClick={() => navigate(`/app/contratos/${c.id}`)}
+                  onClick={() => {
+                    startTransition(() => {
+                      if (typeof addTransitionType === 'function') addTransitionType('nav-forward');
+                      navigate(`/app/contratos/${c.id}`);
+                    });
+                  }}
                   className="group cursor-pointer transition-colors hover:bg-white/[0.02]"
                 >
-                  <td className="px-4 py-4 font-medium text-white">{c.titulo}</td>
+                  <td className="px-4 py-4 font-medium text-white">
+                    <ViewTransition name={`contrato-hero-${c.id}`} share="morph">
+                      <span className="block">{c.titulo}</span>
+                    </ViewTransition>
+                  </td>
                   <td className="px-4 py-4">{c.cliente?.nome || 'Desconhecido'}</td>
                   <td className="px-4 py-4">
                     {c.data_inicio ? format(new Date(c.data_inicio), "dd 'de' MMM, yyyy", { locale: ptBR }) : '-'}
@@ -96,5 +111,6 @@ export function ContratosPage() {
         </div>
       </div>
     </div>
+    </ViewTransition>
   );
 }

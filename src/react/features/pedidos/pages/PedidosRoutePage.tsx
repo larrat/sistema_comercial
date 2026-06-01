@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, ViewTransition } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { PedidosPilotPage } from '../components/PedidosPilotPage';
@@ -19,5 +19,13 @@ export function PedidosRoutePage() {
     };
   }, [searchParams]);
 
-  return <PedidosPilotPage routeIntent={routeIntent} />;
+  return (
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      default="none"
+    >
+      <PedidosPilotPage routeIntent={routeIntent} />
+    </ViewTransition>
+  );
 }

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, startTransition, addTransitionType, ViewTransition } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ClienteProfilePage } from '../components/ClienteProfilePage';
@@ -11,7 +11,10 @@ export function ClienteProfileRoutePage() {
   const { cliente, loading, error, reload, setCliente } = useClienteProfile(clienteId);
 
   const handleBack = useCallback(() => {
-    navigate('/app/clientes');
+    startTransition(() => {
+      if (typeof addTransitionType === 'function') addTransitionType('nav-back');
+      navigate('/app/clientes');
+    });
   }, [navigate]);
 
   if (!clienteId) {
@@ -68,11 +71,17 @@ export function ClienteProfileRoutePage() {
   }
 
   return (
-    <ClienteProfilePage
-      cliente={cliente}
-      loadingCliente={loading}
-      onClienteSaved={setCliente}
-      onReload={reload}
-    />
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      default="none"
+    >
+      <ClienteProfilePage
+        cliente={cliente}
+        loadingCliente={loading}
+        onClienteSaved={setCliente}
+        onReload={reload}
+      />
+    </ViewTransition>
   );
 }

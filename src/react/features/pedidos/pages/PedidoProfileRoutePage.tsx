@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, startTransition, addTransitionType, ViewTransition } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { PedidoProfilePage } from '../components/PedidoProfilePage';
@@ -13,7 +13,10 @@ export function PedidoProfileRoutePage() {
   const { data: financeiro, isLoading: isLoadingFinanceiro, refetch: refetchFinanceiro } = usePedidoFinanceiroQuery(pedidoId);
 
   const handleBack = useCallback(() => {
-    navigate('/app/pedidos');
+    startTransition(() => {
+      if (typeof addTransitionType === 'function') addTransitionType('nav-back');
+      navigate('/app/pedidos');
+    });
   }, [navigate]);
 
   if (!pedidoId) {
@@ -70,15 +73,21 @@ export function PedidoProfileRoutePage() {
   }
 
   return (
-    <PedidoProfilePage
-      pedido={pedido}
-      financeiro={{
-        conta: financeiro?.conta ?? null,
-        baixas: financeiro?.baixas ?? [],
-        loading: isLoadingFinanceiro,
-        error: null
-      }}
-      onReloadFinanceiro={async () => { await refetchFinanceiro(); }}
-    />
+    <ViewTransition 
+      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
+      default="none"
+    >
+      <PedidoProfilePage
+        pedido={pedido}
+        financeiro={{
+          conta: financeiro?.conta ?? null,
+          baixas: financeiro?.baixas ?? [],
+          loading: isLoadingFinanceiro,
+          error: null
+        }}
+        onReloadFinanceiro={async () => { await refetchFinanceiro(); }}
+      />
+    </ViewTransition>
   );
 }

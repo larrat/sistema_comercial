@@ -14,6 +14,7 @@ import {
   Button,
   Typography
 } from '../../../shared/ui';
+import { ViewTransition } from 'react';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import type { ClienteProfileTab } from '../../../app/router/wave1Navigation';
@@ -335,17 +336,19 @@ export function ClientesPilotPage({
                     label: 'Nome',
                     sortable: true,
                     render: (cliente) => (
-                      <div className="flex items-center gap-3" data-testid="cliente-card">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 shadow-inner text-sm font-medium text-slate-400">
-                          {getInitials(cliente.nome || '')}
+                      <ViewTransition name={`cliente-hero-${cliente.id}`} share="morph">
+                        <div className="flex items-center gap-3" data-testid="cliente-card">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 shadow-inner text-sm font-medium text-slate-400">
+                            {getInitials(cliente.nome || '')}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="block truncate text-sm font-black text-white">{cliente.nome}</span>
+                            {cliente.apelido ? (
+                              <span className="block truncate text-xs text-slate-400">{cliente.apelido}</span>
+                            ) : null}
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <span className="block truncate text-sm font-black text-white">{cliente.nome}</span>
-                          {cliente.apelido ? (
-                            <span className="block truncate text-xs text-slate-400">{cliente.apelido}</span>
-                          ) : null}
-                        </div>
-                      </div>
+                      </ViewTransition>
                     )
                   },
                   {

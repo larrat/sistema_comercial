@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Pedido } from '../../../../types/domain';
 import {
-  ActionMenu,
-  DataTable,
   FilterBar,
   PageHeader,
   PillGroup,
@@ -14,11 +12,6 @@ import {
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
 import { usePedidoStore } from '../store/usePedidoStore';
 import {
-  ACAO_LABEL,
-  NEXT_STATUS,
-  PEDIDO_STATUS_LABEL,
-  PEDIDO_STATUS_TONE,
-  normalizePedStatus,
   type PedidoTab
 } from '../types';
 import { usePedidosQuery, usePedidosSummaryQuery, usePedidoMutations } from '../hooks/usePedidosQuery';
@@ -28,16 +21,8 @@ import { motion, type Variants } from 'framer-motion';
 import { toast } from 'sonner';
 import { exportToCSV } from '../../../shared/lib/exportUtils';
 import { useKeyboardShortcuts } from '../../../shared/hooks/useKeyboardShortcuts';
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
+import { PedidoKpiGrid } from './PedidoKpiGrid';
+import { PedidoTable } from './PedidoTable';
 
 const itemVariants: Variants = {
   hidden: { y: 10, opacity: 0 },
@@ -86,37 +71,6 @@ const SORT_OPTIONS = [
   { value: 'data_desc', label: 'Mais recentes' },
   { value: 'data_asc', label: 'Mais antigos' }
 ];
-
-const PGTO_LABEL: Record<string, string> = {
-  a_vista: 'À vista',
-  pix: 'PIX',
-  boleto: 'Boleto',
-  cartao: 'Cartão',
-  cheque: 'Cheque'
-};
-
-function fmtCurrency(value: number): string {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return '—';
-  const parts = dateStr.split('-');
-  if (parts.length !== 3) return dateStr;
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
-}
-
-function getItemCount(itens: Pedido['itens']): number {
-  if (Array.isArray(itens)) return itens.length;
-  if (typeof itens === 'string') {
-    try {
-      return (JSON.parse(itens) as unknown[]).length;
-    } catch {
-      return 0;
-    }
-  }
-  return 0;
-}
 
 type Props = {
   onNovoPedido: () => void;
@@ -322,37 +276,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
         />
 
       {/* KPI Grid */}
-      <motion.section 
-        className="rf-kpi-grid mb-2"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-          <span className="rf-kpi-label">Total em pedidos</span>
-          <span className="rf-kpi-value">{summary.total}</span>
-          <span className="rf-kpi-sub muted">{total} filtrados no período</span>
-        </motion.article>
-        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-          <span className="rf-kpi-label">Aguardando</span>
-          <span className={`rf-kpi-value${summary.emAbertoCount > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
-            {summary.emAbertoCount}
-          </span>
-          <span className={`rf-kpi-sub${summary.emAbertoCount > 0 ? 'warning' : 'success'}`}>
-            {fmtCurrency(summary.valorEmAberto)} em aberto
-          </span>
-        </motion.article>
-        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-          <span className="rf-kpi-label">Concluídos</span>
-          <span className="rf-kpi-value !text-emerald-400">{summary.entreguesCount}</span>
-          <span className="rf-kpi-sub success">Operação saudável</span>
-        </motion.article>
-        <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-          <span className="rf-kpi-label">Cancelados</span>
-          <span className="rf-kpi-value !text-rose-400">{summary.canceladosCount}</span>
-          <span className="rf-kpi-sub muted">Taxa de rejeição</span>
-        </motion.article>
-      </motion.section>
+      <PedidoKpiGrid summary={summary} total={total} />
 
       {/* Control Center: Filters */}
       <div className="bg-slate-900 border border-white/5 rounded-xl p-4 shadow-sm flex flex-col gap-4">
@@ -415,167 +339,22 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
     </div>
 
     <motion.div variants={itemVariants}>
-      <DataTable
-        className="pedidos-data-table"
-        data={pedidos}
-        rowKey={(pedido) => pedido.id}
+      <PedidoTable
+        pedidos={pedidos}
         loading={isLoadingPedidos || isLoadingSummary}
         error={isErrorPedidos ? (errorPedidos instanceof Error ? errorPedidos.message : 'Erro ao carregar pedidos.') : undefined}
         onRetry={refetchPedidos}
-        emptyTitle={hasAnyFilter ? 'Nenhum resultado encontrado.' : 'Sem pedidos nesta aba.'}
-        emptyDescription={
-          hasAnyFilter
-            ? 'Nenhum pedido corresponde aos filtros ativos. Tente ajustar a busca ou limpar os filtros.'
-            : activeTab === 'emaberto'
-              ? 'Nenhum pedido em aberto. Crie um novo para começar.'
-              : activeTab === 'entregues'
-                ? 'Pedidos concluídos aparecerão aqui.'
-                : 'Pedidos cancelados aparecerão aqui.'
-        }
-        emptyAction={
-          hasAnyFilter ? (
-            <Button onClick={handleClearFilters}>
-              Limpar filtros
-            </Button>
-          ) : activeTab === 'emaberto' ? (
-            <Button variant="primary" onClick={onNovoPedido}>
-              Novo pedido
-            </Button>
-          ) : undefined
-        }
+        hasAnyFilter={hasAnyFilter}
+        activeTab={activeTab}
+        onNovoPedido={onNovoPedido}
+        onDetalhe={onDetalhe}
         page={page}
         pageSize={pageSize}
         total={total}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
-        onRowClick={(pedido) => onDetalhe(pedido.id)}
-        columns={[
-          {
-            key: 'pedido',
-            label: 'Pedido',
-            render: (pedido) => {
-              const pgtoLabel = pedido.pgto ? (PGTO_LABEL[pedido.pgto] ?? pedido.pgto) : null;
-              return (
-                <div className="rf-ui-stack" style={{ gap: 2 }}>
-                  <span className="table-cell-strong">#{pedido.num}</span>
-                  {pgtoLabel ? (
-                    <span className="table-cell-caption table-cell-muted">{pgtoLabel}</span>
-                  ) : null}
-                </div>
-              );
-            }
-          },
-          {
-            key: 'cliente',
-            label: 'Cliente',
-            render: (pedido) => {
-              const itemCount = getItemCount(pedido.itens);
-              return (
-                <div className="rf-ui-stack" style={{ gap: 2 }}>
-                  <span className="table-cell-strong">{pedido.cli || '—'}</span>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {pedido.tipo === 'atacado' ? (
-                      <StatusBadge tone="info">Atacado</StatusBadge>
-                    ) : null}
-                    {pedido.rca_nome ? (
-                      <span className="table-cell-caption table-cell-muted">{pedido.rca_nome}</span>
-                    ) : null}
-                    {itemCount > 0 ? (
-                      <span className="table-cell-caption table-cell-muted">
-                        {itemCount} {itemCount === 1 ? 'item' : 'itens'}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            }
-          },
-          {
-            key: 'status',
-            label: 'Status',
-            render: (pedido) => {
-              const status = normalizePedStatus(pedido.status);
-              const badgeTone = PEDIDO_STATUS_TONE[status] ?? 'neutral';
-              const statusLabel = PEDIDO_STATUS_LABEL[status] || status || '—';
-              return <StatusBadge tone={badgeTone}>{statusLabel}</StatusBadge>;
-            }
-          },
-          {
-            key: 'data',
-            label: 'Data',
-            render: (pedido) => formatDate(pedido.data)
-          },
-          {
-            key: 'valor',
-            label: 'Valor',
-            align: 'right',
-            render: (pedido) => (
-              <span className="table-cell-strong">{fmtCurrency(pedido.total ?? 0)}</span>
-            )
-          }
-        ]}
-        renderActions={(pedido) => {
-          const status = normalizePedStatus(pedido.status);
-          const nextStatus = NEXT_STATUS[status];
-          const acaoLabel = ACAO_LABEL[status];
-          const isDeliveryAction =
-            nextStatus === 'entregue_aguardando_pagamento' || nextStatus === 'concluido';
-          const isTerminal = status === 'concluido' || status === 'cancelado';
-          const isBusy = updateStatus.isPending || confirmarEntrega.isPending;
-
-          return (
-            <div className="flex items-center justify-end gap-2">
-              {nextStatus && acaoLabel ? (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  loading={isBusy}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (isDeliveryAction) {
-                      setEntregaTargetId(pedido.id);
-                      return;
-                    }
-                    updateStatus.mutate({ id: pedido.id, status: nextStatus });
-                  }}
-                  data-testid={`pedido-acao-avancar-${pedido.id}`}
-                >
-                  {acaoLabel}
-                </Button>
-              ) : null}
-              <ActionMenu
-                label="Ações do pedido"
-                items={[
-                  {
-                    key: 'detalhes',
-                    label: 'Ver detalhes',
-                    onClick: () => onDetalhe(pedido.id)
-                  },
-                  ...(!isTerminal
-                    ? [
-                        {
-                          key: 'cancelar',
-                          label: 'Cancelar',
-                          danger: true,
-                          onClick: () => setCancelTargetId(pedido.id)
-                        }
-                      ]
-                    : []),
-                  ...(status === 'cancelado'
-                    ? [
-                        {
-                          key: 'reabrir',
-                          label: 'Reabrir',
-                          onClick: () => updateStatus.mutate({ id: pedido.id, status: 'orcamento' })
-                        }
-                      ]
-                    : [])
-                ]}
-                buttonTestId={`pedido-acao-menu-${pedido.id}`}
-              />
-            </div>
-          );
-        }}
+        onCancelPedido={(id) => setCancelTargetId(id)}
+        onEntregaPedido={(id) => setEntregaTargetId(id)}
       />
     </motion.div>
 
