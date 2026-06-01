@@ -20,7 +20,7 @@ export function SegmentedControl<T extends string | number>({
   className = ''
 }: SegmentedControlProps<T>) {
   return (
-    <div className={`flex items-center gap-1.5 bg-white/5 p-1.5 rounded-xl border border-white/5 shadow-inner overflow-hidden ${className}`}>
+    <div className={`flex flex-wrap items-center gap-1.5 bg-white/5 p-1.5 rounded-xl border border-white/5 shadow-inner overflow-x-auto ${className}`}>
       {options.map((option) => {
         const isActive = activeId === option.id;
         return (
