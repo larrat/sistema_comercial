@@ -21,6 +21,9 @@ begin
   end if;
 
   -- 2. Cancela Contas a Receber vinculadas
+  -- Usamos o bypass na trigger de segurança recém-criada
+  perform set_config('app.cr_skip_sync', '1', true);
+
   update public.contas_receber
   set status = 'cancelado',
       valor_recebido = 0,
