@@ -232,48 +232,46 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
           </StatusBadge>
         }
         actions={
-          <div className="flex items-center gap-6">
-            <PillGroup
-              options={TABS.map(t => ({
-                id: t.id,
-                label: `${t.label} (${tabCounts[t.id]})`
-              }))}
-              activeId={activeTab}
-              onChange={setActiveTab}
-            />
+          <div className="flex items-center gap-3">
+            <Button
+              variant="secondary"
+              onClick={handleExport}
+              title="Exportar Pedidos (Cmd+E)"
+            >
+              CSV
+            </Button>
+            <Button
+              variant="primary"
+              onClick={onNovoPedido}
+              data-testid="novo-pedido"
+              title="Novo Pedido (Cmd+N)"
+            >
+              Novo pedido
+            </Button>
+            {onSwitchToKanban && (
+              <SegmentedControl
+                options={[
+                  { id: 'list', label: 'Lista' },
+                  { id: 'kanban', label: 'Kanban' }
+                ]}
+                activeId="list"
+                onChange={(id) => { if (id === 'kanban') onSwitchToKanban(); }}
+              />
+            )}
+          </div>
+        }
+      />
 
-            <div className="h-8 w-px bg-white/10 mx-1" />
-
-              <Button
-                variant="secondary"
-                onClick={handleExport}
-                title="Exportar Pedidos (Cmd+E)"
-                className="!rounded-xl"
-              >
-                CSV
-              </Button>
-              <Button
-                variant="primary"
-                onClick={onNovoPedido}
-                data-testid="novo-pedido"
-                title="Novo Pedido (Cmd+N)"
-              >
-                <span className="hidden sm:inline">Novo pedido</span>
-                <span className="sm:hidden">Novo</span>
-              </Button>
-              {onSwitchToKanban && (
-                <SegmentedControl
-                  options={[
-                    { id: 'list', label: 'Lista' },
-                    { id: 'kanban', label: 'Kanban' }
-                  ]}
-                  activeId="list"
-                  onChange={(id) => { if (id === 'kanban') onSwitchToKanban(); }}
-                />
-              )}
-            </div>
-          }
+      <div className="flex flex-col gap-4">
+        <PillGroup
+          options={TABS.map(t => ({
+            id: t.id,
+            label: `${t.label} (${tabCounts[t.id]})`
+          }))}
+          activeId={activeTab}
+          onChange={setActiveTab}
         />
+      </div>
 
       {/* KPI Grid */}
       <PedidoKpiGrid summary={summary} total={total} />
