@@ -11,8 +11,9 @@ O sistema é uma plataforma de gestão comercial robusta projetada para operaç�
 ### Módulos Principais
 *   **Vendas (Pedidos)**: Gestão do ciclo de vida das vendas, desde o orçamento até a entrega e baixa financeira.
 *   **CRM (Clientes)**: Visão 360º do cliente, incluindo histórico de compras, prazos médios e alertas de inadimplência.
-*   **Logística (Produtos & Estoque)**: Catálogo com controle de margens (markup) e gestão de estoque físico em tempo real.
-*   **Financeiro (Contas a Receber)**: Controle de recebíveis com fluxos de baixa e análise de inadimplência.
+*   **Logística (Produtos & Estoque)**: Catálogo com controle de margens (markup), gestão de estoque físico em tempo real e integração via RPA de compras.
+*   **Financeiro (Contas a Receber e Pagar)**: Controle de recebíveis com fluxos de baixa, análise de inadimplência, e integração automática com Pedidos de Compra via XML.
+*   **Fiscal (Governança)**: Motor tributário centralizado para cálculo de impostos (ICMS, PIS, COFINS, IVA Dual) via NCM/UF e mapeamentos de CFOP.
 
 ---
 
@@ -29,6 +30,8 @@ graph TD
     C --> F[Produtos]
     C --> G[Estoque]
     C --> H[Financeiro]
+    C --> I[Compras / Importação XML]
+    C --> J[Setup Fiscal]
 
     D --> D1[Lista de Pedidos]
     D1 --> D2[Detalhe/Edição]
@@ -42,6 +45,10 @@ graph TD
     F1 --> F2[Detalhe/Preços]
 
     G --> G1[Movimentação/Histórico]
+    
+    I --> I1[Processamento RPA]
+    I1 --> G1
+    I1 --> H
 ```
 
 ---

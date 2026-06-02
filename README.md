@@ -33,6 +33,7 @@ npm run test:e2e:setup-filial
 npm run test:e2e:bootstrap-filial
 npm run test:e2e:onda-b
 npm run test:e2e:fase-2
+npm run test:e2e:fase-erp
 ```
 
 ## TypeScript gradual
@@ -42,8 +43,14 @@ npm run test:e2e:fase-2
 - guia de adocao: `docs/arquitetura/TYPESCRIPT_GRADUAL.md`
 - escopo atual da checagem: `src/` (front)
 
+## Pilares ERP Recentes
+- **Governança Tributária**: Motor de impostos centralizado (ICMS, PIS, COFINS, IBPT) com regras por NCM e UF.
+- **RPA XML Automático**: Entrada híbrida de NFe, alimentando Kardex de estoque e gerando as Contas a Pagar no financeiro de forma transacional.
+- **Integridade Transacional (Cancelamentos)**: Rotinas reforçadas com _Row Level Security (RLS)_ e sync bidirecional entre módulos de Vendas, Estoque e Recebíveis.
+
 ## Observacoes
 
 - `test-results/` e `node_modules/` sao artefatos gerados.
 - A entrada atual da documentação é `docs/README.md`.
-- O snapshot mais recente do estado do sistema é `docs/status/STATUS_GERAL_2026-05-06.md`.
+- O snapshot mais recente do estado do sistema de arquitetura ERP é `docs/status/FASE_ERP_RELATORIO.md`.
+
