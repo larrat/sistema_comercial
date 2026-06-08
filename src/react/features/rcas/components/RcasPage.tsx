@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge, SegmentedControl, Button } from '../../../shared/ui';
+import { PageHeader, FilterBar, DataTable, ActionMenu, StatusBadge, SegmentedControl, Button, StatCard } from '../../../shared/ui';
 import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 import { RcaModal } from './RcaModal';
@@ -69,6 +69,24 @@ export function RcasPage() {
           </div>
         }
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard
+          label="Total de Vendedores"
+          value={rcas.length}
+          tone="default"
+        />
+        <StatCard
+          label="Ativos"
+          value={rcas.filter(r => r.ativo !== false).length}
+          tone="emerald"
+        />
+        <StatCard
+          label="Inativos"
+          value={rcas.filter(r => r.ativo === false).length}
+          tone="warning"
+        />
+      </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <SegmentedControl
