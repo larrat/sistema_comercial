@@ -15,21 +15,22 @@ type Props = {
 export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Props) {
   const { sidebarCollapsed: collapsed } = useUIStore();
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('saida');
-  const [valor, setValor] = useState(0);
+  const [valor, setValor] = useState<string | number>('');
   const [categoriaId, setCategoriaId] = useState('');
   const [descricao, setDescricao] = useState('');
 
   const filteredCategories = categories.filter(c => c.tipo === tipo);
 
   const handleSave = () => {
-    if (valor <= 0) return toast.error('Informe um valor válido');
+    const numValor = Number(valor);
+    if (isNaN(numValor) || numValor <= 0) return toast.error('Informe um valor válido');
     if (!categoriaId) return toast.error('Selecione uma categoria');
     if (!descricao) return toast.error('Informe uma descrição');
 
     onSave({
       filial_id: filialId,
       tipo,
-      valor,
+      valor: numValor,
       categoria_id: categoriaId,
       descricao
     });
@@ -68,7 +69,7 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
               type="number" 
               step="0.01"
               value={valor}
-              onChange={(e) => setValor(Number(e.target.value))}
+              onChange={(e) => setValor(e.target.value)}
               className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-2xl font-black text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all"
             />
           </div>
