@@ -19,6 +19,11 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import ReactCountUp from 'react-countup';
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
+import { ProdutoResumoTab } from './ProdutoResumoTab';
+import { ProdutoEstoqueTab } from './ProdutoEstoqueTab';
+import { ProdutoCadastroTab } from './ProdutoCadastroTab';
+import { buildKpis, getStockStatus, formatCurrency, toNumber, formatQuantity } from './ProdutoUtils';
+
 import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { useUIStore } from '../../../app/useUIStore';
@@ -62,76 +67,7 @@ function normalizeTab(value: string | null): ProdutoProfileTab {
   return ALL_TAB_IDS.includes(value as ProdutoProfileTab) ? (value as ProdutoProfileTab) : 'resumo';
 }
 
-function toNumber(value?: number | null): number {
-  return Number(value || 0);
-}
 
-function formatCurrency(value: number): string {
-  return Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(Number(value || 0));
-}
-
-function formatQuantity(value: number): string {
-  return value % 1 === 0 ? String(value) : value.toFixed(3);
-}
-
-function formatPercent(value: number): string {
-  return `${value.toFixed(1)}%`;
-}
-
-function getStockStatus(produto: Produto, saldo: ProdutoSaldo): { label: string; tone: string } {
-  const minimo = toNumber(produto.emin);
-  if (saldo.saldo <= 0) return { label: 'Zerado', tone: 'danger' };
-  if (minimo > 0 && saldo.saldo < minimo) return { label: 'Baixo', tone: 'warning' };
-  return { label: 'OK', tone: 'success' };
-}
-
-function getPrecos(produto: Produto) {
-  const custo = toNumber(produto.custo);
-  const mkv = toNumber(produto.mkv);
-  const mka = toNumber(produto.mka);
-  const pfa = toNumber(produto.pfa);
-  const varejo = mkv > 0 ? markupToPrice(custo, mkv) : toNumber(produto.pvv);
-  const atacado = pfa > 0 ? pfa : mka > 0 ? markupToPrice(custo, mka) : 0;
-  const margemVarejo = varejo > 0 ? priceToMargin(custo, varejo) : 0;
-  const margemAtacado = atacado > 0 ? priceToMargin(custo, atacado) : 0;
-  return { custo, varejo, atacado, margemVarejo, margemAtacado };
-}
-
-function buildKpis(produto: Produto, saldo: ProdutoSaldo): KpiCard[] {
-  const { custo, varejo, atacado, margemVarejo } = getPrecos(produto);
-  const minimo = toNumber(produto.emin);
-  const saldoTone =
-    saldo.saldo <= 0 ? 'negative' : minimo > 0 && saldo.saldo < minimo ? 'negative' : 'positive';
-
-  return [
-    {
-      label: 'Custo',
-      value: formatCurrency(custo),
-      subtitle: 'Base de cálculo'
-    },
-    {
-      label: 'Venda Varejo',
-      value: varejo > 0 ? formatCurrency(varejo) : '—',
-      subtitle: varejo > 0 ? `Margem ${formatPercent(margemVarejo)}` : 'Não definido',
-      tone: varejo > 0 ? 'positive' : 'neutral'
-    },
-    {
-      label: 'Venda Atacado',
-      value: atacado > 0 ? formatCurrency(atacado) : '—',
-      subtitle: atacado > 0 ? 'Tabela atacado' : 'Não definido',
-      tone: atacado > 0 ? 'positive' : 'neutral'
-    },
-    {
-      label: 'Estoque',
-      value: `${formatQuantity(saldo.saldo)} ${produto.un || 'un'}`,
-      subtitle: getStockStatus(produto, saldo).label,
-      tone: saldoTone
-    }
-  ];
-}
 
 function Confetti() {
   const particles = Array.from({ length: 40 });
@@ -202,7 +138,7 @@ export function ProdutoProfilePage({
     };
   }, [produto.esal, produto.ecm, produto.custo]);
 
-  const precos = useMemo(() => getPrecos(produto), [produto]);
+
   const kpis = useMemo(() => buildKpis(produto, calculatedSaldo), [produto, calculatedSaldo]);
   const stockStatus = getStockStatus(produto, calculatedSaldo);
   
@@ -500,11 +436,11 @@ export function ProdutoProfilePage({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`rf-dash-card${toneClass}`}
+              className={`rf-dash-card ${toneClass}`}
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-400'}`}>
+                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm ${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-400'}`}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
               </div>
@@ -531,7 +467,7 @@ export function ProdutoProfilePage({
                 {!isCurrency && <span className="text-sm font-bold text-slate-500 ml-1.5">{card.value.split(' ')[1]}</span>}
               </div>
 
-              <span className={`rf-stat-sub${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'}font-bold`}>
+              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
                 {card.tone === 'positive' && <TrendingUp size={12} strokeWidth={3} />}
                 {card.subtitle}
               </span>
@@ -545,7 +481,7 @@ export function ProdutoProfilePage({
           <button
             key={tab.id}
             onClick={() => setTab(tab.id)}
-            className={`rf-tab-item${activeTab === tab.id ? 'is-active' : ''}`}
+            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
             {activeTab === tab.id && (
@@ -568,309 +504,26 @@ export function ProdutoProfilePage({
             transition={{ duration: 0.2 }}
           >
             {activeTab === 'resumo' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div className="flex flex-col gap-8">
-                  <article className="rf-dash-card h-fit">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <h2 className="rf-dash-card__title text-base">Resumo Comercial</h2>
-                      </div>
-                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
-                        <TrendingUp size={14} />
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <ProdutoInfoTable
-                        rows={[
-                          { label: 'Custo Base', value: formatCurrency(precos.custo) },
-                          {
-                            label: 'Venda Varejo',
-                            value: precos.varejo > 0 ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold">{formatCurrency(precos.varejo)}</span>
-                                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-black tracking-tighter border border-emerald-500/10">
-                                  +{formatPercent(precos.margemVarejo)}
-                                </span>
-                              </div>
-                            ) : null
-                          },
-                          {
-                            label: 'Venda Atacado',
-                            value: precos.atacado > 0 ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold">{formatCurrency(precos.atacado)}</span>
-                                <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded font-black tracking-tighter border border-indigo-500/10">
-                                  +{formatPercent(precos.margemAtacado)}
-                                </span>
-                              </div>
-                            ) : null
-                          },
-                          {
-                            label: 'Qtde mínima',
-                            value: toNumber(produto.qtmin) > 0 ? `${formatQuantity(toNumber(produto.qtmin))} ${produto.un}` : null
-                          }
-                        ]}
-                      />
-                    </div>
-                  </article>
-
-                  <article className="rf-dash-card h-fit">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <h2 className="rf-dash-card__title text-base">Formação de Preço</h2>
-                      </div>
-                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
-                        <DollarSign size={14} />
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <ProdutoInfoTable
-                        rows={[
-                          { 
-                            label: (
-                              <Tooltip.Provider>
-                                <Tooltip.Root>
-                                  <Tooltip.Trigger className="flex items-center gap-1 cursor-help">
-                                    Custo de Compra <Info size={10} className="text-slate-600" />
-                                  </Tooltip.Trigger>
-                                  <Tooltip.Portal>
-                                    <Tooltip.Content className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl z-[200] max-w-[200px]" sideOffset={5}>
-                                      Preço líquido pago ao fornecedor, base para cálculos de impostos e margem.
-                                      <Tooltip.Arrow className="fill-slate-900" />
-                                    </Tooltip.Content>
-                                  </Tooltip.Portal>
-                                </Tooltip.Root>
-                              </Tooltip.Provider>
-                            ), 
-                            value: formatCurrency(precos.custo) 
-                          },
-                          { 
-                            label: (
-                              <Tooltip.Provider>
-                                <Tooltip.Root>
-                                  <Tooltip.Trigger className="flex items-center gap-1 cursor-help">
-                                    Markup Varejo <Info size={10} className="text-slate-600" />
-                                  </Tooltip.Trigger>
-                                  <Tooltip.Portal>
-                                    <Tooltip.Content className="bg-slate-900 text-white text-[10px] px-3 py-2 rounded-lg shadow-xl z-[200]" sideOffset={5}>
-                                      Percentual adicionado sobre o custo para atingir o preço de venda.
-                                      <Tooltip.Arrow className="fill-slate-900" />
-                                    </Tooltip.Content>
-                                  </Tooltip.Portal>
-                                </Tooltip.Root>
-                              </Tooltip.Provider>
-                            ), 
-                            value: formatPercent(toNumber(produto.mkv)) 
-                          },
-                          { label: 'Markup Atacado', value: formatPercent(toNumber(produto.mka)) },
-                          { label: 'Desconto Máx Varejo', value: formatPercent(toNumber(produto.dv)) },
-                          { label: 'Desconto Máx Atacado', value: formatPercent(toNumber(produto.da)) }
-                        ]}
-                      />
-                    </div>
-                  </article>
-                </div>
-
-                <div className="flex flex-col gap-8">
-                  <article className="rf-dash-card h-fit">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <h2 className="rf-dash-card__title text-base">Gestão de Estoque</h2>
-                      </div>
-                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
-                        <Layers size={14} />
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <ProdutoInfoTable
-                        rows={[
-                          {
-                            label: 'Saldo em Mão',
-                            value: (
-                              <span className={`font-bold${calculatedSaldo.saldo <= 0 ? 'text-rose-400' : 'text-white'}`}>
-                                {formatQuantity(calculatedSaldo.saldo)} {produto.un}
-                              </span>
-                            )
-                          },
-                          { label: 'Ponto de Pedido (Mín)', value: `${formatQuantity(toNumber(produto.emin))} ${produto.un}` },
-                          { label: 'Custo Médio (CM)', value: formatCurrency(calculatedSaldo.cm) }
-                        ]}
-                      />
-                    </div>
-                  </article>
-
-                  <article className="rf-dash-card h-fit">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <h2 className="rf-dash-card__title text-base">Cadastro Base</h2>
-                      </div>
-                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
-                        <Database size={14} />
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <ProdutoInfoTable
-                        rows={[
-                          { label: 'SKU', value: produto.sku },
-                          { label: 'Categoria', value: produto.cat },
-                          { label: 'Código Barras', value: produto.codigo_barras },
-                          { label: 'Ref. Fornecedor', value: produto.codigo_fornecedor }
-                        ]}
-                      />
-                    </div>
-                  </article>
-                </div>
-
-                <aside className="flex flex-col gap-8">
-                  <article className="rf-dash-card h-fit">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <h2 className="rf-dash-card__title text-base">Giro e Saúde</h2>
-                      </div>
-                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
-                        <Zap size={14} />
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-5 mt-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-500">Última Venda</span>
-                        <span className="text-sm font-medium text-slate-400">{saldo.ult ? new Date(saldo.ult).toLocaleDateString() : 'Sem registros'}</span>
-                      </div>
-                      <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                        <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                          Este produto mantém um giro constante. Recomendamos manter o estoque acima de <span className="text-white font-bold">{produto.emin} {produto.un}</span> para evitar ruptura.
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-
-                  <article className="rf-dash-card h-fit">
-                    <div className="rf-dash-card__header flex-row items-center !mb-6">
-                      <div className="flex-1">
-                        <h2 className="rf-dash-card__title text-base">Histórico de Custo</h2>
-                      </div>
-                      <div className="p-2 bg-white/5 rounded-lg text-slate-400 border border-white/5">
-                        <History size={14} />
-                      </div>
-                    </div>
-                    <div className="p-0">
-                      {sortedHist.length ? (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-[11px] border-collapse">
-                            <thead>
-                              <tr className="border-b border-white/5">
-                                <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider">Mês</th>
-                                <th className="px-4 py-3 font-bold text-slate-400 uppercase tracking-wider">Preço</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {sortedHist.slice(0, 5).map((item, index) => (
-                                <tr key={`${item.mes}-${index}`} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                  <td className="px-4 py-3 text-slate-400 font-medium">
-                                    {String(item.mes ?? '').split('-').reverse().join('/')}
-                                  </td>
-                                  <td className="px-4 py-3 text-white font-bold">
-                                    {formatCurrency(toNumber(item.preco))}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      ) : (
-                        <div className="p-8 text-center text-slate-400 italic text-xs font-medium">Sem histórico registrado</div>
-                      )}
-                    </div>
-                  </article>
-                </aside>
-              </div>
+              <ProdutoResumoTab 
+                produto={produto}
+                saldo={saldo}
+                sortedHist={sortedHist}
+                calculatedSaldo={calculatedSaldo}
+              />
             )}
 
             {activeTab === 'estoque' && (
-              <article className="rf-dash-card">
-                <div className="rf-dash-card__header flex-row items-center !mb-6">
-                  <div className="flex-1">
-                    <span className="rf-stat-label !mb-1 text-emerald-500">Histórico</span>
-                    <h2 className="rf-dash-card__title text-base">Auditoria de Estoque</h2>
-                  </div>
-                  <History className="w-4 h-4 text-slate-600" />
-                </div>
-                <div className="p-0">
-                  {loadingMovs ? (
-                    <div className="p-8 text-center text-slate-400">Carregando movimentações...</div>
-                  ) : movs.length ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-[11px] border-collapse">
-                        <thead>
-                          <tr className="border-b border-white/5 text-sm font-medium text-slate-400">
-                            <th className="px-6 py-4">Data</th>
-                            <th className="px-6 py-4">Operação</th>
-                            <th className="px-6 py-4 text-right">Qtd / Saldo</th>
-                            <th className="px-6 py-4 text-right">Custo Unitário</th>
-                            <th className="px-6 py-4">Observação</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {[...movs].sort((a, b) => (b.ts || 0) - (a.ts || 0)).map((mov: any) => {
-                            const isEntrada = mov.tipo === 'entrada';
-                            const isSaida = mov.tipo === 'saida' || mov.tipo === 'transf';
-                            const badgeColor = isEntrada ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/10' : isSaida ? 'text-rose-400 bg-rose-500/10 border-rose-500/10' : 'text-amber-400 bg-amber-500/10 border-amber-500/10';
-                            
-                            return (
-                              <tr key={mov.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                <td className="px-6 py-4 text-slate-400 font-medium">
-                                  {mov.data ? mov.data.split('-').reverse().join('/') : '—'}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className={`px-2 py-1 rounded-md border text-[9px] font-black uppercase${badgeColor}`}>
-                                    {mov.tipo}
-                                  </span>
-                                </td>
-                                <td className={`px-6 py-4 text-right font-black${isEntrada ? 'text-emerald-400' : isSaida ? 'text-rose-400' : 'text-white'}`}>
-                                  {isEntrada ? '+' : isSaida ? '-' : ''}
-                                  {mov.tipo === 'ajuste' ? `Ajuste: ${mov.saldo_real ?? mov.saldoReal}` : mov.qty}
-                                </td>
-                                <td className="px-6 py-4 text-right text-slate-300 font-bold">
-                                  {mov.custo && mov.custo > 0 ? formatCurrency(mov.custo) : '—'}
-                                </td>
-                                <td className="px-6 py-4 text-slate-400 text-xs italic max-w-[200px] truncate">
-                                  {mov.obs || '—'}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="p-8 text-center text-slate-400 italic text-xs font-medium">Nenhuma movimentação registrada para este produto.</div>
-                  )}
-                </div>
-              </article>
+              <ProdutoEstoqueTab 
+                loadingMovs={loadingMovs}
+                movs={movs}
+              />
             )}
 
             {activeTab === 'cadastro' && (
-              <article className="rf-dash-card">
-                <div className="rf-dash-card__header flex-row items-center !mb-6">
-                  <div className="flex-1">
-                    <span className="rf-stat-label !mb-1 text-slate-500">Informações</span>
-                    <h2 className="rf-dash-card__title text-base">Detalhes Cadastrais</h2>
-                  </div>
-                  <Button variant="secondary" size="sm" onClick={startEdit}>Editar</Button>
-                </div>
-                <div className="mt-2">
-                  <ProdutoInfoTable
-                    rows={[
-                      { label: 'Nome Completo', value: produto.nome },
-                      { label: 'SKU / Código', value: produto.sku },
-                      { label: 'Unidade Padrão', value: produto.un },
-                      { label: 'Categoria Master', value: produto.cat },
-                      { label: 'Descrição Pública', value: produto.descricao_padrao || '—' }
-                    ]}
-                  />
-                </div>
-              </article>
+              <ProdutoCadastroTab 
+                produto={produto}
+                startEdit={startEdit}
+              />
             )}
 
             {activeTab === 'variantes' && (
@@ -927,15 +580,3 @@ export function ProdutoProfilePage({
   );
 }
 
-function ProdutoInfoTable({ rows }: { rows: Array<{ label: React.ReactNode; value: React.ReactNode }> }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      {rows.map((row, idx) => (
-        <div key={idx} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
-          <span className="text-sm font-medium text-slate-400">{row.label}</span>
-          <div className="text-[13px] font-bold text-white">{row.value || '—'}</div>
-        </div>
-      ))}
-    </div>
-  );
-}

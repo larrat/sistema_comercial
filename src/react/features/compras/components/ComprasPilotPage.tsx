@@ -26,7 +26,8 @@ import {
   StatusBadge,
   LoadingState,
   ErrorState,
-  Modal
+  Modal,
+  ConfirmModal
 } from '../../../shared/ui';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listPedidosCompra, finalizarPedidoCompra, cancelarPedidoCompra } from '../services/comprasApi';
@@ -47,6 +48,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPedido, setSelectedPedido] = useState<any | null>(null);
+  const [pedidoParaCancelar, setPedidoParaCancelar] = useState<string | null>(null);
 
   const { data: pedidos = [], isLoading, isError } = useQuery({
     queryKey: ['pedidos-compra', filialId],
@@ -56,100 +58,8 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
 
   const finalizarMutation = useMutation({
     mutationFn: async (p: any) => {
-      // 1. Finaliza a transação do pedido no banco de dados (RPC)
+      // Finaliza a transação do pedido no banco de dados (RPC segura e atômica)
       await finalizarPedidoCompra(token!, p);
-
-      const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
-      const config = getSupabaseConfig();
-
-      // 2. Fallback de Sincronização de Estoque via Frontend
-      // Caso a trigger de sincronização de estoque automático no banco não esteja instalada
-      // ou ativa na instância de produção, fazemos a atualização direta da tabela 'produtos'.
-      try {
-        const itens = p.pedido_compra_itens || p.itens || [];
-
-        for (const item of itens) {
-          if (!item.produto_id || !(Number(item.qty) > 0)) continue;
-
-          // Busca o saldo e custo médio atuais do produto no banco
-          const resProd = await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}&select=esal,ecm,custo`, {
-            headers: {
-              apikey: config.key,
-              Authorization: `Bearer ${token}`
-            }
-          });
-
-          if (resProd.ok) {
-            const prods = await resProd.json();
-            const prod = prods[0];
-            if (prod) {
-              const currentSaldo = Number(prod.esal || 0);
-              const currentCm = Number(prod.ecm || prod.custo || 0);
-              const quantidade = Number(item.qty);
-              const custo = Number(item.custo_unitario || 0);
-
-              const newSaldo = currentSaldo + quantidade;
-              const newCm = newSaldo > 0 
-                ? (currentSaldo * currentCm + quantidade * custo) / newSaldo 
-                : custo;
-
-              // Atualiza o produto com o novo saldo e custo médio
-              await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}`, {
-                method: 'PATCH',
-                headers: {
-                  apikey: config.key,
-                  Authorization: `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  esal: newSaldo,
-                  ecm: newCm
-                })
-              });
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Erro na sincronização de estoque via frontend fallback:', err);
-      }
-
-      // 3. Fallback/Forçamento de Registro no Caixa
-      // Garante que o caixa registre a saída referente a esta compra de forma imediata,
-      // permitindo que o saldo fique negativo e reflita a saída do caixa.
-      try {
-        // Verifica se já existe um lançamento para este pedido de compra no caixa para evitar duplicidade
-        const resCheck = await fetch(`${config.url}/rest/v1/caixa_transacoes?entidade_id=eq.${p.id}&select=id`, {
-          headers: {
-            apikey: config.key,
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        const existingTrans = resCheck.ok ? await resCheck.json() : [];
-
-        if (existingTrans.length === 0) {
-          // Se não existir, faz a inserção direta da saída no caixa
-          await fetch(`${config.url}/rest/v1/caixa_transacoes`, {
-            method: 'POST',
-            headers: {
-              apikey: config.key,
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              filial_id: p.filial_id,
-              tipo: 'saida',
-              valor: Number(p.total),
-              categoria_id: 'compra',
-              descricao: `Compra: ${p.fornecedor_nome} — Pedido ${p.id.substring(0, 8)}`,
-              entidade_id: p.id,
-              entidade_tipo: 'fornecedor'
-            })
-          });
-        }
-      } catch (err) {
-        console.error('Erro ao registrar fluxo de caixa fallback:', err);
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
@@ -164,79 +74,14 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
 
   const cancelarMutation = useMutation({
     mutationFn: async (pId: string) => {
-      // Encontra o pedido correspondente localmente para obter os itens
-      const p = pedidos.find(item => item.id === pId);
-      
-      // 1. Cancela o pedido no banco de dados (RPC)
+      // Cancela o pedido no banco de dados (RPC segura e atômica)
       await cancelarPedidoCompra(token!, pId);
-
-      const { getSupabaseConfig } = await import('../../../app/supabaseConfig');
-      const config = getSupabaseConfig();
-
-      // 2. Fallback de Sincronização de Estoque via Frontend para Cancelamento
-      if (p) {
-        try {
-          const itens = p.pedido_compra_itens || p.itens || [];
-
-          for (const item of itens) {
-            if (!item.produto_id || !(Number(item.qty) > 0)) continue;
-
-            // Busca o saldo e custo médio atuais do produto no banco
-            const resProd = await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}&select=esal,ecm,custo`, {
-              headers: {
-                apikey: config.key,
-                Authorization: `Bearer ${token}`
-              }
-            });
-
-            if (resProd.ok) {
-              const prods = await resProd.json();
-              const prod = prods[0];
-              if (prod) {
-                const currentSaldo = Number(prod.esal || 0);
-                const quantidade = Number(item.qty);
-
-                // Estorna a quantidade recebida anteriormente
-                const newSaldo = Math.max(0, currentSaldo - quantidade);
-
-                // Atualiza o produto com o novo saldo estornado
-                await fetch(`${config.url}/rest/v1/produtos?id=eq.${item.produto_id}`, {
-                  method: 'PATCH',
-                  headers: {
-                    apikey: config.key,
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify({
-                    esal: newSaldo
-                  })
-                });
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Erro no estorno de estoque via frontend fallback:', err);
-        }
-
-        // 3. Fallback de Estorno no Caixa para Cancelamento
-        try {
-          // Exclui a transação de caixa correspondente a este pedido caso tenha sido estornado
-          await fetch(`${config.url}/rest/v1/caixa_transacoes?entidade_id=eq.${pId}`, {
-            method: 'DELETE',
-            headers: {
-              apikey: config.key,
-              Authorization: `Bearer ${token}`
-            }
-          });
-        } catch (err) {
-          console.error('Erro ao estornar fluxo de caixa fallback:', err);
-        }
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pedidos-compra'] });
       queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Refresh stock
       queryClient.invalidateQueries({ queryKey: ['caixa-transacoes'] }); // Refresh cash balance
+      setPedidoParaCancelar(null);
       toast.success('Pedido de compra cancelado com sucesso!');
     },
     onError: (err: any) => {
@@ -381,9 +226,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
                        variant="secondary" 
                        className="!rounded-lg !text-[10px] hover:!bg-rose-500/10 hover:!text-rose-400 hover:!border-rose-500/20"
                        onClick={() => {
-                         if (confirm('Tem certeza de que deseja cancelar este pedido de compra? Esta operação reverterá o estoque e as contas associadas de forma segura e irreversível.')) {
-                           cancelarMutation.mutate(p.id);
-                         }
+                         setPedidoParaCancelar(p.id);
                        }}
                        loading={cancelarMutation.isPending}
                      >
@@ -497,6 +340,22 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
           </div>
         )}
       </Modal>
+
+      <ConfirmModal
+        open={!!pedidoParaCancelar}
+        onCancel={() => setPedidoParaCancelar(null)}
+        title="Cancelar Pedido de Compra"
+        description="Tem certeza de que deseja cancelar este pedido de compra? Esta operação reverterá o estoque e as contas associadas de forma segura e irreversível."
+        confirmLabel="Sim, Cancelar Pedido"
+        cancelLabel="Voltar"
+        isDestructive
+        loading={cancelarMutation.isPending}
+        onConfirm={() => {
+          if (pedidoParaCancelar) {
+            cancelarMutation.mutate(pedidoParaCancelar);
+          }
+        }}
+      />
     </main>
   );
 }

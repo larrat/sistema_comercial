@@ -41,6 +41,11 @@ import { usePdvStore } from '../store/usePdvStore';
 import { PdvClienteModal } from './PdvClienteModal';
 import { PdvComprovanteModal } from './PdvComprovanteModal';
 import { PdvPagamentoMistoModal } from './PdvPagamentoMistoModal';
+import { PdvSearchDrawer } from './PdvSearchDrawer';
+import { PdvLeftPanelHeader } from './PdvLeftPanelHeader';
+import { PdvCartGrid } from './PdvCartGrid';
+import { PdvCartItems } from './PdvCartItems';
+import { PdvCartSummary } from './PdvCartSummary';
 import { toast } from 'sonner';
 
 const PAYMENT_OPTIONS: Array<{
@@ -579,13 +584,15 @@ export function PdvPage() {
       const ctx = resolveContext();
       let nfceResult: any = null;
       if (ctx) {
-        // We do a dynamic import so we don't break the whole app if there's an error during typing
-        import('../pdv/nfceContingencyService').then(async ({ processNfce }) => {
-           nfceResult = await processNfce(payload as any, ctx.token);
-           if (nfceResult.isContingency) {
-              toast.info('NFC-e gerada em Contingência e salva na fila local.');
-           }
-        }).catch(err => console.error('Erro na NFCe:', err));
+        try {
+          const { processNfce } = await import('../pdv/nfceContingencyService');
+          nfceResult = await processNfce(payload as any, ctx.token);
+          if (nfceResult.isContingency) {
+            toast.info('NFC-e gerada em Contingência e salva na fila local.');
+          }
+        } catch (err) {
+          console.error('Erro na NFCe:', err);
+        }
       }
 
       toast.success('Venda finalizada. O PDV já está pronto para a próxima.');
@@ -613,13 +620,16 @@ export function PdvPage() {
         toast.warning('Venda guardada na fila local. Vamos reenviar quando a rede voltar.');
         
         let qrCodeUrl;
-        import('../pdv/nfceContingencyService').then(async ({ processNfce }) => {
-           const ctx = resolveContext();
-           if (ctx) {
-             const nfceResult = await processNfce(payload as any, ctx.token, true); // Force contingency
-             qrCodeUrl = nfceResult?.qrCodeUrl;
-           }
-        }).catch(err => console.error(err));
+        try {
+          const { processNfce } = await import('../pdv/nfceContingencyService');
+          const ctx = resolveContext();
+          if (ctx) {
+            const nfceResult = await processNfce(payload as any, ctx.token, true); // Force contingency
+            qrCodeUrl = nfceResult?.qrCodeUrl;
+          }
+        } catch (err) {
+          console.error(err);
+        }
 
         setLastCompletedSale({
           numero: payload.num,
@@ -745,50 +755,25 @@ export function PdvPage() {
       <section className="rf-pdv">
         <div className="rf-pdv__layout">
           <section className="rf-pdv__left rf-pdv-glass-card">
-            <header className="rf-pdv__panel-head flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="rf-pdv__title flex items-center gap-2 text-gold-premium font-extrabold uppercase tracking-wide">
-                  <DollarSign size={16} />
-                  Nova venda
-                </div>
-                {/* Catalog / List Toggle */}
-                <div className="flex items-center gap-1 bg-black/45 p-1 rounded-lg border border-white/5 text-[10px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => setPdvViewMode('list')}
-                    className={`px-2 py-1 rounded transition-all${pdvViewMode === 'list' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
-                  >
-                    Lista
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPdvViewMode('grid');
-                      const context = resolveContext();
-                      if (context && catalogProducts.length === 0) {
-                        searchProdutosPdv(context, '', 12).then((res) => {
-                          setCatalogProducts(res.filter((p) => Number(p.esal) > 0));
-                        });
-                      }
-                    }}
-                    className={`px-2 py-1 rounded transition-all${pdvViewMode === 'grid' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : 'text-slate-400'}`}
-                  >
-                    Catálogo Grid
-                  </button>
-                </div>
-              </div>
-              <div className="rf-pdv__head-meta">
-                {pendingQueueCount > 0 ? (
-                  <StatusBadge tone="warning">
-                    {pendingQueueCount} venda{pendingQueueCount > 1 ? 's' : ''} pendente{pendingQueueCount > 1 ? 's' : ''}
-                  </StatusBadge>
-                ) : null}
-                <span>{saleToken}</span>
-                <span>{formatDateTime(now)}</span>
-              </div>
-            </header>
+            <PdvLeftPanelHeader
+              pdvViewMode={pdvViewMode}
+              setPdvViewMode={(mode) => {
+                setPdvViewMode(mode);
+                if (mode === 'grid') {
+                  const context = resolveContext();
+                  if (context && catalogProducts.length === 0) {
+                    searchProdutosPdv(context, '', 12).then((res) => {
+                      setCatalogProducts(res.filter((p) => Number(p.esal) > 0));
+                    });
+                  }
+                }
+              }}
+              pendingQueueCount={pendingQueueCount}
+              saleToken={saleToken}
+              nowFormatted={formatDateTime(now)}
+            />
 
-            <div className={`rf-pdv__search${showScannerHalo ? 'rf-scanner-success-halo' : ''}transition-all duration-300`}>
+            <div className={`rf-pdv__search ${showScannerHalo ? 'rf-scanner-success-halo ' : ''}transition-all duration-300`}>
               <span className="rf-pdv__search-icon hover:scale-110 active:scale-95 transition-all text-emerald-400 cursor-pointer" aria-hidden="true" onClick={() => setIsScannerOpen(true)} title="Scanner de câmera">
                 <Camera size={18} strokeWidth={2.5} />
               </span>
@@ -872,146 +857,34 @@ export function PdvPage() {
             )}
 
             {pdvViewMode === 'grid' ? (
-              <div className="rf-pdv-catalog-grid scrollbar-hide">
-                {catalogProducts.map((p) => (
-                  <div
-                    key={p.id}
-                    onClick={() => {
-                      addItem(createCartItemFromProduto(p));
-                      setShowScannerHalo(true);
-                      setTimeout(() => setShowScannerHalo(false), 800);
-                      toast.success(`${p.nome} adicionado!`);
-                    }}
-                    className="rf-pdv-catalog-card rf-pdv-btn-premium"
-                  >
-                    <div className="flex flex-col gap-1.5">
-                      <strong className="text-xs text-white line-clamp-2">{p.nome}</strong>
-                      <span className="text-[10px] text-slate-500 font-mono">{p.sku || 'Sem SKU'}</span>
-                    </div>
-                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/5">
-                      <strong className="text-gold-premium text-xs">{formatCurrencyBRL(createCartItemFromProduto(p).preco)}</strong>
-                      <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-black">
-                        {p.esal || 0} un
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <PdvCartGrid
+                products={catalogProducts}
+                onAddProduct={(p) => {
+                  addItem(createCartItemFromProduto(p));
+                  setShowScannerHalo(true);
+                  setTimeout(() => setShowScannerHalo(false), 800);
+                  toast.success(`${p.nome} adicionado!`);
+                }}
+              />
             ) : (
-              <div className="rf-pdv__cart">
-                <div className="rf-pdv__cart-head">
-                  <span>Produto</span>
-                  <span>Qtd</span>
-                  <span>Unit</span>
-                  <span>Total</span>
-                  <span />
-                </div>
-
-                {items.length === 0 ? (
-                  <EmptyState
-                    title="Carrinho vazio."
-                    description="Digite um nome, código ou SKU e aperte Enter para acelerar a venda."
-                    compact
-                  />
-                ) : (
-                  <div className="rf-pdv__cart-rows">
-                  {items.map((item) => {
-                    const subtotal = roundCurrency(item.qty * item.preco);
-                    const step = item.isWeight ? 0.001 : 1;
-                    const isFocused = item.key === focusedItemKey;
-                    return (
-                      <div
-                        key={item.key}
-                        className={`rf-pdv__cart-row${isFocused ? 'is-focused' : ''}`}
-                        tabIndex={0}
-                        onFocus={() => setFocusedItemKey(item.key)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'ArrowUp') {
-                            event.preventDefault();
-                            incrementItem(item.key);
-                          } else if (event.key === 'ArrowDown') {
-                            event.preventDefault();
-                            decrementItem(item.key);
-                          } else if (event.key === 'Delete') {
-                            event.preventDefault();
-                            removeItem(item.key);
-                          }
-                        }}
-                      >
-                        <div className="rf-pdv__cart-product">
-                          <strong>{item.nome}</strong>
-                          <span>{item.code || item.un}</span>
-                        </div>
-                        <div className="rf-pdv__qty">
-                          <button className="rf-pdv__qty-btn" type="button" onClick={() => decrementItem(item.key)}>
-                            −
-                          </button>
-                          <input
-                            className="rf-pdv__qty-input"
-                            type="text"
-                            inputMode="decimal"
-                            value={formatQty(item.qty, item.isWeight)}
-                            onChange={(event) => {
-                              const next = parseDecimalInput(event.target.value);
-                              if (next > 0) setItemQty(item.key, next);
-                            }}
-                          />
-                          <button className="rf-pdv__qty-btn" type="button" onClick={() => incrementItem(item.key)}>
-                            +
-                          </button>
-                        </div>
-                        <div className="rf-pdv__unit">{formatCurrencyBRL(item.preco)}</div>
-                        <div className="rf-pdv__total">{formatCurrencyBRL(subtotal)}</div>
-                        <div className="rf-pdv__actions">
-                          <button
-                            className="rf-pdv__remove-btn"
-                            type="button"
-                            title="Remover (Delete)"
-                            onClick={() => removeItem(item.key)}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+              <PdvCartItems
+                items={items}
+                focusedItemKey={focusedItemKey}
+                setFocusedItemKey={setFocusedItemKey}
+                incrementItem={incrementItem}
+                decrementItem={decrementItem}
+                setItemQty={setItemQty}
+                removeItem={removeItem}
+              />
             )}
 
-            <footer className="rf-pdv__cart-foot">
-              <div className="rf-pdv__cart-summary">
-                <div className="rf-pdv__summary-row">
-                  <span>Subtotal</span>
-                  <strong>{formatCurrencyBRL(totals.subtotal)}</strong>
-                </div>
-                {totals.discountValue > 0 ? (
-                  <div className="rf-pdv__summary-row is-discount">
-                    <span>Desconto</span>
-                    <strong>− {formatCurrencyBRL(totals.discountValue)}</strong>
-                  </div>
-                ) : null}
-                {appliedVale && (
-                  <div className="rf-pdv__summary-row text-teal-400 font-bold">
-                    <span>Vale-Troca ({appliedVale.codigo})</span>
-                    <strong>− {formatCurrencyBRL(appliedVale.valor)}</strong>
-                  </div>
-                )}
-                <div className="rf-pdv__summary-row is-total border-t border-white/5 pt-1.5">
-                  <span>Total a Pagar</span>
-                  <strong className="text-gold-premium font-mono text-2xl tracking-tight">{formatCurrencyBRL(finalTotal)}</strong>
-                </div>
-              </div>
-              <div className="rf-pdv__cart-actions">
-                <Button variant="secondary" onClick={() => setDiscountModalOpen(true)}>
-                  Desconto (F7)
-                </Button>
-                <Button variant="secondary" onClick={() => setCancelConfirmOpen(true)}>
-                  Cancelar (Esc)
-                </Button>
-              </div>
-            </footer>
+            <PdvCartSummary
+              totals={totals}
+              appliedVale={appliedVale}
+              finalTotal={finalTotal}
+              onOpenDiscountModal={() => setDiscountModalOpen(true)}
+              onOpenCancelConfirm={() => setCancelConfirmOpen(true)}
+            />
           </section>
 
           <aside className="rf-pdv__right">
@@ -1270,132 +1143,33 @@ export function PdvPage() {
         />
       )}
 
-      {/* Visual Search Drawer (F4) */}
-      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer${drawerOpen ? 'rf-drawer-open' : ''}p-6 border-l border-white/10 h-full`}>
-        <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
-          <h3 className="text-sm font-extrabold text-gold-premium uppercase tracking-wide flex items-center gap-2">
-            <Ticket size={16} />
-            Consulta de Produto (F4)
-          </h3>
-          <button 
-            onClick={() => setDrawerOpen(false)}
-            className="text-slate-400 hover:text-white font-bold text-lg"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
-          <div className="rf-ui-form-field">
-            <label className="rf-ui-form-field__label text-xs">Consultar estoque ou alternativas</label>
-            <input
-              type="text"
-              className="rf-input-premium w-full"
-              placeholder="Digite nome, SKU ou código…"
-              value={drawerQuery}
-              onChange={(e) => {
-                const val = e.target.value;
-                setDrawerQuery(val);
-                if (!val.trim()) {
-                  setDrawerResults([]);
-                  return;
-                }
-                const context = resolveContext();
-                if (!context) return;
-                setDrawerSearching(true);
-                searchProdutosPdv(context, val, 5)
-                  .then(setDrawerResults)
-                  .finally(() => setDrawerSearching(false));
-              }}
-            />
-          </div>
-
-          {drawerSearching && <div className="text-xs text-slate-400">Pesquisando estoque...</div>}
-
-          {!drawerSearching && drawerResults.length > 0 && (
-            <div className="flex flex-col gap-2">
-              {drawerResults.map((prod) => (
-                <div 
-                  key={prod.id} 
-                  onClick={() => setSelectedDrawerProduto(prod)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
-                >
-                  <div className="flex justify-between items-start">
-                    <strong className="text-xs text-white block">{prod.nome}</strong>
-                    <span className="text-[10px] font-mono text-slate-500">{prod.sku || 'Sem SKU'}</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-2 text-[10px] text-slate-400">
-                    <span>Estoque Central: <strong className="text-emerald-400">{prod.esal || 0}</strong> un</span>
-                    <span className="text-gold-premium font-bold">{formatCurrencyBRL(createCartItemFromProduto(prod).preco)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedDrawerProduto && (
-            <div className="border-t border-white/5 pt-4 mt-2 flex flex-col gap-4">
-              <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-sm font-medium text-slate-400">Estoque por Canal</h4>
-                <div className="space-y-1.5 text-xs text-slate-300">
-                  <div className="flex justify-between">
-                    <span>Matriz (Filial Central):</span>
-                    <strong className="text-emerald-400">{selectedDrawerProduto.esal || 0} un</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Filial Centro (Varejo):</span>
-                    <strong>{Math.max(0, Math.floor((selectedDrawerProduto.esal || 0) * 0.4))} un</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Depósito Logístico B:</span>
-                    <strong>{Math.max(0, Math.floor((selectedDrawerProduto.esal || 0) * 1.5))} un</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-sm font-medium text-slate-400">Volume & Descontos</h4>
-                <div className="space-y-1.5 text-xs text-slate-300">
-                  <div className="flex justify-between">
-                    <span>Varejo (1 a 9 un):</span>
-                    <strong className="text-gold-premium">{formatCurrencyBRL(createCartItemFromProduto(selectedDrawerProduto).preco)}</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Atacado Leve (10 a 49 un - 5%):</span>
-                    <strong className="text-emerald-400">{formatCurrencyBRL(createCartItemFromProduto(selectedDrawerProduto).preco * 0.95)}</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Distribuição (50+ un - 10%):</span>
-                    <strong className="text-emerald-400">{formatCurrencyBRL(createCartItemFromProduto(selectedDrawerProduto).preco * 0.9)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
-                <h4 className="text-sm font-medium text-slate-400">Logística Reversa / Previsão</h4>
-                <div className="text-xs text-slate-300">
-                  <span>Próximo lote estimado:</span>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Chegada em <strong className="text-white">{(selectedDrawerProduto.nome.length % 15) + 3} dias</strong> via Distribuidora Sul.
-                  </div>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="w-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl py-2 text-xs font-black uppercase transition-all"
-                onClick={() => {
-                  addItem(createCartItemFromProduto(selectedDrawerProduto));
-                  toast.success(`Adicionado: ${selectedDrawerProduto.nome}`);
-                  setSelectedDrawerProduto(null);
-                }}
-              >
-                Adicionar ao Carrinho
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <PdvSearchDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        query={drawerQuery}
+        onQueryChange={(val) => {
+          setDrawerQuery(val);
+          if (!val.trim()) {
+            setDrawerResults([]);
+            return;
+          }
+          const context = resolveContext();
+          if (!context) return;
+          setDrawerSearching(true);
+          searchProdutosPdv(context, val, 5)
+            .then(setDrawerResults)
+            .finally(() => setDrawerSearching(false));
+        }}
+        searching={drawerSearching}
+        results={drawerResults}
+        selectedProduto={selectedDrawerProduto}
+        onSelectProduto={setSelectedDrawerProduto}
+        onAddToCart={(prod) => {
+          addItem(createCartItemFromProduto(prod));
+          toast.success(`Adicionado: ${prod.nome}`);
+          setSelectedDrawerProduto(null);
+        }}
+      />
     </main>
   );
 }
