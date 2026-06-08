@@ -1,15 +1,14 @@
-import { useContasReceberStore } from '../store/useContasReceberStore';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import {
-  listContas,
-  listBaixas,
   registrarBaixaRpc,
   estornarBaixaRpc,
   marcarContaPendenteRpc
 } from '../services/contasReceberApi';
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
+import { CONTAS_RECEBER_KEYS } from './useContasReceberQueries';
 
 function roundMoney(value: number): number {
   return Number(Number(value || 0).toFixed(2));
@@ -49,15 +48,13 @@ export function getStatusEfetivo(cr: ContaReceber): 'pendente_ok' | 'vencido' | 
   return 'pendente_ok';
 }
 
-export function useContasReceberMutations() {
-  const contas = useContasReceberStore((s) => s.contas);
-  const baixas = useContasReceberStore((s) => s.baixas);
-  const setContas = useContasReceberStore((s) => s.setContas);
-  const setBaixas = useContasReceberStore((s) => s.setBaixas);
-  const setInFlight = useContasReceberStore((s) => s.setInFlight);
-
+export function useContasReceberMutations(propContas?: ContaReceber[], propBaixas?: ContaReceberBaixa[]) {
+  const queryClient = useQueryClient();
   const session = useAuthStore((s) => s.session);
   const filialId = useFilialStore((s) => s.filialId);
+
+  const contas = propContas ?? queryClient.getQueryData<ContaReceber[]>(CONTAS_RECEBER_KEYS.lists()) ?? [];
+  const baixas = propBaixas ?? queryClient.getQueryData<ContaReceberBaixa[]>(CONTAS_RECEBER_KEYS.baixas()) ?? [];
 
   function getCtx() {
     const { url, key } = getSupabaseConfig();
@@ -71,12 +68,46 @@ export function useContasReceberMutations() {
       .sort((a, b) => String(b.recebido_em || '').localeCompare(String(a.recebido_em || '')));
   }
 
-  async function reloadContasReceber() {
-    const ctx = getCtx();
-    const [nextContas, nextBaixas] = await Promise.all([listContas(ctx), listBaixas(ctx)]);
-    setContas(nextContas);
-    setBaixas(nextBaixas);
-  }
+  const reloadContasReceber = () => {
+    queryClient.invalidateQueries({ queryKey: CONTAS_RECEBER_KEYS.lists() });
+    queryClient.invalidateQueries({ queryKey: CONTAS_RECEBER_KEYS.baixas() });
+  };
+
+  const registrarBaixaMutation = useMutation({
+    mutationFn: async ({ contaId, valor, recebidoEmIso, observacao }: { contaId: string; valor: number; recebidoEmIso: string; observacao: string | null }) => {
+      const ctx = getCtx();
+      await registrarBaixaRpc(ctx, {
+        baixaId: globalThis.crypto.randomUUID(),
+        contaId,
+        valor,
+        recebidoEm: recebidoEmIso,
+        observacao
+      });
+    },
+    onSuccess: () => {
+      reloadContasReceber();
+    }
+  });
+
+  const marcarPendenteMutation = useMutation({
+    mutationFn: async (contaId: string) => {
+      const ctx = getCtx();
+      await marcarContaPendenteRpc(ctx, contaId);
+    },
+    onSuccess: () => {
+      reloadContasReceber();
+    }
+  });
+
+  const estornarBaixaMutation = useMutation({
+    mutationFn: async (baixaId: string) => {
+      const ctx = getCtx();
+      await estornarBaixaRpc(ctx, baixaId);
+    },
+    onSuccess: () => {
+      reloadContasReceber();
+    }
+  });
 
   async function registrarBaixa(
     contaId: string,
@@ -95,23 +126,11 @@ export function useContasReceberMutations() {
       return { ok: false, error: 'A baixa não pode ultrapassar o valor em aberto.' };
     }
 
-    setInFlight(contaId, true);
-
     try {
-      const ctx = getCtx();
-      await registrarBaixaRpc(ctx, {
-        baixaId: globalThis.crypto.randomUUID(),
-        contaId,
-        valor: valorBaixa,
-        recebidoEm: recebidoEmIso,
-        observacao
-      });
-      await reloadContasReceber();
+      await registrarBaixaMutation.mutateAsync({ contaId, valor: valorBaixa, recebidoEmIso, observacao });
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : 'Erro ao registrar baixa.' };
-    } finally {
-      setInFlight(contaId, false);
     }
   }
 
@@ -127,20 +146,14 @@ export function useContasReceberMutations() {
     const conta = contas.find((c) => c.id === contaId);
     if (!conta) return { ok: false, error: 'Conta não encontrada.' };
 
-    setInFlight(contaId, true);
-
     try {
-      const ctx = getCtx();
-      await marcarContaPendenteRpc(ctx, contaId);
-      await reloadContasReceber();
+      await marcarPendenteMutation.mutateAsync(contaId);
       return { ok: true };
     } catch (err) {
       return {
         ok: false,
         error: err instanceof Error ? err.message : 'Erro ao desfazer recebimento.'
       };
-    } finally {
-      setInFlight(contaId, false);
     }
   }
 
@@ -152,19 +165,24 @@ export function useContasReceberMutations() {
     const baixa = baixas.find((b) => b.id === baixaId && b.conta_receber_id === contaId);
     if (!conta || !baixa) return { ok: false, error: 'Baixa não encontrada para estorno.' };
 
-    setInFlight(contaId, true);
-
     try {
-      const ctx = getCtx();
-      await estornarBaixaRpc(ctx, baixaId);
-      await reloadContasReceber();
+      await estornarBaixaMutation.mutateAsync(baixaId);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: err instanceof Error ? err.message : 'Erro ao estornar baixa.' };
-    } finally {
-      setInFlight(contaId, false);
     }
   }
 
-  return { registrarBaixa, marcarRecebido, marcarPendente, estornarBaixa, getBaixasConta };
+  return { 
+    registrarBaixa, 
+    marcarRecebido, 
+    marcarPendente, 
+    estornarBaixa, 
+    getBaixasConta,
+    inFlight: new Set([
+      ...(registrarBaixaMutation.isPending ? [registrarBaixaMutation.variables?.contaId as string] : []),
+      ...(marcarPendenteMutation.isPending ? [marcarPendenteMutation.variables] : []),
+      ...(estornarBaixaMutation.isPending && estornarBaixaMutation.variables ? baixas.find(b => b.id === estornarBaixaMutation.variables)?.conta_receber_id || [] : [])
+    ].filter(Boolean))
+  };
 }

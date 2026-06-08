@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { EmptyState, StatusBadge, FilterBar, Button } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
+import { useCampanhas, useCampanhaEnvios } from '../hooks/useCampanhasQueries';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
 import type { CampanhaEnvio } from '../../../../types/domain';
 
@@ -11,8 +12,8 @@ function statusTone(status: string | undefined): 'success' | 'danger' | 'neutral
 }
 
 export function FilaWhatsAppSection() {
-  const envios = useCampanhasStore((s) => s.envios);
-  const campanhas = useCampanhasStore((s) => s.campanhas);
+  const { data: envios = [] } = useCampanhaEnvios();
+  const { data: campanhas = [] } = useCampanhas();
   const openWaModal = useCampanhasStore((s) => s.openWaModal);
   const startLote = useCampanhasStore((s) => s.startLote);
   const { marcarEnviado, marcarFalhou, desfazer, marcarSelecionadosEnviados, marcarSelecionadosFalhou } =
@@ -52,7 +53,7 @@ export function FilaWhatsAppSection() {
   }
 
   function handleLoteWa() {
-    startLote(pendentes.map((e) => e.id));
+    startLote(pendentes.map((e) => e.id), envios, campanhas);
   }
 
   return (
@@ -84,7 +85,7 @@ export function FilaWhatsAppSection() {
                 variant="secondary"
                 size="sm"
                 onClick={() =>
-                  void marcarSelecionadosEnviados([...selecionados]).then(() =>
+                  void marcarSelecionadosEnviados(envios, [...selecionados]).then(() =>
                     setSelecionados(new Set())
                   )
                 }
@@ -95,7 +96,7 @@ export function FilaWhatsAppSection() {
                 variant="danger"
                 size="sm"
                 onClick={() =>
-                  void marcarSelecionadosFalhou([...selecionados]).then(() =>
+                  void marcarSelecionadosFalhou(envios, [...selecionados]).then(() =>
                     setSelecionados(new Set())
                   )
                 }

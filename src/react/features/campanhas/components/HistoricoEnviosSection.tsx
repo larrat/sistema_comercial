@@ -1,5 +1,6 @@
 import { EmptyState, StatusBadge } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
+import { useCampanhas, useCampanhaEnvios } from '../hooks/useCampanhasQueries';
 
 function fmtDate(v: string | null | undefined): string {
   if (!v) return '—';
@@ -11,8 +12,8 @@ function fmtDate(v: string | null | undefined): string {
 }
 
 export function HistoricoEnviosSection() {
-  const envios = useCampanhasStore((s) => s.envios);
-  const campanhas = useCampanhasStore((s) => s.campanhas);
+  const { data: envios = [] } = useCampanhaEnvios();
+  const { data: campanhas = [] } = useCampanhas();
 
   const concluidos = envios.filter((e) => e.status === 'enviado' || e.status === 'falhou');
 

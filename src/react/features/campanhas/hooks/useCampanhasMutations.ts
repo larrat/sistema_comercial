@@ -1,3 +1,4 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
@@ -10,6 +11,7 @@ import {
   gerarFilaEdge
 } from '../services/campanhasApi';
 import type { Campanha, CampanhaEnvio } from '../../../../types/domain';
+import { CAMPANHAS_KEYS } from './useCampanhasQueries';
 
 function useCtx() {
   const session = useAuthStore((s) => s.session);
@@ -21,114 +23,118 @@ function useCtx() {
 
 export function useCampanhasMutations() {
   const ctx = useCtx();
-  const setSaving = useCampanhasStore((s) => s.setSaving);
-  const setCampanhas = useCampanhasStore((s) => s.setCampanhas);
-  const campanhas = useCampanhasStore((s) => s.campanhas);
-  const envios = useCampanhasStore((s) => s.envios);
-  const setEnvios = useCampanhasStore((s) => s.setEnvios);
-  const patchEnvioLocal = useCampanhasStore((s) => s.patchEnvioLocal);
+  const queryClient = useQueryClient();
   const closeCampModal = useCampanhasStore((s) => s.closeCampModal);
-  const requestReload = useCampanhasStore((s) => s.requestReload);
   const avancarLote = useCampanhasStore((s) => s.avancarLote);
 
-  async function salvar(dados: Partial<Campanha>) {
-    if (!ctx) return;
-    setSaving(true);
-    try {
-      const saved = await upsertCampanha(ctx, dados);
-      const exists = campanhas.some((c) => c.id === saved.id);
-      setCampanhas(
-        exists ? campanhas.map((c) => (c.id === saved.id ? saved : c)) : [saved, ...campanhas]
-      );
+  const salvarMutation = useMutation({
+    mutationFn: async (dados: Partial<Campanha>) => {
+      if (!ctx) throw new Error('Não autenticado');
+      return await upsertCampanha(ctx, dados);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CAMPANHAS_KEYS.lists() });
       closeCampModal();
       useToastStore.getState().addToast('Campanha salva com sucesso.', 'success');
-    } catch (e) {
+    },
+    onError: (e) => {
       useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao salvar campanha.', 'error');
-    } finally {
-      setSaving(false);
     }
-  }
+  });
 
-  async function remover(id: string) {
-    if (!ctx) return;
-    try {
-      await deleteCampanha(ctx, id);
-      setCampanhas(campanhas.filter((c) => c.id !== id));
+  const removerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!ctx) throw new Error('Não autenticado');
+      return await deleteCampanha(ctx, id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CAMPANHAS_KEYS.lists() });
       useToastStore.getState().addToast('Campanha removida.', 'success');
-    } catch (e) {
+    },
+    onError: (e) => {
       useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao remover campanha.', 'error');
     }
-  }
+  });
 
-  async function gerarFila(campanhaId: string) {
-    if (!ctx) return;
-    // Abre janela antes do await para evitar bloqueio de popup
-    const win = window.open('', '_blank');
-    try {
-      const result = await gerarFilaEdge(ctx, campanhaId, false);
-      if (win) {
-        win.close();
-      }
+  const gerarFilaMutation = useMutation({
+    mutationFn: async (campanhaId: string) => {
+      if (!ctx) throw new Error('Não autenticado');
+      return await gerarFilaEdge(ctx, campanhaId, false);
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: CAMPANHAS_KEYS.envios() });
+      queryClient.invalidateQueries({ queryKey: CAMPANHAS_KEYS.lists() });
       useToastStore.getState().addToast(
         `Fila gerada: ${result.criados} envios criados, ${result.ignorados} ignorados.`,
         'success'
       );
-      requestReload();
-    } catch (e) {
-      if (win) win.close();
+    },
+    onError: (e) => {
       useToastStore.getState().addToast(e instanceof Error ? e.message : 'Erro ao gerar fila.', 'error');
     }
-  }
+  });
 
-  async function marcarEnviado(envio: CampanhaEnvio) {
-    if (!ctx) return;
-    const prev = { status: envio.status, enviado_em: envio.enviado_em, erro: envio.erro };
-    patchEnvioLocal(envio.id, { status: 'enviado', enviado_em: new Date().toISOString(), erro: null });
-    try {
-      await patchEnvioStatus(ctx, envio.id, {
-        status: 'enviado',
-        enviado_em: new Date().toISOString(),
-        erro: null
-      });
-    } catch {
-      patchEnvioLocal(envio.id, prev);
-      useToastStore.getState().addToast('Erro ao marcar como enviado.', 'error');
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status, erro, enviado_em }: { id: string; status: CampanhaEnvio['status']; erro?: string | null; enviado_em?: string | null }) => {
+      if (!ctx) throw new Error('Não autenticado');
+      return await patchEnvioStatus(ctx, id, { status, erro, enviado_em });
+    },
+    onMutate: async ({ id, status, erro, enviado_em }) => {
+      await queryClient.cancelQueries({ queryKey: CAMPANHAS_KEYS.envios() });
+      const previousEnvios = queryClient.getQueryData<CampanhaEnvio[]>(CAMPANHAS_KEYS.envios());
+      if (previousEnvios) {
+        queryClient.setQueryData<CampanhaEnvio[]>(CAMPANHAS_KEYS.envios(), (old) =>
+          (old || []).map((e) => (e.id === id ? { ...e, status, erro: erro || null, enviado_em: enviado_em || null } : e))
+        );
+      }
+      return { previousEnvios };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousEnvios) {
+        queryClient.setQueryData(CAMPANHAS_KEYS.envios(), context.previousEnvios);
+      }
+      useToastStore.getState().addToast('Erro ao atualizar status do envio.', 'error');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: CAMPANHAS_KEYS.envios() });
     }
-  }
+  });
 
-  async function marcarFalhou(envio: CampanhaEnvio, erro = 'Falha manual') {
-    if (!ctx) return;
-    const prev = { status: envio.status, enviado_em: envio.enviado_em, erro: envio.erro };
-    patchEnvioLocal(envio.id, { status: 'falhou', erro });
-    try {
-      await patchEnvioStatus(ctx, envio.id, { status: 'falhou', erro });
-    } catch {
-      patchEnvioLocal(envio.id, prev);
-      useToastStore.getState().addToast('Erro ao registrar falha.', 'error');
-    }
-  }
+  const marcarEnviado = async (envio: CampanhaEnvio) => {
+    return updateStatusMutation.mutateAsync({ 
+      id: envio.id, 
+      status: 'enviado', 
+      enviado_em: new Date().toISOString(), 
+      erro: null 
+    });
+  };
 
-  async function desfazer(envio: CampanhaEnvio) {
-    if (!ctx) return;
-    const prev = { status: envio.status, enviado_em: envio.enviado_em, erro: envio.erro };
-    patchEnvioLocal(envio.id, { status: 'pendente', enviado_em: null, erro: null });
-    try {
-      await patchEnvioStatus(ctx, envio.id, { status: 'pendente', enviado_em: null, erro: null });
-    } catch {
-      patchEnvioLocal(envio.id, prev);
-      useToastStore.getState().addToast('Erro ao desfazer status.', 'error');
-    }
-  }
+  const marcarFalhou = async (envio: CampanhaEnvio, erro = 'Falha manual') => {
+    return updateStatusMutation.mutateAsync({ 
+      id: envio.id, 
+      status: 'falhou', 
+      erro 
+    });
+  };
 
-  async function marcarSelecionadosEnviados(ids: string[]) {
+  const desfazer = async (envio: CampanhaEnvio) => {
+    return updateStatusMutation.mutateAsync({ 
+      id: envio.id, 
+      status: 'pendente', 
+      enviado_em: null, 
+      erro: null 
+    });
+  };
+
+  const marcarSelecionadosEnviados = async (envios: CampanhaEnvio[], ids: string[]) => {
     const targets = envios.filter((e) => ids.includes(e.id));
     await Promise.all(targets.map(marcarEnviado));
-  }
+  };
 
-  async function marcarSelecionadosFalhou(ids: string[]) {
+  const marcarSelecionadosFalhou = async (envios: CampanhaEnvio[], ids: string[]) => {
     const targets = envios.filter((e) => ids.includes(e.id));
     await Promise.all(targets.map((e) => marcarFalhou(e)));
-  }
+  };
 
   function abrirWhatsApp(envio: CampanhaEnvio) {
     if (!envio.destino) return;
@@ -137,21 +143,29 @@ export function useCampanhasMutations() {
     window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
   }
 
-  function abrirWhatsAppEAvancarLote(envio: CampanhaEnvio) {
+  function abrirWhatsAppEAvancarLote(envio: CampanhaEnvio, allEnvios: CampanhaEnvio[], campanhas: Campanha[]) {
     abrirWhatsApp(envio);
-    avancarLote();
+    avancarLote(allEnvios, campanhas);
   }
 
   return {
-    salvar,
-    remover,
-    gerarFila,
+    salvar: (dados: Partial<Campanha>) => salvarMutation.mutateAsync(dados),
+    remover: (id: string) => removerMutation.mutateAsync(id),
+    gerarFila: async (campanhaId: string) => {
+      const win = window.open('', '_blank');
+      try {
+        await gerarFilaMutation.mutateAsync(campanhaId);
+      } finally {
+        if (win) win.close();
+      }
+    },
     marcarEnviado,
     marcarFalhou,
     desfazer,
     marcarSelecionadosEnviados,
     marcarSelecionadosFalhou,
     abrirWhatsApp,
-    abrirWhatsAppEAvancarLote
+    abrirWhatsAppEAvancarLote,
+    isSaving: salvarMutation.isPending
   };
 }

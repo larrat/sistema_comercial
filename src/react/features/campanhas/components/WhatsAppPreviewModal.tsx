@@ -1,6 +1,7 @@
 import { Modal, Button } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
+import { useCampanhas, useCampanhaEnvios } from '../hooks/useCampanhasQueries';
 
 function fmtNum(destino: string | null | undefined): string {
   if (!destino) return '—';
@@ -9,10 +10,13 @@ function fmtNum(destino: string | null | undefined): string {
 }
 
 export function WhatsAppPreviewModal() {
+  const { data: envios = [] } = useCampanhaEnvios();
+  const { data: campanhas = [] } = useCampanhas();
   const waModal = useCampanhasStore((s) => s.waModal);
   const lote = useCampanhasStore((s) => s.lote);
   const closeWaModal = useCampanhasStore((s) => s.closeWaModal);
   const cancelarLote = useCampanhasStore((s) => s.cancelarLote);
+  const avancarLote = useCampanhasStore((s) => s.avancarLote);
   const { marcarEnviado, marcarFalhou, abrirWhatsAppEAvancarLote, abrirWhatsApp } =
     useCampanhasMutations();
 
@@ -38,13 +42,13 @@ export function WhatsAppPreviewModal() {
 
   async function handleEnviadoEAvancar() {
     await marcarEnviado(envio);
-    if (isLote) abrirWhatsAppEAvancarLote(envio);
+    if (isLote) abrirWhatsAppEAvancarLote(envio, envios, campanhas);
     else closeWaModal();
   }
 
   async function handleFalhouEAvancar() {
     await marcarFalhou(envio);
-    if (isLote) useCampanhasStore.getState().avancarLote();
+    if (isLote) avancarLote(envios, campanhas);
     else closeWaModal();
   }
 
@@ -101,7 +105,7 @@ export function WhatsAppPreviewModal() {
           <Button
             variant="primary"
             onClick={() => {
-              if (isLote) abrirWhatsAppEAvancarLote(envio);
+              if (isLote) abrirWhatsAppEAvancarLote(envio, envios, campanhas);
               else abrirWhatsApp(envio);
             }}
           >

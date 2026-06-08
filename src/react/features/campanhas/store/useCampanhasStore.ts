@@ -14,59 +14,29 @@ type LoteState = {
 };
 
 type CampanhasState = {
-  campanhas: Campanha[];
-  envios: CampanhaEnvio[];
-  loading: boolean;
-  error: string | null;
-  reloadKey: number;
   campModal: CampanhaModal;
   detModal: DetModal;
   waModal: WaPreviewModal;
   lote: LoteState;
-  saving: boolean;
 };
 
 type CampanhasActions = {
-  setCampanhas: (v: Campanha[]) => void;
-  setEnvios: (v: CampanhaEnvio[]) => void;
-  patchEnvioLocal: (id: string, patch: Partial<CampanhaEnvio>) => void;
-  setLoading: (v: boolean) => void;
-  setError: (v: string | null) => void;
-  requestReload: () => void;
-  setSaving: (v: boolean) => void;
   openCampModal: (item?: Campanha | null) => void;
   closeCampModal: () => void;
   openDetModal: (campanha: Campanha) => void;
   closeDetModal: () => void;
   openWaModal: (envio: CampanhaEnvio, campanha: Campanha | null) => void;
   closeWaModal: () => void;
-  startLote: (ids: string[]) => void;
-  avancarLote: () => void;
+  startLote: (ids: string[], envios: CampanhaEnvio[], campanhas: Campanha[]) => void;
+  avancarLote: (envios: CampanhaEnvio[], campanhas: Campanha[]) => void;
   cancelarLote: () => void;
 };
 
 export const useCampanhasStore = create<CampanhasState & CampanhasActions>((set, get) => ({
-  campanhas: [],
-  envios: [],
-  loading: false,
-  error: null,
-  reloadKey: 0,
   campModal: { open: false },
   detModal: { open: false },
   waModal: { open: false },
   lote: { active: false, ids: [], index: 0 },
-  saving: false,
-
-  setCampanhas: (campanhas) => set({ campanhas }),
-  setEnvios: (envios) => set({ envios }),
-  patchEnvioLocal: (id, patch) =>
-    set((s) => ({
-      envios: s.envios.map((e) => (e.id === id ? { ...e, ...patch } : e))
-    })),
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-  requestReload: () => set((s) => ({ reloadKey: s.reloadKey + 1 })),
-  setSaving: (saving) => set({ saving }),
 
   openCampModal: (item = null) => set({ campModal: { open: true, item: item ?? null } }),
   closeCampModal: () => set({ campModal: { open: false } }),
@@ -75,18 +45,17 @@ export const useCampanhasStore = create<CampanhasState & CampanhasActions>((set,
   openWaModal: (envio, campanha) => set({ waModal: { open: true, envio, campanha } }),
   closeWaModal: () => set({ waModal: { open: false } }),
 
-  startLote: (ids) => {
+  startLote: (ids, envios, campanhas) => {
     if (!ids.length) return;
     set({ lote: { active: true, ids, index: 0 } });
-    const envios = get().envios;
     const first = envios.find((e) => e.id === ids[0]);
     if (first) {
-      const camp = get().campanhas.find((c) => c.id === first.campanha_id) ?? null;
+      const camp = campanhas.find((c) => c.id === first.campanha_id) ?? null;
       set({ waModal: { open: true, envio: first, campanha: camp } });
     }
   },
-  avancarLote: () => {
-    const { lote, envios, campanhas } = get();
+  avancarLote: (envios, campanhas) => {
+    const { lote } = get();
     const nextIndex = lote.index + 1;
     if (nextIndex >= lote.ids.length) {
       set({ lote: { active: false, ids: [], index: 0 }, waModal: { open: false } });

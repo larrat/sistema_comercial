@@ -1,4 +1,4 @@
-import { FilterBar } from '../../../shared/ui';
+import { FilterBar, PillGroup } from '../../../shared/ui';
 import { useEstoqueFilters } from '../hooks/useEstoqueFilters';
 
 export function EstoqueFilters() {
@@ -25,21 +25,16 @@ export function EstoqueFilters() {
   return (
     <div className="rf-ui-stack">
       <div className="flex items-center justify-between">
-        <div className="tabs">
-          <button className={`tb ${view === 'posicao' ? 'on' : ''}`} type="button" onClick={() => setView('posicao')}>
-            Posição
-          </button>
-          <button className={`tb ${view === 'historico' ? 'on' : ''}`} type="button" onClick={() => setView('historico')}>
-            Histórico
-          </button>
-          <button className={`tb ${view === 'cobertura' ? 'on' : ''}`} type="button" onClick={() => setView('cobertura')}>
-            Cobertura
-          </button>
-          <button className={`tb ${view === 'sem_movimento' ? 'on' : ''}`} type="button" onClick={() => setView('sem_movimento')}>
-            Sem Movimento
-          </button>
-        </div>
-        
+        <PillGroup
+          options={[
+            { id: 'posicao', label: 'Posição' },
+            { id: 'historico', label: 'Histórico' },
+            { id: 'cobertura', label: 'Cobertura' },
+            { id: 'sem_movimento', label: 'Sem Movimento' }
+          ]}
+          activeId={view}
+          onChange={(id) => setView(id as any)}
+        />
         <select 
           className="rf-ui-select !w-[160px] !text-sm"
           value={periodo}

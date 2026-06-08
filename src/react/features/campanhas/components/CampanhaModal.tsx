@@ -31,8 +31,7 @@ const EXEMPLO: Record<string, string> = {
 export function CampanhaModal() {
   const campModal = useCampanhasStore((s) => s.campModal);
   const closeCampModal = useCampanhasStore((s) => s.closeCampModal);
-  const saving = useCampanhasStore((s) => s.saving);
-  const { salvar } = useCampanhasMutations();
+  const { salvar, isSaving: saving } = useCampanhasMutations();
 
   const item = campModal.open ? campModal.item : null;
 

@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   useReactTable,
   getCoreRowModel,
@@ -220,21 +221,26 @@ export function DataTable<Row>({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr
-                key={row.id}
-                onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
-                className={cn(
-                  "border-b border-slate-700/50 hover:bg-slate-800/40 transition-colors group",
-                  getRowClassName ? getRowClassName(row.original, row.index) : undefined
-                )}
-                style={{ 
-                  ...(onRowClick ? { cursor: 'pointer' } : {}),
-                  contentVisibility: 'auto',
-                  containIntrinsicSize: '0 64px'
-                }}
-              >
-                {row.getVisibleCells().map(cell => (
+            <AnimatePresence initial={false}>
+              {table.getRowModel().rows.map((row, idx) => (
+                <motion.tr
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15, delay: Math.min(idx * 0.02, 0.2) }}
+                  key={row.id}
+                  onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
+                  className={cn(
+                    "border-b border-slate-700/50 hover:bg-slate-800/40 transition-colors group",
+                    getRowClassName ? getRowClassName(row.original, row.index) : undefined
+                  )}
+                  style={{ 
+                    ...(onRowClick ? { cursor: 'pointer' } : {}),
+                    contentVisibility: 'auto',
+                    containIntrinsicSize: '0 64px'
+                  }}
+                >
+                  {row.getVisibleCells().map(cell => (
                   <td 
                     key={cell.id} 
                     style={{ textAlign: (cell.column.columnDef.meta as any)?.align ?? 'left' }}
@@ -243,8 +249,9 @@ export function DataTable<Row>({
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
-              </tr>
-            ))}
+                </motion.tr>
+              ))}
+            </AnimatePresence>
           </tbody>
         </table>
       </div>

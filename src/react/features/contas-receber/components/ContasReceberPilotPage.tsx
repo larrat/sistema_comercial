@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { toast } from 'sonner';
 import { useContasReceberStore } from '../store/useContasReceberStore';
+import { useContas, useBaixas } from '../hooks/useContasReceberQueries';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 import type { CrTab } from '../store/useContasReceberStore';
@@ -44,7 +45,6 @@ type ContasReceberPilotPageProps = {
   routeIntent?: {
     contaId?: string | null;
   };
-  onRetryLoad?: () => void;
 };
 
 type ConfirmState =
@@ -82,18 +82,19 @@ const TABS: { key: CrTab; label: string; statusEfetivo: 'pendente_ok' | 'vencido
   { key: 'recebidos', label: 'Recebidos', statusEfetivo: 'recebido' }
 ];
 
-export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceberPilotPageProps) {
-  const contas = useContasReceberStore(useShallow((s) => s.contas));
-  const baixas = useContasReceberStore(useShallow((s) => s.baixas));
-  const status = useContasReceberStore((s) => s.status);
-  const error = useContasReceberStore((s) => s.error);
+export function ContasReceberPilotPage({ routeIntent }: ContasReceberPilotPageProps) {
+  const { data: contas = [], isLoading: isLoadingContas, error: errorContas, refetch: refetchContas } = useContas();
+  const { data: baixas = [], isLoading: isLoadingBaixas } = useBaixas();
+  
+  const status = isLoadingContas || isLoadingBaixas ? 'loading' : errorContas ? 'error' : 'ready';
+  const error = errorContas ? (errorContas instanceof Error ? errorContas.message : 'Erro ao carregar contas.') : null;
+
   const activeTab = useContasReceberStore((s) => s.activeTab);
   const setActiveTab = useContasReceberStore((s) => s.setActiveTab);
   const searchQuery = useContasReceberStore((s) => s.searchQuery);
   const setSearchQuery = useContasReceberStore((s) => s.setSearchQuery);
-  const inFlight = useContasReceberStore(useShallow((s) => s.inFlight));
 
-  const { registrarBaixa, marcarRecebido, marcarPendente, estornarBaixa } = useContasReceberMutations();
+  const { registrarBaixa, marcarRecebido, marcarPendente, estornarBaixa, inFlight } = useContasReceberMutations(contas, baixas);
 
   const [baixaParcialContaId, setBaixaParcialContaId] = useState<string | null>(null);
   const [detailContaId, setDetailContaId] = useState<string | null>(null);
@@ -224,12 +225,10 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           title="Contas a Receber"
           description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
           actions={
-            onRetryLoad ? (
-              <Button size="sm" type="button" onClick={onRetryLoad} className="gap-2">
-                <RefreshCw size={14} className="animate-spin" />
-                Atualizar
-              </Button>
-            ) : undefined
+            <Button size="sm" type="button" onClick={() => refetchContas()} className="gap-2">
+              <RefreshCw size={14} className="animate-spin" />
+              Atualizar
+            </Button>
           }
         />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -256,12 +255,10 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
           title="Contas a Receber"
           description="Acompanhe títulos em aberto, vencimentos e recebimentos da filial ativa."
           actions={
-            onRetryLoad ? (
-              <Button size="sm" type="button" onClick={onRetryLoad} className="gap-2">
-                <RefreshCw size={14} />
-                Atualizar
-              </Button>
-            ) : undefined
+            <Button size="sm" type="button" onClick={() => refetchContas()} className="gap-2">
+              <RefreshCw size={14} />
+              Atualizar
+            </Button>
           }
         />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -275,7 +272,7 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         <ErrorState
           title={error ?? 'Erro ao carregar dados.'}
           description="Atualize a tela ou confirme a filial ativa antes de tentar novamente."
-          onRetry={onRetryLoad}
+          onRetry={() => refetchContas()}
         />
       </div>
     );
@@ -289,12 +286,10 @@ export function ContasReceberPilotPage({ routeIntent, onRetryLoad }: ContasReceb
         description="Acompanhe títulos em aberto, baixas e vencimentos sem sair do fluxo operacional."
         actions={
           <div className="flex items-center gap-3">
-            {onRetryLoad ? (
-              <Button size="sm" onClick={onRetryLoad} className="gap-2">
-                <RefreshCw size={14} />
-                Atualizar
-              </Button>
-            ) : null}
+            <Button size="sm" onClick={() => refetchContas()} className="gap-2">
+              <RefreshCw size={14} />
+              Atualizar
+            </Button>
           </div>
         }
       />

@@ -12,6 +12,7 @@ import {
 } from '../../../shared/ui';
 import { useCampanhasStore } from '../store/useCampanhasStore';
 import { useCampanhasMutations } from '../hooks/useCampanhasMutations';
+import { useCampanhas, useCampanhaEnvios } from '../hooks/useCampanhasQueries';
 import { CampanhaModal } from './CampanhaModal';
 import { WhatsAppPreviewModal } from './WhatsAppPreviewModal';
 import { FilaWhatsAppSection } from './FilaWhatsAppSection';
@@ -26,12 +27,13 @@ const LABEL_TIPO: Record<string, string> = {
 };
 
 export function CampanhasPage() {
-  const campanhas = useCampanhasStore((s) => s.campanhas);
-  const envios = useCampanhasStore((s) => s.envios);
-  const loading = useCampanhasStore((s) => s.loading);
-  const error = useCampanhasStore((s) => s.error);
+  const { data: campanhas = [], isLoading: loadingCampanhas, error: errorCampanhas, refetch: refetchCampanhas } = useCampanhas();
+  const { data: envios = [], isLoading: loadingEnvios } = useCampanhaEnvios();
+
+  const loading = loadingCampanhas || loadingEnvios;
+  const error = errorCampanhas ? (errorCampanhas instanceof Error ? errorCampanhas.message : 'Erro ao carregar campanhas.') : null;
+
   const openCampModal = useCampanhasStore((s) => s.openCampModal);
-  const requestReload = useCampanhasStore((s) => s.requestReload);
 
   const [query, setQuery] = useState('');
   const [tipoFilter, setTipoFilter] = useState('todos');
@@ -107,7 +109,7 @@ export function CampanhasPage() {
         description="Gerencie campanhas de marketing e fila de WhatsApp."
         actions={
           <div className="flex items-center gap-3">
-            <Button onClick={requestReload} loading={loading}>
+            <Button onClick={() => refetchCampanhas()} loading={loading}>
               {loading ? 'Carregando…' : 'Atualizar'}
             </Button>
             <Button variant="primary" onClick={() => openCampModal()}>
