@@ -177,7 +177,7 @@ export function ProdutoListView({
                    <Package size={14} className="text-slate-600" />
                  )}
               </div>
-              <span className={`truncate${row.isPai ? 'text-white' : 'text-slate-200'}`}>{row.prod.nome}</span>
+              <span className={`truncate ${row.isPai ? 'text-white' : 'text-slate-200'}`}>{row.prod.nome}</span>
               {row.isPai ? (
                 <Badge variant="slate" className="bg-white/5 border-white/10 text-sm font-medium text-slate-400">
                   Família

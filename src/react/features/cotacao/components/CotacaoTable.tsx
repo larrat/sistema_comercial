@@ -79,7 +79,7 @@ const CotacaoPriceCell = memo(function CotacaoPriceCell({
     >
       {locked ? (
         value !== null && value > 0 ? (
-          <span className={`font-medium${isBest ? 'text-emerald-400' : isWorst ? 'text-rose-400' : 'text-white'}`}>
+          <span className={`font-medium ${isBest ? 'text-emerald-400' : isWorst ? 'text-rose-400' : 'text-white'}`}>
             {fmt(value)}
           </span>
         ) : (

@@ -612,10 +612,10 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           </span>
         </article>
 
-        <article className={`rf-dash-card${giroMedio === null ? 'is-warning' : ''}`}>
+        <article className={`rf-dash-card ${giroMedio === null ? 'is-warning' : ''}`}>
           <div className="flex items-center justify-between mb-4">
             <span className="rf-stat-label !mb-0">Giro Médio</span>
-            <div className={`p-2 rounded-lg${giroMedio === null ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-800 text-slate-300 border-white/5'}shadow-sm`}>
+            <div className={`p-2 rounded-lg ${giroMedio === null ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-slate-800 text-slate-300 border-white/5'} shadow-sm`}>
               <Calendar size={14} strokeWidth={2.5} />
             </div>
           </div>
@@ -628,7 +628,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
             />
             <span className="text-sm font-bold text-slate-400 ml-1.5">dias</span>
           </div>
-          <span className={`rf-stat-sub${giroMedio === null ? 'warning' : 'muted'}font-bold`}>
+          <span className={`rf-stat-sub ${giroMedio === null ? 'warning' : 'muted'} font-bold`}>
             Cobertura de estoque
           </span>
         </article>
@@ -643,10 +643,10 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
         </div>
         
         <div className="overflow-x-auto scrollbar-hide">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse" style={{ minWidth: 900 }}>
             <thead>
               <tr className="bg-white/5">
-                <th className="px-6 py-4 text-sm font-medium text-slate-400">Variante</th>
+                <th className="px-6 py-4 text-sm font-medium text-slate-400 min-w-[200px]">Variante</th>
                 <th className="px-6 py-4 text-sm font-medium text-slate-400">SKU</th>
                 <th className="px-6 py-4 text-sm font-medium text-slate-400">Saldo</th>
                 <th className="px-6 py-4 text-sm font-medium text-slate-400">Varejo</th>
@@ -689,7 +689,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                     <td className="px-6 py-4 text-sm font-bold text-white">{fmtQ(row.vendido)}</td>
                     <td className="px-6 py-4 text-sm font-bold text-white">{fmtCurrency(row.receita)}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs font-black${row.margem && row.margem > 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
+                      <span className={`text-xs font-black ${row.margem && row.margem > 30 ? 'text-emerald-400' : 'text-slate-400'}`}>
                         {fmtPercent(row.margem)}
                       </span>
                     </td>
@@ -727,6 +727,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                 <td className="px-6 py-5 text-sm text-white">{fmtQ(totalVendido)}</td>
                 <td className="px-6 py-5 text-sm text-white">{fmtCurrency(totalReceita)}</td>
                 <td className="px-6 py-5 text-sm text-white">{fmtPercent(margemPai)}</td>
+                <td className="px-6 py-5"></td>
               </tr>
             </tbody>
           </table>

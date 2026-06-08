@@ -203,7 +203,7 @@ export function ClienteProfilePage({
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-black text-white tracking-tight">{cliente.nome}</h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold${cliente.status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${cliente.status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-500/10 text-slate-400'}`}>
                   {cliente.status === 'inativo' ? 'Inativo' : 'Ativo'}
                 </span>
                 {cliente.optin_marketing ? (
@@ -275,11 +275,11 @@ export function ClienteProfilePage({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className={`rf-dash-card${toneClass}`}
+              className={`rf-dash-card ${toneClass}`}
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="rf-stat-label !mb-0">{card.label}</span>
-                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-500'}`}>
+                <div className={`p-2 rounded-lg bg-white/5 border border-white/10 shadow-sm ${card.tone === 'positive' ? 'text-emerald-400' : card.tone === 'negative' ? 'text-rose-400' : 'text-slate-500'}`}>
                   <Icon size={14} strokeWidth={2.5} />
                 </div>
               </div>
@@ -303,7 +303,7 @@ export function ClienteProfilePage({
                 )}
               </div>
 
-              <span className={`rf-stat-sub${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'}font-bold`}>
+              <span className={`rf-stat-sub ${card.tone === 'positive' ? 'success' : card.tone === 'negative' ? 'danger' : 'muted'} font-bold`}>
                 {card.subtitle}
               </span>
             </motion.article>
@@ -316,7 +316,7 @@ export function ClienteProfilePage({
           <button
             key={tab.id}
             onClick={() => setTab(tab.id)}
-            className={`rf-tab-item${activeTab === tab.id ? 'is-active' : ''}`}
+            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
             {activeTab === tab.id && (

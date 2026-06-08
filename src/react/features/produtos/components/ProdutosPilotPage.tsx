@@ -8,6 +8,7 @@ import type { ProdutoFormValues } from '../types';
 import { useProdutoStore } from '../store/useProdutoStore';
 import { useProdutosQuery, useCategoriasQuery, usePaisQuery, useProdutoMutations } from '../hooks/useProdutosQuery';
 import { useFilialStore } from '../../../app/useFilialStore';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
 import { ProdutoForm } from './ProdutoForm';
@@ -59,9 +60,6 @@ type ProdutosPilotPageProps = {
   onOpenProduto?: (_produtoId: string, _options?: { edit?: boolean }) => void;
 };
 
-function useIsMobile() {
-  return typeof window !== 'undefined' && window.matchMedia('(max-width: 1280px)').matches;
-}
 
 export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const filtro = useProdutoStore((s) => s.filtro);
@@ -95,7 +93,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const [showSanitizeConfirm, setShowSanitizeConfirm] = useState(false);
 
   const session = useAuthStore((s) => s.session);
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(1280);
   const navigate = useNavigate();
   
   const produtos = useMemo(() => produtosData?.rows ?? [], [produtosData]);
@@ -320,7 +318,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
-              leftIcon={<RefreshCw className={`w-4 h-4${isRefreshing ? 'animate-spin' : ''}`} />}
+              leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />}
               onClick={handleRefresh}
               loading={isRefreshing}
               className="!rounded-xl"

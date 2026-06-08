@@ -26,16 +26,16 @@ export function EstoqueFilters() {
     <div className="rf-ui-stack">
       <div className="flex items-center justify-between">
         <div className="tabs">
-          <button className={`tb${view === 'posicao' ? 'on' : ''}`} type="button" onClick={() => setView('posicao')}>
+          <button className={`tb ${view === 'posicao' ? 'on' : ''}`} type="button" onClick={() => setView('posicao')}>
             Posição
           </button>
-          <button className={`tb${view === 'historico' ? 'on' : ''}`} type="button" onClick={() => setView('historico')}>
+          <button className={`tb ${view === 'historico' ? 'on' : ''}`} type="button" onClick={() => setView('historico')}>
             Histórico
           </button>
-          <button className={`tb${view === 'cobertura' ? 'on' : ''}`} type="button" onClick={() => setView('cobertura')}>
+          <button className={`tb ${view === 'cobertura' ? 'on' : ''}`} type="button" onClick={() => setView('cobertura')}>
             Cobertura
           </button>
-          <button className={`tb${view === 'sem_movimento' ? 'on' : ''}`} type="button" onClick={() => setView('sem_movimento')}>
+          <button className={`tb ${view === 'sem_movimento' ? 'on' : ''}`} type="button" onClick={() => setView('sem_movimento')}>
             Sem Movimento
           </button>
         </div>

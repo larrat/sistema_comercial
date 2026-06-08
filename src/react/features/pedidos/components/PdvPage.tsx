@@ -829,7 +829,7 @@ export function PdvPage() {
                         <button
                           key={produto.id}
                           type="button"
-                          className={`rf-pdv__suggestion${isActive ? 'is-active' : ''}`}
+                          className={`rf-pdv__suggestion ${isActive ? 'is-active' : ''}`}
                           onMouseEnter={() => setActiveSuggestionIndex(index)}
                           onClick={() => handleSelectProduto(produto)}
                         >
@@ -1007,7 +1007,7 @@ export function PdvPage() {
                   return (
                     <button
                       key={option.value}
-                      className={`rf-pdv__payment-btn rf-pdv-btn-premium${isActive ? 'is-active bg-emerald-500/10 border-emerald-500/30' : ''}`}
+                      className={`rf-pdv__payment-btn rf-pdv-btn-premium ${isActive ? 'is-active bg-emerald-500/10 border-emerald-500/30' : ''}`}
                       type="button"
                       disabled={isDisabled}
                       onClick={() => setPaymentMethod(option.value)}

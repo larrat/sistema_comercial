@@ -23,9 +23,9 @@ export function PedidoTimeline({ events }: PedidoTimelineProps) {
         const hasTime = !!event.timestamp;
 
         return (
-          <div key={event.id} className={`rf-timeline-item${!hasTime ? 'is-pending' : ''}`}>
+          <div key={event.id} className={`rf-timeline-item ${!hasTime ? 'is-pending' : ''}`}>
             <div className="rf-timeline-rail">
-              <div className={`rf-timeline-dot${hasTime ? 'is-done' : ''}`} />
+              <div className={`rf-timeline-dot ${hasTime ? 'is-done' : ''}`} />
               {!isLast && <div className="rf-timeline-line" />}
             </div>
             

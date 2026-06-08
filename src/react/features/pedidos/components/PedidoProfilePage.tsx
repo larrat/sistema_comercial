@@ -325,10 +325,10 @@ export function PedidoProfilePage({
             <span className="rf-kpi-value animate-pulse text-slate-300">...</span>
           ) : (
             <>
-              <span className={`rf-kpi-value${valorEmAberto > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
+              <span className={`rf-kpi-value ${valorEmAberto > 0 ? '!text-amber-400' : '!text-emerald-400'}`}>
                 {formatPedidoCurrency(valorEmAberto)}
               </span>
-              <span className={`rf-kpi-sub${valorEmAberto > 0 ? 'warning' : 'success'}`}>
+              <span className={`rf-kpi-sub ${valorEmAberto > 0 ? 'warning' : 'success'}`}>
                 {financeiro.conta ? (valorEmAberto > 0 ? 'Pendente' : 'Quitado') : 'Sem conta vinculada'}
               </span>
             </>
@@ -342,7 +342,7 @@ export function PedidoProfilePage({
           <button
             key={tab.id}
             onClick={() => setTab(tab.id)}
-            className={`rf-tab-item${activeTab === tab.id ? 'is-active' : ''}`}
+            className={`rf-tab-item ${activeTab === tab.id ? 'is-active' : ''}`}
           >
             {tab.label}
           </button>
@@ -438,7 +438,7 @@ export function PedidoProfilePage({
                   </div>
                   <div className="flex justify-between text-sm border-t border-white/5 pt-2 mt-2">
                     <span className="font-bold text-white">Total em aberto</span>
-                    <span className={`font-bold${valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    <span className={`font-bold ${valorEmAberto > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
                       {formatPedidoCurrency(valorEmAberto)}
                     </span>
                   </div>
