@@ -45,7 +45,7 @@ const produtoSchema = z.object({
   esal: z.string().optional(),
   ecm: z.string().optional(),
   is_sample: z.boolean(),
-  genero: z.enum(['masculino', 'feminino']).nullable().optional(),
+  genero: z.enum(['masculino', 'feminino', 'unissex']).nullable().optional(),
   tamanho: z.string().nullable().optional(),
   foto_url: z.string().nullable().optional(),
   ncm: z.string().min(8, 'NCM deve ter exatamente 8 caracteres.').max(8, 'NCM deve ter exatamente 8 caracteres.').optional().or(z.literal('')),
@@ -356,6 +356,17 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                       <Select label="Unidade de Venda" {...register('un')} options={[{ value: 'un', label: 'Unidade (un)' }, { value: 'pc', label: 'Peça (pc)' }, { value: 'par', label: 'Par' }]} />
                       <Input label="Categoria / Linha" {...register('cat')} placeholder="Ex: Vestuário" />
                     </div>
+                    <div className="pt-4 border-t border-white/5 space-y-3">
+                       <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Gênero do Produto</span>
+                       <div className="flex gap-6 bg-slate-900/30 p-3 rounded-xl border border-white/5 w-fit">
+                         {['masculino', 'feminino', 'unissex'].map(g => (
+                           <label key={g} className="flex items-center gap-2 cursor-pointer group">
+                             <input type="radio" value={g} {...register('genero')} className="w-4 h-4 text-teal-500 bg-slate-900 border-white/10" />
+                             <span className="text-sm font-semibold text-slate-400 group-hover:text-white uppercase transition-colors">{g}</span>
+                           </label>
+                         ))}
+                       </div>
+                    </div>
                   </div>
                 </div>
 
@@ -375,17 +386,6 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                     <div className="flex flex-col gap-4">
                       <label className="text-sm font-medium text-slate-400">Atributos da Variante</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                           <span className="text-[9px] font-bold text-slate-600 uppercase">Gênero</span>
-                           <div className="flex gap-4">
-                             {['masculino', 'feminino'].map(g => (
-                               <label key={g} className="flex items-center gap-2 cursor-pointer group">
-                                 <input type="radio" value={g} {...register('genero')} className="w-4 h-4 text-teal-500 bg-slate-900 border-white/10" />
-                                 <span className="text-xs font-bold text-slate-400 group-hover:text-white uppercase transition-colors">{g}</span>
-                               </label>
-                             ))}
-                           </div>
-                        </div>
                         <div className="space-y-3">
                            <span className="text-[9px] font-bold text-slate-600 uppercase">Grade</span>
                            <div className="flex flex-wrap gap-1.5">

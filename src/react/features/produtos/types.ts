@@ -32,7 +32,7 @@ export type ProdutoFormValues = {
   esal?: string;
   ecm?: string;
   is_sample?: boolean;
-  genero?: 'masculino' | 'feminino' | null;
+  genero?: 'masculino' | 'feminino' | 'unissex' | null;
   tamanho?: string | null;
   foto_url?: string | null;
 };

@@ -94,7 +94,7 @@ export type Produto = {
   custo_marketing_estimado?: number;
   taxa_conversao?: number;
   categoria_marketing?: string;
-  genero?: 'masculino' | 'feminino' | null;
+  genero?: 'masculino' | 'feminino' | 'unissex' | null;
   tamanho?: string | null;
   foto_url?: string | null;
   ncm?: string;
