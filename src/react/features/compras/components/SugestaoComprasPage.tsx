@@ -9,11 +9,12 @@ import {
   EmptyState,
   StatCard
 } from '../../../shared/ui';
-import { Package, ShoppingCart, TrendingDown, AlertCircle } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Package, ShoppingCart, TrendingDown, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { toast } from 'sonner';
 
 type SugestaoCompra = {
   produto_id: string;
@@ -44,6 +45,33 @@ export function SugestaoComprasPage() {
       return (await res.json()) as SugestaoCompra[];
     },
     enabled: !!token
+  });
+
+  const { mutate: gerarPedido, isPending: gerandoPedido, data: pedidoGerado } = useMutation({
+    mutationFn: async (apenasUrgentes: boolean) => {
+      if (!token || !filialId) throw new Error('Sem contexto de filial');
+      const { url, key } = getSupabaseConfig();
+      const res = await fetch(`${url}/rest/v1/rpc/rpc_gerar_pedido_compra_sugestao`, {
+        method: 'POST',
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ p_filial_id: filialId, p_apenas_urgentes: apenasUrgentes })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { message?: string }).message || 'Falha ao gerar pedido');
+      }
+      return await res.json() as { ok: boolean; pedido_id: string; itens_gerados: number };
+    },
+    onSuccess: (result) => {
+      toast.success(`Pedido de compra criado com ${result.itens_gerados} itens! ID: ${result.pedido_id}`);
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'Erro ao gerar pedido de compra');
+    },
   });
 
   const filteredData = useMemo(() => {
@@ -80,9 +108,32 @@ export function SugestaoComprasPage() {
         title="Stock AI: Sugestões"
         description="Análise automática de giro e previsão de ruptura baseada nos últimos 90 dias."
         actions={
-          <Button variant="primary" leftIcon={<ShoppingCart className="w-4 h-4" />}>
-            Gerar Pedido em Massa
-          </Button>
+          <div className="flex items-center gap-2">
+            {pedidoGerado && (
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                <CheckCircle2 size={14} />
+                {pedidoGerado.itens_gerados} itens criados
+              </div>
+            )}
+            <Button
+              variant="secondary"
+              leftIcon={<ShoppingCart className="w-4 h-4" />}
+              loading={gerandoPedido}
+              onClick={() => gerarPedido(true)}
+              title="Gerar pedido apenas com itens críticos (urgente)"
+            >
+              Só Urgentes
+            </Button>
+            <Button
+              variant="primary"
+              leftIcon={<ShoppingCart className="w-4 h-4" />}
+              loading={gerandoPedido}
+              onClick={() => gerarPedido(false)}
+              title="Gerar pedido com todos os itens (urgente + atenção)"
+            >
+              Gerar Pedido em Massa
+            </Button>
+          </div>
         }
       />
 
