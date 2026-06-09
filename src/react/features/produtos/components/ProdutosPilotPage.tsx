@@ -80,7 +80,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
 
   const { data: categorias = [] } = useCategoriasQuery();
   const { data: parentProdutos = [] } = usePaisQuery();
-  const { save: saveMutation, remove: deleteMutation } = useProdutoMutations();
+  const { save: saveMutation, saveGrade, remove: deleteMutation } = useProdutoMutations();
 
   const [visao, setVisao] = useState<'lista' | 'galeria'>('lista');
   const [modal, setModal] = useState<Modal>({ tipo: 'none' });
@@ -167,48 +167,22 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
     const existing = modal.tipo === 'form' ? modal.produto : null;
     const parent = formValuesToProduto(values, filialId, existing);
     
-    // Lista de produtos a serem salvos (Pai + Filhos)
-    const payload: Produto[] = [parent];
-    
     const hasGrade = grade && grade.length > 0;
     const hasCores = cores && cores.length > 0;
 
     if (hasGrade || hasCores) {
-      const activeCores = hasCores ? cores : [null];
-      const activeSizes = hasGrade ? grade : [null];
-
-      activeCores.forEach(color => {
-        activeSizes.forEach(size => {
-          // Se ambos forem null, é o próprio pai (já está no payload)
-          if (!color && !size) return;
-
-          const nameParts = [parent.nome.trim()];
-          if (color) nameParts.push(color);
-          if (size) nameParts.push(size);
-          
-          const skuParts = [parent.sku?.trim() || 'PROD'];
-          if (color) skuParts.push(color.toUpperCase().slice(0, 3));
-          if (size) skuParts.push(size);
-
-          payload.push({
-            ...parent,
-            id: crypto.randomUUID(),
-            produto_pai_id: parent.id,
-            nome: nameParts.join(' - '),
-            sku: skuParts.join('-'),
-            tamanho: size,
-            esal: 0
-          });
-        });
+      saveGrade.mutate({ parent, cores: cores || [], tamanhos: grade || [] }, {
+        onSuccess: () => {
+          setModal({ tipo: 'none' });
+        }
+      });
+    } else {
+      saveMutation.mutate([parent] as any, {
+        onSuccess: () => {
+          setModal({ tipo: 'none' });
+        }
       });
     }
-
-    saveMutation.mutate(payload as any, {
-      onSuccess: () => {
-        setModal({ tipo: 'none' });
-        toast.success(payload.length > 1 ? `Produto e ${payload.length - 1} variantes criados!` : 'Produto salvo com sucesso');
-      }
-    });
   }
 
   async function handleRemover(id: string) {

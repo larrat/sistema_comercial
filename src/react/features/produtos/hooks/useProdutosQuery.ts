@@ -16,6 +16,7 @@ import {
   type ProdutoListPageQuery
 } from '../services/produtosApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import type { ProdutoWriteInput } from '../types';
 import type { Produto } from '../../../../types/domain';
 
@@ -145,6 +146,32 @@ export function useProdutoMutations() {
     }
   });
 
+  const saveGrade = useMutation({
+    mutationFn: async ({ parent, cores, tamanhos }: { parent: ProdutoWriteInput; cores: string[]; tamanhos: string[] }) => {
+      if (!context) throw new Error('API context not ready');
+      const { url, key } = getSupabaseConfig();
+      const res = await fetch(`${url}/rest/v1/rpc/rpc_salvar_produto_grade`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${context.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_produto: parent, p_cores: cores, p_tamanhos: tamanhos })
+      });
+      if (!res.ok) throw new Error('Falha ao salvar grade de produtos');
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      queryClient.invalidateQueries({ queryKey: ['produto'] });
+      queryClient.invalidateQueries({ queryKey: ['variantes'] });
+      queryClient.invalidateQueries({ queryKey: ['produtos-pais'] });
+      toast.success(data?.total_inseridos > 1 ? `Produto pai e variantes criados com sucesso!` : 'Produto salvo com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(
+        'Erro ao salvar grade: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+      );
+    }
+  });
+
   const remove = useMutation({
     mutationFn: (id: string) => {
       if (!context) throw new Error('API context not ready');
@@ -187,5 +214,5 @@ export function useProdutoMutations() {
     }
   });
 
-  return { save, remove, cascadeRename, cascadeUpdate };
+  return { save, saveGrade, remove, cascadeRename, cascadeUpdate };
 }

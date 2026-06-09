@@ -6,68 +6,33 @@ import { formatCurrencyBRL } from '../../pedidos/pdv/pdvCart';
 import { useQuery } from '@tanstack/react-query';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { listProdutos } from '../../produtos/services/produtosApi';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 export function MargemTab() {
   const { resolve } = useApiContext();
   const context = resolve();
+  
+  const [sortBy, setSortBy] = useState<'margem' | 'lucro' | 'estoque'>('margem');
 
-  const { data: produtos = [], isLoading } = useQuery({
-    queryKey: ['relatorio-produtos-margem', context?.filialId],
+  const { data: relatorio, isLoading } = useQuery({
+    queryKey: ['relatorio-margem-db', context?.filialId, sortBy],
     queryFn: async () => {
-      if (!context) return [];
-      return listProdutos(context);
+      if (!context) return null;
+      const { url, key } = getSupabaseConfig();
+      const res = await fetch(`${url}/rest/v1/rpc/rpc_relatorio_margem`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${context.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_filial_id: context.filialId, p_sort_by: sortBy })
+      });
+      if (!res.ok) throw new Error('Falha ao carregar relatório de margem');
+      return await res.json();
     },
     enabled: !!context,
     staleTime: 60000
   });
 
-  const [sortBy, setSortBy] = useState<'margem' | 'lucro' | 'estoque'>('margem');
-
-  // Cálculo da Margem (Preço - Custo) / Preço
-  const analiseProdutos = useMemo(() => {
-    return produtos
-      .filter((p) => (p.pfa || 0) > 0 && (p.ecm || p.custo || 0) > 0)
-      .map((p) => {
-        const preco = p.pfa || 0;
-        const custo = p.ecm || p.custo || 0;
-        const lucroLiquido = preco - custo;
-        const margem = (lucroLiquido / preco) * 100;
-        const estoqueReal = p.esal || 0;
-        const potencialLucro = lucroLiquido * estoqueReal;
-
-        return {
-          ...p,
-          preco,
-          custo,
-          lucroLiquido,
-          margem,
-          potencialLucro
-        };
-      })
-      .sort((a, b) => {
-        if (sortBy === 'margem') return b.margem - a.margem;
-        if (sortBy === 'lucro') return b.lucroLiquido - a.lucroLiquido;
-        return (b.esal || 0) - (a.esal || 0);
-      });
-  }, [produtos, sortBy]);
-
-  const totais = useMemo(() => {
-    let custoTotal = 0;
-    let vgvTotal = 0; // Valor Geral de Vendas (Preço * Estoque)
-    let produtosComMargemNegativa = 0;
-
-    analiseProdutos.forEach((p) => {
-      const estoque = Math.max(0, p.esal || 0);
-      custoTotal += p.custo * estoque;
-      vgvTotal += p.preco * estoque;
-      if (p.margem < 0) produtosComMargemNegativa++;
-    });
-
-    const lucroTotal = vgvTotal - custoTotal;
-    const margemMedia = vgvTotal > 0 ? (lucroTotal / vgvTotal) * 100 : 0;
-
-    return { custoTotal, vgvTotal, lucroTotal, margemMedia, produtosComMargemNegativa };
-  }, [analiseProdutos]);
+  const totais = relatorio?.totais;
+  const analiseProdutos = relatorio?.produtos || [];
 
   if (isLoading) {
     return (
@@ -78,7 +43,7 @@ export function MargemTab() {
     );
   }
 
-  if (produtos.length === 0) {
+  if (!totais || analiseProdutos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-slate-500">
         <Package size={32} className="mb-4 opacity-50" />
@@ -109,7 +74,7 @@ export function MargemTab() {
         <Card className="p-5 flex flex-col gap-1">
           <span className="text-sm text-slate-400 font-medium">Itens Analisados</span>
           <span className="text-2xl text-white font-medium tracking-tight">
-            {analiseProdutos.length}
+            {totais.itensAnalisados}
           </span>
           <span className="text-xs text-slate-500 mt-1">Com custo e preço definidos</span>
         </Card>
@@ -196,9 +161,9 @@ export function MargemTab() {
               ))}
             </tbody>
           </table>
-          {analiseProdutos.length > 50 && (
+          {totais.itensAnalisados > 50 && (
             <div className="p-4 text-center text-xs text-slate-500 border-t border-white/5">
-              Mostrando os top 50 itens. Exporte para ver todos os {analiseProdutos.length} produtos.
+              Mostrando os top 50 itens. Exporte para ver todos os {totais.itensAnalisados} produtos.
             </div>
           )}
         </div>
