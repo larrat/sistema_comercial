@@ -66,41 +66,34 @@ export function ImportacaoXmlModal({ isOpen, onClose }: ImportacaoXmlModalProps)
          throw new Error('Nenhum item com código de barras válido encontrado.');
       }
 
-      // Bulk update via Supabase REST (RPC ou match por código de barras)
+      // Bulk update via Supabase RPC em Lote
       const { url, key } = getSupabaseConfig();
       
-      let atualizados = 0;
-      const erros: string[] = [];
+      const res = await fetch(`${url}/rest/v1/rpc/rpc_atualizar_produtos_lote`, {
+        method: 'POST',
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${context.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          p_filial_id: context.filialId,
+          p_payload_jsonb: updates
+        })
+      });
 
-      for (const item of updates) {
-        try {
-          const res = await fetch(`${url}/rest/v1/produtos?codigo_barras=eq.${encodeURIComponent(item.cEAN)}&filial_id=eq.${context.filialId}`, {
-            method: 'PATCH',
-            headers: {
-              apikey: key,
-              Authorization: `Bearer ${context.token}`,
-              'Content-Type': 'application/json',
-              Prefer: 'return=minimal'
-            },
-            body: JSON.stringify({
-              ncm: item.ncm || null,
-              cest: item.cest || null,
-              custo: parseFloat(item.vUnCom) || 0
-            })
-          });
-
-          if (res.ok) {
-            atualizados++;
-          } else {
-            erros.push(`Falha ao atualizar produto ${item.cEAN}`);
-          }
-        } catch (err) {
-          erros.push(`Erro de rede no produto ${item.cEAN}`);
-        }
+      if (!res.ok) {
+        throw new Error(`Erro na API (${res.status}) ao processar XML em lote.`);
       }
 
-      setResults({ totais: updates.length, atualizados, erros });
-      toast.success('XML processado com sucesso!');
+      const body = await res.json();
+
+      setResults({ 
+        totais: updates.length, 
+        atualizados: body.atualizados || 0, 
+        erros: [] 
+      });
+      toast.success('XML processado com sucesso em lote!');
 
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao processar arquivo XML.');

@@ -485,71 +485,22 @@ export async function savePedido(
   context: PedidoApiContext,
   input: PedidoSaveInput
 ): Promise<Pedido> {
-  let num = input.num;
-  if (num === undefined || num === null || Number.isNaN(Number(num)) || Number(num) <= 0) {
-    num = await getNextPedidoNumber(context);
-  } else {
-    num = Number(num);
-  }
+  const payload = { ...input };
 
-  // Enriquecer itens com dados do Motor Tributário antes de salvar
-  let enrichedItens = [...input.itens];
   try {
-    enrichedItens = await Promise.all(
-      input.itens.map(async (item) => {
-        try {
-          const res = await fetch(`${context.url}/rest/v1/rpc/calcular_tributos_item`, {
-            method: 'POST',
-            headers: createHeaders(context.key, context.token),
-            body: JSON.stringify({
-              p_filial_id: input.filial_id,
-              p_cliente_id: input.cliente_id || null,
-              p_produto_id: item.prodId,
-              p_qty: item.qty,
-              p_preco_unitario: item.preco,
-              p_tipo_operacao: 'venda'
-            }),
-            signal: AbortSignal.timeout(5000)
-          });
-          if (res.ok) {
-            const tributos = await readJson(res);
-            return { ...item, tributos } as PedidoItem;
-          }
-        } catch (err) {
-          console.warn(`[pedidos] Falha ao calcular tributos para o item ${item.prodId}`, err);
-        }
-        return item;
-      })
-    );
-  } catch (error) {
-    console.warn('[pedidos] Erro ao enriquecer itens com motor tributário', error);
-  }
-
-  // Agregado legado mantido ate o dual-write do PDV na Fase 5.
-  // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
-  const payload = { ...input, num, itens: enrichedItens };
-  try {
-    const res = await fetch(`${context.url}/rest/v1/pedidos`, {
+    const res = await fetch(`${context.url}/rest/v1/rpc/rpc_salvar_pedido_pdv`, {
       method: 'POST',
       headers: {
         ...createHeaders(context.key, context.token),
-        Prefer: 'resolution=merge-duplicates,return=representation'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(12000)
+      body: JSON.stringify({ p_payload: payload }),
+      signal: AbortSignal.timeout(15000)
     });
     const body = await readJson(res);
-    ensureOk(res, body, `Erro ${res.status} ao salvar pedido`);
+    ensureOk(res, body, `Erro ${res.status} ao salvar pedido via RPC`);
 
-    const saved = (Array.isArray(body) ? body[0] : body) as Pedido;
-
-    if (input.origem_venda === 'pdv' && isPedidoItensDualWriteEnabled()) {
-      try {
-        await upsertPedidoItensNormalizados(context, input);
-      } catch (error) {
-        console.warn('[pedidos] dual-write do PDV falhou; a venda segue gravada no agregado.', error);
-      }
-    }
+    const saved = body as Pedido;
 
     if (saved) {
       logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
@@ -567,32 +518,32 @@ export async function savePedido(
 
     console.warn('[pedidos] Schema cache desatualizado ou colunas de custos ausentes. Salvando no modo compatível.');
 
-    // Fallback: Remover colunas novas do payload e embutir em obs
+    // Fallback para caso a RPC não tenha sido aplicada ainda ou colunas faltantes
     const { custo_frete, outros_custos, ...fallbackPayload } = payload;
     const fallbackObs = [
       payload.obs,
       typeof custo_frete === 'number' ? `[Custo Frete: R$ ${custo_frete.toFixed(2)}]` : '',
       typeof outros_custos === 'number' ? `[Outros Custos: R$ ${outros_custos.toFixed(2)}]` : ''
-    ]
-      .filter(Boolean)
-      .join('\n');
+    ].filter(Boolean).join('\n');
 
-    const res = await fetch(`${context.url}/rest/v1/pedidos`, {
+    const res = await fetch(`${context.url}/rest/v1/rpc/rpc_salvar_pedido_pdv`, {
       method: 'POST',
       headers: {
         ...createHeaders(context.key, context.token),
-        Prefer: 'resolution=merge-duplicates,return=representation'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        ...fallbackPayload,
-        obs: fallbackObs
+      body: JSON.stringify({ 
+        p_payload: {
+          ...fallbackPayload,
+          obs: fallbackObs
+        }
       }),
-      signal: AbortSignal.timeout(12000)
+      signal: AbortSignal.timeout(15000)
     });
     const body = await readJson(res);
-    ensureOk(res, body, `Erro ${res.status} ao salvar pedido (modo compatibilidade)`);
+    ensureOk(res, body, `Erro ${res.status} ao salvar pedido (modo compatibilidade) via RPC`);
 
-    const saved = (Array.isArray(body) ? body[0] : body) as Pedido;
+    const saved = body as Pedido;
 
     if (saved) {
       logAudit(context.token, 'pedidos', saved.id, input.id ? 'UPDATE' : 'INSERT', saved);
