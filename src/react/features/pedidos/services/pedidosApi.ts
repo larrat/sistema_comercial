@@ -492,9 +492,42 @@ export async function savePedido(
     num = Number(num);
   }
 
+  // Enriquecer itens com dados do Motor Tributário antes de salvar
+  let enrichedItens = [...input.itens];
+  try {
+    enrichedItens = await Promise.all(
+      input.itens.map(async (item) => {
+        try {
+          const res = await fetch(`${context.url}/rest/v1/rpc/calcular_tributos_item`, {
+            method: 'POST',
+            headers: createHeaders(context.key, context.token),
+            body: JSON.stringify({
+              p_filial_id: input.filial_id,
+              p_cliente_id: input.cliente_id || null,
+              p_produto_id: item.prodId,
+              p_qty: item.qty,
+              p_preco_unitario: item.preco,
+              p_tipo_operacao: 'venda'
+            }),
+            signal: AbortSignal.timeout(5000)
+          });
+          if (res.ok) {
+            const tributos = await readJson(res);
+            return { ...item, tributos } as PedidoItem;
+          }
+        } catch (err) {
+          console.warn(`[pedidos] Falha ao calcular tributos para o item ${item.prodId}`, err);
+        }
+        return item;
+      })
+    );
+  } catch (error) {
+    console.warn('[pedidos] Erro ao enriquecer itens com motor tributário', error);
+  }
+
   // Agregado legado mantido ate o dual-write do PDV na Fase 5.
   // Leituras novas preferem pedido_itens quando a tabela ja existe e tem dados.
-  const payload = { ...input, num, itens: input.itens };
+  const payload = { ...input, num, itens: enrichedItens };
   try {
     const res = await fetch(`${context.url}/rest/v1/pedidos`, {
       method: 'POST',

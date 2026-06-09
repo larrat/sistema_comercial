@@ -205,6 +205,7 @@ export type PedidoItem = {
   preco_base?: number;
   orig: string;
   sku?: string;
+  tributos?: Record<string, unknown>;
 };
 
 export type Pedido = {

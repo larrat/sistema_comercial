@@ -1,6 +1,9 @@
 import { fmtBRL } from '../../../shared/lib/formatters';
 import { useMemo } from 'react';
 import { useDashboardStore } from '../store/useDashboardStore';
+import { useQuery } from '@tanstack/react-query';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import type { PedidoItem } from '../../../../types/domain';
 
 export type AlertTone = 'warning' | 'danger';
@@ -19,6 +22,23 @@ const fmt = (v: number) => fmtBRL(v || 0);
 
 export function useGlobalAlerts() {
   const { pedidos, produtos, clientes, contasReceber, filial } = useDashboardStore();
+  const { token, resolve } = useApiContext();
+  const context = resolve();
+
+  const { data: dbAlerts = [] } = useQuery({
+    queryKey: ['alertas-sistema', context?.filialId],
+    queryFn: async () => {
+      if (!context) return [];
+      const { url, key } = getSupabaseConfig();
+      const res = await fetch(`${url}/rest/v1/alertas_sistema?filial_id=eq.${context.filialId}&resolvido=eq.false&order=criado_em.desc`, {
+        headers: { apikey: key, Authorization: `Bearer ${context.token}` }
+      });
+      if (!res.ok) return [];
+      return await res.json() as any[];
+    },
+    enabled: !!context,
+    refetchInterval: 60000
+  });
 
   const alerts = useMemo(() => {
     const list: DashboardAlert[] = [];
@@ -88,8 +108,20 @@ export function useGlobalAlerts() {
       });
     }
 
+    // Mix dbAlerts from PostgreSQL (e.g. Alertas de Estoque Crítico)
+    dbAlerts.forEach(dbAlert => {
+      list.push({
+        id: dbAlert.id,
+        title: dbAlert.titulo,
+        desc: dbAlert.mensagem,
+        link: dbAlert.entidade_tipo === 'produto' ? `/app/produtos/${dbAlert.entidade_id}` : '/app/dashboard',
+        tone: dbAlert.prioridade === 'critico' ? 'danger' : 'warning',
+        isPredictive: false
+      });
+    });
+
     return list;
-  }, [pedidos, produtos, clientes, contasReceber, filial]);
+  }, [pedidos, produtos, clientes, contasReceber, filial, dbAlerts]);
 
   return { alerts, total: alerts.length };
 }
