@@ -43,6 +43,7 @@ const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/Port
 const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObraPage').then(m => ({ default: m.PortalObraPage })));
 const PortalPropostaPage = lazy(() => import('../../features/portal/pages/PortalPropostaPage').then(m => ({ default: m.PortalPropostaPage })));
 const FiscalSetupRoutePage = lazy(() => import('../../features/setup/pages/FiscalSetupRoutePage').then(m => ({ default: m.FiscalSetupRoutePage })));
+const LevantamentoPage = lazy(() => import('../../features/arquitetura/components/LevantamentoPage').then(m => ({ default: m.LevantamentoPage })));
 
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
@@ -108,6 +109,7 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="orcamentos/:id/imprimir" element={<OrcamentoPrintRoutePage />} />
               <Route path="contratos" element={<ContratosPage />} />
               <Route path="contratos/:id" element={<ContratoProfilePage />} />
+              <Route path="arquitetura/levantamento" element={<LevantamentoPage />} />
             </Route>
 
             {/* Telas Gerenciais (Gerente, Admin) */}

@@ -23,6 +23,7 @@ import {
   ShoppingCart,
   Store,
   Tag,
+  PencilRuler,
   TrendingUp,
   UserCheck,
   Users,
@@ -58,6 +59,7 @@ const iconByPath: Record<string, LucideIcon> = {
   '/app/caixa': DollarSign,
   '/app/compras': ShoppingBag,
   '/app/fiscal': FileText,
+  '/app/arquitetura/levantamento': PencilRuler,
 };
 
 const groupColors: Record<string, string> = {
