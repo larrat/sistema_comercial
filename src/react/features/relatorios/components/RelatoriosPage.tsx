@@ -3,13 +3,15 @@ import { useRelatoriosStore } from '../store/useRelatoriosStore';
 import { OportunidadesTab } from './OportunidadesTab';
 import { PerformanceTab } from './PerformanceTab';
 import { ClientesTab } from './ClientesTab';
+import { MargemTab } from './MargemTab';
 import { ValidacaoModal } from './ValidacaoModal';
 import type { RelatoriosTab } from '../store/useRelatoriosStore';
 
 const TABS: { id: RelatoriosTab; label: string }[] = [
   { id: 'oportunidades', label: 'Oportunidades por jogos' },
   { id: 'performance', label: 'Performance comercial' },
-  { id: 'clientes', label: 'Base de clientes' }
+  { id: 'clientes', label: 'Base de clientes' },
+  { id: 'margem', label: 'Margem e Lucratividade' }
 ];
 
 export function RelatoriosPilotPage() {
@@ -41,6 +43,7 @@ export function RelatoriosPilotPage() {
       {!loading && activeTab === 'oportunidades' && <OportunidadesTab />}
       {!loading && activeTab === 'performance' && <PerformanceTab />}
       {!loading && activeTab === 'clientes' && <ClientesTab />}
+      {!loading && activeTab === 'margem' && <MargemTab />}
 
       <ValidacaoModal />
     </div>

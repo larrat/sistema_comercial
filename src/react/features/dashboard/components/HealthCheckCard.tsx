@@ -2,7 +2,9 @@ import React from 'react';
 import { Activity, AlertTriangle, CheckCircle2, Search } from 'lucide-react';
 import { Button, Badge } from '../../../shared/ui';
 
-import { useDashboardStore } from '../store/useDashboardStore';
+import { useQuery } from '@tanstack/react-query';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { getSupabaseConfig } from '../../../app/supabaseConfig';
 
 type Issue = {
   id: string;
@@ -12,35 +14,31 @@ type Issue = {
 };
 
 export function HealthCheckCard() {
-  const { produtos, clientes, pedidos } = useDashboardStore();
+  const { resolve } = useApiContext();
+  const context = resolve();
 
-  const prodSemCat = produtos.filter(p => !p.cat && !p.categoria).length;
-  const cliSemContato = clientes.filter(c => !c.whatsapp && !c.email).length;
-  
-  const seteDiasAtras = new Date();
-  seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
-  const pedPendentes = pedidos.filter(p => {
-    const isPendente = ['orcamento', 'em_andamento', 'em_separacao'].includes(p.status);
-    const date = new Date(p.data || new Date());
-    return isPendente && date < seteDiasAtras;
-  }).length;
+  const { data: issues = [], refetch, isFetching } = useQuery({
+    queryKey: ['auditoria-sistema', context?.filialId],
+    queryFn: async () => {
+      if (!context) return [];
+      const { url, key } = getSupabaseConfig();
+      const res = await fetch(`${url}/rest/v1/rpc/rpc_auditoria_sistema`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${context.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_filial_id: context.filialId })
+      });
+      if (!res.ok) return [];
+      return await res.json() as Issue[];
+    },
+    enabled: !!context,
+    refetchOnWindowFocus: false
+  });
 
-  const issues: Issue[] = [];
-  if (prodSemCat > 0) {
-    issues.push({ id: '1', type: 'warning', title: 'Produtos sem Categoria', description: `${prodSemCat} itens no catálogo não possuem categoria definida.` });
-  }
-  if (cliSemContato > 0) {
-    issues.push({ id: '2', type: 'warning', title: 'Clientes sem Contato', description: `${cliSemContato} cadastros não possuem WhatsApp ou Email.` });
-  }
-  if (pedPendentes > 0) {
-    issues.push({ id: '3', type: 'error', title: 'Pedidos Estagnados', description: `${pedPendentes} pedidos abertos há mais de 7 dias.` });
-  }
+  const displayIssues = issues.length > 0 
+    ? issues 
+    : [{ id: 'ok', type: 'warning' as const, title: 'Tudo Certo', description: 'Nenhum problema detectado na base de dados.' }];
 
-  if (issues.length === 0) {
-    issues.push({ id: 'ok', type: 'warning', title: 'Tudo Certo', description: 'Nenhum problema detectado na base de dados.' });
-  }
-
-  const hasCritical = issues.some(i => i.type === 'error');
+  const hasCritical = displayIssues.some(i => i.type === 'error');
 
   return (
     <div className="flex flex-col h-full">
@@ -55,9 +53,9 @@ export function HealthCheckCard() {
       </div>
 
       <div className="flex-1 space-y-3">
-        {issues.map(issue => (
+        {displayIssues.map(issue => (
           <div key={issue.id} className="flex gap-3 items-start p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-            <div className={`mt-0.5${issue.type === 'error' ? 'text-rose-500' : 'text-amber-500'}`}>
+            <div className={`mt-0.5 ${issue.type === 'error' ? 'text-rose-500' : 'text-amber-500'}`}>
               <AlertTriangle size={14} />
             </div>
             <div className="flex-1 min-w-0">
@@ -68,8 +66,12 @@ export function HealthCheckCard() {
         ))}
       </div>
 
-      <button className="mt-4 w-full py-2 hover:text-teal-400 transition-colors border-t border-white/5 pt-4 text-sm font-medium text-slate-400">
-        Executar Auditoria
+      <button 
+        onClick={() => refetch()}
+        disabled={isFetching}
+        className="mt-4 w-full py-2 hover:text-teal-400 transition-colors border-t border-white/5 pt-4 text-sm font-medium text-slate-400 disabled:opacity-50"
+      >
+        {isFetching ? 'Verificando...' : 'Executar Auditoria'}
       </button>
     </div>
   );

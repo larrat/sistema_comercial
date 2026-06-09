@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { JogoAgenda, Cliente, Pedido, OportunidadeJogo } from '../../../../types/domain';
 
-export type RelatoriosTab = 'oportunidades' | 'performance' | 'clientes';
+export type RelatoriosTab = 'oportunidades' | 'performance' | 'clientes' | 'margem';
 
 type RelatoriosState = {
   activeTab: RelatoriosTab;

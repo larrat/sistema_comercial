@@ -13,6 +13,7 @@ import { ProdutoMetrics } from './ProdutoMetrics';
 import { ProdutoListMobile, ProdutoListView } from './ProdutoListView';
 import { ProdutoForm } from './ProdutoForm';
 import { ProdutoDeleteConfirmModal } from './ProdutoDeleteConfirmModal';
+import { ImportacaoXmlModal } from './ImportacaoXmlModal';
 import {
 
   ErrorState,
@@ -25,7 +26,7 @@ import {
   SkeletonList,
   ConfirmModal
 } from '../../../shared/ui';
-import { Wrench, Loader2, Zap, RefreshCw } from 'lucide-react';
+import { Wrench, Loader2, Zap, RefreshCw, FileText } from 'lucide-react';
 import { listProdutos, saveProduto } from '../services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { useAuthStore } from '../../../app/useAuthStore';
@@ -82,11 +83,12 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const { save: saveMutation, remove: deleteMutation } = useProdutoMutations();
 
   const [visao, setVisao] = useState<'lista' | 'galeria'>('lista');
+  const [modal, setModal] = useState<Modal>({ tipo: 'none' });
+  const [xmlModalOpen, setXmlModalOpen] = useState(false);
   const [filtroEstoque, setFiltroEstoque] = useState<'todos' | 'estoque' | 'zerados'>('todos');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filialId = useFilialStore((s) => s.filialId) ?? '';
-  const [modal, setModal] = useState<Modal>({ tipo: 'none' });
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [sanitizing, setSanitizing] = useState(false);
   const [sanitizingProgress, setSanitizingProgress] = useState(0);
@@ -316,6 +318,14 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="!px-3 text-slate-400 hover:text-emerald-400"
+              onClick={() => setXmlModalOpen(true)}
+              title="Importar XML NF-e"
+            >
+              <FileText size={16} />
+            </Button>
             <Button
               variant="secondary"
               leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />}
