@@ -4,11 +4,18 @@ export interface WallSegment {
   length: number;
 }
 
+export interface PointOfInterest {
+  id: string;
+  type: 'tomada_baixa' | 'tomada_media' | 'tomada_alta' | 'interruptor';
+  distanceFromStart: number;
+}
+
 export interface Wall {
   id: string;
   name: string;
   totalLength: number;
   segments: WallSegment[];
+  points: PointOfInterest[];
 }
 
 export interface Room {
@@ -27,8 +34,18 @@ export function generateDXF(room: Room): string {
     dxf += `0\nLINE\n8\n${layer}\n62\n${color}\n10\n${x1}\n20\n${y1}\n11\n${x2}\n21\n${y2}\n`;
   };
 
-  const addText = (text: string, x: number, y: number, height: number = 0.2) => {
-    dxf += `0\nTEXT\n8\nTEXTOS\n10\n${x}\n20\n${y}\n40\n${height}\n1\n${text}\n`;
+  const addText = (text: string, x: number, y: number, height: number = 0.2, layer: string = 'TEXTOS', color: number = 7) => {
+    dxf += `0\nTEXT\n8\n${layer}\n62\n${color}\n10\n${x}\n20\n${y}\n40\n${height}\n1\n${text}\n`;
+  }
+
+  // Draw circle for electrical points
+  const addCircle = (x: number, y: number, radius: number = 0.1, layer: string = 'ELETRICA', color: number = 2) => {
+    dxf += `0\nCIRCLE\n8\n${layer}\n62\n${color}\n10\n${x}\n20\n${y}\n40\n${radius}\n`;
+  }
+
+  const drawPOI = (poi: PointOfInterest, x: number, y: number) => {
+    addCircle(x, y);
+    addText(poi.type.split('_').join(' ').toUpperCase(), x + 0.15, y, 0.1, 'ELETRICA', 2);
   }
 
   // Draw the main room box (Width x Length)
@@ -55,6 +72,9 @@ export function generateDXF(room: Room): string {
     }
     currentX = nextX;
   }
+  for (const poi of room.walls.top.segments.length > 0 ? room.walls.top.points : []) {
+    drawPOI(poi, poi.distanceFromStart, l);
+  }
   // Draw remaining if segments don't fill
   if (currentX < w) addLine(currentX, l, w, l, 'PAREDES_ERRO', 1);
 
@@ -67,6 +87,9 @@ export function generateDXF(room: Room): string {
     else if (seg.type === 'porta') addLine(w, currentY, w, nextY, 'PORTAS', 1);
     currentY = nextY;
   }
+  for (const poi of room.walls.right.segments.length > 0 ? room.walls.right.points : []) {
+    drawPOI(poi, w, l - poi.distanceFromStart);
+  }
   if (currentY > 0) addLine(w, currentY, w, 0, 'PAREDES_ERRO', 1);
 
   // Bottom Wall (Y = 0, X from w down to 0)
@@ -78,6 +101,9 @@ export function generateDXF(room: Room): string {
     else if (seg.type === 'porta') addLine(currentX, 0, nextX, 0, 'PORTAS', 1);
     currentX = nextX;
   }
+  for (const poi of room.walls.bottom.segments.length > 0 ? room.walls.bottom.points : []) {
+    drawPOI(poi, w - poi.distanceFromStart, 0);
+  }
   if (currentX > 0) addLine(currentX, 0, 0, 0, 'PAREDES_ERRO', 1);
 
   // Left Wall (X = 0, Y from 0 up to l)
@@ -88,6 +114,9 @@ export function generateDXF(room: Room): string {
     else if (seg.type === 'janela') addLine(0, currentY, 0, nextY, 'JANELAS', 3);
     else if (seg.type === 'porta') addLine(0, currentY, 0, nextY, 'PORTAS', 1);
     currentY = nextY;
+  }
+  for (const poi of room.walls.left.segments.length > 0 ? room.walls.left.points : []) {
+    drawPOI(poi, 0, poi.distanceFromStart);
   }
   if (currentY < l) addLine(0, currentY, 0, l, 'PAREDES_ERRO', 1);
 

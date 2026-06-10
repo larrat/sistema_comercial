@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Button, Input } from '../../../shared/ui';
 import { Download, AlertTriangle, CheckCircle, PencilRuler, Square, LayoutTemplate, Layers } from 'lucide-react';
 import { downloadDXF } from '../lib/dxfExport';
-import type { Room, WallSegment, Wall } from '../lib/dxfExport';
+import type { Room, WallSegment, Wall, PointOfInterest } from '../lib/dxfExport';
 import { toast } from 'sonner';
 
 export function LevantamentoPage() {
@@ -12,10 +12,10 @@ export function LevantamentoPage() {
     length: 4.81,
     height: 2.75,
     walls: {
-      top: { id: 'top', name: 'Parede Superior', totalLength: 3.20, segments: [] },
-      right: { id: 'right', name: 'Parede Direita', totalLength: 4.81, segments: [] },
-      bottom: { id: 'bottom', name: 'Parede Inferior', totalLength: 3.20, segments: [] },
-      left: { id: 'left', name: 'Parede Esquerda', totalLength: 4.81, segments: [] },
+      top: { id: 'top', name: 'Parede Superior', totalLength: 3.20, segments: [], points: [] },
+      right: { id: 'right', name: 'Parede Direita', totalLength: 4.81, segments: [], points: [] },
+      bottom: { id: 'bottom', name: 'Parede Inferior', totalLength: 3.20, segments: [], points: [] },
+      left: { id: 'left', name: 'Parede Esquerda', totalLength: 4.81, segments: [], points: [] },
     }
   });
 
@@ -87,6 +87,54 @@ export function LevantamentoPage() {
     });
   };
 
+  const addPoint = (type: PointOfInterest['type']) => {
+    setRoom(prev => {
+      const wall = prev.walls[activeWall];
+      return {
+        ...prev,
+        walls: {
+          ...prev.walls,
+          [activeWall]: {
+            ...wall,
+            points: [...wall.points, { id: crypto.randomUUID(), type, distanceFromStart: 0 }]
+          }
+        }
+      };
+    });
+  };
+
+  const updatePoint = (id: string, distanceFromStart: number) => {
+    setRoom(prev => {
+      const wall = prev.walls[activeWall];
+      return {
+        ...prev,
+        walls: {
+          ...prev.walls,
+          [activeWall]: {
+            ...wall,
+            points: wall.points.map(p => p.id === id ? { ...p, distanceFromStart } : p)
+          }
+        }
+      };
+    });
+  };
+
+  const removePoint = (id: string) => {
+    setRoom(prev => {
+      const wall = prev.walls[activeWall];
+      return {
+        ...prev,
+        walls: {
+          ...prev.walls,
+          [activeWall]: {
+            ...wall,
+            points: wall.points.filter(p => p.id !== id)
+          }
+        }
+      };
+    });
+  };
+
   const currentWall = room.walls[activeWall];
   const currentSum = currentWall.segments.reduce((acc, s) => acc + s.length, 0);
   const diff = currentWall.totalLength - currentSum;
@@ -135,6 +183,19 @@ export function LevantamentoPage() {
             <span className="text-rose-400 text-[10px] font-bold">-{diff.toFixed(2)}m</span>
           </div>
         )}
+
+        {/* Draw Electrical Points as absolute positioned yellow dots */}
+        {currentWall.points.map(poi => {
+          const leftPerc = (poi.distanceFromStart / currentWall.totalLength) * 100;
+          return (
+            <div 
+              key={poi.id}
+              className="absolute w-3 h-3 bg-amber-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)] border border-amber-200 z-20"
+              style={{ left: `calc(${leftPerc}% - 6px)`, top: '50%', transform: 'translateY(-50%)' }}
+              title={poi.type}
+            />
+          );
+        })}
       </div>
     );
   };
@@ -304,6 +365,57 @@ export function LevantamentoPage() {
                         />
                       </div>
                       <button onClick={() => removeSegment(seg.id)} className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors">
+                        X
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Inserção de Pontos Elétricos */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-6 shadow-xl">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
+                  <span className="text-amber-500 font-bold text-lg leading-none">⚡</span>
+                </div>
+                <h3 className="text-lg font-bold text-white">Elétrica e Lógica</h3>
+              </div>
+              <p className="text-sm text-slate-500 mb-6">Pontos de interesse não consomem espaço da parede. Eles são alocados a uma distância específica do canto inicial.</p>
+              
+              <div className="flex gap-3 mb-6">
+                <button onClick={() => addPoint('tomada_baixa')} className="flex-1 py-2.5 bg-amber-950/20 hover:bg-amber-900/40 border border-amber-800/30 rounded-xl text-xs font-bold text-amber-400 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.05)]">+ Tomada Baixa</button>
+                <button onClick={() => addPoint('tomada_media')} className="flex-1 py-2.5 bg-amber-950/20 hover:bg-amber-900/40 border border-amber-800/30 rounded-xl text-xs font-bold text-amber-400 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.05)]">+ Tomada Média</button>
+                <button onClick={() => addPoint('tomada_alta')} className="flex-1 py-2.5 bg-amber-950/20 hover:bg-amber-900/40 border border-amber-800/30 rounded-xl text-xs font-bold text-amber-400 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.05)]">+ Tomada Alta</button>
+                <button onClick={() => addPoint('interruptor')} className="flex-1 py-2.5 bg-amber-950/20 hover:bg-amber-900/40 border border-amber-800/30 rounded-xl text-xs font-bold text-amber-400 transition-colors shadow-[0_0_10px_rgba(251,191,36,0.05)]">+ Interruptor</button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {currentWall.points.length === 0 ? (
+                  <div className="text-center py-6 text-slate-600 border border-dashed border-white/10 rounded-xl font-medium text-sm">
+                    Nenhum ponto elétrico nesta parede.
+                  </div>
+                ) : (
+                  currentWall.points.map((poi, idx) => (
+                    <div key={poi.id} className="flex items-center gap-4 bg-amber-500/5 p-2.5 rounded-xl border border-amber-500/10">
+                      <div className="w-8 h-8 rounded-lg bg-amber-950/50 flex items-center justify-center text-xs font-bold text-amber-500 shadow-inner">
+                        {idx + 1}
+                      </div>
+                      <div className="w-32 capitalize text-sm font-bold flex items-center gap-2 text-amber-400">
+                        {poi.type.replace('_', ' ')}
+                      </div>
+                      <div className="flex-1 flex items-center gap-3">
+                        <span className="text-xs text-slate-400 font-medium">Distância do Início:</span>
+                        <input 
+                          type="number" 
+                          step="0.01" 
+                          value={poi.distanceFromStart || ''} 
+                          onChange={(e) => updatePoint(poi.id, parseFloat(e.target.value) || 0)}
+                          placeholder="0.00 m"
+                          className="w-32 bg-slate-900/80 border border-amber-500/20 rounded-lg px-4 py-2 text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20"
+                        />
+                      </div>
+                      <button onClick={() => removePoint(poi.id)} className="w-10 h-10 flex items-center justify-center rounded-lg text-amber-600/50 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
                         X
                       </button>
                     </div>
