@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button, LoadingState, ErrorState } from '../../../shared/ui';
-import { Briefcase, MapPin, Plus, FileText, ShoppingCart, PencilRuler, ArrowLeft, MoreVertical, LayoutTemplate } from 'lucide-react';
+import { Briefcase, MapPin, Plus, FileText, ShoppingCart, PencilRuler, ArrowLeft, LayoutTemplate, User, Search, X } from 'lucide-react';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { getProjeto, saveProjeto, getProjetoLevantamentos, getProjetoPedidos } from '../services/projetosApi';
+import { listClientes } from '../../clientes/services/clientesApi';
 import { format } from 'date-fns';
-import type { Projeto } from '../../../../types/domain';
+import type { Projeto, Cliente } from '../../../../types/domain';
 import { toast } from 'sonner';
 
 export function ProjetoProfilePage() {
@@ -42,14 +43,52 @@ export function ProjetoProfilePage() {
     endereco: { logradouro: '', numero: '', cidade: '' }
   });
 
+  // Cliente search
+  const [clienteSearch, setClienteSearch] = useState('');
+  const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
+  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { data: clientes } = useQuery({
+    queryKey: ['clientes_search', clienteSearch],
+    queryFn: () => listClientes(context!),
+    enabled: !!context && clienteDropdownOpen,
+    staleTime: 30_000
+  });
+
+  const clientesFiltrados = clienteSearch
+    ? (clientes || []).filter(c => c.nome.toLowerCase().includes(clienteSearch.toLowerCase()))
+    : (clientes || []).slice(0, 8);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setClienteDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   useEffect(() => {
     if (projetoOrig) {
       setForm(projetoOrig);
     }
   }, [projetoOrig]);
 
+  // Sync clienteSelecionado when projetoOrig loads with a cliente_id
+  const { data: clienteOriginal } = useQuery({
+    queryKey: ['cliente_by_id', projetoOrig?.cliente_id],
+    queryFn: () => listClientes(context!).then(cs => cs.find(c => c.id === projetoOrig!.cliente_id) ?? null),
+    enabled: !!projetoOrig?.cliente_id && !!context
+  });
+  useEffect(() => {
+    if (clienteOriginal) setClienteSelecionado(clienteOriginal);
+  }, [clienteOriginal]);
+
   const saveMutation = useMutation({
-    mutationFn: () => saveProjeto(context, form),
+    mutationFn: () => saveProjeto(context!, { ...form, cliente_id: clienteSelecionado?.id ?? form.cliente_id }),
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ['projetos'] });
       queryClient.invalidateQueries({ queryKey: ['projeto', saved.id] });
@@ -108,6 +147,54 @@ export function ProjetoProfilePage() {
                 placeholder="Endereço da obra..."
                 className="bg-transparent outline-none w-64 hover:bg-white/5 px-1 rounded transition-colors"
               />
+            </div>
+            {/* Cliente Selector */}
+            <div className="flex items-center gap-2 text-sm mt-2" ref={dropdownRef}>
+              <User size={14} className="text-slate-500 flex-shrink-0" />
+              {clienteSelecionado ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald-400 font-semibold text-sm">{clienteSelecionado.nome}</span>
+                  <button 
+                    onClick={() => { setClienteSelecionado(null); setForm(f => ({ ...f, cliente_id: undefined })); }}
+                    className="w-4 h-4 flex items-center justify-center text-slate-500 hover:text-rose-400 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-lg px-2 py-1 focus-within:border-emerald-500/40 transition-colors">
+                    <Search size={12} className="text-slate-500" />
+                    <input
+                      type="text"
+                      value={clienteSearch}
+                      onChange={(e) => setClienteSearch(e.target.value)}
+                      onFocus={() => setClienteDropdownOpen(true)}
+                      placeholder="Vincular cliente..."
+                      className="bg-transparent outline-none text-xs text-slate-300 placeholder:text-slate-600 w-44"
+                    />
+                  </div>
+                  {clienteDropdownOpen && clientesFiltrados.length > 0 && (
+                    <div className="absolute top-full left-0 mt-1 w-64 bg-slate-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                      {clientesFiltrados.map(c => (
+                        <button
+                          key={c.id}
+                          onMouseDown={(e) => { e.preventDefault(); setClienteSelecionado(c); setForm(f => ({ ...f, cliente_id: c.id })); setClienteDropdownOpen(false); setClienteSearch(''); }}
+                          className="w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-400 flex-shrink-0">
+                            {c.nome.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold leading-none">{c.nome}</p>
+                            {c.cidade && <p className="text-xs text-slate-500 mt-0.5">{c.cidade}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
