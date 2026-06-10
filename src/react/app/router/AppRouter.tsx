@@ -43,7 +43,6 @@ const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/Port
 const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObraPage').then(m => ({ default: m.PortalObraPage })));
 const PortalPropostaPage = lazy(() => import('../../features/portal/pages/PortalPropostaPage').then(m => ({ default: m.PortalPropostaPage })));
 const FiscalSetupRoutePage = lazy(() => import('../../features/setup/pages/FiscalSetupRoutePage').then(m => ({ default: m.FiscalSetupRoutePage })));
-const LevantamentosListPage = lazy(() => import('../../features/arquitetura/pages/LevantamentosListPage').then(m => ({ default: m.LevantamentosListPage })));
 const LevantamentoPage = lazy(() => import('../../features/arquitetura/components/LevantamentoPage').then(m => ({ default: m.LevantamentoPage })));
 const ProjetosListPage = lazy(() => import('../../features/projetos/pages/ProjetosListPage').then(m => ({ default: m.ProjetosListPage })));
 const ProjetoProfilePage = lazy(() => import('../../features/projetos/pages/ProjetoProfilePage').then(m => ({ default: m.ProjetoProfilePage })));

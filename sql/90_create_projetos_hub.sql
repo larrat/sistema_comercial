@@ -16,22 +16,27 @@ create table if not exists public.projetos (
 -- RLS Projetos
 alter table public.projetos enable row level security;
 
+drop policy if exists "Usuários podem ver projetos da sua filial" on public.projetos;
 create policy "Usuários podem ver projetos da sua filial"
     on public.projetos for select
     using (filial_id = (select (auth.jwt() -> 'user_metadata' ->> 'filial_id')));
 
+drop policy if exists "Usuários podem inserir projetos na sua filial" on public.projetos;
 create policy "Usuários podem inserir projetos na sua filial"
     on public.projetos for insert
     with check (filial_id = (select (auth.jwt() -> 'user_metadata' ->> 'filial_id')));
 
+drop policy if exists "Usuários podem atualizar projetos da sua filial" on public.projetos;
 create policy "Usuários podem atualizar projetos da sua filial"
     on public.projetos for update
     using (filial_id = (select (auth.jwt() -> 'user_metadata' ->> 'filial_id')));
 
+drop policy if exists "Usuários podem excluir projetos da sua filial" on public.projetos;
 create policy "Usuários podem excluir projetos da sua filial"
     on public.projetos for delete
     using (filial_id = (select (auth.jwt() -> 'user_metadata' ->> 'filial_id')));
 
+drop trigger if exists handle_updated_at on public.projetos;
 create trigger handle_updated_at before update on public.projetos
   for each row execute procedure public.set_atualizado_em();
 
