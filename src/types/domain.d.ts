@@ -943,3 +943,13 @@ export type NfeDestinada = {
   importado_compra_id?: string | null;
   criado_em: string;
 };
+
+export type LevantamentoArquitetura = {
+  id: Id;
+  nome_projeto: string;
+  cliente_id?: Id | null;
+  dados_cad: unknown;
+  status: 'rascunho' | 'finalizado';
+  criado_em?: string;
+  atualizado_em?: string;
+};

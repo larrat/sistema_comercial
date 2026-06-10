@@ -1,26 +1,94 @@
-import React, { useState } from 'react';
-import { Card, Button, Input } from '../../../shared/ui';
-import { Download, AlertTriangle, CheckCircle, PencilRuler, Square, LayoutTemplate, Layers } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, Button, Input, LoadingState } from '../../../shared/ui';
+import { Download, AlertTriangle, CheckCircle, PencilRuler, Square, LayoutTemplate, Layers, Save, Plus, ArrowLeft } from 'lucide-react';
 import { downloadDXF } from '../lib/dxfExport';
 import type { Room, WallSegment, Wall, PointOfInterest, ElementoInterno } from '../lib/dxfExport';
 import { toast } from 'sonner';
+import { useApiContext } from '../../../shared/hooks/useApiContext';
+import { saveLevantamento, listLevantamentos } from '../services/levantamentosApi';
 
-export function LevantamentoPage() {
-  const [room, setRoom] = useState<Room>({
-    name: 'Cozinha',
-    width: 3.20,
-    length: 4.81,
+function createDefaultRoom(name: string): Room {
+  return {
+    name,
+    width: 3.00,
+    length: 4.00,
     height: 2.75,
     walls: {
-      top: { id: 'top', name: 'Parede Superior', totalLength: 3.20, segments: [], points: [] },
-      right: { id: 'right', name: 'Parede Direita', totalLength: 4.81, segments: [], points: [] },
-      bottom: { id: 'bottom', name: 'Parede Inferior', totalLength: 3.20, segments: [], points: [] },
-      left: { id: 'left', name: 'Parede Esquerda', totalLength: 4.81, segments: [], points: [] },
+      top: { id: 'top', name: 'Parede Superior', totalLength: 3.00, segments: [], points: [] },
+      right: { id: 'right', name: 'Parede Direita', totalLength: 4.00, segments: [], points: [] },
+      bottom: { id: 'bottom', name: 'Parede Inferior', totalLength: 3.00, segments: [], points: [] },
+      left: { id: 'left', name: 'Parede Esquerda', totalLength: 4.00, segments: [], points: [] },
     },
     internalElements: []
+  };
+}
+
+export function LevantamentoPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { resolve } = useApiContext();
+  const context = resolve();
+
+  const isEdit = id && id !== 'novo';
+
+  // Carregar dados se for edição
+  const { data: levantamentos, isLoading } = useQuery({
+    queryKey: ['levantamentos'],
+    queryFn: () => listLevantamentos(context),
+    enabled: !!isEdit
   });
 
+  const projetoSalvo = isEdit ? levantamentos?.find(l => l.id === id) : null;
+
+  const [nomeProjeto, setNomeProjeto] = useState('Novo Projeto');
+  const [rooms, setRooms] = useState<Room[]>([createDefaultRoom('Ambiente 1')]);
+  const [activeRoomIndex, setActiveRoomIndex] = useState(0);
   const [activeWall, setActiveWall] = useState<'top'|'right'|'bottom'|'left'>('top');
+
+  useEffect(() => {
+    if (projetoSalvo) {
+      setNomeProjeto(projetoSalvo.nome_projeto);
+      if (Array.isArray(projetoSalvo.dados_cad) && projetoSalvo.dados_cad.length > 0) {
+        setRooms(projetoSalvo.dados_cad as Room[]);
+      }
+    }
+  }, [projetoSalvo]);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        ...(isEdit ? { id } : {}),
+        nome_projeto: nomeProjeto,
+        dados_cad: rooms,
+        status: 'rascunho' as const
+      };
+      return saveLevantamento(context, payload);
+    },
+    onSuccess: (saved) => {
+      queryClient.invalidateQueries({ queryKey: ['levantamentos'] });
+      toast.success('Projeto salvo com sucesso!');
+      if (!isEdit) {
+        navigate(`/app/arquitetura/levantamento/${saved.id}`, { replace: true });
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao salvar projeto');
+    }
+  });
+
+  const room = rooms[activeRoomIndex];
+  if (!room) return null; // Fallback if out of bounds
+
+  const setRoom = (updater: (prev: Room) => Room) => {
+    setRooms(prev => {
+      const newRooms = [...prev];
+      newRooms[activeRoomIndex] = updater(newRooms[activeRoomIndex]);
+      return newRooms;
+    });
+  };
 
   const updateRoomDimension = (field: 'width' | 'length' | 'height', value: number) => {
     setRoom(prev => {
@@ -166,9 +234,17 @@ export function LevantamentoPage() {
   const isOk = Math.abs(diff) < 0.01;
 
   const handleExport = () => {
-    downloadDXF(room);
+    downloadDXF(rooms, nomeProjeto);
     toast.success('Arquivo DXF gerado com sucesso!');
   };
+
+  const handleAddRoom = () => {
+    setRooms(prev => [...prev, createDefaultRoom(`Ambiente ${prev.length + 1}`)]);
+    setActiveRoomIndex(rooms.length);
+    setActiveWall('top');
+  };
+
+  if (isLoading) return <LoadingState title="Carregando projeto..." />;
 
   const area = (room.width * room.length).toFixed(2);
   const perimeter = ((room.width * 2) + (room.length * 2)).toFixed(2);
@@ -228,18 +304,90 @@ export function LevantamentoPage() {
   return (
     <div className="flex flex-col xl:flex-row h-full min-h-[calc(100vh-100px)] gap-6 p-4 bg-[#020617] text-slate-300 font-sans">
       
-      {/* Coluna Esquerda: Resumo (Estilo Glassmorphism) */}
-      <div className="w-full xl:w-80 flex-shrink-0 flex flex-col gap-6">
-        <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-[2rem] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 flex items-center justify-center border border-cyan-500/30">
-              <Layers className="text-cyan-400" size={20} />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Resumo do Cômodo</p>
-              <h2 className="text-2xl font-bold text-white tracking-tight">{room.name}</h2>
+      {/* Header Superior Principal */}
+      <div className="w-full flex-shrink-0 flex items-center justify-between px-6 py-4 bg-white/[0.02] border-b border-white/[0.05] backdrop-blur-2xl z-10">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/app/arquitetura/levantamento')}
+            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-slate-400 transition-all hover:text-white"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="w-px h-8 bg-white/10 mx-2" />
+          <div className="flex flex-col">
+            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mb-0.5">Nome do Projeto</span>
+            <input 
+              type="text" 
+              value={nomeProjeto} 
+              onChange={(e) => setNomeProjeto(e.target.value)}
+              className="bg-transparent text-xl font-black text-white outline-none border-b border-transparent focus:border-indigo-500/50 transition-colors w-64"
+              placeholder="Ex: Reforma Cozinha..."
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={handleExport}
+            variant="secondary"
+            className="border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10"
+          >
+            <Download size={16} className="mr-2" /> Exportar DXF (Tudo)
+          </Button>
+          <Button 
+            onClick={() => saveMutation.mutate()}
+            disabled={saveMutation.isPending}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_20px_rgba(79,70,229,0.3)]"
+          >
+            {saveMutation.isPending ? 'Salvando...' : <><Save size={16} className="mr-2" /> Salvar na Nuvem</>}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col xl:flex-row gap-6 p-4 overflow-hidden">
+        
+        {/* Coluna Esquerda: Resumo */}
+        <div className="w-full xl:w-80 flex-shrink-0 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+          
+          {/* Navegação de Cômodos */}
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-[2rem] p-4 flex flex-col gap-2">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 px-2">Ambientes ({rooms.length})</h3>
+            <div className="flex flex-col gap-2">
+              {rooms.map((r, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setActiveRoomIndex(idx);
+                    setActiveWall('top');
+                  }}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
+                    idx === activeRoomIndex
+                      ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-400'
+                      : 'hover:bg-white/5 border border-transparent text-slate-400'
+                  }`}
+                >
+                  <span className="font-bold text-sm truncate max-w-[160px]">{r.name}</span>
+                  <span className="text-xs opacity-50 font-mono">{(r.width * r.length).toFixed(1)}m²</span>
+                </button>
+              ))}
+              <button 
+                onClick={handleAddRoom}
+                className="mt-2 border border-dashed border-white/10 hover:border-indigo-500/30 text-slate-500 hover:text-indigo-400 rounded-xl py-3 flex items-center justify-center gap-2 text-sm font-bold transition-colors"
+              >
+                <Plus size={16} /> Adicionar Ambiente
+              </button>
             </div>
           </div>
+
+          <div className="bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-[2rem] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+            <div className="flex flex-col gap-2 mb-6">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Editando</p>
+              <input 
+                type="text" 
+                value={room.name} 
+                onChange={(e) => setRoom(prev => ({ ...prev, name: e.target.value }))}
+                className="bg-black/20 border border-white/10 text-xl font-bold text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500/50"
+              />
+            </div>
 
           <div className="flex gap-4 mb-8 text-sm">
             <div>
@@ -298,15 +446,9 @@ export function LevantamentoPage() {
         {/* Header do Builder */}
         <div className="relative z-10 flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.01] backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <LayoutTemplate className="text-teal-500" size={24} />
-            <h2 className="text-xl font-bold text-white tracking-tight">Construtor Visual</h2>
+            <LayoutTemplate className="text-indigo-500" size={24} />
+            <h2 className="text-xl font-bold text-white tracking-tight">Geometria do Ambiente</h2>
           </div>
-          <button 
-            onClick={handleExport}
-            className="flex items-center gap-2 px-6 py-2.5 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/50 text-cyan-400 font-bold rounded-full transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)]"
-          >
-            <Download size={16} /> Export DXF
-          </button>
         </div>
 
         <div className="relative z-10 flex-1 flex flex-col p-6 overflow-y-auto">
@@ -513,6 +655,7 @@ export function LevantamentoPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

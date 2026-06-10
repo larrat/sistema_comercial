@@ -43,6 +43,7 @@ const PortalStorefrontPage = lazy(() => import('../../features/portal/pages/Port
 const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObraPage').then(m => ({ default: m.PortalObraPage })));
 const PortalPropostaPage = lazy(() => import('../../features/portal/pages/PortalPropostaPage').then(m => ({ default: m.PortalPropostaPage })));
 const FiscalSetupRoutePage = lazy(() => import('../../features/setup/pages/FiscalSetupRoutePage').then(m => ({ default: m.FiscalSetupRoutePage })));
+const LevantamentosListPage = lazy(() => import('../../features/arquitetura/pages/LevantamentosListPage').then(m => ({ default: m.LevantamentosListPage })));
 const LevantamentoPage = lazy(() => import('../../features/arquitetura/components/LevantamentoPage').then(m => ({ default: m.LevantamentoPage })));
 
 import { RoleProtectedRoute } from './RoleProtectedRoute';
@@ -109,7 +110,9 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="orcamentos/:id/imprimir" element={<OrcamentoPrintRoutePage />} />
               <Route path="contratos" element={<ContratosPage />} />
               <Route path="contratos/:id" element={<ContratoProfilePage />} />
-              <Route path="arquitetura/levantamento" element={<LevantamentoPage />} />
+              <Route path="arquitetura/levantamento" element={<LevantamentosListPage />} />
+              <Route path="arquitetura/levantamento/novo" element={<LevantamentoPage />} />
+              <Route path="arquitetura/levantamento/:id" element={<LevantamentoPage />} />
             </Route>
 
             {/* Telas Gerenciais (Gerente, Admin) */}
