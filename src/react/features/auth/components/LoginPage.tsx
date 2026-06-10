@@ -6,7 +6,7 @@ import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useRoleStore } from '../../../app/useRoleStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
-import { getMeuPerfil, signInWithPassword } from '../services/authApi';
+import { getUserContext, signInWithPassword } from '../services/authApi';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,8 +15,10 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const setSession = useAuthStore((s) => s.setSession);
-  const clearFilial = useFilialStore((s) => s.clearFilial);
+  const setFilial = useFilialStore((s) => s.setFilial);
+  const setFiliaisPermitidas = useFilialStore((s) => s.setFiliaisPermitidas);
   const setRole = useRoleStore((s) => s.setRole);
+  const setPermissoes = useRoleStore((s) => s.setPermissoes);
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,13 +29,22 @@ export function LoginPage() {
     try {
       const cfg = getSupabaseConfig();
       if (!cfg.ready) throw new Error('Configuração do servidor não encontrada.');
-      clearFilial();
       const session = await signInWithPassword(cfg, email.trim(), password);
       setSession(session);
       const userId = String((session.user as Record<string, unknown>)?.id ?? '');
       if (userId) {
-        const perfil = await getMeuPerfil(cfg, session.access_token, userId);
-        if (perfil?.papel) setRole(perfil.papel);
+        const contextos = await getUserContext(cfg, session.access_token);
+        if (contextos && contextos.length > 0) {
+          setFiliaisPermitidas(contextos);
+          const ctxAtivo = contextos[0];
+          setFilial(ctxAtivo.filial_id);
+          setRole(ctxAtivo.cargo_id);
+          setPermissoes(ctxAtivo.permissoes || []);
+        } else {
+          // Fallback legacy caso o usuário ainda não tenha migrado no banco
+          setRole('operador');
+          setPermissoes([]);
+        }
       }
       navigate('/setup', { replace: true });
     } catch (err) {

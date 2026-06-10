@@ -11,18 +11,27 @@ function readFilialId(): string | null {
   return readStorageString(STORAGE_KEYS.filialId);
 }
 
+export type FilialContext = {
+  filial_id: string;
+  cargo_id: string;
+  permissoes: string[];
+};
+
 export type FilialStoreState = {
   filialId: string | null;
+  filiaisPermitidas: FilialContext[];
 };
 
 export type FilialStoreActions = {
   hydrate: () => void;
   setFilial: (_filialId: string) => void;
+  setFiliaisPermitidas: (_filiais: FilialContext[]) => void;
   clearFilial: () => void;
 };
 
 export const useFilialStore = create<FilialStoreState & FilialStoreActions>((set) => ({
   filialId: null,
+  filiaisPermitidas: [],
 
   hydrate: () => {
     set({ filialId: readFilialId() });
@@ -33,8 +42,12 @@ export const useFilialStore = create<FilialStoreState & FilialStoreActions>((set
     set({ filialId });
   },
 
+  setFiliaisPermitidas: (filiais) => {
+    set({ filiaisPermitidas: filiais });
+  },
+
   clearFilial: () => {
     removeStorageKey(STORAGE_KEYS.filialId);
-    set({ filialId: null });
+    set({ filialId: null, filiaisPermitidas: [] });
   }
 }));

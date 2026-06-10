@@ -19,7 +19,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
   const [orig, setOrig] = useState('estoque');
   const [error, setError] = useState<string | null>(null);
   
-  const role = useRoleStore((state) => state.role);
+  const hasPermission = useRoleStore((state) => state.hasPermission);
 
   // E2E Re-structuring States & Helpers
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -77,7 +77,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
 
     const qtyNum = parseFloat(qty) || 1;
 
-    if (orig === 'estoque' && qtyNum > (prod.esal || 0) && role !== 'admin') {
+    if (orig === 'estoque' && qtyNum > (prod.esal || 0) && !hasPermission('estoque:override')) {
       setError(`Estoque insuficiente. Saldo atual: ${prod.esal || 0}.`);
       return;
     }
@@ -86,7 +86,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
     const custoNum = parseFloat(custo) || prod.custo || 0;
 
     // Block negative margin for non-admins
-    if (precoNum < custoNum && role !== 'admin') {
+    if (precoNum < custoNum && !hasPermission('pedido:override_preco')) {
       setError('Venda abaixo do preço de custo bloqueada para operadores comuns.');
       return;
     }

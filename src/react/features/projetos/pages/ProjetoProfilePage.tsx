@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button, LoadingState, ErrorState } from '../../../shared/ui';
 import { Briefcase, MapPin, Plus, FileText, ShoppingCart, PencilRuler, ArrowLeft, LayoutTemplate, User, Search, X } from 'lucide-react';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
-import { getProjeto, saveProjeto, getProjetoLevantamentos, getProjetoPedidos } from '../services/projetosApi';
+import { getProjeto, saveProjeto, getProjetoLevantamentos, getProjetoPedidos, getProjetoOrcamentos } from '../services/projetosApi';
 import { listClientes } from '../../clientes/services/clientesApi';
 import { format } from 'date-fns';
 import type { Projeto, Cliente } from '../../../../types/domain';
@@ -34,6 +34,12 @@ export function ProjetoProfilePage() {
   const { data: pedidos, isLoading: isLoadingPed } = useQuery({
     queryKey: ['projeto_pedidos', id],
     queryFn: () => getProjetoPedidos(context, id as string),
+    enabled: !!isEdit
+  });
+
+  const { data: orcamentos, isLoading: isLoadingOrc } = useQuery({
+    queryKey: ['projeto_orcamentos', id],
+    queryFn: () => getProjetoOrcamentos(context, id as string),
     enabled: !!isEdit
   });
 
@@ -276,15 +282,39 @@ export function ProjetoProfilePage() {
                   </div>
                   <h3 className="text-lg font-bold text-white">Orçamentos</h3>
                 </div>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
+                <button onClick={() => navigate(`/app/orcamentos/novo?projetoId=${id}`)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors">
                   <Plus size={16} />
                 </button>
               </div>
               
-              <div className="text-center py-8 border border-dashed border-white/10 rounded-xl">
-                 <p className="text-sm text-slate-500 font-medium mb-2">Módulo em Integração</p>
-                 <span className="text-xs text-slate-600">A vinculação de orçamentos da obra está sendo feita via BD.</span>
-              </div>
+              {isLoadingOrc ? (
+                <div className="animate-pulse flex flex-col gap-3">
+                  <div className="h-16 bg-white/5 rounded-xl"></div>
+                </div>
+              ) : orcamentos?.length === 0 ? (
+                <div className="text-center py-8 border border-dashed border-white/10 rounded-xl">
+                   <p className="text-sm text-slate-500 font-medium mb-2">Nenhum Orçamento</p>
+                   <span className="text-xs text-slate-600">Crie um orçamento atrelado a este projeto.</span>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 relative z-10">
+                  {orcamentos?.map(orc => (
+                    <div 
+                      key={orc.id} 
+                      onClick={() => navigate(`/app/orcamentos/${orc.id}`)}
+                      className="p-3 bg-black/20 border border-white/5 hover:border-cyan-500/30 rounded-xl cursor-pointer transition-colors flex items-center justify-between group"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-slate-300 group-hover:text-cyan-400 transition-colors">{orc.nome_cliente || `Orçamento #${orc.num}`}</p>
+                        <p className="text-xs text-slate-500">{format(new Date(orc.criado_em || ''), "dd/MM/yyyy")}</p>
+                      </div>
+                      <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md ${orc.status === 'aprovado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
+                        {orc.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

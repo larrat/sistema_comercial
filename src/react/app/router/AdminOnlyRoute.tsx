@@ -1,10 +1,10 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { useCurrentUserRole } from '../hooks/useCurrentUserRole';
+import { useRoleStore } from '../../useRoleStore';
 import { getDefaultAppPath } from './routes';
 
 export function AdminOnlyRoute() {
-  const role = useCurrentUserRole();
-  if (role !== 'admin') return <Navigate to={getDefaultAppPath()} replace />;
+  const hasPermission = useRoleStore(s => s.hasPermission);
+  if (!hasPermission('admin:tudo')) return <Navigate to={getDefaultAppPath()} replace />;
   return <Outlet />;
 }

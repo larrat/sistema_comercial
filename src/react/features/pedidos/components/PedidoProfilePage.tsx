@@ -112,7 +112,7 @@ export function PedidoProfilePage({
 }: Props) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const userRole = useRoleStore((state) => state.role);
+  const hasPermission = useRoleStore((state) => state.hasPermission);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showBaixaConfirm, setShowBaixaConfirm] = useState(false);
   const [isBaixando, setIsBaixando] = useState(false);
@@ -356,7 +356,7 @@ export function PedidoProfilePage({
             <PedidoItensTab
               pedido={pedido}
               itens={itens}
-              canEdit={userRole === 'admin' && ['orcamento', 'confirmado', 'em_separacao'].includes(status)}
+              canEdit={hasPermission('pedido:editar') && ['orcamento', 'confirmado', 'em_separacao'].includes(status)}
               onPedidoChanged={onPedidoChanged}
             />
             

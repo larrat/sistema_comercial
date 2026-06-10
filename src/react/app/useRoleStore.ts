@@ -19,16 +19,20 @@ function normalizeRole(raw: string | null): AppUserRole {
 
 export type RoleStoreState = {
   role: AppUserRole | null;
+  permissoes: string[];
 };
 
 export type RoleStoreActions = {
   hydrate: () => void;
   setRole: (_role: string) => void;
+  setPermissoes: (_permissoes: string[]) => void;
+  hasPermission: (perm: string) => boolean;
   clearRole: () => void;
 };
 
-export const useRoleStore = create<RoleStoreState & RoleStoreActions>((set) => ({
+export const useRoleStore = create<RoleStoreState & RoleStoreActions>((set, get) => ({
   role: null,
+  permissoes: [],
 
   hydrate: () => {
     const raw = readStorageString(STORAGE_KEYS.userRole);
@@ -41,8 +45,19 @@ export const useRoleStore = create<RoleStoreState & RoleStoreActions>((set) => (
     set({ role: normalized });
   },
 
+  setPermissoes: (permissoes) => {
+    set({ permissoes });
+  },
+
+  hasPermission: (perm) => {
+    const state = get();
+    // Admin tem bypass completo se tiver 'admin:tudo'
+    if (state.permissoes.includes('admin:tudo')) return true;
+    return state.permissoes.includes(perm);
+  },
+
   clearRole: () => {
     removeStorageKey(STORAGE_KEYS.userRole);
-    set({ role: null });
+    set({ role: null, permissoes: [] });
   }
 }));

@@ -1,4 +1,4 @@
-import type { Projeto, LevantamentoArquitetura, Pedido } from '../../../../types/domain';
+import type { Projeto, LevantamentoArquitetura, Pedido, OrcamentoObra } from '../../../../types/domain';
 
 export type ProjetosApiContext = {
   url: string;
@@ -74,4 +74,12 @@ export async function getProjetoPedidos(context: ProjetosApiContext, projetoId: 
   const body = await readJson(res);
   ensureOk(res, body, 'Erro ao listar pedidos');
   return Array.isArray(body) ? (body as Pedido[]) : [];
+}
+
+export async function getProjetoOrcamentos(context: ProjetosApiContext, projetoId: string): Promise<OrcamentoObra[]> {
+  const url = `${context.url}/rest/v1/orcamentos_obra?projeto_id=eq.${encodeURIComponent(projetoId)}&order=atualizado_em.desc`;
+  const res = await fetch(url, { headers: createHeaders(context.key, context.token) });
+  const body = await readJson(res);
+  ensureOk(res, body, 'Erro ao listar orçamentos');
+  return Array.isArray(body) ? (body as OrcamentoObra[]) : [];
 }

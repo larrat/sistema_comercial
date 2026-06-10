@@ -4,6 +4,7 @@ import { Building, ChevronDown, X, Check } from 'lucide-react';
 
 import { useAuthStore } from '../useAuthStore';
 import { useFilialStore } from '../useFilialStore';
+import { useRoleStore } from '../useRoleStore';
 import { getSupabaseConfig } from '../supabaseConfig';
 import { listUserFiliais } from '../../features/auth/services/authApi';
 import type { Filial } from '../../../types/domain';
@@ -16,7 +17,10 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar =
 
   const session = useAuthStore((s) => s.session);
   const filialId = useFilialStore((s) => s.filialId);
+  const filiaisPermitidas = useFilialStore((s) => s.filiaisPermitidas);
   const setFilial = useFilialStore((s) => s.setFilial);
+  const setRole = useRoleStore((s) => s.setRole);
+  const setPermissoes = useRoleStore((s) => s.setPermissoes);
   const navigate = useNavigate();
 
   const currentFilial = filiais.find((f) => f.id === filialId);
@@ -69,6 +73,14 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar =
   function handleSelect(id: string) {
     if (id !== filialId) {
       setFilial(id);
+      
+      // Update role and permissions context
+      const newCtx = filiaisPermitidas.find(f => f.filial_id === id);
+      if (newCtx) {
+        setRole(newCtx.cargo_id || 'operador');
+        setPermissoes(newCtx.permissoes || []);
+      }
+      
       navigate('/app/dashboard', { replace: true });
     }
     handleClose();

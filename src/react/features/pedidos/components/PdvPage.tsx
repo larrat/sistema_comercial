@@ -193,7 +193,7 @@ export function PdvPage() {
 
   const session = useAuthStore((state) => state.session);
   const filialId = useFilialStore((state) => state.filialId);
-  const role = useRoleStore((state) => state.role);
+  const hasPermission = useRoleStore((state) => state.hasPermission);
   const { save } = usePedidoMutations();
 
   const [saleToken, setSaleToken] = useState(() => createSaleToken());
@@ -451,7 +451,7 @@ export function PdvPage() {
   }, [session?.access_token, filialId]);
 
   function handleSelectProduto(produto: PdvProdutoSearchResult) {
-    if (Number(produto.esal) <= 0 && role !== 'admin') {
+    if (Number(produto.esal) <= 0 && !hasPermission('estoque:override')) {
       toast.error(`Produto "${produto.nome}" está sem saldo no estoque.`);
       return;
     }
