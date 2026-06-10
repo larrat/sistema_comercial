@@ -18,12 +18,23 @@ export interface Wall {
   points: PointOfInterest[];
 }
 
+export interface ElementoInterno {
+  id: string;
+  camada: 'piso' | 'teto';
+  type: 'escada' | 'pilar' | 'luminaria' | 'sanca_gesso' | 'ar_k7';
+  width: number;
+  length: number;
+  x: number; // Distancia da esquerda
+  y: number; // Distancia da base
+}
+
 export interface Room {
   name: string;
   width: number;
   length: number;
   height: number;
   walls: Record<'top' | 'right' | 'bottom' | 'left', Wall>;
+  internalElements: ElementoInterno[];
 }
 
 export function generateDXF(room: Room): string {
@@ -46,6 +57,51 @@ export function generateDXF(room: Room): string {
   const drawPOI = (poi: PointOfInterest, x: number, y: number) => {
     addCircle(x, y);
     addText(poi.type.split('_').join(' ').toUpperCase(), x + 0.15, y, 0.1, 'ELETRICA', 2);
+  }
+
+  // Draw rectangle
+  const addRect = (x: number, y: number, rw: number, rl: number, layer: string, color: number) => {
+    addLine(x, y, x + rw, y, layer, color);
+    addLine(x + rw, y, x + rw, y + rl, layer, color);
+    addLine(x + rw, y + rl, x, y + rl, layer, color);
+    addLine(x, y + rl, x, y, layer, color);
+  }
+
+  // Draw internal element
+  const drawInternalElement = (el: ElementoInterno) => {
+    if (el.type === 'escada') {
+      const layer = 'ESCADA';
+      const color = 8; // Gray
+      addRect(el.x, el.y, el.width, el.length, layer, color);
+      // Degraus falsos a cada 0.28m (28cm) - vamos fatiar na direção Y se a escada for mais comprida, senao em X
+      if (el.length >= el.width) {
+        const stepCount = Math.floor(el.length / 0.28);
+        for(let i=1; i<stepCount; i++) {
+          addLine(el.x, el.y + (i*0.28), el.x + el.width, el.y + (i*0.28), layer, color);
+        }
+      } else {
+        const stepCount = Math.floor(el.width / 0.28);
+        for(let i=1; i<stepCount; i++) {
+          addLine(el.x + (i*0.28), el.y, el.x + (i*0.28), el.y + el.length, layer, color);
+        }
+      }
+      addText('ESCADA', el.x + (el.width/2), el.y + (el.length/2), 0.1, layer, color);
+    } else if (el.type === 'pilar') {
+      addRect(el.x, el.y, el.width, el.length, 'PILARES', 5); // Blue
+      // Hash cruzado simples
+      addLine(el.x, el.y, el.x + el.width, el.y + el.length, 'PILARES', 5);
+      addLine(el.x, el.y + el.length, el.x + el.width, el.y, 'PILARES', 5);
+    } else if (el.camada === 'teto') {
+      const layer = 'ILUMINACAO_FORRO';
+      const color = 6; // Magenta
+      addRect(el.x, el.y, el.width, el.length, layer, color);
+      addText(el.type.split('_').join(' ').toUpperCase(), el.x, el.y + el.length + 0.1, 0.1, layer, color);
+      if (el.type === 'luminaria') {
+        // cruz no meio para indicar plafon/iluminacao
+        addLine(el.x + (el.width/2), el.y, el.x + (el.width/2), el.y + el.length, layer, color);
+        addLine(el.x, el.y + (el.length/2), el.x + el.width, el.y + (el.length/2), layer, color);
+      }
+    }
   }
 
   // Draw the main room box (Width x Length)
@@ -119,6 +175,11 @@ export function generateDXF(room: Room): string {
     drawPOI(poi, 0, poi.distanceFromStart);
   }
   if (currentY < l) addLine(0, currentY, 0, l, 'PAREDES_ERRO', 1);
+
+  // Draw Internal Elements
+  for (const el of room.internalElements) {
+    drawInternalElement(el);
+  }
 
   dxf += `0\nENDSEC\n0\nEOF\n`;
   return dxf;

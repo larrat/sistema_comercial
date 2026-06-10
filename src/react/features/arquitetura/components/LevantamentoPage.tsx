@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, Button, Input } from '../../../shared/ui';
 import { Download, AlertTriangle, CheckCircle, PencilRuler, Square, LayoutTemplate, Layers } from 'lucide-react';
 import { downloadDXF } from '../lib/dxfExport';
-import type { Room, WallSegment, Wall, PointOfInterest } from '../lib/dxfExport';
+import type { Room, WallSegment, Wall, PointOfInterest, ElementoInterno } from '../lib/dxfExport';
 import { toast } from 'sonner';
 
 export function LevantamentoPage() {
@@ -16,7 +16,8 @@ export function LevantamentoPage() {
       right: { id: 'right', name: 'Parede Direita', totalLength: 4.81, segments: [], points: [] },
       bottom: { id: 'bottom', name: 'Parede Inferior', totalLength: 3.20, segments: [], points: [] },
       left: { id: 'left', name: 'Parede Esquerda', totalLength: 4.81, segments: [], points: [] },
-    }
+    },
+    internalElements: []
   });
 
   const [activeWall, setActiveWall] = useState<'top'|'right'|'bottom'|'left'>('top');
@@ -133,6 +134,30 @@ export function LevantamentoPage() {
         }
       };
     });
+  };
+
+  const addInternalElement = (camada: ElementoInterno['camada'], type: ElementoInterno['type']) => {
+    setRoom(prev => ({
+      ...prev,
+      internalElements: [
+        ...prev.internalElements,
+        { id: crypto.randomUUID(), camada, type, width: 0.5, length: 0.5, x: 0, y: 0 }
+      ]
+    }));
+  };
+
+  const updateInternalElement = (id: string, field: keyof ElementoInterno, value: number) => {
+    setRoom(prev => ({
+      ...prev,
+      internalElements: prev.internalElements.map(el => el.id === id ? { ...el, [field]: value } : el)
+    }));
+  };
+
+  const removeInternalElement = (id: string) => {
+    setRoom(prev => ({
+      ...prev,
+      internalElements: prev.internalElements.filter(el => el.id !== id)
+    }));
   };
 
   const currentWall = room.walls[activeWall];
@@ -416,6 +441,67 @@ export function LevantamentoPage() {
                         />
                       </div>
                       <button onClick={() => removePoint(poi.id)} className="w-10 h-10 flex items-center justify-center rounded-lg text-amber-600/50 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+                        X
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Inserção de Elementos Internos (Piso e Teto) */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-[1.5rem] p-6 shadow-xl mt-8">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                  <span className="text-indigo-500 font-bold text-lg leading-none">🏗️</span>
+                </div>
+                <h3 className="text-lg font-bold text-white">Piso e Teto (Área Interna)</h3>
+              </div>
+              <p className="text-sm text-slate-500 mb-6">Elementos que ficam no meio do ambiente. Você define o tamanho (Largura x Comprimento) e a posição X,Y a partir do canto inferior esquerdo.</p>
+              
+              <div className="flex gap-3 mb-6">
+                <button onClick={() => addInternalElement('piso', 'escada')} className="flex-1 py-2.5 bg-indigo-950/20 hover:bg-indigo-900/40 border border-indigo-800/30 rounded-xl text-xs font-bold text-indigo-400 transition-colors shadow-[0_0_10px_rgba(99,102,241,0.05)]">+ Escada (Piso)</button>
+                <button onClick={() => addInternalElement('piso', 'pilar')} className="flex-1 py-2.5 bg-indigo-950/20 hover:bg-indigo-900/40 border border-indigo-800/30 rounded-xl text-xs font-bold text-indigo-400 transition-colors shadow-[0_0_10px_rgba(99,102,241,0.05)]">+ Pilar (Piso)</button>
+                <button onClick={() => addInternalElement('teto', 'luminaria')} className="flex-1 py-2.5 bg-fuchsia-950/20 hover:bg-fuchsia-900/40 border border-fuchsia-800/30 rounded-xl text-xs font-bold text-fuchsia-400 transition-colors shadow-[0_0_10px_rgba(217,70,239,0.05)]">+ Luminária (Teto)</button>
+                <button onClick={() => addInternalElement('teto', 'ar_k7')} className="flex-1 py-2.5 bg-fuchsia-950/20 hover:bg-fuchsia-900/40 border border-fuchsia-800/30 rounded-xl text-xs font-bold text-fuchsia-400 transition-colors shadow-[0_0_10px_rgba(217,70,239,0.05)]">+ Ar K7 (Teto)</button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {room.internalElements.length === 0 ? (
+                  <div className="text-center py-6 text-slate-600 border border-dashed border-white/10 rounded-xl font-medium text-sm">
+                    Nenhum elemento interno adicionado.
+                  </div>
+                ) : (
+                  room.internalElements.map((el, idx) => (
+                    <div key={el.id} className={`flex items-center gap-4 p-2.5 rounded-xl border ${el.camada === 'piso' ? 'bg-indigo-500/5 border-indigo-500/10' : 'bg-fuchsia-500/5 border-fuchsia-500/10'}`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-inner ${el.camada === 'piso' ? 'bg-indigo-950/50 text-indigo-500' : 'bg-fuchsia-950/50 text-fuchsia-500'}`}>
+                        {idx + 1}
+                      </div>
+                      <div className={`w-28 capitalize text-sm font-bold flex flex-col ${el.camada === 'piso' ? 'text-indigo-400' : 'text-fuchsia-400'}`}>
+                        <span>{el.type.replace('_', ' ')}</span>
+                        <span className="text-[10px] opacity-70 uppercase tracking-widest">{el.camada}</span>
+                      </div>
+                      
+                      <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Largura (X)</span>
+                          <input type="number" step="0.01" value={el.width || ''} onChange={(e) => updateInternalElement(el.id, 'width', parseFloat(e.target.value) || 0)} className="w-full bg-slate-900/80 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500/50" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Comprim. (Y)</span>
+                          <input type="number" step="0.01" value={el.length || ''} onChange={(e) => updateInternalElement(el.id, 'length', parseFloat(e.target.value) || 0)} className="w-full bg-slate-900/80 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500/50" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Posição X</span>
+                          <input type="number" step="0.01" value={el.x || ''} onChange={(e) => updateInternalElement(el.id, 'x', parseFloat(e.target.value) || 0)} className="w-full bg-slate-900/80 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500/50" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Posição Y</span>
+                          <input type="number" step="0.01" value={el.y || ''} onChange={(e) => updateInternalElement(el.id, 'y', parseFloat(e.target.value) || 0)} className="w-full bg-slate-900/80 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500/50" />
+                        </div>
+                      </div>
+
+                      <button onClick={() => removeInternalElement(el.id)} className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-colors">
                         X
                       </button>
                     </div>
