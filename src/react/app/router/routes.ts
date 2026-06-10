@@ -22,7 +22,7 @@ export type AppRouteId =
   | 'contratos'
   | 'agenda'
   | 'orcamentos'
-  | 'levantamento'
+  | 'projetos'
   | 'fiscal';
 
 export type AppRoute = {
@@ -55,7 +55,7 @@ export const APP_ROUTES: AppRoute[] = [
   { id: 'crm', path: '/app/crm', label: 'CRM Reformas' },
   { id: 'orcamentos', path: '/app/orcamentos', label: 'Orçamentos (Eng)' },
   { id: 'contratos', path: '/app/contratos', label: 'Contratos e O.S.' },
-  { id: 'levantamento', path: '/app/arquitetura/levantamento', label: 'Levantamento (Arq)' },
+  { id: 'projetos', path: '/app/projetos', label: 'Projetos & Obras' },
   { id: 'fiscal', path: '/app/fiscal', label: 'Tributação (NCM/IVA)' }
 ];
 

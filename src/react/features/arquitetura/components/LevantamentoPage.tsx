@@ -26,7 +26,7 @@ function createDefaultRoom(name: string): Room {
 }
 
 export function LevantamentoPage() {
-  const { id } = useParams<{ id: string }>();
+  const { projetoId, id } = useParams<{ projetoId: string; id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { resolve } = useApiContext();
@@ -61,6 +61,7 @@ export function LevantamentoPage() {
     mutationFn: async () => {
       const payload = {
         ...(isEdit ? { id } : {}),
+        projeto_id: projetoId,
         nome_projeto: nomeProjeto,
         dados_cad: rooms,
         status: 'rascunho' as const
@@ -71,7 +72,7 @@ export function LevantamentoPage() {
       queryClient.invalidateQueries({ queryKey: ['levantamentos'] });
       toast.success('Projeto salvo com sucesso!');
       if (!isEdit) {
-        navigate(`/app/arquitetura/levantamento/${saved.id}`, { replace: true });
+        navigate(`/app/projetos/${projetoId}/levantamento/${saved.id}`, { replace: true });
       }
     },
     onError: (error: any) => {
@@ -308,11 +309,14 @@ export function LevantamentoPage() {
       <div className="w-full flex-shrink-0 flex items-center justify-between px-6 py-4 bg-white/[0.02] border-b border-white/[0.05] backdrop-blur-2xl z-10">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => navigate('/app/arquitetura/levantamento')}
-            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 text-slate-400 transition-all hover:text-white"
+            onClick={() => navigate(`/app/projetos/${projetoId}`)}
+            className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
           >
             <ArrowLeft size={18} />
           </button>
+          <div className="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-center">
+            <PencilRuler className="text-indigo-400" size={24} />
+          </div>
           <div className="w-px h-8 bg-white/10 mx-2" />
           <div className="flex flex-col">
             <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mb-0.5">Nome do Projeto</span>

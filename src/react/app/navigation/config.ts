@@ -25,7 +25,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { id: 'agenda', label: 'Agenda', path: '/app/agenda', group: 'Gestão & Operação', roles: ['admin', 'gerente', 'operador'] },
   { id: 'estoque', label: 'Estoque', path: '/app/estoque', group: 'Gestão & Operação', roles: ['admin', 'gerente', 'operador'] },
   { id: 'compras', label: 'Compras', path: '/app/compras', group: 'Gestão & Operação', roles: ['admin', 'gerente'] },
-  { id: 'levantamento', label: 'Levantamento (Arq)', path: '/app/arquitetura/levantamento', group: 'Gestão & Operação', roles: ['admin', 'gerente', 'operador'] },
+  { id: 'projetos', label: 'Projetos & Obras', path: '/app/projetos', group: 'Gestão & Operação', roles: ['admin', 'gerente', 'operador'] },
   
   // Financeiro
   { id: 'receber', label: 'Contas a receber', path: '/app/receber', group: 'Financeiro', roles: ['admin', 'gerente'] },

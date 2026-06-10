@@ -45,6 +45,8 @@ const PortalPropostaPage = lazy(() => import('../../features/portal/pages/Portal
 const FiscalSetupRoutePage = lazy(() => import('../../features/setup/pages/FiscalSetupRoutePage').then(m => ({ default: m.FiscalSetupRoutePage })));
 const LevantamentosListPage = lazy(() => import('../../features/arquitetura/pages/LevantamentosListPage').then(m => ({ default: m.LevantamentosListPage })));
 const LevantamentoPage = lazy(() => import('../../features/arquitetura/components/LevantamentoPage').then(m => ({ default: m.LevantamentoPage })));
+const ProjetosListPage = lazy(() => import('../../features/projetos/pages/ProjetosListPage').then(m => ({ default: m.ProjetosListPage })));
+const ProjetoProfilePage = lazy(() => import('../../features/projetos/pages/ProjetoProfilePage').then(m => ({ default: m.ProjetoProfilePage })));
 
 import { RoleProtectedRoute } from './RoleProtectedRoute';
 import { AppShell } from '../layout/AppShell';
@@ -110,9 +112,11 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="orcamentos/:id/imprimir" element={<OrcamentoPrintRoutePage />} />
               <Route path="contratos" element={<ContratosPage />} />
               <Route path="contratos/:id" element={<ContratoProfilePage />} />
-              <Route path="arquitetura/levantamento" element={<LevantamentosListPage />} />
-              <Route path="arquitetura/levantamento/novo" element={<LevantamentoPage />} />
-              <Route path="arquitetura/levantamento/:id" element={<LevantamentoPage />} />
+              <Route path="projetos" element={<ProjetosListPage />} />
+              <Route path="projetos/novo" element={<ProjetoProfilePage />} />
+              <Route path="projetos/:id" element={<ProjetoProfilePage />} />
+              <Route path="projetos/:projetoId/levantamento/novo" element={<LevantamentoPage />} />
+              <Route path="projetos/:projetoId/levantamento/:id" element={<LevantamentoPage />} />
             </Route>
 
             {/* Telas Gerenciais (Gerente, Admin) */}

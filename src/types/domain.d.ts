@@ -212,6 +212,7 @@ export type Pedido = {
   id: Id;
   filial_id?: Id | null;
   cliente_id?: Id | null;
+  projeto_id?: Id | null;
   rca_id?: Id | null;
   rca_nome?: string | null;
   num: number;
@@ -946,10 +947,31 @@ export type NfeDestinada = {
 
 export type LevantamentoArquitetura = {
   id: Id;
+  projeto_id?: Id | null;
+  filial_id: Id;
   nome_projeto: string;
   cliente_id?: Id | null;
   dados_cad: unknown;
   status: 'rascunho' | 'finalizado';
+  criado_em?: string;
+  atualizado_em?: string;
+};
+
+export type Projeto = {
+  id: Id;
+  filial_id: Id;
+  cliente_id?: Id | null;
+  nome: string;
+  endereco?: {
+    logradouro?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    cep?: string;
+    cidade?: string;
+    estado?: string;
+  } | null;
+  status: 'em_andamento' | 'concluido' | 'cancelado';
   criado_em?: string;
   atualizado_em?: string;
 };
