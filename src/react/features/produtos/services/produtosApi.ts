@@ -201,7 +201,9 @@ export async function saveProduto(
   // Inteligência de Auto-Vínculo: Tenta encontrar o pai pelo nome se não houver um ID definido
   const processedInputs = await Promise.all(
     inputs.map(async (item) => {
-      const newItem = { ...item, filial_id: context.filialId };
+      // Remover propriedades virtuais que não existem no banco
+      const { pvv, ...itemSemVirtuais } = item as any;
+      const newItem = { ...itemSemVirtuais, filial_id: context.filialId };
 
       if (!newItem.produto_pai_id) {
         try {

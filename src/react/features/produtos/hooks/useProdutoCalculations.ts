@@ -135,7 +135,6 @@ export function formValuesToProduto(
     tamanho: values.tamanho ?? null,
     foto_url: values.foto_url ?? null,
     is_active: true,
-    is_sample: !!values.is_sample,
-    pvv: precoVarejo
+    is_sample: !!values.is_sample
   };
 }
