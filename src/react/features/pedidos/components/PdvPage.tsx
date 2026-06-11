@@ -48,48 +48,8 @@ import { PdvCartItems } from './PdvCartItems';
 import { PdvCartSummary } from './PdvCartSummary';
 import { toast } from 'sonner';
 
-const PAYMENT_OPTIONS: Array<{
-  value: PdvPaymentMethod;
-  label: string;
-  emoji: string;
-  disabledWithoutCliente?: boolean;
-}> = [
-  { value: 'dinheiro', label: 'Dinheiro', emoji: '💵' },
-  { value: 'pix', label: 'Pix', emoji: '⚡' },
-  { value: 'credito', label: 'Crédito', emoji: '💳' },
-  { value: 'debito', label: 'Débito', emoji: '🏧' },
-  { value: 'fiado', label: 'Fiado', emoji: '🧾', disabledWithoutCliente: true },
-  { value: 'misto', label: 'Misto', emoji: '🧩' }
-];
-
-type PedidoApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
-
-function formatDateTime(now: Date): string {
-  return now.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function createSaleToken(): string {
-  return `PDV-${Date.now().toString().slice(-6)}`;
-}
-
-function getUserIdentifier(session: ReturnType<typeof useAuthStore.getState>['session']): string | null {
-  const user = session?.user;
-  if (!user || typeof user !== 'object') return null;
-  if ('email' in user && typeof user.email === 'string' && user.email.trim()) return user.email;
-  if ('id' in user && typeof user.id === 'string' && user.id.trim()) return user.id;
-  return null;
-}
+import { useProductSearch } from '../hooks/useProductSearch';
+import { usePdvEngine, PAYMENT_OPTIONS, formatDateTime, createSaleToken, getUserIdentifier } from '../hooks/usePdvEngine';
 
 function getClienteWhatsappLink(cliente: ClienteLight | null): string | null {
   const raw = String(cliente?.whatsapp || cliente?.tel || '').replace(/\D/g, '');
@@ -151,27 +111,6 @@ function buildReceiptHtml(args: {
   `;
 }
 
-function isOfflineLikeError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    !navigator.onLine ||
-    normalized.includes('failed to fetch') ||
-    normalized.includes('network') ||
-    normalized.includes('timeout') ||
-    normalized.includes('fetch')
-  );
-}
-
-function isPdvMetadataMissingError(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes('origem_venda') ||
-    normalized.includes('pgto_meta') ||
-    normalized.includes('schema cache') ||
-    normalized.includes('column')
-  );
-}
-
 export function PdvPage() {
   const items = usePdvStore((state) => state.items);
   const selectedCliente = usePdvStore((state) => state.selectedCliente);
@@ -194,19 +133,20 @@ export function PdvPage() {
   const session = useAuthStore((state) => state.session);
   const filialId = useFilialStore((state) => state.filialId);
   const hasPermission = useRoleStore((state) => state.hasPermission);
-  const { save } = usePedidoMutations();
+
+  function resolveContext() {
+    if (!session?.access_token || !filialId) return null;
+    const { url, key, ready } = getSupabaseConfig();
+    if (!ready) return null;
+    return { url, key, token: session.access_token, filialId };
+  }
 
   const [saleToken, setSaleToken] = useState(() => createSaleToken());
   const [now, setNow] = useState(() => new Date());
-  const [nextPedidoNum, setNextPedidoNum] = useState(1);
-  const [pageError, setPageError] = useState<string | null>(null);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [productQuery, setProductQuery] = useState('');
-  const [productResults, setProductResults] = useState<PdvProdutoSearchResult[]>([]);
-  const [productSearchError, setProductSearchError] = useState<string | null>(null);
-  const [productSearching, setProductSearching] = useState(false);
-  const [productSearchMs, setProductSearchMs] = useState<number | null>(null);
-  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
+
+  const searchEngine = useProductSearch();
+  const engine = usePdvEngine();
+
   const [clienteModalOpen, setClienteModalOpen] = useState(false);
   const [clienteQuery, setClienteQuery] = useState('');
   const [clienteResults, setClienteResults] = useState<ClienteLight[]>([]);
@@ -219,19 +159,8 @@ export function PdvPage() {
   const [isValeLoading, setIsValeLoading] = useState(false);
   const [discountDraft, setDiscountDraft] = useState(() => discountValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
-  const [pendingQueueCount, setPendingQueueCount] = useState(0);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [receiptCountdown, setReceiptCountdown] = useState(5);
-  const [lastCompletedSale, setLastCompletedSale] = useState<{
-    numero: number;
-    total: number;
-    itemCount: number;
-    paymentMethod: string;
-    cliente: ClienteLight | null;
-    createdAt: string;
-    isContingency?: boolean;
-    qrCodeUrl?: string;
-  } | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [showScannerHalo, setShowScannerHalo] = useState(false);
 
@@ -245,9 +174,7 @@ export function PdvPage() {
   const [catalogProducts, setCatalogProducts] = useState<PdvProdutoSearchResult[]>([]);
 
   const productInputRef = useRef<HTMLInputElement>(null);
-  const productSearchRequestRef = useRef(0);
   const clienteSearchRequestRef = useRef(0);
-  const queueProcessingRef = useRef(false);
 
   const totals = useMemo(() => calculateCartTotals(items, discountValue), [items, discountValue]);
 
@@ -259,7 +186,7 @@ export function PdvPage() {
     () => validateMixedPayments(mixedPayments, finalTotal),
     [mixedPayments, finalTotal]
   );
-  const saving = save.isPending;
+  const saving = engine.isSaving;
   const canFinalize =
     items.length > 0 &&
     !!paymentMethod &&
@@ -267,20 +194,9 @@ export function PdvPage() {
     (paymentMethod !== 'misto' || mixedValidation.isValid) &&
     !saving;
 
-  function resolveContext(): PedidoApiContext | null {
-    if (!session?.access_token || !filialId) return null;
-    const { url, key, ready } = getSupabaseConfig();
-    if (!ready) return null;
-    return { url, key, token: session.access_token, filialId };
-  }
-
   function resetCurrentSale() {
     clearSale();
-    setProductQuery('');
-    setProductResults([]);
-    setProductSearchError(null);
-    setProductSearchMs(null);
-    setActiveSuggestionIndex(0);
+    searchEngine.clear();
     setClienteQuery('');
     setClienteResults([]);
     setClienteSearchError(null);
@@ -288,78 +204,13 @@ export function PdvPage() {
     setDiscountDraft('0,00');
     setAppliedVale(null);
     setValeCodigoInput('');
-    setNextPedidoNum((current) => current + 1);
     window.requestAnimationFrame(() => productInputRef.current?.focus());
   }
-
-  async function loadNextPedidoNumber() {
-    const context = resolveContext();
-    if (!context) {
-      setPageError('Sessão, filial ou configuração do Supabase ausente.');
-      setInitialLoading(false);
-      return;
-    }
-    try {
-      setInitialLoading(true);
-      setPageError(null);
-      const next = await getNextPedidoNumber(context);
-      setNextPedidoNum(next);
-      setPendingQueueCount(countPdvQueue(context.filialId));
-    } catch (error) {
-      setPageError(error instanceof Error ? error.message : 'Não foi possível preparar o PDV.');
-    } finally {
-      setInitialLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void loadNextPedidoNumber();
-  }, [session?.access_token, filialId]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    const query = productQuery.trim();
-    const context = resolveContext();
-    if (!query) {
-      setProductResults([]);
-      setProductSearchError(null);
-      setProductSearching(false);
-      setProductSearchMs(null);
-      setActiveSuggestionIndex(0);
-      return;
-    }
-    if (!context) return;
-
-    const requestId = ++productSearchRequestRef.current;
-    const timer = window.setTimeout(() => {
-      const startedAt = performance.now();
-      setProductSearching(true);
-      setProductSearchError(null);
-      searchProdutosPdv(context, query, 8)
-        .then((results) => {
-          if (requestId !== productSearchRequestRef.current) return;
-          const inStockResults = results.filter((p) => Number(p.esal) > 0);
-          setProductResults(inStockResults);
-          setActiveSuggestionIndex(0);
-          setProductSearchMs(Math.round(performance.now() - startedAt));
-        })
-        .catch((error) => {
-          if (requestId !== productSearchRequestRef.current) return;
-          setProductSearchError(error instanceof Error ? error.message : 'Erro ao buscar produto.');
-          setProductResults([]);
-          setProductSearchMs(null);
-        })
-        .finally(() => {
-          if (requestId === productSearchRequestRef.current) setProductSearching(false);
-        });
-    }, 150);
-
-    return () => window.clearTimeout(timer);
-  }, [productQuery, session?.access_token, filialId]);
 
   useEffect(() => {
     const context = resolveContext();
@@ -411,44 +262,7 @@ export function PdvPage() {
     return () => window.clearInterval(timer);
   }, [receiptOpen]);
 
-  async function processQueue() {
-    const context = resolveContext();
-    if (!context || queueProcessingRef.current) return;
-    const queue = listPdvQueue(context.filialId);
-    if (!queue.length) {
-      setPendingQueueCount(0);
-      return;
-    }
 
-    queueProcessingRef.current = true;
-    try {
-      const current = queue[0];
-      await submitPdvPayload(current.payload, { silent: true });
-      removePdvSaleFromQueue(context.filialId, current.queueId);
-      const remaining = countPdvQueue(context.filialId);
-      setPendingQueueCount(remaining);
-      toast.success('Venda pendente enviada com sucesso.');
-      if (remaining > 0) window.setTimeout(() => void processQueue(), 250);
-    } catch {
-      setPendingQueueCount(countPdvQueue(context.filialId));
-    } finally {
-      queueProcessingRef.current = false;
-    }
-  }
-
-  useEffect(() => {
-    const context = resolveContext();
-    if (!context) return;
-
-    const tick = () => void processQueue();
-    tick();
-    const interval = window.setInterval(tick, 12000);
-    window.addEventListener('online', tick);
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('online', tick);
-    };
-  }, [session?.access_token, filialId]);
 
   function handleSelectProduto(produto: PdvProdutoSearchResult) {
     if (Number(produto.esal) <= 0 && !hasPermission('estoque:override')) {
@@ -456,10 +270,7 @@ export function PdvPage() {
       return;
     }
     addItem(createCartItemFromProduto(produto));
-    setProductQuery('');
-    setProductResults([]);
-    setProductSearchError(null);
-    setActiveSuggestionIndex(0);
+    searchEngine.clear();
     setShowScannerHalo(true);
     setTimeout(() => setShowScannerHalo(false), 800);
     window.requestAnimationFrame(() => productInputRef.current?.focus());
@@ -469,9 +280,8 @@ export function PdvPage() {
     const context = resolveContext();
     if (!context) return;
     
-    setProductSearching(true);
+    // Fallback simple search
     try {
-      // Buscar especificamente por SKU ou Código de Barras
       const results = await searchProdutosPdv(context, code, 1);
       if (results.length > 0) {
         handleSelectProduto(results[0]);
@@ -481,8 +291,6 @@ export function PdvPage() {
       }
     } catch (err) {
       toast.error('Erro ao processar leitura.');
-    } finally {
-      setProductSearching(false);
     }
   }
 
@@ -498,171 +306,37 @@ export function PdvPage() {
     setDiscountModalOpen(false);
   }
 
-  async function submitPdvPayload(
-    payload: PdvQueuedSale['payload'],
-    options: { silent?: boolean } = {}
-  ) {
-    try {
-      // Usamos mutateAsync para poder capturar o erro aqui e tratar o fallback
-      await save.mutateAsync(payload);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao salvar venda.';
-      if (!isPdvMetadataMissingError(message)) throw error;
-
-      const { origem_venda, pgto_meta, ...fallback } = payload;
-      const fallbackObs = [
-        payload.obs,
-        pgto_meta ? `[PDV_META] ${JSON.stringify(pgto_meta)}` : '',
-        origem_venda ? `[PDV_ORIGEM] ${origem_venda}` : ''
-      ]
-        .filter(Boolean)
-        .join('\n');
-
-      if (!options.silent) {
-        toast.warning('Metadados do PDV ainda não existem no banco. Salvando a venda no modo compatível.');
-      }
-
-      await save.mutateAsync({
-        ...fallback,
-        obs: fallbackObs
-      });
-    }
-  }
-
   async function handleFinalizeSale() {
-    if (!canFinalize) return;
-    if (paymentMethod === 'misto' && !mixedValidation.isValid) {
-      toast.warning('A soma do pagamento misto precisa bater com o total da venda.');
-      setMixedModalOpen(true);
-      return;
-    }
-    if (paymentMethod === 'fiado' && !selectedCliente) {
-      toast.warning('Fiado precisa de cliente vinculado.');
-      return;
-    }
-
-    const paymentLabel = PAYMENT_OPTIONS.find((option) => option.value === paymentMethod)?.label ?? 'Pagamento';
-    const payload: PdvQueuedSale['payload'] = {
-      id: globalThis.crypto.randomUUID(),
-      filial_id: filialId!,
-      num: nextPedidoNum,
-      cli: selectedCliente?.nome || 'CONSUMIDOR FINAL',
-      cliente_id: selectedCliente?.id ?? null,
-      rca_id: selectedCliente?.rca_id ?? null,
-      rca_nome: selectedCliente?.rca_nome ?? null,
-      data: new Date().toISOString().slice(0, 10),
-      status: 'entregue',
-      pgto: mapPdvPaymentToPedido(paymentMethod!),
-      prazo: paymentMethod === 'fiado' ? normalizePrazoCliente(selectedCliente) : 'imediato',
-      tipo: 'varejo',
-      obs: appliedVale ? `Vale-Troca utilizado: ${appliedVale.codigo} (R$ ${appliedVale.valor})` : '',
-      itens: buildPedidoItensFromCart(items, totals.discountValue),
-      total: finalTotal,
-      origem_venda: 'pdv',
-      pgto_meta: {
-        method: paymentMethod,
-        ...(paymentMethod === 'misto' ? { parts: mixedValidation.parts } : {}),
-        ...(appliedVale ? { vale_troca_codigo: appliedVale.codigo, vale_troca_valor: appliedVale.valor } : {})
-      },
-      venda_fechada: true,
-      venda_fechada_em: new Date().toISOString(),
-      venda_fechada_por: getUserIdentifier(session)
-    };
-
-    try {
-      await submitPdvPayload(payload);
-      
-      // Consume the vale-troca coupon in database if applied
-      if (appliedVale) {
-        const ctx = resolveContext();
-        if (ctx) {
-          await updateValeTrocaStatus(ctx, appliedVale.id, 'utilizado');
-        }
-      }
-
-      // Generate NFC-e automatically on successful local sale
-      const ctx = resolveContext();
-      let nfceResult: any = null;
-      if (ctx) {
-        try {
-          const { processNfce } = await import('../pdv/nfceContingencyService');
-          nfceResult = await processNfce(payload as any, ctx.token);
-          if (nfceResult.isContingency) {
-            toast.info('NFC-e gerada em Contingência e salva na fila local.');
-          }
-        } catch (err) {
-          console.error('Erro na NFCe:', err);
-        }
-      }
-
-      toast.success('Venda finalizada. O PDV já está pronto para a próxima.');
-      setLastCompletedSale({
-        numero: payload.num,
-        total: payload.total,
-        itemCount: items.length,
-        paymentMethod: paymentLabel,
-        cliente: selectedCliente,
-        createdAt: formatDateTime(new Date()),
-        isContingency: nfceResult?.isContingency,
-        qrCodeUrl: nfceResult?.qrCodeUrl
-      });
-      setReceiptOpen(true);
-      resetCurrentSale();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Não foi possível finalizar a venda.';
-      if (isOfflineLikeError(message) && filialId) {
-        enqueuePdvSale(filialId, {
-          queueId: globalThis.crypto.randomUUID(),
-          payload,
-          createdAt: new Date().toISOString()
-        });
-        setPendingQueueCount(countPdvQueue(filialId));
-        toast.warning('Venda guardada na fila local. Vamos reenviar quando a rede voltar.');
-        
-        let qrCodeUrl;
-        try {
-          const { processNfce } = await import('../pdv/nfceContingencyService');
-          const ctx = resolveContext();
-          if (ctx) {
-            const nfceResult = await processNfce(payload as any, ctx.token, true); // Force contingency
-            qrCodeUrl = nfceResult?.qrCodeUrl;
-          }
-        } catch (err) {
-          console.error(err);
-        }
-
-        setLastCompletedSale({
-          numero: payload.num,
-          total: payload.total,
-          itemCount: items.length,
-          paymentMethod: paymentLabel,
-          cliente: selectedCliente,
-          createdAt: formatDateTime(new Date()),
-          isContingency: true,
-          qrCodeUrl: qrCodeUrl
-        });
+    engine.handleFinalizeSale({
+      items,
+      totals,
+      finalTotal,
+      mixedValidation,
+      selectedCliente,
+      paymentMethod,
+      appliedVale,
+      onSuccess: () => {
         setReceiptOpen(true);
         resetCurrentSale();
-      } else {
-        toast.error(message);
-      }
-    }
+      },
+      onMixedModalRequired: () => setMixedModalOpen(true)
+    });
   }
 
   function handlePrintReceipt() {
-    if (!lastCompletedSale) return;
+    if (!engine.lastCompletedSale) return;
     const popup = window.open('', '_blank', 'noopener,noreferrer,width=360,height=520');
     if (!popup) return;
     popup.document.write(
       buildReceiptHtml({
-        numero: lastCompletedSale.numero,
-        createdAt: lastCompletedSale.createdAt,
-        cliente: lastCompletedSale.cliente,
-        total: lastCompletedSale.total,
-        itemCount: lastCompletedSale.itemCount,
-        paymentMethod: lastCompletedSale.paymentMethod,
-        isContingency: lastCompletedSale.isContingency,
-        qrCodeUrl: lastCompletedSale.qrCodeUrl
+        numero: engine.lastCompletedSale.numero,
+        createdAt: engine.lastCompletedSale.createdAt,
+        cliente: engine.lastCompletedSale.cliente,
+        total: engine.lastCompletedSale.total,
+        itemCount: engine.lastCompletedSale.itemCount,
+        paymentMethod: engine.lastCompletedSale.paymentMethod,
+        isContingency: engine.lastCompletedSale.isContingency,
+        qrCodeUrl: engine.lastCompletedSale.qrCodeUrl
       })
     );
     popup.document.close();
@@ -672,16 +346,16 @@ export function PdvPage() {
   }
 
   function handleWhatsappReceipt() {
-    if (!lastCompletedSale) return;
-    const link = getClienteWhatsappLink(lastCompletedSale.cliente);
+    if (!engine.lastCompletedSale) return;
+    const link = getClienteWhatsappLink(engine.lastCompletedSale.cliente);
     if (!link) return;
     const message = encodeURIComponent(
       buildReceiptMessage({
-        numero: lastCompletedSale.numero,
-        cliente: lastCompletedSale.cliente,
-        total: lastCompletedSale.total,
-        itemCount: lastCompletedSale.itemCount,
-        paymentMethod: lastCompletedSale.paymentMethod
+        numero: engine.lastCompletedSale.numero,
+        cliente: engine.lastCompletedSale.cliente,
+        total: engine.lastCompletedSale.total,
+        itemCount: engine.lastCompletedSale.itemCount,
+        paymentMethod: engine.lastCompletedSale.paymentMethod
       })
     );
     window.open(`${link}?text=${message}`, '_blank', 'noopener,noreferrer');
@@ -730,7 +404,7 @@ export function PdvPage() {
     }
   ]);
 
-  if (initialLoading) {
+  if (engine.initialLoading) {
     return (
       <main className="rf-content">
         <div className="rf-pdv-shell-state">Preparando o PDV...</div>
@@ -738,13 +412,13 @@ export function PdvPage() {
     );
   }
 
-  if (pageError) {
+  if (engine.pageError) {
     return (
       <main className="rf-content">
         <ErrorState
-          title={pageError}
+          title={engine.pageError}
           description="O PDV precisa da sessão, da filial ativa e da configuração do Supabase para começar."
-          onRetry={() => void loadNextPedidoNumber()}
+          onRetry={() => void engine.loadNextPedidoNumber()}
         />
       </main>
     );
@@ -768,7 +442,7 @@ export function PdvPage() {
                   }
                 }
               }}
-              pendingQueueCount={pendingQueueCount}
+              pendingQueueCount={engine.pendingQueueCount}
               saleToken={saleToken}
               nowFormatted={formatDateTime(now)}
             />
@@ -782,55 +456,53 @@ export function PdvPage() {
                 className="rf-pdv__search-input focus:border-emerald-500/40"
                 type="search"
                 placeholder="Buscar produto por nome ou código…"
-                value={productQuery}
-                onChange={(event) => setProductQuery(event.target.value)}
+                value={searchEngine.query}
+                onChange={(event) => searchEngine.setQuery(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === 'ArrowDown' && productResults.length > 0) {
+                  if (event.key === 'ArrowDown' && searchEngine.results.length > 0) {
                     event.preventDefault();
-                    setActiveSuggestionIndex((current) => Math.min(productResults.length - 1, current + 1));
+                    searchEngine.setActiveIndex((current) => Math.min(searchEngine.results.length - 1, current + 1));
                     return;
                   }
-                  if (event.key === 'ArrowUp' && productResults.length > 0) {
+                  if (event.key === 'ArrowUp' && searchEngine.results.length > 0) {
                     event.preventDefault();
-                    setActiveSuggestionIndex((current) => Math.max(0, current - 1));
+                    searchEngine.setActiveIndex((current) => Math.max(0, current - 1));
                     return;
                   }
-                  if (event.key === 'Enter' && productResults.length > 0) {
+                  if (event.key === 'Enter' && searchEngine.results.length > 0) {
                     event.preventDefault();
-                    handleSelectProduto(productResults[activeSuggestionIndex] ?? productResults[0]);
+                    handleSelectProduto(searchEngine.results[searchEngine.activeIndex] ?? searchEngine.results[0]);
                     return;
                   }
                   if (event.key === 'Escape') {
                     event.preventDefault();
-                    setProductQuery('');
-                    setProductResults([]);
-                    setProductSearchError(null);
+                    searchEngine.clear();
                   }
                 }}
               />
               <span className="rf-pdv__search-shortcut">/</span>
             </div>
 
-            {(productQuery.trim() || productSearching || productSearchError) && (
+            {(searchEngine.query.trim() || searchEngine.isSearching || searchEngine.error) && (
               <div className="rf-pdv__suggestions">
-                {productSearching ? <div className="rf-pdv__suggestions-empty">Buscando produtos...</div> : null}
-                {!productSearching && productSearchError ? (
-                  <div className="rf-pdv__suggestions-empty is-error">{productSearchError}</div>
+                {searchEngine.isSearching ? <div className="rf-pdv__suggestions-empty">Buscando produtos...</div> : null}
+                {!searchEngine.isSearching && searchEngine.error ? (
+                  <div className="rf-pdv__suggestions-empty is-error">{searchEngine.error}</div>
                 ) : null}
-                {!productSearching && !productSearchError && productResults.length === 0 && productQuery.trim() ? (
+                {!searchEngine.isSearching && !searchEngine.error && searchEngine.results.length === 0 && searchEngine.query.trim() ? (
                   <div className="rf-pdv__suggestions-empty">Nenhum produto encontrado.</div>
                 ) : null}
-                {!productSearching && !productSearchError && productResults.length > 0 ? (
+                {!searchEngine.isSearching && !searchEngine.error && searchEngine.results.length > 0 ? (
                   <>
-                    {productResults.map((produto, index) => {
-                      const isActive = index === activeSuggestionIndex;
+                    {searchEngine.results.map((produto, index) => {
+                      const isActive = index === searchEngine.activeIndex;
                       const stock = Number.isFinite(Number(produto.esal)) ? Number(produto.esal) : null;
                       return (
                         <button
                           key={produto.id}
                           type="button"
                           className={`rf-pdv__suggestion ${isActive ? 'is-active' : ''}`}
-                          onMouseEnter={() => setActiveSuggestionIndex(index)}
+                          onMouseEnter={() => searchEngine.setActiveIndex(index)}
                           onClick={() => handleSelectProduto(produto)}
                         >
                           <div className="rf-pdv__suggestion-copy">
@@ -849,7 +521,7 @@ export function PdvPage() {
                       );
                     })}
                     <div className="rf-pdv__suggestions-foot">
-                      {productSearchMs !== null ? `Última busca em ${productSearchMs}ms` : 'Busca rápida ativa'}
+                      {searchEngine.searchMs !== null ? `Última busca em ${searchEngine.searchMs}ms` : 'Busca rápida ativa'}
                     </div>
                   </>
                 ) : null}
@@ -1133,7 +805,7 @@ export function PdvPage() {
         onClose={() => setReceiptOpen(false)}
         onPrint={handlePrintReceipt}
         onWhatsapp={handleWhatsappReceipt}
-        canWhatsapp={!!getClienteWhatsappLink(lastCompletedSale?.cliente ?? null)}
+        canWhatsapp={!!getClienteWhatsappLink(engine.lastCompletedSale?.cliente ?? null)}
       />
       {isScannerOpen && (
         <ScannerModal 

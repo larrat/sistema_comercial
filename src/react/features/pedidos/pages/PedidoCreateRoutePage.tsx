@@ -11,6 +11,7 @@ export function PedidoCreateRoutePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const clienteId = searchParams.get('cliente') || null;
+  const projetoId = searchParams.get('projetoId') || null;
   const { save } = usePedidoMutations();
 
   const handleBack = useCallback(() => {
@@ -50,6 +51,7 @@ export function PedidoCreateRoutePage() {
       <div className="bg-slate-900 rounded-2xl shadow-xl border border-white/5 p-6">
         <PedidoForm
           prefillClienteId={clienteId}
+          prefillProjetoId={projetoId}
           initialPedido={null}
           analyticsOrigin="route_page"
           onSaved={(pedido) => {

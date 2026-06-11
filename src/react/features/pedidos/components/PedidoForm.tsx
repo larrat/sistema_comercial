@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 type Props = {
   initialPedido: Pedido | null;
   prefillClienteId?: string | null;
+  prefillProjetoId?: string | null;
   onSaved: (pedido: Pedido) => void;
   onCancel: () => void;
   analyticsOrigin?: string;
@@ -46,6 +47,7 @@ type Props = {
 export function PedidoForm({
   initialPedido,
   prefillClienteId = null,
+  prefillProjetoId = null,
   onSaved,
   onCancel,
   analyticsOrigin = 'unknown'
@@ -175,6 +177,7 @@ export function PedidoForm({
       num: initialPedido?.num,
       cli: clienteFound.nome,
       cliente_id: clienteFound.id,
+      projeto_id: initialPedido?.projeto_id ?? prefillProjetoId ?? null,
       rca_id: rcaId || null,
       rca_nome: rcaNome || null,
       data,

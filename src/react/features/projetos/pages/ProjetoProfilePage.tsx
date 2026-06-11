@@ -328,6 +328,9 @@ export function ProjetoProfilePage() {
                   </div>
                   <h3 className="text-lg font-bold text-white">Pedidos Fechados</h3>
                 </div>
+                <button onClick={() => navigate(`/app/pedidos/novo?projetoId=${id}`)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors">
+                  <Plus size={16} />
+                </button>
               </div>
 
               {isLoadingPed ? (

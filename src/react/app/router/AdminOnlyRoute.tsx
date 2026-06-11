@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
-import { useRoleStore } from '../../useRoleStore';
+import { useRoleStore } from '../useRoleStore';
 import { getDefaultAppPath } from './routes';
 
 export function AdminOnlyRoute() {

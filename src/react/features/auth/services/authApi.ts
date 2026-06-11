@@ -1,4 +1,5 @@
 import type { AuthSession, Filial } from '../../../../types/domain';
+import { fetchWithAuth, readJson } from '../../../shared/api/apiClient';
 
 type ApiBase = { url: string; key: string };
 
@@ -7,15 +8,10 @@ export async function signInWithPassword(
   email: string,
   password: string
 ): Promise<AuthSession> {
-  const res = await fetch(`${base.url}/auth/v1/token?grant_type=password`, {
+  const res = await fetchWithAuth(base, '/auth/v1/token?grant_type=password', {
     method: 'POST',
-    headers: {
-      apikey: base.key,
-      Authorization: `Bearer ${base.key}`,
-      'Content-Type': 'application/json'
-    },
     body: JSON.stringify({ email, password }),
-    signal: AbortSignal.timeout(12000)
+    timeoutMs: 12000
   });
 
   if (!res.ok) {
@@ -35,10 +31,9 @@ export async function signInWithPassword(
 }
 
 export async function signOut(base: ApiBase, token: string): Promise<void> {
-  await fetch(`${base.url}/auth/v1/logout`, {
+  await fetchWithAuth({ ...base, token }, '/auth/v1/logout', {
     method: 'POST',
-    headers: { apikey: base.key, Authorization: `Bearer ${token}` },
-    signal: AbortSignal.timeout(6000)
+    timeoutMs: 6000
   }).catch((err) => console.error('Erro no logout', err));
 }
 
@@ -47,17 +42,12 @@ export async function getUserContext(
   token: string
 ): Promise<Array<{ filial_id: string; cargo_id: string; permissoes: string[] }> | null> {
   try {
-    const res = await fetch(`${base.url}/rest/v1/rpc/get_user_context`, {
+    const res = await fetchWithAuth({ ...base, token }, '/rest/v1/rpc/get_user_context', {
       method: 'POST',
-      headers: {
-        apikey: base.key,
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      signal: AbortSignal.timeout(6000)
+      timeoutMs: 6000
     });
     if (!res.ok) return null;
-    return await res.json();
+    return await readJson(res);
   } catch {
     return null;
   }
@@ -68,18 +58,20 @@ export async function listUserFiliais(
   token: string,
   userId: string
 ): Promise<Filial[]> {
-  const accRes = await fetch(
-    `${base.url}/rest/v1/user_filiais?user_id=eq.${encodeURIComponent(userId)}&select=filial_id`,
-    { headers: { apikey: base.key, Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(8000) }
+  const accRes = await fetchWithAuth(
+    { ...base, token },
+    `/rest/v1/user_filiais?user_id=eq.${encodeURIComponent(userId)}&select=filial_id`,
+    { timeoutMs: 8000 }
   );
   if (!accRes.ok) throw new Error(`Erro ao buscar acessos (${accRes.status}).`);
   const acc: Array<{ filial_id: string }> = await accRes.json();
   if (!acc.length) return [];
 
   const ids = acc.map((r) => r.filial_id).join(',');
-  const filRes = await fetch(
-    `${base.url}/rest/v1/filiais?id=in.(${ids})&order=criado_em`,
-    { headers: { apikey: base.key, Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(8000) }
+  const filRes = await fetchWithAuth(
+    { ...base, token },
+    `/rest/v1/filiais?id=in.(${ids})&order=criado_em`,
+    { timeoutMs: 8000 }
   );
   if (!filRes.ok) throw new Error(`Erro ao buscar filiais (${filRes.status}).`);
   return filRes.json() as Promise<Filial[]>;
