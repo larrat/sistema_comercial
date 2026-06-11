@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-bold font-sans transition-all duration-200 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:opacity-50 disabled:pointer-events-none rounded-[16px] whitespace-nowrap",
+  "inline-flex items-center justify-center font-bold font-sans transition-[transform,color,background-color,box-shadow,border-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:opacity-50 disabled:pointer-events-none rounded-[16px] whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -62,15 +62,30 @@ export function Button({
       aria-disabled={loading || disabled}
       {...props}
     >
-      {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-      ) : (
-        leftIcon && <span aria-hidden="true" className="flex items-center justify-center">{leftIcon}</span>
-      )}
-      
-      <span>{children}</span>
-      
-      {!loading && rightIcon && <span aria-hidden="true" className="flex items-center justify-center">{rightIcon}</span>}
+      <div className="relative flex items-center justify-center min-h-[1em]">
+        {/* Loading Spinner */}
+        <div 
+          className={cn(
+            "absolute inset-0 flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            loading ? "opacity-100 scale-100" : "opacity-0 scale-50"
+          )}
+        >
+          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+        </div>
+
+        {/* Normal Content (Text + Icons) */}
+        <div 
+          className={cn(
+            "flex items-center justify-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            loading ? "opacity-0 scale-95" : "opacity-100 scale-100",
+            size === "sm" ? "gap-1.5" : size === "lg" ? "gap-2.5" : "gap-2"
+          )}
+        >
+          {leftIcon && <span aria-hidden="true" className="flex items-center justify-center">{leftIcon}</span>}
+          <span>{children}</span>
+          {rightIcon && <span aria-hidden="true" className="flex items-center justify-center">{rightIcon}</span>}
+        </div>
+      </div>
     </button>
   );
 }

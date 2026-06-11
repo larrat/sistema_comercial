@@ -29,10 +29,10 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200" />
+        <Dialog.Overlay className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]" />
         <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 sm:p-6 pointer-events-none">
           <Dialog.Content 
-            className={`pointer-events-auto w-full flex flex-col max-h-full bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95 duration-200 rf-ui-modal--${size}`}
+            className={`pointer-events-auto w-full flex flex-col max-h-full bg-slate-900 border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-90 duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] rf-ui-modal--${size}`}
             onPointerDownOutside={(e) => {
               if (!shouldCloseOnOverlay) e.preventDefault();
             }}
