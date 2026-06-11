@@ -9,7 +9,7 @@ Use este arquivo para saber qual documento ainda vale e qual é apenas históric
 |---|---|
 | [NORTE.md](NORTE.md) | Estado executivo atual e próximas decisões. |
 | [PLANO_SIMPLES.md](PLANO_SIMPLES.md) | Regra de trabalho enxuta para uma pessoa e uma loja. |
-| [status/STATUS_GERAL_2026-05-06.md](status/STATUS_GERAL_2026-05-06.md) | Análise geral atual do sistema, telas, regras, UX/UI e banco. |
+| [status/STATUS_GERAL_2026-06-11.md](status/STATUS_GERAL_2026-06-11.md) | Análise executiva atual do sistema, projetos hub, PDV, ferramentas CLI e automação financeira. |
 | [ORGANIZACAO_DOCUMENTACAO.md](ORGANIZACAO_DOCUMENTACAO.md) | Como separar docs por tipo/status sem quebrar tudo. |
 
 ## Em andamento
@@ -59,6 +59,8 @@ Use este arquivo para saber qual documento ainda vale e qual é apenas históric
 
 Os documentos abaixo existem para consulta, mas não são a fonte principal do estado atual:
 
+- `docs/status/STATUS_GERAL_2026-05-14.md`
+- `docs/status/STATUS_GERAL_2026-05-06.md`
 - `docs/governanca/STATUS_REAL_2026-04-28.md`
 - `docs/governanca/STATUS_REAL_ENTREGAS_E_PENDENCIAS_2026-04-23.md`
 - Planos de sprint antigos em `docs/governanca/PLANO_*`.

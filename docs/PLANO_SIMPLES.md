@@ -1,29 +1,30 @@
 # Plano do Sistema Comercial — versão Nexus
 
-Última atualização: 14/05/2026
+Última atualização: 11/06/2026
 Para: 1 pessoa, 1 loja, sistema em produção, uso diário.
 
 ## Princípio único
 
 O sistema deve ser rápido, bonito e funcional. Se algo atrapalha o atendimento ou a visão do dono, a gente ajusta.
 
-## Concluído recentemente (Ciclo Nexus Premium)
+## Concluído recentemente (Aceleração e Governança)
 
-- **Performance**: Redução de 90% no carregamento inicial (Lazy Loading).
-- **Estética**: Gráficos refatorados para padrão Premium (Recharts).
-- **UI**: Drawers animados e visual Glassmorphism implementado globalmente.
-- **Limpeza**: Remoção de redundâncias e ajuste de cores vibrantes.
+- **Projetos Hub**: Levantamentos, Orçamentos e Vendas unificados no mesmo Control Room.
+- **Ferramental Automático**: Criação de novos módulos agora via `npm run generate` em 2 segundos.
+- **Automação Financeira**: Contas a Receber sendo gerado 100% pelo Banco de Dados.
+- **PDV Blindado**: Regras de negócio separadas da tela (Hooks), TypeScript 100% livre de erros.
+- **Permissões (RBAC)**: Migradas de texto fixo para tabelas de Banco de Dados.
 
 ## Fila de melhorias (em ordem)
 
 ### Curto — Próximos passos
-1. Validar a velocidade de navegação no computador secundário (lento).
-2. Monitorar o uso real do novo Dashboard Premium.
-3. Padronizar o PDV com o tema Midnight/Cyan se houver tempo.
+1. Monitorar o fluxo de geração automática de Contas a Receber nas próximas vendas reais.
+2. Homologar a criação de novas telas (ex: módulo de fornecedores) usando o `generate-module.mjs`.
+3. Testar a vinculação end-to-end de um Levantamento -> Orçamento -> Pedido dentro do Hub de Projetos.
 
 ### Médio
-4. Cobrança via WhatsApp click-to-send.
-5. Validar conciliação financeira em produção.
+4. Validar conciliação financeira massiva.
+5. Cobrança via WhatsApp click-to-send (integração CRM).
 
 ## Critério de parada definitivo
 
