@@ -1,32 +1,34 @@
 # Norte do Projeto — Nexus Industrial
 
-Atualizado em: 14/05/2026
+Atualizado em: 11/06/2026
 
 Este é o documento executivo central. Ele diz onde o sistema está agora, quais documentos valem e quais decisões importam para continuar evoluindo sob a marca **Nexus Industrial**.
 
 ## Princípio atual
 
 O sistema existe para operar uma loja real com excelência visual e alta performance.
-Toda nova funcionalidade deve respeitar o padrão **Premium Nexus** (Glassmorphism + Cyan).
+Toda nova funcionalidade deve respeitar o padrão **Premium Nexus** (Glassmorphism + Cyan) e seguir as **Práticas de Engenharia (apiClient, Hooks Isolados, RBAC)**.
 
 ## Estado geral
 
+- **Arquitetura Base**: API Client centralizado (`fetchWithAuth`) e scaffolding automatizado via `scripts/generate-module.mjs`.
+- **RBAC**: Permissões baseadas em banco de dados (`hasPermission('admin')`), sem chumbamento de strings no código.
+- **Projetos Hub**: O ecossistema de Projetos foi consolidado como um hub central. Agora ele concentra Vendas (Pedidos), Orçamentos e Levantamentos de Arquitetura em uma única tela fluida.
+- **PDV (Ponto de Venda)**: Refatorado para _Custom Hooks_ (`usePdvEngine`, `useProductSearch`), separando regras pesadas de negócio da Interface Visual. Tipagem restrita de TypeScript está **100% livre de erros**.
 - **Performance**: Implementado `Route Lazy Loading`. O sistema agora carrega instantaneamente (Bundle: 218KB).
 - **UI/UX**: Consolidado o estilo **Midnight Industrial**. Dashboard refatorado com Recharts de alta fidelidade.
-- **TanStack Query**: Otimização global de cache (`staleTime`) para navegação sem delays.
-- **Clientes**: Tela de referência absoluta de UX/UI para cadastros.
-- **Produtos**: Alinhado ao padrão de Clientes, com foco em gestão de margens.
 
 ## Módulos
 
 | Módulo | Status atual | Próxima ação pragmática |
 |---|---|---|
+| Projetos | **Hub Consolidado** | Estimular uso da tela unificada de Levantamentos e Orçamentos. |
 | Dashboard | **Refatorado (Premium)** | Manutenção estética apenas. |
 | Clientes | Referência de padrão | Manter como base de UX para novos cadastros. |
-| Pedidos | **Refatorado (Premium)** | Validar novos fluxos de baixa e entrega. |
-| PDV | Ativo em React | Refinar busca rápida de itens. |
+| Pedidos | **Refatorado (Premium)** | Automação via trigger para geração de Contas a Receber recém-implantada. |
+| PDV | **Desacoplado** | Expandir relatórios gerenciais a partir das lógicas limpas do `usePdvEngine`. |
 | Estoque | Ativo em React | Sincronização em tempo real com Produtos. |
-| Financeiro | Ativo em React | Validar conciliação bancária automática. |
+| Financeiro | Ativo em Banco (Triggers) | Validar inserção massiva das triggers de faturamento. |
 
 ## UX/UI (Nexus Standard)
 
@@ -42,9 +44,9 @@ Toda nova funcionalidade deve respeitar o padrão **Premium Nexus** (Glassmorphi
 
 ## Próximas decisões úteis
 
-1. Monitorar performance do Bundle conforme novas features são adicionadas.
-2. Expandir o uso de Recharts para o módulo de Relatórios.
-3. Padronizar o PDV com o tema Midnight/Cyan.
+1. Monitorar o funcionamento das Triggers Financeiras (ex: `trg_pedido_to_contas_receber`) conforme o volume de vendas via PDV aumentar.
+2. Utilizar o `generate-module.mjs` para qualquer criação de novos componentes, barrando PRs que façam "Ctrl+C / Ctrl+V" de módulos antigos.
+3. Consolidar o sistema de RBAC migrando cargos e acessos 100% para a administração pela Interface UI (atualmente no Banco de Dados).
 
 ## O que evitar
 

@@ -9,10 +9,11 @@ Este documento fornece uma visão completa da arquitetura, fluxo e interface do 
 O sistema é uma plataforma de gestão comercial robusta projetada para operações industriais e de atacado sob a marca **Nexus Industrial**. Ele foca em três pilares: **Controle de Vendas**, **Gestão de Estoque** e **Saúde Financeira**.
 
 ### Módulos Principais
-*   **Vendas (Pedidos)**: Gestão do ciclo de vida das vendas, desde o orçamento até a entrega e baixa financeira.
+*   **Projetos (Hub Central)**: Área de trabalho unificada ("Control Room") que centraliza informações da obra, vinculando Levantamentos (Medições de Arquitetura), Orçamentos detalhados e Vendas (Pedidos).
+*   **Vendas (Pedidos & PDV)**: Gestão do ciclo de vida das vendas, interface desacoplada e ágil com Ponto de Venda.
 *   **CRM (Clientes)**: Visão 360º do cliente, incluindo histórico de compras, prazos médios e alertas de inadimplência.
-*   **Logística (Produtos & Estoque)**: Catálogo com controle de margens (markup), gestão de estoque físico em tempo real e integração via RPA de compras.
-*   **Financeiro (Contas a Receber e Pagar)**: Controle de recebíveis com fluxos de baixa, análise de inadimplência, e integração automática com Pedidos de Compra via XML.
+*   **Logística (Produtos & Estoque)**: Catálogo com controle de margens (markup), gestão de estoque físico em tempo real.
+*   **Financeiro (Contas a Receber)**: Controle de recebíveis automatizados por Banco de Dados via Triggers atreladas aos fluxos de venda.
 *   **Fiscal (Governança)**: Motor tributário centralizado para cálculo de impostos (ICMS, PIS, COFINS, IVA Dual) via NCM/UF e mapeamentos de CFOP.
 
 ---
@@ -25,13 +26,18 @@ A navegação é centrada em uma barra lateral dinâmica que conecta todos os ce
 graph TD
     A[Login] --> B[Dashboard]
     B --> C[Menu Lateral]
-    C --> D[Pedidos]
+    C --> D[Pedidos / PDV]
     C --> E[Clientes]
     C --> F[Produtos]
     C --> G[Estoque]
     C --> H[Financeiro]
-    C --> I[Compras / Importação XML]
+    C --> I[Projetos Hub]
     C --> J[Setup Fiscal]
+
+    I --> I1[Control Room (Projeto)]
+    I1 --> I2[Levantamentos (CAD)]
+    I1 --> I3[Orçamentos de Obra]
+    I1 --> D3[Vincular Venda]
 
     D --> D1[Lista de Pedidos]
     D1 --> D2[Detalhe/Edição]
