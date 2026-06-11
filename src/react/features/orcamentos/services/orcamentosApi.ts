@@ -28,6 +28,7 @@ export type OrcamentoCalculado = {
 export type OrcamentoObra = {
   id: string;
   filial_id: string;
+  projeto_id?: string;
   cliente_id?: string;
   cliente_nome?: string;
   titulo: string;

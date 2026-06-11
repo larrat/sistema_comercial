@@ -9,6 +9,7 @@
     "format:check": "prettier . --check",
     "typecheck": "tsc --project tsconfig.json --noEmit",
     "typecheck:strict": "tsc --project tsconfig.strict.json --noEmit",
+    "generate": "node scripts/generate-module.mjs",
     "dev:react": "vite --config vite.config.ts",
     "build:react": "vite build --config vite.config.ts",
     "test:react": "vitest run --config vitest.react.config.ts",

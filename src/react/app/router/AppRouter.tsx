@@ -12,6 +12,7 @@ const ContasReceberRoutePage = lazy(() => import('../../features/contas-receber/
 const DashboardRoutePage = lazy(() => import('../../features/dashboard/pages/DashboardRoutePage').then(m => ({ default: m.DashboardRoutePage })));
 const CotacaoRoutePage = lazy(() => import('../../features/cotacao/pages/CotacaoRoutePage').then(m => ({ default: m.CotacaoRoutePage })));
 const OrcamentosRoutePage = lazy(() => import('../../features/orcamentos/pages/OrcamentosRoutePage').then(m => ({ default: m.OrcamentosRoutePage })));
+const OrcamentoCreateRoutePage = lazy(() => import('../../features/orcamentos/pages/OrcamentoCreateRoutePage').then(m => ({ default: m.OrcamentoCreateRoutePage })));
 const OrcamentoPrintRoutePage = lazy(() => import('../../features/orcamentos/pages/OrcamentoPrintRoutePage').then(m => ({ default: m.OrcamentoPrintRoutePage })));
 const EstoqueRoutePage = lazy(() => import('../../features/estoque/pages/EstoqueRoutePage').then(m => ({ default: m.EstoqueRoutePage })));
 const PedidoProfileRoutePage = lazy(() => import('../../features/pedidos/pages/PedidoProfileRoutePage').then(m => ({ default: m.PedidoProfileRoutePage })));
@@ -44,6 +45,7 @@ const PortalObraPage = lazy(() => import('../../features/portal/pages/PortalObra
 const PortalPropostaPage = lazy(() => import('../../features/portal/pages/PortalPropostaPage').then(m => ({ default: m.PortalPropostaPage })));
 const FiscalSetupRoutePage = lazy(() => import('../../features/setup/pages/FiscalSetupRoutePage').then(m => ({ default: m.FiscalSetupRoutePage })));
 const LevantamentoPage = lazy(() => import('../../features/arquitetura/components/LevantamentoPage').then(m => ({ default: m.LevantamentoPage })));
+const LevantamentoRoutePage = lazy(() => import('../../features/projetos/pages/LevantamentoRoutePage').then(m => ({ default: m.LevantamentoRoutePage })));
 const ProjetosListPage = lazy(() => import('../../features/projetos/pages/ProjetosListPage').then(m => ({ default: m.ProjetosListPage })));
 const ProjetoProfilePage = lazy(() => import('../../features/projetos/pages/ProjetoProfilePage').then(m => ({ default: m.ProjetoProfilePage })));
 
@@ -107,13 +109,18 @@ export function AppRouter({ bootstrap }: AppRouterProps) {
               <Route path="cotacao" element={<CotacaoRoutePage />} />
               <Route path="agenda" element={<AgendaPage />} />
               <Route path="crm" element={<CrmPage />} />
-              <Route path="orcamentos" element={<OrcamentosRoutePage />} />
-              <Route path="orcamentos/:id/imprimir" element={<OrcamentoPrintRoutePage />} />
+              <Route path="orcamentos">
+                <Route index element={<OrcamentosRoutePage />} />
+                <Route path="novo" element={<OrcamentoCreateRoutePage />} />
+                <Route path=":id/imprimir" element={<OrcamentoPrintRoutePage />} />
+              </Route>
               <Route path="contratos" element={<ContratosPage />} />
               <Route path="contratos/:id" element={<ContratoProfilePage />} />
-              <Route path="projetos" element={<ProjetosListPage />} />
-              <Route path="projetos/novo" element={<ProjetoProfilePage />} />
-              <Route path="projetos/:id" element={<ProjetoProfilePage />} />
+              <Route path="projetos">
+                <Route index element={<ProjetosListPage />} />
+                <Route path=":id" element={<ProjetoProfilePage />} />
+                <Route path=":id/levantamento/novo" element={<LevantamentoRoutePage />} />
+              </Route>
               <Route path="projetos/:projetoId/levantamento/novo" element={<LevantamentoPage />} />
               <Route path="projetos/:projetoId/levantamento/:id" element={<LevantamentoPage />} />
             </Route>
