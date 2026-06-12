@@ -82,8 +82,7 @@ begin
     rca_id = excluded.rca_id,
     rca_nome = excluded.rca_nome,
     pgto = excluded.pgto,
-    obs = excluded.obs,
-    updated_at = now()
+    obs = excluded.obs
   returning * into v_saved_pedido;
 
   -- FASE 5: DUAL-WRITE em pedido_itens
