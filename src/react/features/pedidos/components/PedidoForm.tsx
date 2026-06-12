@@ -83,6 +83,7 @@ export function PedidoForm({
   const [itens, setItens] = useState<PedidoItem[]>(existingItens);
   const [errors, setErrors] = useState<PedidoFormErrors>({});
   const [showAdvanced, setShowAdvanced] = useState(Boolean(initialPedido?.obs));
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const selectedCliente = useMemo(() => findClienteByInput(clientes, cli.trim()), [clientes, cli]);
   const totalPedido = useMemo(() => calculatePedidoTotal(itens), [itens]);
@@ -104,7 +105,7 @@ export function PedidoForm({
            (parseFloat(outrosCustos || '0') !== (initialPedido.outros_custos ?? 0));
   }, [initialPedido, cli, rcaId, status, pgto, prazo, obs, itens.length, existingItens.length, tipo, custoFrete, outrosCustos]);
 
-  const blocker = useUnsavedChangesGuard(isDirty);
+  const blocker = useUnsavedChangesGuard(isDirty && !isSubmitted);
 
   function addItem(item: PedidoItem) {
     setItens((prev) => [...prev, item]);
@@ -195,6 +196,7 @@ export function PedidoForm({
 
     save.mutate(pedidoInput, {
       onSuccess: (saved) => {
+        setIsSubmitted(true);
         onSaved(saved as unknown as Pedido);
       },
       onError: (err) => {
