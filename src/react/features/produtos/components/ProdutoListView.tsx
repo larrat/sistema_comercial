@@ -11,6 +11,7 @@ import {
   Typography
 } from '../../../shared/ui';
 import { Package, AlertTriangle } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 import type { StatusBadgeTone } from '../../../shared/ui/StatusBadge';
 
 type Props = {
@@ -249,40 +250,51 @@ export function ProdutoListView({
 
             if (hasVariants) {
               return (
-                <div className="flex flex-col gap-0.5 relative group cursor-help">
-                  <div className="text-sm font-bold text-slate-100 flex items-center gap-1.5 hover:text-[#C5A059] transition-colors">
-                    {fmtQ(saldo)} <span className="text-xs font-normal text-slate-500">{row.prod.un}</span>
-                    <span className="bg-slate-800 px-1.5 py-0.5 rounded-md border border-[#C5A059]/20 text-sm font-medium text-slate-400">
-                      {activeVariants.length} vars
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm font-medium text-slate-400">
-                    <span>Grade Total</span>
-                  </div>
-
-                  {/* Popover flutuante no hover de luxo */}
-                  <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-64 bg-slate-950/95 border border-white/10 backdrop-blur-md p-3.5 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 pointer-events-none">
-                    <div className="mb-2 border-b border-white/5 pb-1 flex items-center justify-between text-sm font-medium text-slate-400">
-                      <span>Estoque por Grade</span>
-                      <span className="text-[9px] text-[#C5A059]">{row.prod.un}</span>
-                    </div>
-                    <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1">
-                      {activeVariants.map((v: any) => (
-                        <div key={v.id} className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1.5 text-slate-200">
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: v.esal <= 0 ? 'var(--color-rose-400)' : 'var(--color-emerald-400)' }} />
-                            <span className="font-medium truncate max-w-[160px]" title={v.nome}>
-                              {v.nome.replace(row.prod.nome, '').replace(/^\s*[-–—]\s*/, '').trim() || v.nome}
-                            </span>
-                          </div>
-                          <span className={`font-bold font-mono${v.esal <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                            {fmtQ(v.esal)}
+                <Tooltip.Provider>
+                  <Tooltip.Root delayDuration={100}>
+                    <Tooltip.Trigger asChild>
+                      <div className="flex flex-col gap-0.5 cursor-help">
+                        <div className="text-sm font-bold text-slate-100 flex items-center gap-1.5 hover:text-[#C5A059] transition-colors">
+                          {fmtQ(saldo)} <span className="text-xs font-normal text-slate-500">{row.prod.un}</span>
+                          <span className="bg-slate-800 px-1.5 py-0.5 rounded-md border border-[#C5A059]/20 text-sm font-medium text-slate-400">
+                            {activeVariants.length} vars
                           </span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                        <div className="flex items-center gap-1 text-sm font-medium text-slate-400">
+                          <span>Grade Total</span>
+                        </div>
+                      </div>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content 
+                        side="top" 
+                        sideOffset={10} 
+                        className="z-[9999] w-64 bg-slate-950/95 border border-white/10 backdrop-blur-md p-3.5 rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                      >
+                        <div className="mb-2 border-b border-white/5 pb-1 flex items-center justify-between text-sm font-medium text-slate-400">
+                          <span>Estoque por Grade</span>
+                          <span className="text-[9px] text-[#C5A059]">{row.prod.un}</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1">
+                          {activeVariants.map((v: any) => (
+                            <div key={v.id} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1.5 text-slate-200">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: v.esal <= 0 ? 'var(--color-rose-400)' : 'var(--color-emerald-400)' }} />
+                                <span className="font-medium truncate max-w-[160px]" title={v.nome}>
+                                  {v.nome.replace(row.prod.nome, '').replace(/^\s*[-–—]\s*/, '').trim() || v.nome}
+                                </span>
+                              </div>
+                              <span className={`font-bold font-mono ${v.esal <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                {fmtQ(v.esal)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        <Tooltip.Arrow className="fill-slate-950/90" />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
               );
             }
 
