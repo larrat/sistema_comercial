@@ -413,157 +413,166 @@ export function PedidoCompraCreateRoutePage() {
                     </div>
                   )}
 
-                  <div className="p-4 flex gap-3 items-start">
-                    {/* Thumbnail */}
-                    <div
-                      className="w-14 h-14 flex-shrink-0 rounded-xl bg-slate-800/80 border border-white/5 overflow-hidden flex items-center justify-center cursor-pointer"
-                      onClick={() => {
-                        if (item.produto_id) {
-                          const prod = sellableProdutos.find(p => p.id === item.produto_id);
-                          if (prod) setSelectedProductPreview(prod);
-                        }
-                      }}
-                      title="Ver detalhes do produto"
-                    >
-                      {item.foto_url ? (
-                        <img src={item.foto_url} alt={item.nome} className="w-full h-full object-cover" />
-                      ) : (
-                        <Package size={20} className="text-slate-600" />
-                      )}
-                    </div>
-
-                    {/* Product Search */}
-                    <div className="flex-1 min-w-0 relative">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-wider mb-1 block">Produto / SKU</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          autoComplete="off"
-                          value={activeItemIdx === idx ? searchTerm : item.nome}
-                          onChange={e => {
-                            setActiveItemIdx(idx);
-                            setSearchTerm(e.target.value);
-                          }}
-                          onFocus={() => {
-                            setActiveItemIdx(idx);
-                            setSearchTerm(item.nome);
-                            setHighlightedIndex(-1);
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightedIndex(prev => Math.min(prev + 1, filteredProdutos.length - 1)); }
-                            else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(prev => Math.max(prev - 1, 0)); }
-                            else if (e.key === 'Enter') { e.preventDefault(); if (highlightedIndex >= 0 && filteredProdutos[highlightedIndex]) selectProduto(idx, filteredProdutos[highlightedIndex]); }
-                            else if (e.key === 'Escape') { setActiveItemIdx(null); setHighlightedIndex(-1); }
-                          }}
-                          placeholder="Buscar por nome, SKU ou categoria..."
-                          className={`w-full bg-black/30 border rounded-xl px-3 py-2.5 text-sm text-white pr-9 focus:outline-none transition-all ${
-                            item.isXmlMatched === false
-                              ? 'border-rose-500/30 focus:border-rose-400/60'
-                              : 'border-white/5 focus:border-teal-500/50'
-                          }`}
-                        />
-                        {item.produto_id
-                          ? <CheckCircle2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-teal-400" />
-                          : <Search size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
-                        }
-                      </div>
-
-                      {/* Dropdown */}
-                      {activeItemIdx === idx && (
-                        <div className="absolute top-full left-0 z-[60] mt-1.5 w-[300px] sm:w-[400px] md:w-[450px] bg-[#0a1628] border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-72 overflow-y-auto animate-in slide-in-from-top-2 duration-150">
-                          {isLoadingProdutos ? (
-                            <div className="p-4 space-y-2">
-                              <Shimmer height={12} width="100%" />
-                              <Shimmer height={12} width="70%" />
-                            </div>
-                          ) : filteredProdutos.length > 0 ? (
-                            <>
-                              <div className="px-3 pt-2.5 pb-1 text-[9px] font-black text-slate-600 uppercase tracking-widest">
-                                {filteredProdutos.length} {filteredProdutos.length === 1 ? 'resultado' : 'resultados'}
-                              </div>
-                              {filteredProdutos.map((p, pIndex) => (
-                                <button
-                                  key={p.id}
-                                  onClick={() => selectProduto(idx, p)}
-                                  onMouseEnter={() => setSelectedProductPreview(p)}
-                                  className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors text-left ${
-                                    highlightedIndex === pIndex ? 'bg-teal-500/10 border-l-2 border-l-teal-500' : ''
-                                  }`}
-                                >
-                                  <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                    {p.foto_url
-                                      ? <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
-                                      : <Package size={14} className="text-slate-600" />
-                                    }
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5 mb-0.5">
-                                      <span className="text-[9px] font-black text-teal-500 uppercase">{p.sku || 'S/SKU'}</span>
-                                      {p.cat && <span className="text-[8px] text-slate-500 font-medium">· {p.cat}</span>}
-                                    </div>
-                                    <div className="text-xs font-bold text-white line-clamp-2 leading-snug">{p.nome}</div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <span className="text-[9px] text-emerald-400 font-bold">Custo: {fmtBRL(p.custo || 0)}</span>
-                                      <span className="text-[9px] text-slate-600">· {p.un}</span>
-                                    </div>
-                                  </div>
-                                </button>
-                              ))}
-                            </>
-                          ) : (
-                            <div className="p-6 text-center">
-                              <p className="text-xs text-slate-500 font-bold">
-                                {searchTerm ? `Nenhum produto para "${searchTerm}"` : 'Nenhum produto encontrado'}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Qty */}
-                    <div className="w-20 flex-shrink-0">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-wider mb-1 block">Qtd</label>
-                      <input
-                        type="number"
-                        min="0.001"
-                        step="0.001"
-                        value={item.qty}
-                        onChange={e => updateItem(idx, 'qty', Number(e.target.value))}
-                        className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2.5 text-sm text-white text-center focus:outline-none focus:border-teal-500/50 transition-all"
-                      />
-                    </div>
-
-                    {/* Cost */}
-                    <div className="w-28 flex-shrink-0">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-wider mb-1 block">Custo Un.</label>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.custo_unitario}
-                        onChange={e => updateItem(idx, 'custo_unitario', Number(e.target.value))}
-                        className="w-full bg-black/30 border border-white/5 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-teal-500/50 transition-all"
-                      />
-                    </div>
-
-                    {/* Total */}
-                    <div className="w-28 flex-shrink-0">
-                      <label className="text-[9px] font-black text-slate-600 uppercase tracking-wider mb-1 block">Total Item</label>
-                      <div className="w-full bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2.5 text-sm font-black text-teal-400 text-right">
-                        {fmtBRL(item.total_item || 0)}
-                      </div>
-                    </div>
-
-                    {/* Remove */}
-                    <div className="flex-shrink-0 pt-5">
-                      <button
-                        onClick={() => removeItem(idx)}
-                        className="p-2.5 rounded-xl text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
-                        aria-label="Remover item"
+                  <div className="p-4 sm:p-5 flex flex-col gap-4">
+                    {/* Top Row: Thumbnail + Search + Delete */}
+                    <div className="flex gap-4 items-start">
+                      {/* Thumbnail */}
+                      <div
+                        className="w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 rounded-xl bg-slate-800/80 border border-white/5 overflow-hidden flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => {
+                          if (item.produto_id) {
+                            const prod = sellableProdutos.find(p => p.id === item.produto_id);
+                            if (prod) setSelectedProductPreview(prod);
+                          }
+                        }}
+                        title="Ver detalhes do produto"
                       >
-                        <Trash2 size={16} />
-                      </button>
+                        {item.foto_url ? (
+                          <img src={item.foto_url} alt={item.nome} className="w-full h-full object-cover" />
+                        ) : (
+                          <Package size={20} className="text-slate-600" />
+                        )}
+                      </div>
+
+                      {/* Product Search */}
+                      <div className="flex-1 min-w-0 relative">
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Produto / SKU</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            autoComplete="off"
+                            value={activeItemIdx === idx ? searchTerm : item.nome}
+                            onChange={e => {
+                              setActiveItemIdx(idx);
+                              setSearchTerm(e.target.value);
+                            }}
+                            onFocus={() => {
+                              setActiveItemIdx(idx);
+                              setSearchTerm(item.nome);
+                              setHighlightedIndex(-1);
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightedIndex(prev => Math.min(prev + 1, filteredProdutos.length - 1)); }
+                              else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightedIndex(prev => Math.max(prev - 1, 0)); }
+                              else if (e.key === 'Enter') { e.preventDefault(); if (highlightedIndex >= 0 && filteredProdutos[highlightedIndex]) selectProduto(idx, filteredProdutos[highlightedIndex]); }
+                              else if (e.key === 'Escape') { setActiveItemIdx(null); setHighlightedIndex(-1); }
+                            }}
+                            placeholder="Buscar por nome, SKU ou categoria..."
+                            className={`w-full bg-black/40 border rounded-xl px-4 py-3 text-sm text-white pr-10 focus:outline-none transition-all ${
+                              item.isXmlMatched === false
+                                ? 'border-rose-500/30 focus:border-rose-400/60'
+                                : 'border-white/5 focus:border-teal-500/50'
+                            }`}
+                          />
+                          {item.produto_id
+                            ? <CheckCircle2 size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-teal-400" />
+                            : <Search size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-600" />
+                          }
+                        </div>
+
+                        {/* Dropdown */}
+                        {activeItemIdx === idx && (
+                          <div className="absolute top-full left-0 z-[60] mt-1.5 w-full bg-[#0a1628] border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] overflow-hidden max-h-72 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150">
+                            {isLoadingProdutos ? (
+                              <div className="p-4 space-y-2">
+                                <Shimmer height={12} width="100%" />
+                                <Shimmer height={12} width="70%" />
+                              </div>
+                            ) : filteredProdutos.length > 0 ? (
+                              <>
+                                <div className="px-3 pt-3 pb-1.5 text-[9px] font-black text-slate-500 uppercase tracking-widest bg-black/20">
+                                  {filteredProdutos.length} {filteredProdutos.length === 1 ? 'resultado' : 'resultados'}
+                                </div>
+                                {filteredProdutos.map((p, pIndex) => (
+                                  <button
+                                    key={p.id}
+                                    onClick={() => selectProduto(idx, p)}
+                                    onMouseEnter={() => setSelectedProductPreview(p)}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors text-left ${
+                                      highlightedIndex === pIndex ? 'bg-teal-500/10 border-l-2 border-l-teal-500' : 'border-l-2 border-l-transparent'
+                                    }`}
+                                  >
+                                    <div className="w-10 h-10 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                      {p.foto_url
+                                        ? <img src={p.foto_url} alt={p.nome} className="w-full h-full object-cover" />
+                                        : <Package size={14} className="text-slate-600" />
+                                      }
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-1.5 mb-0.5">
+                                        <span className="text-[9px] font-black text-teal-400 uppercase tracking-wider">{p.sku || 'S/SKU'}</span>
+                                        {p.cat && <span className="text-[8px] text-slate-500 font-medium">· {p.cat}</span>}
+                                      </div>
+                                      <div className="text-xs font-bold text-white line-clamp-1">{p.nome}</div>
+                                      <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="text-[9px] text-emerald-400 font-bold">Custo: {fmtBRL(p.custo || 0)}</span>
+                                        <span className="text-[9px] text-slate-600">· {p.un}</span>
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                              </>
+                            ) : (
+                              <div className="p-6 text-center">
+                                <p className="text-xs text-slate-500 font-bold">
+                                  {searchTerm ? `Nenhum produto para "${searchTerm}"` : 'Nenhum produto encontrado'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Remove */}
+                      <div className="flex-shrink-0 pt-6">
+                        <button
+                          onClick={() => removeItem(idx)}
+                          className="p-2.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                          aria-label="Remover item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bottom Row: Metrics */}
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 sm:pl-[72px]">
+                      {/* Qty */}
+                      <div className="w-full sm:w-24 flex-shrink-0">
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Qtd</label>
+                        <input
+                          type="number"
+                          min="0.001"
+                          step="0.001"
+                          value={item.qty}
+                          onChange={e => updateItem(idx, 'qty', Number(e.target.value))}
+                          className="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-2.5 text-sm font-bold text-white text-center focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-all"
+                        />
+                      </div>
+
+                      {/* Cost */}
+                      <div className="w-full sm:w-32 flex-shrink-0">
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Custo Un.</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-black">R$</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.custo_unitario}
+                            onChange={e => updateItem(idx, 'custo_unitario', Number(e.target.value))}
+                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-8 pr-3 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Total */}
+                      <div className="w-full sm:w-auto sm:flex-1">
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5 block">Total Item</label>
+                        <div className="w-full bg-teal-500/10 border border-teal-500/20 rounded-xl px-4 py-2.5 text-sm font-black text-teal-400">
+                          {fmtBRL(item.total_item || 0)}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
