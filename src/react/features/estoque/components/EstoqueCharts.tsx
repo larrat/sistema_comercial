@@ -29,7 +29,7 @@ export function EstoqueCharts() {
     // 2. Curva ABC (BarChart horizontal equivalent) - Top 10 by value
     const sorted = [...positionRows].sort((a, b) => b.valorEstoque - a.valorEstoque).slice(0, 10);
     const abcData = sorted.map(r => ({
-      name: r.nome.substring(0, 15) + (r.nome.length > 15 ? '...' : ''),
+      name: r.nome,
       valor: r.valorEstoque
     }));
 
@@ -45,20 +45,25 @@ export function EstoqueCharts() {
 
     // 4. Movimentações por Tipo (BarChart empilhado)
     // Group movements by date and type
-    const movMap: Record<string, { name: string; entrada: number; saida: number; ajuste: number; transf: number }> = {};
+    const movMap: Record<string, { order: string; name: string; entrada: number; saida: number; ajuste: number; transf: number }> = {};
     if (snapshot?.movimentacoes) {
       snapshot.movimentacoes.forEach(m => {
-        const date = (m.data || new Date().toISOString()).split('T')[0];
-        if (!movMap[date]) movMap[date] = { name: date, entrada: 0, saida: 0, ajuste: 0, transf: 0 };
+        const dateStr = (m.data || new Date().toISOString()).split('T')[0];
+        
+        if (!movMap[dateStr]) {
+          const d = new Date(dateStr + 'T12:00:00Z');
+          const name = `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+          movMap[dateStr] = { order: dateStr, name, entrada: 0, saida: 0, ajuste: 0, transf: 0 };
+        }
         
         const tipo = m.tipo as 'entrada' | 'saida' | 'ajuste' | 'transf';
-        if (movMap[date][tipo] !== undefined) {
-          movMap[date][tipo] += Number(m.qty || m.saldo_real || 0);
+        if (movMap[dateStr][tipo] !== undefined) {
+          movMap[dateStr][tipo] += Number(m.qty || m.saldo_real || 0);
         }
       });
     }
     
-    const movData = Object.values(movMap).sort((a, b) => a.name.localeCompare(b.name)).slice(-14);
+    const movData = Object.values(movMap).sort((a, b) => a.order.localeCompare(b.order)).slice(-14);
 
     return { valueData, abcData, catData, movData };
   }, [positionRows, snapshot, periodo]);
@@ -146,6 +151,7 @@ export function EstoqueCharts() {
 
       <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Movimentações Recentes" description="Volume de transações por tipo (Qtd)">
         <SystemBarChart
+          stacked
           data={movData}
           xKey="name"
           series={[

@@ -34,13 +34,14 @@ export function SystemBarChart<T extends ChartRow>({
   emptyTitle,
   emptyDescription,
   hideYAxis = true,
-  layout = 'horizontal'
-}: SystemBarChartProps<T>) {
+  layout = 'horizontal',
+  stacked = false
+}: SystemBarChartProps<T> & { stacked?: boolean }) {
   if (!data.length || !seriesConfig.length) {
     return <EmptyChartState title={emptyTitle} description={emptyDescription} />;
   }
 
-  const isVertical = layout === 'vertical';
+  const isVertical = layout === 'vertical'; // Horizontal bars visually
 
   const series = seriesConfig.map((config) => ({
     name: config.label,
@@ -52,13 +53,13 @@ export function SystemBarChart<T extends ChartRow>({
   const options: ApexOptions = {
     chart: {
       type: 'bar',
+      stacked,
       background: 'transparent',
       toolbar: { show: false },
       zoom: { enabled: false },
       parentHeightOffset: 0,
       animations: {
         enabled: true,
-        easing: 'easeinout',
         speed: 800
       }
     },
@@ -67,17 +68,29 @@ export function SystemBarChart<T extends ChartRow>({
     plotOptions: {
       bar: {
         horizontal: isVertical,
-        borderRadius: 4,
+        borderRadius: stacked ? 2 : 4,
         borderRadiusApplication: 'end',
-        columnWidth: '45%',
-        barHeight: '70%'
+        columnWidth: stacked ? '35%' : '50%',
+        barHeight: '60%'
+      }
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: isVertical ? 'horizontal' : 'vertical',
+        shadeIntensity: 0.25,
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 0.8,
+        stops: [0, 100]
       }
     },
     dataLabels: { enabled: false },
     stroke: { show: false },
     grid: {
       show: true,
-      borderColor: 'rgba(148,163,184,0.06)',
+      borderColor: 'rgba(255,255,255,0.05)',
       strokeDashArray: 4,
       position: 'back',
       xaxis: { lines: { show: isVertical } },
@@ -90,7 +103,9 @@ export function SystemBarChart<T extends ChartRow>({
       axisTicks: { show: false },
       labels: {
         show: !isVertical,
-        style: { colors: '#64748b', fontSize: '11px', fontFamily: 'inherit', fontWeight: 500 },
+        trim: true,
+        maxHeight: 60,
+        style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'inherit', fontWeight: 600 },
         formatter: (val) => {
           if (isVertical) {
             const num = Number(val);
@@ -104,8 +119,11 @@ export function SystemBarChart<T extends ChartRow>({
     yaxis: {
       show: isVertical ? true : !hideYAxis,
       labels: {
+        show: true,
+        trim: true,
+        maxWidth: 160,
         style: {
-          colors: isVertical ? '#94a3b8' : '#475569',
+          colors: isVertical ? '#cbd5e1' : '#475569',
           fontSize: isVertical ? '11px' : '10px',
           fontFamily: 'inherit',
           fontWeight: 600
