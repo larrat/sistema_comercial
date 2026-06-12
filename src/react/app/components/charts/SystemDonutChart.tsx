@@ -18,11 +18,14 @@ type SystemDonutChartProps<T extends ChartRow> = {
 };
 
 const DONUT_COLORS = [
-  'var(--color-accent)',
-  'var(--color-accent-strong)',
-  'var(--color-success)',
-  'var(--color-warning)',
-  'var(--color-surface-3)'
+  '#0ea5e9', // sky-500
+  '#8b5cf6', // violet-500
+  '#ec4899', // pink-500
+  '#10b981', // emerald-500
+  '#f59e0b', // amber-500
+  '#6366f1', // indigo-500
+  '#14b8a6', // teal-500
+  '#f43f5e'  // rose-500
 ];
 
 export function SystemDonutChart<T extends ChartRow>({
@@ -68,7 +71,7 @@ export function SystemDonutChart<T extends ChartRow>({
           verticalAlign="bottom"
           align="center"
           iconType="circle"
-          wrapperStyle={{ fontSize: 11, color: 'var(--color-text-2)' }}
+          wrapperStyle={{ fontSize: 11, color: '#94a3b8' }}
         />
       </PieChart>
     </div>

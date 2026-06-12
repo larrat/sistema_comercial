@@ -115,7 +115,7 @@ export function EstoqueCharts() {
           data={abcData}
           xKey="name"
           series={[
-            { key: 'valor', label: 'Valor em Estoque', color: 'var(--color-primary)' }
+            { key: 'valor', label: 'Valor em Estoque', color: '#0ea5e9' }
           ]}
           valueFormatter={fmtCurrency}
           ariaLabel="Curva ABC de produtos em estoque"

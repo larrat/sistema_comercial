@@ -57,7 +57,7 @@ export function SystemAreaChart<T extends ChartRow>({
             axisLine={false}
             tickLine={false}
             tickMargin={10}
-            tick={{ fontSize: 10, fill: 'var(--color-text-3)' }}
+            tick={{ fontSize: 10, fill: '#64748b' }}
           />
           <YAxis hide={hideYAxis} axisLine={false} tickLine={false} />
           <Tooltip
