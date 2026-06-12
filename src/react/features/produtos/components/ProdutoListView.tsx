@@ -161,7 +161,7 @@ export function ProdutoListView({
           label: 'Produto',
           sortable: true,
           render: (row) => (
-            <div className={`flex items-center gap-3${row.isPai ? 'font-black' : 'font-medium'}`}>
+            <div className={`flex items-center gap-3 ${row.isPai ? 'font-black' : 'font-medium'}`}>
               {row.isVariante ? (
                 <span className="text-slate-600 select-none text-xs" aria-hidden="true">
                   ↳
