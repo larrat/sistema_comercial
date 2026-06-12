@@ -1,17 +1,5 @@
-import { useId } from 'react';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Cell
-} from 'recharts';
-
-import { ChartTooltip } from './ChartTooltip';
+import Chart from 'react-apexcharts';
+import type { ApexOptions } from 'apexcharts';
 import { EmptyChartState } from './EmptyChartState';
 
 type ChartRow = Record<string, unknown>;
@@ -39,7 +27,7 @@ type SystemBarChartProps<T extends ChartRow> = {
 export function SystemBarChart<T extends ChartRow>({
   data,
   xKey,
-  series,
+  series: seriesConfig,
   height = 240,
   valueFormatter,
   ariaLabel,
@@ -48,109 +36,117 @@ export function SystemBarChart<T extends ChartRow>({
   hideYAxis = true,
   layout = 'horizontal'
 }: SystemBarChartProps<T>) {
-  const gradientId = useId().replace(/:/g, '');
-
-  if (!data.length || !series.length) {
+  if (!data.length || !seriesConfig.length) {
     return <EmptyChartState title={emptyTitle} description={emptyDescription} />;
   }
 
   const isVertical = layout === 'vertical';
 
+  const series = seriesConfig.map((config) => ({
+    name: config.label,
+    data: data.map((row) => Number(row[config.key]) || 0)
+  }));
+
+  const categories = data.map((row) => String(row[xKey] || 'N/A'));
+
+  const options: ApexOptions = {
+    chart: {
+      type: 'bar',
+      background: 'transparent',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      parentHeightOffset: 0,
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800
+      }
+    },
+    theme: { mode: 'dark' },
+    colors: seriesConfig.map((s) => s.color),
+    plotOptions: {
+      bar: {
+        horizontal: isVertical,
+        borderRadius: 4,
+        borderRadiusApplication: 'end',
+        columnWidth: '45%',
+        barHeight: '70%'
+      }
+    },
+    dataLabels: { enabled: false },
+    stroke: { show: false },
+    grid: {
+      show: true,
+      borderColor: 'rgba(148,163,184,0.06)',
+      strokeDashArray: 4,
+      position: 'back',
+      xaxis: { lines: { show: isVertical } },
+      yaxis: { lines: { show: !isVertical } },
+      padding: { top: 0, right: 0, bottom: 0, left: isVertical ? 0 : 10 }
+    },
+    xaxis: {
+      categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        show: !isVertical,
+        style: { colors: '#64748b', fontSize: '11px', fontFamily: 'inherit', fontWeight: 500 },
+        formatter: (val) => {
+          if (isVertical) {
+            const num = Number(val);
+            if (!isNaN(num) && num >= 1000) return `${(num / 1000).toFixed(0)}k`;
+          }
+          return String(val);
+        }
+      },
+      tooltip: { enabled: false }
+    },
+    yaxis: {
+      show: isVertical ? true : !hideYAxis,
+      labels: {
+        style: {
+          colors: isVertical ? '#94a3b8' : '#475569',
+          fontSize: isVertical ? '11px' : '10px',
+          fontFamily: 'inherit',
+          fontWeight: 600
+        },
+        formatter: (val) => {
+          if (!isVertical && typeof val === 'number') {
+            if (val >= 1000) return `${(val / 1000).toFixed(0)}k`;
+          }
+          return String(val);
+        }
+      }
+    },
+    legend: {
+      show: seriesConfig.length > 1,
+      position: 'bottom',
+      horizontalAlign: 'center',
+      fontSize: '11px',
+      fontFamily: 'inherit',
+      fontWeight: 600,
+      labels: { colors: '#94a3b8' },
+      markers: { width: 8, height: 8, offsetX: -2 },
+      itemMargin: { horizontal: 8, vertical: 4 }
+    },
+    tooltip: {
+      theme: 'dark',
+      style: { fontSize: '12px', fontFamily: 'inherit' },
+      y: {
+        formatter: (val, opts) => {
+          if (valueFormatter) {
+            const originalRow = data[opts.dataPointIndex];
+            return valueFormatter(val, originalRow);
+          }
+          return String(val);
+        }
+      }
+    }
+  };
+
   return (
     <div className="w-full" style={{ height }} role="img" aria-label={ariaLabel}>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={data}
-          layout={layout}
-          margin={{ top: 10, right: 16, left: isVertical ? 0 : 0, bottom: 4 }}
-          barCategoryGap="20%"
-        >
-          <defs>
-            {series.map((item, index) => (
-              <linearGradient
-                key={item.key}
-                id={`${gradientId}-bar-${index}`}
-                x1="0"
-                y1="0"
-                x2={isVertical ? "1" : "0"}
-                y2={isVertical ? "0" : "1"}
-              >
-                <stop offset="0%" stopColor={item.color} stopOpacity="1" />
-                <stop offset="100%" stopColor={item.color} stopOpacity="0.75" />
-              </linearGradient>
-            ))}
-          </defs>
-          <CartesianGrid
-            vertical={!isVertical}
-            horizontal={isVertical}
-            stroke="rgba(148,163,184,0.06)"
-            strokeDasharray="4 4"
-          />
-          {isVertical ? (
-            <>
-              <XAxis type="number" hide />
-              <YAxis
-                type="category"
-                dataKey={xKey as string}
-                axisLine={false}
-                tickLine={false}
-                tickMargin={12}
-                width={100}
-                tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }}
-              />
-            </>
-          ) : (
-            <>
-              <XAxis
-                type="category"
-                dataKey={xKey as string}
-                axisLine={false}
-                tickLine={false}
-                tickMargin={12}
-                tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
-              />
-              <YAxis
-                hide={hideYAxis}
-                type="number"
-                axisLine={false}
-                tickLine={false}
-                tickMargin={8}
-                tick={{ fontSize: 10, fill: '#475569', fontWeight: 600 }}
-              />
-            </>
-          )}
-
-          {series.length > 1 ? (
-            <Legend
-              verticalAlign="bottom"
-              align="center"
-              iconType="circle"
-              iconSize={8}
-              formatter={(value: string) => (
-                <span style={{ color: '#94a3b8', fontSize: 11, fontWeight: 600, marginLeft: 2 }}>{value}</span>
-              )}
-              wrapperStyle={{ paddingTop: 16 }}
-            />
-          ) : null}
-          <Tooltip
-            cursor={{ fill: 'rgba(148,163,184,0.04)' }}
-            content={<ChartTooltip valueFormatter={valueFormatter} />}
-          />
-          {series.map((item, index) => (
-            <Bar
-              key={item.key}
-              dataKey={item.key as string}
-              name={item.label}
-              fill={`url(#${gradientId}-bar-${index})`}
-              radius={isVertical ? [0, 4, 4, 0] : [4, 4, 0, 0]}
-              maxBarSize={isVertical ? 18 : 24}
-              isAnimationActive={true}
-              animationDuration={900}
-              animationEasing="ease-out"
-            />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
+      <Chart options={options} series={series} type="bar" height="100%" width="100%" />
     </div>
   );
 }
