@@ -41,12 +41,14 @@ import { markupToPrice } from '../hooks/useProdutoCalculations';
 import {
   useVariantesQuery,
   useMovimentacoesQuery,
-  useVendasVariantesQuery
+  useVendasVariantesQuery,
+  useProdutoMutations
 } from '../hooks/useProdutosQuery';
+import { ProdutoDeleteConfirmModal } from './ProdutoDeleteConfirmModal';
 import type { VendaVarianteRow } from '../services/produtosApi';
 import ReactCountUp from 'react-countup';
 const CountUp = (ReactCountUp as any).default || ReactCountUp;
-import { Package, ShoppingCart, DollarSign, TrendingUp, Calendar, Info, Pencil, Eye } from 'lucide-react';
+import { Package, ShoppingCart, DollarSign, TrendingUp, Calendar, Info, Pencil, Eye, Trash2 } from 'lucide-react';
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -407,6 +409,9 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
   const periodConfig = PERIOD_CONFIG[periodo];
 
   const { data: variantes = [], isLoading: loadingVariantes, error: errorVariantes } = useVariantesQuery(produto.id);
+  const { remove: deleteMutation } = useProdutoMutations();
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const deleteTarget = deleteTargetId ? (variantes.find((v) => v.id === deleteTargetId) ?? null) : null;
   
   const varianteIds = useMemo(() => variantes.map(v => v.id), [variantes]);
   
@@ -715,6 +720,15 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                         >
                           <Pencil size={14} className="text-teal-400" />
                         </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="!p-2 rounded-xl transition-all hover:bg-rose-500/10 hover:border-rose-500/30"
+                          onClick={() => setDeleteTargetId(row.produto.id)}
+                          title="Excluir variante"
+                        >
+                          <Trash2 size={14} className="text-rose-400" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -796,6 +810,22 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
           <span className="italic text-sm font-medium text-slate-400">Produto Pai</span>
         </div>
       </div>
+
+      <ProdutoDeleteConfirmModal
+        open={!!deleteTarget}
+        target={deleteTarget}
+        submitting={deleteMutation.isPending}
+        onClose={() => {
+          if (!deleteMutation.isPending) setDeleteTargetId(null);
+        }}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget.id, {
+              onSuccess: () => setDeleteTargetId(null)
+            });
+          }
+        }}
+      />
     </motion.div>
   );
 }
