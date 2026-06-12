@@ -370,13 +370,19 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
                       <Input label="Código SKU" helperText="Identificação única" {...register('sku')} placeholder="Opcional" />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Select label="Unidade" {...register('un')} options={[{ value: 'un', label: 'Unidade (un)' }, { value: 'pc', label: 'Peça (pc)' }, { value: 'par', label: 'Par' }]} />
+                      <Select 
+                        label="Unidade" 
+                        {...register('un')} 
+                        value={watch('un')}
+                        options={[{ value: 'un', label: 'Unidade (un)' }, { value: 'pc', label: 'Peça (pc)' }, { value: 'par', label: 'Par' }]} 
+                      />
                       <Input label="Categoria" {...register('cat')} placeholder="Ex: Vestuário" />
                       <Select 
                         label="Qualidade / Tipo" 
                         {...register('qualidade')} 
+                        value={watch('qualidade')}
                         options={[
-                          { value: '', label: 'Não especificado' },
+                          { value: '', label: 'Nenhum / Padrão' },
                           { value: 'Primeira Linha', label: 'Primeira Linha' },
                           { value: 'Tailandesa', label: 'Tailandesa' },
                           { value: 'Original', label: 'Original' },
@@ -652,6 +658,7 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
                     <Select 
                       label="Origem da Mercadoria" 
                       {...register('origem')}
+                      value={watch('origem')}
                       options={[
                         { value: '0', label: '0 - Nacional' },
                         { value: '1', label: '1 - Estrangeira - Importação Direta' },

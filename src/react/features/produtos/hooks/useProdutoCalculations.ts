@@ -134,6 +134,11 @@ export function formValuesToProduto(
     genero: (values.genero as any) ?? null,
     tamanho: values.tamanho ?? null,
     foto_url: values.foto_url ?? null,
+    qualidade: (values as any).qualidade ?? null,
+    ncm: (values as any).ncm ?? null,
+    cest: (values as any).cest ?? null,
+    origem: (values as any).origem ? parseInt((values as any).origem, 10) : 0,
+    cfop_padrao: (values as any).cfop_padrao ?? null,
     is_active: true,
     is_sample: !!values.is_sample
   };
