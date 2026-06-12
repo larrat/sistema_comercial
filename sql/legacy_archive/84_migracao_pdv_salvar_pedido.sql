@@ -67,6 +67,10 @@ begin
 
   -- Substituir itens antigos pelos enriquecidos
   p_payload := jsonb_set(p_payload, '{itens}', v_itens_finais);
+  -- Garantir defaults
+  if p_payload->>'venda_fechada' is null then
+    p_payload := jsonb_set(p_payload, '{venda_fechada}', 'false'::jsonb);
+  end if;
 
   -- UPSERT na tabela agregada (pedidos)
   insert into public.pedidos
