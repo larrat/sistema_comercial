@@ -20,7 +20,7 @@ declare
   v_item_enriquecido jsonb;
   v_itens_finais jsonb := '[]'::jsonb;
   v_tributos jsonb;
-  v_pedido_id uuid;
+  v_pedido_id text;
   v_novo_num integer;
   v_saved_pedido record;
 begin
@@ -40,10 +40,10 @@ begin
 
   -- Se ID for gerado pelo front, ou criar novo
   if p_payload->>'id' is null then
-    p_payload := jsonb_set(p_payload, '{id}', to_jsonb(gen_random_uuid()));
+    p_payload := jsonb_set(p_payload, '{id}', to_jsonb(gen_random_uuid()::text));
   end if;
   
-  v_pedido_id := (p_payload->>'id')::uuid;
+  v_pedido_id := p_payload->>'id';
 
   -- Loop pelos itens para enriquecer com impostos (N+1 interno ultra rápido)
   if jsonb_typeof(v_itens) = 'array' then
