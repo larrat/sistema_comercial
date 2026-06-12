@@ -12,7 +12,8 @@ import {
   Badge,
   FormError,
   FormActions,
-  Button
+  Button,
+  UnsavedChangesModal
 } from '../../../shared/ui';
 import { useClienteMutations } from '../hooks/useClientesQuery';
 import { useRcas } from '../hooks/useRcas';
@@ -159,7 +160,7 @@ export function ClienteForm({
     defaultValues: useMemo(() => toFormValues(initialCliente) as any, [initialCliente])
   });
 
-  useUnsavedChangesGuard(isDirty);
+  const blocker = useUnsavedChangesGuard(isDirty);
 
   useEffect(() => {
     reset(toFormValues(initialCliente));
@@ -471,6 +472,8 @@ export function ClienteForm({
           </Button>
         </FormActions>
       </div>
+
+      <UnsavedChangesModal blocker={blocker as any} />
     </form>
   );
 }

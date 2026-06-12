@@ -15,7 +15,7 @@ import {
   type SyncedPriceState
 } from '../hooks/useProdutoCalculations';
 import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
-import { FormActions, FormError, FormSection, Input, Select, Typography } from '../../../shared/ui';
+import { FormActions, FormError, FormSection, Input, Select, Typography, UnsavedChangesModal } from '../../../shared/ui';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -149,7 +149,7 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
 
-  useUnsavedChangesGuard(isDirty);
+  const blocker = useUnsavedChangesGuard(isDirty);
 
   const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
   const [tamanhosInput, setTamanhosInput] = useState('');
@@ -660,6 +660,8 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
           )}
         </AnimatePresence>
       </div>
+
+      <UnsavedChangesModal blocker={blocker as any} />
 
       {/* Fixed Footer */}
       <div className="px-8 py-6 bg-slate-950/40 border-t border-white/5 backdrop-blur-3xl flex flex-col gap-4">

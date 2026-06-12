@@ -10,7 +10,8 @@ import {
   Button,
   Input,
   Select,
-  Badge
+  Badge,
+  UnsavedChangesModal
 } from '../../../shared/ui';
 import type { Pedido, PedidoItem } from '../../../../types/domain';
 import { useAnalytics } from '../../../shared/hooks/useAnalytics';
@@ -103,7 +104,7 @@ export function PedidoForm({
            (parseFloat(outrosCustos || '0') !== (initialPedido.outros_custos ?? 0));
   }, [initialPedido, cli, rcaId, status, pgto, prazo, obs, itens.length, existingItens.length, tipo, custoFrete, outrosCustos]);
 
-  useUnsavedChangesGuard(isDirty);
+  const blocker = useUnsavedChangesGuard(isDirty);
 
   function addItem(item: PedidoItem) {
     setItens((prev) => [...prev, item]);
@@ -470,6 +471,8 @@ export function PedidoForm({
           </div>
         </form>
       )}
+
+      <UnsavedChangesModal blocker={blocker} />
     </div>
   );
 }

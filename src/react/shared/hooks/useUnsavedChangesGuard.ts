@@ -3,10 +3,10 @@ import { useBlocker } from 'react-router-dom';
 
 /**
  * Hook to guard against leaving a page with unsaved changes.
- * Integrates with both browser's beforeunload and React Router v7 useBlocker.
+ * Returns the blocker object which should be passed to UnsavedChangesModal
  * 
  * @param isDirty Whether the form/page has unsaved changes
- * @param message Optional custom message (browsers mostly ignore this nowadays, but good for internal use)
+ * @param message Message for the native beforeunload alert
  */
 export function useUnsavedChangesGuard(isDirty: boolean, message = 'Você tem alterações não salvas. Deseja realmente sair?') {
   // Block React Router navigation
@@ -14,17 +14,6 @@ export function useUnsavedChangesGuard(isDirty: boolean, message = 'Você tem al
     ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname
   );
-
-  // Handle in-app blocking alert
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      if (window.confirm(message)) {
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker, message]);
 
   // Block native browser navigation/refresh
   useEffect(() => {
@@ -39,4 +28,6 @@ export function useUnsavedChangesGuard(isDirty: boolean, message = 'Você tem al
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty, message]);
+
+  return blocker;
 }
