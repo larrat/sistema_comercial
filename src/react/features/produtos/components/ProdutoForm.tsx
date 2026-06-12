@@ -152,6 +152,7 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
   useUnsavedChangesGuard(isDirty);
 
   const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
+  const [tamanhosInput, setTamanhosInput] = useState('');
   const [coresInput, setCoresInput] = useState('');
   const [activeTab, setActiveTab] = useState<'geral' | 'comercial' | 'grade' | 'logistica' | 'fiscal'>('geral');
   const [uploading, setUploading] = useState(false);
@@ -161,6 +162,8 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
   
   const SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G1', 'G2', 'G3', 'U'];
   const cores = useMemo(() => coresInput.split(',').map(c => c.trim()).filter(Boolean), [coresInput]);
+  const tamanhosCustomizados = useMemo(() => tamanhosInput.split(',').map(t => t.trim()).filter(Boolean), [tamanhosInput]);
+  const gradeFinal = useMemo(() => Array.from(new Set([...gradeSelecionada, ...tamanhosCustomizados])), [gradeSelecionada, tamanhosCustomizados]);
 
   const onSubmit = (values: ProdutoFormValues) => {
     try {
@@ -168,7 +171,7 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
         ...values,
         origem: values.origem ? parseInt(values.origem, 10) : 0
       };
-      onSalvar(finalValues as any, gradeSelecionada, cores);
+      onSalvar(finalValues as any, gradeFinal, cores);
     } catch (e) {
       console.error("Submit Error:", e);
       toast.error("Erro ao processar envio");
@@ -475,7 +478,7 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
               <FormSection title="Gerador de Matriz" description="Criação automática de grades de tamanho e cor.">
                 <div className="bg-slate-900/40 p-8 rounded-[2.5rem] border border-white/5 shadow-2xl">
                   <Typography variant="label" color="muted" className="mb-4 block uppercase tracking-tighter">Selecione os Tamanhos</Typography>
-                  <div className="flex flex-wrap gap-2 mb-8">
+                  <div className="flex flex-wrap gap-2 mb-4">
                       {SIZES.map(size => (
                         <button
                           key={size} type="button"
@@ -489,6 +492,15 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
                         </button>
                       ))}
                   </div>
+
+                  <div className="mb-8">
+                      <Typography variant="label" color="muted" className="mb-3 block uppercase tracking-tighter">Tamanhos numéricos / extras (vírgula)</Typography>
+                      <input
+                        type="text" placeholder="Ex: 36, 38, 40, 42"
+                        value={tamanhosInput} onChange={e => setTamanhosInput(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-sm text-white focus:ring-2 focus:ring-teal-500/50 transition-all outline-none"
+                      />
+                  </div>
                   
                   <div className="mb-8">
                       <Typography variant="label" color="muted" className="mb-3 block uppercase tracking-tighter">Cores Disponíveis (vírgula)</Typography>
@@ -499,15 +511,15 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
                       />
                   </div>
 
-                  {(gradeSelecionada.length > 0 || cores.length > 0) && (
+                  {(gradeFinal.length > 0 || cores.length > 0) && (
                     <div className="space-y-4 p-6 bg-teal-500/5 rounded-3xl border border-teal-500/10">
                       <div className="flex justify-between items-center">
                         <Typography variant="caption" className="!text-teal-400 font-bold uppercase tracking-widest">Preview da Matriz</Typography>
-                        <span className="px-2 py-0.5 bg-teal-500 text-white text-[9px] font-black rounded-full">{Math.max(1, gradeSelecionada.length) * Math.max(1, cores.length)} itens</span>
+                        <span className="px-2 py-0.5 bg-teal-500 text-white text-[9px] font-black rounded-full">{Math.max(1, gradeFinal.length) * Math.max(1, cores.length)} itens</span>
                       </div>
                       <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                           {(cores.length > 0 ? cores : [null]).map(color => (
-                            (gradeSelecionada.length > 0 ? gradeSelecionada : [null]).map(size => {
+                            (gradeFinal.length > 0 ? gradeFinal : [null]).map(size => {
                               if (!color && !size) return null;
                               return (
                                 <div key={`${color}-${size}`} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/5">
