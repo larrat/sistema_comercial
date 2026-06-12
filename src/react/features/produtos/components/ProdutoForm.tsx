@@ -66,6 +66,17 @@ type Props = {
 };
 
 function toFormValues(p: Produto | null): ProdutoFormValues {
+  const custo = p?.custo || 0;
+  const mkv = p?.mkv || 0;
+  const mka = p?.mka || 0;
+  const pfa = p?.pfa || 0;
+
+  const precoV = mkv !== 0 && custo > 0 ? markupToPrice(custo, mkv) : (p?.pvv || 0);
+  const margemV = precoV > 0 && custo > 0 ? ((precoV - custo) / precoV) * 100 : 0;
+
+  const precoA = pfa > 0 ? pfa : (mka !== 0 && custo > 0 ? markupToPrice(custo, mka) : 0);
+  const margemA = precoA > 0 && custo > 0 ? ((precoA - custo) / precoA) * 100 : 0;
+
   return {
     id: p?.id,
     produto_pai_id: p?.produto_pai_id || null,
@@ -73,14 +84,14 @@ function toFormValues(p: Produto | null): ProdutoFormValues {
     sku: p?.sku || '',
     un: p?.un || 'un',
     cat: p?.cat || '',
-    custo: p?.custo?.toString() || '0',
-    precoVarejo: p?.pvv?.toString() || '',
-    markupVarejo: p?.mkv?.toString() || '',
-    margemVarejo: '',
+    custo: custo > 0 ? custo.toString() : '0',
+    precoVarejo: precoV > 0 ? precoV.toFixed(2) : '',
+    markupVarejo: mkv !== 0 ? mkv.toString() : '',
+    margemVarejo: margemV !== 0 ? margemV.toFixed(1) : '',
     descontoVarejo: p?.dv?.toString() || '',
-    markupAtacado: p?.mka?.toString() || '',
-    margemAtacado: '',
-    precoFixoAtacado: p?.pfa?.toString() || '',
+    markupAtacado: mka !== 0 ? mka.toString() : '',
+    margemAtacado: margemA !== 0 ? margemA.toFixed(1) : '',
+    precoFixoAtacado: pfa > 0 ? pfa.toFixed(2) : '',
     descontoAtacado: p?.da?.toString() || '',
     qtmin: p?.qtmin?.toString() || '1',
     emin: p?.emin?.toString() || '0',
