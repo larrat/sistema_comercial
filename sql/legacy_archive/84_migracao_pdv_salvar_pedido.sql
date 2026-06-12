@@ -97,19 +97,29 @@ begin
     for v_item in select * from jsonb_array_elements(v_itens_finais)
     loop
       insert into public.pedido_itens (
+        id,
         pedido_id,
         filial_id,
         produto_id,
-        quantidade,
-        preco_unitario,
-        tributos
+        linha,
+        nome,
+        un,
+        qty,
+        preco,
+        custo,
+        item
       ) values (
+        v_pedido_id || ':' || coalesce((v_item->>'linha')::text, '1'),
         v_pedido_id,
         v_filial_id,
         v_item->>'prodId',
+        coalesce((v_item->>'linha')::integer, 1),
+        coalesce(v_item->>'nome', ''),
+        coalesce(v_item->>'un', 'un'),
         coalesce((v_item->>'qty')::numeric, 1),
         coalesce((v_item->>'preco')::numeric, 0),
-        v_item->'tributos'
+        coalesce((v_item->>'custo')::numeric, 0),
+        v_item
       );
     end loop;
   end if;
