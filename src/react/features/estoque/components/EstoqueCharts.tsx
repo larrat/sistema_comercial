@@ -175,6 +175,7 @@ export function EstoqueCharts() {
           emptyDescription="Adicione produtos com saldo para ver o ranking."
         />
       </ChartCard>
+      </div>
     </div>
   );
 }
