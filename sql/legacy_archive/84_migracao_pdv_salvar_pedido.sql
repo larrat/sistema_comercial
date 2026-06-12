@@ -79,8 +79,9 @@ begin
     status = excluded.status,
     itens = excluded.itens,
     origem_venda = excluded.origem_venda,
-    vendedor = excluded.vendedor,
-    forma_pagamento = excluded.forma_pagamento,
+    rca_id = excluded.rca_id,
+    rca_nome = excluded.rca_nome,
+    pgto = excluded.pgto,
     obs = excluded.obs,
     updated_at = now()
   returning * into v_saved_pedido;
