@@ -643,7 +643,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
         </div>
         
         <div className="overflow-x-auto scrollbar-hide">
-          <table className="w-full text-left border-collapse" style={{ minWidth: 900 }}>
+          <table className="w-full text-left border-collapse" style={{ minWidth: 1000 }}>
             <thead>
               <tr className="bg-white/5">
                 <th className="px-6 py-4 text-sm font-medium text-slate-400 min-w-[200px]">Variante</th>
@@ -662,7 +662,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                 const emin = Number(row.produto.emin ?? 0);
                 return (
                   <tr key={row.produto.id} className="hover:bg-white/5 transition-colors group">
-                    <td className="px-6 py-4 max-w-[200px] xl:max-w-[350px]">
+                    <td className="px-6 py-4 min-w-[280px]">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center">
                            {row.produto.foto_url ? (
@@ -671,17 +671,19 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                              <Package size={14} className="text-slate-600" />
                            )}
                         </div>
-                        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-white truncate" title={row.produto.nome}>{row.produto.nome}</span>
+                        <div className="flex flex-col gap-1.5 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-white leading-tight" title={row.produto.nome}>
+                              {row.produto.nome.replace(produto.nome, '').replace(/^\s*[-–—]\s*/, '').trim() || row.produto.nome}
+                            </span>
                             {row.produto.tamanho && <Badge variant="slate" className="!text-[8px] !py-0 font-black">{row.produto.tamanho}</Badge>}
                           </div>
                           <ProgressBar value={row.saldo} max={maxSaldo} color={row.color} />
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-400">{row.produto.sku || '—'}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-white">{fmtQ(row.saldo)} <span className="text-[10px] text-slate-500">{row.produto.un}</span></td>
+                    <td className="px-6 py-4 text-xs font-medium text-slate-400 whitespace-nowrap">{row.produto.sku || '—'}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-white whitespace-nowrap">{fmtQ(row.saldo)} <span className="text-[10px] text-slate-500">{row.produto.un}</span></td>
                     <td className="px-6 py-4 text-sm font-bold text-white">{row.varejo > 0 ? fmtCurrency(row.varejo) : '—'}</td>
                     <td className="px-6 py-4">
                       <StatusBadge tone={stockTone(row.saldo, emin)}>{stockLabel(row.saldo, emin)}</StatusBadge>
@@ -719,7 +721,7 @@ export function ProdutoVariantesTab({ produto, onOpenProduto }: Props) {
                 );
               })}
               <tr className="bg-white/5 font-black border-t border-white/10">
-                <td className="px-6 py-5 text-sm text-white uppercase tracking-tight">Total Consolidado</td>
+                <td className="px-6 py-5 text-sm text-white uppercase tracking-tight whitespace-nowrap">Total Consolidado</td>
                 <td className="px-6 py-5 text-slate-500">—</td>
                 <td className="px-6 py-5 text-sm text-white">{fmtQ(totalSaldo)} <span className="text-[10px] text-slate-500">{produto.un || 'un'}</span></td>
                 <td className="px-6 py-5">—</td>
