@@ -72,10 +72,12 @@ alter table public.pedido_compra_itens
 -- Limpar versões antigas para evitar ambiguidade (overload) no Supabase RPC
 drop function if exists public.calcular_tributos_item(uuid, uuid, text, numeric, numeric, text);
 drop function if exists public.calcular_tributos_item(uuid, uuid, text, numeric, numeric, text, date);
+drop function if exists public.calcular_tributos_item(text, text, text, numeric, numeric, text);
+drop function if exists public.calcular_tributos_item(text, text, text, numeric, numeric, text, date);
 
 create or replace function public.calcular_tributos_item(
-  p_filial_id uuid,
-  p_cliente_id uuid,
+  p_filial_id text,
+  p_cliente_id text,
   p_produto_id text,
   p_qty numeric,
   p_preco_unitario numeric,

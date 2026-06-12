@@ -241,7 +241,12 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
       </div>
 
       {/* Visual Search Drawer (F4) */}
-      <div className={`fixed top-0 right-0 h-full w-[400px] z-[999] bg-slate-900/95 backdrop-blur-xl border-l border-white/10 p-6 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-0 z-[999] transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+        
+        {/* Drawer content */}
+        <div className={`absolute top-0 right-0 h-full w-[400px] bg-slate-900/95 backdrop-blur-xl border-l border-white/10 p-6 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
           <h3 className="text-sm font-extrabold text-gold-premium uppercase tracking-wide flex items-center gap-2">
             🔎 Consulta Rápida (F4)
@@ -285,7 +290,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
                 <div 
                   key={prod.id} 
                   onClick={() => setSelectedDrawerProduto(prod)}
-                  className={`p-3 rounded-xl border transition-all cursor-pointer${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
+                  className={`p-3 rounded-xl border transition-all cursor-pointer ${selectedDrawerProduto?.id === prod.id ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-white/5 bg-black/20 hover:border-white/10'}`}
                 >
                   <div className="flex justify-between items-start">
                     <strong className="text-xs text-white block">{prod.nome}</strong>
@@ -363,6 +368,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
