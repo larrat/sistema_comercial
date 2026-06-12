@@ -51,7 +51,8 @@ const produtoSchema = z.object({
   ncm: z.string().min(8, 'NCM deve ter exatamente 8 caracteres.').max(8, 'NCM deve ter exatamente 8 caracteres.').optional().or(z.literal('')),
   cest: z.string().optional(),
   origem: z.string().optional(),
-  cfop_padrao: z.string().optional()
+  cfop_padrao: z.string().optional(),
+  qualidade: z.string().optional().nullable()
 });
 
 type ProdutoFormValues = z.infer<typeof produtoSchema>;
@@ -106,6 +107,7 @@ function toFormValues(p: Produto | null): ProdutoFormValues {
     cest: p?.cest || '',
     origem: p?.origem?.toString() || '0',
     cfop_padrao: p?.cfop_padrao || '5102',
+    qualidade: p?.qualidade || null,
   };
 }
 
@@ -367,9 +369,20 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
                       <Input label="Nome Comercial" required {...register('nome')} error={errors.nome?.message} placeholder="Ex: Camisa Polo - Azul" />
                       <Input label="Código SKU" helperText="Identificação única" {...register('sku')} placeholder="Opcional" />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Select label="Unidade de Venda" {...register('un')} options={[{ value: 'un', label: 'Unidade (un)' }, { value: 'pc', label: 'Peça (pc)' }, { value: 'par', label: 'Par' }]} />
-                      <Input label="Categoria / Linha" {...register('cat')} placeholder="Ex: Vestuário" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <Select label="Unidade" {...register('un')} options={[{ value: 'un', label: 'Unidade (un)' }, { value: 'pc', label: 'Peça (pc)' }, { value: 'par', label: 'Par' }]} />
+                      <Input label="Categoria" {...register('cat')} placeholder="Ex: Vestuário" />
+                      <Select 
+                        label="Qualidade / Tipo" 
+                        {...register('qualidade')} 
+                        options={[
+                          { value: '', label: 'Não especificado' },
+                          { value: 'Primeira Linha', label: 'Primeira Linha' },
+                          { value: 'Tailandesa', label: 'Tailandesa' },
+                          { value: 'Original', label: 'Original' },
+                          { value: 'Nacional', label: 'Nacional' }
+                        ]} 
+                      />
                     </div>
                     <div className="pt-4 border-t border-white/5 space-y-3">
                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Gênero do Produto</span>

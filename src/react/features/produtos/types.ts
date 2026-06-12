@@ -35,6 +35,7 @@ export type ProdutoFormValues = {
   genero?: 'masculino' | 'feminino' | 'unissex' | null;
   tamanho?: string | null;
   foto_url?: string | null;
+  qualidade?: string | null;
 };
 
 export type ProdutoWriteInput = Omit<Produto, 'id'> & { id?: string };
@@ -64,5 +65,6 @@ export const FORM_VAZIO: ProdutoFormValues = {
   is_sample: false,
   genero: null,
   tamanho: null,
-  foto_url: null
+  foto_url: null,
+  qualidade: null
 };

@@ -181,6 +181,7 @@ export function useProdutoMutations() {
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
       queryClient.invalidateQueries({ queryKey: ['produto'] });
       queryClient.invalidateQueries({ queryKey: ['produtos-pais'] });
+      queryClient.invalidateQueries({ queryKey: ['variantes'] });
       toast.success('Produto removido com sucesso!');
     },
     onError: (error) => {

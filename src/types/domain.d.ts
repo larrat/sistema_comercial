@@ -98,6 +98,7 @@ export type Produto = {
   tamanho?: string | null;
   foto_url?: string | null;
   ncm?: string;
+  qualidade?: string | null;
   cest?: string;
   origem?: number;
   cfop_padrao?: string;
