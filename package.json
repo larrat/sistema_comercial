@@ -93,7 +93,6 @@
     "react-dom": "^19.3.0-canary-f0dfee38-20260529",
     "react-hook-form": "^7.75.0",
     "react-router-dom": "^7.9.4",
-    "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "xmlbuilder2": "^4.0.3",

@@ -1,5 +1,6 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import Chart from 'react-apexcharts';
+import type { ApexOptions } from 'apexcharts';
 import { fmtBRL } from '../../../shared/lib/formatters';
 
 type CashFlowData = {
@@ -14,52 +15,82 @@ type CashFlowProjectionProps = {
 export function CashFlowProjection({ data }: CashFlowProjectionProps) {
   if (!data || data.length === 0) return null;
 
+  const series = [{
+    name: 'A Receber',
+    data: data.map(d => d.receita || 0)
+  }];
+
+  const categories = data.map(d => String(d.name || ''));
+
+  const options: ApexOptions = {
+    chart: {
+      type: 'bar',
+      background: 'transparent',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      parentHeightOffset: 0,
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800
+      }
+    },
+    theme: { mode: 'dark' },
+    colors: ['#2dd4bf'], // teal-400
+    plotOptions: {
+      bar: {
+        borderRadius: 4,
+        borderRadiusApplication: 'end',
+        columnWidth: '40%'
+      }
+    },
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'vertical',
+        shadeIntensity: 0.5,
+        gradientToColors: ['#0f766e'], // teal-700
+        inverseColors: true,
+        opacityFrom: 1,
+        opacityTo: 0.8,
+        stops: [0, 100]
+      }
+    },
+    dataLabels: { enabled: false },
+    grid: {
+      show: true,
+      borderColor: 'rgba(255,255,255,0.05)',
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: false } },
+      padding: { top: 0, right: 0, bottom: 0, left: 10 }
+    },
+    xaxis: {
+      categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        style: { colors: '#64748b', fontSize: '11px', fontFamily: 'inherit', fontWeight: 700 }
+      },
+      tooltip: { enabled: false }
+    },
+    yaxis: {
+      show: false
+    },
+    legend: { show: false },
+    tooltip: {
+      theme: 'dark',
+      style: { fontSize: '12px', fontFamily: 'inherit' },
+      y: {
+        formatter: (val) => fmtBRL(val)
+      }
+    }
+  };
+
   return (
     <div className="w-full h-48 group">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-          <defs>
-            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2dd4bf" stopOpacity={1} />
-              <stop offset="100%" stopColor="#0f766e" stopOpacity={0.4} />
-            </linearGradient>
-            <filter id="neonGlowBar" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} dy={10} />
-          <Tooltip 
-            cursor={{ fill: 'rgba(255, 255, 255, 0.03)' }}
-            content={({ active, payload, label }) => {
-              if (active && payload?.length) {
-                return (
-                  <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-[0_0_30px_rgba(45,212,191,0.15)] ring-1 ring-white/10 min-w-[160px] animate-in zoom-in-95 duration-100">
-                    <p className="mb-3 border-b border-white/5 pb-2 text-sm font-medium text-slate-400">{label}</p>
-                    <div className="flex items-center justify-between gap-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]" />
-                        <span className="text-sm font-medium text-slate-400">A Receber</span>
-                      </div>
-                      <span className="text-xs font-black text-white">{fmtBRL(payload[0].value as number)}</span>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            }} 
-          />
-          <Bar 
-            dataKey="receita" 
-            fill="url(#barGradient)" 
-            radius={[6, 6, 0, 0]} 
-            maxBarSize={40} 
-            className="transition-all duration-300 hover:filter-[url(#neonGlowBar)]"
-            style={{ filter: 'url(#neonGlowBar)' }}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+      <Chart options={options} series={series} type="bar" height="100%" width="100%" />
     </div>
   );
 }

@@ -1,38 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion, type Variants } from 'framer-motion';
-import {
-  Bar,
-  BarChart,
-  Area,
-  AreaChart,
-  CartesianGrid,
-  LabelList,
-  Tooltip,
-  XAxis,
-  YAxis
-} from 'recharts';
-
-function PremiumChartTooltip({ active, payload, label, formatter }: any) {
-  if (!active || !payload || !payload.length) return null;
-  return (
-    <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 p-4 rounded-xl shadow-2xl z-[1000]">
-      <p className="mb-3 border-b border-slate-700/50 pb-2 text-sm font-medium text-slate-400">{label}</p>
-      <div className="flex flex-col gap-2.5">
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center justify-between gap-8">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-[11px] font-bold text-slate-300">{entry.name}</span>
-            </div>
-            <span className="text-[11px] font-black text-white whitespace-nowrap">
-              {formatter ? formatter(entry.value) : entry.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+import Chart from 'react-apexcharts';
+import type { ApexOptions } from 'apexcharts';
 
 import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import { ChartCard, EmptyChartState } from '../../../app/components/charts';
@@ -277,57 +246,34 @@ function StackedVariantChart({
   ySuffix?: string;
 }) {
   const hasData = data.some((row) => variantes.some((variant) => Number(row[variant.produto.id] ?? 0) > 0));
+  if (!hasData) return <ChartCard title={title}><EmptyChartState title={emptyTitle} /></ChartCard>;
+
+  const series = variantes.map(v => ({
+    name: v.produto.nome,
+    data: data.map(row => Number(row[v.produto.id] || 0))
+  }));
+
+  const categories = data.map(row => String(row.label));
+  
+  const options: ApexOptions = {
+    chart: { type: 'area', stacked: true, background: 'transparent', toolbar: { show: false }, parentHeightOffset: 0 },
+    theme: { mode: 'dark' },
+    colors: variantes.map(v => v.color),
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 90, 100] } },
+    xaxis: { categories, labels: { style: { colors: '#64748b', fontSize: '10px', fontFamily: 'inherit', fontWeight: 600 } }, axisBorder: { show: false }, axisTicks: { show: false } },
+    yaxis: { labels: { formatter: val => `${valueFormatter(val)}${ySuffix ?? ''}`, style: { colors: '#475569', fontSize: '10px', fontFamily: 'inherit', fontWeight: 600 } } },
+    grid: { show: true, borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4, xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } }, padding: { left: 10, right: 0, bottom: 0, top: 0 } },
+    legend: { show: false },
+    tooltip: { theme: 'dark', style: { fontSize: '12px', fontFamily: 'inherit' }, y: { formatter: val => valueFormatter(val) } }
+  };
+
   return (
     <ChartCard title={title}>
-      {!hasData ? (
-        <EmptyChartState title={emptyTitle} />
-      ) : (
-        <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
-          <AreaChart responsive width="100%" height="100%" data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-            <defs>
-                {variantes.map((v, i) => (
-                  <linearGradient key={`grad-${v.produto.id}`} id={`color-${v.produto.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={v.color} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={v.color} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="label" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
-                dy={10}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
-                tickFormatter={(value) => `${valueFormatter(Number(value))}${ySuffix ?? ''}`}
-              />
-              <Tooltip 
-                content={<PremiumChartTooltip formatter={valueFormatter} />} 
-                cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
-                wrapperStyle={{ outline: 'none' }}
-              />
-              {variantes.map((variant) => (
-                <Area
-                  key={variant.produto.id}
-                  type="monotone"
-                  dataKey={variant.produto.id}
-                  name={variant.produto.nome}
-                  stackId="variantes"
-                  stroke={variant.color}
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill={`url(#color-${variant.produto.id})`}
-                  animationDuration={1500}
-                />
-              ))}
-            </AreaChart>
-        </div>
-      )}
+      <div className="w-full h-64 mt-2" role="img" aria-label={title}>
+        <Chart options={options} series={series} type="area" height="100%" width="100%" />
+      </div>
     </ChartCard>
   );
 }
@@ -349,50 +295,26 @@ function SimpleVariantChart({
   suffix?: string;
   showSemVenda?: boolean;
 }) {
-  const chartData = data.map((row, i) => ({ ...row, fill: `url(#bar-color-${i})` }));
+  const series = [{ name: 'Valor', data: data.map(d => d.value) }];
+  const categories = data.map(d => String(d.label));
+  
+  const options: ApexOptions = {
+    chart: { type: 'bar', background: 'transparent', toolbar: { show: false }, parentHeightOffset: 0 },
+    theme: { mode: 'dark' },
+    colors: data.map(d => d.color),
+    plotOptions: { bar: { borderRadius: 4, borderRadiusApplication: 'end', distributed: true, columnWidth: '40%' } },
+    dataLabels: { enabled: false },
+    xaxis: { categories, labels: { style: { colors: '#64748b', fontSize: '10px', fontFamily: 'inherit', fontWeight: 600 } }, axisBorder: { show: false }, axisTicks: { show: false } },
+    yaxis: { labels: { formatter: val => `${formatter(val)}${suffix ?? ''}`, style: { colors: '#475569', fontSize: '10px', fontFamily: 'inherit', fontWeight: 600 } } },
+    grid: { show: true, borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4, xaxis: { lines: { show: false } }, yaxis: { lines: { show: true } }, padding: { left: 10, right: 0, bottom: 0, top: 0 } },
+    legend: { show: false },
+    tooltip: { theme: 'dark', style: { fontSize: '12px', fontFamily: 'inherit' }, y: { formatter: val => formatter(val) } }
+  };
 
   return (
     <ChartCard title={title}>
-      <div className="rf-ui-chart produto-variant-chart" role="img" aria-label={title}>
-        <BarChart responsive width="100%" height="100%" data={chartData} margin={{ top: 24, right: 10, left: 0, bottom: 0 }}>
-          <defs>
-              {data.map((row, i) => (
-                <linearGradient key={`bar-grad-${i}`} id={`bar-color-${i}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={row.color} stopOpacity={1} />
-                  <stop offset="100%" stopColor={row.color} stopOpacity={0.6} />
-                </linearGradient>
-              ))}
-            </defs>
-            <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="label" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
-              dy={10}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }}
-              tickFormatter={(value) => `${formatter(Number(value))}${suffix ?? ''}`}
-            />
-            <Tooltip 
-              content={<PremiumChartTooltip formatter={(v: any) => `${formatter(v)}${suffix ?? ''}`} />} 
-              cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-              wrapperStyle={{ outline: 'none' }}
-            />
-            <Bar dataKey={dataKey} radius={[6, 6, 0, 0]} animationDuration={1200}>
-              {showSemVenda ? (
-                <LabelList
-                  dataKey="semVenda"
-                  position="top"
-                  formatter={(value: any) => (value ? '⚠ sem venda' : '')}
-                  style={{ fill: '#f43f5e', fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                />
-              ) : null}
-            </Bar>
-        </BarChart>
+      <div className="w-full h-64 mt-2" role="img" aria-label={title}>
+        <Chart options={options} series={series} type="bar" height="100%" width="100%" />
       </div>
     </ChartCard>
   );

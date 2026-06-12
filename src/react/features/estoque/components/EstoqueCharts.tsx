@@ -6,6 +6,10 @@ import {
   SystemDonutChart
 } from '../../../app/components/charts';
 import { useEstoqueStore } from '../store/useEstoqueStore';
+import { Typography } from '../../../shared/ui/Typography';
+import { Package, TrendingUp, DollarSign } from 'lucide-react';
+import ReactCountUp from 'react-countup';
+const CountUp = (ReactCountUp as any).default || ReactCountUp;
 
 export function EstoqueCharts() {
   const positionRows = useEstoqueStore((s) => s.positionRows);
@@ -59,6 +63,13 @@ export function EstoqueCharts() {
     return { valueData, abcData, catData, movData };
   }, [positionRows, snapshot, periodo]);
 
+  const kpis = useMemo(() => {
+    const totalEstoque = positionRows.reduce((sum, r) => sum + r.valorEstoque, 0);
+    const produtosAtivos = positionRows.filter(r => r.saldoAtual > 0).length;
+    const totalMovs = snapshot?.movimentacoes?.length || 0;
+    return { totalEstoque, produtosAtivos, totalMovs };
+  }, [positionRows, snapshot]);
+
   function fmtCurrency(val: number) {
     return Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
   }
@@ -68,9 +79,49 @@ export function EstoqueCharts() {
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full max-w-full overflow-hidden p-2">
-      <ChartCard title="Evolução do Valor Estimado" description="Saldo total do estoque em R$">
-        <SystemAreaChart
+    <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden p-2">
+      {/* Hero KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 flex flex-col shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800/60 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <DollarSign size={80} className="text-emerald-500 transform rotate-12 translate-x-4 -translate-y-4" />
+          </div>
+          <Typography variant="label" className="text-slate-400 mb-2 z-10 font-bold uppercase tracking-widest text-[10px]">Total em Estoque</Typography>
+          <div className="flex items-end gap-2 z-10">
+            <Typography variant="h2" weight="black" className="text-emerald-400 font-display">
+              <CountUp end={kpis.totalEstoque} decimals={2} decimal="," prefix="R$ " separator="." duration={1.5} />
+            </Typography>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 flex flex-col shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800/60 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Package size={80} className="text-sky-500 transform rotate-12 translate-x-4 -translate-y-4" />
+          </div>
+          <Typography variant="label" className="text-slate-400 mb-2 z-10 font-bold uppercase tracking-widest text-[10px]">Produtos com Saldo</Typography>
+          <div className="flex items-end gap-2 z-10">
+            <Typography variant="h2" weight="black" className="text-white font-display">
+              <CountUp end={kpis.produtosAtivos} separator="." duration={1.5} />
+            </Typography>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 flex flex-col shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800/60 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <TrendingUp size={80} className="text-violet-500 transform rotate-12 translate-x-4 -translate-y-4" />
+          </div>
+          <Typography variant="label" className="text-slate-400 mb-2 z-10 font-bold uppercase tracking-widest text-[10px]">Movimentações Registradas</Typography>
+          <div className="flex items-end gap-2 z-10">
+            <Typography variant="h2" weight="black" className="text-white font-display">
+              <CountUp end={kpis.totalMovs} separator="." duration={1.5} />
+            </Typography>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full">
+        <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Evolução do Valor Estimado" description="Saldo total do estoque em R$">
+          <SystemAreaChart
           data={valueData}
           xKey="name"
           yKey="valor"
@@ -78,10 +129,10 @@ export function EstoqueCharts() {
           ariaLabel="Evolução do valor estimado do estoque"
           emptyTitle="Sem dados de valor"
           emptyDescription="Registre movimentações para acompanhar a evolução."
-        />
+        </SystemAreaChart>
       </ChartCard>
 
-      <ChartCard title="Distribuição por Categoria" description="Composição do valor imobilizado">
+      <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Distribuição por Categoria" description="Composição do valor imobilizado">
         <SystemDonutChart
           data={catData}
           nameKey="name"
@@ -90,10 +141,10 @@ export function EstoqueCharts() {
           ariaLabel="Distribuição de valor por categoria"
           emptyTitle="Sem categorias"
           emptyDescription="Classifique seus produtos para ver a distribuição."
-        />
+        </SystemDonutChart>
       </ChartCard>
 
-      <ChartCard title="Movimentações Recentes" description="Volume de transações por tipo (Qtd)">
+      <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Movimentações Recentes" description="Volume de transações por tipo (Qtd)">
         <SystemBarChart
           data={movData}
           xKey="name"
@@ -107,10 +158,10 @@ export function EstoqueCharts() {
           ariaLabel="Volume de movimentações recentes"
           emptyTitle="Sem movimentações"
           emptyDescription="Nenhuma movimentação registrada no período."
-        />
+        </SystemBarChart>
       </ChartCard>
 
-      <ChartCard title="Curva ABC (Top 10)" description="Produtos com maior valor em estoque">
+      <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Curva ABC (Top 10)" description="Produtos com maior valor em estoque">
         <SystemBarChart
           data={abcData}
           xKey="name"
@@ -124,6 +175,7 @@ export function EstoqueCharts() {
           emptyDescription="Adicione produtos com saldo para ver o ranking."
         />
       </ChartCard>
+      </div>
     </div>
   );
 }

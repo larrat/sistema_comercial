@@ -1,13 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { 
-  ComposedChart,
-  Line,
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip
-} from 'recharts';
+import Chart from 'react-apexcharts';
+import type { ApexOptions } from 'apexcharts';
 import { TrendingUp } from 'lucide-react';
 import { Card, Typography, EmptyState } from '../../../shared/ui';
 import { fmtBRL } from '../../../shared/lib/formatters';
@@ -16,6 +9,82 @@ const fmt = (v: number) => fmtBRL(v || 0);
 
 export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { chartData: any[], stats: any, periodoDatas: string }) {
   const navigate = useNavigate();
+
+  const series = [
+    {
+      name: 'Faturamento Atual',
+      type: 'area',
+      data: chartData.map((row) => Number(row.faturamento) || 0)
+    },
+    {
+      name: 'Período Anterior',
+      type: 'line',
+      data: chartData.map((row) => Number(row.faturamentoAnt) || 0)
+    }
+  ];
+
+  const categories = chartData.map((row) => String(row.name));
+
+  const options: ApexOptions = {
+    chart: {
+      type: 'line',
+      background: 'transparent',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      events: {
+        markerClick: () => navigate('/app/pedidos'),
+        dataPointSelection: () => navigate('/app/pedidos')
+      },
+      animations: {
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800
+      }
+    },
+    theme: { mode: 'dark' },
+    colors: ['#f59e0b', '#64748b'], // amber-500, slate-500
+    stroke: {
+      curve: 'smooth',
+      width: [4, 2],
+      dashArray: [0, 4]
+    },
+    fill: {
+      type: ['gradient', 'solid'],
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.5,
+        opacityTo: 0.0,
+        stops: [0, 90, 100]
+      }
+    },
+    dataLabels: { enabled: false },
+    grid: {
+      show: true,
+      borderColor: 'rgba(255,255,255,0.05)',
+      strokeDashArray: 4,
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
+      padding: { top: 0, right: 0, bottom: 0, left: 10 }
+    },
+    xaxis: {
+      categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: { style: { colors: '#64748b', fontSize: '11px', fontFamily: 'inherit', fontWeight: 700 } },
+      tooltip: { enabled: false }
+    },
+    yaxis: {
+      show: false
+    },
+    legend: { show: false },
+    tooltip: {
+      theme: 'dark',
+      style: { fontSize: '12px', fontFamily: 'inherit' },
+      y: {
+        formatter: (val) => fmt(val)
+      }
+    }
+  };
 
   return (
     <Card padding="none" variant="glass" className="h-full flex flex-col justify-between transition-all duration-300 hover:shadow-2xl">
@@ -31,7 +100,7 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
       
       <div className="p-6 flex-1 flex flex-col justify-between">
         <div 
-          className="h-72 w-full mt-2" 
+          className="h-72 w-full mt-2 cursor-pointer" 
           role="figure" 
           aria-label={`Gráfico de área exibindo o faturamento e lucro ao longo do período: ${periodoDatas}`}
         >
@@ -42,45 +111,7 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
               description="Não existem vendas registradas para o período selecionado." 
             />
           ) : (
-            <ComposedChart responsive width="100%" height="100%" data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 0 }} onClick={(data: any) => { if (data && data.activePayload) navigate('/app/pedidos'); }}>
-              <defs>
-                  <linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.5}/>
-                    <stop offset="60%" stopColor="var(--color-amber-vibrant)" stopOpacity={0.1}/>
-                    <stop offset="100%" stopColor="var(--color-amber-vibrant)" stopOpacity={0}/>
-                  </linearGradient>
-                  <filter id="areaGlow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="5" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                  </filter>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} dy={10} />
-                <YAxis hide domain={['auto', 'auto']} />
-                <Tooltip cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '3 3' }} content={({ active, payload, label }) => {
-                  if (active && payload?.length) {
-                    return (
-                      <div className="bg-slate-950/95 backdrop-blur-2xl border border-white/10 p-4 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.15)] ring-1 ring-white/10 min-w-[180px] animate-in zoom-in-95 duration-100">
-                        <p className="mb-3 border-b border-white/5 pb-2 text-sm font-medium text-slate-400">{label}</p>
-                        <div className="space-y-3">
-                          {payload.map((entry: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between gap-6">
-                              <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: entry.color, color: entry.color }} />
-                                <span className="text-sm font-medium text-slate-400">{entry.name}</span>
-                              </div>
-                              <span className="text-xs font-black text-white">{fmt(entry.value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }} />
-                <Line type="monotone" dataKey="faturamentoAnt" name="Período Anterior" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} />
-                <Area type="monotone" dataKey="faturamento" name="Faturamento Atual" stroke="var(--color-amber-vibrant)" strokeWidth={4} fillOpacity={1} fill="url(#colorFat)" style={{ filter: 'url(#areaGlow)' }} activeDot={{ r: 6, fill: 'var(--color-amber-vibrant)', stroke: '#fff', strokeWidth: 2, filter: 'url(#areaGlow)' }} />
-            </ComposedChart>
+            <Chart options={options} series={series} type="line" height="100%" width="100%" />
           )}
         </div>
 
