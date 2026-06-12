@@ -68,7 +68,7 @@ export function EstoqueCharts() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-full overflow-hidden">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 w-full max-w-full overflow-hidden p-2">
       <ChartCard title="Evolução do Valor Estimado" description="Saldo total do estoque em R$">
         <SystemAreaChart
           data={valueData}
@@ -114,6 +114,7 @@ export function EstoqueCharts() {
         <SystemBarChart
           data={abcData}
           xKey="name"
+          layout="vertical"
           series={[
             { key: 'valor', label: 'Valor em Estoque', color: '#0ea5e9' }
           ]}
