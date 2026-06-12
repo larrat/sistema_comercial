@@ -302,7 +302,7 @@ export function ProdutoProfilePage({
   }
 
   const profileTabs = [...BASE_TABS];
-  if (!produto.produto_pai_id) {
+  if (!produto.produto_pai_id || produto.produto_pai_id === produto.id) {
     profileTabs.splice(1, 0, { id: 'variantes', label: 'Variantes' });
   }
 

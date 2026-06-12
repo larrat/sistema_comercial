@@ -38,19 +38,19 @@ function buildOrdem(produtos: Produto[]): ItemOrdenado[] {
   const filtradosIds = new Set(produtos.map((p) => p.id));
   const variantesMap: Record<string, Produto[]> = {};
   produtos.forEach((p) => {
-    if (p.produto_pai_id) {
+    if (p.produto_pai_id && p.produto_pai_id !== p.id) {
       if (!variantesMap[p.produto_pai_id]) variantesMap[p.produto_pai_id] = [];
       variantesMap[p.produto_pai_id].push(p);
     }
   });
 
   const paiIds = new Set(
-    produtos.filter((p) => p.produto_pai_id).map((p) => p.produto_pai_id as string)
+    produtos.filter((p) => p.produto_pai_id && p.produto_pai_id !== p.id).map((p) => p.produto_pai_id as string)
   );
-  const paiIdsCarregados = new Set(produtos.filter((p) => !p.produto_pai_id).map((p) => p.id));
+  const paiIdsCarregados = new Set(produtos.filter((p) => !p.produto_pai_id || p.produto_pai_id === p.id).map((p) => p.id));
 
   const pais = produtos
-    .filter((p) => !p.produto_pai_id && (filtradosIds.has(p.id) || paiIds.has(p.id)))
+    .filter((p) => (!p.produto_pai_id || p.produto_pai_id === p.id) && (filtradosIds.has(p.id) || paiIds.has(p.id)))
     .sort((a, b) => a.nome.localeCompare(b.nome));
 
   const result: ItemOrdenado[] = [];
@@ -74,7 +74,7 @@ function buildOrdem(produtos: Produto[]): ItemOrdenado[] {
   });
 
   produtos
-    .filter((p) => p.produto_pai_id && !paiIdsCarregados.has(p.produto_pai_id))
+    .filter((p) => p.produto_pai_id && p.produto_pai_id !== p.id && !paiIdsCarregados.has(p.produto_pai_id))
     .forEach((p) => {
       if (!addedIds.has(p.id)) {
         result.push({ prod: p, isPai: false, isVariante: true });
@@ -226,7 +226,7 @@ export function ProdutoListView({
           label: 'Estoque',
           render: (row) => {
             const activeVariants = Array.isArray((row.prod as any).variantes)
-              ? (row.prod as any).variantes.filter((v: any) => v.is_active !== false)
+              ? (row.prod as any).variantes.filter((v: any) => v.is_active !== false && v.id !== row.prod.id)
               : [];
             const hasVariants = activeVariants.length > 0;
             
@@ -382,7 +382,7 @@ export function ProdutoListMobile({
         const { varejo, atacado } = calcPrecos(p);
         
         const activeVariants = Array.isArray((p as any).variantes)
-          ? (p as any).variantes.filter((v: any) => v.is_active !== false)
+          ? (p as any).variantes.filter((v: any) => v.is_active !== false && v.id !== p.id)
           : [];
         const hasVariants = activeVariants.length > 0;
         
