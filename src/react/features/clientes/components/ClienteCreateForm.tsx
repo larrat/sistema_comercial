@@ -78,8 +78,9 @@ export function ClienteCreateForm() {
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [isAddingTag, setIsAddingTag] = useState(false);
+  const [duplicateClient, setDuplicateClient] = useState<{ id: string; nome: string } | null>(null);
 
-  const { submitCliente, saving, error } = useClienteMutations();
+  const { submitCliente, checkDuplicidadeByPhone, saving, error } = useClienteMutations();
   const rcas = useRcas();
   const segmentosStore = useClienteStore(useShallow(selectSegmentos));
   
@@ -134,6 +135,30 @@ export function ClienteCreateForm() {
 
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const checkDuplicate = async () => {
+      const phoneToCheck = values.whatsapp || values.tel;
+      if (!phoneToCheck || phoneToCheck.replace(/\D/g, '').length < 8) {
+        setDuplicateClient(null);
+        return;
+      }
+      
+      try {
+        const found = await checkDuplicidadeByPhone(phoneToCheck);
+        if (found) {
+          setDuplicateClient({ id: found.id, nome: found.nome });
+        } else {
+          setDuplicateClient(null);
+        }
+      } catch (err) {
+        console.error('Erro ao verificar duplicidade:', err);
+      }
+    };
+
+    const timer = setTimeout(checkDuplicate, 600);
+    return () => clearTimeout(timer);
+  }, [values.whatsapp, values.tel]);
 
   function update<K extends keyof ClienteFormValues>(key: K, value: ClienteFormValues[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -394,6 +419,25 @@ export function ClienteCreateForm() {
                     placeholder="contato@empresa.com"
                   />
                 </div>
+
+                {duplicateClient && (
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 animate-in slide-in-from-top-2">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-amber-400">Atenção: Número de celular já utilizado</p>
+                      <p className="text-sm opacity-80 mt-0.5">O cliente <strong>{duplicateClient.nome}</strong> já utiliza este telefone ou WhatsApp.</p>
+                    </div>
+                    <Button 
+                      variant="secondary" 
+                      className="shrink-0 !bg-amber-500/20 hover:!bg-amber-500/30 !text-amber-300 !border-amber-500/30"
+                      onClick={() => navigate(`/app/clientes/${duplicateClient.id}`)}
+                    >
+                      Ir para cadastro
+                    </Button>
+                  </div>
+                )}
               </div>
             </section>
 

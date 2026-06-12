@@ -7,7 +7,7 @@ import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
 import { trackEvent, type AnalyticsMetadata } from '../../../shared/lib/analytics';
 import { useClienteStore } from '../store/useClienteStore';
-import { deleteCliente, saveCliente, type ClienteWriteInput } from '../services/clientesApi';
+import { deleteCliente, saveCliente, checkClienteDuplicadoByPhone, type ClienteWriteInput } from '../services/clientesApi';
 
 type ClienteSubmitTracking = {
   eventName: 'cliente_criado' | 'cliente_editado';
@@ -119,5 +119,10 @@ export function useClienteMutations() {
     }
   }
 
-  return { submitCliente, deleteClienteById, saving, deletingId, error };
+  async function checkDuplicidadeByPhone(phone: string): Promise<Cliente | null> {
+    const context = resolveContext();
+    return checkClienteDuplicadoByPhone(context, phone);
+  }
+
+  return { submitCliente, deleteClienteById, checkDuplicidadeByPhone, saving, deletingId, error };
 }

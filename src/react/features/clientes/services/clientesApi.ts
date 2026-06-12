@@ -310,3 +310,33 @@ export async function deleteCliente(context: ClienteApiContext, clienteId: strin
   const body = await readJson(res);
   ensureOk(res, body, `Erro ${res.status} ao remover (soft-delete) cliente`);
 }
+
+export async function checkClienteDuplicadoByPhone(
+  context: ClienteApiContext,
+  phone: string
+): Promise<Cliente | null> {
+  const cleanPhone = phone.replace(/\D/g, '');
+  if (!cleanPhone || cleanPhone.length < 8) return null;
+  
+  // We search for the digits anywhere in the tel or whatsapp fields
+  const pattern = `%${cleanPhone}%`;
+  
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${context.filialId}`);
+  params.set('is_active', 'eq.true');
+  params.set('or', `(whatsapp.ilike.${pattern},tel.ilike.${pattern})`);
+  params.set('limit', '1');
+
+  const res = await fetch(`${context.url}/rest/v1/clientes?${params.toString()}`, {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(5000)
+  });
+  
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ao verificar duplicidade`);
+  
+  if (Array.isArray(body) && body.length > 0) {
+    return body[0] as Cliente;
+  }
+  return null;
+}
