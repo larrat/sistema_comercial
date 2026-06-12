@@ -202,7 +202,16 @@ export function ProdutoListView({
         {
           key: 'categoria',
           label: 'Categoria',
-          render: (row) => (row.prod.cat ? <Badge variant="slate">{row.prod.cat}</Badge> : '—')
+          render: (row) => (
+            <div className="flex flex-col gap-1 items-start">
+              {row.prod.cat ? <Badge variant="slate">{row.prod.cat}</Badge> : <span className="text-slate-500">—</span>}
+              {row.prod.qualidade ? (
+                <Badge variant="slate" className="bg-teal-500/10 text-teal-400 border-teal-500/20 text-[10px]">
+                  {row.prod.qualidade}
+                </Badge>
+              ) : null}
+            </div>
+          )
         },
         {
           key: 'precos',
@@ -440,6 +449,7 @@ export function ProdutoListMobile({
                   <div className="mobile-card-sub truncate">
                     {p.sku || 'Sem SKU'}
                     {p.cat ? ` · ${p.cat}` : ''}
+                    {p.qualidade ? ` · ${p.qualidade}` : ''}
                   </div>
                 </div>
               </div>

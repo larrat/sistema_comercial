@@ -411,6 +411,7 @@ export function ProdutoProfilePage({
           </div>
           <p className="text-sm text-slate-400 font-medium">
             {produto.cat || 'Sem categoria'} · {produto.un} · SKU: {produto.sku || '—'}
+            {produto.qualidade ? ` · Qualidade: ${produto.qualidade}` : ''}
           </p>
         </div>
       </section>
