@@ -75,7 +75,6 @@ comment on table public.fiscal_regras_tributacao is 'Motor de decisão de CST, C
 -- =====================================================================================
 
 alter table public.filiais 
-  add column if not exists uf varchar(2) default 'SP',
   add column if not exists regime_tributario varchar(20) default 'simples_nacional';
 
 alter table public.clientes
@@ -162,19 +161,19 @@ declare
   v_ind_contribuinte varchar(20);
 begin
   -- 1. Carregar Filial
-  select uf, regime_tributario into v_filial from public.filiais where id = p_filial_id;
+  select estado, regime_tributario into v_filial from public.filiais where id = p_filial_id;
   if not found then raise exception 'Filial não encontrada'; end if;
 
   -- 2. Carregar Cliente (Se for null, é consumidor final)
   if p_cliente_id is null then
-    v_uf_cliente := v_filial.uf;
+    v_uf_cliente := v_filial.estado;
     v_ind_contribuinte := 'nao';
   else
-    select uf, contribuinte_icms into v_cliente from public.clientes where id = p_cliente_id;
-    if v_cliente.uf is null or v_cliente.uf = '' then
-      v_uf_cliente := v_filial.uf;
+    select estado, contribuinte_icms into v_cliente from public.clientes where id = p_cliente_id;
+    if v_cliente.estado is null or v_cliente.estado = '' then
+      v_uf_cliente := v_filial.estado;
     else
-      v_uf_cliente := v_cliente.uf;
+      v_uf_cliente := v_cliente.estado;
     end if;
     v_ind_contribuinte := case when coalesce(v_cliente.contribuinte_icms, false) then 'sim' else 'nao' end;
   end if;
@@ -194,7 +193,7 @@ begin
   select * into v_regra
   from public.fiscal_regras_tributacao
   where regime_filial in (v_filial.regime_tributario, 'todos')
-    and uf_filial in (v_filial.uf, 'todos')
+    and uf_filial in (v_filial.estado, 'todos')
     and uf_cliente in (v_uf_cliente, 'todos')
     and tipo_operacao in (p_tipo_operacao, 'todos')
     and ind_contribuinte in (v_ind_contribuinte, 'todos')
@@ -208,11 +207,11 @@ begin
   -- 6. Buscar Alíquotas Matriz ICMS
   select * into v_matriz
   from public.fiscal_aliquotas_icms
-  where uf_origem = v_filial.uf and uf_destino = v_uf_cliente;
+  where uf_origem = v_filial.estado and uf_destino = v_uf_cliente;
 
   -- Se for interestadual e encontrou regra, usa alíquota interestadual, senão interna
   if found then
-    if v_filial.uf = v_uf_cliente then
+    if v_filial.estado = v_uf_cliente then
       v_icms_aliquota := v_matriz.aliquota_interna;
     else
       v_icms_aliquota := v_matriz.aliquota_interestadual;
