@@ -185,6 +185,25 @@ export function ClienteForm({
     setValue('rca_nome', rca?.nome ?? '');
   };
 
+  const handleCepBlur = async (cep: string) => {
+    const cleanCep = onlyDigits(cep);
+    if (cleanCep.length !== 8) return;
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setValue('cidade', data.localidade || '', { shouldDirty: true });
+        setValue('estado', data.uf || '', { shouldDirty: true });
+        if (data.bairro) setValue('bairro', data.bairro, { shouldDirty: true });
+        if (data.logradouro) setValue('logradouro', data.logradouro, { shouldDirty: true });
+        if (data.ibge) setValue('codigo_municipio', data.ibge, { shouldDirty: true });
+      }
+    } catch (err) {
+      console.error('Erro ao buscar CEP:', err);
+    }
+  };
+
   return (
     <form className="flex flex-col gap-8" onSubmit={handleSubmit(onSubmit)} data-testid="cliente-form">
       <FormSection
@@ -356,7 +375,7 @@ export function ClienteForm({
             />
             <Input
               label="CEP"
-              {...register('cep')}
+              {...register('cep', { onBlur: (e) => handleCepBlur(e.target.value) })}
               placeholder="00000-000"
               data-testid="form-cep"
             />
@@ -365,7 +384,7 @@ export function ClienteForm({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               label="CEP"
-              {...register('cep')}
+              {...register('cep', { onBlur: (e) => handleCepBlur(e.target.value) })}
               placeholder="00000-000"
               data-testid="form-cep"
             />
