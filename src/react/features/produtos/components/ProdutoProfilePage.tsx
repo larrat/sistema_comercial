@@ -558,6 +558,7 @@ export function ProdutoProfilePage({
                 <ProdutoForm
                   produto={produto}
                   pais={pais}
+                  variantes={variantes}
                   saving={saveMutation.isPending}
                   error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
                   onSalvar={(values, grade, cores) => void handleSalvar(values, grade, cores)}

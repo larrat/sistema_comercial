@@ -63,6 +63,7 @@ type Props = {
   error: string | null;
   onSalvar: (_values: ProdutoFormValues, _grade?: string[], _cores?: string[]) => void | Promise<void>;
   onCancelar: () => void;
+  variantes?: Produto[];
 };
 
 function toFormValues(p: Produto | null): ProdutoFormValues {
@@ -134,7 +135,7 @@ function fmt(v: number): string {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar }: Props) {
+export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSalvar, onCancelar }: Props) {
   const { resolve } = useApiContext();
   const context = resolve();
   
@@ -521,6 +522,26 @@ export function ProdutoForm({ produto, pais, saving, error, onSalvar, onCancelar
                   )}
                 </div>
               </FormSection>
+
+              {variantes.length > 0 && (
+                <div className="mt-8">
+                  <FormSection title="Variantes Existentes" description="Lista de tamanhos e cores que já foram criados para este produto.">
+                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                       {variantes.map(v => (
+                          <div key={v.id} className="p-3 bg-white/[0.02] rounded-xl border border-white/5 flex flex-col gap-1 hover:border-white/10 transition-colors">
+                             <span className="text-sm font-bold text-white truncate" title={v.nome}>{v.nome.replace(produto?.nome || '', '').replace(/^\s*[-–—]\s*/, '').trim() || v.nome}</span>
+                             <div className="flex items-center justify-between mt-1">
+                               <span className="text-[10px] text-slate-500 font-medium">SKU: {v.sku || '—'}</span>
+                               <span className="text-[10px] font-black text-slate-400 bg-white/5 px-1.5 py-0.5 rounded-md">
+                                 {v.is_active === false ? 'INATIVA' : 'ATIVA'}
+                               </span>
+                             </div>
+                          </div>
+                       ))}
+                     </div>
+                  </FormSection>
+                </div>
+              )}
             </motion.div>
           )}
 
