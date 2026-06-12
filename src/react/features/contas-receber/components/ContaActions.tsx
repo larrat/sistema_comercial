@@ -28,10 +28,10 @@ export function ContaActions({ cr, inFlight, onReceber, onBaixaParcial, onDesfaz
 
   return (
     <div className="flex items-center gap-2">
-      <Button size="sm" onClick={onBaixaParcial}>
+      <Button size="sm" onClick={(e) => { e.stopPropagation(); onBaixaParcial(); }}>
         Parcial
       </Button>
-      <Button size="sm" variant="primary" onClick={onReceber}>
+      <Button size="sm" variant="primary" onClick={(e) => { e.stopPropagation(); onReceber(); }}>
         Receber
       </Button>
     </div>
