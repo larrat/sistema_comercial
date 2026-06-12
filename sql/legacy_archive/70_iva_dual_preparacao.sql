@@ -14,6 +14,7 @@ alter table public.fiscal_aliquotas_icms
   add column if not exists data_fim_vigencia date default '2099-12-31';
 
 alter table public.fiscal_aliquotas_icms drop constraint if exists fiscal_aliquotas_icms_uf_origem_uf_destino_key;
+alter table public.fiscal_aliquotas_icms drop constraint if exists uq_fiscal_aliquotas_icms_vigencia;
 alter table public.fiscal_aliquotas_icms add constraint uq_fiscal_aliquotas_icms_vigencia unique (uf_origem, uf_destino, data_inicio_vigencia);
 
 -- 1.2 Regras PIS/COFINS
@@ -22,6 +23,7 @@ alter table public.fiscal_pis_cofins
   add column if not exists data_fim_vigencia date default '2099-12-31';
 
 alter table public.fiscal_pis_cofins drop constraint if exists fiscal_pis_cofins_regime_tributario_key;
+alter table public.fiscal_pis_cofins drop constraint if exists uq_fiscal_pis_cofins_vigencia;
 alter table public.fiscal_pis_cofins add constraint uq_fiscal_pis_cofins_vigencia unique (regime_tributario, data_inicio_vigencia);
 
 -- 1.3 Regras de Tributação (Coração do Motor)
@@ -66,6 +68,10 @@ alter table public.pedido_compra_itens
 -- =====================================================================================
 -- 3. REFATORAÇÃO DA RPC DO MOTOR FISCAL PARA CONSIDERAR VIGÊNCIA E IVA DUAL
 -- =====================================================================================
+
+-- Limpar versões antigas para evitar ambiguidade (overload) no Supabase RPC
+drop function if exists public.calcular_tributos_item(uuid, uuid, text, numeric, numeric, text);
+drop function if exists public.calcular_tributos_item(uuid, uuid, text, numeric, numeric, text, date);
 
 create or replace function public.calcular_tributos_item(
   p_filial_id uuid,

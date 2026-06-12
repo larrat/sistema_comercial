@@ -96,7 +96,7 @@ values
   ('simples_nacional', '49', '49', 0.00, 0.00),
   ('lucro_presumido', '01', '01', 0.65, 3.00),
   ('lucro_real', '01', '01', 1.65, 7.60)
-on conflict (regime_tributario) do nothing;
+on conflict do nothing;
 
 -- Regras Genéricas de Exemplo
 insert into public.fiscal_regras_tributacao (regime_filial, uf_filial, uf_cliente, tipo_operacao, ind_contribuinte, csosn_cst_icms, cfop, prioridade)
