@@ -1,4 +1,5 @@
 import { motion, type Variants } from 'framer-motion';
+import { StatCard } from '../../../shared/ui/StatCard';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -37,35 +38,43 @@ interface PedidoKpiGridProps {
 export function PedidoKpiGrid({ summary, total }: PedidoKpiGridProps) {
   return (
     <motion.section 
-      className="rf-kpi-grid mb-2"
+      className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-        <span className="rf-kpi-label">Total em pedidos</span>
-        <span className="rf-kpi-value">{summary.total}</span>
-        <span className="rf-kpi-sub muted">{total} filtrados no período</span>
-      </motion.article>
-      <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-        <span className="rf-kpi-label">Aguardando</span>
-        <span className={`rf-kpi-value${summary.emAbertoCount > 0 ? ' !text-amber-400' : ' !text-emerald-400'}`}>
-          {summary.emAbertoCount}
-        </span>
-        <span className={`rf-kpi-sub ${summary.emAbertoCount > 0 ? 'warning' : 'success'}`}>
-          {fmtCurrency(summary.valorEmAberto)} em aberto
-        </span>
-      </motion.article>
-      <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-        <span className="rf-kpi-label">Concluídos</span>
-        <span className="rf-kpi-value !text-emerald-400">{summary.entreguesCount}</span>
-        <span className="rf-kpi-sub success">Operação saudável</span>
-      </motion.article>
-      <motion.article className="rf-bento-item !p-4" variants={itemVariants}>
-        <span className="rf-kpi-label">Cancelados</span>
-        <span className="rf-kpi-value !text-rose-400">{summary.canceladosCount}</span>
-        <span className="rf-kpi-sub muted">Taxa de rejeição</span>
-      </motion.article>
+      <motion.div variants={itemVariants}>
+        <StatCard
+          label="Total em pedidos"
+          value={summary.total}
+          description={`${total} filtrados no período`}
+          tone="default"
+        />
+      </motion.div>
+      <motion.div variants={itemVariants}>
+        <StatCard
+          label="Aguardando"
+          value={summary.emAbertoCount}
+          description={`${fmtCurrency(summary.valorEmAberto)} em aberto`}
+          tone={summary.emAbertoCount > 0 ? 'warning' : 'success'}
+        />
+      </motion.div>
+      <motion.div variants={itemVariants}>
+        <StatCard
+          label="Concluídos"
+          value={summary.entreguesCount}
+          description="Operação saudável"
+          tone="success"
+        />
+      </motion.div>
+      <motion.div variants={itemVariants}>
+        <StatCard
+          label="Cancelados"
+          value={summary.canceladosCount}
+          description="Taxa de rejeição"
+          tone="danger"
+        />
+      </motion.div>
     </motion.section>
   );
 }

@@ -226,11 +226,6 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
         kicker="Vendas"
         title="Pedidos"
         description="Acompanhe e gerencie a carteira de vendas da filial com visão completa de status e fluxo."
-        meta={
-          <StatusBadge tone="info">
-            {total} no total · página {page}
-          </StatusBadge>
-        }
         actions={
           <div className="flex items-center gap-3">
             <Button
@@ -277,10 +272,9 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
       <PedidoKpiGrid summary={summary} total={total} />
 
       {/* Control Center: Filters */}
-      <div className="bg-slate-900 border border-white/5 rounded-xl p-4 shadow-sm flex flex-col gap-4">
-        <FilterBar
-          className="pedidos-filter-bar !border-none !p-0 !bg-transparent"
-          search={{
+      <FilterBar
+        className="mb-2"
+        search={{
             value: filtro.q,
             onChange: (value) => setFiltro({ q: value }),
             placeholder: 'N.º ou cliente...',
@@ -334,7 +328,6 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
           </div>
         }
       />
-    </div>
 
     <motion.div variants={itemVariants}>
       <PedidoTable
