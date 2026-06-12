@@ -1,5 +1,5 @@
 import type { ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
-import { Button } from '../../../shared/ui';
+import { Button, ActionMenu } from '../../../shared/ui';
 import { getStatusEfetivo } from '../hooks/useContasReceberMutations';
 
 export type ContaActionsProps = {
@@ -17,19 +17,22 @@ export function ContaActions({ cr, inFlight, onReceber, onBaixaParcial, onDesfaz
 
   if (getStatusEfetivo(cr) === 'recebido') {
     return (
-      <Button size="sm" onClick={onDesfazer}>
-        Desfazer recebimento
-      </Button>
+      <ActionMenu
+        label="Ações"
+        items={[
+          { key: 'desfazer', label: 'Desfazer recebimento', onClick: onDesfazer }
+        ]}
+      />
     );
   }
 
   return (
-    <div className="fg2">
+    <div className="flex items-center gap-2">
       <Button size="sm" onClick={onBaixaParcial}>
-        Baixa parcial
+        Parcial
       </Button>
       <Button size="sm" variant="primary" onClick={onReceber}>
-        Receber tudo
+        Receber
       </Button>
     </div>
   );

@@ -35,7 +35,7 @@ export function ContasReceberMetrics({
   const recebidoMes = Number((totalBaixas + fallbackRecebidas).toFixed(2));
 
   return (
-    <section className="rf-ui-stat-grid--3">
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
       <StatCard label="Em aberto" value={fmt(totalPendente)} tone="warning" />
       <StatCard label="Vencido" value={fmt(totalVencido)} tone="danger" />
       <StatCard label="Recebido no mês" value={fmt(recebidoMes)} tone="success" />
