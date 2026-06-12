@@ -51,8 +51,8 @@ begin
     loop
       -- Chamar motor tributário
       v_tributos := public.calcular_tributos_item(
-        p_filial_id := v_filial_id,
-        p_cliente_id := v_cliente_id,
+        p_filial_id := v_filial_id::uuid,
+        p_cliente_id := nullif(v_cliente_id, '')::uuid,
         p_produto_id := v_item->>'prodId',
         p_qty := coalesce((v_item->>'qty')::numeric, 1),
         p_preco_unitario := coalesce((v_item->>'preco')::numeric, 0),
