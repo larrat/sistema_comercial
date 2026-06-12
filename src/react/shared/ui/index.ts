@@ -34,3 +34,4 @@ export { Card } from './Card';
 export { Typography } from './Typography';
 export { Shimmer, SkeletonList } from './Shimmer';
 export { ScannerModal } from './ScannerModal';
+export { UnsavedChangesModal } from './UnsavedChangesModal';
