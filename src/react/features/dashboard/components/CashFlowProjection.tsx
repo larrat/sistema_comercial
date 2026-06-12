@@ -31,7 +31,6 @@ export function CashFlowProjection({ data }: CashFlowProjectionProps) {
       parentHeightOffset: 0,
       animations: {
         enabled: true,
-        easing: 'easeinout',
         speed: 800
       }
     },

@@ -65,7 +65,7 @@ export function EstoqueCharts() {
 
   const kpis = useMemo(() => {
     const totalEstoque = positionRows.reduce((sum, r) => sum + r.valorEstoque, 0);
-    const produtosAtivos = positionRows.filter(r => r.saldoAtual > 0).length;
+    const produtosAtivos = positionRows.filter(r => r.saldo > 0).length;
     const totalMovs = snapshot?.movimentacoes?.length || 0;
     return { totalEstoque, produtosAtivos, totalMovs };
   }, [positionRows, snapshot]);
@@ -129,7 +129,7 @@ export function EstoqueCharts() {
           ariaLabel="Evolução do valor estimado do estoque"
           emptyTitle="Sem dados de valor"
           emptyDescription="Registre movimentações para acompanhar a evolução."
-        </SystemAreaChart>
+        />
       </ChartCard>
 
       <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Distribuição por Categoria" description="Composição do valor imobilizado">
@@ -141,7 +141,7 @@ export function EstoqueCharts() {
           ariaLabel="Distribuição de valor por categoria"
           emptyTitle="Sem categorias"
           emptyDescription="Classifique seus produtos para ver a distribuição."
-        </SystemDonutChart>
+        />
       </ChartCard>
 
       <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Movimentações Recentes" description="Volume de transações por tipo (Qtd)">
@@ -158,7 +158,7 @@ export function EstoqueCharts() {
           ariaLabel="Volume de movimentações recentes"
           emptyTitle="Sem movimentações"
           emptyDescription="Nenhuma movimentação registrada no período."
-        </SystemBarChart>
+        />
       </ChartCard>
 
       <ChartCard className="hover:scale-[1.01] transition-all duration-300" title="Curva ABC (Top 10)" description="Produtos com maior valor em estoque">
@@ -175,7 +175,6 @@ export function EstoqueCharts() {
           emptyDescription="Adicione produtos com saldo para ver o ranking."
         />
       </ChartCard>
-      </div>
     </div>
   );
 }
