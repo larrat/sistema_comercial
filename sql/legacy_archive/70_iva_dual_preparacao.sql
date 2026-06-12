@@ -117,10 +117,19 @@ declare
   
   v_uf_cliente varchar(2);
   v_ind_contribuinte varchar(20);
+  v_regime_str varchar(20);
 begin
   -- 1. Carregar Filial
   select estado, regime_tributario into v_filial from public.filiais where id = p_filial_id;
   if not found then raise exception 'Filial não encontrada'; end if;
+  
+  v_regime_str := case 
+    when v_filial.regime_tributario::text = '1' then 'simples_nacional'
+    when v_filial.regime_tributario::text = '2' then 'simples_nacional'
+    when v_filial.regime_tributario::text = '3' then 'lucro_presumido'
+    when v_filial.regime_tributario::text = '4' then 'lucro_real'
+    else coalesce(v_filial.regime_tributario::text, 'simples_nacional')
+  end;
 
   -- 2. Carregar Cliente (Se for null, é consumidor final)
   if p_cliente_id is null then
@@ -150,7 +159,7 @@ begin
   -- 5. Identificar Regra Tributária (considerando data de emissão)
   select * into v_regra
   from public.fiscal_regras_tributacao
-  where regime_filial in (v_filial.regime_tributario, 'todos')
+  where regime_filial in (v_regime_str, 'todos')
     and uf_filial in (v_filial.estado, 'todos')
     and uf_cliente in (v_uf_cliente, 'todos')
     and tipo_operacao in (p_tipo_operacao, 'todos')
@@ -191,7 +200,7 @@ begin
   -- Aqui se prevê que após a reforma (data de vigência > xxxx), a alíquota clássica pode zerar e a CBS/IBS assumir.
   select * into v_pis_cofins 
   from public.fiscal_pis_cofins 
-  where regime_tributario = v_filial.regime_tributario
+  where regime_tributario = v_regime_str
     and p_data_emissao between data_inicio_vigencia and coalesce(data_fim_vigencia, '2099-12-31');
     
   if found then

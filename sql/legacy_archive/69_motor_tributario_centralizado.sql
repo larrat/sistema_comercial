@@ -159,10 +159,19 @@ declare
   
   v_uf_cliente varchar(2);
   v_ind_contribuinte varchar(20);
+  v_regime_str varchar(20);
 begin
   -- 1. Carregar Filial
   select estado, regime_tributario into v_filial from public.filiais where id = p_filial_id;
   if not found then raise exception 'Filial não encontrada'; end if;
+  
+  v_regime_str := case 
+    when v_filial.regime_tributario::text = '1' then 'simples_nacional'
+    when v_filial.regime_tributario::text = '2' then 'simples_nacional'
+    when v_filial.regime_tributario::text = '3' then 'lucro_presumido'
+    when v_filial.regime_tributario::text = '4' then 'lucro_real'
+    else coalesce(v_filial.regime_tributario::text, 'simples_nacional')
+  end;
 
   -- 2. Carregar Cliente (Se for null, é consumidor final)
   if p_cliente_id is null then
@@ -192,7 +201,7 @@ begin
   -- 5. Identificar Regra Tributária ideal por prioridade
   select * into v_regra
   from public.fiscal_regras_tributacao
-  where regime_filial in (v_filial.regime_tributario, 'todos')
+  where regime_filial in (v_regime_str, 'todos')
     and uf_filial in (v_filial.estado, 'todos')
     and uf_cliente in (v_uf_cliente, 'todos')
     and tipo_operacao in (p_tipo_operacao, 'todos')
@@ -231,7 +240,7 @@ begin
   -- Para fins de cálculo base, a engine fornece os dados soltos. A formatação XML definirá as tags.
 
   -- 8. Cálculos PIS/COFINS
-  select * into v_pis_cofins from public.fiscal_pis_cofins where regime_tributario = v_filial.regime_tributario;
+  select * into v_pis_cofins from public.fiscal_pis_cofins where regime_tributario = v_regime_str;
   if found then
     v_pis_valor := v_base_calculo * (v_pis_cofins.aliquota_pis / 100.0);
     v_cofins_valor := v_base_calculo * (v_pis_cofins.aliquota_cofins / 100.0);
