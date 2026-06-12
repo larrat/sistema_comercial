@@ -241,7 +241,7 @@ export function PedidoItemAdd({ produtos, tipo, onAdd }: Props) {
       </div>
 
       {/* Visual Search Drawer (F4) */}
-      <div className={`rf-drawer-container rf-pdv-glass-card rf-drawer${drawerOpen ? 'rf-drawer-open' : ''}p-6 border-l border-white/10 h-full`}>
+      <div className={`fixed top-0 right-0 h-full w-[400px] z-[999] bg-slate-900/95 backdrop-blur-xl border-l border-white/10 p-6 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
           <h3 className="text-sm font-extrabold text-gold-premium uppercase tracking-wide flex items-center gap-2">
             🔎 Consulta Rápida (F4)
