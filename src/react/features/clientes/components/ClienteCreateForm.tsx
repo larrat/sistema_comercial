@@ -164,6 +164,21 @@ export function ClienteCreateForm() {
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
+  function formatPhone(v: string) {
+    let digits = v.replace(/\D/g, '');
+    
+    // Auto-strip Brazil country code if present (+55) and length looks like a full number
+    if (digits.startsWith('55') && digits.length >= 12) {
+      digits = digits.substring(2);
+    }
+    
+    if (digits.length === 0) return '';
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  }
+
   function handleCepBlur(cep: string) {
     const cleanCep = cep.replace(/\D/g, '');
     if (cleanCep.length !== 8) return;
@@ -402,13 +417,13 @@ export function ClienteCreateForm() {
                   <Input
                     label="Telefone"
                     value={values.tel}
-                    onChange={e => update('tel', e.target.value)}
+                    onChange={e => update('tel', formatPhone(e.target.value))}
                     placeholder="(00) 0000-0000"
                   />
                   <Input
                     label="WhatsApp"
                     value={values.whatsapp}
-                    onChange={e => update('whatsapp', e.target.value)}
+                    onChange={e => update('whatsapp', formatPhone(e.target.value))}
                     placeholder="(00) 00000-0000"
                   />
                   <Input
