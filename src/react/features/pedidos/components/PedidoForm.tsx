@@ -139,7 +139,7 @@ export function PedidoForm({
     if (initialPedido || !prefillClienteId || !clientes.length) return;
     const clientePrefill = clientes.find((cliente) => cliente.id === prefillClienteId) ?? null;
     if (!clientePrefill) return;
-    setCli((current) => (current.trim() ? current : clientePrefill.id));
+    setCli((current) => (current.trim() ? current : clientePrefill.nome));
     if (clientePrefill.rca_id) {
       setRcaId((current) => current || clientePrefill.rca_id || '');
     }
