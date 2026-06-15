@@ -499,9 +499,15 @@ export function PedidoCompraCreateRoutePage() {
                                       }
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-1.5 mb-0.5">
+                                      <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                                         <span className="text-[9px] font-black text-teal-400 uppercase tracking-wider">{p.sku || 'S/SKU'}</span>
-                                        {p.cat && <span className="text-[8px] text-slate-500 font-medium">· {p.cat}</span>}
+                                        {p.cat && <span className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">· {p.cat}</span>}
+                                        {p.qualidade && <span className="text-[8px] text-teal-500/80 font-bold uppercase tracking-wider">· {p.qualidade}</span>}
+                                        {p.genero && (
+                                          <span className="text-[8px] text-indigo-400/80 font-bold uppercase tracking-wider">
+                                            · {p.genero === 'masculino' ? 'Masc' : p.genero === 'feminino' ? 'Fem' : p.genero}
+                                          </span>
+                                        )}
                                       </div>
                                       <div className="text-xs font-bold text-white line-clamp-1">{p.nome}</div>
                                       <div className="flex items-center gap-2 mt-0.5">
