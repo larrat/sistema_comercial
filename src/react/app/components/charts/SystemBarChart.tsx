@@ -1,6 +1,7 @@
 import Chart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
 import { EmptyChartState } from './EmptyChartState';
+import { useChartFilter } from './ChartFilterContext';
 
 type ChartRow = Record<string, unknown>;
 type ChartValue = number | string | null | undefined;
@@ -22,6 +23,7 @@ type SystemBarChartProps<T extends ChartRow> = {
   emptyDescription?: string;
   hideYAxis?: boolean;
   layout?: 'horizontal' | 'vertical';
+  filterKey?: string; // Optional key to use for cross-filtering
 };
 
 export function SystemBarChart<T extends ChartRow>({
@@ -35,17 +37,28 @@ export function SystemBarChart<T extends ChartRow>({
   emptyDescription,
   hideYAxis = true,
   layout = 'horizontal',
-  stacked = false
+  stacked = false,
+  filterKey
 }: SystemBarChartProps<T> & { stacked?: boolean }) {
+  const { filters, setFilter, getFilter } = useChartFilter();
+
   if (!data.length || !seriesConfig.length) {
     return <EmptyChartState title={emptyTitle} description={emptyDescription} />;
   }
 
   const isVertical = layout === 'vertical'; // Horizontal bars visually
 
+  const activeFilterValue = filterKey ? getFilter(filterKey) : undefined;
+
   const series = seriesConfig.map((config) => ({
     name: config.label,
-    data: data.map((row) => Number(row[config.key]) || 0)
+    data: data.map((row) => ({
+      x: String(row[xKey] || 'N/A'),
+      y: Number(row[config.key]) || 0,
+      fillColor: activeFilterValue && String(row[xKey] || 'N/A') !== activeFilterValue 
+        ? `${config.color}40` // 25% opacity if not selected
+        : config.color
+    }))
   }));
 
   const categories = data.map((row) => String(row[xKey] || 'N/A'));
@@ -61,6 +74,17 @@ export function SystemBarChart<T extends ChartRow>({
       animations: {
         enabled: true,
         speed: 800
+      },
+      events: {
+        dataPointSelection: (e, chart, config) => {
+          if (!filterKey) return;
+          const category = categories[config.dataPointIndex];
+          if (activeFilterValue === category) {
+            setFilter(filterKey, null); // deselect
+          } else {
+            setFilter(filterKey, category);
+          }
+        }
       }
     },
     theme: { mode: 'dark' },

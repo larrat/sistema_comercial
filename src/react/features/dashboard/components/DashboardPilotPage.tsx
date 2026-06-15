@@ -28,6 +28,7 @@ import { RfmSegmentation } from './RfmSegmentation';
 import { MetricsGrid } from './MetricsGrid';
 import { SalesPerformanceChart } from './SalesPerformanceChart';
 import { SalesMixCard } from './SalesMixCard';
+import { ChartFilterProvider } from '../../../app/components/charts';
 import { RefreshCw } from 'lucide-react';
 import { cn } from '../../../shared/ui/index';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
@@ -73,7 +74,7 @@ type DashboardPilotPageProps = {
   onReload?: () => void;
 };
 
-export function DashboardPilotPage({ onNavigatePage, onReload }: DashboardPilotPageProps = {}) {
+function DashboardPilotPageContent({ onNavigatePage, onReload }: DashboardPilotPageProps = {}) {
   const { reload } = useDashboardData();
   const navigate = useNavigate();
   
@@ -392,5 +393,13 @@ function FiscalHubCard() {
         {isEmitting ? 'Processando...' : 'Processar NFes Pendentes'}
       </Button>
     </div>
+  );
+}
+
+export function DashboardPilotPage(props: DashboardPilotPageProps) {
+  return (
+    <ChartFilterProvider>
+      <DashboardPilotPageContent {...props} />
+    </ChartFilterProvider>
   );
 }

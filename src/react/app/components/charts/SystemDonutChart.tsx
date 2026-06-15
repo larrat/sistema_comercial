@@ -1,6 +1,7 @@
 import Chart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
 import { EmptyChartState } from './EmptyChartState';
+import { useChartFilter } from './ChartFilterContext';
 
 type ChartRow = Record<string, unknown>;
 type ChartValue = number | string | null | undefined;
@@ -16,6 +17,7 @@ type SystemDonutChartProps<T extends ChartRow> = {
   emptyDescription?: string;
   centerLabel?: string;
   centerValue?: string;
+  filterKey?: string;
 };
 
 const DONUT_COLORS = [
@@ -39,14 +41,23 @@ export function SystemDonutChart<T extends ChartRow>({
   emptyTitle,
   emptyDescription,
   centerLabel,
-  centerValue
+  centerValue,
+  filterKey
 }: SystemDonutChartProps<T>) {
+  const { setFilter, getFilter } = useChartFilter();
   if (!data.length) {
     return <EmptyChartState title={emptyTitle} description={emptyDescription} />;
   }
 
   const series = data.map((row) => Number(row[valueKey]) || 0);
   const labels = data.map((row) => String(row[nameKey] || 'N/A'));
+
+  const activeFilterValue = filterKey ? getFilter(filterKey) : undefined;
+  
+  const colors = DONUT_COLORS.map((color, index) => {
+    if (!activeFilterValue) return color;
+    return labels[index] === activeFilterValue ? color : `${color}40`; // Dim others
+  });
 
   const total = series.reduce((sum, val) => sum + val, 0);
   const displayValue = centerValue ?? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total);
@@ -59,10 +70,21 @@ export function SystemDonutChart<T extends ChartRow>({
         enabled: true,
         easing: 'easeinout',
         speed: 800
+      },
+      events: {
+        dataPointSelection: (e, chart, config) => {
+          if (!filterKey) return;
+          const category = labels[config.dataPointIndex];
+          if (activeFilterValue === category) {
+            setFilter(filterKey, null); // deselect
+          } else {
+            setFilter(filterKey, category);
+          }
+        }
       }
     },
     theme: { mode: 'dark' },
-    colors: DONUT_COLORS,
+    colors: colors,
     labels,
     stroke: {
       show: true,

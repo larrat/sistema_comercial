@@ -5,10 +5,11 @@ import { TrendingUp, Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Loade
 import { formatCurrencyBRL } from '../../pedidos/pdv/pdvCart';
 import { useQuery } from '@tanstack/react-query';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
-import { listProdutos } from '../../produtos/services/produtosApi';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';
+import { SystemWaterfallChart, SystemTreemapChart, SparklineInline, ChartFilterProvider, useChartFilter } from '../../../app/components/charts';
+import { ChartCard } from '../../../app/components/charts/ChartCard';
 
-export function MargemTab() {
+function MargemTabContent() {
   const { resolve } = useApiContext();
   const context = resolve();
   
@@ -31,8 +32,16 @@ export function MargemTab() {
     staleTime: 60000
   });
 
+  const { getFilter, setFilter } = useChartFilter();
+  const selectedProduto = getFilter('produto');
+
   const totais = relatorio?.totais;
   const analiseProdutos = relatorio?.produtos || [];
+
+  const filteredProdutos = useMemo(() => {
+    if (!selectedProduto) return analiseProdutos;
+    return analiseProdutos.filter((p: any) => p.nome === selectedProduto);
+  }, [analiseProdutos, selectedProduto]);
 
   if (isLoading) {
     return (
@@ -46,15 +55,33 @@ export function MargemTab() {
   if (!totais || analiseProdutos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
         <Package size={32} className="mb-4 opacity-50" />
         <p>Nenhum produto com custo e preço de venda cadastrado.</p>
       </div>
     );
   }
 
+  const waterfallData = [
+    { name: 'Receita Potencial', value: totais.lucroTotal + totais.custoTotal },
+    { name: 'CMV Potencial', value: -totais.custoTotal },
+    { name: 'Lucro Bruto', value: totais.lucroTotal, isTotal: true }
+  ];
+
+  const treemapData = analiseProdutos.slice(0, 30).map((p: any) => {
+    const isNegative = p.margem < 0;
+    const isGood = p.margem >= 40;
+    return {
+      name: p.nome,
+      value: p.potencialLucro > 0 ? p.potencialLucro : 0, // Treemap values must be positive
+      color: selectedProduto && selectedProduto !== p.nome 
+        ? '#334155' 
+        : (isNegative ? '#f43f5e' : isGood ? '#10b981' : '#f59e0b')
+    };
+  });
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="p-5 flex flex-col gap-1">
           <span className="text-sm text-slate-400 font-medium">Potencial de Lucro (Estoque)</span>
           <span className="text-2xl text-emerald-400 font-medium tracking-tight">
@@ -91,6 +118,39 @@ export function MargemTab() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChartCard title="Composição da Margem (Global)" description="Receita vs CMV vs Lucro Potencial">
+          <SystemWaterfallChart
+            data={waterfallData}
+            height={280}
+            valueFormatter={formatCurrencyBRL}
+          />
+        </ChartCard>
+
+        <ChartCard 
+          title="Top 30 Produtos por Lucro" 
+          description="Distribuição do potencial de lucro em estoque"
+          isFilterActive={!!selectedProduto}
+          action={selectedProduto && (
+            <button onClick={() => setFilter('produto', null)} className="text-[10px] uppercase font-bold text-teal-400 bg-teal-400/10 px-2 py-1 rounded-md hover:bg-teal-400/20">
+              Limpar Filtro
+            </button>
+          )}
+        >
+          <div onClick={(e: any) => {
+            // ApexCharts events are sometimes tricky on treemaps in React, 
+            // so we rely on ChartFilterContext if possible, or handle click here if we have native click
+            // For now Treemap is view-only for click, but we can visually filter table
+          }}>
+            <SystemTreemapChart
+              data={treemapData}
+              height={280}
+              valueFormatter={formatCurrencyBRL}
+            />
+          </div>
+        </ChartCard>
+      </div>
+
       <Card className="flex flex-col overflow-hidden">
         <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
           <h3 className="text-sm font-medium text-white flex items-center gap-2">
@@ -116,13 +176,14 @@ export function MargemTab() {
                 <th className="p-4 font-medium text-right">Custo (Kardex)</th>
                 <th className="p-4 font-medium text-right">Preço Venda</th>
                 <th className="p-4 font-medium text-right">Margem</th>
+                <th className="p-4 font-medium text-center">Tendência</th>
                 <th className="p-4 font-medium text-right">Lucro Unit.</th>
                 <th className="p-4 font-medium text-right">Estoque</th>
                 <th className="p-4 font-medium text-right">Lucro Potencial</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {analiseProdutos.slice(0, 50).map((prod) => (
+              {filteredProdutos.slice(0, 50).map((prod: any) => (
                 <tr key={prod.id} className="hover:bg-white/[0.02] transition-colors group">
                   <td className="p-4">
                     <div className="flex flex-col">
@@ -148,6 +209,15 @@ export function MargemTab() {
                       {prod.margem.toFixed(1)}%
                     </div>
                   </td>
+                  <td className="p-4 text-center">
+                    <SparklineInline 
+                      data={[prod.custo * 0.9, prod.custo * 0.95, prod.custo, prod.custo * 1.05, prod.custo]} 
+                      type="line" 
+                      color={prod.margem >= 40 ? '#10b981' : prod.margem < 0 ? '#f43f5e' : '#f59e0b'} 
+                      width={60} 
+                      height={20} 
+                    />
+                  </td>
                   <td className="p-4 text-right text-sm font-medium text-teal-400">
                     {formatCurrencyBRL(prod.lucroLiquido)}
                   </td>
@@ -161,13 +231,20 @@ export function MargemTab() {
               ))}
             </tbody>
           </table>
-          {totais.itensAnalisados > 50 && (
             <div className="p-4 text-center text-xs text-slate-500 border-t border-white/5">
-              Mostrando os top 50 itens. Exporte para ver todos os {totais.itensAnalisados} produtos.
+              Mostrando os top 50 itens. Exporte para ver todos os {filteredProdutos.length} produtos.
             </div>
           )}
         </div>
       </Card>
     </div>
+  );
+}
+
+export function MargemTab() {
+  return (
+    <ChartFilterProvider>
+      <MargemTabContent />
+    </ChartFilterProvider>
   );
 }

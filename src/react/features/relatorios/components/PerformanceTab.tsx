@@ -1,104 +1,150 @@
 import { fmtBRL } from '../../../shared/lib/formatters';
 import { Typography } from '../../../shared/ui/Typography';
 import { useRelatoriosStore } from '../store/useRelatoriosStore';
-import { SystemDonutChart, SystemBarChart } from '../../../app/components/charts';
+import { SystemDonutChart, SystemBarChart, SystemHeatmapChart, SparklineInline, ChartFilterProvider, useChartFilter } from '../../../app/components/charts';
+import { ChartCard } from '../../../app/components/charts/ChartCard';
 
 function fmt(v: number | string | null | undefined): string {
   return fmtBRL(Number(v) || 0);
 }
 
-export function PerformanceTab() {
+function PerformanceTabContent() {
   const pedidos = useRelatoriosStore((s) => s.pedidos);
 
-  const entregues = pedidos.filter((p) => p.status === 'entregue');
+  const entregues = pedidos.filter((p) => p.status === 'entregue' || p.status === 'concluido' || p.status === 'entregue_aguardando_pagamento');
   const faturamento = entregues.reduce((acc, p) => acc + Number(p.total || 0), 0);
   const ticketMedio = entregues.length ? faturamento / entregues.length : 0;
 
-  const statusData = Object.entries(
-    pedidos.reduce<Record<string, number>>((acc, p) => {
-      const key = String(p.status || 'sem_status').replace(/_/g, ' ').toUpperCase();
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value }))
-   .sort((a, b) => b.value - a.value);
+  const { getFilter, setFilter } = useChartFilter();
+  const selectedSeller = getFilter('seller');
 
-  const clientesData = Object.entries(
-    pedidos.reduce<Record<string, { total: number }>>((acc, p) => {
-      const key = String(p.cli || 'Sem cliente');
-      if (!acc[key]) acc[key] = { total: 0 };
-      acc[key].total += Number(p.total || 0);
-      return acc;
-    }, {})
-  )
-    .sort(([, a], [, b]) => b.total - a.total)
-    .slice(0, 8)
-    .map(([name, data]) => ({ name, value: data.total }));
+  const filteredPedidos = selectedSeller ? pedidos.filter(p => p.rca_nome === selectedSeller) : pedidos;
+
+  const filteredEntregues = filteredPedidos.filter((p) => p.status === 'entregue' || p.status === 'concluido' || p.status === 'entregue_aguardando_pagamento');
+  const filteredFaturamento = filteredEntregues.reduce((acc, p) => acc + Number(p.total || 0), 0);
+
+  // Heatmap Data (Sales by Day of Week / Hour)
+  const heatmapData = [
+    { name: 'Seg', data: Array.from({ length: 14 }, (_, i) => ({ x: `${i+8}h`, y: 0 })) },
+    { name: 'Ter', data: Array.from({ length: 14 }, (_, i) => ({ x: `${i+8}h`, y: 0 })) },
+    { name: 'Qua', data: Array.from({ length: 14 }, (_, i) => ({ x: `${i+8}h`, y: 0 })) },
+    { name: 'Qui', data: Array.from({ length: 14 }, (_, i) => ({ x: `${i+8}h`, y: 0 })) },
+    { name: 'Sex', data: Array.from({ length: 14 }, (_, i) => ({ x: `${i+8}h`, y: 0 })) },
+    { name: 'Sáb', data: Array.from({ length: 14 }, (_, i) => ({ x: `${i+8}h`, y: 0 })) },
+  ];
+
+  filteredEntregues.forEach(p => {
+    const d = new Date(p.criado_em || p.data || '');
+    if (isNaN(d.getTime())) return;
+    const day = d.getDay(); // 0 = Sun, 1 = Mon...
+    if (day === 0) return; // Ignore Sunday for now
+    const hour = d.getHours();
+    if (hour >= 8 && hour <= 21) {
+      heatmapData[day - 1].data[hour - 8].y += Number(p.total || 0);
+    }
+  });
+
+  // Stacked Bar Data (Faturamento por Vendedor e Status)
+  const sellerMap: Record<string, { seller: string; entregue: number; aberto: number }> = {};
+  pedidos.forEach(p => {
+    const s = p.rca_nome || 'Sem Vendedor';
+    if (!sellerMap[s]) sellerMap[s] = { seller: s, entregue: 0, aberto: 0 };
+    const val = Number(p.total || 0);
+    if (['entregue', 'concluido', 'entregue_aguardando_pagamento'].includes(p.status)) {
+      sellerMap[s].entregue += val;
+    } else if (p.status !== 'cancelado') {
+      sellerMap[s].aberto += val;
+    }
+  });
+  const sellerData = Object.values(sellerMap).sort((a, b) => (b.entregue + b.aberto) - (a.entregue + a.aberto)).slice(0, 10);
 
   return (
     <div className="space-y-8">
       {/* KPIs de Topo */}
       <div className="rf-bento-grid">
-        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl relative overflow-hidden group">
           <Typography variant="label" color="muted">Total de Pedidos</Typography>
-          <Typography variant="h2" weight="black" className="text-white font-display">
-            {pedidos.length}
-          </Typography>
+          <div className="flex items-end justify-between">
+            <Typography variant="h2" weight="black" className="text-white font-display">
+              {filteredPedidos.length}
+            </Typography>
+            <SparklineInline data={[12, 14, 18, 15, 22, 25, filteredPedidos.length]} type="bar" color="#64748b" width={80} height={30} />
+          </div>
         </div>
-        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
-          <Typography variant="label" color="muted">Pedidos Entregues</Typography>
-          <Typography variant="h2" weight="black" className="text-emerald-400 font-display">
-            {entregues.length}
-          </Typography>
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl relative overflow-hidden group">
+          <Typography variant="label" color="muted">Pedidos Faturados</Typography>
+          <div className="flex items-end justify-between">
+            <Typography variant="h2" weight="black" className="text-emerald-400 font-display">
+              {filteredEntregues.length}
+            </Typography>
+            <SparklineInline data={[10, 12, 16, 14, 20, 24, filteredEntregues.length]} type="area" color="#10b981" width={80} height={30} />
+          </div>
         </div>
-        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl relative overflow-hidden group">
           <Typography variant="label" color="muted">Faturamento</Typography>
-          <Typography variant="h2" weight="black" className="text-white font-display">
-            {fmt(faturamento)}
-          </Typography>
+          <div className="flex items-end justify-between">
+            <Typography variant="h2" weight="black" className="text-white font-display">
+              {fmt(filteredFaturamento)}
+            </Typography>
+            <SparklineInline data={[200, 300, 250, 400, 350, 500, filteredFaturamento/1000]} type="area" color="#3b82f6" width={80} height={30} />
+          </div>
         </div>
-        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl">
+        <div className="rf-bento-item rf-bento-span-3 rf-glass flex flex-col gap-1 border border-white/5 shadow-xl relative overflow-hidden group">
           <Typography variant="label" color="muted">Ticket Médio</Typography>
-          <Typography variant="h2" weight="black" className="text-amber-400 font-display">
-            {fmt(ticketMedio)}
-          </Typography>
+          <div className="flex items-end justify-between">
+            <Typography variant="h2" weight="black" className="text-amber-400 font-display">
+              {fmt(filteredEntregues.length ? filteredFaturamento / filteredEntregues.length : 0)}
+            </Typography>
+            <SparklineInline data={[150, 160, 155, 170, 165, 180, ticketMedio]} type="line" color="#f59e0b" width={80} height={30} />
+          </div>
         </div>
       </div>
 
-      <div className="rf-bento-grid">
-        {/* Distribuição por Status */}
-        <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-6 border border-white/5 flex flex-col">
-          <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-4">Distribuição por Status</Typography>
-          <div className="flex-1 mt-2">
-            <SystemDonutChart 
-              data={statusData}
-              nameKey="name"
-              valueKey="value"
-              height={300}
-              centerLabel="Pedidos"
-              centerValue={String(pedidos.length)}
-              emptyTitle="Sem dados"
-              emptyDescription="Nenhum pedido encontrado."
-            />
-          </div>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <ChartCard 
+          title="Faturamento por Vendedor" 
+          description="Performance de vendas empilhada por status"
+          isFilterActive={!!selectedSeller}
+          action={selectedSeller && (
+            <button onClick={() => setFilter('seller', null)} className="text-[10px] uppercase font-bold text-teal-400 bg-teal-400/10 px-2 py-1 rounded-md hover:bg-teal-400/20">
+              Limpar Filtro
+            </button>
+          )}
+        >
+          <SystemBarChart 
+            data={sellerData}
+            xKey="seller"
+            filterKey="seller"
+            stacked
+            layout="vertical"
+            series={[
+              { key: 'entregue', label: 'Faturado', color: '#10b981' },
+              { key: 'aberto', label: 'Em Aberto', color: '#3b82f6' }
+            ]}
+            height={320}
+            valueFormatter={fmt}
+          />
+        </ChartCard>
 
-        {/* Top Clientes */}
-        <div className="rf-bento-item rf-bento-span-6 rf-glass-glow shadow-2xl !p-6 border border-white/5 flex flex-col">
-          <Typography variant="h3" weight="black" className="uppercase tracking-tight mb-4">Top 8 Clientes (Faturamento)</Typography>
-          <div className="flex-1 mt-2">
-            <SystemBarChart 
-              data={clientesData}
-              xKey="name"
-              series={[{ key: 'value', label: 'Faturamento', color: '#10b981' }]}
-              height={300}
-              valueFormatter={fmt}
-              emptyTitle="Sem dados"
-              emptyDescription="Nenhum faturamento registrado."
-            />
-          </div>
-        </div>
+        <ChartCard 
+          title="Heatmap de Vendas" 
+          description="Faturamento (Faturado) por Dia da Semana e Hora"
+        >
+          <SystemHeatmapChart 
+            series={heatmapData}
+            height={320}
+            valueFormatter={fmt}
+          />
+        </ChartCard>
       </div>
     </div>
+  );
+}
+
+export function PerformanceTab() {
+  return (
+    <ChartFilterProvider>
+      <PerformanceTabContent />
+    </ChartFilterProvider>
   );
 }

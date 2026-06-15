@@ -241,8 +241,8 @@ export function ProdutoListView({
             const hasVariants = activeVariants.length > 0;
             
             const saldo = hasVariants
-              ? activeVariants.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
-              : row.prod.esal ?? 0;
+              ? activeVariants.reduce((acc: number, v: any) => acc + Number(v.esal || 0), 0)
+              : Number(row.prod.esal || 0);
               
             const emin = hasVariants
               ? activeVariants.reduce((acc: number, v: any) => acc + (v.emin ?? 0), 0)
@@ -320,8 +320,8 @@ export function ProdutoListView({
             const hasVariants = activeVariants.length > 0;
             
             const saldo = hasVariants
-              ? activeVariants.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
-              : row.prod.esal ?? 0;
+              ? activeVariants.reduce((acc: number, v: any) => acc + Number(v.esal || 0), 0)
+              : Number(row.prod.esal || 0);
               
             const emin = hasVariants
               ? activeVariants.reduce((acc: number, v: any) => acc + (v.emin ?? 0), 0)
@@ -408,8 +408,8 @@ export function ProdutoListMobile({
         const hasVariants = activeVariants.length > 0;
         
         const saldo = hasVariants
-          ? activeVariants.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
-          : p.esal ?? 0;
+          ? activeVariants.reduce((acc: number, v: any) => acc + Number(v.esal || 0), 0)
+          : Number(p.esal || 0);
           
         const emin = hasVariants
           ? activeVariants.reduce((acc: number, v: any) => acc + (v.emin ?? 0), 0)

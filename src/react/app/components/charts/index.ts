@@ -5,3 +5,7 @@ export { SystemBarChart } from './SystemBarChart';
 export { SystemLineChart } from './SystemLineChart';
 export { SystemAreaChart } from './SystemAreaChart';
 export { SystemDonutChart } from './SystemDonutChart';
+export { SystemWaterfallChart } from './SystemWaterfallChart';
+export { SystemTreemapChart } from './SystemTreemapChart';
+export { SystemHeatmapChart } from './SystemHeatmapChart';
+export { SparklineInline } from './SparklineInline';
