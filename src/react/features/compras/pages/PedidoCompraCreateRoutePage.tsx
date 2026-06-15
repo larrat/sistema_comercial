@@ -549,7 +549,7 @@ export function PedidoCompraCreateRoutePage() {
                         <input
                           type="number"
                           min="0.001"
-                          step="0.001"
+                          step={item.un && ['kg', 'l', 'm', 'm2', 'm3'].includes(item.un.toLowerCase()) ? "0.001" : "1"}
                           value={item.qty}
                           onChange={e => updateItem(idx, 'qty', Number(e.target.value))}
                           className="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-2.5 text-sm font-bold text-white text-center focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-all"
