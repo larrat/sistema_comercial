@@ -188,7 +188,7 @@ export function PedidoForm({
       prazo,
       tipo,
       obs: obs.trim(),
-      itens,
+      itens: itens.map((item, index) => ({ ...item, linha: index + 1 })),
       total: totalPedido,
       custo_frete: parseFloat(custoFrete || '0'),
       outros_custos: parseFloat(outrosCustos || '0')
