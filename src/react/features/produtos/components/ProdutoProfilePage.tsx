@@ -133,11 +133,16 @@ export function ProdutoProfilePage({
   const { data: movs = [], isLoading: loadingMovs } = useMovimentacoesQuery(queryIds);
 
   const calculatedSaldo = useMemo(() => {
+    const isPaiComVariantes = isPai && variantes.length > 0;
+    const saldo = isPaiComVariantes 
+      ? variantes.reduce((acc, v) => acc + toNumber(v.esal), 0)
+      : toNumber(produto.esal);
+      
     return { 
-      saldo: toNumber(produto.esal), 
+      saldo, 
       cm: toNumber(produto.ecm) || toNumber(produto.custo) 
     };
-  }, [produto.esal, produto.ecm, produto.custo]);
+  }, [produto.esal, produto.ecm, produto.custo, isPai, variantes]);
 
 
   const kpis = useMemo(() => buildKpis(produto, calculatedSaldo), [produto, calculatedSaldo]);

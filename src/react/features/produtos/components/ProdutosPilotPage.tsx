@@ -151,9 +151,19 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
   const filteredProdutos = useMemo(() => {
     let list = produtos;
     if (filtroEstoque === 'estoque') {
-      list = list.filter(p => (p.esal ?? 0) > 0);
+      list = list.filter(p => {
+        const stock = (!p.produto_pai_id && p.variantes && p.variantes.length > 0)
+          ? p.variantes.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
+          : (p.esal ?? 0);
+        return stock > 0;
+      });
     } else if (filtroEstoque === 'zerados') {
-      list = list.filter(p => (p.esal ?? 0) <= 0);
+      list = list.filter(p => {
+        const stock = (!p.produto_pai_id && p.variantes && p.variantes.length > 0)
+          ? p.variantes.reduce((acc: number, v: any) => acc + (v.esal ?? 0), 0)
+          : (p.esal ?? 0);
+        return stock <= 0;
+      });
     }
     return list;
   }, [produtos, filtroEstoque]);
