@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import type { Cliente, Pedido, Produto, ContaReceber, Filial } from '../../../../types/domain';
 import { readStorageString, writeStorageString } from '../../../app/lib/storage';
 
-export type Periodo = 'semana' | 'mes' | 'ano' | 'tudo';
-export type Visao = 'operacional' | 'gerencial' | 'analitico';
+export type Periodo = '7' | '30' | '90' | 'semana' | 'mes' | 'ano' | 'tudo' | string;
+export type Visao = 'operacional' | 'gerencial' | 'analitico' | string;
 
 type DashboardStoreState = {
   periodo: Periodo;
@@ -15,6 +15,10 @@ type DashboardStoreState = {
   filial: Filial | null;
   status: 'idle' | 'loading' | 'ready' | 'error';
   error: string | null;
+  alertThresholds: {
+    metaRiscoPercent: number;
+    contasVencidasValor: number;
+  };
 };
 
 type DashboardStoreActions = {
@@ -28,6 +32,7 @@ type DashboardStoreActions = {
     filial?: Filial | null;
   }) => void;
   setStatus: (s: DashboardStoreState['status'], error?: string) => void;
+  setAlertThresholds: (thresholds: Partial<DashboardStoreState['alertThresholds']>) => void;
 };
 
 const STORAGE_KEYS = {
@@ -55,6 +60,10 @@ export const useDashboardStore = create<DashboardStoreState & DashboardStoreActi
   filial: null,
   status: 'idle',
   error: null,
+  alertThresholds: {
+    metaRiscoPercent: 50,
+    contasVencidasValor: 0
+  },
 
   setPeriodo: (periodo) => {
     writeStorageString(STORAGE_KEYS.periodo, periodo);
@@ -74,5 +83,6 @@ export const useDashboardStore = create<DashboardStoreState & DashboardStoreActi
       status: 'ready',
       error: null
     }),
-  setStatus: (status, error) => set({ status, error: error ?? null })
+  setStatus: (status, error) => set({ status, error: error ?? null }),
+  setAlertThresholds: (t) => set((s) => ({ alertThresholds: { ...s.alertThresholds, ...t } }))
 }));

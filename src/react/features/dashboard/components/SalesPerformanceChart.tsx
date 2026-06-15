@@ -7,8 +7,7 @@ import { fmtBRL } from '../../../shared/lib/formatters';
 
 const fmt = (v: number) => fmtBRL(v || 0);
 
-export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { chartData: any[], stats: any, periodoDatas: string }) {
-  const navigate = useNavigate();
+export function SalesPerformanceChart({ chartData, stats, periodoDatas, onDrillDown }: { chartData: any[], stats: any, periodoDatas: string, onDrillDown?: (periodo: string) => void }) {
 
   const series = [
     {
@@ -19,7 +18,12 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
     {
       name: 'Período Anterior',
       type: 'line',
-      data: chartData.map((row) => Number(row.faturamentoAnt) || 0)
+      data: chartData.map((row) => row.dateKey === 'proj' ? null : (Number(row.faturamentoAnt) || 0))
+    },
+    {
+      name: 'Forecast',
+      type: 'line',
+      data: chartData.map((row) => Number(row.forecast) || null)
     }
   ];
 
@@ -32,8 +36,39 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
       toolbar: { show: false },
       zoom: { enabled: false },
       events: {
-        markerClick: () => navigate('/app/pedidos'),
-        dataPointSelection: () => navigate('/app/pedidos')
+        markerClick: (_, __, { dataPointIndex }) => {
+          if (onDrillDown && chartData[dataPointIndex]?.dateKey) {
+            const dk = chartData[dataPointIndex].dateKey;
+            if (dk.length >= 6 && dk.includes('-') && dk.split('-').length === 2) { // YYYY-MM
+              const [y, mStr] = dk.split('-');
+              const m = Number(mStr); // 0-indexed month
+              const realM = String(m + 1).padStart(2, '0');
+              const d = new Date(Number(y), m + 1, 0); // last day of month
+              onDrillDown(`custom:${y}-${realM}-01:${y}-${realM}-${d.getDate().toString().padStart(2, '0')}`);
+            } else if (dk.length === 10) { // YYYY-MM-DD (week)
+              // We could drill down to the days of this week
+              const d1 = new Date(dk);
+              const d2 = new Date(d1.getTime() + 6 * 86400000);
+              onDrillDown(`custom:${dk}:${d2.toISOString().slice(0, 10)}`);
+            }
+          }
+        },
+        dataPointSelection: (_, __, { dataPointIndex }) => {
+          if (onDrillDown && chartData[dataPointIndex]?.dateKey) {
+            const dk = chartData[dataPointIndex].dateKey;
+            if (dk.length >= 6 && dk.includes('-') && dk.split('-').length === 2) {
+              const [y, mStr] = dk.split('-');
+              const m = Number(mStr);
+              const realM = String(m + 1).padStart(2, '0');
+              const d = new Date(Number(y), m + 1, 0);
+              onDrillDown(`custom:${y}-${realM}-01:${y}-${realM}-${d.getDate().toString().padStart(2, '0')}`);
+            } else if (dk.length === 10) {
+              const d1 = new Date(dk);
+              const d2 = new Date(d1.getTime() + 6 * 86400000);
+              onDrillDown(`custom:${dk}:${d2.toISOString().slice(0, 10)}`);
+            }
+          }
+        }
       },
       animations: {
         enabled: true,
@@ -42,14 +77,14 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
       }
     },
     theme: { mode: 'dark' },
-    colors: ['#f59e0b', '#64748b'], // amber-500, slate-500
+    colors: ['#f59e0b', '#64748b', '#06b6d4'], // amber-500, slate-500, cyan-500
     stroke: {
       curve: 'smooth',
-      width: [4, 2],
-      dashArray: [0, 4]
+      width: [4, 2, 2],
+      dashArray: [0, 4, 4]
     },
     fill: {
-      type: ['gradient', 'solid'],
+      type: ['gradient', 'solid', 'solid'],
       gradient: {
         shadeIntensity: 1,
         opacityFrom: 0.5,
@@ -115,11 +150,12 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas }: { char
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6 pt-6 border-t border-white/5">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mt-6 pt-6 border-t border-white/5">
           {[
             { label: 'Melhor Dia', val: Math.max(...chartData.map((d: any) => d.faturamento), 0) },
             { label: 'Média Diária', val: chartData.length > 0 ? chartData.reduce((acc: any, d: any) => acc + d.faturamento, 0) / chartData.length : 0 },
             { label: 'Total Período', val: chartData.reduce((acc: any, d: any) => acc + d.faturamento, 0) },
+            { label: 'Projeção (Fim)', val: chartData[chartData.length - 1]?.forecast || 0 },
             { label: 'Margem Bruta', val: stats.margem, suffix: '%' }
           ].map((m, i) => (
             <div key={i}>

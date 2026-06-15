@@ -7,17 +7,23 @@ import {
   Zap,
   ShieldCheck,
   ShieldAlert,
-  HelpCircle
+  HelpCircle,
+  RefreshCw,
+  Download,
+  FileText,
+  FileSpreadsheet
 } from 'lucide-react';
 import { fiscalService } from '../../pedidos/services/fiscalService';
 import { useToastStore } from '../../../app/lib/useToastStore';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { useDashboardStore, type Periodo, type Visao } from '../store/useDashboardStore';
+import { DateRangeSlicer } from './DateRangeSlicer';
 import { useQueryState, parseAsString } from 'nuqs';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
-import { LoadingState, ErrorState, Button, Badge, Card, Typography, PageHeader, PillGroup } from '../../../shared/ui';
+import { exportDashboardToCSV } from '../../relatorios/utils/exportEngine';
+import { PageHeader, PillGroup, Button, LoadingState, ErrorState, ActionMenu, Card, Typography } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import { FunnelChart } from './FunnelChart';
 import { RcaRankingChart } from './RcaRankingChart';
@@ -120,15 +126,9 @@ function DashboardPilotPageContent({ onNavigatePage, onReload }: DashboardPilotP
         actions={
           <div className="flex items-center gap-6">
             <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
-                <PillGroup
-                  options={[
-                    { id: '7', label: '7D' },
-                    { id: '30', label: '30D' },
-                    { id: '90', label: '90D' },
-                    { id: 'tudo', label: 'Tudo' }
-                  ]}
-                  activeId={periodoUrl}
-                  onChange={(id) => setPeriodoUrl(id)}
+                <DateRangeSlicer 
+                  value={periodoUrl}
+                  onChange={(val) => setPeriodoUrl(val)}
                 />
             </div>
 
@@ -145,6 +145,30 @@ function DashboardPilotPageContent({ onNavigatePage, onReload }: DashboardPilotP
               />
             </div>
 
+            <ActionMenu 
+              items={[
+                {
+                  label: 'Imprimir / PDF',
+                  icon: <FileText size={16} />,
+                  onClick: () => window.print()
+                },
+                {
+                  label: 'Exportar Dados (CSV)',
+                  icon: <FileSpreadsheet size={16} />,
+                  onClick: () => exportDashboardToCSV(workerData, periodoUrl || 'mes')
+                }
+              ]}
+              align="end"
+            >
+              <Button 
+                variant="secondary" 
+                leftIcon={<Download size={14} />}
+                className="!rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.06]"
+              >
+                Exportar
+              </Button>
+            </ActionMenu>
+
             <Button 
               variant="secondary" 
               onClick={handleRefresh} 
@@ -152,7 +176,7 @@ function DashboardPilotPageContent({ onNavigatePage, onReload }: DashboardPilotP
               leftIcon={<RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />}
               className="!rounded-xl"
             >
-              {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+              {isRefreshing ? 'Atualizar' : 'Atualizar'}
             </Button>
           </div>
         }
@@ -165,7 +189,12 @@ function DashboardPilotPageContent({ onNavigatePage, onReload }: DashboardPilotP
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {visao !== 'operacional' && (
           <div className="lg:col-span-2">
-            <SalesPerformanceChart chartData={chartData} stats={stats} periodoDatas={periodoDatas} />
+            <SalesPerformanceChart 
+              chartData={chartData} 
+              stats={stats} 
+              periodoDatas={periodoDatas}
+              onDrillDown={(p) => setPeriodoUrl(p)}
+            />
           </div>
         )}
 

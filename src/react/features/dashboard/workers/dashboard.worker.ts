@@ -75,24 +75,26 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
   };
 
   // --- Chart Data ---
-  const groups: Record<string, { name: string; faturamento: number; lucro: number; faturamentoAnt: number; lucroAnt: number; sortKey: number }> = {};
+  const groups: Record<string, { name: string; faturamento: number; lucro: number; faturamentoAnt: number; lucroAnt: number; sortKey: number, dateKey: string }> = {};
   
-  // Pre-populate groups based on selected period to prevent orphan points (single floating dots)
-  if (periodo === 'semana') {
-    const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    days.forEach((dayLabel, index) => {
-      groups[`D${index}`] = { name: dayLabel, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey: index };
-    });
-  } else if (periodo === 'mes') {
-    for (let w = 1; w <= 5; w++) {
-      groups[`W${w}`] = { name: `Semana ${w}`, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey: w };
+  const isCustom = periodo.startsWith('custom:');
+  const getDiffDays = () => {
+    if (isCustom) {
+      const [, startStr, endStr] = periodo.split(':');
+      const d1 = new Date(startStr).getTime();
+      const d2 = new Date(endStr).getTime();
+      return Math.ceil(Math.abs(d2 - d1) / (1000 * 3600 * 24)) || 1;
     }
-  } else if (periodo === 'ano') {
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    months.forEach((monthLabel, index) => {
-      groups[`M${index}`] = { name: monthLabel, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey: index };
-    });
-  }
+    if (periodo === '7' || periodo === 'semana') return 7;
+    if (periodo === '30' || periodo === 'mes') return 30;
+    if (periodo === '90') return 90;
+    if (periodo === 'ano') return 365;
+    return 365; // default
+  };
+  const diffDays = getDiffDays();
+  let grouping: 'day' | 'week' | 'month' = 'month';
+  if (diffDays <= 14) grouping = 'day';
+  else if (diffDays <= 90) grouping = 'week';
 
   const processGroup = (p: any, isAnt: boolean) => {
     const date = new Date(p.data || '');
@@ -100,26 +102,31 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
     let label = '';
     let sortKey = 0;
     
-    if (periodo === 'semana') {
-      const day = date.getDay();
-      const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-      key = `D${day}`;
-      label = days[day];
-      sortKey = day;
-    } else if (periodo === 'mes') {
-      const week = Math.ceil(date.getDate() / 7);
-      key = `W${week}`;
-      label = `Semana ${week}`;
-      sortKey = week;
+    if (grouping === 'day') {
+      const dStr = date.toISOString().slice(0, 10); // YYYY-MM-DD
+      const day = date.getDate();
+      const mo = date.getMonth() + 1;
+      key = dStr;
+      label = `${day.toString().padStart(2, '0')}/${mo.toString().padStart(2, '0')}`;
+      sortKey = date.getTime();
+    } else if (grouping === 'week') {
+      const ms = date.getTime();
+      // start of week (Sunday)
+      const startOfWeek = new Date(ms - date.getDay() * 86400000);
+      const wStr = startOfWeek.toISOString().slice(0, 10);
+      key = wStr;
+      label = `Sem ${startOfWeek.getDate().toString().padStart(2, '0')}/${(startOfWeek.getMonth()+1).toString().padStart(2, '0')}`;
+      sortKey = startOfWeek.getTime();
     } else {
-      const month = date.getMonth();
+      const y = date.getFullYear();
+      const m = date.getMonth();
       const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      key = `M${month}`;
-      label = months[month];
-      sortKey = month;
+      key = `${y}-${m}`;
+      label = `${months[m]} ${y}`;
+      sortKey = y * 100 + m;
     }
 
-    if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey };
+    if (!groups[key]) groups[key] = { name: label, faturamento: 0, lucro: 0, faturamentoAnt: 0, lucroAnt: 0, sortKey, dateKey: key };
     
     const faturamentoVal = Number(p.total || 0);
     let lucroVal = 0;
@@ -142,22 +149,70 @@ self.onmessage = (e: MessageEvent<DashboardWorkerPayload>) => {
 
   const chartData = Object.values(groups).sort((a, b) => a.sortKey - b.sortKey);
 
+  // --- Linear Regression for Forecast ---
+  if (chartData.length > 1) {
+    const n = chartData.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    
+    chartData.forEach((d, i) => {
+      sumX += i;
+      sumY += d.faturamento;
+      sumXY += i * d.faturamento;
+      sumXX += i * i;
+    });
+
+    const m = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX) || 0;
+    const b = (sumY - m * sumX) / n || 0;
+
+    chartData.forEach((d, i) => {
+      (d as any).forecast = Math.max(0, m * i + b); // No negative forecast
+    });
+
+    // Add 1 projection point
+    const nextI = n;
+    const projectedVal = Math.max(0, m * nextI + b);
+    let nextLabel = 'Projeção';
+    let nextKey = 'proj';
+    if (grouping === 'month' && chartData.length > 0) {
+      nextLabel = 'Próx. Mês';
+    } else if (grouping === 'week') {
+      nextLabel = 'Próx. Semana';
+    } else if (grouping === 'day') {
+      nextLabel = 'Próx. Dia';
+    }
+
+    chartData.push({
+      name: nextLabel,
+      faturamento: 0,
+      lucro: 0,
+      faturamentoAnt: 0,
+      lucroAnt: 0,
+      sortKey: chartData[chartData.length - 1].sortKey + 1,
+      dateKey: nextKey,
+      forecast: projectedVal
+    } as any);
+  }
+
   // --- Período Datas ---
   const now = new Date();
   let start = new Date(now);
   let end = new Date(now);
 
-  if (periodo === 'semana') {
-    const day = now.getDay();
-    start.setDate(now.getDate() - day);
-    end.setDate(now.getDate() + (6 - day));
-  } else if (periodo === 'mes') {
-    start = new Date(now.getFullYear(), now.getMonth(), 1);
-    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  if (isCustom) {
+    const [, startStr, endStr] = periodo.split(':');
+    start = new Date(startStr);
+    end = new Date(endStr);
+  } else if (periodo === '7' || periodo === 'semana') {
+    start.setDate(now.getDate() - 7);
+  } else if (periodo === '30' || periodo === 'mes') {
+    start.setDate(now.getDate() - 30);
+  } else if (periodo === '90') {
+    start.setDate(now.getDate() - 90);
   } else if (periodo === 'ano') {
     start = new Date(now.getFullYear(), 0, 1);
-    end = new Date(now.getFullYear(), 11, 31);
   } else {
+    // Tudo
+    start = new Date(2020, 0, 1);
     if (pedidos.length > 0) {
       const dates = pedidos.map(p => new Date(p.data || '').getTime());
       start = new Date(Math.min(...dates));

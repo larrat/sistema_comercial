@@ -1,0 +1,74 @@
+/* src/react/styles/print.css */
+
+@media print {
+  /* Hide UI elements that shouldn't be printed */
+  nav, 
+  aside, 
+  header[role="banner"],
+  .no-print,
+  button:not(.print-visible) {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body, 
+  html, 
+  #root, 
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Optimize layout for A4 */
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+
+  /* Make sure charts fit and don't break across pages */
+  .apexcharts-canvas {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .card-container, 
+  article, 
+  section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: white !important;
+    box-shadow: none !important;
+    color: black !important;
+  }
+
+  /* Force light theme colors for print readability */
+  .text-white { color: black !important; }
+  .text-slate-400 { color: #555 !important; }
+  .bg-slate-900\/60 { background: white !important; }
+  .border-white\/5 { border-color: #eee !important; }
+
+  /* Grid optimizations */
+  .grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+  }
+  
+  .grid > div {
+    flex: 1 1 300px !important;
+    min-width: 300px !important;
+  }
+
+  /* Special handling for MetricsGrid to look like a row */
+  .grid-cols-6 > div {
+    flex: 1 1 150px !important;
+    min-width: 150px !important;
+  }
+}

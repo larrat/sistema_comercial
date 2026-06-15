@@ -23,7 +23,7 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar =
   const setPermissoes = useRoleStore((s) => s.setPermissoes);
   const navigate = useNavigate();
 
-  const currentFilial = filiais.find((f) => f.id === filialId);
+  const currentFilial = filialId === 'ALL' ? { id: 'ALL', nome: 'Todas as Filiais', cor: '#163F80' } : filiais.find((f) => f.id === filialId);
   const displayName = currentFilial?.nome ?? (filialId ? '…' : 'Sem filial');
 
   async function loadFiliais() {
@@ -144,6 +144,25 @@ export function FilialSwitcher({ variant = 'dark', collapsed = false, isTopbar =
               )}
               {!loading && !error && filiais.length === 0 && (
                 <div className="p-4 text-center text-sm text-slate-500">Nenhuma filial disponível.</div>
+              )}
+              {!loading && !error && filiais.length > 1 && (
+                <button
+                  className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 mb-2 border-b border-white/5 pb-3 ${
+                    filialId === 'ALL'
+                      ? 'bg-blue-500/10 text-white shadow-sm ring-1 ring-blue-500/20'
+                      : 'hover:bg-white/5 text-slate-400 hover:text-slate-200'
+                  }`}
+                  type="button"
+                  onClick={() => handleSelect('ALL')}
+                >
+                  <Building size={16} className="text-[#C5A059]" />
+                  <span className={`flex-1 text-sm ${filialId === 'ALL' ? 'font-bold' : 'font-medium'}`}>Todas as Filiais (Holding)</span>
+                  {filialId === 'ALL' && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                      <Check size={10} strokeWidth={3} /> Ativa
+                    </span>
+                  )}
+                </button>
               )}
               {!loading &&
                 filiais.map((f) => {

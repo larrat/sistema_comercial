@@ -21,7 +21,7 @@ export type DashboardAlert = {
 const fmt = (v: number) => fmtBRL(v || 0);
 
 export function useGlobalAlerts() {
-  const { pedidos, produtos, clientes, contasReceber, filial } = useDashboardStore();
+  const { pedidos, produtos, clientes, contasReceber, filial, alertThresholds } = useDashboardStore();
   const { token, resolve } = useApiContext();
   const context = resolve();
 
@@ -60,13 +60,13 @@ export function useGlobalAlerts() {
     // 2. Ruptura de estoque e Excesso de estoque removidos do Dashboard Comercial a pedido do usuário
 
     // 3. Contas vencidas
-    const vencidas = contasReceber.filter(
+    const contasVencidas = contasReceber.filter(
       (c) => c.vencimento && new Date(c.vencimento) < new Date()
-    ).length;
-    if (vencidas > 0) {
-      const valorVencido = contasReceber
-        .filter((c) => c.vencimento && new Date(c.vencimento) < new Date())
-        .reduce((acc, c) => acc + Number(c.valor_em_aberto || 0), 0);
+    );
+    const vencidas = contasVencidas.length;
+    const valorVencido = contasVencidas.reduce((acc, c) => acc + Number(c.valor_em_aberto || c.valor || 0), 0);
+    
+    if (vencidas > 0 && valorVencido > alertThresholds.contasVencidasValor) {
       list.push({
         id: 'contas-vencidas',
         title: `${vencidas} conta(s) vencida(s)`,
@@ -82,7 +82,7 @@ export function useGlobalAlerts() {
     const vendasReais = pedidos.filter((p) => statusVenda.includes(p.status));
     const faturamento = vendasReais.reduce((acc, p) => acc + Number(p.total || 0), 0);
 
-    if (filial?.meta_mensal && faturamento < filial.meta_mensal * 0.5) {
+    if (filial?.meta_mensal && faturamento < filial.meta_mensal * (alertThresholds.metaRiscoPercent / 100)) {
       list.push({
         id: 'meta-risco',
         title: 'Meta mensal em risco',
