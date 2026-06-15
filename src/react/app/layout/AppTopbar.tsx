@@ -9,14 +9,14 @@ import { useAuthStore } from '../useAuthStore';
 import { useFilialStore } from '../useFilialStore';
 import { useUIStore } from '../useUIStore';
 import { getSupabaseConfig } from '../supabaseConfig';
-import { Search, Package, ChevronRight, X, Loader2, Sun, Moon } from 'lucide-react';
+import { Search, Package, ChevronRight, X, Loader2, Sun, Moon, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '../../shared/ui';
 import { useApiContext } from '../../shared/hooks/useApiContext';
 
 export function AppTopbar() {
-  const { theme, toggleTheme } = useUIStore();
+  const { theme, toggleTheme, toggleMobileSidebar } = useUIStore();
   const searchRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
@@ -59,7 +59,14 @@ export function AppTopbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 w-full flex h-20 items-center justify-between px-4 sm:px-8 bg-surface-card/40 backdrop-blur-3xl border-b border-border-subtle shadow-[0_4px_30px_rgba(0,0,0,0.05)]">
+    <header className="sticky top-0 z-30 w-full flex h-20 items-center justify-between px-4 sm:px-8 bg-surface-card/40 backdrop-blur-3xl border-b border-border-subtle shadow-[0_4px_30px_rgba(0,0,0,0.05)] gap-4">
+      <button 
+        className="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-surface-hover text-text-primary hover:bg-surface-active transition-colors shrink-0 border border-border-subtle shadow-sm"
+        onClick={toggleMobileSidebar}
+      >
+        <Menu size={20} />
+      </button>
+
       <div className="flex-1 max-w-lg relative group">
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-teal-400 transition-colors">
           <Search className="w-4 h-4" />
@@ -151,7 +158,7 @@ export function AppTopbar() {
         
         <button
           onClick={toggleTheme}
-          className="w-10 h-10 rounded-xl bg-surface-active border border-border-subtle flex items-center justify-center text-text-muted hover:text-text-primary transition-all shadow-sm"
+          className="hidden md:flex w-10 h-10 rounded-xl bg-surface-active border border-border-subtle items-center justify-center text-text-muted hover:text-text-primary transition-all shadow-sm"
           title={`Mudar para tema ${theme === 'light' ? 'Escuro' : 'Claro'}`}
         >
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}

@@ -36,6 +36,7 @@ import { useRoleStore } from '../useRoleStore';
 import { useNavigationItems } from '../hooks/useNavigationItems';
 import { useUIStore } from '../useUIStore';
 import type { NavigationItem } from '../navigation/config';
+import { useIsMobile } from '../../shared/hooks/useIsMobile';
 
 const iconByPath: Record<string, LucideIcon> = {
   '/app/pdv': ShoppingCart,
@@ -74,11 +75,13 @@ const groupColors: Record<string, string> = {
 function SidebarNavItem({ 
   item, 
   collapsed, 
-  groupLabel 
+  groupLabel,
+  onClick
 }: { 
   item: NavigationItem; 
   collapsed: boolean; 
   groupLabel: string;
+  onClick?: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = iconByPath[item.path] ?? Circle;
@@ -90,6 +93,7 @@ function SidebarNavItem({
       viewTransition
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
       className={({ isActive }) =>
         `flex items-center rounded-lg transition-all duration-200 relative group
         ${collapsed ? 'justify-center w-12 h-12 mx-auto' : 'gap-3 px-3 py-2.5 w-full'}
@@ -171,7 +175,8 @@ export function AppSidebar() {
   const clearFilial = useFilialStore((s) => s.clearFilial);
   const clearRole = useRoleStore((s) => s.clearRole);
   const user = useAuthStore((s) => s.session?.user);
-  const { sidebarCollapsed: collapsed, toggleSidebar } = useUIStore();
+  const { sidebarCollapsed: collapsed, toggleSidebar, mobileSidebarOpen, setMobileSidebarOpen } = useUIStore();
+  const isMobile = useIsMobile(1024);
   const navigate = useNavigate();
   const location = useLocation();
   const [search, setSearch] = useState('');
@@ -222,13 +227,29 @@ export function AppSidebar() {
   const userName = (user?.email as string || 'Usuário').split('@')[0];
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: collapsed ? 80 : 280 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="flex flex-col bg-surface-sidebar backdrop-blur-3xl border-r border-border-subtle text-text-secondary z-40 relative shadow-[10px_0_40px_-10px_rgba(0,0,0,0.05)] h-screen overflow-hidden"
-      aria-label="Navegação principal"
-    >
+    <>
+      <AnimatePresence>
+        {isMobile && mobileSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileSidebarOpen(false)}
+            className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[90]"
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.aside
+        initial={false}
+        animate={{ 
+          width: isMobile ? 280 : (collapsed ? 80 : 280),
+          x: isMobile ? (mobileSidebarOpen ? 0 : -280) : 0
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className={`flex flex-col bg-surface-sidebar backdrop-blur-3xl border-r border-border-subtle text-text-secondary z-[100] shadow-[10px_0_40px_-10px_rgba(0,0,0,0.05)] h-screen overflow-hidden ${isMobile ? 'fixed inset-y-0 left-0' : 'relative shrink-0'}`}
+        aria-label="Navegação principal"
+      >
       {/* Header / Logo */}
       <div className={`flex-shrink-0 flex items-center h-[88px] ${collapsed ? 'justify-center' : 'px-6 justify-between'}`}>
         <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'justify-center' : ''}`}>
@@ -249,11 +270,20 @@ export function AppSidebar() {
             )}
           </AnimatePresence>
         </div>
-        {!collapsed && (
+        {!collapsed && !isMobile && (
           <button
             type="button"
             className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-active text-text-muted hover:text-text-primary transition-all shrink-0"
             onClick={toggleSidebar}
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
+        {isMobile && (
+          <button
+            type="button"
+            className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-surface-active text-text-muted hover:text-text-primary transition-all shrink-0"
+            onClick={() => setMobileSidebarOpen(false)}
           >
             <ChevronLeft size={18} />
           </button>
@@ -337,8 +367,9 @@ export function AppSidebar() {
                       <SidebarNavItem
                         key={item.id}
                         item={item}
-                        collapsed={collapsed}
+                        collapsed={!isMobile && collapsed}
                         groupLabel={group.label}
+                        onClick={() => isMobile && setMobileSidebarOpen(false)}
                       />
                     ))}
                   </motion.div>
@@ -375,5 +406,6 @@ export function AppSidebar() {
         </div>
       </div>
     </motion.aside>
+    </>
   );
 }
