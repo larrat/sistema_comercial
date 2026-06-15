@@ -6,6 +6,7 @@ import { Button, Card, Badge } from '../../../shared/ui';
 import { fmtBRL } from '../../../shared/lib/formatters';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useUIStore } from '../../../app/useUIStore';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 import { orcamentosApi, type OrcamentoObra, type OrcamentoItem } from '../services/orcamentosApi';
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
 
 export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props) {
   const { sidebarCollapsed: collapsed } = useUIStore();
+  const isMobile = useIsMobile(1024);
   const [titulo, setTitulo] = useState(initialData?.titulo || '');
   const [clienteNome, setClienteNome] = useState(initialData?.cliente_nome || initialData?.cliente?.nome || '');
   const [modalidade, setModalidade] = useState<'empreitada' | 'administracao'>(initialData?.modalidade || 'empreitada');
@@ -134,10 +136,10 @@ export function OrcamentoForm({ onSave, onClose, filialId, initialData }: Props)
 
   return (
     <div 
-      className="fixed bottom-0 right-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
-      style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
+      className="fixed bottom-0 right-0 z-50 flex items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
+      style={{ left: isMobile ? 0 : (collapsed ? '80px' : '280px'), top: isMobile ? 0 : '80px' }}
     >
-      <Card className="w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl">
+      <Card className={`w-full max-w-5xl max-h-full sm:max-h-[90vh] overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl ${isMobile ? 'h-full rounded-none' : ''}`}>
         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-slate-900/40">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-teal-500/10 text-teal-400 rounded-xl border border-teal-500/20">

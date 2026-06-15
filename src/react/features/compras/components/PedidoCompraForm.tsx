@@ -10,6 +10,7 @@ import { useApiContext } from '../../../shared/hooks/useApiContext';
 import { contratosApi } from '../../contratos/services/contratosApi';
 import { parseNFXML } from '../lib/xmlInvoiceParser';
 import { useUIStore } from '../../../app/useUIStore';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 
 type Props = {
   onSave: (pedido: Partial<PedidoCompra>, itens: PedidoCompraItem[]) => void;
@@ -25,6 +26,7 @@ interface FormItem extends PedidoCompraItem {
 
 export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Props) {
   const { sidebarCollapsed: collapsed } = useUIStore();
+  const isMobile = useIsMobile(1024);
   const { resolve } = useApiContext();
   const [fornecedor, setFornecedor] = useState(prefillData?.fornecedor || '');
   const [itens, setItens] = useState<FormItem[]>(prefillData?.itens || []);
@@ -223,10 +225,10 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
 
   return (
     <div 
-      className="fixed bottom-0 right-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
-      style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
+      className="fixed bottom-0 right-0 z-50 flex items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
+      style={{ left: isMobile ? 0 : (collapsed ? '80px' : '280px'), top: isMobile ? 0 : '80px' }}
     >
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl">
+      <Card className={`w-full max-w-4xl max-h-full sm:max-h-[90vh] overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl ${isMobile ? 'h-full rounded-none' : ''}`}>
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-black text-white uppercase tracking-tight">Pedido de Compra</h2>

@@ -24,9 +24,9 @@ import { ProdutoEstoqueTab } from './ProdutoEstoqueTab';
 import { ProdutoCadastroTab } from './ProdutoCadastroTab';
 import { buildKpis, getStockStatus, formatCurrency, toNumber, formatQuantity } from './ProdutoUtils';
 
-import type { Produto } from '../../../../types/domain';
 import { useInterModuleStore } from '../../../app/lib/useInterModuleStore';
 import { useUIStore } from '../../../app/useUIStore';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 import { formValuesToProduto } from '../hooks/useProdutoCalculations';
 import { ErrorState, LoadingState, Button, Badge } from '../../../shared/ui';
 import { markupToPrice, priceToMargin } from '../hooks/useProdutoCalculations';
@@ -111,6 +111,7 @@ export function ProdutoProfilePage({
 }: Props) {
   const navigate = useNavigate();
   const { sidebarCollapsed: collapsed } = useUIStore();
+  const isMobile = useIsMobile(1024);
   const [searchParams, setSearchParams] = useSearchParams();
   const [editingCadastro, setEditingCadastro] = useState(searchParams.get('edit') === '1');
   const [showConfetti, setShowConfetti] = useState(false);
@@ -542,19 +543,15 @@ export function ProdutoProfilePage({
 
       <AnimatePresence>
         {editingCadastro && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed bottom-0 right-0 z-[999] bg-slate-950/90 backdrop-blur-3xl flex items-center justify-center p-4 sm:p-8 transition-all duration-300"
-            style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
+          <motion.div 
+            className="fixed bottom-0 right-0 z-50 flex items-center justify-center sm:p-4 bg-slate-950/80 backdrop-blur-sm"
+            style={{ left: isMobile ? 0 : (collapsed ? '80px' : '280px'), top: isMobile ? 0 : '80px' }}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            data-testid="produto-form-modal"
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-[1600px] h-full bg-slate-900/60 rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col"
-            >
+            <div className={`w-full max-w-5xl max-h-full sm:max-h-[90vh] overflow-y-auto bg-slate-900 border border-white/10 shadow-2xl relative ${isMobile ? 'h-full rounded-none px-4 py-6' : 'rounded-3xl p-6'}`}>
               <div className="flex-1 overflow-hidden flex flex-col">
                 <ProdutoForm
                   produto={produto}

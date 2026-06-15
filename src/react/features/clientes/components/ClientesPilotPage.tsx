@@ -445,11 +445,11 @@ export function ClientesPilotPage({
       ) : null}
       {isFormOpen && (
         <div 
-          className="fixed bottom-0 right-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300"
-          style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
+          className="fixed bottom-0 right-0 z-50 flex items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300"
+          style={{ left: isMobile ? 0 : (collapsed ? '80px' : '280px'), top: isMobile ? 0 : '80px' }}
           data-testid="cliente-form-modal"
         >
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-white/10 rounded-3xl p-6 shadow-2xl relative">
+          <div className={`w-full max-w-4xl max-h-full sm:max-h-[90vh] overflow-y-auto bg-slate-900 border border-white/10 shadow-2xl relative ${isMobile ? 'h-full rounded-none px-4 py-6' : 'rounded-3xl p-6'}`}>
             <ClienteForm
               initialCliente={editingCliente}
               onSaved={(savedCli) => {

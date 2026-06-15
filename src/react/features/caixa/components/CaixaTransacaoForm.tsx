@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button, Card } from '../../../shared/ui';
 import type { CaixaTransacao } from '../services/caixaApi';
 import { useUIStore } from '../../../app/useUIStore';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 
 type Props = {
   categories: { id: string, nome: string, tipo: string }[];
@@ -14,6 +15,7 @@ type Props = {
 
 export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Props) {
   const { sidebarCollapsed: collapsed } = useUIStore();
+  const isMobile = useIsMobile(1024);
   const [tipo, setTipo] = useState<'entrada' | 'saida'>('saida');
   const [valor, setValor] = useState<string | number>('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -38,10 +40,10 @@ export function CaixaTransacaoForm({ categories, onSave, onClose, filialId }: Pr
 
   return (
     <div 
-      className="fixed bottom-0 right-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
-      style={{ left: collapsed ? '80px' : '280px', top: '80px' }}
+      className="fixed bottom-0 right-0 z-50 flex items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 transition-all duration-300"
+      style={{ left: isMobile ? 0 : (collapsed ? '80px' : '280px'), top: isMobile ? 0 : '80px' }}
     >
-      <Card className="w-full max-w-md overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl">
+      <Card className={`w-full max-w-md overflow-hidden flex flex-col bg-surface-card border-white/10 shadow-2xl ${isMobile ? 'h-full rounded-none' : ''}`}>
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
           <h2 className="text-lg font-black text-white uppercase tracking-tight">Novo Lançamento</h2>
           <button onClick={onClose} aria-label="Fechar lançamento" className="text-slate-500 hover:text-white transition-colors">

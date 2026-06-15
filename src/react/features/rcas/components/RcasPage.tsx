@@ -4,6 +4,8 @@ import { useRcasStore } from '../store/useRcasStore';
 import { useRcasMutations } from '../hooks/useRcasMutations';
 import { RcaModal } from './RcaModal';
 import type { Rca } from '../../../../types/domain';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
+import { RcaListMobile } from './RcaListMobile';
 
 export function RcasPage() {
   const rcas = useRcasStore((s) => s.rcas);
@@ -14,6 +16,7 @@ export function RcasPage() {
   const setQuery = useRcasStore((s) => s.setQuery);
   const setStatusFilter = useRcasStore((s) => s.setStatusFilter);
   const openDrawer = useRcasStore((s) => s.openDrawer);
+  const isMobile = useIsMobile(1024);
 
   const { desativar } = useRcasMutations();
 
@@ -110,43 +113,51 @@ export function RcasPage() {
         onClearFilters={query ? () => setQuery('') : undefined}
       />
 
-      <DataTable
-        columns={columns}
-        rows={filtered}
-        rowKey={(r) => r.id}
-        loading={loading}
-        error={error ?? undefined}
-        emptyTitle="Nenhum vendedor encontrado."
-        emptyDescription={
-          activeFilterCount > 0
-            ? 'Tente ajustar os filtros.'
-            : 'Cadastre o primeiro vendedor para começar a vincular pedidos e clientes.'
-        }
-        emptyAction={
-          activeFilterCount === 0 ? (
-            <Button variant="primary" onClick={() => openDrawer()}>
-              Cadastrar vendedor
-            </Button>
-          ) : undefined
-        }
-        renderActions={(r) => (
-          <ActionMenu
-            items={[
-              { key: 'editar', label: 'Editar', onClick: () => openDrawer(r) },
-              ...(r.ativo !== false
-                ? [
-                    {
-                      key: 'desativar',
-                      label: 'Desativar',
-                      danger: true,
-                      onClick: () => void desativar(r.id)
-                    }
-                  ]
-                : [])
-            ]}
-          />
-        )}
-      />
+      {isMobile ? (
+        <RcaListMobile
+          rcas={filtered}
+          onEdit={(r) => openDrawer(r)}
+          onDesativar={(id) => void desativar(id)}
+        />
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          rowKey={(r) => r.id}
+          loading={loading}
+          error={error ?? undefined}
+          emptyTitle="Nenhum vendedor encontrado."
+          emptyDescription={
+            activeFilterCount > 0
+              ? 'Tente ajustar os filtros.'
+              : 'Cadastre o primeiro vendedor para começar a vincular pedidos e clientes.'
+          }
+          emptyAction={
+            activeFilterCount === 0 ? (
+              <Button variant="primary" onClick={() => openDrawer()}>
+                Cadastrar vendedor
+              </Button>
+            ) : undefined
+          }
+          renderActions={(r) => (
+            <ActionMenu
+              items={[
+                { key: 'editar', label: 'Editar', onClick: () => openDrawer(r) },
+                ...(r.ativo !== false
+                  ? [
+                      {
+                        key: 'desativar',
+                        label: 'Desativar',
+                        danger: true,
+                        onClick: () => void desativar(r.id)
+                      }
+                    ]
+                  : [])
+              ]}
+            />
+          )}
+        />
+      )}
 
       <RcaModal />
     </div>
