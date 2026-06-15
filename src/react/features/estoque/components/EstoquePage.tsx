@@ -55,7 +55,7 @@ export function EstoquePilotPage() {
         title="Estoque"
         description="Acompanhe saldo, histórico e movimentos críticos por produto na filial ativa."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Button onClick={requestReload}>Atualizar</Button>
             <Button variant="secondary" className="gap-2" onClick={openAvariaModal}>
               Registrar avaria

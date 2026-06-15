@@ -108,7 +108,7 @@ export function CampanhasPage() {
         title="Campanhas"
         description="Gerencie campanhas de marketing e fila de WhatsApp."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Button onClick={() => refetchCampanhas()} loading={loading}>
               {loading ? 'Carregando…' : 'Atualizar'}
             </Button>

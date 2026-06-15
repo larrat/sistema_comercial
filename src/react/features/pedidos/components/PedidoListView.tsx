@@ -227,7 +227,7 @@ export function PedidoListView({ onNovoPedido, onDetalhe, onSwitchToKanban }: Pr
         title="Pedidos"
         description="Acompanhe e gerencie a carteira de vendas da filial com visão completa de status e fluxo."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Button
               variant="secondary"
               onClick={handleExport}

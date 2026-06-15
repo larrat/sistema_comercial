@@ -87,7 +87,7 @@ export function CaixaPilotPage() {
         title="Fluxo de Caixa"
         description="Monitore entradas, saídas e saldo operacional em tempo real."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
              <Link to="/app/caixa/conciliacao">
                <Button variant="secondary" leftIcon={<RefreshCw size={16} />}>
                  Conciliação

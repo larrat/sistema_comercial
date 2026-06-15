@@ -277,7 +277,7 @@ export function ProdutosPilotPage({ onOpenProduto }: ProdutosPilotPageProps) {
       title="Produtos"
       description="Gerencie catálogo, estoque visível e ações rápidas da filial."
       actions={
-        <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
           <div className="flex items-center bg-white/[0.03] p-1 rounded-xl border border-white/5">
             <PillGroup
               options={[

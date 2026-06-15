@@ -285,7 +285,7 @@ export function ContasReceberPilotPage({ routeIntent }: ContasReceberPilotPagePr
         title="Contas a Receber"
         description="Acompanhe títulos em aberto, baixas e vencimentos sem sair do fluxo operacional."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Button size="sm" onClick={() => refetchContas()} className="gap-2">
               <RefreshCw size={14} />
               Atualizar

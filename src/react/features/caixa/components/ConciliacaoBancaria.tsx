@@ -85,7 +85,7 @@ export function ConciliacaoBancaria() {
         title="Conciliação Bancária"
         description="Importe arquivos OFX/CNAB. O nosso Algoritmo Heurístico encontrará os Contas a Pagar/Receber correspondentes."
         actions={
-          <div className="flex gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Button variant="secondary" leftIcon={<RefreshCw className="w-4 h-4" />}>
               Sincronizar Banco
             </Button>

@@ -108,7 +108,7 @@ export function SugestaoComprasPage() {
         title="Stock AI: Sugestões"
         description="Análise automática de giro e previsão de ruptura baseada nos últimos 90 dias."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             {pedidoGerado && (
               <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
                 <CheckCircle2 size={14} />

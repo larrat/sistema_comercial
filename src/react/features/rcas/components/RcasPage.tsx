@@ -65,7 +65,7 @@ export function RcasPage() {
         title="Vendedores"
         description="Cadastro e gestão de vendedores (RCAs) da filial."
         actions={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Button variant="primary" onClick={() => openDrawer()}>
               + Novo vendedor
             </Button>

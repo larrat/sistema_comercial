@@ -99,7 +99,7 @@ export function PedidosPilotPage({ routeIntent }: PedidosPilotPageProps) {
             title="Pedidos — Kanban"
             description="Visualize e mova pedidos entre status arrastando os cards."
             actions={
-              <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
                 <Button variant="primary" onClick={() => openNewPedido('kanban_button')}>
                   Novo pedido
                 </Button>

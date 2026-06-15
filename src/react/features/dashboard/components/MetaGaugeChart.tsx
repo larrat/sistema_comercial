@@ -67,7 +67,7 @@ export function MetaGaugeChart({ faturamento, meta }: MetaGaugeChartProps) {
         }
       }
     },
-    stroke: { lineCap: 'round' },
+    stroke: { lineCap: percent < 2 ? 'butt' : 'round' },
     fill: {
       type: 'gradient',
       gradient: {

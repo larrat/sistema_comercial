@@ -107,7 +107,7 @@ export function ComprasPilotPage({ hideHeader = false }: ComprasPilotPageProps) 
           title="Pedidos de Compra"
           description="Gerencie ordens de compra e entrada de mercadorias no estoque."
           actions={
-            <div className="flex gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
               <Link to="/app/compras/sugestoes">
                 <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-teal-400" />}>
                   Stock AI

@@ -79,7 +79,7 @@ export function SystemAreaChart<T extends ChartRow>({
       position: 'back',
       xaxis: { lines: { show: false } },
       yaxis: { lines: { show: !hideYAxis } },
-      padding: { top: 0, right: 0, bottom: 0, left: 10 }
+      padding: { top: 0, right: 20, bottom: 0, left: hideYAxis ? 20 : 20 }
     },
     xaxis: {
       categories,

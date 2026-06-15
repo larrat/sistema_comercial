@@ -95,7 +95,7 @@ export function ComprasRoutePage() {
         title="Suprimentos & Compras"
         description="Gerencie pedidos de compra, entrada de mercadorias no estoque e manifestação de notas SEFAZ."
         actions={
-          <div className="flex gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <Link to="/app/compras/sugestoes">
               <Button variant="secondary" className="!rounded-xl" leftIcon={<Sparkles className="w-4 h-4 text-teal-400" />}>
                 Stock AI

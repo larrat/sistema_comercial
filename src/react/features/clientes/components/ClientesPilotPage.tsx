@@ -235,7 +235,7 @@ export function ClientesPilotPage({
           </Typography>
         }
         actions={
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-end gap-3 lg:gap-6 mt-4 lg:mt-0 w-full lg:w-auto">
             <PillGroup
               options={[
                 { id: 'lista', label: 'Lista' },
