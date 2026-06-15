@@ -197,7 +197,9 @@ export function PedidoForm({
     save.mutate(pedidoInput, {
       onSuccess: (saved) => {
         setIsSubmitted(true);
-        onSaved(saved as unknown as Pedido);
+        setTimeout(() => {
+          onSaved(saved as unknown as Pedido);
+        }, 0);
       },
       onError: (err) => {
         setErrors({ geral: err.message });
