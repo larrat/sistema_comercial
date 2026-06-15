@@ -17,18 +17,24 @@ calculos AS (
         p.sku,
         p.esal as estoque_atual,
         p.emin as estoque_minimo,
-        p.genero, -- NOVO CAMPO
-        p.cat,    -- NOVO CAMPO
         COALESCE(v.total_vendido, 0) / 90.0 as consumo_diario_medio,
         CASE 
             WHEN COALESCE(v.total_vendido, 0) > 0 THEN p.esal / (v.total_vendido / 90.0)
             ELSE 999 
-        END as dias_cobertura
+        END as dias_cobertura,
+        p.genero, 
+        p.cat     
     FROM public.produtos p
     LEFT JOIN vendas_recentes v ON v.produto_id = p.id
 )
 SELECT 
-    *,
+    produto_id,
+    produto_nome,
+    sku,
+    estoque_atual,
+    estoque_minimo,
+    consumo_diario_medio,
+    dias_cobertura,
     CASE 
         WHEN estoque_atual <= estoque_minimo OR dias_cobertura <= 7 THEN 'urgente'
         WHEN dias_cobertura <= 15 THEN 'atencao'
@@ -40,7 +46,10 @@ SELECT
         WHEN dias_cobertura <= 15 THEN 
             CEIL(consumo_diario_medio * 30)
         ELSE 0
-    END as qtd_sugerida
+    END as qtd_sugerida,
+    -- NOVOS CAMPOS EXATAMENTE NO FINAL DA VIEW
+    genero,
+    cat
 FROM calculos;
 
-COMMENT ON VIEW public.v_sugestao_compras IS 'Inteligência de estoque: Sugestões de compra baseadas em giro real e estoque mínimo (agora com genero e categoria).';
+COMMENT ON VIEW public.v_sugestao_compras IS 'Inteligência de estoque: Sugestões de compra baseadas em giro real e estoque mínimo (agora com genero e categoria no final).';
