@@ -575,7 +575,7 @@ export function ProdutoProfilePage({
                   }}
                 />
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -38,3 +38,33 @@ export function fmtNumber(value: number | null | undefined, minimumFractionDigit
   }
   return value.toLocaleString('pt-BR', { minimumFractionDigits, maximumFractionDigits: minimumFractionDigits === 0 ? 2 : minimumFractionDigits });
 }
+
+export function exportToCSV(
+  data: any[],
+  columns: { key: string; label: string }[],
+  filename: string
+) {
+  if (!data || !data.length) return;
+
+  const header = columns.map(c => c.label).join(';');
+  const rows = data.map(row => 
+    columns.map(c => {
+      const val = row[c.key];
+      if (typeof val === 'number') {
+        return val.toString().replace('.', ',');
+      }
+      return val ?? '';
+    }).join(';')
+  );
+
+  const csvContent = [header, ...rows].join('\n');
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${filename}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}

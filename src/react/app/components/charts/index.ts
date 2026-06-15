@@ -9,3 +9,4 @@ export { SystemWaterfallChart } from './SystemWaterfallChart';
 export { SystemTreemapChart } from './SystemTreemapChart';
 export { SystemHeatmapChart } from './SystemHeatmapChart';
 export { SparklineInline } from './SparklineInline';
+export { ChartFilterProvider, useChartFilter } from './ChartFilterContext';

@@ -35,7 +35,6 @@ import { MetricsGrid } from './MetricsGrid';
 import { SalesPerformanceChart } from './SalesPerformanceChart';
 import { SalesMixCard } from './SalesMixCard';
 import { ChartFilterProvider } from '../../../app/components/charts';
-import { RefreshCw } from 'lucide-react';
 import { cn } from '../../../shared/ui/index';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 

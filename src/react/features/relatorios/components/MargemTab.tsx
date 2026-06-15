@@ -55,7 +55,6 @@ function MargemTabContent() {
   if (!totais || analiseProdutos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
         <Package size={32} className="mb-4 opacity-50" />
         <p>Nenhum produto com custo e preço de venda cadastrado.</p>
       </div>
