@@ -55,8 +55,9 @@ export function PedidoCreateRoutePage() {
           initialPedido={null}
           analyticsOrigin="route_page"
           onSaved={(pedido) => {
-            toast.success('Pedido criado com sucesso!');
-            navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
+            setTimeout(() => {
+              navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
+            }, 0);
           }}
           onCancel={() => handleBack()}
         />

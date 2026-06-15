@@ -107,8 +107,9 @@ export function PedidoEditRoutePage() {
           initialPedido={pedido}
           analyticsOrigin="route_page"
           onSaved={(pedido) => {
-            toast.success('Pedido atualizado com sucesso!');
-            navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
+            setTimeout(() => {
+              navigate(`/app/pedidos/${encodeURIComponent(pedido.id)}`);
+            }, 0);
           }}
           onCancel={() => handleBack()}
         />
