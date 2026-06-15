@@ -50,7 +50,6 @@ export function SystemLineChart<T extends ChartRow>({
       parentHeightOffset: 0,
       animations: {
         enabled: true,
-        easing: 'easeinout',
         speed: 800
       }
     },

@@ -144,7 +144,6 @@ export function SystemBarChart<T extends ChartRow>({
       show: isVertical ? true : !hideYAxis,
       labels: {
         show: true,
-        trim: true,
         maxWidth: 160,
         style: {
           colors: isVertical ? '#cbd5e1' : '#475569',
@@ -168,7 +167,7 @@ export function SystemBarChart<T extends ChartRow>({
       fontFamily: 'inherit',
       fontWeight: 600,
       labels: { colors: '#94a3b8' },
-      markers: { width: 8, height: 8, offsetX: -2 },
+      markers: { size: 4, offsetX: -2 },
       itemMargin: { horizontal: 8, vertical: 4 }
     },
     tooltip: {

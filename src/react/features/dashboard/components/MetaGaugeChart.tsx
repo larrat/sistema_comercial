@@ -33,7 +33,6 @@ export function MetaGaugeChart({ faturamento, meta }: MetaGaugeChartProps) {
       sparkline: { enabled: true },
       animations: {
         enabled: true,
-        easing: 'easeinout',
         speed: 1000
       }
     },
