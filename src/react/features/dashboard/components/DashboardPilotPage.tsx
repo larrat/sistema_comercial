@@ -23,7 +23,7 @@ import { useDashboardData } from '../hooks/useDashboardData';
 import { useGlobalAlerts } from '../hooks/useGlobalAlerts';
 import { useDashboardMetrics } from '../hooks/useDashboardMetrics';
 import { exportDashboardToCSV } from '../../relatorios/utils/exportEngine';
-import { PageHeader, PillGroup, Button, LoadingState, ErrorState, ActionMenu, Card, Typography } from '../../../shared/ui';
+import { PageHeader, PillGroup, Button, LoadingState, ErrorState, ActionMenu, Card, Typography, Badge } from '../../../shared/ui';
 import { HealthCheckCard } from './HealthCheckCard';
 import { FunnelChart } from './FunnelChart';
 import { RcaRankingChart } from './RcaRankingChart';
