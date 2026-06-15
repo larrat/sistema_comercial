@@ -146,12 +146,12 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
   const activeFilial = filiais.find((f) => f.id === activeFilialId);
   const isFiscal = activeFilial?.is_fiscal ?? false;
   
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm<ProdutoFormValues>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty, isSubmitSuccessful } } = useForm<ProdutoFormValues>({
     resolver: zodResolver(produtoSchema),
     defaultValues: useMemo(() => toFormValues(produto), [produto])
   });
 
-  const blocker = useUnsavedChangesGuard(isDirty);
+  const blocker = useUnsavedChangesGuard(isDirty && !isSubmitSuccessful);
 
   const [gradeSelecionada, setGradeSelecionada] = useState<string[]>([]);
   const [tamanhosInput, setTamanhosInput] = useState('');
@@ -167,13 +167,13 @@ export function ProdutoForm({ produto, pais, variantes = [], saving, error, onSa
   const tamanhosCustomizados = useMemo(() => tamanhosInput.split(',').map(t => t.trim()).filter(Boolean), [tamanhosInput]);
   const gradeFinal = useMemo(() => Array.from(new Set([...gradeSelecionada, ...tamanhosCustomizados])), [gradeSelecionada, tamanhosCustomizados]);
 
-  const onSubmit = (values: ProdutoFormValues) => {
+  const onSubmit = async (values: ProdutoFormValues) => {
     try {
       const finalValues = {
         ...values,
         origem: values.origem ? parseInt(values.origem, 10) : 0
       };
-      onSalvar(finalValues as any, gradeFinal, cores);
+      await onSalvar(finalValues as any, gradeFinal, cores);
     } catch (e) {
       console.error("Submit Error:", e);
       toast.error("Erro ao processar envio");

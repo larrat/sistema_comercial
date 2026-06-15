@@ -248,7 +248,7 @@ export function ProdutoProfilePage({
       });
     }
 
-    saveMutation.mutate(payload as any, {
+    await saveMutation.mutateAsync(payload as any, {
       onSuccess: async () => {
         if (nomeAlterado) {
           toast.message(`O nome do produto foi alterado para "${novoNome}".`, {
@@ -564,7 +564,7 @@ export function ProdutoProfilePage({
                   variantes={variantes}
                   saving={saveMutation.isPending}
                   error={saveMutation.error instanceof Error ? saveMutation.error.message : null}
-                  onSalvar={(values, grade, cores) => void handleSalvar(values, grade, cores)}
+                  onSalvar={handleSalvar}
                   onCancelar={() => {
                     setEditingCadastro(false);
                     setSearchParams((current) => {

@@ -79,7 +79,7 @@ export function ProdutoCreateRoutePage() {
         });
       }
 
-      saveMutation.mutate(payload);
+      await saveMutation.mutateAsync(payload);
     } catch (err: any) {
       toast.dismiss();
       toast.error(err.message || 'Erro ao processar dados do produto');
