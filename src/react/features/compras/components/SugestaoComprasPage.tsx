@@ -20,6 +20,8 @@ type SugestaoCompra = {
   produto_id: string;
   produto_nome: string;
   sku: string;
+  genero?: 'masculino' | 'feminino' | 'unissex' | null;
+  cat?: string | null;
   estoque_atual: number;
   estoque_minimo: number;
   consumo_diario_medio: number;
@@ -175,8 +177,18 @@ export function SugestaoComprasPage() {
               header: 'Produto',
               render: (row) => (
                 <div className="flex flex-col">
-                  <span className="font-bold text-white">{row.produto_nome}</span>
-                  <span className="text-[10px] text-slate-500 font-mono">{row.sku}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white">{row.produto_nome}</span>
+                    {row.genero && (
+                      <Badge variant="slate" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[10px] capitalize px-1.5 py-0 h-4">
+                        {row.genero === 'masculino' ? 'Masc.' : row.genero === 'feminino' ? 'Fem.' : row.genero}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-slate-500 font-mono">{row.sku || 'S/ SKU'}</span>
+                    {row.cat && <span className="text-[10px] text-slate-400">• {row.cat}</span>}
+                  </div>
                 </div>
               )
             },
