@@ -205,7 +205,14 @@ export function ProdutoListView({
           label: 'Categoria',
           render: (row) => (
             <div className="flex flex-col gap-1 items-start">
-              {row.prod.cat ? <Badge variant="slate">{row.prod.cat}</Badge> : <span className="text-slate-500">—</span>}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {row.prod.cat ? <Badge variant="slate">{row.prod.cat}</Badge> : <span className="text-slate-500">—</span>}
+                {row.prod.genero ? (
+                  <Badge variant="slate" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[10px] capitalize px-1.5 py-0">
+                    {row.prod.genero === 'masculino' ? 'Masc.' : row.prod.genero === 'feminino' ? 'Fem.' : row.prod.genero}
+                  </Badge>
+                ) : null}
+              </div>
               {row.prod.qualidade ? (
                 <Badge variant="slate" className="bg-teal-500/10 text-teal-400 border-teal-500/20 text-[10px]">
                   {row.prod.qualidade}
