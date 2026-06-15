@@ -396,9 +396,21 @@ export function PedidoCompraForm({ onSave, onClose, filialId, prefillData }: Pro
                               <button
                                 key={p.id}
                                 onClick={() => selectProduto(idx, p)}
-                                className="w-full flex items-center gap-4 p-3 hover:bg-white/5 border-b border-white/5 text-left"
+                                className="w-full flex flex-col gap-1.5 p-3 hover:bg-white/5 border-b border-white/5 text-left transition-colors"
                               >
                                 <div className="text-xs font-bold text-white">{p.nome}</div>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {p.cat && <Badge variant="slate" className="bg-white/5 text-slate-300 border-white/10 text-[9px] px-1.5 py-0 h-4">{p.cat}</Badge>}
+                                  {p.qualidade && <Badge variant="slate" className="bg-teal-500/10 text-teal-400 border-teal-500/20 text-[9px] px-1.5 py-0 h-4">{p.qualidade}</Badge>}
+                                  {p.genero && (
+                                    <Badge variant="slate" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] capitalize px-1.5 py-0 h-4">
+                                      {p.genero === 'masculino' ? 'Masc.' : p.genero === 'feminino' ? 'Fem.' : p.genero}
+                                    </Badge>
+                                  )}
+                                  <span className="text-[9px] text-slate-500 font-mono ml-auto">
+                                    {p.sku || 'S/ SKU'}
+                                  </span>
+                                </div>
                               </button>
                             ))
                           ) : (
