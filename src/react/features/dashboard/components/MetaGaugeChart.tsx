@@ -84,7 +84,12 @@ export function MetaGaugeChart({ faturamento, meta }: MetaGaugeChartProps) {
   };
 
   return (
-    <div className="flex flex-col items-center relative drop-shadow-xl">
+    <div className="flex flex-col items-center relative drop-shadow-xl gauge-container">
+      <style>{`
+        .gauge-container .apexcharts-datalabel-value {
+          filter: drop-shadow(0 0 8px ${colorLight}80);
+        }
+      `}</style>
       <div className="h-44 w-full relative">
         {/* Glow de Fundo (Ambient Light) */}
         <div 

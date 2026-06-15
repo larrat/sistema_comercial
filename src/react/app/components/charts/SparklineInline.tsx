@@ -47,22 +47,7 @@ export function SparklineInline({
     },
     colors: [color],
     tooltip: {
-      fixed: {
-        enabled: false
-      },
-      x: {
-        show: false
-      },
-      y: {
-        title: {
-          formatter: function (seriesName) {
-            return '';
-          }
-        }
-      },
-      marker: {
-        show: false
-      }
+      enabled: false,
     }
   };
 

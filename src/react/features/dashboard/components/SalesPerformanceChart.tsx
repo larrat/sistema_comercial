@@ -99,7 +99,7 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas, onDrillD
       strokeDashArray: 4,
       xaxis: { lines: { show: false } },
       yaxis: { lines: { show: true } },
-      padding: { top: 0, right: 0, bottom: 0, left: 10 }
+      padding: { top: 0, right: 20, bottom: 0, left: 20 }
     },
     xaxis: {
       categories,
@@ -158,9 +158,9 @@ export function SalesPerformanceChart({ chartData, stats, periodoDatas, onDrillD
             { label: 'Projeção (Fim)', val: chartData[chartData.length - 1]?.forecast || 0 },
             { label: 'Margem Bruta', val: stats.margem, suffix: '%' }
           ].map((m, i) => (
-            <div key={i}>
-              <span className="block mb-1 text-sm font-medium text-slate-400">{m.label}</span>
-              <span className="block text-lg font-black text-white">
+            <div key={i} className="bg-white/[0.02] border border-white/5 rounded-xl p-3 flex flex-col items-start justify-center transition-colors hover:bg-white/[0.04]">
+              <span className="block mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">{m.label}</span>
+              <span className="block text-base lg:text-lg font-black text-white">
                 {m.suffix ? `${m.val.toFixed(1)}%` : fmt(m.val)}
               </span>
             </div>

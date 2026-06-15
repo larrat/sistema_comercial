@@ -50,20 +50,20 @@ export function MetricsGrid({ stats, financeMetrics, periodo }: { stats: any, fi
     },
     { 
       label: 'Contas em aberto', val: stats?.valorEmAberto || 0, prefix: 'R$ ', color: (stats?.valorEmAberto || 0) > 0 ? 'text-amber-400' : 'text-emerald-400', borderColor: '#f59e0b', hex: '#f59e0b',
-      trend: '-', 
-      trendLabel: 'Variação N/A', 
+      trend: null, 
+      trendLabel: null, 
       trendUp: (stats?.valorEmAberto || 0) === 0,
     },
     { 
       label: 'Inadimplência', val: financeMetrics?.inadimplencia || 0, prefix: '', suffix: '%', color: (financeMetrics?.inadimplencia || 0) > 5 ? 'text-rose-400' : 'text-emerald-400', borderColor: '#f43f5e', hex: '#f43f5e',
-      trend: '-', 
-      trendLabel: 'Variação N/A', 
+      trend: null, 
+      trendLabel: null, 
       trendUp: (financeMetrics?.inadimplencia || 0) <= 5,
     },
     { 
       label: 'DSO (Prazo)', val: financeMetrics?.dso || 0, prefix: '', suffix: ' dias', color: 'text-indigo-400', borderColor: '#818cf8', hex: '#818cf8',
-      trend: '-', 
-      trendLabel: 'Variação N/A', 
+      trend: null, 
+      trendLabel: null, 
       trendUp: true,
     }
   ];
@@ -96,7 +96,7 @@ export function MetricsGrid({ stats, financeMetrics, periodo }: { stats: any, fi
               
               <div className="flex items-start justify-between gap-2 relative z-10">
                 <Typography variant="label" color="muted" className="text-sm font-medium text-slate-400">{stat.label}</Typography>
-                <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />
+                {stat.trend && <BadgeDelta value={stat.trend} isPositive={stat.trendUp} isNeutral={stat.trend === '-'} />}
               </div>
               <div className="mt-4 mb-2 flex items-end justify-between relative z-10">
                 <span className={cn("text-xl lg:text-2xl 2xl:text-3xl font-black font-display tracking-tight truncate whitespace-nowrap block tabular-nums", stat.color)}>
@@ -114,7 +114,7 @@ export function MetricsGrid({ stats, financeMetrics, periodo }: { stats: any, fi
                   <SparklineInline data={sparklineData} type={i % 2 === 0 ? 'area' : 'bar'} color={stat.hex} width={60} height={30} />
                 </div>
               </div>
-              <span className="block mt-1 relative z-10 text-sm font-medium text-slate-400">{stat.trendLabel}</span>
+              {stat.trendLabel && <span className="block mt-1 relative z-10 text-sm font-medium text-slate-400">{stat.trendLabel}</span>}
             </Card>
           </motion.article>
         );

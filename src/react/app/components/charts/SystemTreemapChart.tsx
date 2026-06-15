@@ -68,8 +68,11 @@ export function SystemTreemapChart({
     },
     dataLabels: {
       enabled: true,
+      formatter: (text: string) => {
+        return text.length > 15 ? text.substring(0, 15) + '...' : text;
+      },
       style: {
-        fontSize: '12px',
+        fontSize: '10px',
         fontWeight: 'bold',
         fontFamily: 'inherit',
         colors: ['#ffffff']
