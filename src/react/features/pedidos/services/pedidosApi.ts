@@ -34,12 +34,8 @@ export type PedidoSaveInput = {
   outros_custos?: number;
 };
 
-export type PedidoApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type PedidoApiContext = ApiContext;
 
 export type PedidoListFilters = {
   q?: string;

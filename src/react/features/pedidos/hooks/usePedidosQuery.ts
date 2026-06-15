@@ -15,9 +15,9 @@ import {
   type PedidoSaveInput,
   type CancelamentoPedidoResult
 } from '../services/pedidosApi';
-import { gerarContaForcado, type ContaReceberInput } from '../services/contasReceberApi';
-import { listClientesLight } from '../services/clientesLightApi';
-import { listRcas } from '../services/rcasApi';
+import { gerarContaForcado, type ContaReceberInput } from '../../contas-receber/services/contasReceberApi';
+import { listClientesLight } from '../../clientes/services/clientesApi';
+import { listRcas } from '../../rcas/services/rcasApi';
 import { useApiContext } from '../../../shared/hooks/useApiContext';
 import type { Pedido, PedidoItem, ContaReceber, ContaReceberBaixa } from '../../../../types/domain';
 

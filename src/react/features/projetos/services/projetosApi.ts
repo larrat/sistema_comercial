@@ -1,12 +1,8 @@
 import type { Projeto, LevantamentoArquitetura, Pedido } from '../../../../types/domain';
 import { fetchWithAuth, readJson, ensureOk } from '../../../shared/api/apiClient';
 
-export type ProjetosApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type ProjetosApiContext = ApiContext;
 
 export async function listProjetos(context: ProjetosApiContext): Promise<Projeto[]> {
   const res = await fetchWithAuth(context, `/rest/v1/projetos?filial_id=eq.${encodeURIComponent(context.filialId)}&order=atualizado_em.desc`);

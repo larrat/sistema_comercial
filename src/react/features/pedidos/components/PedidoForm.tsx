@@ -19,7 +19,7 @@ import { usePedidoStore } from '../store/usePedidoStore';
 import { usePedidosQuery, usePedidoMutations, useClientesLightQuery, useRcasQuery } from '../hooks/usePedidosQuery';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { useProdutosQuery } from '../../produtos/hooks/useProdutosQuery';
-import { findClienteByInput } from '../services/clientesLightApi';
+import { findClienteByInput } from '../../clientes/services/clientesApi';
 import { useUnsavedChangesGuard } from '../../../shared/hooks/useUnsavedChangesGuard';
 import { PedidoItemsSection } from './PedidoItemsSection';
 import { PEDIDO_STATUS_LABEL, normalizePedStatus } from '../types';

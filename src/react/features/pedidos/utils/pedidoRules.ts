@@ -1,5 +1,5 @@
 import type { Pedido, PedidoItem, Produto, Rca } from '../../../../types/domain';
-import type { ClienteLight } from '../services/clientesLightApi';
+import type { ClienteLight } from '../../clientes/services/clientesApi';
 
 export type PedidoFormErrors = {
   cli?: string;

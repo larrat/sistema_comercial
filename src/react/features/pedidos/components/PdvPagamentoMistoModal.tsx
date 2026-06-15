@@ -7,7 +7,7 @@ import {
   type PdvMixedPaymentPart,
   validateMixedPayments
 } from '../pdv/pdvCart';
-import type { ClienteLight } from '../services/clientesLightApi';
+import type { ClienteLight } from '../../clientes/services/clientesApi';
 
 type PdvPagamentoMistoModalProps = {
   open: boolean;

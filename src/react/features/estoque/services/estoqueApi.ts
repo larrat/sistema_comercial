@@ -1,12 +1,8 @@
 import type { Filial, MovimentoEstoque } from '../../../../types/domain';
 import type { Avaria, AvariaInput } from '../types';
 
-export type EstoqueApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type EstoqueApiContext = ApiContext;
 
 export type EstoqueTransferInput = {
   originMovement: MovimentoEstoque;

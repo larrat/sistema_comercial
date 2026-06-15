@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import type { PdvProdutoSearchResult } from '../services/produtosApi';
-import { searchProdutosPdv } from '../services/produtosApi';
+import type { PdvProdutoSearchResult } from '../../produtos/services/produtosApi';
+import { searchProdutosPdv } from '../../produtos/services/produtosApi';
 import { useAuthStore } from '../../../app/useAuthStore';
 import { useFilialStore } from '../../../app/useFilialStore';
 import { getSupabaseConfig } from '../../../app/supabaseConfig';

@@ -1,5 +1,5 @@
 import { Ticket } from 'lucide-react';
-import type { PdvProdutoSearchResult } from '../services/produtosApi';
+import type { PdvProdutoSearchResult } from '../../produtos/services/produtosApi';
 import { createCartItemFromProduto, formatCurrencyBRL } from '../pdv/pdvCart';
 
 type PdvSearchDrawerProps = {

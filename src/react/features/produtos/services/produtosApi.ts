@@ -2,12 +2,8 @@ import type { MovimentoEstoque, Produto } from '../../../../types/domain';
 import type { ProdutoWriteInput } from '../types';
 import { logAudit } from '../../../shared/services/auditService';
 
-export type ProdutoApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type ProdutoApiContext = ApiContext;
 export type ProdutoListFilters = {
   q?: string;
   cat?: string;
@@ -454,4 +450,126 @@ export async function listPedidoItensByProdutoIds(
       pedido_status: item.pedidos?.status ?? null
     };
   });
+}
+
+export type PdvProdutoSearchResult = Pick<
+  Produto,
+  | 'id'
+  | 'nome'
+  | 'sku'
+  | 'codigo_barras'
+  | 'codigo_fornecedor'
+  | 'un'
+  | 'custo'
+  | 'mkv'
+  | 'mka'
+  | 'pfa'
+  | 'pvv'
+  | 'esal'
+>;
+
+function buildProdutoSearchSelect(): string {
+  return [
+    'id',
+    'nome',
+    'sku',
+    'codigo_barras',
+    'codigo_fornecedor',
+    'un',
+    'custo',
+    'mkv',
+    'mka',
+    'pfa',
+    'pvv',
+    'esal'
+  ].join(',');
+}
+
+function buildProdutoFuzzySearchUrl(
+  context: ProdutoApiContext,
+  rawQuery: string,
+  limit: number
+): string {
+  const clean = rawQuery.replace(/\*/g, '').replace(/,/g, ' ').trim();
+  const pattern = `*${clean}*`;
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${context.filialId}`);
+  params.set('select', buildProdutoSearchSelect());
+  params.set('order', 'nome.asc');
+  params.set('limit', String(limit));
+  params.set(
+    'or',
+    `(${[
+      `nome.ilike.${pattern}`,
+      `sku.ilike.${pattern}`,
+      `codigo_barras.ilike.${pattern}`,
+      `codigo_fornecedor.ilike.${pattern}`
+    ].join(',')})`
+  );
+  return `${context.url}/rest/v1/produtos?${params.toString()}`;
+}
+
+function buildProdutoExactSearchUrl(
+  context: ProdutoApiContext,
+  rawQuery: string,
+  limit: number
+): string | null {
+  const clean = rawQuery.trim();
+  if (!clean || /\s/.test(clean)) return null;
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${context.filialId}`);
+  params.set('select', buildProdutoSearchSelect());
+  params.set('order', 'nome.asc');
+  params.set('limit', String(limit));
+  params.set(
+    'or',
+    `(${[
+      `sku.eq.${clean}`,
+      `codigo_barras.eq.${clean}`,
+      `codigo_fornecedor.eq.${clean}`
+    ].join(',')})`
+  );
+  return `${context.url}/rest/v1/produtos?${params.toString()}`;
+}
+
+export async function searchProdutosPdv(
+  context: ProdutoApiContext,
+  rawQuery: string,
+  limit = 8
+): Promise<PdvProdutoSearchResult[]> {
+  const query = rawQuery.trim();
+  if (!query) return [];
+
+  const exactUrl = buildProdutoExactSearchUrl(context, query, Math.min(3, limit));
+  const fuzzyUrl = buildProdutoFuzzySearchUrl(context, query, limit);
+  const [exactRes, fuzzyRes] = await Promise.all([
+    exactUrl
+      ? fetch(exactUrl, {
+          headers: createHeaders(context.key, context.token),
+          signal: AbortSignal.timeout(12000)
+        })
+      : Promise.resolve(null),
+    fetch(fuzzyUrl, {
+      headers: createHeaders(context.key, context.token),
+      signal: AbortSignal.timeout(12000)
+    })
+  ]);
+
+  let exactRows: PdvProdutoSearchResult[] = [];
+  if (exactRes) {
+    const exactBody = await readJson(exactRes);
+    ensureOk(exactRes, exactBody, `Erro ${exactRes.status} ao buscar produto`);
+    exactRows = Array.isArray(exactBody) ? (exactBody as PdvProdutoSearchResult[]) : [];
+  }
+
+  const fuzzyBody = await readJson(fuzzyRes);
+  ensureOk(fuzzyRes, fuzzyBody, `Erro ${fuzzyRes.status} ao buscar produto`);
+  const fuzzyRows = Array.isArray(fuzzyBody) ? (fuzzyBody as PdvProdutoSearchResult[]) : [];
+
+  const merged = [...exactRows, ...fuzzyRows];
+  const unique = new Map<string, PdvProdutoSearchResult>();
+  for (const item of merged) {
+    if (!unique.has(item.id)) unique.set(item.id, item);
+  }
+  return [...unique.values()].slice(0, limit);
 }

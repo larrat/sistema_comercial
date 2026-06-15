@@ -1,6 +1,6 @@
 import type { PedidoItem, Produto } from '../../../../types/domain';
-import type { ClienteLight } from '../services/clientesLightApi';
-import type { PdvProdutoSearchResult } from '../services/produtosApi';
+import type { ClienteLight } from '../../clientes/services/clientesApi';
+import type { PdvProdutoSearchResult } from '../../produtos/services/produtosApi';
 
 export type PdvPaymentMethod =
   | 'dinheiro'

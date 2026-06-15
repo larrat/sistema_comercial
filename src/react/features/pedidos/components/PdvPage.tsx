@@ -11,11 +11,11 @@ import { getNextPedidoNumber, getValeTroca, updateValeTrocaStatus } from '../ser
 import {
   searchClientesLight,
   type ClienteLight
-} from '../services/clientesLightApi';
+} from '../../clientes/services/clientesApi';
 import {
   searchProdutosPdv,
   type PdvProdutoSearchResult
-} from '../services/produtosApi';
+} from '../../produtos/services/produtosApi';
 import {
   buildPedidoItensFromCart,
   calculateCartTotals,

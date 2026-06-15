@@ -15,7 +15,7 @@ import {
   normalizePrazoCliente
 } from '../pdv/pdvCart';
 import type { PdvQueuedSale, PdvPaymentMethod } from '../pdv/pdvCart';
-import type { ClienteLight } from '../services/clientesLightApi';
+import type { ClienteLight } from '../../clientes/services/clientesApi';
 
 export type CompletedSale = {
   numero: number;

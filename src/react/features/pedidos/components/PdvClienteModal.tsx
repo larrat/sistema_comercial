@@ -1,5 +1,5 @@
 import { EmptyState, ErrorState, LoadingState, Modal, Button, Input } from '../../../shared/ui';
-import type { ClienteLight } from '../services/clientesLightApi';
+import type { ClienteLight } from '../../clientes/services/clientesApi';
 
 type PdvClienteModalProps = {
   open: boolean;

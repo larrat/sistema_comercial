@@ -1,5 +1,5 @@
 import { createCartItemFromProduto, formatCurrencyBRL } from '../pdv/pdvCart';
-import type { PdvProdutoSearchResult } from '../services/produtosApi';
+import type { PdvProdutoSearchResult } from '../../produtos/services/produtosApi';
 
 type PdvCartGridProps = {
   products: PdvProdutoSearchResult[];

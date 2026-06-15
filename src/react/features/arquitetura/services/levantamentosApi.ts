@@ -1,11 +1,7 @@
 import type { LevantamentoArquitetura } from '../../../../types/domain';
 
-export type LevantamentoApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type LevantamentoApiContext = ApiContext;
 
 function createHeaders(key: string, token: string, prefer?: string): HeadersInit {
   return {

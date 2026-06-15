@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ClienteLight } from '../services/clientesLightApi';
+import type { ClienteLight } from '../../clientes/services/clientesApi';
 import type { PdvCartItem, PdvMixedPaymentPart, PdvPaymentMethod } from '../pdv/pdvCart';
 
 type PdvStoreState = {

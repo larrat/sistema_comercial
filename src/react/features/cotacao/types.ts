@@ -122,12 +122,8 @@ export type CotacaoImportContext = {
   savedLayout?: Record<string, unknown> | null;
 };
 
-export type CotacaoApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../shared/types/api';
+export type CotacaoApiContext = ApiContext;
 
 export type CotacaoPrecoRecord = {
   filial_id: string;

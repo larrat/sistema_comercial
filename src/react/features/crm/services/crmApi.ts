@@ -1,11 +1,7 @@
 import type { CrmOportunidade, CrmOportunidadeDraft, CrmEstagio } from '../types';
 
-export type CrmApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type CrmApiContext = ApiContext;
 
 export const crmApi = {
   getOportunidades: async (ctx: CrmApiContext): Promise<CrmOportunidade[]> => {

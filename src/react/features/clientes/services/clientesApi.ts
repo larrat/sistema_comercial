@@ -1,12 +1,8 @@
 import type { Cliente } from '../../../../types/domain';
 import { logAudit } from '../../../shared/services/auditService';
 
-export type ClienteApiContext = {
-  url: string;
-  key: string;
-  token: string;
-  filialId: string;
-};
+import type { ApiContext } from '../../../shared/types/api';
+export type ClienteApiContext = ApiContext;
 
 export type ClienteWriteInput = Partial<Cliente> & Pick<Cliente, 'nome'>;
 export type ClienteWritePayload = Omit<Partial<Cliente>, 'nome' | 'data_aniversario'> & {
@@ -339,4 +335,55 @@ export async function checkClienteDuplicadoByPhone(
     return body[0] as Cliente;
   }
   return null;
+}
+
+/** Campos mínimos necessários para o form de pedido */
+export type ClienteLight = Pick<
+  Cliente,
+  'id' | 'nome' | 'rca_id' | 'rca_nome' | 'prazo' | 'whatsapp' | 'tel' | 'doc' | 'is_defaulter'
+>;
+
+export async function listClientesLight(context: ClienteApiContext): Promise<ClienteLight[]> {
+  const res = await fetch(
+    `${context.url}/rest/v1/clientes?filial_id=eq.${encodeURIComponent(context.filialId)}&order=nome`,
+    {
+      headers: createHeaders(context.key, context.token),
+      signal: AbortSignal.timeout(12000)
+    }
+  );
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao carregar clientes`);
+  return Array.isArray(body) ? (body as ClienteLight[]) : [];
+}
+
+export async function searchClientesLight(
+  context: ClienteApiContext,
+  rawQuery: string,
+  limit = 8
+): Promise<ClienteLight[]> {
+  const query = rawQuery.trim();
+  if (!query) return [];
+  const pattern = `*${query.replace(/\*/g, '').replace(/,/g, ' ')}*`;
+  const params = new URLSearchParams();
+  params.set('filial_id', `eq.${context.filialId}`);
+  params.set('select', 'id,nome,rca_id,rca_nome,prazo,whatsapp,tel,doc,is_defaulter');
+  params.set('order', 'nome.asc');
+  params.set('limit', String(limit));
+  params.set(
+    'or',
+    `(${[`nome.ilike.${pattern}`, `whatsapp.ilike.${pattern}`, `tel.ilike.${pattern}`].join(',')})`
+  );
+  const res = await fetch(`${context.url}/rest/v1/clientes?${params.toString()}`, {
+    headers: createHeaders(context.key, context.token),
+    signal: AbortSignal.timeout(12000)
+  });
+  const body = await readJson(res);
+  ensureOk(res, body, `Erro ${res.status} ao buscar clientes`);
+  return Array.isArray(body) ? (body as ClienteLight[]) : [];
+}
+
+export function findClienteByInput(clientes: ClienteLight[], raw: string): ClienteLight | null {
+  const termo = raw.trim().toLowerCase();
+  if (!termo) return null;
+  return clientes.find((c) => c.id === raw.trim() || c.nome.trim().toLowerCase() === termo) ?? null;
 }
