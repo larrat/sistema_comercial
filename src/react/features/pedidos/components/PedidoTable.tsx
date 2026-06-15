@@ -15,6 +15,8 @@ import {
   type PedidoTab
 } from '../types';
 import { usePedidoMutations } from '../hooks/usePedidosQuery';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
+import { PedidoListMobile } from './PedidoListMobile';
 
 const PGTO_LABEL: Record<string, string> = {
   a_vista: 'À vista',
@@ -83,6 +85,28 @@ export function PedidoTable({
   onEntregaPedido
 }: PedidoTableProps) {
   const { updateStatus, confirmarEntrega } = usePedidoMutations();
+  const isMobile = useIsMobile(1024);
+
+  if (isMobile) {
+    return (
+      <PedidoListMobile
+        pedidos={pedidos}
+        loading={loading}
+        error={error}
+        onRetry={onRetry}
+        hasAnyFilter={hasAnyFilter}
+        activeTab={activeTab}
+        onNovoPedido={onNovoPedido}
+        onDetalhe={onDetalhe}
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={onPageChange}
+        onCancelPedido={onCancelPedido}
+        onEntregaPedido={onEntregaPedido}
+      />
+    );
+  }
 
   return (
     <DataTable

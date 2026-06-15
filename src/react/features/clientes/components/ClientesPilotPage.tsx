@@ -28,6 +28,8 @@ import { useClientesQuery, useSegmentosQuery, useClienteMutations } from '../hoo
 import { ClienteForm } from './ClienteForm';
 import { ClienteDeleteConfirmModal } from './ClienteDeleteConfirmModal';
 import { ClienteSegmentView } from './ClienteSegmentView';
+import { ClienteListMobile } from './ClienteListMobile';
+import { useIsMobile } from '../../../shared/hooks/useIsMobile';
 
 type SurfaceTab = 'lista' | 'segmentos';
 
@@ -55,6 +57,7 @@ export function ClientesPilotPage({
   const clearFiltro = useClienteStore((s) => s.clearFiltro);
   const setPage = useClienteStore((s) => s.setPage);
   const setPageSize = useClienteStore((s) => s.setPageSize);
+  const isMobile = useIsMobile(1024);
 
   // TanStack Queries
   const { 
@@ -309,101 +312,116 @@ export function ClientesPilotPage({
             </div>
 
             <div data-testid="cliente-list">
-              <DataTable
-                data={clientes}
-                loading={isLoadingClientes}
-                onRetry={refetchClientes}
-                page={page}
-                pageSize={pageSize}
-                total={total}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-                emptyTitle={temFiltro ? 'Nenhum cliente encontrado com os filtros atuais.' : 'Nenhum cliente cadastrado ainda.'}
-                emptyDescription={
-                  temFiltro
-                    ? 'Ajuste os filtros ou limpe a busca para ampliar os resultados.'
-                    : 'Cadastre o primeiro cliente para começar a operar por aqui.'
-                }
-                emptyAction={
-                  <Button variant="primary" onClick={() => openNewCliente('empty_state')}>
-                    Novo cliente
-                  </Button>
-                }
-                onRowClick={(cliente) => openDetail(cliente.id, 'resumo', 'list_row')}
-                columns={[
-                  {
-                    key: 'nome',
-                    label: 'Nome',
-                    sortable: true,
-                    render: (cliente) => (
-                      <ViewTransition name={`cliente-hero-${cliente.id}`} share="morph">
-                        <div className="flex items-center gap-3" data-testid="cliente-card">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 shadow-inner text-sm font-medium text-slate-400">
-                            {getInitials(cliente.nome || '')}
-                          </div>
-                          <div className="min-w-0">
-                            <span className="block truncate text-sm font-black text-white">{cliente.nome}</span>
-                            {cliente.apelido ? (
-                              <span className="block truncate text-xs text-slate-400">{cliente.apelido}</span>
-                            ) : null}
-                          </div>
-                        </div>
-                      </ViewTransition>
-                    )
-                  },
-                  {
-                    key: 'status',
-                    label: 'Status',
-                    render: (cliente) => {
-                      const badge = STATUS_BADGE[cliente.status ?? ''];
-                      if (!badge) return '—';
-                      return <StatusBadge tone={badge.tone}>{badge.label}</StatusBadge>;
-                    }
-                  },
-                  {
-                    key: 'whatsapp',
-                    label: 'WhatsApp',
-                    render: (cliente) => (
-                      <span className="text-sm text-slate-400">{cliente.whatsapp || cliente.tel || '—'}</span>
-                    )
-                  },
-                  {
-                    key: 'segmento',
-                    label: 'Segmento',
-                    render: (cliente) => <span className="text-sm text-slate-300">{cliente.seg || '—'}</span>
-                  },
-                  {
-                    key: 'tags',
-                    label: 'Tags',
-                    render: (cliente) =>
-                      cliente.optin_marketing ? <StatusBadge tone="success">MKT</StatusBadge> : '—'
+              {isMobile ? (
+                <ClienteListMobile
+                  clientes={clientes}
+                  total={total}
+                  page={page}
+                  pageSize={pageSize}
+                  hasFilters={temFiltro}
+                  onPageChange={setPage}
+                  onDetalhe={(id) => openDetail(id, 'resumo', 'list_row')}
+                  onEditar={(id) => openEditCliente(id, 'row_menu')}
+                  onRemover={(id) => setDeleteTargetId(id)}
+                  onNovo={() => openNewCliente('empty_state')}
+                />
+              ) : (
+                <DataTable
+                  data={clientes}
+                  loading={isLoadingClientes}
+                  onRetry={refetchClientes}
+                  page={page}
+                  pageSize={pageSize}
+                  total={total}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                  emptyTitle={temFiltro ? 'Nenhum cliente encontrado com os filtros atuais.' : 'Nenhum cliente cadastrado ainda.'}
+                  emptyDescription={
+                    temFiltro
+                      ? 'Ajuste os filtros ou limpe a busca para ampliar os resultados.'
+                      : 'Cadastre o primeiro cliente para começar a operar por aqui.'
                   }
-                ]}
-                renderActions={(cliente) => (
-                  <ActionMenu
-                    label="Ações do cliente"
-                    buttonTestId="cli-menu-btn"
-                    items={[
-                      {
-                        key: 'detalhes',
-                        label: 'Ver detalhes',
-                        onClick: () => openDetail(cliente.id, 'resumo', 'row_menu')
-                      },
-                      {
-                        key: 'editar',
-                        label: 'Editar',
-                        onClick: () => openEditCliente(cliente.id, 'row_menu')
-                      },
-                      {
-                        key: 'excluir',
-                        label: 'Excluir',
-                        danger: true,
-                        onClick: () => setDeleteTargetId(cliente.id)
+                  emptyAction={
+                    <Button variant="primary" onClick={() => openNewCliente('empty_state')}>
+                      Novo cliente
+                    </Button>
+                  }
+                  onRowClick={(cliente) => openDetail(cliente.id, 'resumo', 'list_row')}
+                  columns={[
+                    {
+                      key: 'nome',
+                      label: 'Nome',
+                      sortable: true,
+                      render: (cliente) => (
+                        <ViewTransition name={`cliente-hero-${cliente.id}`} share="morph">
+                          <div className="flex items-center gap-3" data-testid="cliente-card">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 shadow-inner text-sm font-medium text-slate-400">
+                              {getInitials(cliente.nome || '')}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block truncate text-sm font-black text-white">{cliente.nome}</span>
+                              {cliente.apelido ? (
+                                <span className="block truncate text-xs text-slate-400">{cliente.apelido}</span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </ViewTransition>
+                      )
+                    },
+                    {
+                      key: 'status',
+                      label: 'Status',
+                      render: (cliente) => {
+                        const badge = STATUS_BADGE[cliente.status ?? ''];
+                        if (!badge) return '—';
+                        return <StatusBadge tone={badge.tone}>{badge.label}</StatusBadge>;
                       }
-                    ]}
-                  />
-                )}
-              />
+                    },
+                    {
+                      key: 'whatsapp',
+                      label: 'WhatsApp',
+                      render: (cliente) => (
+                        <span className="text-sm text-slate-400">{cliente.whatsapp || cliente.tel || '—'}</span>
+                      )
+                    },
+                    {
+                      key: 'segmento',
+                      label: 'Segmento',
+                      render: (cliente) => <span className="text-sm text-slate-300">{cliente.seg || '—'}</span>
+                    },
+                    {
+                      key: 'tags',
+                      label: 'Tags',
+                      render: (cliente) =>
+                        cliente.optin_marketing ? <StatusBadge tone="success">MKT</StatusBadge> : '—'
+                    }
+                  ]}
+                  renderActions={(cliente) => (
+                    <ActionMenu
+                      label="Ações do cliente"
+                      buttonTestId="cli-menu-btn"
+                      items={[
+                        {
+                          key: 'detalhes',
+                          label: 'Ver detalhes',
+                          onClick: () => openDetail(cliente.id, 'resumo', 'row_menu')
+                        },
+                        {
+                          key: 'editar',
+                          label: 'Editar',
+                          onClick: () => openEditCliente(cliente.id, 'row_menu')
+                        },
+                        {
+                          key: 'excluir',
+                          label: 'Excluir',
+                          danger: true,
+                          onClick: () => setDeleteTargetId(cliente.id)
+                        }
+                      ]}
+                    />
+                  )}
+                />
+              )}
             </div>
           </>
         ) : (
