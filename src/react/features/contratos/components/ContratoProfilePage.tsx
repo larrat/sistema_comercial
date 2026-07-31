@@ -44,6 +44,8 @@ import { listPedidosCompra } from '../../compras/services/comprasApi';
 import { fmtBRL } from '../../../shared/lib/formatters';
 import { Badge, Button, Card, EmptyState } from '../../../shared/ui';
 import type { ContratoAditivoDraft, ContratoCronogramaDraft, DiarioObraDraft, OrdemServico } from '../types';
+import { RdoWhatsAppModal } from './RdoWhatsAppModal';
+import { buildRdoWhatsAppMessage } from '../utils/rdoWhatsAppHelper';
 
 export function ContratoProfilePage() {
   const { id } = useParams();
@@ -72,6 +74,10 @@ export function ContratoProfilePage() {
   const [newDiarioClima, setNewDiarioClima] = useState<'ensolarado' | 'chuvoso' | 'nublado'>('ensolarado');
   const [newDiarioMaoDeObra, setNewDiarioMaoDeObra] = useState(1);
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+
+  // WhatsApp Bulletin Modal State
+  const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+  const [whatsAppMessage, setWhatsAppMessage] = useState('');
 
   // 1. Fetch Contrato details
   const { data: contrato, isLoading: isLoadingContrato, refetch: refetchContrato } = useContratoDetail(id);
@@ -192,14 +198,39 @@ export function ContratoProfilePage() {
     }
   });
 
+  const progressoCronograma = useMemo(() => {
+    if (!cronograma.length) return 0;
+    const soma = cronograma.reduce((acc, item) => acc + (item.percentual_conclusao || 0), 0);
+    return Math.min(100, Math.round(soma / cronograma.length));
+  }, [cronograma]);
+
+  function handleOpenRdoWhatsAppModal(rdo: any) {
+    if (!contrato || !id) return;
+    const msg = buildRdoWhatsAppMessage({
+      clienteNome: contrato.cliente?.nome,
+      clienteTelefone: (contrato.cliente as any)?.whatsapp || (contrato.cliente as any)?.tel,
+      obraTitulo: contrato.titulo,
+      obraId: id,
+      rdoTitulo: rdo.titulo,
+      rdoRelatorio: rdo.relatorio,
+      clima: rdo.clima,
+      maoDeObraQtd: rdo.mao_de_obra_qtd,
+      progressoTotal: progressoCronograma,
+      dataRegistro: rdo.criado_em || rdo.data_registro
+    });
+    setWhatsAppMessage(msg);
+    setIsWhatsAppModalOpen(true);
+  }
+
   const createDiarioMutation = useMutation({
     mutationFn: (draft: DiarioObraDraft) => {
       const context = resolve();
       if (!context) throw new Error('API context not ready');
       return contratosApi.createDiarioObra(context, draft);
     },
-    onSuccess: () => {
+    onSuccess: (newDiario) => {
       refetchDiarios();
+      handleOpenRdoWhatsAppModal(newDiario);
       setNewDiarioTitle('');
       setNewDiarioRelatorio('');
       setUploadedPhotos([]);
@@ -514,6 +545,7 @@ export function ContratoProfilePage() {
             handleAddDiario={handleAddDiario}
             uploadRdoFotoMutation={uploadRdoFotoMutation}
             createDiarioMutation={createDiarioMutation}
+            onOpenWhatsAppModal={handleOpenRdoWhatsAppModal}
           />
         )}
 
@@ -547,6 +579,14 @@ export function ContratoProfilePage() {
         )}
 
       </div>
+
+      <RdoWhatsAppModal
+        open={isWhatsAppModalOpen}
+        onClose={() => setIsWhatsAppModalOpen(false)}
+        clienteNome={contrato?.cliente?.nome}
+        clienteTelefone={(contrato?.cliente as any)?.whatsapp || (contrato?.cliente as any)?.tel}
+        defaultMessage={whatsAppMessage}
+      />
 
       {isOsModalOpen && (
         <OrdemServicoModal

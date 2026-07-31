@@ -1,4 +1,4 @@
-import { Cloud, CloudRain, Sun, UserCheck, Camera } from 'lucide-react';
+import { Cloud, CloudRain, Sun, UserCheck, Camera, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button, Card, EmptyState } from '../../../../shared/ui';
 
@@ -16,6 +16,7 @@ type Props = {
   handleAddDiario: (e: React.FormEvent) => void;
   uploadRdoFotoMutation: any;
   createDiarioMutation: any;
+  onOpenWhatsAppModal?: (rdo: any) => void;
 };
 
 export function ContratoAbaDiario({
@@ -31,7 +32,8 @@ export function ContratoAbaDiario({
   uploadedPhotos,
   handleAddDiario,
   uploadRdoFotoMutation,
-  createDiarioMutation
+  createDiarioMutation,
+  onOpenWhatsAppModal
 }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
@@ -71,6 +73,19 @@ export function ContratoAbaDiario({
                         <img src={foto} alt={`Obra-${fIdx}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {onOpenWhatsAppModal && (
+                  <div className="pt-2 flex justify-end border-t border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => onOpenWhatsAppModal(rdo)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-bold transition-all"
+                    >
+                      <MessageCircle size={14} />
+                      <span>Notificar Cliente no WhatsApp</span>
+                    </button>
                   </div>
                 )}
               </div>
