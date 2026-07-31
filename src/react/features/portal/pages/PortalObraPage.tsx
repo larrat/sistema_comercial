@@ -111,12 +111,13 @@ export function PortalObraPage() {
   });
 
   // Fetch Accounts Receivable (Medições Financeiras)
+  // Usa contrato_id pois contas_receber de obras são vinculadas ao contrato, não ao pedido
   const { data: contasReceber = [] } = useQuery({
     queryKey: ['portal-contas-receber', obraId],
     queryFn: async () => {
       const { url, key } = getSupabaseConfig();
       const res = await fetch(
-        `${url}/rest/v1/contas_receber?pedido_id=eq.${obraId}&order=vencimento.asc`,
+        `${url}/rest/v1/contas_receber?contrato_id=eq.${obraId}&order=vencimento.asc`,
         {
           headers: { apikey: key, Authorization: `Bearer ${key}` }
         }
@@ -165,11 +166,23 @@ export function PortalObraPage() {
   }
 
   function handleWhatsAppClick() {
-    const phone = '5591988888888'; // Número de atendimento por padrão ou configurável
+    // Tenta usar o whatsapp ou tel do responsável cadastrado na obra (campo da filial de origem)
+    // Se não houver, abre o WhatsApp sem destinatário para o engenheiro encaminhar manualmente
+    const rawPhone = (obra?.cliente as any)?.whatsapp || (obra?.cliente as any)?.tel || '';
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    const formattedPhone = cleanPhone.length === 10 || cleanPhone.length === 11
+      ? `55${cleanPhone}`
+      : cleanPhone;
+
     const msg = encodeURIComponent(
       `Olá! Estou acompanhando a minha obra "${obra?.titulo || 'Projeto'}" e gostaria de tirar uma dúvida sobre a etapa atual.`
     );
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+
+    const url = formattedPhone
+      ? `https://wa.me/${formattedPhone}?text=${msg}`
+      : `https://wa.me/?text=${msg}`;
+
+    window.open(url, '_blank');
   }
 
   if (isLoading) {
