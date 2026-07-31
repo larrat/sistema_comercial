@@ -17,6 +17,9 @@ type Props = {
   uploadRdoFotoMutation: any;
   createDiarioMutation: any;
   onOpenWhatsAppModal?: (rdo: any) => void;
+  clienteTemWhatsApp?: boolean;
+  notifyClienteWhatsApp?: boolean;
+  setNotifyClienteWhatsApp?: (val: boolean) => void;
 };
 
 export function ContratoAbaDiario({
@@ -33,7 +36,10 @@ export function ContratoAbaDiario({
   handleAddDiario,
   uploadRdoFotoMutation,
   createDiarioMutation,
-  onOpenWhatsAppModal
+  onOpenWhatsAppModal,
+  clienteTemWhatsApp = false,
+  notifyClienteWhatsApp = true,
+  setNotifyClienteWhatsApp
 }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
@@ -183,14 +189,48 @@ export function ContratoAbaDiario({
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              variant="primary" 
-              className="w-full"
-              disabled={createDiarioMutation.isPending || uploadRdoFotoMutation.isPending}
-            >
-              Registrar Diário
-            </Button>
+            {/* Notify toggle + Submit */}
+            <div className="space-y-3 pt-1">
+              {setNotifyClienteWhatsApp && (
+                <label className="flex items-start gap-3 cursor-pointer group select-none">
+                  <div className="relative mt-0.5 shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={notifyClienteWhatsApp}
+                      onChange={(e) => setNotifyClienteWhatsApp(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-4 h-4 rounded border border-white/20 bg-black/30 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                      {notifyClienteWhatsApp && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="black" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors flex items-center gap-1.5">
+                      <MessageCircle size={12} className="text-emerald-400" />
+                      Notificar cliente no WhatsApp ao salvar
+                    </span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
+                      {clienteTemWhatsApp
+                        ? 'Cliente tem WhatsApp cadastrado — pré-visualizar antes de enviar'
+                        : 'Nenhum telefone cadastrado para este cliente'}
+                    </span>
+                  </div>
+                </label>
+              )}
+
+              <Button
+                type="submit"
+                variant="primary"
+                className="w-full"
+                disabled={createDiarioMutation.isPending || uploadRdoFotoMutation.isPending}
+              >
+                Registrar Diário
+              </Button>
+            </div>
           </form>
         </Card>
       </div>

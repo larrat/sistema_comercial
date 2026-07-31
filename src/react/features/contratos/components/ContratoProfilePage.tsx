@@ -74,6 +74,7 @@ export function ContratoProfilePage() {
   const [newDiarioClima, setNewDiarioClima] = useState<'ensolarado' | 'chuvoso' | 'nublado'>('ensolarado');
   const [newDiarioMaoDeObra, setNewDiarioMaoDeObra] = useState(1);
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [notifyClienteWhatsApp, setNotifyClienteWhatsApp] = useState(true);
 
   // WhatsApp Bulletin Modal State
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
@@ -230,7 +231,9 @@ export function ContratoProfilePage() {
     },
     onSuccess: (newDiario) => {
       refetchDiarios();
-      handleOpenRdoWhatsAppModal(newDiario);
+      if (notifyClienteWhatsApp) {
+        handleOpenRdoWhatsAppModal(newDiario);
+      }
       setNewDiarioTitle('');
       setNewDiarioRelatorio('');
       setUploadedPhotos([]);
@@ -546,6 +549,9 @@ export function ContratoProfilePage() {
             uploadRdoFotoMutation={uploadRdoFotoMutation}
             createDiarioMutation={createDiarioMutation}
             onOpenWhatsAppModal={handleOpenRdoWhatsAppModal}
+            clienteTemWhatsApp={!!(contrato?.cliente as any)?.whatsapp || !!(contrato?.cliente as any)?.tel}
+            notifyClienteWhatsApp={notifyClienteWhatsApp}
+            setNotifyClienteWhatsApp={setNotifyClienteWhatsApp}
           />
         )}
 
