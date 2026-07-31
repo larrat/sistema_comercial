@@ -1,3 +1,5 @@
+DROP VIEW IF EXISTS public.v_sugestao_compras CASCADE;
+
 CREATE OR REPLACE VIEW public.v_sugestao_compras AS
 WITH vendas_recentes AS (
     SELECT 
