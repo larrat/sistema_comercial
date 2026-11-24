@@ -276,9 +276,10 @@ describe('contratosApi reforms extensions', () => {
 
   describe('Milestone Notification Integration', () => {
     it('should queue a WhatsApp campaign log when faturando milestone', async () => {
-      fetchMock.mockImplementation(async (url) => {
+      fetchMock.mockImplementation(async (url, init) => {
         if (url.toString().includes('contas_receber')) {
-          return new Response(JSON.stringify([{ id: 'cr1' }]), { status: 201 });
+          const inserted = init?.method === 'POST';
+          return new Response(JSON.stringify(inserted ? [{ id: 'cr1' }] : []), { status: inserted ? 201 : 200 });
         }
         if (url.toString().includes('clientes')) {
           return new Response(JSON.stringify([{ tel: '11999999999', whatsapp: '11988888888' }]), { status: 200 });
@@ -303,6 +304,37 @@ describe('contratosApi reforms extensions', () => {
         expect.objectContaining({
           method: 'POST',
           body: expect.stringContaining('Roberto')
+        })
+      );
+    });
+    it('reuses an existing charge for the same milestone without queuing another notification', async () => {
+      fetchMock.mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'old-charge' }])));
+
+      await contratosApi.faturarMarcoCronograma(ctx, {
+        contratoId: 'c1', cronogramaId: 'f1', clienteId: 'cli1',
+        clienteNome: 'Roberto', valor: 5000, tituloFase: 'Fundação'
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.mock.calls[0][0]).toContain('cronograma_id=eq.f1');
+    });
+
+    it('keeps a concurrent charge intact and only notifies after a new insert', async () => {
+      fetchMock
+        .mockResolvedValueOnce(new Response('[]'))
+        .mockResolvedValueOnce(new Response('[]', { status: 201 }));
+
+      await contratosApi.faturarMarcoCronograma(ctx, {
+        contratoId: 'c1', cronogramaId: 'f1', clienteId: 'cli1',
+        clienteNome: 'Roberto', valor: 5000, tituloFase: 'Fundação'
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        'https://example.supabase.co/rest/v1/contas_receber?on_conflict=id',
+        expect.objectContaining({
+          body: expect.stringContaining('"id":"CR-MARCO-f1"'),
+          headers: expect.objectContaining({ Prefer: 'resolution=ignore-duplicates,return=representation' })
         })
       );
     });

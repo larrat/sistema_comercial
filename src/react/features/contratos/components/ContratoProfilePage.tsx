@@ -84,10 +84,10 @@ export function ContratoProfilePage() {
   const { data: contrato, isLoading: isLoadingContrato, refetch: refetchContrato } = useContratoDetail(id);
   
   // 2. Fetch Ordens de Serviço
-  const { data: ordensServico = [], refetch: refetchOS } = useOrdensServicoData(id);
+  const { data: ordensServico = [], isSuccess: ordensServicoCarregadas, refetch: refetchOS } = useOrdensServicoData(id);
 
   // 3. Fetch Aditivos
-  const { data: aditivos = [], refetch: refetchAditivos } = useQuery({
+  const { data: aditivos = [], isSuccess: aditivosCarregados, refetch: refetchAditivos } = useQuery({
     queryKey: ['contrato-aditivos', id, filialId],
     queryFn: () => {
       const context = resolve();
@@ -132,13 +132,13 @@ export function ContratoProfilePage() {
 
   // 6. Fetch Rentabilidade from View
   const { data: rentabilidade } = useQuery({
-    queryKey: ['contrato-rentabilidade', id],
+    queryKey: ['contrato-rentabilidade', id, filialId],
     queryFn: () => {
       const context = resolve();
       if (!context || !id) throw new Error('API context not ready');
       return contratosApi.getContratoRentabilidade(context, id);
     },
-    enabled: !!id
+    enabled: !!id && !!filialId
   });
 
   // 6.5 Fetch Purchases to list on the table (macro level for now)
@@ -176,13 +176,13 @@ export function ContratoProfilePage() {
   const totalMaoDeObraTerceiros = useMemo(() => {
     return ordensServico
       .filter(os => os.status === 'concluida')
-      .reduce((acc, os) => acc + (os.valor_parceiro || 0), 0);
+      .reduce((acc, os) => acc + Number(os.valor_parceiro ?? 0), 0);
   }, [ordensServico]);
 
-  const valorContratadoTotal = (contrato?.valor_total || 0) + totalAditivos;
-  const totalCustosReal = totalInsumos + totalMaoDeObraTerceiros;
-  const margemRealEst = valorContratadoTotal - totalCustosReal;
-  const pacingPercentual = valorContratadoTotal > 0 ? (totalCustosReal / valorContratadoTotal) * 100 : 0;
+  const valorContratadoTotal = Number(contrato?.valor_total ?? 0) + totalAditivos;
+  const custosDisponiveis = rentabilidade?.custo_material != null && ordensServicoCarregadas;
+  const custosApurados = custosDisponiveis ? Number(totalInsumos) + totalMaoDeObraTerceiros : null;
+  const valorContratadoApurado = aditivosCarregados ? valorContratadoTotal : null;
 
   // Mutations
   const createAditivoMutation = useMutation({
@@ -559,10 +559,8 @@ export function ContratoProfilePage() {
         {activeTab === 'financeiro' && (
           <ContratoAbaFinanceiro 
             contrato={contrato}
-            valorContratadoTotal={valorContratadoTotal}
-            totalCustosReal={totalCustosReal}
-            margemRealEst={margemRealEst}
-            pacingPercentual={pacingPercentual}
+            valorContratadoTotal={valorContratadoApurado}
+            custosApurados={custosApurados}
             despesasApropriadas={despesasApropriadas}
             totalMaoDeObraTerceiros={totalMaoDeObraTerceiros}
             ordensServico={ordensServico}

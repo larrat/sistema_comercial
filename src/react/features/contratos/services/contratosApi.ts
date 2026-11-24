@@ -337,8 +337,21 @@ export const contratosApi = {
       tituloFase: string;
     }
   ): Promise<void> {
-    const id = `CR-${params.cronogramaId.substring(0, 8)}-${Date.now().toString().substring(8)}`;
-    
+    const filtroMarco = new URLSearchParams({
+      filial_id: `eq.${ctx.filialId}`,
+      contrato_id: `eq.${params.contratoId}`,
+      cronograma_id: `eq.${params.cronogramaId}`,
+      select: 'id',
+      limit: '1'
+    });
+    const cobrancaExistente = await fetch(`${ctx.url}/rest/v1/contas_receber?${filtroMarco}`, {
+      headers: headers(ctx)
+    });
+    if (!cobrancaExistente.ok) throw new Error('Erro ao consultar cobrança do marco');
+    if ((await cobrancaExistente.json()).length > 0) return;
+
+    const id = `CR-MARCO-${params.cronogramaId}`;
+
     const vencimentoDate = new Date();
     vencimentoDate.setDate(vencimentoDate.getDate() + 15);
     const vencimento = vencimentoDate.toISOString().split('T')[0];
@@ -356,18 +369,17 @@ export const contratosApi = {
       obs: `Faturamento automático da fase "${params.tituloFase}" da obra.`
     };
 
-    const res = await fetch(`${ctx.url}/rest/v1/contas_receber`, {
+    const res = await fetch(`${ctx.url}/rest/v1/contas_receber?on_conflict=id`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        apikey: ctx.key,
-        Authorization: `Bearer ${ctx.token}`,
-        'Prefer': 'resolution=merge-duplicates'
+        ...headers(ctx),
+        Prefer: 'resolution=ignore-duplicates,return=representation'
       },
       body: JSON.stringify(body)
     });
 
     if (!res.ok) throw new Error('Erro ao faturar marco físico do cronograma');
+    if ((await res.json()).length === 0) return;
 
     // Régua de Notificação de Faturamento (Cenário C)
     if (params.clienteId) {
