@@ -2,6 +2,10 @@
 
 Aplicacao SPA browser-first com runtime modular no front, Edge Functions no Supabase e suite minima de smoke/E2E em evolucao.
 
+## Case de portfólio
+
+[Cancelamento de venda com estorno de estoque e recebíveis](docs/portfolio/nexus-cancelamento.md): demonstração com dados fictícios e teste local da rotina SQL versionada.
+
 ## Estrutura principal
 
 - `src/app/`
@@ -33,8 +37,9 @@ npm run test:e2e:setup-filial
 npm run test:e2e:bootstrap-filial
 npm run test:e2e:onda-b
 npm run test:e2e:fase-2
-npm run test:e2e:fase-erp
 ```
+
+Para conferir o fluxo de cancelamento sem credenciais nem servidor, use o [teste isolado do case Nexus](docs/portfolio/nexus-cancelamento.md#reproduzir-localmente). Ele não substitui os testes E2E da aplicação.
 
 ## TypeScript gradual
 
@@ -44,6 +49,7 @@ npm run test:e2e:fase-erp
 - escopo atual da checagem: `src/` (front)
 
 ## Pilares ERP Recentes
+
 - **Governança Tributária**: Motor de impostos centralizado (ICMS, PIS, COFINS, IBPT) com regras por NCM e UF.
 - **RPA XML Automático**: Entrada híbrida de NFe, alimentando Kardex de estoque e gerando as Contas a Pagar no financeiro de forma transacional.
 - **Integridade Transacional (Cancelamentos)**: Rotinas reforçadas com _Row Level Security (RLS)_ e sync bidirecional entre módulos de Vendas, Estoque e Recebíveis.
@@ -53,4 +59,3 @@ npm run test:e2e:fase-erp
 - `test-results/` e `node_modules/` sao artefatos gerados.
 - A entrada atual da documentação é `docs/README.md`.
 - O snapshot mais recente do estado do sistema de arquitetura ERP é `docs/status/FASE_ERP_RELATORIO.md`.
-
