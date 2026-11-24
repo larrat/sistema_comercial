@@ -16,6 +16,18 @@ O sistema já tem cadastro de projetos, contratos, cronograma por fase, diário 
 4. **Mudanças e medições.** Registrar solicitação, impacto em custo e prazo, evidências e aprovação do cliente. Vincular as medições às etapas e ao faturamento para acompanhar o saldo a medir.
 5. **Entrega e pós-obra.** Concentrar pendências de vistoria, aceite, documentação final e garantias com responsável e prazo.
 
+### Vínculos e automações da obra
+
+| Fluxo | Como funciona hoje | Próximo ajuste |
+| --- | --- | --- |
+| Projeto → levantamento, orçamento e pedido de venda | O perfil oferece atalhos que passam o projeto ao novo registro. | Destacar o projeto de origem e oferecer seleção quando o registro for iniciado pelo módulo geral. |
+| Orçamento aprovado → contrato | A aprovação tenta criar um contrato e grava seu vínculo no orçamento. O contrato também pode nascer pelo CRM. | Exigir cliente cadastrado, permitir vincular um contrato existente e tornar a aprovação transacional e idempotente. Exibir os contratos no perfil do projeto. |
+| Contrato → cronograma, diário e documentos | Esses registros são criados no contexto do contrato. | Abrir esses módulos pelo perfil do projeto e herdar a etapa quando o registro começar no cronograma. |
+| Compra → custo da obra | O formulário de compra oferece vínculo com contrato. A apuração também admite apropriação por item. | Herdar o contrato quando a compra começar pela obra e oferecer centro de custo e etapa por item, com fila de compras sem classificação. |
+| Marco concluído → contas a receber | O usuário confirma o faturamento no cronograma. A ação reutiliza uma cobrança já registrada e protege novas tentativas concorrentes pela chave do marco. | Adotar vencimento do contrato, conciliar a baixa com os indicadores e registrar o envio de notificação em uma fila transacional. |
+
+O cadastro do projeto deve manter a obra pronta para receber documentos e orçamento. A aprovação comercial é o ponto para criar ou vincular o contrato, e a confirmação da medição é o ponto para gerar a cobrança. Antes de ativar essa sequência, revisar contratos e clientes criados por caminhos paralelos com base em seus vínculos de origem.
+
 ## 🟢 Status de Bloqueios Críticos
 - [x] **Erros de Typecheck (`npm run typecheck`):** **0 pendências.** Todo o projeto TypeScript compila de forma limpa.
 - [x] **Falhas nos Testes Unitários (`npm run test:react`):** **0 pendências.** Todos os 160 testes React passam com sucesso.
