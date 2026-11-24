@@ -5,10 +5,8 @@ import { fmtBRL } from '../../../../shared/lib/formatters';
 
 type Props = {
   contrato: any;
-  valorContratadoTotal: number;
-  totalCustosReal: number;
-  margemRealEst: number;
-  pacingPercentual: number;
+  valorContratadoTotal: number | null;
+  custosApurados: number | null;
   despesasApropriadas: any[];
   totalMaoDeObraTerceiros: number;
   ordensServico: any[];
@@ -23,9 +21,7 @@ type Props = {
 export function ContratoAbaFinanceiro({
   contrato,
   valorContratadoTotal,
-  totalCustosReal,
-  margemRealEst,
-  pacingPercentual,
+  custosApurados,
   despesasApropriadas,
   totalMaoDeObraTerceiros,
   ordensServico,
@@ -36,6 +32,14 @@ export function ContratoAbaFinanceiro({
   handleAddAditivo,
   aditivos
 }: Props) {
+  const saldo = valorContratadoTotal != null && custosApurados != null
+    ? valorContratadoTotal - custosApurados
+    : null;
+  const percentual = custosApurados != null && valorContratadoTotal != null && valorContratadoTotal > 0
+    ? (custosApurados / valorContratadoTotal) * 100
+    : null;
+  const acimaDoContrato = saldo != null && saldo < 0;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
       <div className="lg:col-span-2 space-y-6">
@@ -53,39 +57,42 @@ export function ContratoAbaFinanceiro({
               <span className="text-base font-extrabold text-white">{fmtBRL(contrato.valor_total)}</span>
             </div>
             <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight block">Receita Total</span>
-              <span className="text-base font-extrabold text-white">{fmtBRL(valorContratadoTotal)}</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight block">Contratado com aditivos</span>
+              <span className="text-base font-extrabold text-white">
+                {valorContratadoTotal == null ? 'Indisponível' : fmtBRL(valorContratadoTotal)}
+              </span>
             </div>
             <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5">
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight block">Custos Totais</span>
-              <span className="text-base font-extrabold text-rose-400">{fmtBRL(totalCustosReal)}</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight block">Custos mapeados</span>
+              <span className="text-base font-extrabold text-rose-400">
+                {custosApurados == null ? 'Indisponível' : fmtBRL(custosApurados)}
+              </span>
             </div>
-            <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-              <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-tight block">Margem Estimada</span>
-              <span className="text-base font-black text-emerald-400">{fmtBRL(margemRealEst)}</span>
+            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight block">Saldo após custos mapeados</span>
+              <span className={`text-base font-extrabold ${acimaDoContrato ? 'text-rose-400' : 'text-white'}`}>
+                {saldo == null ? 'Indisponível' : fmtBRL(saldo)}
+              </span>
             </div>
           </div>
 
-          {/* Progress costs pacing */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-slate-400 uppercase">Pacing de Custo sobre Receita</span>
-              <span className={`${pacingPercentual > 75 ? 'text-rose-400' : 'text-teal-400'}`}>{pacingPercentual.toFixed(1)}% consumido</span>
-            </div>
-            <div className="h-3 bg-black/40 rounded-full overflow-hidden relative">
-              <div 
-                className={`h-full rounded-full transition-all duration-500 ${
-                  pacingPercentual > 75 ? 'bg-gradient-to-r from-rose-500 to-red-600' : 'bg-gradient-to-r from-teal-500 to-emerald-500'
-                }`}
-                style={{ width: `${Math.min(100, pacingPercentual)}%` }}
-              />
-            </div>
-            {pacingPercentual > 75 && (
-              <div className="flex items-center gap-1.5 text-[10px] text-rose-400 font-bold uppercase mt-1">
-                <AlertTriangle size={12} /> Alerta: Custos físicos excederam 75% da receita orçada!
-              </div>
-            )}
-          </div>
+          <p className="text-xs text-slate-400">
+            O cálculo inclui materiais vinculados a pedidos de compra não cancelados e repasses de
+            ordens de serviço concluídas. O saldo ainda pode ser consumido por custos futuros,
+            impostos e outras despesas da obra.
+          </p>
+          {percentual != null && (
+            <p className="text-xs text-slate-300">
+              <strong>{percentual.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%</strong> do
+              valor contratado corresponde a custos mapeados.
+            </p>
+          )}
+          {acimaDoContrato && (
+            <p className="flex items-center gap-1.5 text-xs font-bold text-rose-400">
+              <AlertTriangle size={14} aria-hidden="true" />
+              Os custos mapeados já superam o valor contratado.
+            </p>
+          )}
         </div>
 
         {/* List of Appropriated Costs */}

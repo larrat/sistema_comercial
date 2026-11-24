@@ -6,6 +6,16 @@ Este documento centraliza as pendências não-impeditivas e sugestões de automa
 
 ---
 
+## Prioridades para controle de reformas
+
+O sistema já tem cadastro de projetos, contratos, cronograma por fase, diário de obra com fotos, aditivos, documentos e apropriação de compras e repasses. A aba Financeiro do contrato apresenta os custos mapeados e o saldo sobre o valor contratado.
+
+1. **Orçamento e centros de custo.** Registrar o orçamento-base por etapa e natureza do custo (materiais, mão de obra própria, terceiros, equipamentos e indiretos). Vincular compras, despesas e apontamentos a obra e etapa. Permitir rateio e destacar lançamentos sem classificação.
+2. **Custo e resultado.** Mostrar orçamento, custo comprometido, custo incorrido e estimativa para concluir. Conciliar compras, apropriações e pagamentos para evitar duplicidade. Comparar a margem prevista com a estimada ao término e apresentar faturado e recebido em indicadores separados.
+3. **Diário de obra (RDO).** Registrar a data da execução separada da data de lançamento, etapa, equipe e horas, serviços e quantidades, materiais recebidos, impedimentos, ocorrências e fotos. Permitir revisão, aprovação e exportação pelo responsável.
+4. **Mudanças e medições.** Registrar solicitação, impacto em custo e prazo, evidências e aprovação do cliente. Vincular as medições às etapas e ao faturamento para acompanhar o saldo a medir.
+5. **Entrega e pós-obra.** Concentrar pendências de vistoria, aceite, documentação final e garantias com responsável e prazo.
+
 ## 🟢 Status de Bloqueios Críticos
 - [x] **Erros de Typecheck (`npm run typecheck`):** **0 pendências.** Todo o projeto TypeScript compila de forma limpa.
 - [x] **Falhas nos Testes Unitários (`npm run test:react`):** **0 pendências.** Todos os 160 testes React passam com sucesso.
